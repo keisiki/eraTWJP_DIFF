@@ -59,75 +59,86 @@ PRINTL □----------------------------------------------------------------------
 PRINTL  
 IF !TFLAG:169
 PRINTFORML 性格：%PERSONALITY_TYPE(選択中キャラID)%
-IF 選択中キャラID == MASTER
-	IF CFLAG:MASTER:睡眠
-		PRINTFORML 昨日の就寝時刻：%時刻表示(CFLAG:MASTER:就寝時間 - DAY * 1440)%
+	IF 選択中キャラID == MASTER
+		IF CFLAG:MASTER:睡眠
+			PRINTFORML 昨日の就寝時刻：%時刻表示(CFLAG:MASTER:就寝時間 - DAY * 1440)%
+		ELSE
+			PRINTFORML 昨日の就寝時刻：%時刻表示(CFLAG:MASTER:就寝時間 + 1440 - DAY * 1440)%
+		ENDIF
+		PRINTFORML 起床時刻：%時刻表示(TIME:3)%
+		IF FLAG:地主
+			PRINTFORML 
+			CALL SHOW_NOUMIN
+		ENDIF
+		IF TRAP_POINT:1 || TRAP_POINT:2 || TRAP_POINT:3
+			PRINTL 
+			PRINTFORML ◆罠の設置状況
+			FOR LOCAL, 1, 4
+				IF TRAP_POINT:LOCAL
+					PRINTFORML 　罠{LOCAL}の設置場所：%猟場名(TRAP_POINT:LOCAL)%
+					PRINTFORML 　　 　　設置日：%PRINT_DATE_F(TRAP_SETUPDATA:LOCAL)%
+				ENDIF
+			NEXT
+		ENDIF
+		IF MUSHI_TRAP
+			PRINTFORML ◆虫トラップの設置状況
+			PRINTFORML 　 　　設置場所：%NAME_FROM_PLACE((GET_MUSHIDATA(MUSHI_TRAP, "場所")))%（%STR:((GET_MUSHIDATA(MUSHI_TRAP, "場所")) / 100 + 5000)%）
+		ENDIF
 	ELSE
-		PRINTFORML 昨日の就寝時刻：%時刻表示(CFLAG:MASTER:就寝時間 + 1440 - DAY * 1440)%
+		PRINT 活動時間帯:
+		IF CFLAG:選択中キャラID:神社在住 || CFLAG:MASTER:現在位置 == OMANEKIBEYA()
+			CALL 起床時間表示(選択中キャラID)
+		ELSE
+			CALL 滞在時間表示(選択中キャラID)
+		ENDIF
+		IF CFLAG:選択中キャラID:よく行く地域 >= 0
+			PRINTFORML よく行く地域：%GET_MAPNAME(CFLAG:選択中キャラID:よく行く地域)%
+		ENDIF
+		IF CFLAG:選択中キャラID:自宅位置 >= 10 && !CFLAG:選択中キャラID:神社在住
+			PRINT 自宅位置：
+			LOCAL = CFLAG:選択中キャラID:自宅位置 / 100 + 5000
+			PRINTFORM %STR:LOCAL% 
+			LOCAL = CFLAG:選択中キャラID:自宅位置 / 10 + 6000
+			PRINTFORML 【 %STR:LOCAL% 】
+		ELSEIF CFLAG:選択中キャラID:神社在住
+			PRINT 自宅位置：
+			LOCAL = CFLAG:選択中キャラID:自宅位置 / 100 + 5000
+			PRINTFORM %STR:LOCAL% 
+			LOCAL = CFLAG:選択中キャラID:初期位置 + 8000
+			PRINTFORML 【 %STR:LOCAL% 】
+		ELSE
+			PRINTL 自宅位置：■■■■■ 【 ■■■■■ 】
+		ENDIF
+		PRINT 仕事情報：
+		PRINTFORML %CSTR:選択中キャラID:仕事情報%
+		PRINT 　職場　：
+		IF TALENT:選択中キャラID:風俗嬢
+			PRINTFORML 旧地獄温泉
+		ELSE
+			PRINTFORML %CSVCSTR(選択中キャラID, 2)%
+		ENDIF
 	ENDIF
-	PRINTFORML 起床時刻：%時刻表示(TIME:3)%
-	IF FLAG:地主
-		PRINTFORML 
-		CALL SHOW_NOUMIN
-	ENDIF
-	IF TRAP_POINT:1 || TRAP_POINT:2 || TRAP_POINT:3
-		PRINTL 
-		PRINTFORML ◆罠の設置状況
-		FOR LOCAL, 1, 4
-			IF TRAP_POINT:LOCAL
-				PRINTFORML 　罠{LOCAL}の設置場所：%猟場名(TRAP_POINT:LOCAL)%
-				PRINTFORML 　　 　　設置日：%PRINT_DATE_F(TRAP_SETUPDATA:LOCAL)%
-			ENDIF
-		NEXT
-	ENDIF
-	IF MUSHI_TRAP
-		PRINTFORML ◆虫トラップの設置状況
-		PRINTFORML 　 　　設置場所：%NAME_FROM_PLACE((GET_MUSHIDATA(MUSHI_TRAP, "場所")))%（%STR:((GET_MUSHIDATA(MUSHI_TRAP, "場所")) / 100 + 5000)%）
-	ENDIF
-ELSE
-	PRINT 活動時間帯:
-	IF CFLAG:選択中キャラID:神社在住 || CFLAG:MASTER:現在位置 == OMANEKIBEYA()
-		CALL 起床時間表示(選択中キャラID)
-	ELSE
-		CALL 滞在時間表示(選択中キャラID)
-	ENDIF
-	IF CFLAG:選択中キャラID:よく行く地域 >= 0
-		PRINTFORML よく行く地域：%GET_MAPNAME(CFLAG:選択中キャラID:よく行く地域)%
-	ENDIF
-	IF CFLAG:選択中キャラID:自宅位置 >= 10 && !CFLAG:選択中キャラID:神社在住
-		PRINT 自宅位置：
-		LOCAL = CFLAG:選択中キャラID:自宅位置 / 100 + 5000
-		PRINTFORM %STR:LOCAL% 
-		LOCAL = CFLAG:選択中キャラID:自宅位置 / 10 + 6000
-		PRINTFORML 【 %STR:LOCAL% 】
-	ELSEIF CFLAG:選択中キャラID:神社在住
-		PRINT 自宅位置：
-		LOCAL = CFLAG:選択中キャラID:自宅位置 / 100 + 5000
-		PRINTFORM %STR:LOCAL% 
-		LOCAL = CFLAG:選択中キャラID:初期位置 + 8000
-		PRINTFORML 【 %STR:LOCAL% 】
-	ELSE
-		PRINTL 自宅位置：■■■■■ 【 ■■■■■ 】
-	ENDIF
-	PRINT 仕事情報：
-	PRINTFORML %CSTR:選択中キャラID:仕事情報%
-	PRINT 　職場　：
-	PRINTFORML %CSVCSTR(選択中キャラID, 2)%
-ENDIF
 ENDIF
 PRINTL 　
 IF 選択中キャラID == RANDOM_CHARANUM
 	;現状、複雑な種族分岐などは無しで
 	PRINTL □ キャラ紹介 □---------------------------------------------------------------------
 	PRINTL 
-	PRINTFORML ～モブ%CSTR:選択中キャラID:モブ子種族%～　●能力：%CSTR:RANDOM_CHARANUM:モブ子能力%
+	PRINTFORML ～\@ TALENT:選択中キャラID:風俗嬢 ? # モブ \@%CSTR:選択中キャラID:モブ子種族%～　●能力：%CSTR:RANDOM_CHARANUM:モブ子能力%
 	PRINTFORML %CSTR:RANDOM_CHARANUM:モブ子プロフィール１%
 	PRINTFORML %CSTR:RANDOM_CHARANUM:モブ子プロフィール２%
 ELSEIF CSVCSTR(選択中キャラID, 10) != ""
 	PRINTL □ キャラ紹介 □---------------------------------------------------------------------
 	PRINTL 
 	;キャラ紹介文を口上の展開によって改変したい場合「@CHARA_INFO_KOJO_KX」を使用する
-	TRYCALLFORM CHARA_INFO_KOJO_K{選択中キャラID}
+	RESULTS =
+	;口上の存在判定 and RESULTSに文字列代入
+	IF CFLAG:選択中キャラID:口上セレクタ
+		TRYCALLFORM M_KOJO_K{選択中キャラID}_{CFLAG:選択中キャラID:口上セレクタ}
+	ELSE
+		TRYCALLFORM M_KOJO_K{選択中キャラID}
+	ENDIF
+	TRYCALLFORM CHARA_INFO_KOJO%RESULTS%_K{選択中キャラID}
 	IF !RESULT
 		FOR LOCAL,10,20
 			SIF CSVCSTR(選択中キャラID, LOCAL) != ""
