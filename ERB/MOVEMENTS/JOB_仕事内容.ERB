@@ -657,8 +657,27 @@ CASE [[パルスィ]]
 		TCVAR:ARG:給料 = 2
 	ENDIF
 CASE [[輝夜]]
-	;姫様は毎日盆栽の世話。うふふでサボる。
-	IF !CFLAG:ARG:うふふ
+	IF (DAY:2 == 3 && DAY:3 == 14)
+	;高給でお礼は高級品。
+		MAXBASE:ARG:仕事量 = 600 * 6
+		TCVAR:ARG:仕事開始 = CLOCK_TO_TIME(13, 0)
+		TCVAR:ARG:仕事終了 = CLOCK_TO_TIME(19, 0)
+		CFLAG:ARG:職場 = 401
+		CFLAG:ARG:職種 = 43
+		TCVAR:ARG:給料 = 5
+		TCVAR:ARG:手伝えない = 2
+		SELECTCASE RAND:4
+			CASE 3
+				TCVAR:ARG:お礼 = GETNUM(ITEM, "仙香玉兎")
+			CASE 2
+				TCVAR:ARG:お礼 = GETNUM(ITEM, "賢者の石")
+			CASE 1
+				TCVAR:ARG:お礼 = GETNUM(ITEM, "エリクサー")
+			CASE 0
+				TCVAR:ARG:お礼 = GETNUM(ITEM, "キング・クリムゾン")
+		ENDSELECT
+	ELSEIF !CFLAG:ARG:うふふ
+	;姫様は基本的に毎日盆栽の世話。うふふでサボる。
 		MAXBASE:ARG:仕事量 = 600
 		TCVAR:ARG:仕事開始 = CLOCK_TO_TIME(13, 0)
 		TCVAR:ARG:仕事終了 = CLOCK_TO_TIME(14, 0)
@@ -796,11 +815,14 @@ CASE [[雛]]
 			CASE 712 TO 730
 				CONTINUE
 		ENDSELECT
-		IF YOGORE:LOCAL > 1000
-			CFLAG:ARG:職場 = LOCAL
-			お掃除 = 1
-		ENDIF
+		SIF YOGORE:LOCAL > 1000
+			お掃除 = LOCAL
 	NEXT
+	IF !お掃除
+		CFLAG:ARG:職場 = 701
+	ELSE
+		CFLAG:ARG:職場 = お掃除
+	ENDIF
 	IF FESTIVAL() == "雛祭り"
 		MAXBASE:ARG:仕事量 = 600 * 10
 		TCVAR:ARG:仕事開始 = CLOCK_TO_TIME( 7, 0)
@@ -1352,7 +1374,11 @@ CASE [[小悪魔]]
 CASE [[パルスィ]]
 	LOCALS = 橋の見張り
 CASE [[輝夜]]
-	LOCALS = 盆栽の世話
+	IF (DAY:2 == 3 && DAY:3 == 14)
+		LOCALS = 月都万象展の司会
+	ELSE
+		LOCALS = 盆栽の世話
+	ENDIF
 CASE [[勇儀]]
 	LOCALS = 酒飲み
 CASE [[椛]]

@@ -53,9 +53,12 @@ ENDSELECT
 
 ;-------------------------------------------------
 ;依頼受託
+;21/08/25 受諾時に一部依頼内容を表示するように変更
 ;-------------------------------------------------
 @IRAI_START(CHARA)
 #DIM CHARA
+#DIM 受諾		;受託依頼が入ったスロット番号
+#DIM 依頼ＩＤ	;依頼自体のID
 ;依頼提示時
 PRINTFORMW どうやら%CALLNAME:CHARA%は%CALLNAME:MASTER%に頼み事があるようだ
 CALL SHOW_IRAI_MESSAGE(CHARA, CFLAG:CHARA:依頼内容, "依頼提示時")
@@ -67,8 +70,30 @@ IF RESULT
 	PRINTFORMW %CALLNAME:CHARA%は残念そうな顔をしている
 	RETURN -1
 ELSE
+	受諾 = SEARCH_IRAI_EMPTY()
 	CALL SET_IRAI_SLOT(CHARA)
-	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:CHARA%の依頼を受けた
+	依頼ＩＤ = (CFLAG:CHARA:依頼内容) % 1000
+	PRINTFORML %CALLNAME:MASTER%は%CALLNAME:CHARA%の依頼を受けた
+	SELECTCASE IRAI_SLOT_TO_TASKNAME(受諾)
+		CASE "伝令（人物）"
+			;固有依頼は提示済なのでカット
+			SIF 依頼ＩＤ < 100
+				PRINTFORML %CALLNAME:(IRAI_SLOT_TO_PERSON(受諾))%宛の手紙を受け取った
+		CASE "捜索（人物）"
+			IF 依頼ＩＤ == 9
+				PRINTFORML %CALLNAME:CHARA%から落とし物を預かった
+				PRINTFORM 品物の特徴：
+			ELSE
+				PRINTFORM 手がかり：
+			ENDIF
+			CALL SHOW_IRAI_HINT("捜索（人物）", IRAI_SLOT_TO_PERSON(受諾), IRAI_SUB:受諾)
+		CASE "捜索（場所）"
+			PRINTFORM 手がかり：
+			CALL SHOW_IRAI_HINT("捜索（場所）", IRAI_SLOT_TO_PLACE(受諾), IRAI_SUB:受諾)
+		CASE "討伐"
+			PRINTFORML 弾幕勝負の相手は%CALLNAME:(IRAI_SLOT_TO_PERSON(受諾))%だ
+	ENDSELECT
+	WAIT
 	CALL SHOW_IRAI_MESSAGE(CHARA, CFLAG:CHARA:依頼内容, "依頼受託時")
 	RETURN 1
 ENDIF

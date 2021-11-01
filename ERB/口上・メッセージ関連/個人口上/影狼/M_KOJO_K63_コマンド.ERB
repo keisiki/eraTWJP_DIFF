@@ -121,7 +121,17 @@ RETURN 1
 ;302,スキンシップ
 ;==================================================
 @M_KOJO_MESSAGE_COM_K63_302
-CALL TRAIN_MESSAGE
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+IF TCVAR:発情
+	IF TALENT:恋慕
+		TFLAG:192 = 1
+	ELSE
+		TFLAG:192 = -1
+	ENDIF
+ELSE
+	CALL TRAIN_MESSAGE
+ENDIF
 CALL M_KOJO_MESSAGE_COM_K63_302_1
 RETURN RESULT
 
@@ -137,23 +147,49 @@ IF LOCAL && !FLAG:70
 		PRINTFORMW 「あ、ごめん…いきなりで驚いただけよ……」
 		SIF TALENT:思慕
 			PRINTFORMW 「まぁ…%CALLNAME:MASTER%にだったら少しくらい……」
+		RETURN 1
+	ENDIF
 	
 	;恋慕（お風呂）
-	ELSEIF TALENT:恋慕 && (CFLAG:現在位置 == 13 || CFLAG:現在位置 == 30 || CFLAG:現在位置 == 39)
+	IF TALENT:恋慕 && BATHROOM()
 		PRINTFORMW 「背中流してくれるの？」
 		PRINTFORMW 「ありがとう……」
-		PRINTL
-		SELECTCASE RAND:3
-		CASE 0
-			PRINTFORMW 「そんな…まじまじと見ないでよ……」
-		CASE 1
-			PRINTFORMW 「あはっ♪くっ、くすぐったいわっ！ふふっ」
-		CASE 2
-			PRINTFORMW 「はい、じゃあ次は私が……」
-		ENDSELECT
-	
+		PRINTFORML 
+		PRINTFORMW 「%TEXTR("そんな…まじまじと見ないでよ……/あはっ♪くっ、くすぐったいわっ！ふふっ/はい、じゃあ次は私が……")%」
+		RETURN 1
+	ENDIF
+	IF TCVAR:発情
+		FONTBOLD
+		CALL HPH_PRINT,@"「ひゃん゛っっHPH」","W"
+		FONTREGULAR
+		IF TALENT:恋慕
+			CFLAG:溜まってる度 += 100
+			PALAM:TARGET:潤滑 += 500
+			BASE:TARGET:ムード += 500
+			PRINTFORMW 「ご、ごめんなさい……今触られるのは困るっていうか……その、嫌ってわけじゃ……」
+			PRINTFORMW （うう、%CALLNAME:MASTER%に触られるとカラダが交尾の準備しちゃう……）
+			IF TALENT:自己愛 >= 0
+				CFLAG:TARGET:同行 = 60
+				CFLAG:MASTER:同行 = 60
+				PRINTFORMW 「ほら……わかるでしょ？　ね、向こう行きましょ？」
+				PRINTFORMW %CALLNAME:TARGET%は%CALLNAME:MASTER%の袖を握りしめた
+			ENDIF
+		ELSEIF TALENT:思慕
+			PRINTFORMW 「ご、ごめんなさい……ちょっと今はそっとしておいて欲しいかなって……」
+		ELSE
+			PRINTFORMW 「ちょっと触らないでよ！離れて！」
+			CFLAG:ブチギレ = 1
+		ENDIF
+		CALL COLORMESSAGE(@"欲求不満が上がった",C_YELLOW,1)
+		CFLAG:溜まってる度 += 100
+		IF PALAM:TARGET:潤滑 < 3000
+			CALL COLORMESSAGE(@"潤滑が上がった",C_YELLOW,1)
+			PALAM:TARGET:潤滑 += 500
+		ENDIF
+		RETURN 1
+	ENDIF
 	;恋慕
-	ELSEIF TALENT:恋慕
+	IF TALENT:恋慕
 		CALL KAGEROU_SKINSHIP
 		SELECTCASE RESULT
 		;手を握る
@@ -724,14 +760,7 @@ LOCAL = 1
 IF LOCAL && !FLAG:70 
 	;寝てる時
 	IF CFLAG:睡眠
-		SELECTCASE RAND:3
-		CASE 0
-			PRINTFORMW 「ううん……%CALLNAME:MASTER%……」
-		CASE 1
-			PRINTFORMW 「ふぁ…%CALLNAME:MASTER%…た…すけ……」
-		CASE 2
-			PRINTFORMW 「ん……まだ……まだ…………」
-		ENDSELECT
+		PRINTFORMW 「%TEXTR(@"ううん……%CALLNAME:MASTER%……/ふぁ…%CALLNAME:MASTER%…た…すけ……/ん……まだ……まだ…………")%」
 	;添い寝
 	ELSEIF CFLAG:添い寝中
 		SELECTCASE RAND:3
@@ -1033,6 +1062,31 @@ LOCAL = 0
 ;-------------------------------------------------
 IF LOCAL && !FLAG:70 
 
+ENDIF
+RETURN 1
+
+;==================================================
+;331,お茶を淹れる（薬入り）
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K63_331
+;成否判定
+;TFLAG:192(-2=強制失敗(注、非コマンド終了）、-1＝強制失敗、0=COM依存、1=強制成功or大成功(注、睡眠薬アイスティーは眠気を感じていると飲まない)
+TFLAG:192 =-1
+
+@M_KOJO_MESSAGE_COM_K63_331
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K63_331_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K63_331_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 「ん～～？」
+	PRINTFORMW 「このお茶何か変なニオイするわよ」
 ENDIF
 RETURN 1
 ;==================================================
@@ -1722,14 +1776,7 @@ IF LOCAL && !FLAG:70
 		PRINTFORMW 「あら、お料理作ってくれたの？ありがとう」
 	;恋慕
 	ELSEIF TALENT:[[影狼]]:恋慕
-		SELECTCASE RAND:3
-		CASE 1
-			PRINTFORMW 「ウー…さっきからヨダレが……」
-		CASE 2
-			PRINTFORMW 「%CALLNAME:MASTER%と作った%DISHNAME%、楽しみだわ♪」
-		CASE 3
-			PRINTFORMW 「うんうん、なかなかの出来映えじゃない」
-		ENDSELECT
+		PRINTFORMW 「%TEXTR(@"ウー…さっきからヨダレが……/%CALLNAME:MASTER%と作った%DISHNAME%、楽しみだわ♪/うんうん、なかなかの出来映えじゃない")%」
 	;恋慕じゃない
 	ELSE
 		PRINTFORMW 「さて、お味はどうかしらね」
@@ -1848,6 +1895,47 @@ IF LOCAL && !FLAG:70
 ENDIF
 RETURN 1
 
+;==================================================
+;445,採集する
+;TFLAG:193(採集物のID, 0=『何も見つからなかった…』
+;TFLAG:194(今回採集した個数
+;==================================================
+@M_KOJO_MESSAGE_COM_K63_445
+CALL M_KOJO_MESSAGE_COM_K63_445_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K63_445_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORML 「%TEXTR("何？探し物？/ｸﾝｸﾝ……こっちかしら/んー、あんまり匂いがしないわね")%」
+	SIF !RAND:4
+	{
+		PRINTFORMW %TEXTR("野外で作業しているときの影狼は生き生きしていて、たまに野生動物的な格好良さを感じる/
+		影狼は悪路でも藪でもひょいひょい進んでいく/
+		「よっと」　影狼は惚れ惚れするような身のこなしで障害物を飛び越えた/
+		「ここ、ちょっと掘ってみるわね」　すごい勢いで穴を掘り始めた")%
+	}
+	CALL TRAIN_MESSAGE
+	IF !TFLAG:193 && (CFLAG:MASTER:今日の運勢 / 20 - 25 + TFLAG:幸運補正 * 10 < 0)
+		PRINTFORML 「今日は運が向いてないのかもね……」
+		RETURN 1
+	ENDIF
+	;低確率でオマケ獲得
+	IF TFLAG:193 && TALENT:採集Lv >= RAND:100
+		PRINTFORMW 「待って、あっちの方から同じ匂いがする！」
+		PRINTFORMW …
+		SETCOLOR 0x00FF00
+		PRINTFORMW 影狼がもうひとつ%ITEMNAME:(TFLAG:193)%を見つけてきた！
+		RESETCOLOR
+		ITEM:(TFLAG:193) ++
+		EXP:採集経験 ++
+		PRINTFORMW 「私と一緒でよかったでしょ？」
+	ENDIF
+ENDIF
+RETURN 1
 ;※※※※※※※※※※※※※※※※※※※※※※※※※
 ;デート系コマンド
 ;※※※※※※※※※※※※※※※※※※※※※※※※※
@@ -2093,7 +2181,7 @@ LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL && !FLAG:70 
 	;特売日
-	IF DAY % 7 == 0
+	IF !FLAG:日替わりイベント % 10
 		IF TALENT:恋慕
 			PRINTFORMW 「今日は特売日だったわね」
 			PRINTFORMW 「私もちゃんとお金、用意してきたわ♪」
@@ -2203,6 +2291,164 @@ IF LOCAL && !FLAG:70 && TALENT:恋慕
 	ENDSELECT
 ENDIF
 RETURN 1
+
+;==================================================
+;621,釣りをする
+;TFLAG:193(0=釣れない 1～4=魚 11～15=うまい魚 610=木材 131=守矢の守札 21=ローター 609=氷の鱗 606=龍の爪)
+;TFLAG:194(1000以上ならTARGETが釣った)
+;==================================================
+@M_KOJO_MESSAGE_COM_K63_621
+PRINTFORMW 「%TEXTR("釣りは割と得意よ/大物がかかるといいわね、姫ぐらいの/こうやって待つのも狩りのひとつね")%」
+CALL M_KOJO_MESSAGE_COM_K63_621_1
+RETURN RESULT
+
+;クラピ口上を参考に
+@M_KOJO_MESSAGE_COM_K63_621_1
+#DIM CHARA
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+;地の文をカットしてるのでMESSAGE処理を内蔵する
+IF LOCAL
+	;CALL M_KOJO_COLOR_K63
+	SELECTCASE TFLAG:193
+	;釣れない
+	CASE 0
+		PRINTFORMDW 何も釣れなかった……
+		PRINTFORMW 「%TEXTR("釣れないわねえ/ふわぁあ～～～")%……」
+		IF !RAND:4 && !GROUPMATCH(TIME:2, 1, 4, 5, 6)
+			PRINTFORML 「時間が悪いのかも」
+			PRINTFORML 「早朝と午後がいいみたいよ」
+		ELSEIF CFLAG:MASTER:今日の運勢 / 10 - 50 + TFLAG:幸運補正 * 10 < 0
+			PRINTFORML 「今日は運が向いてないのかもね……」
+		ENDIF
+		RETURN 1
+	;木片
+	CASE 610
+		IF TFLAG:194 > 1000
+			PRINTL 
+			PRINTFORMDL %CALLNAME:TARGET%が木片を釣った…
+			PRINTW
+			PRINTFORMW 「……要る？これ」
+		ELSE
+			PRINTFORMDL 木片が釣れた……
+			PRINTW 
+		ENDIF
+		RETURN 1
+	;紙切れ
+	CASE 131
+		IF TFLAG:194 > 1000
+			PRINTFORML 「なにかしら、これ」
+		ELSE
+			PRINTFORMDL 紙切れが釣れた
+		ENDIF
+		PRINTDW 
+		PRINTDL ┌─────────────┐
+		PRINTDL ｜　　　　　　　　　　　　　｜
+		PRINTDL ｜　　守矢の守札　　　　　　｜
+		PRINTDL ｜　　　　　　　　　　　　　｜
+		PRINTDL ｜　　五枚揃えると　　　　　｜
+		PRINTDL ｜　　　くじを一回引けます　｜
+		PRINTDL ｜　　　　　　　　　　　　　｜
+		PRINTDL ｜　ご利益は保証しかねます　｜
+		PRINTDL ｜　　　　　　　　　　　　　｜
+		PRINTDL ｜　　　　　　　　守矢神社　｜
+		PRINTDL └─────────────┘
+		PRINTW 
+		PRINTFORMW 「山の神社の何か？」
+		RETURN 1
+	CASE 1 TO 20, 22 TO 60
+		LOCALS = %FISH_NAME(TFLAG:193)%
+	CASE 21
+		LOCALS = ローター
+	CASEELSE
+		LOCALS = %ITEMNAME:(TFLAG:193)%
+	ENDSELECT
+	;影狼が釣った
+	IF TFLAG:194 > 1000
+		PRINTFORMW 「！」
+		PRINTFORMW 「きたわ！」
+		SELECTCASE LOCALS
+			CASE "ガーパイク", "カムルチー", "シーラカンス", "チョウザメ", "イトウ", "ピラルクー", "タキタロウ"
+				PRINTFORMW 「すごい引き！姫釣ったとき以来よ！」
+				PRINTFORMW 「%CALLNAME:MASTER%も手伝って！」
+		ENDSELECT
+		PRINTL 
+		PRINTFORMDL %CALLNAME:TARGET%が%LOCALS%を釣った！
+		RESETCOLOR
+		;説明を流す
+		SELECTCASE TFLAG:193
+		CASE 1 TO 20, 22 TO 60
+			DRAWLINE
+			PRINTFORML %LOCALS%
+			CALL FISHING_EXPLANATION(TFLAG:193)
+		CASE IS > 61
+			DRAWLINE
+			PRINTFORML %LOCALS%
+			PRINTFORML 　　%ITEM_EXPLANATION(TFLAG:193)%
+		ENDSELECT
+		PRINTW 
+	;MASTERが釣った
+	ELSE
+		PRINTFORMW 「%CALLNAME:MASTER%、引いてる引いてる！」
+		RESETCOLOR
+		PRINTFORMDL %LOCALS%が釣れた！
+		;ローター以降を弾いてサイズと漁獲数の処理
+		IF INRANGE(TFLAG:193, 1, 60) && TFLAG:193 != 21
+			;サイズの出力
+			LOCAL:1 = FISHING_SIZE(TFLAG:193)
+			PRINTFORML 　サイズ：{LOCAL:1}cm
+			;ここまでの最高サイズと比較して大きければ記録
+			IF LOCAL:1 > FISHSIZE_RECORD:(TFLAG:193)
+				SETCOLOR C_YELLOW
+				SIF FISH_EXP:(TFLAG:193)
+					PRINTFORML 　今まで釣った%LOCALS%の中でも最大サイズだ！
+				RESETCOLOR
+				FISHSIZE_RECORD:(TFLAG:193) = LOCAL:1
+			ENDIF
+			;漁獲数の加算
+			FISH_EXP:(TFLAG:193) ++
+		ENDIF
+		;説明を流す
+		SELECTCASE TFLAG:193
+		CASE 1 TO 20, 22 TO 60
+			DRAWLINE
+			PRINTFORML %LOCALS%
+			CALL FISHING_EXPLANATION(TFLAG:193)
+		CASE IS > 61
+			DRAWLINE
+			PRINTFORML %LOCALS%
+			PRINTFORML 　　%ITEM_EXPLANATION(TFLAG:193)%
+		ENDSELECT
+		PRINTW 
+		CALL M_KOJO_COLOR_K63
+	ENDIF
+	SELECTCASE TFLAG:193
+		CASE 11 TO 20, 24 TO 60
+			IF TIME_PROGRESS(TCVAR:MASTER:空腹時刻) && TIME_PROGRESS(TCVAR:TARGET:空腹時刻)
+				PRINTFORMW 「ね、%CALLNAME:MASTER%、お腹空かない？」
+				CALL ASK_YN("この場で食べる","食べない")
+				IF !RESULT
+					CALL PRINT_FACE, [[影狼]], "笑顔", "服", "", ""
+					PRINTFORMW 「やったぁ！」
+					PRINTFORMW 釣った%LOCALS%を焼いて食べた
+					CALL LOST_ITEM("うまい魚", 1, 1)
+					TCVAR:[[影狼]]:空腹時刻 = 1440 * DAY + TIME + 200
+					CALL RECOVER_PERMIL([[影狼]], 400, "体力", 0, "食事による回復")
+					CALL RECOVER_PERMIL([[影狼]], 400, "気力", 0, "食事による回復")
+					TCVAR:MASTER:空腹時刻 = 1440 * DAY + TIME + 200
+					CALL RECOVER_PERMIL(MASTER, 400, "体力", 0, "食事による回復")
+					CALL RECOVER_PERMIL(MASTER, 400, "気力", 0, "食事による回復")
+					CALL RECOVER_PERMIL(MASTER, 200, "精力", 0, "食事による回復")
+					TIME += 20
+					CFLAG:1004 += 3
+				ENDIF
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+
 ;==================================================
 ;660,読書
 ;==================================================

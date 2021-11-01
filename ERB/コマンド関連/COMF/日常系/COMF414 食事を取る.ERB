@@ -305,19 +305,27 @@ SIF STRCOUNT(DISH_TASTE, "仙術/")
 	TSP回復率 += 200
 SIF STRCOUNT(DISH_TASTE, "秘術/")
 	TSP回復率 += 200
+IF STRCOUNT(DISH_TASTE, "薬効/")
+	気力回復率 = 1000
+	CALL BUFF_BASE(ARG, BASE_気力, MIN(MAXBASE:ARG:気力 * 10 / 100, 300))
+ENDIF
 IF STRCOUNT(DISH_TASTE, "鬼の魔力/")
 	精力回復率 = 1000
-	;精力最大値バフ（未実装）
+	CALL BUFF_BASE(ARG, BASE_精力, MIN(MAXBASE:ARG:精力 * 50 / 100, 500))
 ENDIF
-IF STRCOUNT(DISH_TASTE, "血の魔力/")
+IF STRCOUNT(DISH_TASTE, "血の魔力/") && ARG == MASTER
 	TSP回復率 = 1000
-	;TSP最大値バフ（未実装）
+	CALL BUFF_BASE(ARG, BASE_TSP, MIN(MAXBASE:ARG:TSP * 50 / 100, 500))
 ENDIF
 IF STRCOUNT(DISH_TASTE, "精力/")
 	精力回復率 += 500
 	SIF ARG == MASTER
 		TALENT:MASTER:濃厚精液 = 1
 ENDIF
+SIF STRCOUNT(DISH_TASTE, "奇跡/")
+	CFLAG:ARG:今日の運勢 = MIN(CFLAG:ARG:今日の運勢 + 500, 999)
+SIF STRCOUNT(DISH_TASTE, "幸運/")
+	CFLAG:ARG:今日の運勢 = MIN(CFLAG:ARG:今日の運勢 + 300, 999)
 ;添加物
 SELECTCASE DISH_DRG_2
 CASE GETNUM(ITEM, "栄養強化剤")
@@ -325,23 +333,19 @@ CASE GETNUM(ITEM, "栄養強化剤")
 	TIMES 体力回復率, 1.2
 	TIMES 精力回復率, 1.2
 ENDSELECT
-;バフ系,未実装
-[SKIPSTART]
-SIF STRCOUNT(DISH_TASTE, "薬効/") && ARG == MASTER
-	;未定
-SIF STRCOUNT(DISH_TASTE, "祝福/") && ARG == MASTER
-	;未定
-SIF STRCOUNT(DISH_TASTE, "エンチャント/") && ARG == MASTER
-	;戦闘力強化１
-SIF STRCOUNT(DISH_TASTE, "加護/") && ARG == MASTER
-	;戦闘力強化２
-SIF STRCOUNT(DISH_TASTE, "奇跡/") && ARG == MASTER
-	;ラックアップ１
-SIF STRCOUNT(DISH_TASTE, "幸運/") && ARG == MASTER
-	;ラックアップ２
-SIF STRCOUNT(DISH_TASTE, "豊穣/") && ARG == MASTER
-	;未定
-[SKIPEND]
+;特殊バフ系
+;祝福：妊娠率がほんの少し上昇,妊娠対象に付与されていないと効果なし（種側は効果なし）
+SIF STRCOUNT(DISH_TASTE, "祝福/")
+	TCVAR:ARG:祝福 = 1
+;エンチャント：弾幕勝負で自分のダイス目がアップ,対戦相手に付与されてると対戦相手もアップ
+SIF STRCOUNT(DISH_TASTE, "エンチャント/")
+	TCVAR:ARG:エンチャント = 1
+;加護：弾幕勝負で相手のダイス目がダウン,対戦相手に付与されてると自分もダウン
+SIF STRCOUNT(DISH_TASTE, "加護/")
+	TCVAR:ARG:加護 = 1
+;豊穣：野菜収穫時の収穫量アップ
+SIF STRCOUNT(DISH_TASTE, "豊穣/")
+	TCVAR:ARG:豊穣 = 1
 
 ;MASTER以外の処理
 IF ARG != MASTER

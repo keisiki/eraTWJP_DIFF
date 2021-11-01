@@ -853,13 +853,17 @@ IF TALENT:[[影狼]]:恋慕
 		;主食肉
 		;カエル料理もこの区分だが……
 		;だってこの娘、蛙肉だろうが喜んで食いそうなんだもん
-		CASE "ハンバーグ", "しゃぶしゃぶ", "生姜焼き", "ステーキ", "油淋鶏", "カエルのから揚げ", "カエルカレー", "カエルのソテー", "カエルの塩焼き"
-			PRINTFORMW 「やっぱりお肉は最高ね～♪」
-			PRINTFORMW 「普段は生肉だけれど」
-			IF TCVAR:[[影狼]]:353
-				PRINTFORMW 「%CALLNAME:MASTER%とお料理した方がずっといいわね♪」
+		CASE "ハンバーグ", "しゃぶしゃぶ", "生姜焼き", "ステーキ", "油淋鶏", "カエルのから揚げ", "カエルカレー", "カエルのソテー", "カエルの塩焼き", "ジビエ料理"
+			IF TCVAR:[[影狼]]:料理評価値 >= 700
+				CALL K63_DEVOUR
 			ELSE
-				PRINTFORMW 「%CALLNAME:MASTER%のお料理を食べる方がずっといいわね♪」
+				PRINTFORMW 「やっぱりお肉は最高ね～♪」
+				PRINTFORMW 「普段は生肉だけれど」
+				IF TCVAR:[[影狼]]:353
+					PRINTFORMW 「%CALLNAME:MASTER%とお料理した方がずっといいわね♪」
+				ELSE
+					PRINTFORMW 「%CALLNAME:MASTER%のお料理を食べる方がずっといいわね♪」
+				ENDIF
 			ENDIF
 		;軽食肉
 		CASE "ハンバーガー", "シウマイ", "肉まん"
@@ -1744,7 +1748,7 @@ SIF DAY - FLAG_DAILY_EV29_LASTTIME < 10
 	RETURN
 SIF MARK:[[影狼]]:反発刻印
 	RETURN
-SIF ABL:[[わかさぎ姫]]:親密 < 3 || ABL:[[蛮奇]]:親密 < 3
+SIF ABL:[[わかさぎ姫]]:親密 < 2 || ABL:[[蛮奇]]:親密 < 2
 	RETURN
 TCVAR:354 = 1
 ;初回
@@ -1776,3 +1780,39 @@ ENDIF
 ;━━━━━━━━━━━━━━━━━━━━━━━━━
 ;━━━━━━━━━━━━━━━━━━━━━━━━━
 ;━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@K63_DEVOUR
+IF !RAND:2
+	PRINTFORML 「ガフッ！ガフッ！ガフッ！ガフッ！」
+	PRINTFORML 影狼はすごい勢いで貪り食っている……
+ELSE
+	PRINTFORML ﾊﾞｷｯ!ﾎﾞﾘ､ﾎﾞﾘｯ､ﾐｼｯ…ﾊﾞｷｯ!
+	PRINTFORML 影狼は骨ごと噛み砕いて食べている……
+ENDIF
+IF !TALENT:恋慕
+	PRINTFORMW あんな白い服をよく汚さないでいられるものだ
+	RETURN
+ENDIF
+CALL ASK_YN("味わって食え","これも食べなよ")
+IF !RESULT
+	PRINTFORMW 「あ……ちょっと我を忘れてたわね」
+	RETURN
+ENDIF
+PRINTFORML 「いいの！？ありがとー！」
+CALL ASK_YN("どうぞどうぞ","あーん")
+IF !RESULT
+ELSEIF EYEWITNESS()
+	PRINTFORMW 「えっ」
+	PRINTFORMW 「見られながらはちょっと恥ずかしいかなって……」
+ELSEIF FIRSTTIME("あーん")
+	PRINTFORMW 「じ、自分で食べられるから！」
+	PRINTFORMW 「そんな顔しないでよ……わかったわよもう、あーん」
+	PRINTFORMW 「……おいひい」
+	CALL JUEL_UP_SPECIAL([[影狼]],"恥情","露出癖",2,1)
+ELSE
+	PRINTFORMW 「しょ、しょうがないわね」
+	CALL JUEL_UP_SPECIAL([[影狼]],"恥情","露出癖",2,1)
+ENDIF
+CALL RECOVER_PERMIL(MASTER, -100, "体力", 0, "食事を分けた")
+CALL RECOVER_PERMIL([[影狼]], 100, "体力", 0, "食事を貰った")
+CFLAG:1004 += 1

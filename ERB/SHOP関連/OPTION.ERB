@@ -9,7 +9,6 @@ FOR LOCAL, 0, 100
 	LOCAL:1 ++
 NEXT
 DRAWLINEFORM －
-PRINTFORML [92] - 地図の種類: \@ RECOLOREDMAPS ? カラーマップ # デフォルト \@ \@ ANIMATERECOLOREDMAPS ? + 動画モード #  \@
 PRINTFORML [94] - オート喘ぎ一括設定
 PRINTFORML [95] - 簡易フィルタの一括設定
 ;PRINTFORML [96] - 料理のオプション設定
@@ -26,17 +25,6 @@ INPUT
 IF OPTION_SETNAME(RESULT) != ""
 	CALL OPTION_SETTING(RESULT)
 	CLEARLINE 10 + LOCAL:1
-ELSEIF RESULT == 92
-	IF RECOLOREDMAPS
-		IF ANIMATERECOLOREDMAPS
-			RECOLOREDMAPS = 0
-			ANIMATERECOLOREDMAPS = 0
-		ELSE
-			ANIMATERECOLOREDMAPS = 1000
-		ENDIF
-	ELSE
-		RECOLOREDMAPS = 1
-	ENDIF
 ELSEIF RESULT == 94
 	CALL OPTION_オート喘ぎ一括設定
 ELSEIF RESULT == 95
@@ -260,6 +248,8 @@ CASE 23
 	CASE 1
 		RESULTS:1 = 好感度50以下は来訪しない
 	CASE 2
+		RESULTS:1 = 陥落したキャラのみ
+	CASE 3
 		RESULTS:1 = 来訪しない
 	ENDSELECT
 CASE 24
@@ -303,6 +293,24 @@ CASE 28
 	ELSE
 		RESULTS:1 = 未入手は表示しない
 	ENDIF
+CASE 29
+	RESULTS:0 = 地図の表示タイプ
+	IF RECOLOREDMAPS
+		IF ANIMATERECOLOREDMAPS
+			RESULTS:1 = カラーマップ + 動画モード
+		ELSE
+			RESULTS:1 = カラーマップ
+		ENDIF
+	ELSE
+		RESULTS:1 = クラシック
+	ENDIF
+CASE 30
+	RESULTS:0 = キャラリストの表示順
+	IF FLAG:並び替え
+		RESULTS:1 = 原作順
+	ELSE
+		RESULTS:1 = ＴＷ順
+	ENDIF
 ENDSELECT
 RETURNF RESULTS:0
 
@@ -340,7 +348,7 @@ CASE "一部キャラのニーソックス着用"
 CASE "宴会の発生"
 	FLAG:宴会の有無 = !FLAG:宴会の有無
 CASE "来訪モード"
-	CALL オプション切り替え("交流来訪モード", 2)
+	CALL オプション切り替え("交流来訪モード", 3)
 CASE "脱衣コマンドの扱い"
 	CALL オプション切り替え("脱衣選択", 2)
 CASE "時間停止脱衣コマンドの扱い"
@@ -403,6 +411,19 @@ CASE "ファーストキスの記録"
 	CALL オプション切り替え("ＦＫ判定", 3)
 CASE "遭遇時の依頼提示"
 	FLAG:依頼スルー = !FLAG:依頼スルー
+CASE "地図の表示タイプ"
+	IF RECOLOREDMAPS
+		IF ANIMATERECOLOREDMAPS
+			RECOLOREDMAPS = 0
+			ANIMATERECOLOREDMAPS = 0
+		ELSE
+			ANIMATERECOLOREDMAPS = 1000
+		ENDIF
+	ELSE
+		RECOLOREDMAPS = 1
+	ENDIF
+CASE "キャラリストの表示順"
+	FLAG:並び替え = !FLAG:並び替え
 ENDSELECT
 
 @オプション切り替え(ARGS, ARG)
@@ -422,7 +443,18 @@ ENDIF
 @登場キャラ切り替え
 PRINTL 　指定したキャラを登場しないようにします。（"*"は口上のあるキャラ）
 DRAWLINE
-FOR LOCAL,1,CHARANUM
+SIF FLAG:並び替え
+	CALL CHARASORT_EX
+FOR LOCAL:1, 1, EX_CHARANUM
+	IF FLAG:並び替え
+		LOCAL = RESULT:(LOCAL:1)
+		SIF !LOCAL
+			CONTINUE
+	ELSE
+		LOCAL = LOCAL:1
+		SIF LOCAL >= CHARANUM
+			BREAK
+	ENDIF
 	SIF TALENT:LOCAL:行きずり
 		CONTINUE
 	SIF CFLAG:LOCAL:出禁

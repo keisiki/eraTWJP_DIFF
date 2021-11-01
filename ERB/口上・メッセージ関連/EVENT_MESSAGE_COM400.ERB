@@ -1109,6 +1109,45 @@ SELECTCASE TFLAG:193
 ENDSELECT
 
 ;-------------------------------------------------
+;448,罠を仕掛ける
+;FLAG:194 はCRITTER_DATAを参照
+;-------------------------------------------------
+@MESSAGE_COM448
+
+SELECTCASE TFLAG:193
+	;罠を仕掛けた
+	CASE 0
+		IF !TRAP_POINT:1 && !TRAP_POINT:2 && !TRAP_POINT:3
+			
+		ELSE
+			PRINTFORML ◇今設置している罠の一覧◇
+			FOR LOCAL, 1, 4
+				IF TRAP_POINT:LOCAL
+					PRINTFORML 　罠{LOCAL}の設置場所：%猟場名(TRAP_POINT:LOCAL)%
+					PRINTFORML 　　 　　設置日：%PRINT_DATE_F(TRAP_SETUPDATA:LOCAL)%
+				ENDIF
+			NEXT
+		ENDIF
+	;獲物が得られた
+	CASE 1
+		SELECTCASE TFLAG:194
+			;いわゆるまともな肉
+			CASE 1 TO 12, 14, 18, 21, 22, 24
+				PRINTFORML 今夜は焼肉だ！　と盛り上がる%CALLNAME:MASTER%だった
+			;兎と大物
+			CASE 13, 15, 16, 17, 19, 27, 28
+				PRINTFORML 鍋がいいかな、それとも焼きかな…と楽しみが増えた%CALLNAME:MASTER%だった
+			CASE 20, 23, 25
+				PRINTFORML 曰く形容しがたい風合いの肉？を、どう捌いたものか悩む%CALLNAME:MASTER%だった
+			CASE 26;マタンゴ
+				PRINTFORML やばそうなので、このキノコは食べないことにしよう…
+		ENDSELECT
+	;罠が壊れていた
+	CASEELSE
+		PRINTFORML %CALLNAME:MASTER%は散らばった罠の部品を回収した…
+ENDSELECT
+
+;-------------------------------------------------
 ;460,妄想オナニー
 ;-------------------------------------------------
 @MESSAGE_COM460

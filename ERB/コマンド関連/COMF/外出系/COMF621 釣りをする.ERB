@@ -15,7 +15,7 @@
 ;参加者判定
 IF FLAG:デート相手
 	CHARA = FLAG:デート相手
-ELSEIF TARGET && ABL:TARGET:親密 >= 5 - TALENT:TARGET:釣りLv
+ELSEIF TARGET && ABL:TARGET:親密 >= 5 - TALENT:TARGET:釣りLv && SHIRAHU(TARGET)
 	CHARA = TARGET
 ELSE
 	CHARA = 0
@@ -60,9 +60,9 @@ SELECTCASE TIME:7
 ENDSELECT
 
 ;日替わりで-50～+50,アイテムやお祈り等で補正をかけることも可
-釣り運 = FLAG:日替わりイベント / 10 - 50
+釣り運 = CFLAG:MASTER:今日の運勢 / 10 - 50
 
-;釣り技能で活性を察知
+;釣りLvで活性を察知
 IF TALENT:MASTER:釣りLv >= 3
 	SETCOLOR C_L_GRAY
 	SELECTCASE (活性 + 釣り運)
@@ -86,9 +86,9 @@ FOR LOCAL, 0, 5
 	TWAIT 150, 1
 NEXT
 ;釣りパワー設定
-釣りパワーM = 活性 + TALENT:MASTER:釣りLv * 15 + 釣り運 + 釣れない補正
+釣りパワーM = MIN(活性 + TALENT:MASTER:釣りLv * 15 + 釣り運 + 釣れない補正, 100)
 SIF CHARA
-	釣りパワーT = 活性 + TALENT:CHARA:釣りLv * 15 + 釣れない補正
+	釣りパワーT = MIN(活性 + TALENT:CHARA:釣りLv * 15 + 釣れない補正, 100)
 
 ;（釣りパワー）％で釣れる
 FISHED:0 = RAND:100
@@ -98,7 +98,7 @@ IF FISHED < 釣りパワーM
 	;釣れたら補正リセット
 	釣れない補正 = 0
 	;釣りパワーで釣れるものが変わる
-	SELECTCASE MIN(RAND:釣りパワー, 100)
+	SELECTCASE RAND:釣りパワー
 	CASE IS < 5
 		;木材
 		釣れたもの = 610

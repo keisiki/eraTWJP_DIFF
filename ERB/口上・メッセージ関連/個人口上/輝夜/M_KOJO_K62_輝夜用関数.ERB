@@ -1,0 +1,502 @@
+﻿;**** FlagManagement **********************************************************
+;本口上にて使用しているCFLAG・TCVAR等
+;CFLAG:1100 アップデート処理
+;CFLAG:62:1101 告白回数分岐
+;CFLAG:62:1102 思慕特殊セリフ
+;CFLAG:62:1103 恋慕特殊セリフ
+;CFLAG:62:1104 恋人特殊セリフ
+;CFLAG:62:1105 輝夜嫉妬フラグ
+;TCVAR:62:351 遭遇回数
+;TCVAR:62:352 えっちもーど遭遇回数
+;TCVAR:62:353 意識ありえっち判定用
+;TCVAR:62:354 デート遭遇回数用
+;TCVAR:62:355 お手伝い回数
+;TCVAR:62:356 お手伝いえっち
+;******************************************************************************
+
+;-----------------------------------------------------------------------------------------------
+;@CHARA_INFO_KOJO_K62()
+;個人情報の「キャラ紹介」の文章を書き換える
+;これがあれば「CSTR」の20番以降(20～39)に文字列を書き込むだけで書き換わるはず
+;早苗口上より引用した諏訪子口上のものを更に輝夜用に改変。
+;-----------------------------------------------------------------------------------------------
+@CHARA_INFO_KOJO_K62()
+;===============================================================================================
+;記述例
+;このコメントアウトを外すと「CSTR」の20番以降に文字列を書き込むだけで書き換わるようになる
+;FOR LOCAL,20,40
+;	SIF CSTR:31:(LOCAL) != ""
+;		PRINTFORML %CSTR:31:(LOCAL)%
+;NEXT
+;RETURN 1
+;…とまあ、こんな感じでCSTR20番以降を使えばいいはず
+;===============================================================================================
+;本口上は、書き換わる文章が多いのでCSTRへの保存をせずに直接書き込む
+;現時点で下の2行が書き込まれている
+;PRINTL □ キャラ紹介 □---------------------------------------------------------------------
+;PRINTL 
+
+;##################################################################################
+;①「～永遠と須臾の罪人～　●種族：月人　●能力：永遠と須臾を操る程度の能力」をプリント
+;##################################################################################
+CALL M_KOJO_COLOR_K62
+PRINTFORML %CSVCSTR(62, 10)%
+RESETCOLOR
+PRINTL 
+
+;##################################################################################
+;②キャラ紹介文を書き込み
+;##################################################################################
+;共通部
+PRINTFORML 迷いの竹林に存在する永遠亭の主であり、元月の民。
+PRINTFORML 見かけによらず途方もない年月を過ごしている。
+PRINTFORML 元々非常に長い年月を生きる月の姫君であったが、退廃的で変化のない月での生活を拒み、
+PRINTFORML 不老不死を叶える禁断の秘薬、蓬莱の薬を作らせ自ら服用することで、地上への流刑を叶えた。
+PRINTFORML 月の民特有の傲慢さは地上での長い生活で薄れており、現在はのんびりとした生活を送っている。
+PRINTFORML 過去に複数の男から求婚されて苦労したこともあり、男性に対しては少し距離を置いている様子がある。
+PRINTFORML 
+IF TALENT:62:恋人
+	PRINTFORML ただ、それも以前までの話。
+	PRINTFORML 現在は%CALLNAME:MASTER%の忠実な妻として過ごすことに生き甲斐を感じているようだ。
+	PRINTFORML 以前までと比べものにならぬほど素直になり、幸せそうに日々を過ごしている。
+	IF TALENT:62:妄信 && TALENT:MASTER:追加種族 == 4
+		CALL M_KOJO_COLOR_K62
+		PRINTFORML そして近頃の輝夜は、浮気は気の迷いだと%CALLNAME:MASTER%に対してよく口にした。
+		PRINTFORML 長い年月を過ごせば気の迷いはあって然るべきもので、他の女を愛することも気にしない。
+		PRINTFORML いくらでも浮気してくれて構わないし、%CALLNAME:MASTER%を怒ったりもしない。
+		PRINTFORML 永遠とは、どんな気の迷いさえ許せる時間を内包するから永遠なのだと。
+		PRINTFORML だからもう、嫉妬はしても、不安というものを感じないのだと輝夜は告げる。
+		PRINTFORML 
+		PRINTFORML ――だって、輝夜と旦那さまは、そんな『永遠の愛の絆』で結ばれておりますから……♥
+		PRINTFORML 
+		PRINTFORML 蓬莱の薬を口にした%CALLNAME:MASTER%を見て、永遠の姫君はそうして愛を囁き続ける。
+		PRINTFORML 愛と執着に潤んだ瞳で、この先もきっと、永遠に。
+		RESETCOLOR
+	ELSEIF CFLAG:1105 > 0
+		PRINTFORML 永遠という時間を基準にしているためか、意外に浮気は気の迷いとして寛容らしい。
+		PRINTFORML 嫉妬することも含めて楽しんでいる節もある。
+		PRINTFORML ただ、それはあくまで自分が一番という信頼があればこそと忘れてはならないだろう。
+		PRINTFORML 他の女性と過ごしている時の輝夜は笑顔であるが、内心どうかは分からない。
+		PRINTFORML 
+		CALL M_KOJO_COLOR_K62
+		SIF CFLAG:1105 > 30
+			PRINTFORML そういえば、彼女が永琳と、真剣な顔で何かを話しているのを見た気がする
+		SIF CFLAG:1105 > 50
+			PRINTFORML 永琳は何かをお願いする輝夜をなだめていたようであった。
+		SIF CFLAG:1105 > 60
+			PRINTFORML 輝夜に話を聞くと、永琳に薬作りを教えてくれるよう頼んでいたのだと微笑んだ。
+		SIF CFLAG:1105 > 70
+			PRINTFORML その後、永琳と二人仲良く外に出かけている様子を見るに心配することではないのだろう。
+		SIF CFLAG:1105 > 80
+			PRINTFORML 何かをやろうとするのは良いことだと輝夜を褒めると、輝夜は嬉しそうに微笑んでいた。
+		SIF CFLAG:1105 > 90
+			PRINTFORML 最近の輝夜は本当に甲斐甲斐しく、可愛らしい――
+		RESETCOLOR
+	ENDIF
+ELSEIF TALENT:62:妄信 && TALENT:MASTER:追加種族 == 4
+	PRINTFORML ただ、それも以前までの話。
+	PRINTFORML 現在はまるで%CALLNAME:MASTER%の妻のように過ごすことに生き甲斐を感じているようだ。
+	PRINTFORML 以前までと比べものにならぬほど素直になり、幸せそうに日々を過ごしている。
+	PRINTFORML 
+	CALL M_KOJO_COLOR_K62
+	PRINTFORML ……そんな輝夜に蓬莱の薬を飲まされてしまった、という事実を除けば、問題はない。
+	RESETCOLOR
+ELSEIF TALENT:62:恋慕 
+	PRINTFORML しかし、今では%CALLNAME:MASTER%にすっかり心を開いているようだ。
+	PRINTFORML 以前のような線引きはもはや存在せず、触れあいを避ける様子は完全になくなった。
+	PRINTFORML ただ、%CALLNAME:MASTER%を見つめる目は、時折寂しさを感じさせる。
+	PRINTFORML 
+	CALL M_KOJO_COLOR_K62
+	SIF CFLAG:1105 > 30
+		PRINTFORML そういえば、彼女が永琳と、真剣な顔で何かを話しているのを見た気がする
+	SIF CFLAG:1105 > 50
+		PRINTFORML 永琳は何かをお願いする輝夜をなだめていたようであった。
+	SIF CFLAG:1105 > 60
+		PRINTFORML 輝夜に話を聞くと、永琳に薬作りを教えてくれるよう頼んでいたのだと微笑んだ。
+	SIF CFLAG:1105 > 70
+		PRINTFORML その後、永琳と二人仲良く外に出かけている様子を見るに心配することではないのだろう。
+	SIF CFLAG:1105 > 80
+		PRINTFORML 何かをやろうとするのは良いことだと輝夜を褒めると、輝夜は嬉しそうに微笑んでいた。
+	SIF CFLAG:1105 > 90
+		PRINTFORML 最近の輝夜は本当に甲斐甲斐しく、可愛らしい――
+	RESETCOLOR
+ELSEIF TALENT:62:セフレ || TALENT:62:愛欲
+	PRINTFORML ただ、近頃は%CALLNAME:MASTER%との行為に溺れており、性行為への抵抗がなくなっているようだ。
+	SIF TALENT:62:処女 == 0
+		PRINTFORML 男性への抵抗感が余計に興奮を強めているのか、挿入されると弱いらしい。
+ELSEIF TALENT:62:思慕
+	PRINTFORML ただ、今では%CALLNAME:MASTER%に対して随分と心を開いてくれていたようだ。
+	PRINTFORML %CALLNAME:MASTER%を見るときの目は、以前よりも随分と柔らかいものになっている。
+ENDIF
+PRINTL 
+RETURN 1
+
+
+;==================================================
+;膣内挿入関係
+;==================================================
+@OSAKAN_HIMESAMA_V
+CALL M_KOJO_COLOR_K62
+IF NOWEX:PLAYER:11
+	;射精寸前になると一生懸命子宮口を押しつけちゃう輝夜様。
+	IF TALENT:62:恋人 || (TALENT:62:妄信 && TALENT:MASTER:追加種族 == 4)
+		IF RAND:10 > 6
+			SELECTCASE RAND:7
+				CASE 6
+					PRINTFORML 「ぁ……♥　だんなさまっ、の……出そうになって……♥」
+				CASE 5
+					PRINTFORML 「かぐやに♥　かぐやにそそいでください……っ♥」
+				CASE 4
+					PRINTFORML 「だんなさまっ♥　すきです♥　すき♥　だいすき……♥」
+				CASE 3
+					PRINTFORML 「かぐやのっ♥　しきゅーに……っ♥　旦那さまのお情けください……♥」
+				CASE 2
+					PRINTFORML 「だんなさま♥　はやくっ♥　注いでください……っ♥」
+				CASE 1
+					PRINTFORML 「だんなさまのが♥　ぴくぴくして……っ♥」
+				CASE 0
+					PRINTFORML 「らめっ♥　いっしょに♥　いっしょに……♥」
+			ENDSELECT
+		ELSE
+			CALL K62_AUTO_AEGI
+		ENDIF
+	ELSEIF TALENT:62:恋慕
+		IF RAND:10 > 6
+			SELECTCASE RAND:7
+				CASE 6
+					PRINTFORML 「ぁ……♥　%CALLNAME:MASTER%っ、の……出そうになって……♥」
+				CASE 5
+					PRINTFORML 「なかに♥　中にそそいで……っ♥」
+				CASE 4
+					PRINTFORML 「……っ♥　すき♥　すき♥　だいすき……♥」
+				CASE 3
+					PRINTFORML 「わたしのっ♥　しきゅーに……っ♥　ちゃんと……♥」
+				CASE 2
+					PRINTFORML 「%CALLNAME:MASTER%のっ♥　はやくっ♥　注いで……っ♥」
+				CASE 1
+					PRINTFORML 「%CALLNAME:MASTER%のが♥　ぴくぴくして……っ♥」
+				CASE 0
+					PRINTFORML 「らめっ♥　いっしょに♥　いっしょに……♥」
+			ENDSELECT
+		ELSE
+			CALL K62_AUTO_AEGI
+		ENDIF
+	ELSE
+		CALL K62_AUTO_AEGI
+	ENDIF
+		IF TALENT:62:恋人 || (TALENT:62:妄信 && TALENT:MASTER:追加種族 == 4) || TALENT:62:恋慕 || TALENT:62:愛欲
+			SELECTCASE RAND:7
+				CASE 6
+					PRINTFORMW 射精を目前にした%CALLNAME:MASTER%の男根を締め付けると、輝夜は亀頭をぐりぐりと子宮口に密着させた。
+				CASE 5
+					PRINTFORMW %CALLNAME:MASTER%に余裕がないのを感じ取った輝夜は、甘い声で精液をせがんだ。
+				CASE 4
+					PRINTFORMW ピクピクと痙攣し始めた男根を目一杯締め上げ、輝夜は必死に先端を子宮口に押しつけようと腰を揺すった。
+				CASE 3
+					PRINTFORMW 輝夜は射精寸前の男根に肉襞と子宮口を用い、最高の射精をしてもらえるよう%CALLNAME:MASTER%に全身全霊で奉仕した。
+				CASE 2
+					PRINTFORMW 射精の予兆を感じ取った輝夜は、子宮口を押しつけるようにして亀頭にキスを繰り返した。
+				CASE 1
+					PRINTFORMW 射精の予感に輝夜の子宮口は亀頭に吸い付き、まるで精液を吸い出すように蠢いた。
+				CASE 0
+					PRINTFORMW 意識的にか無意識か、輝夜は自ら腰の位置を変え、射精寸前の突き上げに自然と子宮の入り口を合わせた。
+			ENDSELECT
+				IF TALENT:62:ポルチオ性感
+					SELECTCASE RAND:6
+						CASE 5
+							PRINTFORMW %CALLNAME:MASTER%に開発された彼女の性器はもはや淫魔のそれに匹敵する搾精器であり、半ば真空状態で精液を子宮口に吸い上げようとしている。
+						CASE 4
+							PRINTFORMW 子宮口は明らかに粘り気の違う本気汁を纏わり付かせ、亀頭と入り口の粘膜が触れあう度、異様な密着感で男根を悦ばせる。
+						CASE 3
+							PRINTFORMW 彼女の子宮口はまるで唇のように、亀頭と触れあう度に熱心なディープキスをせがんでいる。
+						CASE 2
+							PRINTFORMW 蕩けきった子宮の入り口が刺激される度、驚くほどの力で淫肉を収縮させ、放たれる精液全てを搾り取ろうとしている。
+						CASE 1
+							PRINTFORMW 完全に%CALLNAME:MASTER%のものとなった彼女の子宮口は、ひと突きごとに亀頭に纏わり付いている。
+						CASE 0
+							PRINTFORMW 開発されきった子宮口が亀頭に触れる度、彼女は小さな絶頂を繰り返すように肉襞を痙攣させている。
+					ENDSELECT
+				ELSE
+					SELECTCASE RAND:6
+						CASE 2
+							PRINTFORMW 彼女は必死で射精を受け止めようと、男根が引き抜かれる度、力強く%CALLNAME:MASTER%を締め付けている。
+						CASE 1
+							PRINTFORMW %CALLNAME:MASTER%の亀頭がぴったりと子宮口を押し上げる度、彼女はいやらしく腰を反らしている。
+						CASE 0
+							PRINTFORMW 子宮口が亀頭に触れる度、彼女は腰をくねらせ肉襞を痙攣させている。
+					ENDSELECT
+				ENDIF
+				
+		ELSEIF TALENT:62:セフレ || TALENT:62:思慕
+			SELECTCASE RAND:3
+				CASE 2
+					PRINTFORMW 無意識に射精の予兆を感じ取ったか、輝夜は子宮口を押しつけ亀頭にもキスを繰り返している。
+				CASE 1
+					PRINTFORMW 射精の予感に輝夜の子宮口は亀頭に吸い付き、まるで精液を吸い出すように蠢いている。
+				CASE 0
+					PRINTFORMW 輝夜は無意識に自ら腰の位置を変え、射精寸前の突き上げに子宮の入り口を合わせている。
+			ENDSELECT
+		ENDIF
+ELSE
+	IF TALENT:62:恋人 || (TALENT:62:妄信 && TALENT:MASTER:追加種族 == 4)
+		IF RAND:10 > 6
+			SELECTCASE RAND:7
+				CASE 6
+					PRINTFORML 「ぁ……♥　だんなさまっ♥　きもち、ぃ……っ♥」
+				CASE 5
+					PRINTFORML 「あ♥　ぁ♥　あっ♥　だんなさまっ♥♥　はげし……っ♥」
+				CASE 4
+					PRINTFORML 「だんなさまっ♥　ゆっくり♥　あ♥　それすき……♥♥♥」
+				CASE 3
+					PRINTFORML 「かぐやのっ♥　なか……っ♥　いっぱいつかってください……♥♥♥」
+				CASE 2
+					PRINTFORML 「だんなさま♥　もっとっ♥　らんぼうに……っ♥」
+				CASE 1
+					PRINTFORML 「ひっ♥　だんなさまっ♥　もっとやさしく……っ♥」
+				CASE 0
+					PRINTFORML 「それらめっ♥　ひとりで♥　ひとりでイっちゃぃますから……っ♥」
+			ENDSELECT
+		ELSE
+			CALL K62_AUTO_AEGI
+		ENDIF
+	ELSEIF TALENT:62:恋慕
+		IF RAND:10 > 6
+			SELECTCASE RAND:7
+				CASE 6
+					PRINTFORML 「ぁ……♥　それっ♥　きもち、ぃ……っ♥」
+				CASE 5
+					PRINTFORML 「あ♥　ぁ♥　あっ♥　だめっ♥♥　はげし……っ♥」
+				CASE 4
+					PRINTFORML 「ちょっ♥　ゆっくり♥　あ……っ♥　それすき……♥♥♥」
+				CASE 3
+					PRINTFORML 「私のっ♥　なか……っ♥　いっぱいつかって……♥♥♥」
+				CASE 2
+					PRINTFORML 「あっ♥　もっとっ♥　らんぼうに……っ♥」
+				CASE 1
+					PRINTFORML 「ひっ♥　だめだからっ♥　もっとやさしく……っ♥」
+				CASE 0
+					PRINTFORML 「それらめっ♥　ひとりで♥　ひとりでイっちゃぅから……っ♥」
+			ENDSELECT
+		ELSE
+			CALL K62_AUTO_AEGI
+		ENDIF
+	ELSE
+		CALL K62_AUTO_AEGI
+	ENDIF
+		IF TALENT:62:恋人 || (TALENT:62:妄信 && TALENT:MASTER:追加種族 == 4) || TALENT:62:恋慕 || TALENT:62:愛欲
+			SELECTCASE RAND:7
+				CASE 6
+					PRINTFORMW 長いストロークでゆっくりと動かしてやると、輝夜は目を細め、全身を快楽に震わせた。
+				CASE 5
+					PRINTFORMW 浅い部分を中心に刺激してやると、輝夜は切なげに%CALLNAME:MASTER%を見つめた。
+				CASE 4
+					PRINTFORMW 浅い部分を刺激されてばかりの輝夜は、必死に先端を子宮口に押しつけようと腰を揺すった。
+				CASE 3
+					PRINTFORMW 輝夜は腰を浮かせると、入り口から奥までを使い、%CALLNAME:MASTER%の男根に全身全霊で奉仕した。
+				CASE 2
+					PRINTFORMW 射精の予兆を感じ取った輝夜は、子宮口を押しつけるようにして亀頭にキスを繰り返した。
+				CASE 1
+					PRINTFORMW 子宮口が亀頭に触れる度、輝夜はそこを唇のように吸い付かせた。
+				CASE 0
+					PRINTFORMW 意識的にか無意識か、輝夜は自ら腰の位置を変え、自然と子宮の入り口を亀頭に合わせた。
+			ENDSELECT
+				IF TALENT:ポルチオ性感
+					SELECTCASE RAND:6
+						CASE 5
+							PRINTFORMW %CALLNAME:MASTER%に開発され、男根さえ咥え込むほど柔らかくなった子宮口は、淫魔のように精液を吸い上げようとしている。
+						CASE 4
+							PRINTFORMW 子宮の入り口はもはや第二の口であり、蕩けた粘膜で口淫のように亀頭に極上の快楽を与えている。
+						CASE 3
+							PRINTFORMW %CALLNAME:MASTER%専用というほどに開発され切った子宮口はもはや神聖さなど消え、主人の快楽のためだけに蠢いている。
+						CASE 2
+							PRINTFORMW 子宮という響きとは裏腹に、快楽に蕩けきったその入り口はもはや主人の射精のための奉仕穴となっている。
+						CASE 1
+							PRINTFORMW 完全に%CALLNAME:MASTER%のものとなった彼女の子宮口は、ひと突きごとに蕩けた粘膜を亀頭に纏わり付かせている。
+						CASE 0
+							PRINTFORMW 開発されきった子宮口はもはや陰核以上の快楽を輝夜に与え、彼女はまるで絶頂を繰り返すように全身を痙攣させている。
+					ENDSELECT
+				ELSE
+					SELECTCASE RAND:6
+						CASE 2
+							PRINTFORMW 彼女は必死で男根を受け止めようと、男根が引き抜かれる度、力強く%CALLNAME:MASTER%を締め付けている。
+						CASE 1
+							PRINTFORMW %CALLNAME:MASTER%の亀頭がぴったりと子宮口を押し上げる度、彼女はいやらしく腰を反らしている。
+						CASE 0
+							PRINTFORMW 子宮口が亀頭に触れる度、彼女は腰をくねらせ肉襞を痙攣させている。
+					ENDSELECT
+				ENDIF
+		ELSEIF TALENT:62:セフレ || TALENT:62:思慕
+			SELECTCASE RAND:3
+				CASE 2
+					PRINTFORMW 無意識に射精の予兆を感じ取ったか、輝夜は子宮口を押しつけ亀頭にもキスを繰り返している。
+				CASE 1
+					PRINTFORMW 射精の予感に輝夜の子宮口は亀頭に吸い付き、まるで精液を吸い出すように蠢いている。
+				CASE 0
+					PRINTFORMW 輝夜は無意識に自ら腰の位置を変え、射精寸前の突き上げに子宮の入り口を合わせている。
+			ENDSELECT
+		ENDIF
+ENDIF
+RESETCOLOR
+
+;==================================================
+;輝夜のお楽しみタイム。汎用
+;==================================================
+@HIMESAMA_OTANOSHIMI_HANYOU
+CALL M_KOJO_COLOR_K62
+IF TALENT:62:恋人 || (TALENT:62:妄信 && TALENT:MASTER:追加種族 == 4)
+	SELECTCASE RAND:7
+		CASE 6
+			PRINTFORML 「ぁ……♥　だんなさまっ、の……出そうになって……♥」
+		CASE 5
+			PRINTFORML 「かぐやに♥　かぐやにそそいでください……っ♥」
+		CASE 4
+			PRINTFORML 「だんなさまっ♥　すきです♥　すき♥　だいすき……♥」
+		CASE 3
+			PRINTFORML 「かぐやのっ♥　しきゅーに……っ♥　旦那さまのお情けください……♥」
+		CASE 2
+			PRINTFORML 「だんなさま♥　はやくっ♥　注いでください……っ♥」
+		CASE 1
+			PRINTFORML 「だんなさまのが♥　ぴくぴくして……っ♥」
+		CASE 0
+			PRINTFORML 「らめっ♥　いっしょに♥　いっしょに……♥」
+	ENDSELECT
+ELSEIF TALENT:62:恋慕 || TALENT:62:愛欲
+	SELECTCASE RAND:7
+		CASE 6
+			PRINTFORML 「ぁ……♥　%CALLNAME:MASTER%っ、の……出そうになって……♥」
+		CASE 5
+			PRINTFORML 「なかに♥　中にそそいで……っ♥」
+		CASE 4
+			PRINTFORML 「……っ♥　すき♥　すき♥　だいすき……♥」
+		CASE 3
+			PRINTFORML 「私のっ♥　しきゅーに……っ♥　ちゃんと……♥」
+		CASE 2
+			PRINTFORML 「%CALLNAME:MASTER%のっ♥　はやくっ♥　注いで……っ♥」
+		CASE 1
+			PRINTFORML 「%CALLNAME:MASTER%のが♥　ぴくぴくして……っ♥」
+		CASE 0
+			PRINTFORML 「らめっ♥　いっしょに♥　いっしょに……♥」
+	ENDSELECT
+ELSE
+	PRINTFORML 「っ♥　ぴくぴくって……♥」
+ENDIF
+PRINTFORMW %CALLNAME:MASTER%があまりの気持ちよさに、うっ、と小さく声を漏らすと、輝夜はギチギチと男根を締め上げる。
+IF TALENT:62:恋人 || (TALENT:62:妄信 && TALENT:MASTER:追加種族 == 4) || TALENT:62:恋慕 || TALENT:62:愛欲
+	SELECTCASE RAND:7
+		CASE 6
+			PRINTFORMW 射精を目前にした%CALLNAME:MASTER%の男根を締め付けると、輝夜は亀頭をぐりぐりと子宮口に密着させた。
+		CASE 5
+			PRINTFORMW %CALLNAME:MASTER%に余裕がないのを感じ取った輝夜は、甘い声で精液をせがんだ。
+		CASE 4
+			PRINTFORMW ピクピクと痙攣し始めた男根を目一杯締め上げ、輝夜は必死に先端を子宮口に押しつけようと腰を揺すった。
+		CASE 3
+			PRINTFORMW 輝夜は射精寸前の男根に肉襞と子宮口を用い、最高の射精をしてもらえるよう%CALLNAME:MASTER%に全身全霊で奉仕した。
+		CASE 2
+			PRINTFORMW 射精の予兆を感じ取った輝夜は、子宮口を押しつけるようにして亀頭にキスを繰り返した。
+		CASE 1
+			PRINTFORMW 射精の予感に輝夜の子宮口は亀頭に吸い付き、まるで精液を吸い出すように蠢いた。
+		CASE 0
+			PRINTFORMW 意識的にか無意識か、輝夜は自ら腰の位置を変え、射精寸前の突き上げに自然と子宮の入り口を合わせた。
+	ENDSELECT
+		IF TALENT:62:ポルチオ性感
+			SELECTCASE RAND:6
+				CASE 5
+					PRINTFORMW %CALLNAME:MASTER%に開発された彼女の性器はもはや淫魔のそれに匹敵する搾精器であり、半ば真空状態で精液を子宮口に吸い上げようとしている。
+				CASE 4
+					PRINTFORMW 子宮口は明らかに粘り気の違う本気汁を纏わり付かせ、亀頭と入り口の粘膜が触れあう度、異様な密着感で男根を悦ばせる。
+				CASE 3
+					PRINTFORMW 彼女の子宮口はまるで唇のように、亀頭と触れあう度に熱心なディープキスをせがんでいる。
+				CASE 2
+					PRINTFORMW 蕩けきった子宮の入り口が刺激される度、驚くほどの力で淫肉を収縮させ、放たれる精液全てを搾り取ろうとしている。
+				CASE 1
+					PRINTFORMW 完全に%CALLNAME:MASTER%のものとなった彼女の子宮口は、ひと突きごとに亀頭に纏わり付いている。
+				CASE 0
+					PRINTFORMW 開発されきった子宮口が亀頭に触れる度、彼女は小さな絶頂を繰り返すように肉襞を痙攣させている。
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:6
+				CASE 2
+					PRINTFORMW 彼女は必死で射精を受け止めようと、男根が引き抜かれる度、力強く%CALLNAME:MASTER%を締め付けている。
+				CASE 1
+					PRINTFORMW %CALLNAME:MASTER%の亀頭がぴったりと子宮口を押し上げる度、彼女はいやらしく腰を反らしている。
+				CASE 0
+					PRINTFORMW 子宮口が亀頭に触れる度、彼女は腰をくねらせ肉襞を痙攣させている。
+			ENDSELECT
+		ENDIF
+ELSEIF TALENT:62:セフレ || TALENT:62:思慕
+	SELECTCASE RAND:3
+		CASE 2
+			PRINTFORMW 無意識に射精の予兆を感じ取ったか、輝夜は子宮口を押しつけ亀頭にもキスを繰り返している。
+		CASE 1
+			PRINTFORMW 射精の予感に輝夜の子宮口は亀頭に吸い付き、まるで精液を吸い出すように蠢いている。
+		CASE 0
+			PRINTFORMW 輝夜は無意識に自ら腰の位置を変え、射精寸前の突き上げに子宮の入り口を合わせている。
+	ENDSELECT
+ENDIF
+PRINTFORML 我慢出来るはずもなく、%CALLNAME:MASTER%は精液を勢いよくその子宮へと注ぎ込んだ。
+PRINTFORML 
+SELECTCASE RAND:7
+	CASE 6
+		PRINTFORML まるで型取りされているかのように、輝夜の狭い肉筒が男根を締め付け。
+		PRINTFORML 精液の出口は口を開いた彼女の子宮しかなく、迸る精液の全てが一直線に子宮頸管に注ぎ込まれた。
+	CASE 5
+		PRINTFORML まるで真空状態になった輝夜の肉穴は子宮口をぴったりと押しつけ、精液の全てを子宮で受け止められ。
+		PRINTFORML 子宮から男根までが溶け合い、一つの生殖器となるかのような錯覚は堪らないほどの快楽をもたらした。
+	CASE 4
+		PRINTFORML 輝夜の子宮口は喜びを表現するように亀頭にキスを繰り返し、最後まで吸い付き。
+		PRINTFORML 見えないところで行われる淫靡極まりない愛情表現は、彼女の本質そのものに見えた。
+	CASE 3
+		PRINTFORML 子宮口で亀頭を咥え込みながら、輝夜は淫らな膣肉を射精に合わせて脈動させ。
+		PRINTFORML 彼女はすっかり%CALLNAME:MASTER%の射精のリズムまで牝穴にしっかりと覚え込ませていた。
+	CASE 2
+		PRINTFORML 旦那さま、旦那さまと呼ぶ声に合わせて膣肉がうねうねと蠢き、夥しい襞で男根を舐め回し。
+		PRINTFORML 輝夜のそれは精液を注がれるために作られた牝穴だった。
+	CASE 1
+		PRINTFORML 輝夜はぎちぎちと男根を絞り上げながら子宮口を擦りつけ。
+		PRINTFORML 射精しているのか、させられているのか分からなくなるほどの名器は、快楽のためだけに蠢いた。
+	CASE 0
+		PRINTFORML ちゅうちゅうと子宮口が吸い付いてくるように亀頭を愛撫し、夥しい肉襞が雁首を舐め回し。
+		PRINTFORML 輝夜の牝穴は%CALLNAME:MASTER%が気持ちよく射精するためにうねり狂い、極上の射精感をもたらした。
+ENDSELECT
+SELECTCASE RAND:5
+	CASE 4
+		PRINTFORML 「……っ♥　っ……♥♥♥」
+		PRINTFORMW
+	CASE 3
+		PRINTFORML 「うぅ……♥」
+		PRINTFORMW
+	CASE 2
+		PRINTFORML 「はぁ♥　はぁ♥　出てる……♥」
+		PRINTFORMW
+	CASE 1
+		PRINTFORML 「っ……♥」
+		PRINTFORMW
+	CASE 0
+		PRINTFORML 「あ、中いっぱい……♥」
+		PRINTFORMW
+ENDSELECT
+PRINTFORML 中に出された輝夜は目を細め、ぼんやりとその余韻に浸っている。
+PRINTFORMW 安堵したのも束の間、輝夜は再び腰を揺すり始める。
+IF TALENT:62:恋人 || (TALENT:62:妄信 && TALENT:MASTER:追加種族 == 4)
+	PRINTFORML 「……もう少し、もう少しだけですから……♥」
+ELSE
+	PRINTFORML 「もう少し、もう少しだけだから……♥」
+ENDIF
+PRINTFORMW 完全に欲情しきった彼女はまだまだ解放してくれるつもりはないらしい。
+PRINTFORMW 終わるまで引き延ばされる時間の中で%CALLNAME:MASTER%は諦め、彼女のもたらす極上の快楽を味わい続けた。
+IF BASE:MASTER:精力 >= 400
+	CALL ADD_SAMEN_V(62, 400)
+ELSE
+	CALL ADD_SAMEN_V(62, BASE:MASTER:精力)
+ENDIF
+EXP:62:精液経験 += 5
+EXP:62:膣射経験 += 5
+EXP:62:Ｖ性交経験 += 5
+EXP:62:絶頂経験 += 5
+EXP:MASTER:絶頂経験 += 5
+EXP:MASTER:射精経験 += 5
+EXP:MASTER:挿入経験 += 10
+TCVAR:62:媚薬 = 0
+TCVAR:62:発情 = 0
+CFLAG:TARGET:溜まってる度 = 0
+RESETCOLOR

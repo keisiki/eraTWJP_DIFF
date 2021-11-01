@@ -1,12 +1,8 @@
 ﻿@ONABARE(ARG)
 #DIM なし崩し必要値
 #DIM どうぞそのまま好感度上昇値
-#DIM TARGET保存
 
 CFLAG:ARG:最後に会った日 = DAY
-;EVENT口上を直接呼ぶのでTARGETを捕捉
-TARGET保存 = TARGET
-TARGET = ARG
 
 IF !TALENT:ARG:処女 && ABL:ARG:Ａ感覚 >= ABL:ARG:Ｖ感覚
 	LOCAL:2 = 1
@@ -26,10 +22,9 @@ IF !RESULT
 	RETURN
 ENDIF
 
-;口上チェック
-TRYCCALLFORM M_KOJO_EVENT_K{ARG}_ONABARE_1(ARG)
-	
-CATCH
+;口上チェック,存在しないならRESULT = 2
+CALL KOJO_MESSAGE_SEND("ONABARE", 1, ARG, LOCAL:2)
+IF RESULT == 2
 	CALL PrintOnanismImage(ARG)
 	PRINTFORMW 気づかれないように部屋の中を覗くと、%CALLNAME:ARG%がオナニーに耽っていた
 	PRINTFORM 服をはだけ下腹を晒した%CALLNAME:ARG%は、
@@ -58,7 +53,7 @@ CATCH
 	PRINTFORMW そのまま、つぷりと\@ !LOCAL:2 ? 秘処 # アヌス \@へ中指を差し込む姿に生唾を飲みこむ
 	PRINTFORMW 同時、かつんと、ドアに額があたってしまった
 	PRINTFORML 来訪者に気付いた%CALLNAME:ARG%は硬直し、体を隠すことすら忘れて%CALLNAME:MASTER%のほうを見つめている……
-ENDCATCH
+ENDIF
 
 CALL KOJO_MESSAGE_SEND("EVENT",26,ARG,0,0)
 PRINTFORMW 
@@ -80,7 +75,7 @@ IF RESULT == 0
 	TIME += 5
 ELSEIF RESULT == 1
 	RESULT = 0
-	TRYCALLFORM M_KOJO_EVENT_K{ARG}_26_1("どうぞそのまま")
+	CALL KOJO_MESSAGE_SEND("ONABARE", 4, ARG, 0, 0, "どうぞそのまま")
 	SIF RESULT == -1
 		GOTO GOOUT
 	SIF RESULT == 1
@@ -101,9 +96,9 @@ ELSEIF RESULT == 1
 	ELSE
 		$SONOMAMA
 		CALL KOJO_MESSAGE_SEND("EVENT",26,ARG,2,0)
-		;口上チェック
-		TRYCCALLFORM M_KOJO_EVENT_K{NO:ARG}_ONABARE_2(LOCAL:2)
-		CATCH
+		;口上チェック,存在しないならRESULT = 2
+		CALL KOJO_MESSAGE_SEND("ONABARE", 2, ARG, LOCAL:2)
+		IF RESULT == 2
 			PRINTFORM しばし
 			IF TALENT:ARG:恋慕
 				PRINTFORM うれしさと戸惑いをうかべ
@@ -162,7 +157,7 @@ ELSEIF RESULT == 1
 				PRINTFORML こちらの視線を感じているのか、%CALLNAME:ARG%の指の動きが早まっていく
 				PRINTFORMW 不意に、\@ !LOCAL:2 ? 膣腔 # 肛腔 \@深くに指を突き込んで、%CALLNAME:ARG%が達した
 			ENDIF
-		ENDCATCH
+		ENDIF
 	ENDIF
 	PRINTFORML ピクピク、ぴくんぴくんと、内ももを痙攣させ、全身を震わせる%CALLNAME:ARG%
 	IF CFLAG:MASTER:311 == CFLAG:ARG:311
@@ -190,7 +185,7 @@ ELSEIF RESULT == 1
 	TIME += 27
 ELSEIF RESULT == 2
 	RESULT = 0
-	TRYCALLFORM M_KOJO_EVENT_K{ARG}_26_1("二人で")
+	CALL KOJO_MESSAGE_SEND("ONABARE", 4, ARG, 0, 0, "二人で")
 	SIF RESULT == -1
 		GOTO GOOUT
 	SIF RESULT == 1
@@ -220,7 +215,6 @@ ELSEIF RESULT == 2
 		CFLAG:ARG:ヤラせちゃった = 1
 	ENDIF
 ENDIF
-TARGET = TARGET保存
 
 @NASIKUZUSI(ARG, 本番はどっちか)
 #DIM 前戯１
@@ -300,9 +294,9 @@ ELSE
 	CALL ADD_SAMEN_A(ARG, 注入量)
 ENDIF
 
-;口上チェック
-TRYCCALLFORM M_KOJO_EVENT_K{NO:ARG}_ONABARE_3(前戯１,本番はどっちか,回数,注入量)
-CATCH
+;口上チェック,存在しないならRESULT = 2
+CALL KOJO_MESSAGE_SEND("ONABARE", 3, ARG, 前戯１, 本番はどっちか, "", "", 回数, 注入量)
+IF RESULT == 2
 	;以下デフォルト地の文
 	PRINTFORML %CALLNAME:MASTER%は動揺する%CALLNAME:ARG%をよそに後ろ手で扉を閉めてずかずかと上がり込むと、
 	PRINTFORMW %CALLNAME:ARG%を抱き寄せて何を考えながらシていたのか訊いた
@@ -378,7 +372,7 @@ CATCH
 	PRINTFORMW \@本番はどっちか ? アナル# 膣\@に{注入量}の精液を注ぎ込んだ……
 
 	;以上デフォルト地の文
-ENDCATCH
+ENDIF
 
 IF 前戯１ == 3 
 	SIF TALENT:MASTER:キス未経験

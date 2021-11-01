@@ -211,6 +211,16 @@ WHILE プレイヤー残機 > 0 && 相手残機 > 0
 	;【国士無双の薬】使用中　残りHP増大・ダイス面に補正
 	SIF TCVAR:MASTER:国士無双の薬
 		プレイヤーダイス面 += MAX(RAND:(MAX((TCVAR:MASTER:国士無双の薬), 1) * 2), 1)
+	
+	;戦闘バフの効果（プレイヤーと対戦相手両方）
+	SIF TCVAR:MASTER:エンチャント
+		プレイヤー修正値 += ABL:MASTER:戦闘能力 * RAND:3 + RAND:3
+	SIF TCVAR:OPPONENT:エンチャント
+		相手修正値 += 相手強さ * RAND:3 + RAND:3
+	SIF TCVAR:MASTER:加護
+		相手修正値 -= ABL:MASTER:戦闘能力 * RAND:3 + RAND:3
+	SIF TCVAR:OPPONENT:加護
+		プレイヤー修正値 -= 相手強さ * RAND:3 + RAND:3
 
 	;弾幕勝負補助アイテムの効果
 	CALL DANMAKU_ITEM_EFFECT(持ち込みアイテム)
@@ -252,15 +262,30 @@ WHILE プレイヤー残機 > 0 && 相手残機 > 0
 	IF 持ち込みアイテム
 		SETCOLOR 0x666666
 		PRINTFORML   （持ち込みアイテム: %ITEMNAME:持ち込みアイテム% …%DANMAKU_ITEM_EXPLANATION(持ち込みアイテム)%）
-		RESETCOLOR
 	ENDIF
 
 	IF TCVAR:MASTER:国士無双の薬
 		SETCOLOR 0x666666
-		SIF TCVAR:MASTER:国士無双の薬
-			PRINTFORML   （効果発揮中: 国士無双の薬　　…ダイス面がほんのり良くなる）
-		RESETCOLOR
+		PRINTFORML   （効果発揮中: 国士無双の薬　　…ダイス面がほんのり良くなる）
 	ENDIF
+	
+	IF TCVAR:MASTER:エンチャント
+		SETCOLOR 0x666666
+		PRINTFORML   （バフ効果: エンチャント　　…ダイス修正値Up）
+	ENDIF
+	IF TCVAR:MASTER:加護
+		SETCOLOR 0x666666
+		PRINTFORML   （バフ効果: 加護　　…相手のダイス修正値Down）
+	ENDIF
+	IF TCVAR:OPPONENT:エンチャント
+		SETCOLOR 0xc86666
+		PRINTFORML   （相手のバフ効果: エンチャント　　…相手のダイス修正値Up）
+	ENDIF
+	IF TCVAR:OPPONENT:加護
+		SETCOLOR 0xc86666
+		PRINTFORML   （相手のバフ効果: 加護　　…ダイス修正値Down）
+	ENDIF
+	RESETCOLOR
 	
 	CALL ASK_M("回避に専念する", 1, "勝負する", 1)
 	SELECTCASE RESULT

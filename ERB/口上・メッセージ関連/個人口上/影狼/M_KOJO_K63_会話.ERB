@@ -2,6 +2,18 @@
 ;300,会話
 ;==================================================
 @M_KOJO_MESSAGE_COM_K63_300
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+;発情中は必ず失敗
+IF TCVAR:発情
+	TFLAG:192 = -1
+	CALL COLORMESSAGE(@"欲求不満が上がった",C_YELLOW,1)
+	CFLAG:溜まってる度 += 50
+	IF PALAM:TARGET:潤滑 < 3000
+		CALL COLORMESSAGE(@"潤滑が上がった",C_YELLOW,1)
+		PALAM:TARGET:潤滑 += 100
+	ENDIF
+ENDIF
 ;コマンド共通メッセージ(TRAIN_MESSAGE) 
 ;削除すると「～話をした。」とかが消えます
 ;CALL TRAIN_MESSAGE
@@ -36,7 +48,11 @@ IF LOCAL && !FLAG:70
 ;		PRINTFORMW 目の前が真っ暗になった！
 ;	ENDIF
 ;	CALL KAGEROU_ESCAPE
-
+	IF TCVAR:発情
+		PRINTFORML 「……」
+		PRINTFORMW 影狼はどこかうわの空だ
+		PRINTFORML 「ふぇっ！？　ご、ごめんなさい、何の話だったかしら？」
+	ENDIF
 	;添い寝（住み込み前提）
 	IF CFLAG:添い寝中
 		SELECTCASE RAND:5
@@ -70,144 +86,10 @@ IF LOCAL && !FLAG:70
 			CALL ERATOHO_JINROU_GAME
 		PRINTL
 		PRINTFORMW 「あー楽しかった！もう一回やる？」
-
 	;お天気会話
 	ELSEIF !TCVAR:352 && TIME:2 >= 3
-		;百:季節 十:昼夜 一:天気 0,虹 9,DD 1,晴れ 2,曇り 3,雨 4,大雨 5,雪 6,吹雪
-		CALL OTENKI_KAGEROU(DAY:2)
-		SELECTCASE RESULT
-		CASE 110,210,310,410
-			PRINTFORMW 「あ！%CALLNAME:MASTER%！虹よ虹！」
-			PRINTFORMW 「なんか得した気分になっちゃった！」
-		CASE 120,220,320,420
-			PRINTFORMW 「あ！%CALLNAME:MASTER%！虹よ虹！」
-			PRINTFORMW 「月の光で虹ができるなんてロマンチック～♪」
-		CASE 419,429
-		;見てみたい
-			PRINTFORMW 「あら？なんかキラキラ光ってるわね」
-			PRINTFORMW 「へえ、ダイヤモンドダストっていうの」
-			PRINTFORMW 「ほんとに宝石みたいで素敵～♪」
-		CASE 111
-			PRINTFORMW 「あーポカポカ陽気が気持ちいいわ～」
-			PRINTFORMW 「このまま寝ちゃいたいくらい……」
-		CASE 211
-			PRINTFORMW 「暑いわねぇ……」
-			PRINTFORMW 「この服、通気性はいいから見た目よりは涼しいのよ」
-			PRINTFORMW 「それでもやっぱり暑い暑い……」
-		CASE 311
-			PRINTFORMW 「うーーん、清々しい天気ねぇ」
-			PRINTFORMW 「このまま夜まで晴れてくれないかしら」
-		CASE 411
-			PRINTFORMW 「さむいわ……さむいさむい……」
-			PRINTFORMW 「こういう日が一番狼でよかったって思えるかも……」
-		CASE 121
-		;仕様上夜の時間帯は一定である
-			PRINTFORMW 「この季節の夜はあっという間に終わっちゃうのよ」
-			PRINTFORMW 「春の夜の夢の如し…ってね」
-			SIF FLAG:住み込みキャラ == 63
-				PRINTFORMW 「それとも手枕がいいかしら♪」
-		CASE 221
-			PRINTFORMW 「流石に夜は幾分か涼しいわね」
-			PRINTFORMW 「暑い日が続くと堪えちゃうわ……」
-			PRINTFORMW 「この季節は抜け毛が激しくて……」
-		CASE 321
-			SELECTCASE DAY:3
-			CASE 1 TO 14
-			PRINTFORMW 「今月は十五夜があるわね」
-			PRINTFORMW 「晴れるかしら、ちょっと心配だわ」
-				SIF TALENT:恋慕
-					PRINTFORMW 「まぁいざとなったら……いえ、なんでもないわ」
-			CASE 15
-				IF TCVAR:351
-					PRINTFORMW 「また来年もお月見しましょうね、%CALLNAME:MASTER%！」
-				ELSE
-					PRINTFORMW 「ねえねえ%CALLNAME:MASTER%！今日は十五夜よ！」
-					PRINTFORMW 「一緒にお月見しましょうよ！」
-				ENDIF
-			CASE 16 TO 31
-				PRINTFORMW 「やっぱり秋の夜は空気も澄んでるし気候も快適だし」
-				PRINTFORMW 「月も綺麗だし良いことづくめね～！」
-			ENDSELECT
-		CASE 421
-			PRINTFORMW 「冬は空気が澄んでるから、星空が綺麗ね～」
-			PRINTFORMW 「なんていったかしら、あの三つ星…」
-			PRINTFORMW 「…あと冬の大三角形も素敵ね♪」
-		CASE 112,212,312,412
-			PRINTFORMW 「どんよりしたお天気ねぇ」
-			PRINTFORMW 「雨が降らなきゃいいけど……」
-		CASE 122,222,322,422
-			PRINTFORMW 「曇っていて月が見えないわね……」
-			PRINTFORMW 「満月じゃなくたって月は見ていたいものよ」
-		CASE 113,123
-			PRINTFORMW 「あいにくのお天気ねぇ……」
-			PRINTFORMW 「春雨……ってなんで春の雨なのかしら？」
-		CASE 213,223
-			PRINTFORMW 「ウー……この時期の雨はジメジメして嫌ねぇ」
-			PRINTFORMW 「なんで雨なのに涼しくならないのかしら」
-		CASE 313,323
-		;そんなことはない
-			PRINTFORMW 「あいにくのお天気ねぇ……」
-			PRINTFORMW 「まぁこの時期は降りやすいから仕方ないか」
-			SIF TIME:3 == 3
-				PRINTFORMW 「まさしく雨夜の月ね」
-		CASE 413,423
-			PRINTFORMW 「うぅ……冷たい雨は芯に染みるわぁ……」
-			PRINTFORMW 「いっそ雪になってくれたほうがいいのに……」
-		CASE 114,124,214,224,314,324,414,424
-			PRINTFORMW 「大荒れのお天気ねー」
-			IF AT_HOME(MASTER) == 0
-				PRINTFORMW 「早いうちに帰った方がいいんじゃないかしら」
-			ELSEIF OUTROOF(CFLAG:MASTER:現在位置)
-				IF FLAG:住み込みキャラ == 63
-					PRINTFORMW 「ささっ、部屋に戻りましょ！」
-				ELSEIF TALENT:恋慕
-					PRINTFORMW 「あの……よかったら部屋に入れてくれないかしら…？」
-				ELSE
-					PRINTFORMW 「%CALLNAME:MASTER%、雨宿りしないの？」
-				ENDIF
-			ELSE
-				IF FLAG:住み込みキャラ == 63
-					PRINTFORMW 「今日は部屋でゆっくりしましょ♪」
-				ELSE
-					PRINTFORMW 「当分は足止めねぇ……」
-				ENDIF
-			ENDIF
-		CASE 415,425
-		;狼は庭駆け回る
-			PRINTFORMW 「ねえ雪よ！雪！」
-			PRINTFORMW 「寒いのは嫌いだけど、雪はなんだか気分が高揚しちゃうわ！」
-		CASE 416,426
-			PRINTFORMW 「ひゃー！すごい吹雪！！」
-			IF AT_HOME(MASTER) == 0
-				PRINTFORMW 「このままだと帰れなくなっちゃうわよ－！？」
-			ELSEIF OUTROOF(CFLAG:MASTER:現在位置)
-				IF FLAG:住み込みキャラ == 63
-					PRINTFORMW 「早く部屋に避難よ！」
-				ELSEIF TALENT:恋慕
-					PRINTFORMW 「お願い！おうちに入れてちょうだい～！」
-				ELSE
-					PRINTFORMW 「う～ん、どうやって帰ろうかしら」
-				;	PRINTFORMW 「ごめんなさい、今日は今のうちに帰るとするわ……」
-				;	CALL KAGEROU_ESCAPE
-				ENDIF
-			ELSE
-				IF FLAG:住み込みキャラ == 63
-					PRINTFORMW 「今日は部屋で温まりましょ♪」
-				ELSEIF TALENT:恋慕
-					PRINTFORMW 「当分は帰れないわね……」
-				ELSE
-					PRINTFORMW 「う～ん、どうやって帰ろうかしら」
-				;	PRINTFORMW 「ごめんなさい、今日は今のうちに帰るとするわ……」
-				;	CALL KAGEROU_ESCAPE
-				ENDIF
-			ENDIF
-		;漏れがあったら適当に眠い影狼（「～」で判別）
-		CASEELSE
-			PRINTFORMW 「ﾑﾆｬﾑﾆｬ……」
-			PRINTFORMW 「昨日寝付けなくて眠いのよ～…」
-		ENDSELECT
+		CALL K63_WEATHER
 		TCVAR:352 = 1
-
 	;デートの会話
 	ELSEIF CHK_DATENOW(CFLAG:TARGET:デート中)
 		SELECTCASE CFLAG:63:現在位置
@@ -650,23 +532,17 @@ IF LOCAL && !FLAG:70
 		CASE 26
 			PRINTFORMW 「このドレスの模様？」
 			PRINTFORMW 「さてなんでしょう！？」
-			$INPUT_LOOP_06
-			PRINTL [0] 芒に月
-			PRINTL [1] なんだっけ
-			INPUT
-			SELECTCASE RESULT
-			CASE 0
+			CALL ASK_YN("芒に月","なんだっけ")
+			IF !RESULT
 				PRINTFORMW 「正解～！芒（すすき）に月よ！20点！」
 				PRINTFORMW 「芒は八月、葉月の絵柄で、その光札ね」
 				PRINTFORMW 「九月の菊に盃と揃えると月見酒！」
 				PRINTFORMW 「私この絵柄大好き♪」
-			CASE 1
+			ELSE
 				PRINTFORMW 「花札の芒に月って絵札よ」
 				PRINTFORMW 「見たことないかしら。えーと、黒い半円のバックに赤い空が広がっていて」
 				PRINTFORMW 「白い満月が左上にどーんと浮かんでるのよ」
-			CASEELSE
-				GOTO INPUT_LOOP_06
-			ENDSELECT
+			ENDIF
 		CASE 27
 			PRINTFORMW 「ねえ%CALLNAME:MASTER%、昼と夜どっちが好き？」
 			$INPUT_LOOP_07
@@ -855,7 +731,6 @@ IF LOCAL && !FLAG:70
 			PRINTFORMW 「鼻は利くのよ……ｸﾝｸﾝ……」
 			CALL KUNKUN_KAGEROU
 		ENDSELECT
-
 	;会話不能
 	ELSEIF TCVAR:302
 		PRINTFORMW 「あら？どうしたの？」
@@ -1027,3 +902,138 @@ IF LOCAL && !FLAG:70
 	ENDIF
 ENDIF
 RETURN 1
+
+@K63_WEATHER
+;百:季節 十:昼夜 一:天気 0,虹 9,DD 1,晴れ 2,曇り 3,雨 4,大雨 5,雪 6,吹雪
+CALL OTENKI_KAGEROU(DAY:2)
+SELECTCASE RESULT
+CASE 110,210,310,410
+	PRINTFORMW 「あ！%CALLNAME:MASTER%！虹よ虹！」
+	PRINTFORMW 「なんか得した気分になっちゃった！」
+CASE 120,220,320,420
+	PRINTFORMW 「あ！%CALLNAME:MASTER%！虹よ虹！」
+	PRINTFORMW 「月の光で虹ができるなんてロマンチック～♪」
+CASE 419,429
+;見てみたい
+	PRINTFORMW 「あら？なんかキラキラ光ってるわね」
+	PRINTFORMW 「へえ、ダイヤモンドダストっていうの」
+	PRINTFORMW 「ほんとに宝石みたいで素敵～♪」
+CASE 111
+	PRINTFORMW 「あーポカポカ陽気が気持ちいいわ～」
+	PRINTFORMW 「このまま寝ちゃいたいくらい……」
+CASE 211
+	PRINTFORMW 「暑いわねぇ……」
+	PRINTFORMW 「この服、通気性はいいから見た目よりは涼しいのよ」
+	PRINTFORMW 「それでもやっぱり暑い暑い……」
+CASE 311
+	PRINTFORMW 「うーーん、清々しい天気ねぇ」
+	PRINTFORMW 「このまま夜まで晴れてくれないかしら」
+CASE 411
+	PRINTFORMW 「さむいわ……さむいさむい……」
+	PRINTFORMW 「こういう日が一番狼でよかったって思えるかも……」
+CASE 121
+;仕様上夜の時間帯は一定である
+	PRINTFORMW 「この季節の夜はあっという間に終わっちゃうのよ」
+	PRINTFORMW 「春の夜の夢の如し…ってね」
+	SIF FLAG:住み込みキャラ == 63
+		PRINTFORMW 「それとも手枕がいいかしら♪」
+CASE 221
+	PRINTFORMW 「流石に夜は幾分か涼しいわね」
+	PRINTFORMW 「暑い日が続くと堪えちゃうわ……」
+	PRINTFORMW 「この季節は抜け毛が激しくて……」
+CASE 321
+	SELECTCASE DAY:3
+	CASE 1 TO 14
+	PRINTFORMW 「今月は十五夜があるわね」
+	PRINTFORMW 「晴れるかしら、ちょっと心配だわ」
+		SIF TALENT:恋慕
+			PRINTFORMW 「まぁいざとなったら……いえ、なんでもないわ」
+	CASE 15
+		IF TCVAR:351
+			PRINTFORMW 「また来年もお月見しましょうね、%CALLNAME:MASTER%！」
+		ELSE
+			PRINTFORMW 「ねえねえ%CALLNAME:MASTER%！今日は十五夜よ！」
+			PRINTFORMW 「一緒にお月見しましょうよ！」
+		ENDIF
+	CASE 16 TO 31
+		PRINTFORMW 「やっぱり秋の夜は空気も澄んでるし気候も快適だし」
+		PRINTFORMW 「月も綺麗だし良いことづくめね～！」
+	ENDSELECT
+CASE 421
+	PRINTFORMW 「冬は空気が澄んでるから、星空が綺麗ね～」
+	PRINTFORMW 「なんていったかしら、あの三つ星…」
+	PRINTFORMW 「…あと冬の大三角形も素敵ね♪」
+CASE 112,212,312,412
+	PRINTFORMW 「どんよりしたお天気ねぇ」
+	PRINTFORMW 「雨が降らなきゃいいけど……」
+CASE 122,222,322,422
+	PRINTFORMW 「曇っていて月が見えないわね……」
+	PRINTFORMW 「満月じゃなくたって月は見ていたいものよ」
+CASE 113,123
+	PRINTFORMW 「あいにくのお天気ねぇ……」
+	PRINTFORMW 「春雨……ってなんで春の雨なのかしら？」
+CASE 213,223
+	PRINTFORMW 「ウー……この時期の雨はジメジメして嫌ねぇ」
+	PRINTFORMW 「なんで雨なのに涼しくならないのかしら」
+CASE 313,323
+;そんなことはない
+	PRINTFORMW 「あいにくのお天気ねぇ……」
+	PRINTFORMW 「まぁこの時期は降りやすいから仕方ないか」
+	SIF TIME:3 == 3
+		PRINTFORMW 「まさしく雨夜の月ね」
+CASE 413,423
+	PRINTFORMW 「うぅ……冷たい雨は芯に染みるわぁ……」
+	PRINTFORMW 「いっそ雪になってくれたほうがいいのに……」
+CASE 114,124,214,224,314,324,414,424
+	PRINTFORMW 「大荒れのお天気ねー」
+	IF AT_HOME(MASTER) == 0
+		PRINTFORMW 「早いうちに帰った方がいいんじゃないかしら」
+	ELSEIF OUTROOF(CFLAG:MASTER:現在位置)
+		IF FLAG:住み込みキャラ == 63
+			PRINTFORMW 「ささっ、部屋に戻りましょ！」
+		ELSEIF TALENT:恋慕
+			PRINTFORMW 「あの……よかったら部屋に入れてくれないかしら…？」
+		ELSE
+			PRINTFORMW 「%CALLNAME:MASTER%、雨宿りしないの？」
+		ENDIF
+	ELSE
+		IF FLAG:住み込みキャラ == 63
+			PRINTFORMW 「今日は部屋でゆっくりしましょ♪」
+		ELSE
+			PRINTFORMW 「当分は足止めねぇ……」
+		ENDIF
+	ENDIF
+CASE 415,425
+;狼は庭駆け回る
+	PRINTFORMW 「ねえ雪よ！雪！」
+	PRINTFORMW 「寒いのは嫌いだけど、雪はなんだか気分が高揚しちゃうわ！」
+CASE 416,426
+	PRINTFORMW 「ひゃー！すごい吹雪！！」
+	IF AT_HOME(MASTER) == 0
+		PRINTFORMW 「このままだと帰れなくなっちゃうわよ－！？」
+	ELSEIF OUTROOF(CFLAG:MASTER:現在位置)
+		IF FLAG:住み込みキャラ == 63
+			PRINTFORMW 「早く部屋に避難よ！」
+		ELSEIF TALENT:恋慕
+			PRINTFORMW 「お願い！おうちに入れてちょうだい～！」
+		ELSE
+			PRINTFORMW 「う～ん、どうやって帰ろうかしら」
+		;	PRINTFORMW 「ごめんなさい、今日は今のうちに帰るとするわ……」
+		;	CALL KAGEROU_ESCAPE
+		ENDIF
+	ELSE
+		IF FLAG:住み込みキャラ == 63
+			PRINTFORMW 「今日は部屋で温まりましょ♪」
+		ELSEIF TALENT:恋慕
+			PRINTFORMW 「当分は帰れないわね……」
+		ELSE
+			PRINTFORMW 「う～ん、どうやって帰ろうかしら」
+		;	PRINTFORMW 「ごめんなさい、今日は今のうちに帰るとするわ……」
+		;	CALL KAGEROU_ESCAPE
+		ENDIF
+	ENDIF
+;漏れがあったら適当に眠い影狼（「～」で判別）
+CASEELSE
+	PRINTFORMW 「ﾑﾆｬﾑﾆｬ……」
+	PRINTFORMW 「昨日寝付けなくて眠いのよ～…」
+ENDSELECT

@@ -7263,7 +7263,7 @@ IF LOCAL
 		CALL K42_HEALTH
 	ENDIF
 	
-	IF CFLAG:K42C_はたてのアトリエ == 0 && ABL:調合技能 < 2 && EXP:調合経験 >= 1 && TALENT:恋慕 && CFLAG:1010 >= 1
+	IF CFLAG:K42C_はたてのアトリエ == 0 && TALENT:調合Lv < 2 && EXP:調合経験 >= 1 && TALENT:恋慕 && CFLAG:1010 >= 1
 		CALL K42_HATATE_ATELIER
 	ENDIF
 	
@@ -9654,136 +9654,191 @@ ENDIF
 ;PRINTFORML 例）生活感のない殺風景な部屋だ
 ;-------------------------------------------------
 
-;-------------------------------------------------
-;キャラがあなたに贈り物をくれたときの口上
-;-------------------------------------------------
-@M_KOJO_EVENT_K42_GIFT(GIFT_NAME)
-#DIMS GIFT_NAME	;贈り物の名称
 
-;やっぱり砂糖口上書くのは楽しくてたまりませんねぇ！
-IF CFLAG:K42C_結婚 >= 1
-	PRINTFORML 「ダーリン、これ、プレゼント♪」
-	PRINTFORML はたてから両手で渡されたのは%GIFT_NAME%だった
-	PRINTW 
-	PRINTFORML 「ダーリン、いつも私のこと大事にしてくれるから、何かお返ししたくって」
-	PRINTFORML 「その…気に入ってくれた？」
-	PRINTW 
-	CALL ASK_YN("「ありがとう」と笑顔で抱きしめる","一生大事にする。むしろ家宝にすると感動でむせび泣く")
-	IF !RESULT
-		PRINTFORML 「！　えへへ\/\/\/　なんか私のほうが照れちゃうなー\/\/\/」
-		PRINTFORML 「ダーリン、私のこと、愛してくれてありがと。私も、愛してるよ%UNICODE(0x2665) *1%」
+;==================================================
+;贈り物イベント
+;==================================================
+@M_KOJO_EVENT_K42_GIFT(ARG, GIFT_ID, 評価点, GIFT_NAME, SENSE)
+#DIM GIFT_ID
+#DIM 評価点
+#DIMS GIFT_NAME
+#DIMS SENSE
+;---------------------------------------------------------------------------------------------------
+;評価点       贈り物の評価点（1～999）,口上主があげた場合でも口上主の評価点
+;GIFT_NAME    贈り物の名称
+;SENSE        贈り物に設定された属性。STRCOUNT(DISH_TASTE, "ほげほげ/")を使うと特定の属性を判定できます。
+;GIFT_ID      これ単体では使いません。以下の式内関数を使うとデータを抽出できます（こだわりたい人用）
+;　GET_GIFTDATA(GIFT_ID, "回数")    貰った（あげた）回数
+;　GET_GIFTDATA(GIFT_ID, "得点")    得点（1～999）,口上テンプレ内では用意されてます。
+;　GET_GIFTDATA(GIFT_ID, "日付")    貰った（あげた）日付（1～9999）
+;　GET_GIFTDATA(GIFT_ID, "場所")    買った場所（デートの行き先）
+;　GET_GIFTDATA(GIFT_ID, "形容詞")  形容詞番号（贈り物_形容詞.erb参照）
+;　GET_GIFTDATA(GIFT_ID, "本体")    本体番号（贈り物_本体.erb参照）
+;--------------------------------------------------------------------------------------------------
+;デート帰りに口上主があなたに贈り物を渡す（陥落や好感度に関わらず親密5以上から発生）
+;評価点は701～999（渡すキャラ本人の評価）
+;--------------------------------------------------------------------------------------------------
+IF ARG == 1	;やっぱり砂糖口上書くのは楽しくてたまりませんねぇ！
+	IF CFLAG:K42C_結婚 >= 1
+		PRINTFORML 「ダーリン、これ、プレゼント♪」
+		PRINTFORML はたてから両手で渡されたのは%GIFT_NAME%だった
 		PRINTW 
-	ELSE
-		PRINTFORML 「ちょーっとちょっとちょっと。いくらなんでも大げさすぎだってばぁ」
-		PRINTFORML 「もー、お調子ものなんだからぁ。でも、受け取ってくれてありがと、ダーリン♪」
-		PRINTFORML はたてはそっと頬に口付けし、柔らかい笑みを浮かべた
+		PRINTFORML 「ダーリン、いつも私のこと大事にしてくれるから、何かお返ししたくって」
+		PRINTFORML 「その…気に入ってくれた？」
 		PRINTW 
-	ENDIF
-ELSEIF TALENT:恋慕 || TALENT:恋人
-	PRINTFORML 「%MASTERNAME:42%、これ、受け取って♪」
-	PRINTFORML はたてから両手で渡されたのは%GIFT_NAME%だった
-	PRINTW 
-	PRINTFORML 「%MASTERNAME:42%が喜んでくれるかなって。色々考えたんてそれにしたんだー」
-	PRINTFORML 「%MASTERNAME:42%が気に入ってくれるといいんだけど」
-	PRINTW 
-	CALL ASK_YN("はたてだと思って後生大事にするよ","はたてのチョイスはなかなか攻めるな")
-	IF !RESULT
-		PRINTFORML 「ホント？　うれしー♪」
-		PRINTFORML 「受け取ってもらえなかったらどうしようって、ドキドキしちゃったあ」
-		PRINTW 
-		PRINTFORML はたての贈り物を受け取らないわけないだろうと、額を指でツンと突いた
-		PRINTFORML 「あうっ。分かってたけどさー、万が一趣味と合わないことだってあるわけじゃんー」
-		PRINTFORML 分かってたのかよともう一度額を指でツンと突くと、はたては「えへへ」と子供のように笑った
-		PRINTW 
-	ELSE
-		PRINTFORML 「えっ、それ褒められてる？　貶されてる？　どっち～～～～？」
-		PRINTFORML はたての問いには答えず、無言でΣｂと親指を立てた
-		PRINTFORML 「だからどっちよ～～～～、教えてってば～～～～」
-		PRINTW 
-	ENDIF
-ELSEIF TALENT:愛欲 || TALENT:セフレ
-	PRINTFORML 「はいこれ」
-	PRINTFORML はたてから何気なく渡されたのは%GIFT_NAME%だった
-	PRINTW 
-	PRINTFORML 「アンタとも付き合い長いしねー。まー私なりのお礼みたいな？」
-	PRINTFORML 「
-	PRINTW 
-	CALL ASK_YN("いっそのこと付き合う？","嬉しいな、ありがとう")
-	IF !RESULT
-		IF TALENT:思慕
-			CALL HPH_PRINT,@"「！　ば、ばーか、アンタとはセックスだけの関係だっての…HPH」","L"
-			PRINTFORML 「…まぁ、好きか嫌いか言われれば好きだけどさ。一番好きなのはアンタのおちんちんだし」
+		CALL ASK_YN("「ありがとう」と笑顔で抱きしめる","一生大事にする。むしろ家宝にすると感動でむせび泣く")
+		IF !RESULT
+			PRINTFORML 「！　えへへ\/\/\/　なんか私のほうが照れちゃうなー\/\/\/」
+			PRINTFORML 「ダーリン、私のこと、愛してくれてありがと。私も、愛してるよ%UNICODE(0x2665) *1%」
 			PRINTW 
 		ELSE
-			CALL HPH_PRINT,@"「ばーかHPHアンタとはセックスだけの関係だっての」","L"
-			PRINTFORML 「アンタのおちんちんのことは好きだけど、アンタはいー加減でスケベだしねー♪」
+			PRINTFORML 「ちょーっとちょっとちょっと。いくらなんでも大げさすぎだってばぁ」
+			PRINTFORML 「もー、お調子ものなんだからぁ。でも、受け取ってくれてありがと、ダーリン♪」
+			PRINTFORML はたてはそっと頬に口付けし、柔らかい笑みを浮かべた
 			PRINTW 
 		ENDIF
-		
-		IF EXP:TARGET:キス経験 >= 1 && EXP:TARGET:Ｖ性交経験 >= 1
-			PRINTFORML 「アンタにはキスも体も許してるけどさ、恋人でいるより気の合う友達感覚のほうがいーのよ」
-		ELSEIF EXP:TARGET:Ｖ性交経験 >= 1
-			PRINTFORML 「アンタにはキスまで許すつもりはないしねー。友達感覚のほうが楽でしょ？」
-			PRINTFORML 「キスは恋人ができたときのためにとってあるんだから♪」
+	ELSEIF TALENT:恋慕 || TALENT:恋人
+		PRINTFORML 「%MASTERNAME:42%、これ、受け取って♪」
+		PRINTFORML はたてから両手で渡されたのは%GIFT_NAME%だった
+		PRINTW 
+		PRINTFORML 「%MASTERNAME:42%が喜んでくれるかなって。色々考えたんてそれにしたんだー」
+		PRINTFORML 「%MASTERNAME:42%が気に入ってくれるといいんだけど」
+		PRINTW 
+		CALL ASK_YN("はたてだと思って後生大事にするよ","はたてのチョイスはなかなか攻めるな")
+		IF !RESULT
+			PRINTFORML 「ホント？　うれしー♪」
+			PRINTFORML 「受け取ってもらえなかったらどうしようって、ドキドキしちゃったあ」
+			PRINTW 
+			PRINTFORML はたての贈り物を受け取らないわけないだろうと、額を指でツンと突いた
+			PRINTFORML 「あうっ。分かってたけどさー、万が一趣味と合わないことだってあるわけじゃんー」
+			PRINTFORML 分かってたのかよともう一度額を指でツンと突くと、はたては「えへへ」と子供のように笑った
+			PRINTW 
+		ELSE
+			PRINTFORML 「えっ、それ褒められてる？　貶されてる？　どっち～～～～？」
+			PRINTFORML はたての問いには答えず、無言でΣｂと親指を立てた
+			PRINTFORML 「だからどっちよ～～～～、教えてってば～～～～」
 			PRINTW 
 		ENDIF
-		
-		IF TALENT:MASTER:恋人
-			PRINTFORML 「そもそもアンタ、恋人いるじゃない。何言ってんのよ」
+	ELSEIF TALENT:愛欲 || TALENT:セフレ
+		PRINTFORML 「はいこれ」
+		PRINTFORML はたてから何気なく渡されたのは%GIFT_NAME%だった
+		PRINTW 
+		PRINTFORML 「アンタとも付き合い長いしねー。まー私なりのお礼みたいな？」
+		PRINTFORML 「
+		PRINTW 
+		CALL ASK_YN("いっそのこと付き合う？","嬉しいな、ありがとう")
+		IF !RESULT
+			IF TALENT:思慕
+				CALL HPH_PRINT,@"「！　ば、ばーか、アンタとはセックスだけの関係だっての…HPH」","L"
+				PRINTFORML 「…まぁ、好きか嫌いか言われれば好きだけどさ。一番好きなのはアンタのおちんちんだし」
+				PRINTW 
+			ELSE
+				CALL HPH_PRINT,@"「ばーかHPHアンタとはセックスだけの関係だっての」","L"
+				PRINTFORML 「アンタのおちんちんのことは好きだけど、アンタはいー加減でスケベだしねー♪」
+				PRINTW 
+			ENDIF
+			
+			IF EXP:TARGET:キス経験 >= 1 && EXP:TARGET:Ｖ性交経験 >= 1
+				PRINTFORML 「アンタにはキスも体も許してるけどさ、恋人でいるより気の合う友達感覚のほうがいーのよ」
+			ELSEIF EXP:TARGET:Ｖ性交経験 >= 1
+				PRINTFORML 「アンタにはキスまで許すつもりはないしねー。友達感覚のほうが楽でしょ？」
+				PRINTFORML 「キスは恋人ができたときのためにとってあるんだから♪」
+				PRINTW 
+			ENDIF
+			
+			IF TALENT:MASTER:恋人
+				PRINTFORML 「そもそもアンタ、恋人いるじゃない。何言ってんのよ」
+			ENDIF
+			PRINTFORML 「ま、これからも気が向いたときに会って、一緒に遊んで、セックスできれば十分よ」
+			PRINTFORML 「ってわけで、帰り、私の家に寄ってく…？%UNICODE(0x2665) *1%」
+			PRINTFORML はたては色っぽい視線を送りながら腕にしがみついてきた…
+			PRINTW 
+		ELSE
+			PRINTFORML 「ふーん、やけに素直じゃん。明日は弾幕でも降ってくるんじゃない？」
+			PRINTFORML 「やーん、怒ったー♪　こわーい♪」
+			PRINTFORML はたてとしばしの間恋人のようにじゃれ合った
+			PRINTW 
 		ENDIF
-		PRINTFORML 「ま、これからも気が向いたときに会って、一緒に遊んで、セックスできれば十分よ」
-		PRINTFORML 「ってわけで、帰り、私の家に寄ってく…？%UNICODE(0x2665) *1%」
-		PRINTFORML はたては色っぽい視線を送りながら腕にしがみついてきた…
+	ELSEIF TALENT:思慕
+		PRINTFORML 「%MASTERNAME:42%、これ受け取ってよ。私からのプレゼント」
+		PRINTFORML はたてから手渡されたのは%GIFT_NAME%だった
 		PRINTW 
+		IF CFLAG:1021 >= 50
+			PRINTFORML 「あなたと一緒にいるのって、すっごく楽しいのよね」
+			PRINTFORML 「それは、今まで楽しませてもらったお礼、かな」
+			PRINTFORML 「もちろん、これからもいっぱいデートに誘ってよね♪　当たり前じゃん♪」
+			PRINTFORML 近くから顔を覗かれ、ドギマギしてしまった
+			PRINTW 
+		ELSEIF CFLAG:1021 >= 10
+			PRINTFORML 「なんでかって？　%MASTERNAME:42%のこと、けっこー気に入ってるからよ」
+			PRINTFORML 「あ、赤くなってるー♪　カワイーとこあんじゃん♪」
+			PRINTFORML 「それ、大事にしてよね♪」
+			PRINTW 
+		ELSEIF CFLAG:1021 >= 1
+			PRINTFORML 「私って、デートとか経験したことなかったからさ」
+			PRINTFORML 「そのお礼ってとこかなー」
+			SIF TALENT:MASTER:性別 == 2
+				PRINTFORML 「あ、家族以外じゃ、男の人に贈り物したのってはじめてなんだよ」
+			PRINTW 
+			PRINTFORML 「大事にしてくれたまえよー、%MASTERNAME:42%♪」
+			PRINTFORML はたては後ろ手を組みながら、悪戯っぽく笑った
+			PRINTW 
+		ENDIF
 	ELSE
-		PRINTFORML 「ふーん、やけに素直じゃん。明日は弾幕でも降ってくるんじゃない？」
-		PRINTFORML 「やーん、怒ったー♪　こわーい♪」
-		PRINTFORML はたてとしばしの間恋人のようにじゃれ合った
+		PRINTFORML 「はい、これ」
+		PRINTFORML はたてから何気なく渡されたのは%GIFT_NAME%だった
 		PRINTW 
+		PRINTFORML 「なんだかんだで%MASTERNAME:42%にはお世話になってるし。お礼ってことで」
+		PRINTFORML 「何よー、なんとか言いなさいよー」
+		PRINTW 
+		CALL ASK_YN("はたてちゃん好き","控えめに言って…しゅき")
+		IF !RESULT
+			PRINTFORML 「は、はぁ！？　な、何言ってんのよも～～～～\/\/\/」
+			PRINTFORML 「いや、そりゃ悪い気はしないけどさぁ…いや、私もあんたのこと嫌いってわけじゃないけど」
+			PRINTFORML 「とにかく…いつも、ありがと」
+			PRINTW 
+		ELSE
+			PRINTFORML 「あ～…はいはい、ふざけてるのは分かってるから。私はあんたのそーいうところはキライ」
+			PRINTFORML 「『真面目に言ったら応えてくれるのか』って？　え、えーと、それは…」
+			PRINTFORML 「そーいうのは、あんたがもっとまじめにそういう行動してからでしょ？　今はありえないっての」
+			PRINTW 
+		ENDIF
 	ENDIF
-ELSEIF TALENT:思慕
-	PRINTFORML 「%MASTERNAME:42%、これ受け取ってよ。私からのプレゼント」
-	PRINTFORML はたてから手渡されたのは%GIFT_NAME%だった
-	PRINTW 
-	IF CFLAG:1021 >= 50
-		PRINTFORML 「あなたと一緒にいるのって、すっごく楽しいのよね」
-		PRINTFORML 「それは、今まで楽しませてもらったお礼、かな」
-		PRINTFORML 「もちろん、これからもいっぱいデートに誘ってよね♪　当たり前じゃん♪」
-		PRINTFORML 近くから顔を覗かれ、ドギマギしてしまった
-		PRINTW 
-	ELSEIF CFLAG:1021 >= 10
-		PRINTFORML 「なんでかって？　%MASTERNAME:42%のこと、けっこー気に入ってるからよ」
-		PRINTFORML 「あ、赤くなってるー♪　カワイーとこあんじゃん♪」
-		PRINTFORML 「それ、大事にしてよね♪」
-		PRINTW 
-	ELSEIF CFLAG:1021 >= 1
-		PRINTFORML 「私って、デートとか経験したことなかったからさ」
-		PRINTFORML 「そのお礼ってとこかなー」
-		SIF TALENT:MASTER:性別 == 2
-			PRINTFORML 「あ、家族以外じゃ、男の人に贈り物したのってはじめてなんだよ」
-		PRINTW 
-		PRINTFORML 「大事にしてくれたまえよー、%MASTERNAME:42%♪」
-		PRINTFORML はたては後ろ手を組みながら、悪戯っぽく笑った
-		PRINTW 
-	ENDIF
-ELSE
-	PRINTFORML 「はい、これ」
-	PRINTFORML はたてから何気なく渡されたのは%GIFT_NAME%だった
-	PRINTW 
-	PRINTFORML 「なんだかんだで%MASTERNAME:42%にはお世話になってるし。お礼ってことで」
-	PRINTFORML 「何よー、なんとか言いなさいよー」
-	PRINTW 
-	CALL ASK_YN("はたてちゃん好き","控えめに言って…しゅき")
-	IF !RESULT
-		PRINTFORML 「は、はぁ！？　な、何言ってんのよも～～～～\/\/\/」
-		PRINTFORML 「いや、そりゃ悪い気はしないけどさぁ…いや、私もあんたのこと嫌いってわけじゃないけど」
-		PRINTFORML 「とにかく…いつも、ありがと」
-		PRINTW 
-	ELSE
-		PRINTFORML 「あ～…はいはい、ふざけてるのは分かってるから。私はあんたのそーいうところはキライ」
-		PRINTFORML 「『真面目に言ったら応えてくれるのか』って？　え、えーと、それは…」
-		PRINTFORML 「そーいうのは、あんたがもっとまじめにそういう行動してからでしょ？　今はありえないっての」
-		PRINTW 
-	ENDIF
+	;PRINTFORMW 「%GIFT_NAME%をあげるから大事に使って」
+	RETURN 1
+;--------------------------------------------------------------------------------------------------
+;一日の終わりに今日貰った贈り物を大事にする（700点以上）
+;--------------------------------------------------------------------------------------------------
+ELSEIF ARG == 2
+	;IF STRCOUNT(SENSE, "かわいい/")
+	;	PRINTFORMW 「かわいいプレゼントを貰っちゃった」
+	;ELSEIF 評価点 >= 800
+	;	PRINTFORMW 「とっても素敵なプレゼントを貰っちゃった」
+	;ELSE
+	;	PRINTFORMW 「素敵なプレゼントを貰っちゃった」
+	;ENDIF
+	RETURN 1
+;--------------------------------------------------------------------------------------------------
+;一日の終わりに今日貰った贈り物をお気に入りにする（↑の大事にするから続き）（700点以上かつ最高得点）
+;--------------------------------------------------------------------------------------------------
+ELSEIF ARG == 3
+	;IF STRCOUNT(SENSE, "身につける/")
+	;	PRINTFORMW 「明日からこれを付けて行こうっと」
+	;ELSE
+	;	PRINTFORMW 「明日からこれを持って行こうっと」
+	;ENDIF
+	RETURN 1
+;--------------------------------------------------------------------------------------------------
+;一日の終わりに今日貰った贈り物をとりあえず保管する（400～699点）
+;--------------------------------------------------------------------------------------------------
+ELSEIF ARG == 4
+	;PRINTFORMW 「とりあえず飾っておこう」
+	RETURN 1
+;--------------------------------------------------------------------------------------------------
+;一日の終わりに今日貰った贈り物をこっそり質に入れる（400点未満）
+;--------------------------------------------------------------------------------------------------
+ELSEIF ARG == 5
+	;PRINTFORMW 「私これ嫌いなのよね～」
+	RETURN 1
 ENDIF
-;PRINTFORML 「%GIFT_NAME%をあげるから大事に使って」
+RETURN 1

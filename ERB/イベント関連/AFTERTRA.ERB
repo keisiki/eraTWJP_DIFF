@@ -158,7 +158,7 @@ FOR LOCAL,1,CHARANUM
 		CFLAG:LOCAL:600 = 0
 	IF CFLAG:LOCAL:面識
 		会ってない日数 = DAY - CFLAG:LOCAL:最後に会った日
-		CALL KOJO_MESSAGE_SEND("EVENT",31,LOCAL,会ってない日数)
+		CALL KOJO_MESSAGE_SEND("EVENT", 31, LOCAL, TCVAR:LOCAL:今日会ったか ? 0 # 会ってない日数)
 	ENDIF
 NEXT
 
@@ -216,6 +216,12 @@ IF TFLAG:出張お掃除
 		YOGORE:LOCAL /= 4
 	NEXT
 ENDIF
+IF FLAG:市場の神 >= 10
+	FLAG:市場の神 = 0
+	DRAWLINE
+	PRINTL 月明かりに輝いた虹が閉じていく……
+	PRINTW 土産屋の品揃えは元に戻った。
+ENDIF
 
 [SKIPSTART]
 ;依頼の期限切れをチェック
@@ -245,7 +251,8 @@ CALL 酒造
 
 CALL MOENY_HENDOU
 
-
+;罠猟
+CALL TRAP_PROGRESS
 
 MONEY:1 += MAXBASE:MASTER:TSP - BASE:MASTER:TSP
 IF MONEY:1 >= 30000 && MAXBASE:MASTER:TSP == 2500
@@ -321,6 +328,11 @@ IF FLAG:土産屋大安売り >= 1000
 	FLAG:土産屋大安売り = FLAG:土産屋大安売り % 1000
 ELSEIF FLAG:土産屋大安売り >= 100
 	FLAG:土産屋大安売り = 0
+ENDIF
+IF FLAG:市場の神 == 1
+	FLAG:市場の神 = 0
+ELSEIF FLAG:市場の神 == 2
+	FLAG:市場の神 = 10
 ENDIF
 ;何の珠を得られたか
 FOR LOCAL,0,CHARANUM
