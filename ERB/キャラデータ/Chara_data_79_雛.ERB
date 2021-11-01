@@ -1,0 +1,134 @@
+﻿@CHARAMOVE_DATA_79(ARG,ARG:2)
+LOCAL = 79
+SELECTCASE ARG
+	;移動対象メンバーチェック
+	CASE 1
+	;移動確率
+	CASE 2
+	;起床時間帯
+	CASE 3
+		RETURN 睡眠時間(LOCAL)
+	;移動傾向
+	CASE 4
+		SELECTCASE ARG:2
+			;アジト,百合家,秋家,華扇家,隠れ家,小屋
+			CASE 704, 706, 709, 715 TO 719, 720 TO 730, 733, 734
+				RETURN -100
+			;汚れに惹かれる
+			CASEELSE
+				RETURN YOGORE:(ARG:2) / 300
+		ENDSELECT
+	;仕事時間帯
+	CASE 5
+	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
+	CASE 6
+		SELECTCASE ARG:2
+			CASE 5, 6, 7
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+	;出現場所
+	CASE 7
+		SELECTCASE ARG:2
+			CASE 51,52,53,56,57, 61,62, 71,72,73
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+ENDSELECT
+
+@EXIST_キャラデータ79
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+@キャラデータ79(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+SELECTCASE O_DATA
+CASE "呼び名"
+	CALLF MAKE_STR(V_NAME, "雛")
+;こっから衣装設定
+CASE "今日のパジャマ"
+	CALLF MAKE_STR(V_NAME, "パジャマ（ズボン）セット")
+
+CASE "普段着：帽子"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("帽子", "リボン"))
+CASE "普段着：靴"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴", "靴"))
+CASE "普段着：靴下"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴下", "靴下"))
+CASE "普段着：ワンピース"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("ワンピース", "ワンピース"))
+
+CASE "固有下着形容詞"
+	CALLF MAKE_STR(V_NAME, "黒と緑で重厚に彩られた")
+CASE "固有下半身下着名"
+	CALLF MAKE_STR(V_NAME, "ゴシックショーツ")
+CASE "固有上半身下着"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有上半身下着名"
+	CALLF MAKE_STR(V_NAME, "ゴシックブラ")
+CASE "固有下着着用条件"
+	SIF !RAND:(3 - (2 * 勝負下着判定([[雛]])))
+		CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(前)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(後)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着生地厚さ"
+	CALLF MAKE_INT(V_NAME, 2)
+
+;料理関連
+CASE "料理：好きな味"
+	CALLF MAKE_STR(V_NAME, "野菜/汁物/甘い/淡白/質素/鮮やか/家庭的/とろとろ/妖力/すっぱい/すっぱい/すっぱい/")
+CASE "料理：嫌いな味"
+	CALLF MAKE_STR(V_NAME, "ガッツリ/濃厚/辛い/辛い/豪華/豪華/カエル/カエル/カエル/虫肉/虫肉/虫肉/")
+CASE "料理：助手効果"
+	CALLF MAKE_STR(V_NAME, "隠し味/得意料理＊家庭的＊/")
+;贈り物関連
+CASE "感性：好き"
+	CALLF MAKE_STR(V_NAME, "赤/黒/美しい/芸術的/シック/" + "闇/妖術/護符/" * 3 + "厄い/不吉な/" * 5)
+CASE "感性：嫌い"
+	CALLF MAKE_STR(V_NAME, "パワフル/威厳/" + "光/小手/" * 3)
+
+;農民関連
+;服の模様に似ている＆山で生えてそう
+;あまり裕福なイメージはない
+CASE "農民：説明"
+	CALLF MAKE_STR(V_NAME, "山菜農家")
+CASE "農民：作物"
+	CALLF MAKE_STR(V_NAME, "ゼンマイ")
+CASE "農民：畑の種類"
+	CALLF MAKE_STR(V_NAME, "ゼンマイ畑")
+CASE "農民：畑のマップ"
+	CALLF MAKE_STR(V_NAME, "妖怪の山・山麓")
+
+CASE "農民：マップID"
+	CALLF MAKE_INT(V_NAME, 7)
+CASE "農民：場所ID"
+	CALLF MAKE_INT(V_NAME, 705)
+CASE "農民：報酬"
+	CALLF MAKE_INT(V_NAME, 350)
+CASE "農民：金利"
+	CALLF MAKE_INT(V_NAME, 3)
+
+;ここは依頼IDが関連しない情報
+;依頼発生率スカ2/一般3/固有5
+CASE "依頼なし発生率"
+	CALLF MAKE_INT(V_NAME, 2)
+CASE "一般依頼発生率"
+	CALLF MAKE_INT(V_NAME, 3)
+CASE "固有依頼発生率"
+	CALLF MAKE_INT(V_NAME, 5)
+CASE "固有依頼最終要素"
+	CALLF MAKE_INT(V_NAME, 101)
+CASEELSE
+	;固有依頼関連のデータにバトンタッチ
+	SIF STRCOUNT(O_DATA, "依頼")
+		CALLF 固有依頼79(ARG, O_DATA, V_NAME)
+ENDSELECT
+

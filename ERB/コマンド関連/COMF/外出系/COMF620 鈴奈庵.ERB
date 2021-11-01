@@ -1,0 +1,141 @@
+﻿;貸本屋
+@COM620
+#DIM CHARISMA
+#DIM ItemId
+
+$C_LOOP
+DRAWLINE
+IF !CHARISMA
+	PRINTFORML 所持金:%金額表示(MONEY)%
+ELSE
+	PRINTFORML 所持カリスマ:{MONEY:2}
+ENDIF
+PRINTL 「借り賃はどれも\3000です」
+DRAWLINE
+FOR LOCAL,1, BookTitles + 1
+	ItemId = LOCAL + 100
+	PRINTFORM [{LOCAL}] %ITEMNAME:ItemId%
+	IF ITEM:ItemId
+		PRINTFORML （%CALLNAME:MASTER%が借りている）
+	ELSEIF GETBIT (FLAG:1011,LOCAL)
+		PRINTL （貸し出し中）
+	ELSE
+		PRINTL 　
+	ENDIF
+NEXT
+
+IF !CHARISMA
+	PRINTFORML [100] カリスマ払い
+ELSE
+	PRINTFORML [100] 現金払い
+ENDIF
+DRAWLINE
+PRINTL [0] やめる
+
+$LOOP
+INPUT
+FOR LOCAL,1, BookTitles + 1
+	ItemId = LOCAL + 100
+	IF ITEM:ItemId
+		PRINTL 「二冊以上の貸し出しはできません」
+		RETURN -1
+	ENDIF
+NEXT
+
+IF RESULT == 100
+	IF !CHARISMA
+		PRINTFORMW 「カリスマで払う？？？？」
+		PRINTFORMW 「えっと……じゃあ10カリスマ？でいいです……」
+		IF MONEY:2 < 10
+			PRINTFORMW カリスマが足りない
+			GOTO C_LOOP
+		ENDIF
+	ELSE
+		PRINTFORMW 「あ、お金で払ってくれるんですね」
+	ENDIF
+	PRINTFORML 
+	CHARISMA = !CHARISMA
+	GOTO C_LOOP
+ELSE
+	IF !CHARISMA && MONEY < 3000
+		PRINTW お金が足りなかった…
+		RETURN -1
+	ENDIF
+	IF INRANGE(RESULT, 1, BookTitles)
+		IF GETBIT (FLAG:1011,RESULT)
+			LOCALS = 「貸し出し中です」 
+			IF CFLAG:[[小鈴]]:現在位置 == CFLAG:PLAYER:現在位置
+				CALL SPTALK, [[小鈴]], "通常", 0, @"%LOCALS%", 1
+				SIF TARGET != [[小鈴]]
+					RESETCOLOR
+			ELSE
+				CALL SPTALK, 0, "通常", 12, @"%LOCALS%", 1
+			ENDIF
+		ELSE
+			SETBIT FLAG:1011,RESULT
+			IF !CHARISMA
+				MONEY -= 3000
+			ELSE
+				MONEY:2 -= 10
+			ENDIF
+			ITEM:(100 + RESULT) = 1
+			FLAG:貸本返却期限 = 8
+			TFLAG:193 = 1
+			PRINTFORML %ITEMNAME:(100 + RESULT)%を借りた
+			LOCALS = 「ありがとうございました」/「貸出期間は一週間です」 
+			IF CFLAG:[[小鈴]]:現在位置 == CFLAG:PLAYER:現在位置
+				CALL SPTALK, [[小鈴]], "笑顔", 0, @"%LOCALS%", 1
+				SIF TARGET != [[小鈴]]
+					RESETCOLOR
+			ELSE
+				CALL SPTALK, 0, "笑顔", 12, @"%LOCALS%", 1
+			ENDIF
+			RETURN 1
+		ENDIF
+	ELSEIF RESULT == 0
+		RETURN -1
+	ELSE
+		GOTO LOOP
+	ENDIF
+ENDIF
+TIME += 30
+
+;貸本屋
+@COM_ABLE620
+;一括管理
+SIF GLOBAL_COMABLE(620)
+	RETURN RESULT
+;貸本屋ではない場所
+SIF !BOOK_RENTAL(CFLAG:MASTER:現在位置)
+	RETURN 0
+;睡眠中
+SIF CFLAG:睡眠
+	RETURN 0
+;時間停止中
+SIF FLAG:70
+	RETURN 0
+RETURN 1
+
+;貸本屋を判定する関数
+@BOOK_RENTAL(ARG)
+#FUNCTION
+;鈴奈庵
+SIF ARG == GET_MAP_REPLACEMENT(213)
+	RETURNF 1
+RETURNF 0
+
+@BOOKLEND
+FOR LOCAL,1,BookTitles + 1
+	SIF LOCAL == 6	;[紙芝居]をスルー
+		CONTINUE
+	SIF !ITEM:(100 + LOCAL) && !RAND:3
+		INVERTBIT FLAG:1011,LOCAL
+NEXT
+SIF FLAG:貸本返却期限
+	FLAG:貸本返却期限 -= 1
+IF FLAG:貸本返却期限 == 1
+	FOR LOCAL,1,BookTitles + 1
+		ITEM:(100 + LOCAL) = 0
+	NEXT
+	PRINTL 返却期限が来たので、借りていた本を返しました。
+ENDIF

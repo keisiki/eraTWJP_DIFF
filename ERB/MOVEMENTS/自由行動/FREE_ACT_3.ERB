@@ -1,0 +1,68 @@
+﻿;つまみ食い
+@EXIST_FreeAct3
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+;オブジェクト本体
+@FreeAct3(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+#DIM 経過時間
+経過時間 = Activity_Duration:TARGET
+SELECTCASE O_DATA
+CASE "名称"
+	CALLF MAKE_STR(V_NAME, "一緒につまみ食い")
+CASE "CHAIN"
+;他キャラに連鎖する場合コメントアウト外すこと
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "経過時間"
+;自由行動に付き合うコマンドでの経過時間
+;未入力だと最大30分
+	CALLF MAKE_INT(V_NAME, 経過時間)
+ENDSELECT
+
+@自由行動内容_3(CHARA, ARGS, 時間係数, CHAIN)
+#DIM CHARA
+#DIM CHAIN	;連鎖主
+#DIM 現在地
+#DIM メッセージ表示
+#DIM 時間係数
+#DIM 経過時間
+現在地 = CFLAG:CHARA:現在位置
+メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
+SELECTCASE ARGS
+	CASE "発生"
+		;妖精および特定のキャラが空腹状態でつまみ食いスポットにいる時
+		SIF !TALENT:CHARA:妖精 && !GROUPMATCH(CHARA, [[ルーミア]], [[こいし]], [[幽々子]], [[紫苑]])
+			RETURN 0
+		SIF !つまみ食いスポット(現在地)
+			RETURN 0
+		SIF TIME_PROGRESS(TCVAR:CHARA:空腹時刻) <= 0
+			RETURN 0
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は\@ CHAIN ? %CALLNAME:CHAIN%と一緒につまみ食いをし始めた。# こっそりつまみ食いをし始めた。\@
+		TCVAR:CHARA:空腹時刻 = 1440 * DAY + TIME + 120
+		RETURN 30 + RAND:30
+	CASE "行動中"
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%はこっそりつまみ食いをしている。
+		CALL 自由行動食事(CHARA)
+	CASE "完了"
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%はつまみ食いを終えて満足したようだ。
+		CALL 自由行動食事(CHARA)
+	CASE "中断"
+		CALL 自由行動食事(CHARA)
+	CASE "付き合う"
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%のつまみ食いに加担した
+		IF TFLAG:193 < 0
+			PRINTFORML それほどお腹は空いていなかった…
+		ELSE
+			PRINTFORML 多少腹が満たされ、スリルもあって楽しめた…
+		ENDIF
+	CASE "ソース"
+		CALL FreeActMeal(TARGET, 時間係数)
+ENDSELECT

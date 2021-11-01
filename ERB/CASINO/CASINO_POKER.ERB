@@ -1,0 +1,194 @@
+﻿;紅魔カジノ作者（morph）による改造
+;基本的には実処理は変更せずに記述法を変えただけ
+;
+;備考：シャッフルのタイミングについて
+;BJで採用しているような方式にすればプレイヤーに勝たせることもできるんだけど
+;・最高倍率がx300
+;・後半になるほどプレイヤー有利になる（今までの捨て札から予想できる）
+;・プレイヤーは自由にBETを変化させられる
+;この条件でシャッフルを毎回しない形式にするとプレイヤーが勝ちすぎる予感がする
+;最初の5回は1BET、残りは最高BETで勝負とか猛威をふるうのでは？
+;とはいえ現状のPOKERはBETによる駆け引きもなく
+;ゲーム性（プレイヤーからの介入要素）に乏しいような気もするなー
+@CASINO_POKER
+#DIM PL = 0   ;プレイヤーに割り振る番号、とりあえず1人プレイなので0でよし
+#DIM P_BET    ;BET金額
+#DIM ORI_BET  ;特に使ってないっぽい
+#DIM HOLD     ;BIT利用、手札0～4のHOLD状況
+#DIM PK_RATE  ;役による倍率
+#DIM TOTAL, 3 ;結果、TOTAL:1＝損失、TOTAL:2＝利益
+VARSET TOTAL
+;参加プレイヤーはひとり
+NUM_CARD_PL = 1
+
+IF !MONEY:2
+	PRINTFORML メイド妖精
+	PRINTFORML 　お客様、当カジノ店内では専用通貨“カリスマ”のみを使用してお遊びいただいております
+	PRINTFORMW 　お手数ですがカリスマの購入をお願いいたします
+	RETURN
+ENDIF
+CALL CASINO_INPUTLOOP("カード賭け金")
+IF !RESULT
+	P_BET = 0
+ELSE
+	P_BET = RESULT
+	ORI_BET = RESULT
+	TOTAL:1 += P_BET
+	CALL CASINO_MONEY("カリスマ", -P_BET)
+ENDIF
+
+WHILE P_BET
+	VARSET HOLD
+	CALL PLAY_CARDS("SHUFFLE")
+	PRINTFORML 
+	PRINTFORMW メイド妖精はデッキをシャッフルした
+	;手札をリセットして5枚引く
+	CALL PLAY_CARDS("RESET_HAND")
+	CALL PLAY_CARDS("POKER_FIRST_HAND", PL)
+	
+	
+	DO
+		CALL CARD_DISP("HAND_BUTTON", PL)
+		PRINTFORML 
+		FOR LOCAL, 0, 5
+			IF GETBIT(HOLD, LOCAL)
+				PRINTBUTTON "[　ＨＯＬＤ　]", LOCAL
+			ELSE
+				PRINTBUTTON "[ＣＨＡＮＧＥ]", LOCAL
+			ENDIF
+		NEXT
+		PRINTFORML 
+		DRAWLINE
+		PRINTFORML [9] - 　ＤＲＡＷ　
+		INPUT
+		SELECTCASE RESULT
+		CASE 9
+			BREAK
+		CASE 0 TO 4
+			INVERTBIT HOLD, RESULT
+		ENDSELECT
+	LOOP 1
+	IF HOLD == 0b11111
+	ELSE
+		PRINTFORMW カードの交換を行います
+		FOR LOCAL, 0, 5
+			SIF GETBIT(HOLD, LOCAL)
+				CONTINUE
+			CALL PLAY_CARDS("REHIT", PL, LOCAL)
+		NEXT
+	ENDIF
+	PRINTFORML 
+	CALL CARD_DISP("HAND", PL)
+	WAIT
+	
+	;結果の判定
+	PK_RATE = CARD_PLAYER("GET_POKER_RATE", PL)
+	P_BET = P_BET * PK_RATE / 100
+	FONTSTYLE 3
+	SETCOLOR C_YELLOW
+	SELECTCASE PK_RATE
+	;RATEは％値
+	CASE 30000
+		LOCALS = ＲＯＹＡＬ ＦＬＵＳＨ！
+	CASE 5000
+		LOCALS = ＳＴＲＡＩＧＨＴ ＦＬＵＳＨ！
+	CASE 3000
+	;これだけスカーレットカラーにしてみる
+		SETCOLOR C_RED
+		LOCALS = ４ ＯＦ Ａ ＫＩＮＤ！
+	CASE 2000
+		LOCALS = ＦＵＬＬ ＨＯＵＳＥ！
+	CASE 1000
+		LOCALS = ＦＬＵＳＨ！
+	CASE 500
+		LOCALS = ＳＴＲＡＩＧＨＴ！
+	CASE 300
+		LOCALS = ３ ＯＦ Ａ ＫＩＮＤ！
+	CASE 100
+		LOCALS = ＴＷＯ　ＰＡＩＲ
+	CASE 50
+		LOCALS = ＯＮＥ　ＰＡＩＲ
+	CASE 0
+		LOCALS = ＮＯ　ＰＡＩＲ
+	ENDSELECT
+	PRINTFORML 
+	PRINTFORML %LOCALS%
+	PRINTFORML 
+	RESETCOLOR
+	FONTREGULAR
+	PRINTFORMW ＲＥＷＡＲＤ：{P_BET}
+	CALL CASINO_MONEY("カリスマ", P_BET)
+	TOTAL:2 += P_BET
+	TIME += 5
+	
+	;ゲームの続行判定
+	SIF NEMUKE() >= 700
+		BREAK
+	SIF MONEY:2 <= 0
+		BREAK
+	
+	PRINTFORML 　さて、勝負を続けますか？
+	PRINTFORML 
+	CALL CASINO_INPUTLOOP("カード続行")
+	SELECTCASE RESULT
+	CASE 0
+		P_BET = 0
+	CASE 1
+		IF MONEY:2 < P_BET
+			PRINTFORML メイド妖精
+			PRINTFORML 　お手持ちのカリスマが足りないようですわ
+			PRINTFORML 　賭け金を再設定なさって下さい
+			PRINTFORML 
+			CALL CASINO_INPUTLOOP("カード賭け金")
+			P_BET = RESULT
+			ORI_BET = RESULT
+			SIF RESULT
+				PRINTFORML 
+		ELSE
+			P_BET = ORI_BET
+		ENDIF
+	CASE 2
+		PRINTFORML メイド妖精
+		PRINTFORML 　それでは賭け金をご入力下さい
+		PRINTFORML 
+		CALL CASINO_INPUTLOOP("カード賭け金")
+		P_BET = RESULT
+		ORI_BET = RESULT
+		SIF RESULT
+			PRINTFORML 
+	ENDSELECT
+	
+	IF P_BET
+		TOTAL:1 += P_BET
+		CALL CASINO_MONEY("カリスマ", -P_BET)
+		PRINTFORML メイド妖精
+		PRINTFORML 　はい、賭け金{P_BET}カリスマ確かに頂戴いたしました
+		PRINTFORMW 　それでは引き続きよろしくお願いいたします
+	ENDIF
+WEND
+
+IF NEMUKE() >= 700
+	PRINTFORML 
+	PRINTFORML メイド妖精
+	PRINTFORML 　あの、お客様？
+	PRINTFORML 　随分とお疲れのご様子ですよ
+	PRINTFORML 　今日はもうゲームを終えたほうが良いのではないかしら
+	PRINTFORMW 　またのお越しをお待ちしておりますわ
+ELSEIF MONEY:2 <= 0
+	PRINTFORML 
+	PRINTFORML メイド妖精
+	PRINTFORML 　お手持ちのカリスマが尽きてしまったようですわね
+	PRINTFORMW 　またのお越しをお待ちしておりますわ
+ELSE
+	PRINTFORML メイド妖精
+	PRINTFORML 　かしこまりました
+	PRINTFORMW 　またのお越しをお待ちしておりますわ
+ENDIF
+
+;カモはまとめて精算, カモシステムをよく理解していないのでまずかったらすみません……
+;賭け金を使っていたらリザルト表示
+IF TOTAL:1
+	CALL CASINO_MONEY("カモ", TOTAL:1)
+	CALL CASINO_DISP("RESULT", TOTAL:1, TOTAL:2)
+ENDIF
+VARSET TOTAL

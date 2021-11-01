@@ -1,0 +1,542 @@
+﻿
+;**** FlagManagement **********************************************************
+;本口上にて使用しているCFLAG・TCVAR等
+;TCVAR:350　挨拶判定
+;TCVAR:351　季節・天候話判定
+;TCVAR:352　デート会話判定
+;TCVAR:360　その日の祟りカウンター回数
+;TCVAR:361　その日の祟りカウンターによる疑念判定（１回）
+
+;CFLAG:1001　パンツ盗られた回数
+;CFALG:1002　邪神（？）崇拝バレ
+;CFLAG:1003　日中祟りカウンター30回（会話では20回）超えによる疑念回数
+;CFALG:1004　時姦バレ
+;CFLAG:1005　三粒の天滴を授けた
+
+;CFLAG:1301　時姦祟りカウンターを喰らわせた総回数
+;CFLAG:1302　睡姦祟りカウンターを喰らわせた総回数
+;CFLAG:1303　それ以外の祟りカウンターを(略
+;******************************************************************************
+
+;-----------------------------------------------------------
+;祟りカウンターの制御用関数（諏訪子専用）
+;ARG:0 ループ回数（接触が濃厚なほど回数を増す）
+;-----------------------------------------------------------
+@K33_TATARI_COUNTER(ARG:0)
+#DIM 減少値
+
+IF TALENT:33:恋慕 || TALENT:33:愛欲
+	減少値 = -35
+ELSEIF MARK:不埒刻印 == 3 || TALENT:セフレ
+	減少値 = -50
+ELSEIF TALENT:思慕
+	減少値 = -60
+ELSE
+	減少値 = -100
+ENDIF
+
+SELECTCASE MARK:33:快楽刻印
+	CASE 1
+		減少値 += 10
+	CASE 2
+		減少値 += 15
+	CASE 3
+		減少値 += 20
+ENDSELECT
+
+SELECTCASE MARK:33:時姦刻印
+	CASE 1
+		減少値 += 0
+	CASE 2
+		減少値 += 5
+	CASE 3
+		減少値 += 10
+ENDSELECT
+
+SELECTCASE MARK:33:反発刻印
+	CASE 1
+		減少値 -= 20
+	CASE 2
+		減少値 -= 40
+	CASE 3
+		減少値 -= 60
+ENDSELECT
+
+SIF TALENT:33:機嫌 == -1
+	減少値 -= 50
+SIF CFLAG:33:ブチギレ
+	減少値 -= 50
+;√累計回数の補正
+SIF CFLAG:33:1301 || CFLAG:33:1302 || CFLAG:33:1303
+	減少値 -= SQRT(CFLAG:33:1301 + CFLAG:33:1302 + CFLAG:33:1303)
+
+;恋人の場合は、一律ゼロに補正／プラス値のときも補正
+SIF TALENT:33:恋人
+	減少値 = 0
+SIF 減少値 > 0
+	減少値 = 0
+
+IF 減少値 < 0
+	SELECTCASE TCVAR:33:360
+		CASE 0
+			;最初回の説明用テキスト（総祟りカウンターがゼロの時）
+			IF !CFLAG:33:1301 && !CFLAG:33:1302
+				IF FLAG:70
+					PRINTFORMW 諏訪子は%CALLNAME:MASTER%の能力の前にぴくりとも動かない。
+					PRINTFORMW この時間停止の能力をもってすれば、いかなることも思いのまま……
+				ELSE
+					PRINTFORMW 諏訪子は完全に寝入っているようだ…
+				ENDIF
+				PRINTFORMW ほくそ笑みながら、%CALLNAME:MASTER%は他の少女たちにそうするように、諏訪子に手を触れようとして――
+				SETCOLOR 0x705B67
+				PRINTL 
+				PRINTFORML ――ぞ  わ  り
+				PRINTW 
+				SETCOLOR 0xC0A2C7
+				PRINTFORML 全身が総毛立つ感覚に、反射的に――勢いよく手を引っ込めていた。
+				PRINTFORMW ……思わず生唾を飲み込んだのは興奮からでなく、からからに乾いていた喉を潤すためか。
+				PRINTFORMW 諏訪子に僅かに触れた指先が、じんじんと仄かな痛みを発している。
+				PRINTFORMW 身震いする。指先にもたらされた静電気のような些末な痛みにではなく、体の芯から響く、もっと本能的な『畏れ』に対して。
+				PRINTFORML 何かが%CALLNAME:MASTER%の体に、ぬるり、と入り込んできたような……
+				PRINTFORMW そんな、えも言われぬ感覚とともに、%CALLNAME:MASTER%の力が少し弱められているのを自覚する。
+				PRINTFORMW ……事ここに至り、はたと彼女の本質が何だったか、思い返す。
+				PRINTFORMW 八百万の神――いにしえの王国を統べた祟り神の首魁。その力の一片を、今まざまざと見せつけられたらしい。
+				PRINTFORMW ……目の前の少女のカタチをした何者かを、気圧されないように改めて見つめなおす。
+				PRINTFORMW これは骨が折れそうだ……と、%CALLNAME:MASTER%は汗の滲んだ手を握りしめた……
+			ELSE
+				SETCOLOR 0x705B67
+				PRINTFORML 身体に何かが入り込んでくるような悪寒がした…
+			ENDIF
+		CASE 1 TO 10
+			SETCOLOR 0x70224E
+			PRINTFORML 身体の中で何かがのたくっているような不快感がある…
+		CASE 11 TO 30
+			SETCOLOR 0xCC3D8E
+			PRINTFORML 身体中の毛穴に針を撃ち込まれるようなおぞましい悪寒がする…
+			減少値 -= SQRT(TCVAR:33:360)
+		CASEELSE
+			SETCOLOR 0xCC0074
+			IF INROOM(CFLAG:MASTER:現在位置)
+				PRINTFORML ああ！窓に！窓に！
+			ELSE
+				PRINTFORML 冷たい石の触感をした白い蛇のようなモノに絡み付かれ、四肢をもぎ取られるような激痛が体を苛む…
+			ENDIF
+			減少値 -= 2 * SQRT(TCVAR:33:360)
+	ENDSELECT
+	RESETCOLOR
+	CALL K33_TATARI_MAIN(ARG:0, 減少値)
+ENDIF
+
+;-----------------------------------------------------------
+;祟りカウンターシステムの減算実行関数（諏訪子専用）
+;ARG:0 ループ回数（接触が濃厚なほど回数を増す、コマンド毎に指定）
+;ARG:1 減少値、負の値を入れる
+;-----------------------------------------------------------
+@K33_TATARI_MAIN(ARG:0, ARG:1)
+#DIM ループ回数
+
+ループ回数 = 0
+
+$TATARI_LOOP
+;TSPを必ず削る
+CALL BUFF_BASE(MASTER, BASE_TSP, ARG:1, 0)
+
+SELECTCASE RAND:3
+	CASE 0
+		CALL BUFF_BASE(MASTER, BASE_体力, ARG:1, 0)
+	CASE 1
+		CALL BUFF_BASE(MASTER, BASE_気力, ARG:1, 0)
+	CASEELSE
+		IF GETBIT(TALENT:MASTER:性別, 1)
+			CALL BUFF_BASE(MASTER, BASE_精力, (ARG:1 / 2) , 0)
+		ELSE
+			CALL BUFF_BASE(MASTER, BASE_TSP, ARG:1, 0)
+		ENDIF
+ENDSELECT
+ループ回数 ++
+;周回数が指定された回数以下ならループ
+SIF ループ回数 < ARG:0
+	GOTO TATARI_LOOP
+
+;本日の祟り回数に加算（ループ回数に関わらず１回のカウント）
+TCVAR:33:360 ++
+;時姦、睡姦それぞれの祟り総カウントに加算
+IF FLAG:70
+	CFLAG:33:1301 ++
+ELSEIF CFLAG:睡眠
+	CFLAG:33:1302 ++
+ELSE
+	CFLAG:33:1303 ++
+ENDIF
+
+;-----------------------------------------------------------
+;祟りカウンターによる時姦バレ判定関数（諏訪子専用）
+;調整のためにまとめておく
+;-----------------------------------------------------------
+@K33_TATARI_BARE(ARG = 33)
+#FUNCTION
+;時姦祟りカウンター回数が一定数を超える
+SIF CFLAG:ARG:1301 >= 500
+	RETURNF 1
+;祟りカウンターによる疑念回数が一定数を超える
+SIF CFLAG:ARG:1003 >= 15
+	RETURNF 1
+
+RETURNF 0
+
+;-----------------------------------------------------------------------------------------------
+;@CHARA_INFO_KOJO_K33()
+;個人情報の「キャラ紹介」の文章を書き換える
+;これがあれば「CSTR」の20番以降(20～39)に文字列を書き込むだけで書き換わるはず
+;早苗口上より引用、改変
+;-----------------------------------------------------------------------------------------------
+@CHARA_INFO_KOJO_K33()
+;===============================================================================================
+;記述例
+;このコメントアウトを外すと「CSTR」の20番以降に文字列を書き込むだけで書き換わるようになる
+;FOR LOCAL,20,40
+;	SIF CSTR:31:(LOCAL) != ""
+;		PRINTFORML %CSTR:31:(LOCAL)%
+;NEXT
+;RETURN 1
+;…とまあ、こんな感じでCSTR20番以降を使えばいいはず
+;===============================================================================================
+;本口上は、書き換わる文章が多いのでCSTRへの保存をせずに直接書き込む
+;現時点で下の2行が書き込まれている
+;PRINTL □ キャラ紹介 □---------------------------------------------------------------------
+;PRINTL 
+
+;##################################################################################
+;①「～土着神の頂点～　●種族：八百万の神　●能力：坤を創造する程度の能力」をプリント
+;##################################################################################
+CALL M_KOJO_COLOR_K33
+PRINTFORML %CSVCSTR(33, 10)%
+RESETCOLOR
+PRINTL 
+
+;##################################################################################
+;②キャラ紹介文を書き込み
+;##################################################################################
+;共通部
+PRINTFORML 妖怪の山の上にある守矢神社の神の一柱
+PRINTFORML 表向きの祭神である八坂神奈子に力を提供し、信仰を集める真の祭神
+IF TALENT:33:思慕 || TALENT:33:セフレ || TALENT:33:恋慕 || TALENT:33:愛欲
+	PRINTFORML 古の王国を畏怖と祟りをもって統べた土着神の頂点であり、
+	PRINTFORML 古来より尊崇されていた祟り神たちを束ねる存在
+	PRINTFORML 八百万の神は信仰の力によってその命脈を保つものであり、
+	PRINTFORML 外界では信仰獲得が難しくなったため、神社ごと幻想郷へ連れて来られることになった
+ENDIF
+
+;時姦バレしている
+IF CFLAG:33:1004
+	PRINTL 
+	PRINTFORML 祟り神としての力で時間停止能力を持つ%CALLNAME:MASTER%を罠に嵌め、
+	PRINTFORML 「協力者」として掌中に収めることとなった…
+ELSEIF CFLAG:33:1003 >= 14 || K33_TATARI_BARE()
+	PRINTL 
+	PRINTFORML 無数に刻み込まれた見えない祟りの痕に、
+	PRINTFORML %CALLNAME:MASTER%への疑念はほぼ確信に変わっている…
+ELSEIF CFLAG:33:1003 >= 10
+	PRINTL 
+	PRINTFORML 刻まれた見えない祟りの痕に、
+	PRINTFORML %CALLNAME:MASTER%への疑念を深めている…
+ELSEIF CFLAG:33:1003 >= 5
+	PRINTL 
+	PRINTFORML 覚えのない祟りの痕に、
+	PRINTFORML %CALLNAME:MASTER%への疑いを持ち始めている…
+ENDIF
+
+SELECTCASE (CFLAG:33:1301 + CFLAG:33:1302 + CFLAG:33:1303)
+	CASE IS >= 500
+		PRINTL 
+		PRINTFORML バチ当たりな%CALLNAME:MASTER%に徹底的に祟りを食らわしている
+	CASE IS >= 250
+		PRINTL 
+		PRINTFORML 不敬な%CALLNAME:MASTER%を祟っている
+	CASE IS >= 100
+		PRINTL 
+		PRINTFORML %CALLNAME:MASTER%に無意識のうちに祟りを与えている
+ENDSELECT
+
+;邪神崇拝バレしている
+IF CFLAG:33:1002
+	PRINTL 
+	PRINTFORML 邪神を崇拝する%CALLNAME:MASTER%を改宗させようと、
+	PRINTFORML あの手この手で神徳をアピールしているが、なかなか上手くいっていないようだ…
+ENDIF
+;三粒の天滴を授けている
+IF CFLAG:33:1005
+	PRINTL 
+	PRINTFORML なんだかんだで信仰心の篤い%CALLNAME:MASTER%を気に入ったようで、
+	PRINTFORML その力の断片を貸し与えるまでに至った
+	CALL M_KOJO_COLOR_K33
+	PRINTFORML 　決して途絶えることなく土を潤し、その大地に豊穣を約束する「三粒の天滴」
+	PRINTFORML 　弾ける蛙から蛙を生む輪廻の御業、蛙の神様の力・蛙符「手管の蝦蟇」
+	RESETCOLOR
+	PRINTFORML 祟り神を篤く祀れば、大きな神徳を得られる――とは、まさにこの事を言うのだろう
+ENDIF
+PRINTL 
+RETURN 1
+
+;-----------------------------------------------------------
+;挿入時口上出力用関数（諏訪子専用）
+;絶頂、射精、経験、体位などのシチュエーションで自動的に出力
+;ARG:0…0 膣	1 アナル
+;ARG:1…0 基本	1 挿入継続
+;ARG:2…0 基本	1 騎乗	2 後背
+;Ａ挿入同時クリ攻めとか未対応
+;-----------------------------------------------------------
+@INSERT_KOJO_K33(ARG:0, ARG:1, ARG:2)
+;Ｖ
+IF ARG:0 == 0
+	IF ARG:1 == 0
+		$INSERT_V
+		IF TALENT:恋慕 || TALENT:愛欲 || TALENT:セフレ
+			IF NOWEX:TARGET:Ｖ絶頂 && NOWEX:MASTER:射精
+				SIF ARG:2 == 1 && RAND:2 == 1
+					GOTO V_OFFENCE
+				PRINTDATAW
+					DATAFORM 「あっ%UNICODE(0x2764)%　また、おっきくなった%UNICODE(0x2764)%　出して、出してぇ%UNICODE(0x2764)%」
+					DATAFORM 「イきそう？　いいよっ、私も……いっしょに、ねっ%UNICODE(0x2764)%」
+					DATAFORM 「～～～っ%UNICODE(0x2764)%%UNICODE(0x2764)%　だめだめっ、このまま……ひゃああんっ%UNICODE(0x2764)%」
+					DATAFORM 「あんっ%UNICODE(0x2764)%　いいよっ、いっぱい気持ちよくなってあげるからぁ……いーっぱい、出してっ%UNICODE(0x2764)%」
+				ENDDATA
+			ELSEIF NOWEX:TARGET:Ｖ絶頂
+				PRINTDATAW 
+					DATAFORM 「ズンズンしてぇ%UNICODE(0x2764)%　あんっ、もっと、もっとぉ%UNICODE(0x2764)%」
+					DATAFORM 「%CALLNAME:MASTER%のすごいぃ%UNICODE(0x2764)%　もぉ……イっちゃうよぉ%UNICODE(0x2764)%」
+					DATAFORM 「ぁ……あーっ%UNICODE(0x2764)%　これダメぇ、とんじゃう、とんじゃうからぁ%UNICODE(0x2764)%」
+					DATAFORM 「いいよっ、もっと、ふかくぅ%UNICODE(0x2764)%　こわれちゃうくらい、してぇ%UNICODE(0x2764)%」
+					DATAFORM 「ぁう……\@ ARG:2 == 1 ? ダメぇ、下からズコバコされて負けちゃうよぉ # ナカでこすれて気持ちいいよぉ \@%UNICODE(0x2764)%」
+				ENDDATA
+			ELSEIF NOWEX:MASTER:射精
+				$V_OFFENCE
+				IF ARG:2 == 1
+					PRINTDATAW
+						DATAFORM 「イきそう？　ふふっ、いいよ……出しちゃえ%UNICODE(0x2764)%」
+						DATAFORM 「もう出ちゃう？　あん、頑張らなくてもいいのにぃ%UNICODE(0x2764)%」
+						DATAFORM 「かわいい顔になっちゃってるよ？　ふふ……私のなかでぎゅーっ、てしてあげる♪」
+						DATAFORM 「ナカでおっきくなってるよ？　頑張る\@ TALENT:MASTER:性別 == 2 ? 男の #  \@子はかわいいねぇ、やんっ%UNICODE(0x2764)%」
+						DATAFORM 「ふふ、腰が止まっちゃって、おちんちんだけビクビクしちゃってるよ？　ほら、ちょーっとだけ動いてあげる%UNICODE(0x2764)%」
+						DATAFORM 「もう出ちゃう？　いいよ、私のナカで、思いっきり負けちゃえ%UNICODE(0x2764)%」
+					ENDDATA
+				ELSE
+					PRINTDATAW
+						DATAFORM 「イきそう？　ふふっ、いいよ……出しちゃえ%UNICODE(0x2764)%」
+						DATAFORM 「もう出ちゃう？　あん、頑張らなくてもいいのにぃ%UNICODE(0x2764)%」
+						DATAFORM 「かわいい顔になっちゃってるよ？　ふふ……私のなかでぎゅーっ、てしてあげる♪」
+						DATAFORM 「ナカでおっきくなってるよ？　頑張る\@ TALENT:MASTER:性別 == 2 ? 男の #  \@子はかわいいねぇ、やんっ%UNICODE(0x2764)%」
+					ENDDATA
+				ENDIF
+			;通常Ｖ
+			ELSE
+				PRINTDATAW 
+					DATAFORM 「あんっ%UNICODE(0x2764)%　どう？　私のナカ、気持ちいい？　ふふー%UNICODE(0x2764)%」
+					DATAFORM 「んぅ……%CALLNAME:MASTER%の、ぐいぐい割り込んでくるよぉ……えへへ」
+					DATAFORM 「んっ、うぁ……あっ%UNICODE(0x2764)%　\@ ARG:2 == 2 ? このカッコ、ケモノみたいだよぉ # 腰つかい、すごく、いやらしいんだから \@……%UNICODE(0x2764)%」
+					DATAFORM 「ぁっ……出たり入ったりしてるトコ、見える？　あんッ、興奮しちゃって、もぉ……%UNICODE(0x2764)%」
+					DATAFORM 「\@ ARG:2 == 1 ? やぁん、下からズンズンって……もぉ、ヒィヒィ言わせちゃうんだから # あっ、やあっ、気持ちいいよぉ \@%UNICODE(0x2764)%」
+				ENDDATA
+			ENDIF
+		;陥落なし
+		ELSE
+			IF NOWEX:TARGET:Ｖ絶頂 && NOWEX:MASTER:射精
+				PRINTFORMW 「あっ%UNICODE(0x2764)%　また、おっきくなった%UNICODE(0x2764)%　出して、出してぇ%UNICODE(0x2764)%」
+			ELSEIF NOWEX:TARGET:Ｖ絶頂
+				PRINTFORMW 
+			ELSEIF NOWEX:MASTER:射精
+				PRINTFORMW 「ナカでおっきくなってるよ？　頑張る\@ TALENT:MASTER:性別 == 2 ? 男の #  \@子はかわいいねぇ、やんっ%UNICODE(0x2764)%」
+			ELSE
+				PRINTFORMW 「んっ、うぁ……あっ%UNICODE(0x2764)%　腰つかい、すごく、いやらしいんだから……%UNICODE(0x2764)%」
+			ENDIF
+		ENDIF
+	;中出し後
+	ELSE
+		IF TALENT:恋慕 || TALENT:愛欲 || TALENT:セフレ
+			IF TCVAR:Vに中出しされたフラグ && RAND:3 == 0
+				PRINTDATAW
+					DATAFORM 「あはっ、すごーい……まだまだいけるんだー%UNICODE(0x2764)%」
+					DATAFORM 「あんっ%UNICODE(0x2764)%　出したのに、まだこんなに……ふふー、やる気出てきた%UNICODE(0x2764)%」
+					DATAFORM 「さすが%CALLNAME:MASTER%……女泣かせだねぇ♪　あっ%UNICODE(0x2764)%」
+				ENDDATA
+			ELSE
+				GOTO INSERT_V
+			ENDIF
+		ELSE
+			IF TCVAR:Vに中出しされたフラグ && RAND:3 == 0
+				PRINTFORMW 「あはっ、すごーい……まだまだいけるんだー%UNICODE(0x2764)%」
+			ELSE
+				GOTO INSERT_V
+			ENDIF
+		ENDIF
+	ENDIF
+ELSE
+;Ａ
+	IF ARG:1 == 0
+		$INSERT_A
+		IF TALENT:恋慕 || TALENT:愛欲 || TALENT:セフレ
+			IF NOWEX:TARGET:Ａ絶頂 && NOWEX:MASTER:射精
+				SIF ARG:2 == 1 && RAND:2 == 1
+					GOTO A_OFFENCE
+				IF ABL:TARGET:アナル >= 2
+					PRINTDATAW
+						DATAFORM 「あん%UNICODE(0x2764)%　おしり気持ちいいよぉ、もっと、もっとぉ……%UNICODE(0x2764)%」
+						DATAFORM 「イきそう？　いいよっ、私のおしりに、いっぱい出してぇ%UNICODE(0x2764)%」
+						DATAFORM 「もっと、もっと奥までぇ%UNICODE(0x2764)%　あっ、ひゃううん%UNICODE(0x2764)%」
+						DATAFORM 「おしりの穴の中でおっきくなってるよぉ……もぉ、このヘンタイ%UNICODE(0x2764)%　……やぁぁぁん%UNICODE(0x2764)%」
+					ENDDATA
+				ELSE
+					PRINTDATAW
+						DATAFORM 「うぁ……%UNICODE(0x2764)%　おしりで、こんなにされちゃうなんてぇ……やあぁん%UNICODE(0x2764)%」
+						DATAFORM 「だめぇ、こんなので、イっちゃ……ああぁぁ%UNICODE(0x2764)%」
+						DATAFORM 「おしりの穴の中でおっきくなってるよぉ……もぉ、このヘンタイ%UNICODE(0x2764)%　……やぁぁぁん%UNICODE(0x2764)%%UNICODE(0x2764)%」
+					ENDDATA
+				ENDIF
+			ELSEIF NOWEX:TARGET:Ａ絶頂
+				IF ABL:TARGET:アナル >= 2
+					;バイブ装備中Ａ挿入時・・・両穴攻めですな
+					IF TEQUIP:TARGET:13
+						PRINTDATAW 
+							DATAFORM 「あん%UNICODE(0x2764)%　おしりもおまんこも気持ちいいよぉ、もっと、もっとぉ……%UNICODE(0x2764)%」
+							DATAFORM 「やぁ……両方の穴ズコバコされて、イっちゃうよぉ%UNICODE(0x2764)%」
+							DATAFORM 「あ%UNICODE(0x2764)%　あん%UNICODE(0x2764)%　これ、すごすぎるよぉ……ゃああぁっ%UNICODE(0x2764)%」
+							DATAFORM 「あう%UNICODE(0x2764)%　気持ち良すぎてぇ……意識、トンじゃうよぉ……%UNICODE(0x2764)%」
+						ENDDATA
+					ELSE
+						PRINTDATAW 
+							DATAFORM 「あん%UNICODE(0x2764)%　おしり気持ちいいよぉ、もっと、もっとぉ……%UNICODE(0x2764)%」
+							DATAFORM 「やぁ……おしりの穴ズコバコされて、イっちゃうよぉ%UNICODE(0x2764)%」
+							DATAFORM 「や、あん%UNICODE(0x2764)%　こっちのほうが……イイ、かもっ……%UNICODE(0x2764)%」
+							DATAFORM 「あう%UNICODE(0x2764)%　おしりの穴、気持ち良すぎてぇ……もぉ……ダメぇ……%UNICODE(0x2764)%」
+						ENDDATA
+					ENDIF
+				ELSE
+					IF TEQUIP:TARGET:13
+						PRINTDATAW 
+							DATAFORM 「あう……おまんこと、いっしょに、気持ちよくなるのぉ……%UNICODE(0x2764)%」
+							DATAFORM 「やん%UNICODE(0x2764)%　もぉ……好き放題してくれちゃって……あぁぁっ%UNICODE(0x2764)%」
+							DATAFORM 「あん%UNICODE(0x2764)%　これダメ、戻れなく、なるぅ……あぁっ%UNICODE(0x2764)%」
+						ENDDATA
+					ELSE
+						PRINTDATAW 
+							DATAFORM 「うそ……おしりの穴、ビクビクして……あ、あ……%UNICODE(0x2764)%」
+							DATAFORM 「そんなにじゅぶじゅぶ音立てないでよぉ……や、ぁ……%UNICODE(0x2764)%」
+							DATAFORM 「ん……やぁ……おしりの穴、熱いよぉ……%UNICODE(0x2764)%」
+						ENDDATA
+					ENDIF
+				ENDIF
+			ELSEIF NOWEX:MASTER:射精
+				$A_OFFENCE
+				IF ARG:2 == 1
+					PRINTDATAW
+						DATAFORM 「イきそう？　ふふー%UNICODE(0x2764)%　おしりの穴で搾り取ってあげるー%UNICODE(0x2764)%」
+						DATAFORM 「情けない顔になっちゃってるよ？　へへ、おしりの穴でもっと気持ちよくしてあげる%UNICODE(0x2764)%」
+						DATAFORM 「あは……%CALLNAME:MASTER%のせいだからね？　こんなに具合のいい穴になっちゃったのは……%UNICODE(0x2764)%」
+						DATAFORM 「ほら、もっとズコバコしてよぉ%UNICODE(0x2764)%　ほらほらぁ%UNICODE(0x2764)%」
+						DATAFORM 「ふふ、腰が止まっちゃって、おちんちんだけビクビクしちゃってるよ？　ほら、ちょーっとだけ動いてあげる%UNICODE(0x2764)%」
+						DATAFORM 「もう出ちゃう？　いいよ、私のおしりで、思いっきり負けちゃえ%UNICODE(0x2764)%」
+					ENDDATA
+				ELSE
+					IF ABL:TARGET:アナル >= 2
+						PRINTDATAW
+							DATAFORM 「イきそう？　ふふー%UNICODE(0x2764)%　おしりの穴で搾り取ってあげるー%UNICODE(0x2764)%」
+							DATAFORM 「情けない顔になっちゃってるよ？　へへ、おしりの穴でもっと気持ちよくしてあげる%UNICODE(0x2764)%」
+							DATAFORM 「あは……%CALLNAME:MASTER%のせいだからね？　こんなに具合のいい穴になっちゃったのは……%UNICODE(0x2764)%」
+							DATAFORM 「ほら、もっとズコバコしてよぉ%UNICODE(0x2764)%　ほらほらぁ%UNICODE(0x2764)%」
+						ENDDATA
+					ELSE
+						PRINTDATAW
+							DATAFORM 「うぁ……おしりの穴の中で、びくびくしてるよぉ……%UNICODE(0x2764)%」
+							DATAFORM 「やぁん%UNICODE(0x2764)%　また……おっきくなった……へへ%UNICODE(0x2764)%」
+							DATAFORM 「いいよ%UNICODE(0x2764)%　おしりの穴で……出しちゃえ%UNICODE(0x2764)%」
+						ENDDATA
+					ENDIF
+				ENDIF
+			;通常Ａ
+			ELSE
+				IF ABL:TARGET:アナル >= 2
+					;バイブ装備中Ａ挿入時
+					IF TEQUIP:TARGET:13
+						PRINTDATAW 
+							DATAFORM 「おまんこも、おしりの穴も、ビクビクして……あ、あ……%UNICODE(0x2764)%」
+							DATAFORM 「やん%UNICODE(0x2764)%　もぉ……好き放題してくれちゃって……あぁぁっ%UNICODE(0x2764)%」
+							DATAFORM 「あん%UNICODE(0x2764)%　これダメ、戻れなく、なるぅ……あぁっ%UNICODE(0x2764)%」
+							DATAFORM 「ダメなのぉ……両穴ほじられて、気持ちよくされちゃうぅ……%UNICODE(0x2764)%」
+							DATAFORM 「どっちも、ズンズンくるのぉ%UNICODE(0x2764)%　あっ、そこダメぇ、こすらないでぇ%UNICODE(0x2764)%」
+						ENDDATA
+					ELSE
+						PRINTDATAW 
+							DATAFORM 「おしりの穴……気持ちいい？　ふふ……私も、おんなじ%UNICODE(0x2764)%」
+							DATAFORM 「ほんとに……馴染むもんだよねぇ……%UNICODE(0x2764)%　あう……やんっ%UNICODE(0x2764)%」
+							DATAFORM 「こんなにえっちな穴にしてくれちゃって……ひゃあんっ%UNICODE(0x2764)%」
+							DATAFORM 「おしり、熱いのぉ%UNICODE(0x2764)%　びりびりするぅ……%UNICODE(0x2764)%」
+							DATAFORM 「ずりずり、って、分け入ってくるのが……クセになりそぉ%UNICODE(0x2764)%」
+						ENDDATA
+					ENDIF
+				ELSE
+					IF TEQUIP:TARGET:13
+						PRINTDATAW 
+							DATAFORM 「あぅ……おまんこのほうが……いいかなぁ%UNICODE(0x2764)%」
+							DATAFORM 「やん%UNICODE(0x2764)%　ちょ、激しすぎぃ%UNICODE(0x2764)%」
+							DATAFORM 「あん%UNICODE(0x2764)%　どっちかに、しなさいよぉ%UNICODE(0x2764)%」
+							DATAFORM 「ちょっ……やり過ぎじゃないのかな……あああっ%UNICODE(0x2764)%」
+						ENDDATA
+					ELSE
+						PRINTDATAW 
+							DATAFORM 「う……なんというか……この、ゾクゾクするカンジ……%UNICODE(0x2764)%」
+							DATAFORM 「おっきくて……ちょっとキツい……かな%UNICODE(0x2764)%」
+							DATAFORM 「うやぁ……ちょっと、びり、って……%UNICODE(0x2764)%」
+							DATAFORM 「ずりずり、って、分け入ってくるのが……クセになりそぉ%UNICODE(0x2764)%」
+						ENDDATA
+					ENDIF
+				ENDIF
+			ENDIF
+		;陥落なし
+		ELSE
+			IF NOWEX:TARGET:Ａ絶頂 && NOWEX:MASTER:射精
+				IF ABL:TARGET:アナル >= 2
+					PRINTFORMW 「あん%UNICODE(0x2764)%　おしり気持ちいいよぉ、もっと、もっとぉ……%UNICODE(0x2764)%」
+				ELSE
+					PRINTFORMW 「うぁ……%UNICODE(0x2764)%　おしりで、こんなにされちゃうなんてぇ……やあぁん%UNICODE(0x2764)%」
+				ENDIF
+			ELSEIF NOWEX:TARGET:Ａ絶頂
+				IF ABL:TARGET:アナル >= 2
+					PRINTFORMW 「や、あん%UNICODE(0x2764)%　こっちのほうが……イイ、かもっ……%UNICODE(0x2764)%」
+				ELSE
+					PRINTFORMW 「そんなにじゅぶじゅぶ音立てないでよぉ……や、ぁ……%UNICODE(0x2764)%」
+				ENDIF
+			ELSEIF NOWEX:MASTER:射精
+				IF ABL:TARGET:アナル >= 2
+					PRINTFORMW 「イきそう？　ふふー%UNICODE(0x2764)%　おしりの穴で搾り取ってあげるー%UNICODE(0x2764)%」
+				ELSE
+					PRINTFORMW 「うぁ……おしりの穴の中で、びくびくしてるよぉ……%UNICODE(0x2764)%」
+				ENDIF
+			ELSE
+				IF ABL:TARGET:アナル >= 2
+					PRINTFORMW 「おしり、熱いのぉ%UNICODE(0x2764)%　びりびりするぅ……%UNICODE(0x2764)%」
+				ELSE
+					PRINTFORMW 「おっきくて……ちょっとキツい……かな%UNICODE(0x2764)%」
+				ENDIF
+			ENDIF
+		ENDIF
+	;中出し後
+	ELSE
+		IF TALENT:恋慕 || TALENT:愛欲 || TALENT:セフレ
+			IF TCVAR:Aに中出しされたフラグ && RAND:3 == 0
+				PRINTDATAW
+					DATAFORM 「ふふー、また、おしりの穴でこってり搾られたいんだー%UNICODE(0x2764)%」
+					DATAFORM 「こっちでいいのかなー%UNICODE(0x2764)%　え？　『こっちがいいんだ』って？　まったく……%UNICODE(0x2764)%」
+					DATAFORM 「ぁぅ……もぉ、ガバガバになっちゃうよぉ%UNICODE(0x2764)%」
+				ENDDATA
+			ELSE
+				GOTO INSERT_A
+			ENDIF
+		ELSE
+			IF TCVAR:Aに中出しされたフラグ && RAND:3 == 0
+				PRINTFORMW 「ぁぅ……もぉ、ガバガバになっちゃうよぉ%UNICODE(0x2764)%」
+			ELSE
+				GOTO INSERT_A
+			ENDIF
+		ENDIF
+	ENDIF
+ENDIF

@@ -1,0 +1,136 @@
+﻿;--------------------------------------------------
+;	マップ内移動処理拡張パッチ付属
+;	竹林MAP用関数
+;--------------------------------------------------
+
+@MAP_PLACENAME_4(ARG)
+#FUNCTIONS
+IF GET_MAPID(ARG) == MAIN_MAP
+	SELECTCASE ARG
+		CASE 412, 428, 460
+			IF CFLAG:MASTER:初期位置 == ARG
+				RETURNF "あなた私室"
+			ELSE
+				RETURNF "空き部屋"
+			ENDIF
+		CASE 442
+			IF CFLAG:MASTER:初期位置 == ARG
+				RETURNF "あなたの小屋"
+			ELSE
+				RETURNF "空き小屋"
+			ENDIF
+		CASE 401 TO (MAXROOM - 1)
+			RETURNF STR:(ARG + 8000)
+		CASE 498
+			RETURNF OMANEKI_PLACE()
+		CASE 499
+			RETURNF "スキマ空間"
+		CASE MAXROOM
+			RETURNF "竹林の外"
+		CASEELSE
+			RETURNF "不明"
+	ENDSELECT
+ELSE
+	RETURNF "不明"
+ENDIF
+
+;@MAP_VIEWING_4
+;
+;IF CHK_FOCUS(402,CFLAG:MASTER:現在位置,430)
+;	CALL MAP_EIENTEI
+;ELSEIF INRANGE(CFLAG:MASTER:現在位置,450,466)
+;	CALL MAP_MUGENKAN
+;ELSE
+;	CALL MAP_EIEN_FRONT
+;	CALL MAP_BAMBOO
+;ENDIF
+;RETURN 1
+
+@MAP_VIEWING_4(AA,COLOR)
+#DIMS REF AA, 0
+#DIMS REF COLOR, 0
+IF !TFLAG:マップ切り替え
+	IF CHK_FOCUS(403,CFLAG:MASTER:現在位置,430)
+		TFLAG:マップ切り替え = 1
+	ELSEIF CHK_FOCUS(450,CFLAG:MASTER:現在位置,466)
+		TFLAG:マップ切り替え = 2
+	ELSE
+		TFLAG:マップ切り替え = 3
+	ENDIF
+ENDIF
+CALL DRAW_INFORMATIONLINE(@"%MAPNAME:(TFLAG:マップ切り替え)%")
+PRINTFORML 
+IF RECOLOREDMAPS
+TRYCCALLFORM COLOREDMAP_NEW_TIKURIN_{TFLAG:マップ切り替え}(AA,COLOR)
+CATCH
+RECOLOREDMAPS = 0
+CALL DRAW_MAP
+RECOLOREDMAPS = 1
+RETURN
+ENDCATCH
+ELSE
+TRYCALLFORM MAP_NEW_TIKURIN_{TFLAG:マップ切り替え}(AA)
+ENDIF
+
+
+@MAP_CAN_MOVE_4(ARG, ARG:1)
+#FUNCTION
+SELECTCASE ARG
+	;奥ノ院判定
+	CASE 407 TO 430
+		;除外
+		SIF GROUPMATCH(ARG:1, [[鈴仙]], [[てゐ]], [[輝夜]], [[永琳]])
+			RETURNF 1
+		;月の民も良いよね
+		SIF GROUPMATCH(ARG:1, [[依姫]], [[豊姫]], [[レイセン]], [[サグメ]])
+			RETURNF 1
+		;中からは動ける
+		SIF INRANGE(CFLAG:(ARG:1):現在位置,407,430)
+			RETURNF 1
+		;あなた
+		IF ARG:1 == MASTER
+			IF 永遠亭侵入許可() || INRANGE(CFLAG:MASTER:初期位置,401,430) || FLAG:時間停止
+				RETURNF 1
+			ELSE
+				TFLAG:移動不能メッセージ = 401
+				RETURNF 0
+			ENDIF
+		;それ以外
+		ELSE
+			RETURNF 0
+		ENDIF
+	CASEELSE
+		RETURNF 1
+ENDSELECT
+
+@MAP_CANNOT_WORD_4(ARG)
+IF TFLAG:移動不能メッセージ == 401
+	PRINTW 親しい人がいないうちは永遠亭の奥には入れさせてもらえない
+	CLEARLINE 2
+	REUSELASTLINE 
+	RETURN
+ENDIF
+
+@永遠亭侵入許可()
+#FUNCTION
+SIF CFLAG:[[輝夜]]:面識
+	RETURNF 1
+SIF TALENT:52:恋慕 || TALENT:53:恋慕 || TALENT:62:恋慕 || TALENT:72:恋慕
+	RETURNF 1
+SIF GROUPMATCH(FLAG:デート相手,52,53,62,72)
+	RETURNF 1
+SIF GROUPMATCH(FLAG:なりきり,52,53,62,72)
+	RETURNF 1
+SIF CFLAG:52:同行 || CFLAG:53:同行 || CFLAG:62:同行 || CFLAG:72:同行
+	RETURNF 1
+SIF FLAG:宴会開催フラグ == 3 && TIME >= FLAG:33
+	RETURNF 1
+RETURNF 0
+
+@マップ紹介_4
+;とりあえず5行
+PRINTFORML ※紹介文募集中※
+PRINTFORML 竹林のみならず幽香と旧作キャラたちが暮らす夢幻館が含まれる。
+PRINTFORML 永遠亭の奥へは関係者と同行するか仲が深まらないと通してもらえない。
+PRINTFORML 時間停止で無断侵入できるが解除するとつまみ出される。
+PRINTFORML 

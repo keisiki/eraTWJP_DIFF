@@ -1,0 +1,333 @@
+;==================================================
+;弾幕勝負
+;==================================================
+;
+@M_KOJO_MESSAGE_COM_K13_DANMAKU(ARGS, 相手残機)
+#DIM 相手残機
+#DIM LCOUNT
+;全体の流れ
+;①【戦闘前】→②ダイスロールとプレイヤー選択肢、ハンデをつけた場合は【ハンデ口上】→③対応スキルが発動した場合【スキル口上】→④被弾判定、キャラが被弾したなら【被弾口上】→
+;どちらかの残機が0になっていなければ②に戻る→⑤【戦闘後口上】
+
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+SIF FLAG:口上色
+	TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;戦闘前
+	;HANDICAP_FIXED = 0
+	;HANDICAP_RAND = 0
+	IF CFLAG:TARGET:溜まってる度 > 500 && TALENT:MASTER:性別 != 1 && CFLAG:2 > 1500 && ARGS == "戦闘前"
+		PRINTFORML
+		PRINTFORML
+		PRINTFORML 大妖精の様子がどこかおかしい…
+		PRINTFORML 呼吸が荒く頬が紅潮している。
+		PRINTFORMW
+		PRINTFORML
+		PRINTFORML [0] 心配だから手加減しよう
+		PRINTFORML [1] 手加減はしない
+		LCOUNT ++
+		$INPUT_LOOP_K13_ENCOUNTER
+		INPUT 
+		IF RESULT == 0
+			PRINTFORMW %CALLNAME:MASTER%は気付かれないようハンデをつけることにした。
+			LCOUNT ++
+			HANDICAP_FIXED = 3000
+			HANDICAP_RAND = 3000
+		ELSEIF RESULT == 1
+			PRINTFORMW どこに行って何をしようが、%CALLNAME:MASTER%の自由だー！
+			LCOUNT ++
+			HANDICAP_FIXED = 0
+			HANDICAP_RAND = 0
+			PRINTFORML
+			PRINTFORML
+		ELSE
+			IF LCOUNT >5
+				PRINTFORML 設定されてねぇつってんだろ！
+			ELSE
+				PRINTFORML 設定されていません。
+				LCOUNT ++
+			ENDIF
+			GOTO INPUT_LOOP_K13_ENCOUNTER
+		ENDIF
+	LCOUNT = 0
+	ENDIF
+	;ハンデをつけることができ、数値が大きいほどあなたが不利になる　数値が負ならあなたが有利に
+	;キャラの能力に関わらずクッソ強くしたり弱くしたりできる
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘前"
+		;怒り
+		IF CFLAG:318 == 1
+			PRINTFORMW 「…イタズラじゃすまないかもしれません」
+		ELSEIF RAND:4 == 0
+			PRINTFORMW 「スペルカードがなくたって…！」
+		ELSEIF RAND:3 == 0
+			PRINTFORMW 「私だってチルノちゃんと弾幕ごっこしてるんですから！」
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「妖精だからって手加減しないでくださいね」
+		ELSE
+			PRINTFORMW 「異変の時の妖精は悪霊より凶暴なんですよ！」
+		ENDIF
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;ハンデ
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "ハンデ"
+		;ハンデつけなかったら表示されないので無記入でよい
+		IF RAND:3 == 0
+			PRINTFORMW %CALLNAME:MASTER%は両手をあげ片足をあげてポーズをとった。
+		ELSEIF RAND:2 == 0
+			PRINTFORMW %CALLNAME:MASTER%は頭を抱えてカリスマポーズをとった。
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%は夜雀の鳴き真似をした。
+		ENDIF
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中TARGET被弾時口上
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "被弾" 
+		;別に一律で「やられたー」だけでもいいよ
+		SELECTCASE 相手残機
+			;残り残機3が表示されるのは【洽覧深識】持ちのみ
+			CASE 3
+				PRINTFORML 
+			CASE 2
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「ふえぇ…」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「イタッ…」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「ま、まだ負けてないです」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「キャッ！」
+				ELSE
+					PRINTFORMW 「まだガンバれます！」
+				ENDIF
+			CASE 1
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「グスッ…」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「今度は火炎弾をいっぱいに…」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「このままじゃ…」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「チルノちゃんとがんばってるのに…」
+				ELSE
+					PRINTFORMW 「しょ、勝負はこれからです！」
+				ENDIF
+			CASE 0
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「いたいよぉ…」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「やられたー」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「やられちゃいました…」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「ヤラレチャッタ…」
+				ELSE
+					PRINTFORMW  [負け犬]
+				ENDIF
+		ENDSELECT
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【残忍酷薄】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "残忍酷薄"
+		
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【乾坤一擲】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "乾坤一擲"
+		
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【怪力乱神】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "怪力乱神"
+		
+	ENDIF
+	
+	;-------------------------------------------------
+	;戦闘後
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘後" 
+		PRINTFORML 
+		;残り残機4が表示されうるのは【洽覧深識】持ちのみ
+		;残機が1以上ならあなたの負け、0の場合はあなたの勝利
+		SELECTCASE 相手残機
+			CASE 4
+				PRINTFORML 
+			CASE 3
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「私がとっても怒ってるの、わかってくれました？」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「あの、おケガはないですか？」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「良かったら一緒に訓練しませんか？」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「や、やりすぎちゃったかな…」
+				ELSE
+					PRINTFORMW 「妖精の私が勝てるなんて、とってもうれしい…」
+				ENDIF
+			CASE 2
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「怒ってる分強くなった気がします」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「妖精だからって油断しないでください」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「少し休みませんか？」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「チルノちゃんと弾幕ごっこしたおかげですね」
+				ELSE
+					PRINTFORMW 「瞬間移動をもっと使った方がいいのかな？」」
+				ENDIF
+			CASE 1
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「ハァ…ハァ…」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「や、やった…勝っちゃいました！」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「あの弾幕をかわしてなかったら逆に私がやられてたかも…」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「私でもこれぐらい…！」
+				ELSE
+					PRINTFORMW 「良かった、勝てて」
+				ENDIF
+			CASE 0
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「うええぇぇん･･･」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「やっぱり私じゃムリなのかな…」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「強いんですね…見習わなくちゃ」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「よかったら、今度弾幕ごっこの訓練教えてください」
+				ELSE
+					PRINTFORMW 「チルノちゃんより強いかも…」
+				ENDIF
+		ENDSELECT
+		IF 相手残機 != 0 && CFLAG:TARGET:溜まってる度 > 700 && TALENT:MASTER:性別 != 1 && CFLAG:2 > 1500
+			SETCOLOR COLOR("桃")
+			PRINTFORMW 
+			PRINTFORMW 
+			PRINTFORMW 
+			PRINTFORMW 
+			PRINTFORMW 「大丈夫…ですか？」
+			PRINTFORMW 起き上がろうとする%CALLNAME:MASTER%へと、大妖精は顔を俯かせながら手を差し出す。
+			PRINTFORMW その表情が赤く火照っていることに気付いた時には、差し出された手を握ってしまった後だった。
+			PRINTFORMW 瞬間、グラリと視界が揺れて風景が一瞬の内に変わっていく。
+			PRINTFORMW 数秒もしない内に柔らかな布団の感触を背に受け、%CALLNAME:MASTER%は弾幕勝負で疲れ果てた身体を起こそうとする。
+			PRINTFORMW 
+			PRINTFORMW 「ごめんなさい、こんな乱暴なことしちゃって…」
+			PRINTFORMW 「まだカラダがちゃんと動かせないのに…」
+			PRINTFORMW 
+			PRINTFORMW 大妖精は情欲で潤んだ瞳で見つめたまま、スカートをめくり上げる。
+			PRINTFORMW あらわになった蜜穴からただよう甘ったるい雌の香り。可愛らしいパンツは蜜で濡れ、もはや下着の意味をなしていなかった。
+			PRINTFORMW 
+			PRINTFORMW 「もう…ガマンできないんです…」
+			PRINTFORMW 「弾幕ごっこで気持ちが高ぶっちゃって…っ%UNICODE(0x2665) *1%…くんッ%UNICODE(0x2665) *1%」
+			PRINTFORMW 
+			PRINTFORMW 大妖精は下着をズラし愛液まみれになったワレメをか細い指で弄くり慰める。
+			PRINTFORMW とめどなくワレメから蜜が垂れ流させ、ふとももに幾つもの滴が垂れ落ちていた。 
+			PRINTFORMW 
+			PRINTFORMW 「あぁぁっ…%UNICODE(0x2665) *1%あぁあっ%UNICODE(0x2665) *1%」
+			PRINTFORMW 「やぁ…%UNICODE(0x2665) *1%足りない…指だけじゃ、もう…」
+			PRINTFORMW 
+			PRINTFORMW 声を震わせる大妖精は、%CALLNAME:MASTER%の目の前で濡れた衣服を脱ぎ捨て生まれたままの姿になる。
+			PRINTFORMW 荒い吐息と共にピンとピンク色の乳首が立たせ、体中が火照って幼い体ながらも言いようのない色気を醸し出している。
+			PRINTFORMW その艶かしい肢体を%CALLNAME:MASTER%へと倒れこんだと思うと無我夢中で%CALLNAME:MASTER%の衣服へと手を潜らせ、欲望のままに男根を探し当てた。
+			PRINTFORMW 大妖精の自慰と甘い匂いに魅入られた%CALLNAME:MASTER%の男根は、大妖精の手で剛直を外気へとそそり立たせた。
+			PRINTFORMW 
+			PRINTFORMW 「あっ…こんなにおっきい…%UNICODE(0x2665) *1%」
+			PRINTFORMW 「ダメ…もう…カラダがカッテに……」
+				IF TALENT:処女 == 1
+					PRINTFORMW 大妖精は%CALLNAME:MASTER%にまたがると、はち切れそうな男根にワレメを擦りつけひたすらに快楽を貪り始めた。
+					PRINTFORMW 
+					PRINTFORMW 「はぁ…あ%UNICODE(0x2665) *1%…んっ%UNICODE(0x2665) *1%あぁぁ%UNICODE(0x2665) *1%」
+					PRINTFORMW 「ふぅん…%UNICODE(0x2665) *1%かたくてっ…ビクビクして…やっ%UNICODE(0x2665) *1%キモチいいよぉ%UNICODE(0x2665) *1%」
+					PRINTFORMW 
+					PRINTFORMW 自らの小さな豆とワレメを刺激させて、大妖精は熱心に男根を恥丘に擦り付ける。
+					PRINTFORMW 快楽に負け%CALLNAME:MASTER%が精液を吐き出すも、大妖精をさらに興奮させいっそう腰を激しく動かす。
+					PRINTFORMW 
+					PRINTFORMW 「ごめんなさいっ%UNICODE(0x2665) *1%ごめんなさい%UNICODE(0x2665) *1%…あぁぁっ%UNICODE(0x2665) *1%」
+					PRINTFORMW 
+					PRINTFORMW 大妖精の切なげな謝罪の声と共に卑猥な水音が部屋に響く。
+					EXP:13:Ｃ経験 += 3
+				ELSE
+					PRINTFORMW 大妖精%CALLNAME:MASTER%にまたがると、ガマン汁で濡れた男根をワレメへと誘う。
+					PRINTFORMW 
+					PRINTFORMW 「こんなの悪い事なのに…%UNICODE(0x2665) *1%あっ…%UNICODE(0x2665) *1%」
+					PRINTFORMW 
+					PRINTFORMW 大妖精は破廉恥と罪悪感を吐露しながらも、腰を落とし一気に蜜穴へと男根をめり込ませる。
+					PRINTFORMW 
+					PRINTFORMW 「ああぁぁぁっ…%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%」
+					PRINTFORMW 
+					PRINTFORMW うっとりとした表情でうち震える大妖精。やがて、欲望のままに腰をふり、%CALLNAME:MASTER%の上で小さな肢体を跳ねさせる。
+					PRINTFORMW %CALLNAME:MASTER%のことを案じようともしない、一方的に蜜穴で男根にむしゃぶりつき、蜜を飛散させながらひたすらしごく。
+					PRINTFORMW 
+					PRINTFORMW 「はッ、ひッ、%UNICODE(0x2665) *1%キモチいいよぉ%UNICODE(0x2665) *1%」
+					PRINTFORMW 
+					PRINTFORMW やがて肉棒がビクビクと脈うち精液を吐き出そうともやめることはない。白濁液を結合部から溢れさせながらも腰を動かし続ける。
+					PRINTFORMW 大妖精は泣き出しそうな切ない表情のまま肉棒を下の口でくわえ込み、決して放そうとはしない。
+					PRINTFORMW 
+					PRINTFORMW 「ごめんなさいっ%UNICODE(0x2665) *1%ごめんなさい%UNICODE(0x2665) *1%…あぁぁっ%UNICODE(0x2665) *1%」
+					PRINTFORMW 
+					PRINTFORMW パチュンパチュンと肉と肉がぶつかり合う音に混じって大妖精の謝罪が部屋に響く。
+					EXP:13:膣射経験 += 3
+					EXP:13:Ｖ性交経験 += 3
+					EXP:MASTER:挿入経験 += 3
+					CALL ADD_SAMEN_V(13, BASE:MASTER:精力)
+				ENDIF
+			PRINTFORMW はち切れてしまった性欲に狂う妖精の悪戯は、大妖精の体力が続くまで繰り返される…。
+			EXP:13:精液経験 += 3
+			EXP:13:絶頂経験 += 3
+			EXP:MASTER:絶頂経験 += 3
+			EXP:MASTER:射精経験 += 3
+			BASE:MASTER:精力 = 0
+			BASE:MASTER:勃起 = 0
+			RESETCOLOR
+		ELSE
+		ENDIF
+	ENDIF
+RESETCOLOR
+ENDIF
+
+$INPUT_K13_RAPE
+
+RETURN 1
+

@@ -1,0 +1,1252 @@
+﻿;==================================================
+;弾幕勝負（固有コマンド）
+;==================================================
+;
+;一応テンプレっぽく
+;CFLAG:1800と1801を使います
+;
+@M_KOJO_MESSAGE_COM_K68_DANMAKU(ARGS, 相手残機)
+#DIM 相手残機
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+SIF FLAG:口上色
+	TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;戦闘前
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘前"
+		;勝利済みフラグ（現状口上の表示に使うためだけのフラグなので、口上で自由に使用できる場所を使用）
+		IF CFLAG:68:1800
+			PRINTFORMW 「……ふん、私だって負けたままじゃいられないわ……望むところよ」
+		;勝負済みフラグ（現状口上の表示に使うためだけのフラグなので、口上で自由に使用できる場所を使用）
+		ELSEIF CFLAG:68:1801
+			PRINTFORML 「また負けに来たの？　何度やっても、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@みたいなのが私に勝てるわけないのに」
+			PRINTFORMW 「そんなに虐められたいのなら……お望み通り、向日葵にしてあげる」
+		ELSE
+			PRINTFORML 「……弾幕？　へぇ、私に勝負を挑むなんて、凄い自信ね」
+			PRINTFORMW 「受けてあげてもいいわよ。ただし……」
+			PRINTFORMW 「\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@には、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@が今、一番大切にしているものを賭けてもらうわ」
+			PRINTFORMW 「どうしてかって？　そんなの、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@の目の前でそれを潰してやるのが、最高に楽しいからに決まってるじゃない」
+		ENDIF
+		PRINTFORML 「で、何を賭けるつもり？」
+		$INPUT_LOOP
+		RESETCOLOR
+		CALL ASK_M("やっぱやめる", 1, "お金（5000）",1, "カリスマ（25）", 1, "子供", 1, "童貞", TALENT:MASTER:非童貞 == 0 && TALENT:MASTER:性別 == 2)
+		LOCAL:2 = RESULT
+		SIF FLAG:口上色
+			TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+		SELECTCASE LOCAL:2
+			CASE 0
+				PRINTFORML 「さっきまでの威勢はどこにいったのかしら」
+				RESETCOLOR
+				RETURN -1
+			CASE 1
+				PRINTFORML 「そうね、妥当だわ」
+				PRINTFORMW 「それじゃ、軽く相手してあげましょうか」
+				TCVAR:68:398 = 1
+				RESETCOLOR
+				RETURN 1
+			CASE 2
+				PRINTFORML 「か、かりすま？　何よそれ……まあ、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@にとって価値のあるものならなんでも良いわ」
+				PRINTFORMW 「それじゃ、軽く相手してあげましょうか」
+				TCVAR:68:398 = 2
+				RESETCOLOR
+				RETURN 1
+			CASE 3
+				PRINTFORML 「いや、流石にそれはちょっと……」
+				GOTO INPUT_LOOP
+			CASE 4
+				;1回負けてる
+				IF CFLAG:68:1804 == 1
+					PRINTFORML 「あれだけ私に恥を晒して、またやるつもりなのねぇ」
+					PRINTFORMW 「まあ、貴方がそれで悦ぶ変態だってことは、もう知ってるけど……」
+					PRINTFORMW 「じゃあ、さっさとこれ飲みなさいよ」
+					PRINTFORMDL %CALLNAME:MASTER%は幽香から手渡された媚薬を飲んだ……
+					PRINTFORMDW 少し飲んだだけでも、すぐに興奮が抑えられなくなる……！
+					PRINTFORMW 「そんな状態の貴方に、負けるわけないじゃない……軽く捻ってあげるわ」
+					HANDICAP_FIXED = 5 * ABL:MASTER:戦闘能力
+					HANDICAP_RAND = 6 * ABL:MASTER:戦闘能力
+					TCVAR:68:398 = 3
+					RESETCOLOR
+					RETURN 1
+				ELSE
+					PRINTFORML 「……は？」
+					PRINTFORMDL 冷めた目で睨まれた……
+					SIF CFLAG:68:好感度 < 500
+						GOTO INPUT_LOOP
+					PRINTFORMW 「何馬鹿なこと言ってるのよ……そんなの、貴方にとってはただのご褒美じゃない」
+					PRINTFORMW 「どうせ、わざと負けようって考えてるんでしょ？　それじゃ勝負にならないでしょうが」
+					PRINTFORMW 「……どうしても？　貴方、男としての恥とか、そういうのは何も無いのかしら」
+					PRINTFORMW 「そうねぇ……はい、じゃあこれ」
+					PRINTFORMDL 幽香から小瓶を渡された。中には怪しげな液体が入っている……
+					PRINTFORMW 「それ飲んで、私に勝てたら……貴方の童貞、貰ってあげる」
+					PRINTFORMDL こんなものを飲んでしまったら、どうなるかわからない……どうしよう？
+					RESETCOLOR
+					CALL ASK_M("飲む", 1, "飲まない",1)
+					LOCAL:3 = RESULT
+					SIF FLAG:口上色
+						TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+					SELECTCASE LOCAL:3
+						CASE 0
+							PRINTFORMDL 幽香のニヤニヤ顔を見ながら、恐る恐る中の液体を飲んでみた……
+							PRINTFORMW 「あ、全部飲んだら死ぬからね」
+							PRINTFORMDW 適量がよくわからない……そもそも、これは何の薬なんだろうか
+							PRINTFORML 「それ、男用の媚薬兼精力剤……の、失敗作」
+							PRINTFORMDW ……しばらくすると、急な目眩と共に股間が熱くなってきた……！
+							PRINTFORMW 「効果が強すぎるから失敗作らしいわ、面白そうだから魔理沙から盗んできたの」
+							PRINTFORMDL 自分ではコントロールできないぐらい、下半身に血が集まってきている
+							PRINTFORMDW 悪戯に笑う幽香の姿を見ているだけで、感情が爆発しそうになる……！
+							PRINTFORMW 「ふふっ、かなり効いてるみたいね？　そんな状態で、まともに戦えるのかしら」
+							PRINTFORMW 「それじゃ、軽く相手してあげましょうか」
+							SIF BASE:MASTER:精力 < MAXBASE:MASTER:精力
+								BASE:MASTER:精力 = MAXBASE:MASTER:精力
+							SIF BASE:MASTER:勃起 < 1500
+								BASE:MASTER:勃起 = 1500
+							HANDICAP_FIXED = 5 * ABL:MASTER:戦闘能力
+							HANDICAP_RAND = 6 * ABL:MASTER:戦闘能力
+							TCVAR:68:398 = 3
+							RESETCOLOR
+							RETURN 1
+						CASE 1
+							PRINTFORMDL 冗談のつもりだったのに、タダでは済まないことになりそうだ。やめておこう
+							PRINTFORML 「冗談？　はぁ、面白くないわね……」
+							RESETCOLOR
+							RETURN -1
+					ENDSELECT
+				ENDIF
+		ENDSELECT
+		;選択肢を消した時用
+		RETURN -1
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;ハンデを設定してる場合のみ表示
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "ハンデ"
+		SETCOLOR C_RED
+		PRINTDATAL
+			DATAFORM 一物がその存在を主張してくるせいで動きづらい……
+			DATAFORM %CALLNAME:TARGET%がこちらに胸を見せつけ、挑発してくるせいで集中できない……
+			DATAFORM 下着が擦れるだけでイきそうになる……
+		ENDDATA
+		RESETCOLOR
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;被弾、残り残機2
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "被弾" && 相手残機 == 2
+		;勝利済みフラグ
+		IF CFLAG:68:1800
+			PRINTFORML 「い、今のは準備運動よ……」
+			PRINTFORML 「次は簡単にやられたりしないわ」
+		ELSE
+			PRINTFORML 「あら、意外とやるわね」
+			PRINTFORML 「ちょっと本気出しちゃおうかしら」
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;被弾、残り残機1
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "被弾" && 相手残機 == 1
+		;勝利済みフラグ
+		IF CFLAG:68:1800
+			PRINTFORML 「っ、負けるわけには……！」
+		ELSE
+			PRINTFORML 「うっ、強い……」
+			PRINTFORML 「……遊んでる場合じゃないわね」
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;被弾、残り残機0
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "被弾" && 相手残機 == 0
+		;勝利済みフラグ
+		IF CFLAG:68:1800
+			PRINTFORML 「……はぁ、また負けちゃった」
+		ELSE
+			PRINTFORML 「そ、そんな……！　私が……」
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【残忍酷薄】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "残忍酷薄"
+		IF 相手残機 == 3
+			PRINTFORML 「あら、私に勝つんじゃなかったの？　もっと足掻いてみせなさい」
+		ELSEIF 相手残機 == 2
+			PRINTFORML 「ふ、ふん……だいぶ余裕がなくなってきたんじゃないかしら」
+		ELSEIF 相手残機 == 1
+			PRINTFORML 「ま、負けないんだから……！」
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;戦闘後
+	;幽香の残機3
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘後" && 相手残機 == 3
+		;童貞賭け
+		IF TCVAR:68:398 == 3
+			PRINTFORML 「はい、貴方の負け。ハンディキャップ抜きで、弱すぎるわ貴方」
+			PRINTFORMW 「それとも、薬のせいで下半身に脳を支配されちゃったわけ？　ほんと、情けない男ね……」
+		ELSE
+			;勝利済みフラグ
+			IF CFLAG:68:1800
+				PRINTFORMW 「\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@、悪い物でも食べたの？　いくらなんでも弱すぎるわ」
+			ELSE
+				PRINTFORMW 「はぁ、全く大したことないわね……時間の無駄だったわ」
+			ENDIF
+			IF TALENT:68:恋人 || TALENT:68:恋慕
+				PRINTFORMW 「賭け？　あぁ……あれは、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@を本気にさせるために言っただけよ」
+				PRINTFORMW 「私が\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@から、何か奪うわけないでしょ？　……何か文句ある？」
+			ELSE
+				PRINTFORMW 「さて……約束通り、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@には罰を受けてもらうわ」
+			ENDIF
+		ENDIF
+		CALL K68_DANMAKU_PENALTY()
+	ENDIF
+	;-------------------------------------------------
+	;戦闘後
+	;幽香の残機2
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘後" && 相手残機 == 2
+		;童貞賭け
+		IF TCVAR:68:398 == 3
+			PRINTFORML 「残念、貴方の負けよ」
+			PRINTFORMW 「滅茶苦茶に犯してやりたいと思った女に負ける気分はどう？　はっ、そんなにサカっちゃって、恥ずかしい奴……」
+		ELSE
+			;勝利済みフラグ
+			IF CFLAG:68:1800
+				PRINTFORMW 「まあ、私が本気を出せばこんなものよ」
+			ELSE
+				PRINTFORMW 「ふぅ、期待外れだわ……さっきのはマグレね」
+			ENDIF
+			IF TALENT:68:恋人 || TALENT:68:恋慕
+				PRINTFORMW 「賭け？　あぁ……あれは、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@を本気にさせるために言っただけよ」
+				PRINTFORMW 「私が\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@から、何か奪うわけないでしょ？　……何か文句ある？」
+			ELSE
+				PRINTFORMW 「さて……約束通り、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@には罰を受けてもらうわ」
+			ENDIF
+		ENDIF
+		CALL K68_DANMAKU_PENALTY()
+	ENDIF
+	;-------------------------------------------------
+	;戦闘後
+	;幽香の残機1
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘後" && 相手残機 == 1
+		;童貞賭け
+		IF TCVAR:68:398 == 3
+			PRINTFORML 「ふぅ……残念、童貞卒業はお預けね」
+			PRINTFORMW 「もう我慢しなくていいわよ、自分の手で存分に扱いて、精を無駄撃ちすると良いわ」
+		ELSE
+			;勝利済みフラグ
+			IF CFLAG:68:1800
+				PRINTFORMW 「ふぅ……私の勝ちね」
+			ELSE
+				PRINTFORMW 「ふぅ……私を本気にさせるなんて、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@にしてはよく頑張ったんじゃないかしら」
+			ENDIF
+			PRINTFORML 「賭けのことはもういいわ……そんなもの、別にいらないし」
+			IF TALENT:68:恋人 || TALENT:68:恋慕
+				PRINTFORMW 「また来なさい……今日じゃなければ、いつでも相手してあげるわ」
+			ELSE
+				PRINTFORMW 「次に\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@をボコボコにできるのを楽しみにしてるわ」
+			ENDIF
+		ENDIF
+		CALL K68_DANMAKU_PENALTY()
+	ENDIF
+	;-------------------------------------------------
+	;戦闘後
+	;幽香の残機0
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘後" && 相手残機 == 0
+		;童貞賭け
+		IF TCVAR:68:398 == 3
+			PRINTFORML 「嘘でしょ……ハンデ有りで負けるなんて……！」
+			PRINTFORMW 「筆おろし……わかったわよ、やればいいんでしょ！」
+		ELSE
+			PRINTFORML 「……悔しいけど、私の負けね……自慢でも何でも、好きにすると良いわ」
+			;勝利済みフラグ
+			IF CFLAG:68:1800
+				PRINTFORML 「……え？　見返り……って、また？　恥知らずな奴……」
+			ELSE
+				PRINTFORMW 「……え？　見返り……って、私に勝っただけじゃ物足りないというの？」
+				PRINTFORML 「ふん……まぁいいわ、何か希望でも？」
+			ENDIF
+			;勝負済みフラグをオン
+			CFLAG:68:1801 = 1
+			;勝利済みフラグをオン
+			CFLAG:68:1800 = 1
+		ENDIF
+		CALL K68_DANMAKU_REWARD()
+	ENDIF
+RESETCOLOR
+ENDIF
+RETURN 1
+
+@K68_DANMAKU_PENALTY(ARG)
+;童貞賭け
+IF TCVAR:68:398 == 3
+	PRINTFORMDL %CALLNAME:MASTER%は息を乱したまま、仰向けでその場に倒れ込む
+	PRINTFORMDW 薬を飲んだ頃とは比べ物にならないくらい、股間が熱い。今にも精を吐き出してしまいそうだ……！
+	PRINTFORMDW 我慢できなくなった%CALLNAME:MASTER%が下着を下ろすと、これ以上無いぐらい勃起したペニスがバネのように大きく揺れながら晒された
+	IF CFLAG:68:1804 == 1
+		PRINTFORML 「相変わらず凄いわねぇ……こんな状態のまま弾幕ごっこするなんて、笑えるわね」
+	ELSE
+		PRINTFORML 「うわ、凄いことになってる……そんなに強い媚薬だったのね、これ」
+	ENDIF
+	PRINTFORMDW 完全に制御できなくなったそれは、今まで見たことのないぐらい大きくそそり立っている。まるで、誰かに思いっきり引っ張られているみたいだ……
+	PRINTFORMW 「苦しいの？　なら、さっさと扱いて吐き出しちゃいなさいよ」
+	PRINTFORMDW 幽香は意地悪そうな笑みを浮かべながら、すぐ傍で%CALLNAME:MASTER%を見下している
+	PRINTFORMDW 彼女の微かな汗の匂いだけで、ペニスを思いっきり扱きたくなる強烈な欲望に襲われる……！
+	RESETCOLOR
+	CALL ASK_M("我慢できない……", 1, "我慢する",1)
+	LOCAL:2 = RESULT
+	SIF FLAG:口上色
+		TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+	SELECTCASE LOCAL:2
+		CASE 0
+			PRINTFORMDL 欲に負けた%CALLNAME:MASTER%は、幽香の視線を感じながら夢中でペニスを扱いた
+			PRINTFORMDW 射精寸前だったそれは、数秒もしない内に精を吐き出してしまった
+			PRINTFORMW 「うわぁ、気持ち悪……こっち見ないでくれるかしら」
+			PRINTFORMDW 水鉄砲のような強烈な勢いで次々と放たれる精は、全てその役割を果たせないまま虚しく地面に零れ落ちる
+			PRINTFORMDW 断続的な快楽と幽香の蔑むような視線で、%CALLNAME:MASTER%は意識が飛びそうになっていた
+			PRINTFORMW 「はぁ、自分の手で猿みたいに扱いて、こんなに周りを汚して……馬鹿みたい」
+			PRINTFORMDW 長い長い射精が終わっても、たった一度の射精ではペニスの憤りと欲望は収まらなかった
+			PRINTFORMDW その後も幽香になじられながら、情けない射精を何度も繰り返した……
+		CASE 1
+			PRINTFORMW 「我慢してるの？　ふふっ、童貞卒業はもう無理なのに、無駄なことするのねぇ」
+			PRINTFORMDW そう言いながら幽香は%CALLNAME:MASTER%の下半身の傍に跪き、自らの上着を肌蹴させる
+			PRINTFORMDW 彼女の魅力的な双丘の谷間を見て、%CALLNAME:MASTER%は思わずペニスをビクつかせてしまった
+			PRINTFORMW 「あはっ、わかりやすっ……私の身体に欲情してるのね」
+			PRINTFORMW 「ねぇ、早く出しちゃえば？　このまま我慢してても、何も良いことはないわよ」
+			PRINTFORMDW ピンと直立するペニスのすぐ近くで、幽香は舌を出して誘惑してくる
+			PRINTFORMDW 鮮やかな色をした魅惑的なそれにペニスを擦り付ければ、すぐにでも射精できそうだ……！
+			RESETCOLOR
+			CALL ASK_M("我慢できない……", 1, "我慢する",1)
+			LOCAL:3 = RESULT
+			SIF FLAG:口上色
+				TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+			SELECTCASE LOCAL:3
+				CASE 0
+					PRINTFORMDL 焦らしに焦らされた後の幽香の誘惑は、どうしても抗い難いものだった
+					PRINTFORMDW ガチガチになったペニスの先を幽香の舌に当てると、もの凄く柔らかな触感と共に、すぐに精液が昇ってきた
+					PRINTFORM 「んっ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORM 　はぁ、あぁッ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW 」
+					PRINTFORMDW 次々に放たれる精液は、ここが膣内だと勘違いして幽香の舌にべったりと張り付く
+					PRINTFORMDW あまりの射精の勢いに幽香の口からはすぐに溢れ出し、彼女の顔を白く汚す
+					PRINTFORMW 「はぁ、童貞のくせにこんなに濃いのを出して……何の意味もないのに」
+					PRINTFORMW 「ねぇ、私の顔をこんなに汚して、どう責任取るつもり？」
+					PRINTFORMDW 幽香の声に応えるように、まだ硬いままのペニスがピクリと反応する
+					PRINTFORMW 「あはっ、そう……貴方に聞くより、こっちに聞いた方が確実だったわね」
+					PRINTFORMDW その後は幽香に罵られながら、何度も快楽を貪るためだけの射精を果たした……
+				CASE 1
+					PRINTFORML 「あははっ、強がりねぇ……面白いじゃない」
+					PRINTFORMDW 頑固な%CALLNAME:MASTER%の態度に刺激されたのか、幽香は上着を脱ぎ、ブラに包まれた巨乳を見せつけてきた
+					PRINTFORMW 「私を試してるのね？　なら女として、絶対貴方をオトしてみせるわ」
+					PRINTFORMDW 幽香はブラを脱ぎ捨てると、その煽情的な双丘をペニスの上に乗せてきた……！
+					PRINTFORM 「さあ、ここに挿れてみなさい……ぎゅ～って挟んで、いっぱい出させてあげるから……
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW 」
+					PRINTFORMDL 幽香も%CALLNAME:MASTER%の熱に当てられ、既に発情した様子だ
+					PRINTFORMDW ペニスの先から、既にとても柔らかな感触が伝わってくる……ここに突きこめば、物凄く気持ちよさそうだ……！
+					RESETCOLOR
+					CALL ASK_M("我慢できない……", 1, "我慢する",1)
+					LOCAL:4 = RESULT
+					SIF FLAG:口上色
+						TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+					SELECTCASE LOCAL:4
+						CASE 0
+							PRINTFORMDL こんな光景を見せられて、我慢なんてできるわけなかった
+							PRINTFORMDW %CALLNAME:MASTER%が思い切りペニスを突き上げると、一瞬で絶頂に達してしまいそうなほどの快感に襲われた
+							PRINTFORM 「あはっ
+							CALL HEARTCB_K68(0xD02830)
+							PRINTFORM 　そうよねぇ、男なんてここで擦ってやったら一発なんだから……
+							CALL HEARTCB_K68(0xD02830)
+							PRINTFORMW 」
+							PRINTFORMDW 幽香が胸でペニスを抱きすくめ、ぎゅっと乳圧をかけてきた時点で%CALLNAME:MASTER%は呆気なく絶頂してしまった
+							PRINTFORM 「んっ
+							CALL HEARTCB_K68(0xD02830)
+							PRINTFORM 　出た出た、ちょっと早すぎるんじゃない……
+							CALL HEARTCB_K68(0xD02830)
+							PRINTFORMW ？」
+							PRINTFORMDL 谷間から僅かに覗く亀頭から、止めどなく白濁液が飛びてて幽香の胸や顔を汚す
+							PRINTFORMDW 強烈な快感の虜になり、%CALLNAME:MASTER%は夢中で腰を上下に動かしてしまう……
+							PRINTFORMW 「あははっ、ほんと情けないわねぇ……夢中でおっぱいとセックスしちゃって、恥ずかしくないのかしら？」
+							PRINTFORMDW 長い射精がようやく終わっても、憤ったペニスが収まる気配は全く無かった
+							PRINTFORMW 「まだ満足できないの？　そうねぇ、じゃあこのまま連続で何回イけるか、試してみましょうか」
+							PRINTFORMDW その後、%CALLNAME:MASTER%は情けない声を上げながら、何度も幽香の乳に搾り取られた……
+						CASE 1
+							PRINTFORM 「はぁ、まだ我慢するの……？　そろそろ、私のほうが我慢できなくなっちゃう……
+							CALL HEARTCB_K68(0xD02830)
+							PRINTFORMW 」
+							PRINTFORMDW そう言うと幽香は自らのパンティを脱ぎ捨て、股にある秘裂を開き鮮やかな色をした中身をこちらに見せつけてきた……！
+							PRINTFORMW 「ふふっ、もうこんなに濡れてるのよ……貴方、ここに挿れたいんでしょう……？」
+							PRINTFORMW 「ねぇ、舐めて……」
+							PRINTFORMDW %CALLNAME:MASTER%は仰向けの姿勢のまま、目の前の秘裂に夢中で吸い付いた
+							PRINTFORMW 「んっ、悪くないわよ……はぁ、貴方のこれも、こんなに苦しそうにしてる……」
+							PRINTFORMDW 幽香は%CALLNAME:MASTER%のペニスを見て舌なめずりしている……その様子に%CALLNAME:MASTER%は思わず唾を飲んだ
+							PRINTFORMW 「あぁ、もう我慢できないわ……今回は特別に、私の身体で筆おろししてあげる……」
+							PRINTFORMW 「……とでも言うと思った？」
+							PRINTFORMDW 幽香はブーツを脱ぎ捨てると……その足で、%CALLNAME:MASTER%のペニスを思い切り踏みつけてきた！
+							PRINTFORML 「このままいけば、絶対セックスできる……そう思ってたんでしょう、ねぇ？」
+							PRINTFORMDW 抗議の声を上げる間もなく、%CALLNAME:MASTER%の口は体重をかけてきた幽香の股に押し潰された
+							PRINTFORMW 「調子に乗るんじゃないわよ、この童貞男が！　私に負けた分際で！」
+							PRINTFORMDW 右足でペニスを踏みつけられながら左足で亀頭を擦られて、%CALLNAME:MASTER%のペニスは限界を迎えてしまった
+							PRINTFORM 「あははっ、出た出た
+							CALL HEARTCB_K68(0xD02830)
+							PRINTFORMW 　足でコスられただけでイっちゃうなんて、どんな気分？」
+							PRINTFORMDL 幽香にのしかかられているせいで、何を言っても呻き声にしかならない
+							PRINTFORMW 「何言ってるか聞こえないわよ、変態マゾ豚……うわぁ、こんなに出るのねぇ」
+							PRINTFORMDL 強すぎる刺激に、%CALLNAME:MASTER%のペニスは壊れた蛇口のように精液を吐き出している
+							PRINTFORMDW 幽香に容赦なくペニスを蹴られ、その刺激で思わずまた射精してしまう……
+							PRINTFORMW 「あーあ、こんなに撒き散らして……貴方が出したかったのはこっちなのに、ねぇ」
+							PRINTFORMDW 幽香に再び秘裂を押し付けられる。%CALLNAME:MASTER%がどんなに力を込めても、彼女を押しのけることができない……
+							PRINTFORMW 「私に対して生意気な態度を取ると、こうなるのよ……分かった？」
+							PRINTFORMDW 射精が終わってもなお、硬くそそり立ったままのペニスを見て、幽香は不敵に笑う
+							PRINTFORMW 「ふーん……貴方、まだまだ反省が足りないみたいねぇ……」
+							PRINTFORMDW その後も、その気になった幽香にペニスを蹴られ、何度も射精してしまった……
+					ENDSELECT
+			ENDSELECT
+	ENDSELECT
+	EXP:MASTER:絶頂経験 += 6
+	EXP:MASTER:射精経験 += 6
+	BASE:MASTER:精力 /= 2
+;恋人or恋慕だとペナルティ無し
+ELSEIF TALENT:68:恋人 || TALENT:68:恋慕
+	
+;MASTERが女orショタならエロイベ
+ELSEIF (TALENT:MASTER:性別 != 2) || ((TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼稚) && (TALENT:MASTER:体型 == -2 || TALENT:MASTER:体型 == -1))
+	PRINTFORMW 「でも……\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@が本当に大切にしているもの、気づいちゃった」
+	PRINTFORMDW 幽香は一瞬、ゾッとするような笑みを浮かべて、ボロボロの%CALLNAME:MASTER%を人目のない場所へ引きずっていった
+	PRINTFORMW 「\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@が本当に大切にしているのは……自分の命。ふふっ、怯えているのね？」
+	PRINTFORMW 「こんなに弱いし、このまま殺しちゃおうかしら」
+	IF TALENT:MASTER:性別 != 2
+		PRINTFORMDL 幽香は%CALLNAME:MASTER%の首筋に手を伸ばし、軽く力を込めぎゅっと絞めてきた
+		PRINTFORMDW 酸素を求め、自然に開いた%CALLNAME:MASTER%の口内に、幽香は無理やり舌を侵入させてくる
+		PRINTFORM 「じゅっ、えろっ、れろっ……ちゅっ
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORM 　じゅるるっ、んっ……
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORMW 」
+		EXP:68:キス経験 ++
+		EXP:MASTER:キス経験 ++
+		IF TALENT:MASTER:キス未経験
+			CALL SET_FIRSTKISS(MASTER, 68, 0)
+		ENDIF
+		IF TALENT:68:キス未経験
+			CALL SET_FIRSTKISS(68, MASTER, 0)
+		ENDIF
+		PRINTFORMDL %CALLNAME:MASTER%の口内を散々に嬲ると、幽香はようやく首を絞める手を放した
+		PRINTFORMW 「あははっ、泣いてるの？　可愛い……もっと虐めたくなっちゃう」
+		IF TALENT:68:性別 == 3
+			PRINTFORMDW 立ち上がった幽香は、自らの\@ EQUIP:68:下半身下着２ ? パンツを脱ぐと #  \@スカートをめくり上げ、ギンギンに勃起したペニスを%CALLNAME:MASTER%の眼前に晒した
+			PRINTFORMW 「大人しく私の言うことを聞いてれば、殺さないでおいてあげるわよ……くすっ」
+			PRINTFORMDW 発情した様子の幽香を見て、何をすべきか察した%CALLNAME:MASTER%は、媚びるように自らペニスに舌を這わせ始めた
+			PRINTFORMW 「ふふっ、そうよ……でも、死にたくないなら、もっと熱心になさい……」
+			PRINTFORMDL そう言い放った幽香は%CALLNAME:MASTER%の髪を掴むと、喉奥まで一気にペニスを突き入れてきた
+			PRINTFORMDW 強烈な衝撃に%CALLNAME:MASTER%は目を白黒させながら、ペニスに塞がれた口で悲鳴を上げる
+			PRINTFORMW 「なあに、聞こえないわよ？　苦しくて死んじゃう？　あははッ、死んじゃいなさいよ！」
+			PRINTFORMDL 恐怖に怯える%CALLNAME:MASTER%を無視して、幽香は腰を前後させ快楽を貪っている
+			PRINTFORM 「はぁ、はぁッ
+			CALL HEARTCB_K68(0xD02830)
+			PRINTFORM 　貴女の喉マンコ、気持ちいいぃッ
+			CALL HEARTCB_K68(0xD02830)
+			PRINTFORMW 」
+			PRINTFORMDL %CALLNAME:MASTER%は苦しさに意識を飛ばしそうになりながらも、早く解放されるために必死でペニスに舌を絡める
+			PRINTFORMDW 恍惚な表情を浮かべる幽香に対して、今の自分がどんな顔をしているのか、考えたくもなかった
+			PRINTFORM 「はぁ、あ……もう、出ちゃいそう……ッ
+			CALL HEARTCB_K68(0xD02830)
+			PRINTFORM 　んんッ
+			CALL HEARTCB_K68(0xD02830)
+			PRINTFORMW 」
+			PRINTFORMDW 髪を握る力が強くなり、%CALLNAME:MASTER%の口内を蹂躙する動きが速くなる。このままだと喉奥に出されてしまうが、抵抗する気力は無かった
+			PRINTFORM 「はぁッ、ぁああああッ
+			CALL HEARTCB_K68(0xD02830,2)
+			PRINTFORMW 」
+			PRINTFORMDL 幽香のペニスが脈動して、彼女の嬌声と共に大量の白濁液が喉奥に放たれる
+			PRINTFORMDW %CALLNAME:MASTER%は情けない声を上げながら、その全てを受け止めるしかなかった
+			PRINTFORM 「はぁーっ、はぁー……っ
+			CALL HEARTCB_K68(0xD02830)
+			PRINTFORM 　すごいぃ、いっぱい出ちゃった……
+			CALL HEARTCB_K68(0xD02830)
+			PRINTFORMW 」
+			PRINTFORMDL 絶頂の余韻を味わうように、幽香はゆっくりとペニスを引き抜く
+			PRINTFORMDW それが%CALLNAME:MASTER%の口元から離れると、唾液と精液が混じった真っ白な液体がこぼれ落ちた
+			PRINTFORML 「ふふっ……全部飲み込めなかったの？　全く、使えないわねぇ」
+			PRINTFORMDW 幽香は何とか白濁を吐き出そうとしている%CALLNAME:MASTER%の髪を掴むと、ペニスを擦りつけて汚れを拭き取り始めた
+			PRINTFORMW 「はぁ……ここまで酷いことしてやれば十分かしら？　これに懲りたら、二度と私に弾幕勝負なんて挑まないことね」
+			PRINTFORMW 「もっとも……私としては、また貴女の喉マンコが使えるから、大歓迎だけどね……くすっ」
+			;経験操作他
+			EXP:MASTER:口淫経験 ++
+			EXP:MASTER:精液経験 ++
+			DOWNBASE:68:精力 = 200
+			SIF BASE:68:精力 < 0
+				BASE:68:精力 = 0
+		ELSE
+			PRINTFORMDL 幽香は%CALLNAME:MASTER%の服に手をかけると、無理やり引き剥がして%CALLNAME:MASTER%を生まれたままの姿にした
+			PRINTFORMW 「ふうん……いいわね、その恥ずかしがる姿」
+			PRINTFORMDW 幽香は胸と秘部を手で隠している%CALLNAME:MASTER%の後ろに回り込み、その裸体を優しく愛撫し始めた
+			PRINTFORMW 「ふふっ……\@ GETBIT(CFLAG:68:既成事実 , 1) ? 私たちはこんなこと、慣れてるはずなのにねぇ # 女同士でこんなこと、あり得ないとか思ってる？ \@」
+			PRINTFORMDL 幽香は太腿や腹部を撫でながら、首筋や耳などを舐めてきて、%CALLNAME:MASTER%が隠している部分には一切触れようとしない
+			PRINTFORMDW 普段は性感帯だと意識していない場所でも、こうしてじっくりと愛撫されると、思わず身体を反応させ声を上げてしまう
+			PRINTFORML 「どうしてここを弄ってくれないの……そう思ってるわね、貴女？」
+			PRINTFORMDW 気づけば%CALLNAME:MASTER%は幽香に身を任せていて、もっと大きな快感が得られる場所を弄って欲しいと考えるようになっていた
+			PRINTFORMW 「ふふっ……焦らないで、貴女はただ可愛い声を上げていればいいのよ……」
+			PRINTFORMDL 幽香は%CALLNAME:MASTER%の胸とクリに手を伸ばした……と思いきや、乳首の周りをなぞるように指を動かしたり、内腿を撫で回すだけだ
+			PRINTFORMDW またもやもどかしさを覚えながら声を押し殺していると、不意に耳元に息を吹きかけられ、思わず大きな声を上げてしまった
+			PRINTFORMW 「はぁっ、可愛い……そんなに身体を仰け反らせちゃって、ねぇ」
+			PRINTFORMDL まだ一度も触れていないのに、%CALLNAME:MASTER%の乳首とクリはピンとその存在を主張するようになっていた
+			PRINTFORMDW 早く弄ってという願いを伝えるように、%CALLNAME:MASTER%は身体を仰け反らせ、後ろにいる幽香を涙目で見つめる
+			PRINTFORML 「ほんと、厭らしい娘ね……自分から懇願するようになるなんて」
+			PRINTFORMW 「……むしろ、これが貴女の本性なのかしらね？　ならお望み通り、私の指でイキ狂わせてあげるわ」
+			PRINTFORMDL そう言うと、幽香はいきなり%CALLNAME:MASTER%の乳首とクリを同時に力強く捻ってきた
+			PRINTFORMDW それまでの弱くて断続的な刺激と比べ、急な強い刺激に%CALLNAME:MASTER%は抵抗する間もなく絶頂させられた
+			PRINTFORMW 「あははっ、そんなに身体を跳ねさせちゃって……でも、まだこれからよ」
+			PRINTFORMDL 絶頂の余韻を味わう暇もなく、幽香は再び%CALLNAME:MASTER%の全身を愛撫し始めた
+			PRINTFORMDW 達したばかりの身体は外からの刺激をはっきりと伝えてきて、僅かな快感でも身を捩らせてしまう
+			PRINTFORMDW だが、再び先のような絶頂を迎えるには、余りにも物足りない刺激だ。あの散々焦らされてからの大きな快楽が忘れられなくて、もどかしさに気が狂いそうになる
+			PRINTFORMW 「欲しいなら、自分でおねだりしなさいな……淫乱娘さん」
+			PRINTFORMDL 幽香のその言葉を聞いて、%CALLNAME:MASTER%の理性の糸はぷつっと切れた
+			PRINTFORMDW 彼女から与える快楽のことしか考えられなくなった%CALLNAME:MASTER%は、イカせてください、と夢中で連呼して彼女の気を惹いた
+			PRINTFORMW 「くすっ……あーあ、馬鹿になっちゃったわね……お仕置きのはずだったのに」
+			PRINTFORMDW その後、幽香に身体を気に入られた%CALLNAME:MASTER%は何度も絶頂させられた……
+			;経験操作他
+			EXP:MASTER:Ｃ経験 += 6
+			EXP:MASTER:Ｂ経験 += 6
+			EXP:MASTER:絶頂経験 += 6
+		ENDIF
+	ELSE
+		PRINTFORMDL 幽香は%CALLNAME:MASTER%の小さな身体を後ろから抱き、首筋や頬に舌を這わせている
+		PRINTFORMDW 手足は自由なのに、本能的な恐怖からか%CALLNAME:MASTER%は身動き一つ取れない
+		PRINTFORMW 「ふふっ……貴方みたいな若い男の子、妖怪は大好物なのよねぇ」
+		PRINTFORMDW 幽香は妖怪らしく不敵に笑うと、%CALLNAME:MASTER%のズボンを無理やり脱がせて下半身を露出させた
+		PRINTFORMW 「もう逃げられないわ……さぁ、まずは勃たせなさい。使えないようなら殺すわよ」
+		PRINTFORMDW 脅すような口調で命令されても、興奮よりも恐怖が圧倒的に勝っているせいで、ピクリともペニスが反応しない
+		PRINTFORMW 「はぁ？　怖くて勃たない？　勃たなきゃ殺すって言ってるのに……馬鹿なの？　勃たせれば怖いことなんて何もないわよ」
+		PRINTFORMDW 仕方ないわね、とため息をつくと、幽香は上着を肌蹴させ、豊満な胸を包んだブラジャーを露出させた
+		PRINTFORMDW 息を呑んでそれを見ていると、ブラが外れる音と共に、ぶるんと大きく揺れる巨乳に思わず目を奪われた
+		PRINTFORMW 「大丈夫、怖くないわ……大人しくしてなさい……」
+		PRINTFORMDL 幽香は甘い声でそう言いながら%CALLNAME:MASTER%を自らの膝上に寝かせると、乳を咥えさせペニスに手を伸ばした
+		PRINTFORMDW 柔らかい双丘に包まれ、ようやく得られた安心感にそれまでの恐怖はすっかり塗り替えられ、撫でられたペニスはぐんとその身を大きくしていく
+		;ショタちんorその他
+		PRINTFORM 「\@ TALENT:MASTER:形状 < 3 ? ふふっ、子供らしい大きさで、可愛らしいじゃない…… # わっ、子供のクセに、大きい……！　 \@はぁ、興奮してきちゃった……
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORMW 」
+		PRINTFORMDL 発情した様子の幽香は、ペニスに飛びつくようにしゃぶりついてきて、%CALLNAME:MASTER%の腰をがっしりと抱きすくめた
+		PRINTFORM 「じゅっ、ちゅぷ、じゅるっ、っん
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORM 　ちゅっ、れろぉ……
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORMW 」
+		PRINTFORMDW あまりの快感に早速イキそうになった%CALLNAME:MASTER%だったが、寸前で幽香は口を離してしまった
+		PRINTFORMW 「ふふっ……ダメよ、貴方の精液はぜーんぶ、こっちで貰うことにしたから……」
+		PRINTFORMDL 幽香は自らのパンツを脱ぐと、スカートをめくり上げ既にぐしょぐしょの秘裂を見せつけてきた
+		PRINTFORMDW その中の具合を想像して、触れてもいないのに思わず射精しそうになった
+		PRINTFORMW 「\@ !TALENT:MASTER:非童貞 ? 貴方、初めてなの……？　あはっ、私が男にしてあげるわ…… # さあ、ゆっくり挿れるのよ…… \@」
+		PRINTFORMDL 誘われるままに、夢心地のまま%CALLNAME:MASTER%は幽香の秘裂にペニスをあてがい、ゆっくりと挿入していく
+		PRINTFORMDW それまでの恐怖や抵抗は既に消え失せ、今はもう幽香の中に子種を注ぎ込むことしか考えられなくなっていた
+		IF !TALENT:MASTER:非童貞
+			FONTBOLD
+			SETCOLOR 255,100,255
+			PRINTFORMW 童貞喪失
+			FONTREGULAR
+			RESETCOLOR
+			SIF FLAG:口上色
+				TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+			TALENT:MASTER:非童貞 = 1
+			LOCAL:2 = 1
+		ENDIF
+		IF TALENT:68:処女 == 1
+			CALL SET_HISTORY_LOST_V(68, MASTER, "ペニス")
+			SETCOLOR 247,171,166
+			PRINTFORMW 処女喪失
+			RESETCOLOR
+			SIF FLAG:口上色
+				TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+		ENDIF
+		PRINTFORM 「あッ
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORMW 　入って、き、たぁ！？」
+		PRINTFORMDW 先端を挿れただけで限界を迎えてしまった%CALLNAME:MASTER%は、子種を最奥に注ぎ込むため本能的にペニスを深く突き挿れていた
+		PRINTFORMDW 幽香の極上の膣の中で脈動するペニスが、白く濁った精液を止めどなく吐き出して子宮内を満たしていく
+		PRINTFORM 「あぁッ
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORM ！　もうイっちゃったの？　はぁッ、\@ LOCAL:2 ? 初モノ精液すごッ、こんなに濃いなんて # この子、凄い興奮してる \@……
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORM 　っていうか、全然射精止まらないじゃないの……
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORMW 」
+		PRINTFORMDW 幽香の女体に興奮を抑えられない%CALLNAME:MASTER%は、射精が収まらない内に腰を動かし始めた
+		PRINTFORMDW 彼女の膣は更に精液を搾り取ろうとペニスにしがみついてきて、極上の心地に腰を叩きつける動きが止まらなくなる
+		PRINTFORM 「あっ、はぁあッ
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORM 　完全にサカっちゃってるわね
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORM 　いいわよ、私の中に全部吐き出して
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORMW 」
+		PRINTFORMDW 幽香にしがみついて必死に腰を振る%CALLNAME:MASTER%に対し、幽香は小動物をあやすように優しくその頭を撫でた
+		PRINTFORMDW これで完全に落とされた%CALLNAME:MASTER%は、妖怪に子種を搾り取られているということも忘れ、ただ幽香に尽くすために夢中で腰を動かし続けた
+		PRINTFORMDW ・・・
+		PRINTFORM 「ふうッ、はぁ……
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORM 　あはッ、また出た
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORMW 　もう、これで何発目かしらね？」
+		PRINTFORMDW 対面座位の格好で幽香とまぐわっていた%CALLNAME:MASTER%は、今日何度目かわからない絶頂を果たし、なけなしの精液を彼女の胎内に注ぎ込んでいく
+		PRINTFORMDW 限界をとうに超えた射精に意識を飛ばしそうになりながらも、幽香の柔らかな乳に顔を包まれ幸せな心地だった
+		PRINTFORMW 「やっぱり、小さくて若いオスは最高ね……こんなにすぐ従順になっちゃうんだから」
+		PRINTFORMDL %CALLNAME:MASTER%が完全に屈服したことを示すように、幽香たちの足元にはいつの間にか白濁の海ができていた
+		PRINTFORMW 「……嫌われて、このまま縁を切ってやるつもりだったけど……」
+		PRINTFORMDW %CALLNAME:MASTER%は幽香に抱きついたまま、出るはずのない精液を吐き出そうと猿のように腰を振り続けている
+		PRINTFORM 「困ったわねぇ、お仕置きのつもりだったのに、ご褒美にしかならなかったみたい……
+		CALL HEARTCB_K68(0xD02830)
+		PRINTFORMW 」
+		;射精処理
+		CALL ADD_SAMEN_V(68, BASE:MASTER:精力)
+		;経験操作他
+		EXP:68:精液経験 += 8
+		EXP:68:膣射経験 += 8
+		EXP:68:Ｖ性交経験 += 8
+		EXP:MASTER:絶頂経験 += 8
+		EXP:MASTER:射精経験 += 8
+		EXP:MASTER:挿入経験 += 6
+		CFLAG:68:1802 = 1
+	ENDIF
+;金を賭けた時
+ELSEIF TCVAR:68:398 == 1
+	PRINTFORMW 「こんな紙クズ、大した価値ないわよねぇ」
+	PRINTFORMDL %CALLNAME:TARGET%は%CALLNAME:MASTER%の財布からお金を抜き取ると、宙に向かって放り投げた
+	PRINTFORMDW 散り散りになったそれは……%CALLNAME:TARGET%の極太ビームを喰らい、一瞬で全て塵になった……
+	IF MONEY < 5000
+		SETCOLOR C_RED
+		PRINTFORMW お金を\\{MONEY}失った……
+		RESETCOLOR
+		MONEY -= MONEY
+	ELSE
+		SETCOLOR C_RED
+		PRINTFORMW お金を\\5000失った……
+		RESETCOLOR
+		MONEY -= 5000
+	ENDIF
+;カリスマを賭けた時
+ELSEIF TCVAR:68:398 == 2
+	PRINTFORMW 「こんな偽硬貨、大した価値ないわよねぇ」
+	PRINTFORMDL %CALLNAME:TARGET%は%CALLNAME:MASTER%の財布からカリスマを抜き取ると、宙に向かって放り投げた
+	PRINTFORMDW 散り散りになったそれは……%CALLNAME:TARGET%の極太ビームを喰らい、一瞬で全て塵になった……
+	IF MONEY:2 < 25
+		SETCOLOR C_RED
+		PRINTFORMW カリスマを{MONEY:2}CM失った……
+		RESETCOLOR
+		MONEY:2 -= MONEY:2
+	ELSE
+		SETCOLOR C_RED
+		PRINTFORMW カリスマを25CM失った……
+		RESETCOLOR
+		MONEY:2 -= 25
+	ENDIF
+ENDIF
+;童貞賭け
+IF TCVAR:68:398 == 3
+	PRINTFORML 「いつか無駄撃ちじゃなくなる日が来るといいわね？　ふふっ」
+	PRINTFORMW 「また遊んであげるわ」
+	;童貞賭け負けフラグ
+	CFLAG:68:1804 = 1
+ELSEIF TALENT:68:恋人 || TALENT:68:恋慕
+	PRINTFORML 「でも、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@にはもっと強くなってもらわないとねぇ」
+	PRINTFORMW 「訓練ならいつでも付き合ってあげるわよ」
+ELSE
+	PRINTFORML 「悔しいかしら？　ふふっ、そうよねぇ……なら、また私に勝負しに来ると良いわ」
+	PRINTFORMW 「今日みたいに、ボッコボコにしてあげるから」
+ENDIF
+;勝負済みフラグをオン
+CFLAG:68:1801 = 1
+
+@K68_DANMAKU_REWARD(ARG)
+;童貞賭け
+IF TCVAR:68:398 == 3
+	PRINTFORMDL 薬を飲んだ頃と比べて、物凄く股間が熱い……%CALLNAME:MASTER%が下着を脱ぐと、はちきれんばかりに怒張したペニスが露わになった
+	PRINTFORMW 「ま、待ってよ……こういうのは、段取りってものが……」
+	PRINTFORMDW そう言われて素直に待つものか。%CALLNAME:MASTER%が幽香を抱き締めキスすると、彼女は驚いたように目を見開いた
+	EXP:68:キス経験 ++
+	EXP:MASTER:キス経験 ++
+	IF TALENT:MASTER:キス未経験
+		CALL SET_FIRSTKISS(MASTER, 68, 0)
+	ENDIF
+	IF TALENT:68:キス未経験
+		CALL SET_FIRSTKISS(68, MASTER, 0)
+	ENDIF
+	PRINTFORM 「んんっ！？　ちゅっ、ふぁ、ぁん……っ
+	CALL HEARTCB_K68(0xD02830)
+	PRINTFORMW 」
+	PRINTFORMDL 無理やり口内に舌をねじ込まれても、幽香は顔を赤らめながらそれに舌を絡ませ応える
+	PRINTFORMDW 下着の上から幽香の股間を撫でると、互いの口の中で小さく彼女の喘ぎ声が響いた
+	PRINTFORM （何なの、こいつ……っ
+	CALL HEARTCB_K68(0xD02830)
+	PRINTFORMW 　こんなに私を求めてきて……まるで……）
+	PRINTFORMDL 恋人のように熱のこもったキスをしばらく続けていると、幽香の下着が濡れてきたのがわかった
+	PRINTFORMDW 長い長い口付けをようやく終えると、すっかり出来上がった幽香が名残惜しそうにこちらを見つめてきた
+	PRINTFORM 「はぁ、はぁー……っ
+	CALL HEARTCB_K68(0xD02830)
+	PRINTFORMW 　せめて、私から……！」
+	PRINTFORMDL %CALLNAME:MASTER%は発情した幽香に押し倒された
+	PRINTFORMDW 身動きが取れない%CALLNAME:MASTER%を他所に、幽香は自らの下着を脱ぎ捨て、濡れた膣内を見せつけてくる……
+	PRINTFORM 「貴方の童貞、私が貰ってあげる……
+	CALL HEARTCB_K68(0xD02830)
+	PRINTFORMW ！」
+	PRINTFORMDW 限界まで勃起したペニスが、幽香の膣口に触れピクリと反応する。その中の具合を想像して、%CALLNAME:MASTER%は思わず唾を飲み込む
+	PRINTFORMDW もう我慢できない……幽香が挿入するのを待たずに、%CALLNAME:MASTER%は腰を深く突き上げ一気に幽香の膣を貫いた！
+	FONTBOLD
+	SETCOLOR 255,100,255
+	PRINTFORMW 童貞喪失
+	FONTREGULAR
+	RESETCOLOR
+	SIF FLAG:口上色
+		TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+	TALENT:MASTER:非童貞 = 1
+	IF TALENT:68:処女 == 1
+		CALL SET_HISTORY_LOST_V(68, MASTER, "ペニス")
+		SETCOLOR 247,171,166
+		PRINTFORMW 処女喪失
+		RESETCOLOR
+		SIF FLAG:口上色
+			TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+	ENDIF
+	PRINTFORM 「っあぁあ
+	CALL HEARTCB_K68(0xD02830)
+	PRINTFORMW ！？　う、嘘ぉ……っ！？」
+	PRINTFORMDL 幽香の膣内は、想像以上に柔らかく、熱を持ったままペニスに甘く絡みついてきた
+	PRINTFORMDW 初めての%CALLNAME:MASTER%にはあまりにも強い快感で、媚薬の効果も相まってあっさり一発目を吐き出してしまった
+	PRINTFORM 「いやぁああッ
+	CALL HEARTCB_K68(0xD02830)
+	PRINTFORM ！？　中に出していいなんて言ってないわよ、この馬鹿ぁあああッ
+	CALL HEARTCB_K68(0xD02830,2)
+	PRINTFORMW ！」
+	PRINTFORMDW 取り乱す幽香の脚を掴んで、その最奥に存分にねっとりした子種を注ぎ込む
+	PRINTFORMDW 媚薬の効果か、いつまで経っても射精が収まらず、子種を搾り取ろうと無意識に蠢く幽香の膣と相まって、脳が蕩けそうになる
+	PRINTFORM 「はぁーっ、はぁーっ
+	CALL HEARTCB_K68(0xD02830,2)
+	PRINTFORM 　こ、こんなに出すなんて、あり得ないわ……っ
+	CALL HEARTCB_K68(0xD02830)
+	PRINTFORMW 」
+	PRINTFORMDL 顔を赤らめながら目を伏せる幽香を見て、%CALLNAME:MASTER%は思わず嗜虐心をそそられる
+	PRINTFORMDW こうなったら、徹底的に精液を注ぎ込んでやろう。そう思うと、更にペニスが硬くなった
+	PRINTFORMW 「ひゃあっ！？　あ、貴方っ、もうやめにしましょう……？　初体験もしたし、もう満足でしょう……？　ねぇ……あぁっ！」
+	PRINTFORMDL 幽香を抱き寄せ、対面座位の格好で抽送を始める
+	PRINTFORMDW 彼女を強く抱きながら唇を求めると、こちらを睨みつけながらも素直に舌を絡めてきた
+	PRINTFORM 「ちゅっ、れろっ、んう……っ
+	CALL HEARTCB_K68(0xD02830)
+	PRINTFORM 　はぁ、こんなっ、\@ TALENT:68:恋人 ?  # カップルみたいな \@事して……っ！　私をその気にさせるんなら、タダじゃ済まさないわよ……っ
+	CALL HEARTCB_K68(0xD02830)
+	PRINTFORMW ！」
+	PRINTFORMDW 強気な幽香に内心苦笑いしつつも、可愛らしく自分を求めてくる彼女の姿に、自然と腰の動きが早まっていった……
+	PRINTFORMDW ・・・
+	PRINTFORM 「はぁ、はぁッ
+	CALL HEARTCB_K68(0xD02830)
+	PRINTFORM 　ちょうだい、あなたのせーえきッ
+	CALL HEARTCB_K68(0xD02830)
+	PRINTFORM 　っぁあ、きたぁッ
+	CALL HEARTCB_K68(0xD02830,2)
+	PRINTFORMW 」
+	PRINTFORMDL 幽香に求められるまま、再三の膣内射精を果たす
+	PRINTFORMDW あれから一度も抜いていないせいで、何回目の射精か覚えていない……
+	PRINTFORM 「はぁ、もうダメなの……
+	CALL HEARTCB_K68(0xD02830)
+	PRINTFORMW ？　……媚薬が切れたのかしら」
+	PRINTFORMDL 幽香をその気にさせてしまった%CALLNAME:MASTER%は、彼女の圧倒的な性欲の前に思う存分搾り取られた
+	PRINTFORMDW 再び媚薬を飲ませようとしてくる当たり、まだ満足していないらしい……
+	PRINTFORMW 「これ以上は死んじゃう？　はぁ、無理やりこの量を私の中に出しといて、よく言うわね」
+	PRINTFORMDW 幽香の膣内から萎えたペニスを引き抜くと、逆流してきた精液が大量に溢れ出した
+	PRINTFORMW 「覚えておくことね？　これだけ私の中に出したんだから……」
+	PRINTFORMDW 笑顔が怖い……
+	;射精処理
+	CALL ADD_SAMEN_V(68, BASE:MASTER:精力)
+	BASE:MASTER:精力 = 0
+	BASE:MASTER:勃起 = 0
+	;経験操作他
+	EXP:68:精液経験 += 8
+	EXP:68:膣射経験 += 8
+	EXP:68:Ｖ性交経験 += 8
+	EXP:68:絶頂経験 += 6
+	EXP:MASTER:絶頂経験 += 8
+	EXP:MASTER:射精経験 += 8
+	EXP:MASTER:挿入経験 += 1
+	CFLAG:68:1803 = 1
+ELSE
+$INPUT_LOOP2
+RESETCOLOR
+CALL ASK_M("危険日生えっちの許可", CFLAG:68:生解禁 < 2 && TALENT:MASTER:性別 != 1, "パンツくれ", EQUIP:68:下半身下着２, "苗ください", CFLAG:68:1899 != 1, "仲良くして", 1, "金", 1, "セックス！", 1)
+LOCAL:2 = RESULT
+SIF FLAG:口上色
+	TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+SELECTCASE LOCAL:2
+	CASE 0
+		;-------------------------------------------------
+		;勝利後
+		;生えっち許可
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:3 = 1
+		;-------------------------------------------------
+		IF LOCAL:3
+			IF TALENT:68:恋人 || TALENT:68:恋慕
+				PRINTFORML 「っ！？　あ、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@、それがどういう意味かわかってるわよね……？」
+				PRINTFORMW 「……もう、そんなことなら、早く言ってくれればよかったのに……」
+				PRINTFORMDL 幽香は顔を赤らめながら、あっさりと許可を出してくれた
+			;うふふ合意あり
+			ELSEIF GETBIT(CFLAG:68:既成事実 , 1)
+				PRINTFORMW 「……はぁ？　\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@、自分が何言ってるかわかってる？」
+				PRINTFORMDL 幽香の冷たい視線にもめげずに、%CALLNAME:MASTER%は真剣な表情をして彼女の手を取り、子作りしたいという意思を伝えた
+				PRINTFORMW 「え、えぇ？　どうしてそんな……あの、本気で言ってるの……？」
+				PRINTFORML 「……わ、わかった、わかったわよ！　まあ、別にいっか……？」
+				PRINTFORMDL 意外と押しに弱い幽香は、よくわからないまま許可を出してくれた
+			ELSE
+				PRINTFORML 「……\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@、相手を間違えてるんじゃなくて？」
+				PRINTFORMW 「私がいつ、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@に身体を許したの？」
+				PRINTFORMDW 幽香の合意を得ていないので、相手にしてくれなかった……
+				GOTO INPUT_LOOP2
+			ENDIF
+			PRINTFORMDW 幽香から子作りの合意を得た！
+			CFLAG:68:生解禁 = 2
+			PRINTFORMW 「次は絶対負けないから……覚えてなさい」
+		ENDIF
+	CASE 1
+		;-------------------------------------------------
+		;勝利後
+		;パンツ
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:3 = 1
+		;-------------------------------------------------
+		IF LOCAL:3
+			IF TALENT:68:恋人 || TALENT:68:恋慕 || TALENT:68:愛欲
+				PRINTFORMW 「ぱ、パンツ……？　\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@がどうしてもって言うなら、別にいいけど……」
+				PRINTFORMDL スカートをたくしあげ、秘裂をこっちに見せながら脱げと命令すると、幽香は顔を真っ赤にしつつもそれに従った
+				PRINTFORMW 「う、うう……！　恥ずかしい……あまり見ないで……」
+				PRINTFORMDW 半脱ぎになり、秘裂が見えた頃に一気に顔を近づけると、幽香は小さく悲鳴を上げ顔を俯けた
+				PRINTFORMW 「ちょっ、近すぎない……！？　そ、そんなにじっくり見ないでぇ……！」
+				PRINTFORMDL 幽香が%PANTSNAME(EQUIP:68:下半身下着２, 68)%を完全に脱ぐまで、じっくりと彼女の秘裂と恥ずかしがる姿を視姦した
+				PRINTFORMDW 幽香は脱いだ%PANTSNAME(EQUIP:68:下半身下着２, 68)%を素直に渡してきたが、しばらく赤くなった顔を見せてくれなかった……
+			ELSE
+				PRINTFORMW 「ぱ、パンツ……？　\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@、頭おかしくなったの？　いや、元からか……」
+				PRINTFORMDL スカートをたくしあげ、秘裂をこっちに見せながら脱げと命令すると、幽香は更に声を荒げて反抗してきた
+				PRINTFORMW 「な、何馬鹿なこと言ってるのよ！！　誰が\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@……なんか……に……っ！」
+				PRINTFORMDW 幽香はしばらくこちらを睨みつけていたが、やがて心が折れたのか、ばさっとスカートをたくしあげ、こちらに%PANTSNAME(EQUIP:68:下半身下着２, 68)%を晒した
+				PRINTFORMW 「あ……\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@に負けた時点で、私のプライドなんてもうゼロなんだから！　これぐらい、これぐらい……ッ！！」
+				PRINTFORMDW 幽香は顔を真っ赤にしながら、片手で徐々に%PANTSNAME(EQUIP:68:下半身下着２, 68)%をずり下げていく。歯を食いしばりながらこちらを睨みつけてくるのが、非常に可愛らしい
+				PRINTFORML 「見るなぁ、この変態……！　ひゃあッ！？　近すぎよ、この馬鹿ぁッ！」
+				PRINTFORMDW 半脱ぎになり、秘裂が見えた頃に一気に顔を近づけると、幽香は小さく悲鳴を上げ顔を俯けた
+				PRINTFORMW 「ううっ……ここまで私を辱めるなんて……！　一生恨むわよ、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@……！！」
+				PRINTFORMDL 幽香が%PANTSNAME(EQUIP:68:下半身下着２, 68)%を完全に脱ぐまで、じっくりと彼女の秘裂と恥ずかしがる姿を視姦した
+				PRINTFORMDW 幽香は脱いだ%PANTSNAME(EQUIP:68:下半身下着２, 68)%を、叩きつけるように%CALLNAME:MASTER%の顔に投げつけてきた……
+			ENDIF
+			;ふんどしでも怒らないでね
+			PRINTFORMDW %CALLNAME:MASTER%は幽香の%PANTSNAME(EQUIP:68:下半身下着２, 68)%を手に入れた！
+			RESETCOLOR
+			CALL PANTS_GET(68, "もらう")
+			SIF FLAG:口上色
+				TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+			PRINTFORMW 「次は絶対負けないから……覚えてなさい」
+		ENDIF
+	CASE 2
+		;-------------------------------------------------
+		;勝利後
+		;苗受け取り
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:3 = 1
+		;-------------------------------------------------
+		IF LOCAL:3
+			PRINTFORML 「\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@、農家だったの？」
+			PRINTFORMW 「じゃあ……毎日、適当な植物の苗を持ってくるから、取りに来てくれる？」
+			PRINTFORMDW 一日一回、幽香から植物の苗をもらえるようになった
+			CFLAG:68:1899 = 1
+			PRINTFORMW 「次は絶対負けないから……覚えてなさい」
+		ENDIF
+	CASE 3
+		;-------------------------------------------------
+		;勝利後
+		;仲良く
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:3 = 1
+		;-------------------------------------------------
+		IF LOCAL:3
+			PRINTFORML 「……え？　そ、そうね……」
+			PRINTFORML 「それにしても\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@、\@ TALENT:68:恋人 || TALENT:68:恋慕 ?  # 意外と \@強いのね……見直したわ」
+			PRINTFORMW 「\@ TALENT:68:恋人 || TALENT:68:恋慕 ? これなら、私の夫としても文句ないかも……なんて…… # いざという時は、私を守ってくれるのよね？　ふふっ \@」
+			SOURCE:歓楽 += ABL:親密 * 50
+		ENDIF
+	CASE 4
+		;-------------------------------------------------
+		;勝利後
+		;金
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:3 = 1
+		;-------------------------------------------------
+		IF LOCAL:3
+			IF TALENT:68:恋人 || TALENT:68:恋慕
+				PRINTFORMW 「……お金？　そんな、回りくどいことを……」
+				PRINTFORMW 「欲しいならあげるわよ、\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@ならね」
+				PRINTFORMDW \\5000手に入れた
+				MONEY += 5000
+				PRINTFORMW 「でも、無駄遣いはダメよ？　良かったら、私が\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@の財布を管理してあげるけど……」
+			ELSE
+				PRINTFORMW 「……はあ、私に勝ってせびるものがそれなの？」
+				PRINTFORMW 「生憎だけど、今は大して持ち合わせがないから……」
+				PRINTFORMDW \\2000手に入れた
+				MONEY += 2000
+				PRINTFORMW 「調子に乗って、妖怪を叩いて回って、金を強請るのはやめときなさいよ。それは巫女の専売特許だから」
+			ENDIF
+		ENDIF
+	CASE 5
+		;-------------------------------------------------
+		;勝利後
+		;セックス
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:3 = 1
+		;-------------------------------------------------
+		IF LOCAL:3
+			IF TALENT:MASTER:性別 == 1
+				PRINTFORML 「え？　貴女、何言って……」
+				PRINTFORMDW 幽香の破れた服の隙間から覗く白肌にそそられ、%CALLNAME:MASTER%は幽香を人目のない場所まで連れて行った
+				PRINTFORML 「きゃああっ！？　馬鹿、何してるのよ！」
+				PRINTFORMDW %CALLNAME:MASTER%は幽香の胸元に穴が空いたブラウスを無理やり引き裂き、下着を露出させると、その上から\@ TALENT:MASTER:バストサイズ < 1 ? 同じ女として憎らしいほど大きい # 触り心地の良い \@乳を鷲掴みした
+				PRINTFORML 「い……やっ、やめっ、このぉ……！　はぁっ……！」
+				PRINTFORMDW 胸を強く揉みしだかれる度に、幽香の抵抗は弱まり、甘い声が上がってくる
+				PRINTFORMDW 気を良くした%CALLNAME:MASTER%は、幽香のブラを素早く取り外すと露出した桜色の乳首に吸い付いた
+				PRINTFORM 「んんあぁ
+				CALL HEARTCB_K68(0xD02830)
+				PRINTFORMW ！　だめ、そこ、吸うのはぁ……っ！」
+				PRINTFORMDW 幽香が%CALLNAME:MASTER%の頭を引き剥がそうとする力は弱く、満更でもないように見える
+				PRINTFORM 「はぁ、いや、あぁ……ッ
+				CALL HEARTCB_K68(0xD02830)
+				PRINTFORM ！？　ひぁあああッ
+				CALL HEARTCB_K68(0xD02830)
+				PRINTFORML ！」
+				PRINTFORMDW 乳首を思いっきり吸って伸ばしてから口を離すと、快感と気恥ずかしさからか幽香は嬌声を上げてへたり込んでしまった
+				PRINTFORML 「はぁ、はぁ……っ！？」
+				PRINTFORMDW 落ち着きを取り戻した幽香が見上げると、\@ EQUIP:MASTER:下半身下着２ ? パンツを脱ぎ #  \@スカートをたくし上げ、秘裂を晒した%CALLNAME:MASTER%が笑顔で立っていた
+				PRINTFORML 「貴女、どういうつもりよ……ぐっ！？」
+				PRINTFORMDW %CALLNAME:MASTER%は幽香の頭を引き寄せ、自らの秘裂に近づけた
+				PRINTFORMDW 幽香は%CALLNAME:MASTER%を気丈に睨みつけつつも、仕方無さそうに舌を這わせ始めた
+				PRINTFORML 「んっ、くうっ……！　れろっ、はぁっ……！？」
+				PRINTFORMDW %CALLNAME:MASTER%が足指で幽香の股間を荒々しく撫でさすると、濡れた感触が伝わってきた
+				PRINTFORMDW 声を押し殺しながら、犬のように秘裂を舐める幽香を見下していると、足の動きが自然と速くなる
+				PRINTFORM 「調子に乗らないでよ……はうっ
+				CALL HEARTCB_K68(0xD02830)
+				PRINTFORML ！　ひゃぁ、やめっ……！」
+				PRINTFORMDW %CALLNAME:MASTER%は幽香を押し倒すと、\@ EQUIP:68:下半身下着２ ? 素早くパンツを剥いで #  \@その顔面に股を乗せた
+				PRINTFORML 「んぐっ！　ふ、ふざけないで……！」
+				PRINTFORMDW 私をイかせるまで解放してやらないよ、と言うと%CALLNAME:MASTER%は幽香の\@ TALENT:68:性別 == 3 ? ペニス # クリ \@を責めはじめた
+				PRINTFORM 「やればいいんでしょ……んっ、れろっ……くぅっ
+				CALL HEARTCB_K68(0xD02830)
+				PRINTFORML ！」
+				PRINTFORMDW 文句を言いながら再び%CALLNAME:MASTER%の秘部に舌を這わせ始めた幽香だったが、断続的に襲ってくる快感に力が入らない
+				PRINTFORMDW 少しでも%CALLNAME:MASTER%に奉仕する手が止まると、容赦なく顔面に秘部を押し付けられる
+				PRINTFORM 「ひゃあっ、いく、うぅ……ッ
+				CALL HEARTCB_K68(0xD02830)
+				PRINTFORM ！　んぐっ！？　んん～～～～ッ
+				CALL HEARTCB_K68(0xD02830,2)
+				PRINTFORMW ！」
+				PRINTFORMDW %CALLNAME:MASTER%に顔面騎乗されたまま、早速幽香は最初の絶頂を迎えてしまった
+				PRINTFORMDW 絶頂の余韻で下半身を震わせても、%CALLNAME:MASTER%は幽香の\@ TALENT:68:性別 == 3 ? ペニス # クリ \@への責めを休めることはない
+				PRINTFORM 「はぁっ、もうやめっ、私イってるのにぃ……んぐうっ
+				CALL HEARTCB_K68(0xD02830)
+				PRINTFORMW ！」
+				PRINTFORMDW 何回イクことになるのかしらね、と%CALLNAME:MASTER%が意地悪そうに笑うと、再び幽香の篭った嬌声が聞こえてきた
+				PRINTFORMDW ・・・
+				PRINTFORM 「はあぁ、もうだめぇ、またイクぅ……～～～ッ
+				CALL HEARTCB_K68(0xD02830)
+				PRINTFORMW ！」
+				PRINTFORMDW 結局、幽香は一度も%CALLNAME:MASTER%をイかせられないまま、何度も絶頂してしまった
+				PRINTFORMDW 呆れた様子の%CALLNAME:MASTER%は、幽香と向き合い彼女の片足を持ち上げると、お互いの秘部を擦り合わせ始めた
+				PRINTFORM 「あぁ、もうイクのやだぁ、はぁッ
+				CALL HEARTCB_K68(0xD02830)
+				PRINTFORML ！」
+				PRINTFORMDW 濡れに濡れた性器はとても滑りがよく、%CALLNAME:MASTER%は夢中になって前後に腰を動かす
+				PRINTFORM 「あぁっ、はぁっ、いやあぁッ
+				CALL HEARTCB_K68(0xD02830)
+				PRINTFORML 」
+				PRINTFORMDW お互い嬌声を隠すこともなく、絶頂に向かってひたすら快楽を貪る
+				PRINTFORMDW やがて絶頂が近いと感じた%CALLNAME:MASTER%は、幽香の名前を呼びながら夢中でクリを擦り付けあった
+				PRINTFORM 「ふぅッ、あぁ、イっちゃうぅ……～～～～ッッ
+				CALL HEARTCB_K68(0xD02830,2)
+				PRINTFORMW ！」
+				PRINTFORMDW 二人は同時に絶頂を果たし、%CALLNAME:MASTER%は崩れ落ちるように倒れ込む
+				PRINTFORM 「はぁ、はぁっ、はぁ……っ
+				CALL HEARTCB_K68(0xD02830)
+				PRINTFORMW 」
+				PRINTFORMDW %CALLNAME:MASTER%が幽香に向かってはにかむと、彼女は顔を赤くしたまま見つめ返してきた
+				PRINTFORMDW 絶頂の余韻を味わうように、二人は手を繋いだまましばらく互いを見つめ合っていた
+				;経験操作他
+				EXP:68:Ｃ経験 += 6
+				EXP:68:Ｂ経験 += 3
+				EXP:68:絶頂経験 += 6
+				EXP:MASTER:Ｃ経験 += 1
+				EXP:MASTER:絶頂経験 += 1
+			ELSE
+				IF TALENT:68:恋人 || TALENT:68:恋慕 || TALENT:68:愛欲
+					;うふふ合意あり
+					IF GETBIT(CFLAG:68:既成事実 , 1)
+						PRINTFORMW 「……え？　そんなこと、時と場所を選んでくれればいつでも……」
+					ELSE
+						PRINTFORMW 「……え？　\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@、全然言ってこないから、そういうのに興味はないのかと……」
+					ENDIF
+					PRINTFORMDW 無理やりするのが良い、と言うと幽香に渋い顔された
+					PRINTFORMW 「……\@ TALENT:MASTER:性別 == 2 ? 貴方 # 貴女 \@の馬鹿さ加減には呆れ果てるけど、今日だけは言うこと聞いてあげる」
+					PRINTFORMDL %CALLNAME:MASTER%は幽香を人目のない場所へ連れて行くと、早速ペニスを取り出して彼女の眼前に晒した
+					PRINTFORMDW 半勃ちのペニスで幽香の頬をぺちぺちと叩くと、彼女は控えめに口を開いた
+					PRINTFORM 「ん……ぐっ！　ちゅっ、んっ、んぅっ、ふぅっ……
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORML 」
+					PRINTFORMDW 幽香はこちらに軽蔑の視線を向けながらも、最大限気持ちよくなれるようにペニスに奉仕している
+					PRINTFORMDW 満足した%CALLNAME:MASTER%がペニスを引き抜くと、幽香の口とペニスの間に白い糸が引いた
+					PRINTFORML 「やんっ！　ちょっと、ぁ……！」
+					PRINTFORMDW %CALLNAME:MASTER%は幽香を四つん這いに押し倒し、\@ EQUIP:68:下半身下着２ ? パンツを脱がせると、 #  \@幽香の秘裂と\@ TALENT:68:性別 == 3 ? ペニス # クリ \@を舐め回し、膣内に舌を侵入させる
+					PRINTFORM 「やぁっ……！　やめ、なさいよっ！　ふあぁッ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW ！」
+					PRINTFORMDL 幽香は%CALLNAME:MASTER%の頭を押しのけようとしたが、\@ TALENT:68:性別 == 3 ? ペニス # クリ \@に吸い付かれ一気に力が抜けてしまった
+					PRINTFORMDW そのまま幽香の膣内を思う存分蹂躙してやると、すぐにぐしょぐしょになった
+					PRINTFORMW 「は、ぁっ！　いやっ、挿れないで、ダメ……っ！」
+					PRINTFORMDW %CALLNAME:MASTER%は後ろから幽香の秘裂にペニスを押し当てると、一気に最奥まで挿入した
+					IF !TALENT:MASTER:非童貞
+						FONTBOLD
+						SETCOLOR 255,100,255
+						PRINTFORMW 童貞喪失
+						FONTREGULAR
+						RESETCOLOR
+						SIF FLAG:口上色
+							TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+						TALENT:MASTER:非童貞 = 1
+					ENDIF
+					IF TALENT:68:処女 == 1
+						CALL SET_HISTORY_LOST_V(68, MASTER, "ペニス")
+						SETCOLOR 247,171,166
+						PRINTFORMW 処女喪失
+						RESETCOLOR
+						SIF FLAG:口上色
+							TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+					ENDIF
+					PRINTFORM 「いっ、やぁああああッ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW ！」
+					PRINTFORMDL 幽香の腰を掴み、夢中で腰を叩きつける。肉と肉がぶつかりあう音がして、より情欲を煽られる
+					PRINTFORM 「ん、ふぅっ、んぅ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORM 　ん……っく、はぁっ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW 」
+					PRINTFORMDW 幽香の敏感な膣は肉をかき分ける動きに素直に反応しているが、彼女は手で口を押さえ嬌声を堪えている
+					PRINTFORM 「ん、っぁ！？　やぁっ、ダメ、ふぁあああッ
+					CALL HEARTCB_K68(0xD02830,2)
+					PRINTFORML ！」
+					PRINTFORMDW %CALLNAME:MASTER%は幽香の腕を掴み、嬌声を抑えられないようにしてから腰を動かす
+					PRINTFORMDW 無理やりされるシチュエーションに幽香も興奮しているのか、強く%CALLNAME:MASTER%のペニスを締め付けてくる
+					PRINTFORMDW すぐに我慢できなくなった%CALLNAME:MASTER%は、幽香の耳元で中に出すことを伝えた
+					PRINTFORM 「あ、はぁっ、いやぁッ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORM ！　中は、中はダメぇええ……ッ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW 」
+					PRINTFORMDW 弱々しい声で抵抗する幽香に興奮が抑えられなくなり、思いっきり腰を叩きつけ、そのまま限界を迎えた
+					PRINTFORM 「ぁあああッ
+					CALL HEARTCB_K68(0xD02830,2)
+					PRINTFORM ！　あぁ、出てるっ、あなたのせーえきがぁ……っ
+					CALL HEARTCB_K68(0xD02830,2)
+					PRINTFORMW 」
+					PRINTFORMDW 最奥に射精され、%CALLNAME:MASTER%の精液が流れ込んでくる感触に、幽香は演技も忘れうっとりしている
+					PRINTFORMDW 最後の一滴まで精を搾り取ってくる膣の具合にそそられて、無意識のうちに%CALLNAME:MASTER%は再び腰を動かし始めていた
+					PRINTFORM 「ひゃぁ、あんっ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORM 　あなたぁ、もっとちょうだい……
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORML 」
+					PRINTFORMDW %CALLNAME:MASTER%たちは正常位の姿勢になると、互いを愛し合うように口付けを始めた
+					PRINTFORM 「ちゅっ、んっ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORM 　んっ、んぐっ、ぷはぁ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORM 　あなた、好き、大好きぃッ
+					CALL HEARTCB_K68(0xD02830,2)
+					PRINTFORMW 」
+					EXP:68:キス経験 ++
+					EXP:MASTER:キス経験 ++
+					IF TALENT:MASTER:キス未経験
+						CALL SET_FIRSTKISS(MASTER, 68, 0)
+					ENDIF
+					IF TALENT:68:キス未経験
+						CALL SET_FIRSTKISS(68, MASTER, 0)
+					ENDIF
+					PRINTFORMDW 幽香は%CALLNAME:MASTER%の体を強く抱きしめ、腰に脚を絡ませ決して離そうとしない
+					PRINTFORMDW もはやレイプではなくなってしまったが、%CALLNAME:MASTER%たちは互いを求めて愛し合った
+					PRINTFORMDW ・・・
+					PRINTFORM 「はぁッ、ああぁ……ッ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORM 　また出たぁ……あなた、もっと、もっとぉ……
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW 」
+					PRINTFORMDL %CALLNAME:MASTER%は何度目かもわからない射精を果たして、幽香の胎内に子種を注ぎ込む
+					IF BASE:MASTER:精力 >= 1200 && (TALENT:68:恋人 || TALENT:68:恋慕)
+						PRINTFORMDW %CALLNAME:MASTER%はもう限界だったが、幽香も満足してようやく解放してくれた
+						PRINTFORM 「はぁ……
+						CALL HEARTCB_K68(0xD02830)
+						PRINTFORMW 　こんなにいっぱい出されて、すっごく幸せ……もし出来ちゃったら、この子も幸せにしてあげてね？」
+						PRINTFORMDW 精液で膨らんだ腹を撫でながら、幽香はこちらに笑顔を向けてきた
+					ELSE
+						PRINTFORMDW まだまだ幽香は満足していないようだが、%CALLNAME:MASTER%はもう限界だった
+						PRINTFORMW 「え、もう無理……？　はぁ、これぐらいで……？」
+						PRINTFORMDW 弾幕勝負で勝っても、何故か勝った気になれなかった……
+					ENDIF
+					;射精処理
+					CALL ADD_SAMEN_V(68, BASE:MASTER:精力)
+					;経験操作他
+					EXP:68:精液経験 += 8
+					EXP:68:膣射経験 += 8
+					EXP:68:Ｖ性交経験 += 8
+					EXP:68:絶頂経験 += 6
+					EXP:MASTER:絶頂経験 += 8
+					EXP:MASTER:射精経験 += 8
+					EXP:MASTER:挿入経験 += 6
+				ELSE
+					PRINTFORML 「……っ、この下衆……！」
+					PRINTFORMDW 幽香の破れた服の隙間から覗く白肌にそそられ、%CALLNAME:MASTER%は幽香を人目のない場所まで連れて行った
+					PRINTFORML 「い、いやぁっ！」
+					PRINTFORMDW 破れたブラウスの胸元の穴を更に広げ、ブラと胸の谷間を露出させる
+					PRINTFORMDW 幽香に両腕で胸を寄せるように命令すると、%CALLNAME:MASTER%はその乳オナホに半勃ちのペニスを突き入れた
+					PRINTFORML 「……っく、う……！　こ、こんの……！」
+					PRINTFORMDW 悔しそうにこちらを見上げる幽香の表情をオカズに、%CALLNAME:MASTER%は彼女の肩を掴んで乱暴に腰を前後に動かした
+					PRINTFORMDW やがて満足した%CALLNAME:MASTER%は、乳からペニスを引き抜くと\@ TALENT:MASTER:形状 >= 5 ? 迫力のある巨大な # ガチガチに勃起した \@それを幽香に見せつけるように突き出した
+					PRINTFORML 「っ、どういうつもりよ……！」
+					PRINTFORMDW これを見ながらオナニーしろ、決して目を離すなと命令すると、幽香は殺意のこもったような目でこちらを睨みつけてきた
+					PRINTFORMW 「……～～～ッ！　許さない、絶対許さないわよ……こんな……ッ！」
+					PRINTFORMDW 幽香の頬をペニスでぺちぺちと叩くと、彼女は顔を真っ赤にしながら渋々といった様子で自慰を始めた
+					PRINTFORMDL %CALLNAME:MASTER%が幽香の顔にペニスを擦りつけても、彼女は嫌そうな顔をするだけで抵抗してこない
+					PRINTFORMW （うぅ、凄いオスの匂い……\@ TALENT:MASTER:形状 >= 5 ? しかも、こんなに大きいなんて……こんなの、挿れられたら # こいつ、私の身体に興奮して、こんな馬鹿なことを \@……）
+					PRINTFORM （あぁ、こんな奴に犯されるなんて……こんなの、嫌な、はず、なのに……っ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW ）
+					PRINTFORMDW 夢中になった幽香は自分の世界にのめり込んでいき、最初は仕方無くだった指の動きもだんだんと熱がこもっていく
+					PRINTFORMDW %CALLNAME:MASTER%が勃起したペニスを彼女の眼前で扱いてみせると、彼女はとろんとした目でそれに釘付けになっていた
+					PRINTFORMDW 我慢できなくなった%CALLNAME:MASTER%は幽香を押し倒すと、彼女の十分に濡れた膣にペニスをあてがった
+					PRINTFORMW 「やっ、あぁっ！？　ちょっ、待って、まってぇ……！？」
+					IF !TALENT:MASTER:非童貞
+						FONTBOLD
+						SETCOLOR 255,100,255
+						PRINTFORMW 童貞喪失
+						FONTREGULAR
+						RESETCOLOR
+						SIF FLAG:口上色
+							TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+						TALENT:MASTER:非童貞 = 1
+					ENDIF
+					IF TALENT:68:処女 == 1
+						CALL SET_HISTORY_LOST_V(68, MASTER, "ペニス")
+						SETCOLOR 247,171,166
+						PRINTFORMW 処女喪失
+						RESETCOLOR
+						SIF FLAG:口上色
+							TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+					ENDIF
+					PRINTFORMDW ペニスを待ちわびて濡れそぼっていた幽香の膣は、待望のペニスに夢中で吸い付いてくる
+					PRINTFORMDW 奥まで挿入した頃には、%CALLNAME:MASTER%は極上の心地に腰を震わせていた
+					PRINTFORM 「んっ、はぁッ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORM ！　あぁ、やっ、いやぁ……っ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORML 」
+					PRINTFORMDW %CALLNAME:MASTER%が腰を前後に動かしても、幽香の抵抗は弱々しい
+					PRINTFORMDW 言葉で嫌そうな素振りを見せるだけで、その両手は%CALLNAME:MASTER%の背中に回されていた
+					PRINTFORM 「ふぅっ、やあぁッ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORM 　あぁッ、そこ、いい……ッ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW 」
+					PRINTFORMDW 幽香の膣内の弱点を突いてやる度に、彼女が%CALLNAME:MASTER%を抱く力が強くなる
+					PRINTFORMDW いつの間にか二人の顔はすぐ近くになっていて、どちらからともなく自然と口付けを交わした
+					EXP:68:キス経験 ++
+					EXP:MASTER:キス経験 ++
+					IF TALENT:MASTER:キス未経験
+						CALL SET_FIRSTKISS(MASTER, 68, 0)
+					ENDIF
+					IF TALENT:68:キス未経験
+						CALL SET_FIRSTKISS(68, MASTER, 0)
+					ENDIF
+					PRINTFORM 「……ちゅっ、んっ……
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORM 　はぁ、ぁ……っ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW 」
+					PRINTFORMDW 限界が近いと感じた%CALLNAME:MASTER%は、幽香の耳元で中に出すことを伝えた
+					PRINTFORMDW それに対して幽香は何も言わないまま、赤くなった顔を俯けながら%CALLNAME:MASTER%の身体を強く抱いてきた
+					PRINTFORM 「あぁっ、やぁあああッ
+					CALL HEARTCB_K68(0xD02830,2)
+					PRINTFORM ！　……はぁっ、出てるぅ、あぁ……っ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW 」
+					PRINTFORMDW ペニスが脈動するのに合わせて、絶頂した幽香の膣はきゅっと締まり精液を催促してくる
+					PRINTFORMDW しばらく絶頂の余韻を味わった後、%CALLNAME:MASTER%は無意識のうちに再び腰を動かし始めていた
+					PRINTFORM 「はぁっ……この馬鹿……でも、今だけは……貴方の好きにさせてあげる……っ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW 」
+					PRINTFORMDW 他のことは全て忘れて、二人はしばらくの間、夢中で互いを求め続けた
+					PRINTFORMDW ・・・
+					PRINTFORM 「ふぁ、あぁあああッ
+					CALL HEARTCB_K68(0xD02830,2)
+					PRINTFORM ！　あっ、はぁっ、あぁ……ッ
+					CALL HEARTCB_K68(0xD02830)
+					PRINTFORMW 」
+					PRINTFORMDL %CALLNAME:MASTER%は何度目かの射精を迎えると、ようやく幽香の膣内からペニスを抜いた
+					PRINTFORMDW 激しい運動の直後で、二人ともしばらく立ち上がれなかった
+					PRINTFORMW 「はぁ……\@ BASE:MASTER:精力 >= 600 ? こんなに中に出して # 中に出すなんて \@……子供が出来ちゃったら、どうするのよ……」
+					PRINTFORMDW 幽香は困惑した表情のまま、子供が出来たら責任を取れと伝えてきた
+					;射精処理
+					IF BASE:MASTER:精力 >= 600
+						CALL ADD_SAMEN_V(68, 600)
+					ELSE
+						CALL ADD_SAMEN_V(68, BASE:MASTER:精力)
+					ENDIF
+					;経験操作他
+					EXP:68:精液経験 += 4
+					EXP:68:膣射経験 += 4
+					EXP:68:Ｖ性交経験 += 4
+					EXP:68:絶頂経験 += 3
+					EXP:MASTER:絶頂経験 += 4
+					EXP:MASTER:射精経験 += 4
+					EXP:MASTER:挿入経験 += 3
+					CFLAG:68:1803 = 1
+				ENDIF
+			ENDIF
+		ENDIF
+ENDSELECT
+ENDIF

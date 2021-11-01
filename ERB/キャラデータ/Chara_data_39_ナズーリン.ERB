@@ -1,0 +1,140 @@
+﻿@CHARAMOVE_DATA_39(ARG,ARG:2)
+LOCAL = 39
+SELECTCASE ARG
+	;移動対象メンバーチェック
+	CASE 1
+	;移動確率
+	CASE 2
+	;起床時間帯
+	CASE 3
+		RETURN 睡眠時間(LOCAL)
+	;移動傾向
+	CASE 4
+		SELECTCASE ARG:2
+			;私室には入らない
+			CASE 15, 17, 19, 53, 55
+				SIF FLAG:15 != LOCAL
+					RETURN -100
+			CASE 18, 43, 44, 51, 52
+				RETURN -100
+			;命蓮寺メンバーの私室（経堂と物置除く）
+			CASE 114, 115, 116, 117, 118
+				RETURN -5
+			;離れと墓地と神霊廟内部
+			CASE 119, 121, 125 TO 133
+				RETURN -100
+			;居間に行きやすい
+			CASE 108
+				RETURN 5
+			;白蓮が本堂にいる時はやってくる
+			CASE 103
+				SIF CFLAG:55:現在位置 == 103
+					RETURN 10
+		ENDSELECT
+	;仕事時間帯
+	CASE 5
+	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
+	CASE 6
+		SELECTCASE ARG:2
+			CASE 1, 2, 5, 6
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+	;出現場所
+	CASE 7
+		SELECTCASE ARG:2
+			CASE 11 TO 15, 21,22,23, 51 TO 57, 61,62
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+ENDSELECT
+
+@EXIST_キャラデータ39
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+@キャラデータ39(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+SELECTCASE O_DATA
+CASE "呼び名"
+	CALLF MAKE_STR(V_NAME, "ナズーリン")
+;こっから衣装設定
+CASE "今日のパジャマ"
+	CALLF MAKE_STR(V_NAME, "パジャマ（ズボン＋フード）セット")
+
+CASE "普段着：外衣"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("外衣", "ケープ"))
+CASE "普段着：靴"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴", "靴"))
+CASE "普段着：靴下"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴下", "靴下"))
+CASE "普段着：スカート"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("スカート", "スカート"))
+CASE "普段着：上半身上着２"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("上半身上着２", "ブラウス"))
+CASE "普段着：上半身上着１"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("上半身上着１", "袖無し上着"))
+
+CASE "固有下着形容詞"
+	CALLF MAKE_STR(V_NAME, "尻尾穴の開いたねずみ色の")
+CASE "固有下半身下着名"
+	CALLF MAKE_STR(V_NAME, "ニットショーツ")
+CASE "固有上半身下着"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有上半身下着名"
+	CALLF MAKE_STR(V_NAME, "ニットブラ")
+CASE "固有下着着用条件"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(前)"
+	CALLF MAKE_INT(V_NAME, 0)
+CASE "固有下着透ける(後)"
+	CALLF MAKE_INT(V_NAME, 0)
+CASE "固有下着生地厚さ"
+	CALLF MAKE_INT(V_NAME, 3)
+
+CASE "固有コマンド"
+	CALLF MAKE_STR(V_NAME, "ダウジング")
+CASE "固有コマンド実行可能"
+	CALLF MAKE_INT(V_NAME, 1)
+
+;料理関連
+CASE "料理：好きな味"
+	CALLF MAKE_STR(V_NAME, "スパイス/中華/揚げ物/辛い/ガッツリ/ジャンキー/濃厚/野趣/鮮やか/グロテスク/とろとろ/甘い/甘い/甘い/チーズ/チーズ/チーズ/チーズ/チーズ/")
+CASE "料理：嫌いな味"
+	CALLF MAKE_STR(V_NAME, "あっさり/ヘルシー/鮮やか/しょっぱい/しょっぱい/淡白/淡白/淡白/謎料理/謎料理/謎料理/謎料理/謎料理/")
+CASE "料理：助手効果"
+	CALLF MAKE_STR(V_NAME, "得意料理＊チーズ＊/")
+;贈り物関連
+CASE "感性：好き"
+	CALLF MAKE_STR(V_NAME, "灰/かわいい/レトロ/繊細/知的/" + "宝石/遺物/" * 3 + "ネズミの/小さな小さな/" * 5)
+CASE "感性：嫌い"
+	CALLF MAKE_STR(V_NAME, "パワフル/派手/" + "小手/" * 3 + "ネコの/" * 10)
+
+;農民関連
+;泣きついたら小言を言いながら何とかしてくれそう
+;特に寺の連中が見てたら断りきれない
+CASE "農民：説明"
+	CALLF MAKE_STR(V_NAME, "ナス農家")
+CASE "農民：作物"
+	CALLF MAKE_STR(V_NAME, "ナス")
+CASE "農民：畑の種類"
+	CALLF MAKE_STR(V_NAME, "ナス畑")
+CASE "農民：畑のマップ"
+	CALLF MAKE_STR(V_NAME, "命蓮寺")
+
+CASE "農民：マップID"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "農民：場所ID"
+	CALLF MAKE_INT(V_NAME, 106)
+CASE "農民：報酬"
+	CALLF MAKE_INT(V_NAME, 400)
+CASE "農民：金利"
+	CALLF MAKE_INT(V_NAME, 8)
+ENDSELECT
+

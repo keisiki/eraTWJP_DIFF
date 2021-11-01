@@ -1,0 +1,281 @@
+﻿@醸造日数(ARG)
+#FUNCTION
+SELECTCASE ARG
+;ただの水
+	CASE 1
+		RETURNF 5
+;湖
+	CASE 2
+		RETURNF 5
+;温泉
+	CASE 3
+		RETURNF 5
+;ワイン
+	CASE 4
+		RETURNF 5
+;お神酒
+	CASE 5
+		RETURNF 5
+;甘酒
+	CASE 6
+		RETURNF 5
+;梅酒
+	CASE 7
+		RETURNF 5
+;蒸留酒、（と薬酒？）は醸造しない
+ENDSELECT
+
+@醸造できた量(ARG)
+#FUNCTION
+#DIM 醸造数
+SELECTCASE FLAG:酒虫
+;どぶろく
+	CASE 51
+		醸造数 = 10
+;清酒
+	CASE 52
+		醸造数 = 10
+;鬼殺し
+	CASE 53
+		醸造数 = 5
+;ワイン
+;	CASE 54
+;		醸造数 = 5
+;お神酒
+	CASE 55
+		醸造数 = 1
+;甘酒
+;	CASE 56
+;		醸造数 = 5
+;梅酒
+;	CASE 57
+;		醸造数 = 5
+ENDSELECT
+
+;どぶろく清酒の場合
+IF FLAG:酒虫 == 51 || FLAG:酒虫 == 52
+	;MASTERの教養の値によってRANDで増加
+	醸造数 += RAND:(ABL:MASTER:教養 * 2 + 1)
+;鬼殺しの場合
+ELSEIF FLAG:酒虫 == 53
+	;MASTERの教養の値によってRANDで増加
+	醸造数 += RAND:(ABL:MASTER:教養 + 1)
+;お神酒の場合
+ELSEIF FLAG:酒虫 == 55
+	;MASTERの教養の値によってRANDで増加　神霊の好感度がモリっと上がりやすいので希少品扱い
+	醸造数 += RAND:(ABL:MASTER:教養 / 2 + 1)
+;他未設定
+;ELSEIF FLAG:酒虫 == 54 || FLAG:酒虫 == 55 || FLAG:酒虫 == 56 || FLAG:酒虫 == 57
+	;MASTERの教養の値によってRANDで増加
+;	醸造数 += RAND:(ABL:MASTER:教養 + 1)
+ELSE
+ENDIF
+RETURNF 醸造数
+
+@酒造
+DAY:10 ++
+IF 醸造日数(FLAG:酒虫) <= DAY:10 && FLAG:酒虫 < 50
+	PRINTFORMW 酒虫の瓶の中の%STR:(7000 + FLAG:酒虫)%は%STR:(7050 + FLAG:酒虫)%に変化した
+	FLAG:酒虫 += 50
+	DAY:10 = 0
+ELSEIF FLAG:酒虫 == 51 && DAY:10 >= 5
+	PRINTFORMW 酒虫の瓶の中のどぶろくは清酒になった
+	FLAG:酒虫 = 52
+	DAY:10 = 0
+ENDIF
+
+@DRUNKEN(ARG,ARG:1)
+#DIM 酒気増加量
+SELECTCASE ARG:1
+;どぶろく
+	CASE 51
+		酒気増加量 = 300 + RAND:100
+;清酒
+	CASE 52
+		酒気増加量 = 400 + RAND:300
+;鬼殺し
+	CASE 53
+		酒気増加量 = 500 + RAND:300
+;お神酒　基本値は清酒より低いがランダム値が高く、モノによって度数が違う感じ
+	CASE 55
+		酒気増加量 = 300 + RAND:600
+;甘酒
+	CASE 56
+		SIF TALENT:ARG:酒耐性 <= -1
+			酒気増加量 = 20 + RAND:30
+	;未設定
+;	CASE 54
+;		酒気増加量 = 200 + RAND:300
+;	CASE 57
+;		酒気増加量 = 200 + RAND:300
+;蒸留酒
+	CASE 58
+		酒気増加量 = 700 + RAND:200
+;薬酒
+	CASE 59
+		酒気増加量 = 200 + RAND:300
+;一夜のクシナダ
+	CASE 513
+		酒気増加量 = 500 + RAND:200
+ENDSELECT
+;一夜のクシナダは酒耐性が高いほど酔いが回りやすい
+IF ARG:1 == 513 && ARG != MASTER
+	IF TALENT:ARG:酒耐性 == -1
+		TIMES 酒気増加量, 1.1
+	ELSEIF TALENT:ARG:酒耐性 == 1
+		TIMES 酒気増加量, 1.2
+	ELSEIF TALENT:ARG:酒耐性 == 2
+		TIMES 酒気増加量, 1.7
+	ELSEIF TALENT:ARG:酒耐性 == 3
+		TIMES 酒気増加量, 2.5
+	ELSEIF TALENT:ARG:酒耐性 == -2
+		IF CFLAG:ARG:下戸飲み >= 5
+			TIMES 酒気増加量, 2.0
+		ELSEIF CFLAG:ARG:下戸飲み >= 2
+			TIMES 酒気増加量, 1.5
+		ELSE
+			TIMES 酒気増加量, 1.0
+		ENDIF
+	ENDIF
+ELSE
+	IF TALENT:ARG:酒耐性 == -1
+		TIMES 酒気増加量, 1.2
+	ELSEIF TALENT:ARG:酒耐性 == 1
+		TIMES 酒気増加量, 0.9
+	ELSEIF TALENT:ARG:酒耐性 == 2
+		TIMES 酒気増加量, 0.75
+	ELSEIF TALENT:ARG:酒耐性 == 3
+		TIMES 酒気増加量, 0.5
+	ELSEIF TALENT:ARG:酒耐性 == -2
+		IF CFLAG:ARG:下戸飲み >= 5
+			TIMES 酒気増加量, 2.0
+		ELSEIF CFLAG:ARG:下戸飲み >= 2
+			TIMES 酒気増加量, 1.5
+		ELSE
+			TIMES 酒気増加量, 1.0
+		ENDIF
+	ENDIF
+ENDIF
+SIF ARG:1 == 53 && CHECK_CHARA(ARG, "鬼")
+	TIMES 酒気増加量, 3.0
+SIF ARG == MASTER
+	酒気増加量 = 酒気増加量 / (1 + TFLAG:酔い止め)
+BASE:ARG:酒気 = MIN(BASE:ARG:酒気 + 酒気増加量 ,MAXBASE:ARG:酒気)
+
+@ALCOHOL_TASTE(ARG)
+#FUNCTION
+SELECTCASE ARG
+	CASE 51
+	;酒好きには物足りない
+		IF TALENT:TARGET:酒耐性 > 0
+			LOCAL = 7
+		ELSE
+			LOCAL = 10
+		ENDIF
+	CASE 52
+	;下戸にはきつい
+		IF TALENT:TARGET:酒耐性 < 0
+			LOCAL = 8
+		ELSE
+			LOCAL = 15
+		ENDIF
+	CASE 53
+		IF CHECK_CHARA(TARGET, "鬼")
+			LOCAL = 30
+		ELSEIF TALENT:TARGET:酒耐性 <= 0
+			LOCAL = 5
+		ELSE
+			LOCAL = 12
+		ENDIF
+;	CASE 54
+;		IF TALENT:TARGET:酒耐性 > 0
+;			LOCAL = 7
+;		ELSE
+;			LOCAL = 10
+;		ENDIF
+	CASE 55
+	;クセが強く、酒好きにはいまいちだし下戸にはキツイ、ただし神様的には大好物
+		IF TALENT:TARGET:神霊
+			LOCAL = 30
+		ELSEIF TALENT:TARGET:酒耐性 > 0
+			LOCAL = 7
+		ELSEIF TALENT:TARGET:酒耐性 < 0
+			LOCAL = 8
+		ELSE
+			LOCAL = 10
+		ENDIF
+	CASE 56		;甘酒  子ども向け
+		IF TALENT:TARGET:体型 <= -1 || TALENT:TARGET:幼児／幼児退行 || TALENT:TARGET:幼稚
+			LOCAL = 15
+		ELSEIF TALENT:TARGET:酒耐性 > 0
+			LOCAL = 9
+		ELSE
+			LOCAL = 10
+		ENDIF
+;	CASE 57
+;		IF TALENT:TARGET:酒耐性 > 0
+;			LOCAL = 7
+;		ELSE
+;			LOCAL = 10
+;		ENDIF
+	CASE 58
+	;下戸にはかなりきつい、並みでもきつい、酒豪以上に好評
+		IF TALENT:TARGET:酒耐性 < 0
+			LOCAL = 3
+		ELSEIF TALENT:TARGET:酒耐性 < 2
+			LOCAL = 9
+		ELSE
+			LOCAL = 20
+		ENDIF
+	CASE 59
+	;基本苦いのでウケは悪い、一部の知識人と薬毒のエキスパートには好評
+		IF TALENT:TARGET:調合知識 || TALENT:TARGET:薬毒耐性 || ABL:TARGET:教養 >= 3
+			LOCAL = 20
+		ELSEIF TALENT:TARGET:酒耐性 < 0
+			LOCAL = 7
+		ELSE
+			LOCAL = 9
+		ENDIF
+	CASE 513
+	;下戸以外にはするりと飲みやすいが、後が大変
+		IF TALENT:TARGET:酒耐性 < 0
+			LOCAL = 8
+		ELSE
+			LOCAL = 25
+		ENDIF
+ENDSELECT
+RETURNF LOCAL
+
+@酒一覧表示(ARG)
+;所持数がARG未満だと非表示、ARG以上所有してる酒を選択するとそのアイテム番号をRETURNする
+$LOOP
+FOR LOCAL,51,60 ;58
+	;未設定はスキップ
+	SIF !STRLENS(ITEMNAME:LOCAL)
+		CONTINUE
+	IF ITEM:LOCAL >= ARG
+		CALL PRINT_ITEM_EXPLANATION(LOCAL)
+	ENDIF
+NEXT
+IF ITEM:513 >= ARG		;とりあえず一夜のクシナダを追記
+	LOCAL = 513
+	CALL PRINT_ITEM_EXPLANATION(LOCAL)
+ENDIF
+DRAWLINE 
+PRINTL [100] キャンセル
+INPUT
+IF (INRANGE(RESULT, 51, 60) || RESULT == 513) && ITEM:RESULT >= ARG && STRLENS(ITEMNAME:RESULT)
+	RETURN RESULT
+ELSEIF RESULT == 100
+	RETURN 0
+ELSE
+	GOTO LOOP
+ENDIF
+
+@CAN_DRINK(ARG)
+#FUNCTION
+SIF TALENT:ARG:酒耐性 == -2
+	RETURNF 0
+SIF BASE:ARG:酒気 >= MAXBASE:ARG:酒気 * 2 / 3
+	RETURNF 0
+RETURNF 1

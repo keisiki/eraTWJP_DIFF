@@ -1,0 +1,126 @@
+﻿;-------------------------------------------------
+;350,押し倒す
+;-------------------------------------------------
+@MESSAGE_COM350
+IF FLAG:70 == 1
+	IF GET_TARGETNUM() > 1
+		PRINTFORML %CALLNAME:PLAYER%は時間を止めたまま%CALLNAME:TARGET%達にイタズラすることにした…
+	ELSE
+		PRINTFORML %CALLNAME:PLAYER%は時間を止めたまま%CALLNAME:TARGET%にイタズラすることにした…
+	ENDIF
+;ELSEIF TFLAG:194 == 2
+;	PRINTFORML %CALLNAME:TARGET%に拒絶された
+;	PRINTFORML 流石に野外では抵抗があるようだ
+ELSEIF TFLAG:194  == 100
+	;口上内特殊判定の場合地の文非表示
+ELSEIF TFLAG:194 == 1
+	PRINTL ここでは人目がある……
+;ELSEIF TFLAG:194 == 3
+;	PRINTFORML %CALLNAME:TARGET%達を抱き寄せたかったが、乱交までは許してくれなさそうだ…
+ELSEIF TFLAG:194 == 4
+	PRINTFORML %CALLNAME:TARGET%を抱き寄せようとしたが、そんな気分じゃないと拒まれてしまった
+;ELSEIF TFLAG:194 == 5
+;	PRINTL 素面の目撃者がいるのに酔姦するわけにいかない
+ELSEIF TCVAR:TARGET:泥酔 == 1
+	PRINTFORML %CALLNAME:PLAYER%は酔い潰れた%CALLNAME:TARGET%にイタズラすることにした…
+	PRINTFORML 泥酔している%CALLNAME:TARGET%は、正常な判断ができていないようだ…
+ELSEIF GET_TARGETNUM() > 1
+	PRINTFORML %CALLNAME:PLAYER%はあたりに人がいないことを確認すると%CALLNAME:TARGET%達を抱き寄せた…
+ELSEIF (CFLAG:TARGET:現在位置 == 連れ込み宿 || CFLAG:TARGET:現在位置 == ラブホ || CFLAG:TARGET:現在位置 == OMANEKIBEYA()) && CFLAG:TARGET:うふふ != 2
+	PRINTFORML 二人きりになった%CALLNAME:PLAYER%は%CALLNAME:TARGET%の肩を抱き寄せた…
+ELSEIF CFLAG:現在位置 == 寺子屋
+	PRINTFORML 「頑張った%CALLNAME:PLAYER%にはご褒美をあげないとな…」
+	PRINTFORML 二人きりの教室で、慧音先生の特別授業が始まった…
+ELSEIF !TFLAG:194 && TCVAR:TARGET:抱き寄せ初回 == 10
+	PRINTFORML %CALLNAME:MASTER%は当たりクジを%CALLNAME:TARGET%に突き付けて服を脱ぐように迫った
+	PRINTFORML %CALLNAME:TARGET%は怒りを滲ませながらも服をはだけた…
+ELSEIF TCVAR:TARGET:抱き寄せ初回 == 99
+	;口上内特殊判定の場合地の文非表示
+ELSE
+	PRINTFORML %CALLNAME:PLAYER%はあたりに人がいないことを確認すると%CALLNAME:TARGET%を抱き寄せた…
+ENDIF
+
+IF !FLAG:70 && !TFLAG:194
+	SELECTCASE TCVAR:TARGET:抱き寄せ初回
+		CASE 99
+			;口上内特殊判定の場合地の文非表示
+		CASE 98
+			;口上内特殊判定の場合地の文非表示
+		CASE 2
+			PRINTFORML %CALLNAME:TARGET%は受け入れてくれたがどこか不満そうだ
+			PRINTFORML …そういえばキスもまだだった
+		CASE 3
+			PRINTFORML %CALLNAME:TARGET%は体の疼きを抑えきれず、%CALLNAME:MASTER%に体を許してしまった…
+		CASE 4
+			PRINTFORML %CALLNAME:TARGET%はわけもわからぬまま、%CALLNAME:MASTER%を受け入れてしまった…
+			SIF CFLAG:体目当て
+				CALL COLORMESSAGE(@"ミラダの石のおかげで前から目をつけていたあの子とエッチできました！（%GET_MAPNAME(MAIN_MAP)%在住　%CALLNAME:MASTER%氏）",C_YELLOW,2,2)
+		CASE 5
+			PRINTFORML 押しの弱い%CALLNAME:TARGET%は、%CALLNAME:MASTER%を拒むことができなかった…
+		CASE 6
+			PRINTFORML %CALLNAME:TARGET%に拒まれてしまった…
+			PRINTFORML しかし%CALLNAME:TARGET%はまんざらでもなさそうだ
+		CASE 7
+			IF TALENT:TARGET:処女 == 0
+				PRINTFORML %CALLNAME:TARGET%を抱き寄せようとしたが、軽くあしらわれてしまった…
+			ELSE
+				PRINTFORML %CALLNAME:TARGET%に拒まれてしまった…
+			ENDIF
+			SIF CFLAG:体目当て
+				CALL COLORMESSAGE(@"これ使ったのに拒否られました。全然愛欲を独占してない。（%GET_MAPNAME(MAIN_MAP)%在住　%CALLNAME:MASTER%氏）",C_YELLOW,2,2)
+		CASE 8
+			IF TALENT:TARGET:度胸 < 0 || OTOKOGIRAI(TARGET)
+				PRINTFORML %CALLNAME:TARGET%は悲鳴を上げて%CALLNAME:MASTER%を突き飛ばした
+			ELSE
+				PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%をにべもなく撥ね付けた
+			ENDIF
+			SIF CFLAG:体目当て
+				CALL COLORMESSAGE(@"これ使ったのに拒否られました。全然愛欲を独占してない。（%GET_MAPNAME(MAIN_MAP)%在住　%CALLNAME:MASTER%氏）",C_YELLOW,2,2)
+		CASE 9
+			PRINTFORML 体の疼きに耐えかねた%CALLNAME:TARGET%は、挿入はしないという条件で%CALLNAME:MASTER%に体を許してしまった…
+		CASE 1
+			IF TALENT:恋慕 && TALENT:恋人
+				PRINTFORML %CALLNAME:TARGET%も%CALLNAME:MASTER%に腕を回し抱き返してきた… 
+			ELSEIF TALENT:恋慕 && TALENT:度胸 < 0
+				PRINTFORML %CALLNAME:TARGET%は覚悟を決めたような決まってないような目で%CALLNAME:MASTER%を見つめている…
+			ELSEIF TALENT:調合知識
+				PRINTFORML %CALLNAME:TARGET%はあたふたしている…
+			ELSEIF TALENT:無知
+				PRINTFORML %CALLNAME:TARGET%はよくわかっていないようだ…
+			ELSEIF TALENT:度胸 < 0
+				PRINTFORML %CALLNAME:TARGET%はまだ覚悟が決まっていないようだ…
+			ELSE
+				PRINTFORML %CALLNAME:TARGET%は覚悟を決めたような目で%CALLNAME:MASTER%を見つめている…
+			ENDIF
+			IF TALENT:処女 == -1 || TALENT:処女 == 1
+				PRINTFORM %CALLNAME:TARGET%は
+				IF TARGET == 57 && !TALENT:恋慕
+					PRINTFORM 翁と猿と子供の面をかわるがわる
+				ELSE
+					PRINTFORM 不安と期待が入り混じったような表情を
+				ENDIF
+				PRINTFORML 浮かべている…
+			ENDIF
+		CASE 20
+			PRINTFORM %CALLNAME:TARGET%は抵抗したが、大人しく抱かれるよう強く命じると
+			IF TALENT:TARGET:度胸 > 0 || TALENT:態度 > 0 || TALENT:プライド > 0
+				PRINTFORM 屈辱に歯噛みしながら
+			ELSE
+				PRINTFORM 目に涙を浮かべて
+			ENDIF
+			PRINTFORML 受け入れた…
+		ENDSELECT
+ENDIF
+
+IF !FLAG:70 && HAS_PENIS(MASTER) && !TFLAG:194
+	IF TALENT:恋人
+		CALL COLORMESSAGE(@"%CALLNAME:TARGET%の体温を感じるだけで、%CALLNAME:MASTER%はもうビンビンだ！",C_PINK,1)
+		BASE:MASTER:勃起 = MAXBASE:MASTER:勃起
+	ELSEIF TCVAR:TARGET:抱き寄せ初回 == 20
+		CALL COLORMESSAGE(@"これから%CALLNAME:TARGET%に好き放題できると思うと、嫌が応にも股間に血液が集まってくる…",C_PINK,1)
+		BASE:MASTER:勃起 = MAX(BASE:MASTER:勃起, 1000)
+	ELSEIF CFLAG:溜まってる度 >= 500
+		CALL COLORMESSAGE(@"情欲に濡れた%CALLNAME:TARGET%の眼差しに、%CALLNAME:MASTER%は興奮を抑えきれなかった",C_PINK,1)
+		BASE:MASTER:勃起 = MAX(BASE:MASTER:勃起, 1000)
+	ENDIF
+ENDIF

@@ -1,0 +1,210 @@
+﻿;-----------------------------------------------------------
+;キャラメイク
+;全キャラ追加後に行う
+;-----------------------------------------------------------
+@NEWGAME_MAKE
+;共通初期化
+CALL NEWGAME_MAKE_INIT
+;モード選択
+CALL NEWGAME_MAKE_SELECT_MODE
+;ステータス設定
+
+;-----------------------------------------------------------
+;初期化
+;-----------------------------------------------------------
+@NEWGAME_MAKE_INIT
+;NOは適当に設定
+NO:MASTER = 0
+;MASTERは初期性別＝男
+;性別(1=女性 2= 男性 3=ふたなり)
+TALENT:MASTER:性別 = 2
+;気力、体力
+MAXBASE:MASTER:体力 = 2000
+BASE:MASTER:体力 = MAXBASE:MASTER:0
+MAXBASE:MASTER:気力 = 2000
+BASE:MASTER:気力 = MAXBASE:MASTER:1
+;TSP
+MAXBASE:MASTER:TSP = 100
+BASE:MASTER:TSP = 100
+
+;-----------------------------------------------------------
+;モード選択
+;-----------------------------------------------------------
+@NEWGAME_MAKE_SELECT_MODE
+CLEARLINE 10000
+PRINTL ★★モードを選択してください★★
+CALL ASK_CHOICES10("START","なりきりモード（一部口上が表示されません）")
+SELECTCASE RESULT
+	CASE 0
+		FLAG:ゲームモード = 0
+		CALL NEWGAME_MAKE_ANATA
+	CASE 1
+		FLAG:ゲームモード = 1
+		CALL NEWGAME_MAKE_NARIKIRI
+		SIF !RESULT
+			RESTART
+ENDSELECT
+
+;-----------------------------------------------------------
+;通常
+;-----------------------------------------------------------
+@NEWGAME_MAKE_ANATA
+PRINTW ゲーム開始前にあなたをカスタマイズできます。
+CALL CUSTOM_TERMINAL(MASTER)
+
+;-----------------------------------------------------------
+;なりきり
+;-----------------------------------------------------------
+@NEWGAME_MAKE_NARIKIRI
+#DIM nNo
+PRINTL 
+PRINTL 誰になりますか？
+CALL ASK_CALLNAME
+IF RESULT == 999
+	RETURN 0
+ELSEIF !IS_NAMED(RESULT)
+	RESTART
+ENDIF
+nNo = RESULT
+PRINTFORMW %CALLNAME:nNo%としてゲームを開始します
+
+;なりきりコピー
+NAME:MASTER = %NAME:nNo%
+CALLNAME:MASTER = %CALLNAME:nNo%
+FOR LOCAL,0,200
+	TALENT:MASTER:LOCAL = TALENT:nNo:LOCAL
+NEXT
+FOR LOCAL,0,55
+	ABL:MASTER:LOCAL = ABL:nNo:LOCAL
+NEXT
+FOR LOCAL,0,14
+	MAXBASE:MASTER:LOCAL = MAXBASE:nNo:LOCAL
+	BASE:MASTER:LOCAL = MAXBASE:nNo:LOCAL
+NEXT
+FOR LOCAL,0,100
+	EXP:MASTER:LOCAL = EXP:nNo:LOCAL
+NEXT
+;体力気力底上げ
+IF MAXBASE:MASTER:体力 < 2000
+	PRINTFORML このキャラは体力が低めです。2000まで上げますか？
+	CALL ASK_YN("上げる","このまま")
+	SIF RESULT == 0
+		MAXBASE:MASTER:体力 = 2000
+ENDIF
+IF MAXBASE:MASTER:気力 < 2000
+	PRINTFORML このキャラは気力が低めです。2000まで上げますか？
+	CALL ASK_YN("上げる","このまま")
+	SIF RESULT == 0
+		MAXBASE:MASTER:気力 = 2000
+ENDIF
+;TSP
+MAXBASE:MASTER:TSP = 100
+BASE:MASTER:TSP = 100
+;処女
+IF !TALENT:MASTER:処女
+	PRINTL 処女になりますか？
+	CALL ASK_YN("はい","いいえ")
+	IF RESULT == 0
+		CALL SET_VIRGIN(MASTER)
+	ENDIF
+ENDIF
+
+;CFLAG:MASTER:初期位置 = CFLAG:nNo:初期位置
+FLAG:なりきり = nNo
+CFLAG:nNo:出禁 = 1
+CALL CUSTOM_INIT(MASTER)
+RETURN 1
+
+;FileName_SHOP_CUSTOM.ERB -------------------------- Rev1.00
+;服装の設定
+;CALL		USER
+;ARG		MASTERキャラNO
+;RETURN		VOID
+;COMMENT	
+;-----------------------------------------------------------
+@MASTER_CLOTHES_INIT
+IF FLAG:なりきり
+	CFLAG:MASTER:基本服装セット = FLAG:なりきり + 100
+ELSEIF TALENT:MASTER:性別 & 1
+	CFLAG:MASTER:基本服装セット = 2
+ELSE
+	CFLAG:MASTER:基本服装セット = 1
+ENDIF
+
+@MASTER_CLOTHES
+#DIMS choices, 100
+;リスト作成
+VARSET choices
+FOR LOCAL, 0, 10
+	IF LOCAL >= 7
+		choices:LOCAL '= MASTER_CLOTHES_NAME(LOCAL+1)
+	ELSE
+		choices:LOCAL '= MASTER_CLOTHES_NAME(LOCAL)
+	ENDIF
+NEXT
+choices:99 '= MASTER_CLOTHES_NAME(99)
+;表示
+PRINTL
+PRINTL
+PRINTFORML 普段着を選んでください。
+DRAWLINE
+CALL ASK_CHOICES(choices, 100)
+SELECTCASE RESULT
+	CASE 100
+		RETURN 0
+	CASE 0 TO 99
+		CALL MASTER_CLOTHES_SET(RESULT)
+		SIF RESULT
+			RETURN 1
+	CASE 99
+		CALL MASTER_CLOTHES_SET(99)
+			RETURN 1
+ENDSELECT
+RESTART
+
+@MASTER_CLOTHES_SET(ARG)
+SELECTCASE ARG
+	CASE 0
+		PRINTFORMW 攻めすぎだろ！
+		RETURN 0
+	CASE 1 TO 6
+		CFLAG:MASTER:基本服装セット = RESULT
+	CASE 7 TO 9
+		CFLAG:MASTER:基本服装セット = RESULT + 1
+	CASE 99
+		CALL MASTER_CLOTHES_INIT
+	CASEELSE
+		THROW 無効な番号指定です。
+ENDSELECT
+PRINTFORMW 服装を%MASTER_CLOTHES_NAME(CFLAG:MASTER:基本服装セット)%に変更しました
+RETURN 1
+
+@MASTER_CLOTHES_NAME(ARG)
+#FUNCTIONS
+SELECTCASE ARG
+	CASE 0
+		RETURNF "全裸"
+	CASE 1
+		RETURNF "男装セット"
+	CASE 2
+		RETURNF "女装セット"
+	CASE 3
+		RETURNF "執事セット"
+	CASE 4
+		RETURNF "女中セット"
+	CASE 5
+		RETURNF "神官セット"
+	CASE 6
+		RETURNF "作務衣セット"
+	CASE 7
+		THROW
+	CASE 8
+		RETURNF "道着セット"
+	CASE 9
+		RETURNF "書生セット"
+	CASE 10
+		RETURNF "女学生セット"
+	CASEELSE
+		RETURNF CALLNAME:MASTER + "のデフォルト衣装"
+ENDSELECT
+THROW

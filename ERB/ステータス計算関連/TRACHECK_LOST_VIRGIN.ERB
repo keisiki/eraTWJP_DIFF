@@ -1,0 +1,655 @@
+﻿;FileName_TRACHECK.ERB ----------------------------- Rev1.00
+;処女喪失時の処理
+;CALL		USER
+;ARG		0:キャラNO
+;RETURN		VOID
+;COMMENT	
+;-----------------------------------------------------------
+@LOST_VIRGIN(ARG)
+#DIM DYNAMIC 喪失者No
+#DIMS DYNAMIC 喪失者名
+#DIM DYNAMIC 取得者No
+#DIMS DYNAMIC 取得者名
+#DIMS 修飾語
+;-------------------------------------------------
+;処女喪失のチェック
+;-------------------------------------------------
+IF TALENT:ARG:処女 == 1 && EXP_UP(1,ARG) > 0 && !TFLAG:2 && GETBIT(TALENT:ARG:性別,0) ;まずＶがないと！みんな有るけど…念の為。
+
+	修飾語 = ""
+	IF ARG == MASTER
+		CFLAG:ARG:処女喪失相手 = TARGET
+		喪失者No = MASTER
+		喪失者名 = %CALLNAME:MASTER%
+		取得者No = MASTER_POSE(SET_P,SET_V)
+		;Ｐ以外で喪失した場合、MASTER_POSE(SET_P,SET_V)は0となり、結果的に取得者名まであなたになってしまう
+		;よって取得者No=0ならTARGETを代入
+		SIF !取得者No
+			取得者No = TARGET
+		取得者名 = %CALLNAME:取得者No%
+	ELSE
+		CFLAG:ARG:処女喪失相手 = PLAYER
+		喪失者名 = %CALLNAME:ARG%
+		喪失者No = ARG
+		取得者名 = %CALLNAME:MASTER%
+		取得者No = MASTER
+	ENDIF
+	IF ARG != MASTER
+		;貞操観念
+		IF TALENT:ARG:貞操 > 0
+			IF !TALENT:ARG:恋慕
+				TIMES SOURCE:ARG:情愛 , 0.60
+				TIMES SOURCE:ARG:反感 , 10.00
+			ENDIF
+		;貞操無頓着
+		ELSEIF TALENT:ARG:貞操 < 0
+			TIMES SOURCE:ARG:情愛 , 0.60
+			TIMES SOURCE:ARG:反感 , 0.50
+		ELSEIF TALENT:ARG:無知
+			TIMES SOURCE:ARG:情愛 , 0.30
+			TIMES SOURCE:ARG:反感 , 0.75
+			SOURCE:ARG:恐怖 += 3000
+		ENDIF
+		IF CFLAG:ARG:うふふ == 2
+			TIMES SOURCE:ARG:情愛 , 1.50
+			TIMES SOURCE:ARG:反感 , 0.25
+		ENDIF
+	ENDIF
+	SETCOLOR 247,171,166
+	PRINTFORMW 【処女喪失】
+	IF TEQUIP:ARG:50 == MASTER && GROUPMATCH(TALENT:MASTER:形状,5,6)
+		PRINTFORMW %取得者名%の凶悪なイチモツが、%喪失者名%の純潔を容赦なく引き裂いた……
+		TIMES SOURCE:ARG:苦痛, 3.00
+		TIMES SOURCE:ARG:恐怖, 3.00
+	ENDIF
+	IF FLAG:70
+		IF ARG == MASTER
+			PRINTFORMW %取得者名%は意識のないまま、\@ TALENT:ARG:行きずり == 1 ? 出会ったばかりの# \@%喪失者名%の処女を奪わされた……
+		ELSE
+			PRINTFORMW %喪失者名%は意識のないまま、\@ TALENT:ARG:行きずり == 1 ? 出会ったばかりの# \@%取得者名%に処女を奪われてしまった……
+		ENDIF
+	ELSE
+		;陥落素質による処理
+		;MASTER喪失
+		IF ARG == MASTER
+			IF TCVAR:TARGET:泥酔
+				PRINTFORMW 混濁したままの%取得者名%は、%喪失者名%の処女を奪わされてしまった……
+			;睡眠姦、お前がパパになるんだよ！
+			ELSEIF CFLAG:TARGET:睡眠
+				PRINTFORMW 眠りについている%取得者名%は、%喪失者名%に強引に処女を奪わされてしまった
+			;無知ふたろり（ショタ）で処女喪失とか最高……いや、再考
+			ELSEIF TALENT:TARGET:無知
+				;IF GROUPMATCH(TALENT:MASTER:形状,5,6)
+				;無知な相手のちんちんが入ってる場合
+				IF TEQUIP:MASTER:50 == 取得者No
+					PRINTFORMW 性知識の乏しい%取得者名%は何をされたのかわからず、\@ TALENT:取得者No:2 & 2 ?強烈な快感と # \@%喪失者名%の流す血に怯えている……
+				;ちんちん以外
+				ELSE
+					PRINTFORMW 破瓜血を目にした%取得者名%は、自分が%喪失者名%に怪我をさせてしまったと思い慌てふためいている
+				ENDIF
+				PRINTFORMW %喪失者名%は破瓜の痛みを噛みしめながら%取得者名%を落ち着かせた
+			;素質恋人
+			ELSEIF TALENT:TARGET:恋人  || TALENT:TARGET:恋慕 > 1
+				PRINTFORMW %取得者名%はうっとりとした表情で、%喪失者名%の秘処から零れる鮮血を見つめている……
+				TFLAG:150 = 2
+				TIMES SOURCE:TARGET:情愛 , 3.00
+				TIMES SOURCE:TARGET:反感 , 0.10
+			;恋慕
+			ELSEIF TALENT:TARGET:恋慕
+				PRINTFORMW %取得者名%は嬉しげな笑みを浮かべて、処女を捧げた%喪失者名%を見つめている……
+				TFLAG:150 = 2
+				TIMES SOURCE:TARGET:情愛 , 2.00
+				TIMES SOURCE:TARGET:反感 , 0.30
+				EXP:TARGET:愛情経験 += 30
+				CFLAG:ARG:処女喪失対象 |= 喪失_恋慕
+			ELSEIF TALENT:TARGET:思慕
+				IF TCVAR:TARGET:無理矢理 == 1
+					PRINTFORMW %取得者名%は快感に戸惑いながら、%喪失者名%に涙に濡れた瞳を向けてくる……
+					TIMES SOURCE:TARGET:情愛 , 0.80
+					TIMES SOURCE:TARGET:反感 , 1.50
+					CFLAG:ARG:処女喪失対象 |= 喪失_無理矢理
+				ELSEIF TALENT:TARGET:貞操 >= 0
+					PRINTFORMW %取得者名%は困惑しつつ、どことなく嬉しげに%喪失者名%を見つめている……
+					TIMES SOURCE:TARGET:情愛 , 1.30
+					TIMES SOURCE:TARGET:反感 , 0.50
+				ENDIF
+				CFLAG:ARG:処女喪失対象 |= 喪失_思慕
+			ELSE
+				IF TCVAR:TARGET:無理矢理 == 1
+					TIMES SOURCE:TARGET:情愛 , 0.10
+					TIMES SOURCE:TARGET:反感 , 3.00
+					PRINTFORMW %取得者名%は、怒りと戸惑いを浮かべて%喪失者名%を睨んできた……
+					CFLAG:ARG:処女喪失対象 |= 喪失_無理矢理
+				ELSE
+					PRINTFORMW %取得者名%は何か言いたげな表情を浮かべて、%喪失者名%との結合部を見つめている……
+				ENDIF
+			ENDIF
+		;MASTERがTARGETの膣に挿入している
+		ELSEIF TEQUIP:ARG:50 == MASTER
+			IF TCVAR:ARG:泥酔
+				PRINTFORMW %喪失者名%は混濁した意識の中で処女を奪われてしまった……
+			;睡眠姦　良い子は眠っている間にママにしちゃおうね～
+			ELSEIF CFLAG:ARG:睡眠
+				PRINTFORMW %喪失者名%の初めては眠っている間に奪われてしまった……
+			ELSEIF TALENT:ARG:無知
+				PRINTFORMW 性知識の乏しい%喪失者名%は何をされたのかわからず、処女喪失の痛みに戸惑い怯えている……
+				PRINTFORMW %取得者名%は%喪失者名%を落ち着かせた
+			;親愛かつ相手が主人(現在親愛がないので、恋人で代用
+			ELSEIF TALENT:ARG:恋人 || TALENT:ARG:恋慕 > 1
+				PRINTFORMW %喪失者名%は%取得者名%が初めての相手である事にこの上ない幸せを感じているようだ……
+				TFLAG:150 = 2
+				TIMES SOURCE:ARG:情愛 , 3.00
+				TIMES SOURCE:ARG:反感 , 0.10
+				 CFLAG:ARG:処女喪失対象 |= 喪失_恋慕
+			;恋慕かつ相手が主人
+			ELSEIF TALENT:ARG:恋慕
+				PRINTFORMW %喪失者名%は%取得者名%に処女を捧げられた事に幸福を感じているようだ……
+				TFLAG:150 = 2
+				TIMES SOURCE:ARG:情愛 , 2.00
+				TIMES SOURCE:ARG:反感 , 0.30
+				EXP:ARG:愛情経験 += 30
+				CFLAG:ARG:処女喪失対象 |= 喪失_恋慕
+			ELSEIF TALENT:ARG:思慕
+				IF TCVAR:ARG:無理矢理 == 1
+					PRINTFORMW 好意を持っていた相手に裏切られた%喪失者名%は、大粒の涙を流し始めた……
+					TIMES SOURCE:ARG:情愛 , 0.80
+					TIMES SOURCE:ARG:反感 , 1.50
+					CFLAG:ARG:処女喪失対象 |= 喪失_無理矢理
+				ELSEIF TALENT:ARG:貞操 >= 0
+					PRINTFORMW 好意を持っていたとはいえ、%喪失者名%は%取得者名%に貞操までも許してしまったことに当惑している……
+					TIMES SOURCE:ARG:情愛 , 1.30
+					TIMES SOURCE:ARG:反感 , 0.80
+				ENDIF
+				CFLAG:ARG:処女喪失対象 |= 喪失_思慕
+			ELSE
+				IF TCVAR:ARG:無理矢理 == 1
+					TIMES SOURCE:ARG:情愛 , 0.10
+					TIMES SOURCE:ARG:反感 , 3.00
+					IF CFLAG:ARG:負け犬
+						PRINTFORMW %喪失者名%は敗北の代償として、%取得者名%に処女を奪われてしまった……
+					ELSE
+						PRINTFORMW %喪失者名%の抵抗むなしく、%取得者名%に処女を奪われてしまった……
+					ENDIF
+					CFLAG:ARG:処女喪失対象 |= 喪失_無理矢理
+					IF TALENT:ARG:行きずり == 1
+						CSTR:ARG:モブ子プロフィール２ = %REPLACE(@"%CSTR:ARG:モブ子プロフィール２%","され今はもう大人しい","され、処女を奪われた")%
+						CSTR:ARG:モブ子プロフィール２ = %REPLACE(@"%CSTR:ARG:モブ子プロフィール２%","アナル処女を奪われた","処女を奪われた")%
+					ENDIF
+				ELSEIF TALENT:ARG:行きずり == 1
+					PRINTFORMW 秘処から零れる血を見た%喪失者名%は、出会って間もない%取得者名%に処女を捧げてしまったことを実感して少し後悔した……
+				ELSE
+					PRINTFORMW %喪失者名%は流されるまま%取得者名%に処女を奪われてしまった……
+				ENDIF
+			ENDIF
+		ENDIF
+	ENDIF
+	IF CSTR:ARG:処女喪失履歴 == ""
+		IF GROUPMATCH(TCVAR:喪失者No:カウンター行動, 80, 83, 85)
+			CALL SET_HISTORY_LOST_V(喪失者No, 取得者No, "ペニス")
+		ELSEIF TCVAR:取得者No:カウンター行動 == 57
+			CALL SET_HISTORY_LOST_V(喪失者No, 取得者No, "指")
+		ELSEIF SELECTCOM == 44
+			CALL SET_HISTORY_LOST_V(喪失者No, 取得者No, "バイブ")
+		ELSE
+			CALL SET_HISTORY_LOST_V(喪失者No, 取得者No, "ペニス")
+		ENDIF
+	ENDIF
+ENDIF
+RESETCOLOR
+;-------------------------------------------------
+;再生処女喪失のチェック
+;-------------------------------------------------
+IF TALENT:ARG:処女 == 2 && EXP_UP(1,ARG)
+	TCVAR:ARG:破瓜 = 2
+	;ビデオ撮影
+	IF TEQUIP:28
+		;性交
+		IF TEQUIP:ARG:50
+			LOCALS = LV1/
+		ELSEIF TEQUIP:ARG:13
+			LOCALS = LV3/
+		;その他
+		ELSE
+			LOCALS = LV4/
+		ENDIF
+		TSTR:1 += LOCALS
+	ENDIF
+	PRINTW 再生処女喪失
+ENDIF
+;-------------------------------------------------
+;無自覚処女喪失のチェック
+;-------------------------------------------------
+IF TALENT:ARG:処女 == -1 && EXP_UP(1,ARG) && CFLAG:ARG:292 == 1 && !FLAG:70 && !TCVAR:ARG:泥酔 && !CFLAG:MASTER:イタズラ
+	TCVAR:ARG:破瓜 = -1
+	CFLAG:ARG:292 = 0
+	PRINTW 処女喪失？
+	SETCOLOR 247,171,166
+	PRINTFORMW %CALLNAME:ARG%は苦痛らしい苦痛を感じなかったことに困惑している…
+	RESETCOLOR
+ENDIF
+
+@童貞キス未経験喪失(ARG)
+#DIM シチュエーション
+;シチュエーション	 0:通常
+;					 1:デート帰り
+;					 2:オナバレ
+;					 4:ペニスに
+;					 8:自発的に
+;					16:無自覚
+;					32:買春
+シチュエーション = 0
+VARSET LOCALS
+FONTBOLD
+SETCOLOR 255,100,255
+IF !TALENT:ARG:非童貞 && TALENT:ARG:性別 & 2
+	IF TCVAR:ARG:童貞喪失 == 1
+		PRINTFORMW 童貞喪失(%CALLNAME:ARG%)
+		TALENT:ARG:非童貞 = 1
+	ENDIF
+ENDIF
+
+;キス未経験喪失
+IF ARG == MASTER && TALENT:ARG:キス未経験 && GROUPMATCH(SELECTCOM,2,20,312)
+	シチュエーション |= 8
+	IF GROUPMATCH(SELECTCOM,20,312) && (TFLAG:193 != 99 && PREVCOM != 309)
+		CALL SET_FIRSTKISS(MASTER, ARG, シチュエーション)
+	ELSEIF GROUPMATCH(SELECTCOM,2) && TALENT:TARGET:性別 & 2
+		シチュエーション |= 4
+		CALL SET_FIRSTKISS(ARG, TARGET, シチュエーション)
+	ENDIF
+ELSEIF TALENT:MASTER:キス未経験 && GROUPMATCH(TCVAR:ARG:カウンター行動,30,39,60,71,91)
+	IF GROUPMATCH(TCVAR:ARG:カウンター行動,30,39,60)
+		CALL SET_FIRSTKISS(MASTER, ARG, シチュエーション)
+	ELSEIF GROUPMATCH(TCVAR:ARG:カウンター行動,71,91) && TALENT:ARG:性別 & 2
+		シチュエーション |= 4
+		CALL SET_FIRSTKISS(MASTER, ARG, シチュエーション)
+	ENDIF
+ENDIF
+IF TALENT:ARG:キス未経験 && (TCVAR:ARG:ＦＫ喪失 || GROUPMATCH(TCVAR:ARG:カウンター行動,30,39,60,51))
+	;無自覚
+	SIF CFLAG:ARG:睡眠 || FLAG:70
+		シチュエーション |= 16
+	;自発的に
+	SIF GROUPMATCH(TCVAR:ARG:カウンター行動,30,39,60,51)
+		シチュエーション |= 8
+	;ペニスに
+	SIF TCVAR:ARG:ＦＫ喪失 == 2 || GROUPMATCH(TCVAR:ARG:カウンター行動,51)
+		シチュエーション |= 4
+
+	IF GROUPMATCH(SELECTCOM,20,312) && (TFLAG:193 != 99 && PREVCOM != 309)
+		;デコチューを除外する
+		CALL SET_FIRSTKISS(ARG, MASTER, シチュエーション)
+	ELSEIF GROUPMATCH(SELECTCOM,81,88,140,337) || GROUPMATCH(TCVAR:ARG:カウンター行動,30,60,51)
+		CALL SET_FIRSTKISS(ARG, MASTER, シチュエーション)
+	ELSEIF TCVAR:ARG:カウンター行動 == 39
+		CALL SET_FIRSTKISS(ARG, MASTER, シチュエーション, "飴と一緒に")
+	ENDIF
+ENDIF
+
+;アナル処女喪失
+IF CFLAG:ARG:アナル処女喪失対象 & 喪失_時間停止 || !CFLAG:ARG:アナル処女喪失記念日
+	IF TCVAR:ARG:Ａ喪失発生 
+		;時間停止中に経験済み
+		IF !FLAG:70 && ARG && CFLAG:ARG:アナル処女喪失対象 & 喪失_時間停止
+			SIF FIRSTTIME("Ａ破瓜",0)
+				PRINTFORMW アナル処女喪失？(%CALLNAME:ARG%)
+			TCVAR:ARG:Ａ破瓜 = -1
+		;完全に初めて
+		ELSEIF !CFLAG:ARG:アナル処女喪失記念日
+			PRINTFORMW アナル処女喪失(%CALLNAME:ARG%)
+			IF CSTR:ARG:モブ子プロフィール２ != ""
+				CSTR:ARG:モブ子プロフィール２ = %REPLACE(@"%CSTR:ARG:モブ子プロフィール２%","され今はもう大人しい","され、アナル処女を奪われた")%
+			ENDIF
+			IF SELECTCOM == 45
+				LOCALS = アナルバイブ
+			ELSEIF SELECTCOM == 46
+				LOCALS = アナルビーズ
+			ELSE
+				LOCALS = ペニス
+			ENDIF
+			IF !FLAG:70
+				TCVAR:ARG:Ａ破瓜 = 1
+			ELSE
+				TCVAR:ARG:Ａ破瓜 = -2
+			ENDIF
+			IF ARG == TARGET || (CFLAG:MASTER:うふふ == 2 && ARG != TARGET && ARG != MASTER)
+				CALL SET_HISTORY_LOST_A(ARG, PLAYER, @"%LOCALS%")
+			ELSE
+				CALL SET_HISTORY_LOST_A(ARG, TARGET, @"%LOCALS%")
+			ENDIF
+			
+		ENDIF
+	ENDIF
+ENDIF
+FONTREGULAR
+RESETCOLOR
+
+@LOST_VIRGIN_STOP(ARG)
+SIF !SHIRAHU(ARG)
+	RETURN
+IF CFLAG:ARG:破瓜キャンセル口上有
+	;口上側から干渉可能に
+	TRYCALLFORM M_KOJO_COLOR_K{ARG}
+	TRYCALLFORM M_KOJO_EVENT_K{ARG}_LOST_VIRGIN_STOP
+	IF RESULT == 1
+		RETURN -1
+	ELSE
+		RETURN 0
+	ENDIF
+	RESETCOLOR
+ELSEIF !TALENT:ARG:無知 && !TALENT:ARG:恋慕 && !TALENT:ARG:愛欲 && !TALENT:ARG:恋人 && !TCVAR:ARG:待たぬ && !CFLAG:イタズラ
+;貞操観念持ちor貞操普通かつ思慕なし
+	IF TALENT:ARG:貞操 > 0 || (!TALENT:ARG:貞操 && !TALENT:ARG:思慕)
+		PRINTFORMW %CALLNAME:ARG%はそれは待って欲しいと言い出した
+		IF (EXP:ARG:60 + EXP:ARG:61 + EXP:ARG:62 + EXP:ARG:63 + EXP:ARG:64) == 0
+			IF TALENT:ARG:貞操 > 0
+				PRINTFORMW 流石に身持ちが固い……
+			ELSE
+				PRINTFORMW 意外とガードが固い……
+			ENDIF
+		ELSE
+			PRINTFORMW 面倒臭い娘だ……
+		ENDIF
+		CALL ASK_YN("あきらめる","据え膳食わぬは")
+		IF RESULT == 1
+			IF TALENT:ARG:貞操 > 0 && ABL:ARG:戦闘能力 > ABL:MASTER:戦闘能力 && !TCVAR:ARG:無理矢理
+				PRINTFORMW %CALLNAME:MASTER%は強引に迫ったが、%CALLNAME:ARG%があまりに激しく抵抗するのであきらめた
+					RETURN 1
+			ELSEIF TALENT:ARG:貞操 > 0
+				PRINTFORMW %CALLNAME:ARG%は目に涙を浮かべて%CALLNAME:MASTER%を拒んだ
+				PRINTL [0] 本気で嫌そうなのであきらめる
+				PRINTL [1] ヤっちゃう
+				INPUT
+				IF !RESULT
+					PRINTFORMW %CALLNAME:ARG%はほっとしている…
+					PRINTFORMW %CALLNAME:MASTER%はちょっと傷ついた
+					RETURN -1
+				ELSE
+					PRINTFORMW %CALLNAME:MASTER%は嫌がる%CALLNAME:ARG%にのしかかった…
+					TCVAR:ARG:待たぬ = 1
+					TCVAR:ARG:無理矢理 = 1
+					RETURN 0
+				ENDIF
+			ELSE
+				PRINTFORMW %CALLNAME:MASTER%は強引に迫って押し切った…
+				TCVAR:ARG:待たぬ = 1
+				RETURN 0
+			ENDIF
+		ELSE
+			PRINTFORMW %CALLNAME:ARG%はほっとしている…
+			RETURN -1
+		ENDIF
+	ENDIF
+ENDIF
+
+@SET_FIRSTKISS(ARG, キス相手, シチュエーション, 修飾語)
+#DIM キス相手
+;シチュエーション	 0:通常
+;					 1:デート帰り
+;					 2:オナバレ
+;					 4:ペニスに
+;					 8:自発的に
+;					16:無自覚
+;					32:買春
+#DIM 無理矢理シチュ
+#DIM シチュエーション
+#DIMS 修飾語
+#DIM 自分で
+
+VARSET LOCALS
+自分で = 0
+無理矢理シチュ = (TCVAR:ARG:無理矢理 && !(TALENT:ARG:愛欲 || TALENT:ARG:セフレ || TALENT:ARG:恋慕 || TALENT:ARG:思慕))
+;無理矢理状態で、キス合意はつかない。無理矢理だから！！！唇を許すわけ無いでしょ！！　ただし、陥落素質があればギリギリセーフ。
+
+;キス未経験が無ければ帰る
+SIF !TALENT:ARG:キス未経験
+	RETURN
+SIF TALENT:ARG:キス未経験 < 0 && シチュエーション & 16
+	RETURN
+
+;FLAG:ＦＫ判定によっては帰る
+SIF !(FLAG:ＦＫ判定 & 1) && シチュエーション & 16
+	RETURN
+SIF !(FLAG:ＦＫ判定 & 2) && シチュエーション & 4
+	RETURN
+
+
+IF ARG == キス相手
+	IF ARG == MASTER
+		キス相手 = TARGET
+	ELSE
+		キス相手 = MASTER
+	ENDIF
+ENDIF
+
+SETCOLOR 247,171,166
+PRINTFORM キス未経験喪失
+SIF シチュエーション & 16
+	PRINT ？
+PRINTFORMW (%CALLNAME:ARG%)
+RESETCOLOR
+
+CFLAG:ARG:ファーストキス喪失記念日 = DAY
+TALENT:ARG:キス未経験 = 0
+CFLAG:ARG:ファーストキス喪失相手 = キス相手
+
+;対象と修飾語決定
+IF TALENT:ARG:思慕
+	自分で = 1
+	LOCALS:0 = 思いを寄せていた
+ELSEIF ARG == MASTER && TALENT:(キス相手):恋人
+	自分で = 1
+	LOCALS:0 = 愛する
+ELSEIF TALENT:ARG:恋人 || TALENT:ARG:恋慕
+	自分で = 1
+	LOCALS:0 = 愛する
+ENDIF
+IF シチュエーション & 4
+	LOCALS:1 = のペニス
+	CFLAG:ARG:ファーストキス喪失対象 = 1
+ENDIF
+SIF シチュエーション & 8
+	自分で = 1
+IF シチュエーション & 16
+	IF FLAG:70
+		LOCALS:2 = 時間停止中に
+	ELSEIF CFLAG:ARG:睡眠
+		LOCALS:2 = 眠っている間に
+	ELSE
+		LOCALS:2 = 自分でも預かり知らぬ間に
+	ENDIF
+	CFLAG:ARG:ファーストキス喪失対象 = 2
+	TALENT:ARG:キス未経験 = -1
+ENDIF
+SIF TALENT:ARG:無知 && シチュエーション & 4
+	LOCALS:2 = %LOCALS:2%その意味もわからぬまま
+
+SIF 無理矢理シチュ
+	LOCALS:2 = %LOCALS:2%無理矢理で
+
+;場所決定
+IF シチュエーション & 1
+	CSTR:ARG:ファーストキス位置 = デートからの帰り道
+	SIF ARG != MASTER
+		自分で = 1
+ELSEIF シチュエーション & 2
+	IF ARG != MASTER
+		CSTR:ARG:ファーストキス位置 = 自室
+	ELSE
+		CSTR:ARG:ファーストキス位置 = %CALLNAME:ARG%宅
+	ENDIF
+ELSE
+	IF CHK_DATENOW(CFLAG:ARG:デート中) && CFLAG:ARG:現在位置 != OMANEKIBEYA()
+		CSTR:ARG:ファーストキス位置 = %DATENAME_SPOT()%
+	ELSEIF CHK_DATENOW(CFLAG:MASTER:デート中) && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
+		CSTR:ARG:ファーストキス位置 = %DATENAME_PLACE()%の%DATENAME_SPOT()%
+	ELSE
+		CSTR:ARG:ファーストキス位置 = %NAME_FROM_PLACE(CFLAG:ARG:現在位置)%
+	ENDIF
+ENDIF
+
+;動詞決定
+IF 修飾語 == "飴と一緒に"
+	LOCALS:1 += "と"
+	LOCALS:3 = 交わした
+ELSEIF 自分で
+	LOCALS:1 += "に"
+	LOCALS:3 = 捧げた
+ELSEIF シチュエーション & 32
+	LOCALS:1 += "に"
+	LOCALS:3 = 奪ってもらった
+ELSE
+	LOCALS:1 += "に"
+	LOCALS:3 = 奪われた
+ENDIF
+IF CSTR:ARG:ファーストキス喪失履歴 == ""
+	CSTR:ARG:ファーストキス喪失履歴 = %PRINT_DATE_F(DAY)%、%CSTR:ARG:ファーストキス位置%で%LOCALS:2%%LOCALS:0%%CALLNAME:キス相手%%LOCALS:1%%修飾語%ファーストキスを%LOCALS:3%
+ELSE
+	CSTR:ARG:ファーストキス喪失履歴 = %PRINT_DATE_F(DAY)%、%CSTR:ARG:ファーストキス位置%で%LOCALS:2%%LOCALS:0%%CALLNAME:キス相手%%LOCALS:1%%修飾語%ファーストキスを%LOCALS:3%￥ＢＲ%CSTR:ARG:ファーストキス喪失履歴%
+ENDIF
+;既成事実もつけておく
+SIF ARG != MASTER && !(シチュエーション & 16) && !無理矢理シチュ
+	SETBIT CFLAG:ARG:既成事実, 0
+;愛情経験もここで入れることにする
+SIF ARG != MASTER && !(シチュエーション & 16) && !無理矢理シチュ
+	EXP:ARG:愛情経験 += 5
+
+;===================================================================================
+;履歴文字列設定用関数群
+;対象が未記入だと"ペニス"が代入されます。
+;またその場合含め対象がペニス"だと相手が生えてない場合自動でペニスバンドになります。
+;場所が未記入だと自動で位置を取得します。
+;時間停止中だとか酔いつぶれてるだとかは自動で代入されます。
+;各種フラグ処理も関数側で設定します。
+;つまり呼び出し側で分岐入れる必要がほとんどなくなりました。
+;ARGがあなたのペニスで処女喪失したなら極端な話CALL SET_HISTORY_LOST_V(ARG)だけでOK。
+;やったね。凄いね。
+;===================================================================================
+
+@SET_HISTORY_LOST_A(ARG,相手,対象,場所,修飾語)
+#DIM 相手
+#DIMS 対象
+#DIMS 場所
+#DIMS 修飾語
+
+CFLAG:ARG:アナル処女喪失記念日 = DAY
+CFLAG:ARG:アナル処女喪失相手 = 相手
+
+CSTR:ARG:アナル処女喪失履歴 = %HISTORY_LOST_TEXT(ARG,相手,対象,場所,修飾語,"尻穴処女")%
+
+@SET_HISTORY_LOST_V(ARG,相手,対象,場所,修飾語)
+#DIM 相手
+#DIMS 対象
+#DIMS 場所
+#DIMS 修飾語
+
+;非処女化、処女喰いフラグ、喪失記念日なども関数側で設定
+SIF ARG != MASTER
+	FLAG:処女喰い ++
+CFLAG:ARG:処女喪失記念日 = DAY
+TALENT:ARG:処女 = 0
+TCVAR:ARG:破瓜 = 1
+CFLAG:ARG:処女喪失相手 = 相手
+CSTR:ARG:処女喪失履歴 = %HISTORY_LOST_TEXT(ARG,相手,対象,場所,修飾語,"処女")%
+
+@HISTORY_LOST_TEXT(ARG,相手,対象,場所,修飾語,喪失したもの)
+#FUNCTIONS
+#DIM 相手
+#DIMS 対象
+#DIMS 場所
+#DIMS 修飾語
+#DIMS 喪失したもの
+#DIMS 状況
+#DIM 自分で
+
+VARSET LOCALS
+自分で = 0
+IF ARG == MASTER || (CFLAG:MASTER:うふふ != 2 && ARG != MASTER && ARG != TARGET)
+	LOCALS:0 = 
+ELSEIF TALENT:ARG:思慕
+	自分で = 1
+	LOCALS:0 = 思いを寄せていた
+ELSEIF TALENT:ARG:恋人 || TALENT:ARG:恋慕
+	自分で = 1
+	LOCALS:0 = 愛する
+ELSEIF !CFLAG:ARG:面識 && ARG != MASTER
+	LOCALS:0 = 見ず知らずの
+ELSEIF TALENT:ARG:行きずり == 1
+	LOCALS:0 = 初対面の
+ENDIF
+
+SIF !SHIRAHU(ARG)
+	自分で = 0
+SIF 対象 == ""
+	対象 = ペニス
+
+IF FLAG:70
+	状況 = 時間停止中に
+ELSEIF TCVAR:ARG:泥酔
+	状況 = 酔いつぶれているときに
+ELSEIF CFLAG:ARG:睡眠
+	状況 = 眠っている間に
+ELSEIF ARG != MASTER && ARG != TARGET && CFLAG:MASTER:うふふ != 2
+	状況 = %CALLNAME:MASTER%の望みのままに
+ELSE
+	状況 =
+ENDIF
+
+SIF ARG == MASTER && TALENT:相手:無知
+	状況 += "何もわかっていない"
+
+IF 対象 == "ペニス"
+	IF GETBIT(TALENT:相手:2,1)
+		LOCALS:1 = %CALLNAME:相手%の%TINKO_SIMPLE(相手)%に
+	ELSE
+		LOCALS:1 = %CALLNAME:相手%にペニスバンドで
+	ENDIF
+ELSEIF 対象 == "指"
+	LOCALS:1 = %CALLNAME:相手%の指に
+ELSE
+	LOCALS:1 = %CALLNAME:相手%に%対象%で
+ENDIF
+SIF 場所 == ""
+	場所 = %PLACE_NAME(ARG)%
+IF 修飾語 == ""  && SHIRAHU(ARG)
+	IF TCVAR:ARG:無理矢理 && CFLAG:ARG:負け犬
+		修飾語 = 敗北の代償として
+		自分で = 0
+	ELSEIF TCVAR:ARG:無理矢理
+		修飾語 = 力ずくで
+		自分で = 0
+	ELSEIF TALENT:ARG:無知
+		修飾語 = 何もわからないまま
+		自分で = 0
+	ELSEIF ARG != MASTER && ARG != TARGET && CFLAG:MASTER:うふふ != 2
+		修飾語 = 不満を感じつつ
+	ELSEIF TALENT:ARG:恋人
+		修飾語 = 幸福感の中で
+	ELSEIF CFLAG:ARG:うふふ == 2
+		修飾語 = 自ら
+		自分で = 1
+	ENDIF
+ENDIF
+
+IF 自分で
+	LOCALS:3 = 捧げた
+ELSEIF ARG == MASTER || 修飾語 == "治療と称して"
+	LOCALS:3 = 与えた
+ELSEIF 修飾語 == "お金を払って"
+	LOCALS:3 = 奪ってもらった
+ELSE
+	LOCALS:3 = 奪われた
+ENDIF
+
+LOCALS:10 = %PRINT_DATE_F(DAY)%、%状況%%場所%で%LOCALS:0%%LOCALS:1%%修飾語%%喪失したもの%を%LOCALS:3%
+
+RETURNF LOCALS:10
+
+;あなたの場合イベントでCSVで定義されていない相手と致すこともありうるのでより自由度の高いものを
+@SET_FIRSTKISS_MASTER(ARGS)
+IF TALENT:MASTER:キス未経験
+	CALL COLORMESSAGE(@"キス未経験喪失(%CALLNAME:MASTER%)", C_D_PINK, 2)
+	CFLAG:MASTER:ファーストキス喪失記念日 = DAY
+	TALENT:MASTER:キス未経験 = 0
+	CSTR:MASTER:ファーストキス喪失履歴 = %PRINT_DATE_F(DAY)%、%ARGS%
+ENDIF

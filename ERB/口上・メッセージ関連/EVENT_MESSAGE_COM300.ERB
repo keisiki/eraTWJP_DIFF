@@ -1,0 +1,1612 @@
+﻿;-------------------------------------------------
+;300,会話
+;-------------------------------------------------
+;会話
+@MESSAGE_COM300
+IF TCVAR:会話不能
+	RETURN
+ENDIF
+
+IF TCVAR:泥酔
+	PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に話し掛けてみたが、%CALLNAME:TARGET%は呂律が回っておらず何を言っているかも聴き取れない
+	PRINTFORML ほとんど会話にならなかった…
+ELSE
+	PRINTFORM %CALLNAME:PLAYER%は%CALLNAME:TARGET%と
+	IF CFLAG:ブチギレ > 0
+		IF TALENT:恋人
+			PRINTDATA
+				DATAFORM 素直になれない調子で
+				DATAFORM やや意地を張って見せながら
+				DATAFORM あえて謝罪を後回しにして
+				DATAFORM 機嫌を伺いつつ
+				DATAFORM 心の底では謝りつつ
+			ENDDATA
+		ELSE
+			PRINTDATA
+				DATAFORM 機嫌を伺いつつ
+				DATAFORM ぎこちない雰囲気で
+				DATAFORM 後ろめたい気持ちで
+				DATAFORM あえて悪びれずに
+				DATAFORM 一方的に
+			ENDDATA
+		ENDIF
+	ELSEIF CFLAG:TARGET:20 > 0 && CFLAG:TARGET:350 == 49
+		IF TALENT:恋慕
+			PRINTDATA
+				DATAFORM お酌し合いながら
+				DATAFORM 笑顔を交わしながら
+				DATAFORM 大笑いしながら
+				DATAFORM リラックスした雰囲気で
+				DATAFORM やや大胆な話題について
+			ENDDATA
+		ELSEIF ABL:親密 >= 5
+			PRINTDATA
+				DATAFORM お酌し合いながら
+				DATAFORM お互いを気にしながら
+				DATAFORM 冗談を飛ばして笑いあいつつ
+				DATAFORM リラックスした雰囲気で
+				DATAFORM あえて距離を保ちつつ
+			ENDDATA
+		ELSE
+			PRINTDATA
+				DATAFORM ちびちびと飲みながら
+				DATAFORM 少しだけ親しげに
+				DATAFORM の交友を深めるべく
+				DATAFORM 場の雰囲気の勢いに乗って
+				DATAFORM 普段とは違う雰囲気で
+			ENDDATA
+		ENDIF
+	ELSEIF CFLAG:TARGET:添い寝中
+		PRINTDATA
+			DATAFORM 指先を絡ませながら
+			DATAFORM 寄り添って
+			DATAFORM 少し恥ずかしそうに
+			DATAFORM 抱き合いながら
+			DATAFORM じゃれ合いながら
+			DATAFORM 頬に手を添えて
+			DATAFORM 布団の中で
+		ENDDATA
+	ELSEIF CHK_DATENOW(CFLAG:TARGET:デート中)
+		IF TALENT:恋慕
+			PRINTDATA
+				DATAFORM デート先について
+				DATAFORM 隣りを歩きながら
+				DATAFORM 少し照れながら
+				DATAFORM じゃれ合いながら
+				DATAFORM 微笑みを交わしながら
+			ENDDATA
+		ELSE
+			PRINTDATA
+				DATAFORM 世間
+				DATAFORM 出掛け先について
+				DATAFORM たわいない
+				DATAFORM 取るに足らない
+				DATAFORM 歩きながら
+			ENDDATA
+		ENDIF
+	ELSEIF TALENT:恋慕
+		PRINTDATA
+			DATAFORM 指先を絡ませながら
+			DATAFORM 隣りあって
+			DATAFORM 少し照れながら
+			DATAFORM \@ TIME >= 360 && TIME <= 1080 ? 昼の光の中で # 夜の静けさの中で \@
+			DATAFORM じゃれ合いながら
+			DATAFORM 微笑みを交わしながら
+		ENDDATA
+	ELSE
+		PRINTDATA
+			DATAFORM 世間
+			DATAFORM とりとめのない
+			DATAFORM 下らない
+			DATAFORM たわいない
+			DATAFORM 取るに足らない
+			DATAFORM 少し
+			DATAFORM 上を向いて
+		ENDDATA
+	ENDIF
+	PRINTFORML 話をした
+	IF TFLAG:193 == 1
+		PRINTFORML 楽しい時間が流れた…
+	ELSEIF TFLAG:193 == 2
+		PRINTDATA
+		;		DATAFORM 新たな異変の
+			DATAFORM 大げさな
+			DATAFORM 取って置きの
+			DATAFORM 思いがけない
+			DATAFORM 気になっていた
+		ENDDATA
+		PRINTFORML 話に%CALLNAME:TARGET%\@ GET_TARGETNUM() > 1 ? 達 # \@は大いに盛り上がった…
+	ELSEIF TFLAG:193 == -1
+		PRINTFORML 会話が途切れると気まずい空気が流れた…
+	ELSEIF TFLAG:193 == -2
+		PRINTFORML 話が噛み合わない…
+	ENDIF
+ENDIF
+
+;-------------------------------------------------
+;301,お茶を淹れる
+;-------------------------------------------------
+@MESSAGE_COM301
+IF TFLAG:193 == 1 && ABL:[[美鈴]]:親密 >= 7 && !RAND:5
+	PRINTFORML %CALLNAME:PLAYER%は美鈴の真似をしてお茶を淹れた
+	CALL COLORMESSAGE("*しゃらん*　ﾄﾄﾄ",C_YELLOW,1)
+ELSE
+	PRINTFORML %CALLNAME:PLAYER%は\@ CFLAG:TARGET:行動 == 5 ? 休憩がてら #  \@お茶を淹れて%CALLNAME:TARGET%\@ GET_TARGETNUM() > 1 ? 達 # \@に差し出した…
+ENDIF
+IF TFLAG:193 == 1
+	PRINTFORML %CALLNAME:TARGET%と%CALLNAME:PLAYER%はお茶を飲みながら\@ CFLAG:TARGET:行動 == 5 ? 休憩時間を楽しんだ # 楽しいひとときを過ごした \@…
+ELSEIF TFLAG:193 == -1
+	PRINTFORML …どうやら%CALLNAME:TARGET%の口に合わなかったようだ
+ENDIF
+
+;-------------------------------------------------
+;302,スキンシップ
+;-------------------------------------------------
+@MESSAGE_COM302
+;IF CFLAG:MASTER:現在位置 == 13 || CFLAG:MASTER:現在位置 == 24 || CFLAG:MASTER:現在位置 == 30 || CFLAG:MASTER:現在位置 == 39
+IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+	IF TALENT:恋人 && !RAND:2
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に背中を流してもらった
+	ELSE
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の背中を流した
+	ENDIF
+ELSEIF CHK_DATENOW(CFLAG:TARGET:デート中) && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
+	PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%と\@ (CFLAG:TARGET:現在位置 % 100) % 10 ? 歩きながら # 軽く \@スキンシップを図った
+ELSEIF CFLAG:TARGET:350 == 49
+	PRINTFORML %CALLNAME:PLAYER%は普段より大胆に%CALLNAME:TARGET%とのスキンシップを図った
+ELSE
+	PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%とのスキンシップを図った
+ENDIF
+IF TFLAG:193 == 1
+	PRINTFORML %CALLNAME:TARGET%は何だか嬉しそうにしている…
+ELSEIF TFLAG:193 == -1
+	PRINTFORML …どうやら、少し馴れ馴れしくしすぎたようだ…
+ENDIF
+TFLAG:400 = RAND:2
+SIF TFLAG:400 && (DATE_HITOGOMI() || WITH_MOB() == 9)
+	CALL DATE_HITOGOMI_MESSAGE(CFLAG:PLAYER:現在位置)
+
+;-------------------------------------------------
+;303,謝る
+;-------------------------------------------------
+@MESSAGE_COM303
+IF TFLAG:193 == -2 || TFLAG:193 == 2
+	PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に非礼を詫びて菓子折りを渡した
+ELSE
+	PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に非礼を詫びた
+ENDIF
+IF TFLAG:193 == 1
+	PRINTFORML %CALLNAME:TARGET%は笑って許してくれた…
+ELSEIF TFLAG:193 == 2
+	PRINTFORML %CALLNAME:TARGET%は過去のことは水に流してくれた…
+	PRINTFORMW %CALLNAME:TARGET%は反発刻印LV1を失った
+ELSEIF TFLAG:193 == 0
+	PRINTFORML %CALLNAME:TARGET%は仕方なく%CALLNAME:PLAYER%を許した…
+ELSEIF TFLAG:193 == -2
+	PRINTFORML %CALLNAME:TARGET%は菓子折りを受け取ってはくれなかった…
+	PRINTFORML %CALLNAME:TARGET%はまだ許してはくれないようだ…
+ELSE
+	IF TALENT:度胸 < 0
+		PRINTFORML しかし%CALLNAME:TARGET%はまだ泣いている…
+	ELSE
+		PRINTFORML しかし%CALLNAME:TARGET%はまだ怒っている…
+	ENDIF
+ENDIF
+
+;-------------------------------------------------
+;304,仕事手伝い
+;-------------------------------------------------
+@MESSAGE_COM304
+IF FLAG:70
+	IF CFLAG:TARGET:350 == 46
+		PRINTFORML %CALLNAME:PLAYER%はぴくりとも動かない%CALLNAME:TARGET%と遊んでみた
+		PRINTL ……自分は一体何をやっているのだろう
+	ELSEIF CFLAG:TARGET:350 == 41 || TCVAR:手伝えない == 2
+		PRINTFORML %CALLNAME:PLAYER%は時間を止めているうちに%CALLNAME:TARGET%の仕事を進めておこうとしたが、
+		PRINTFORML よく考えたら時間停止中はできない仕事だった
+	ELSE
+		PRINTFORML %CALLNAME:PLAYER%は時間を止めているうちに%CALLNAME:TARGET%の仕事を進めておいた
+		IF TFLAG:193 == 1
+			PRINTFORML 結構仕事を進められた気がする…
+		ELSEIF TFLAG:193 == -1
+			PRINTFORML あまり役に立てている気がしない…
+		ENDIF
+	ENDIF
+ELSE
+	IF CFLAG:TARGET:350 == 46
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の遊びに加わった
+	ELSE
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の仕事を手伝った
+		IF TFLAG:193 == 1
+			PRINTFORML とても仕事がはかどったようだ…
+		ELSEIF TFLAG:193 == -1
+			PRINTFORML あまり手伝いにならなかったようだ…
+		ENDIF
+	ENDIF
+ENDIF
+
+;-------------------------------------------------
+;305,膝枕してもらう
+;-------------------------------------------------
+@MESSAGE_COM305
+PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に膝枕してもらった
+IF TFLAG:193 == -5
+	PRINTFORML %CALLNAME:MASTER%の頭を載せられた%CALLNAME:TARGET%は蛙が踏みつぶされたような声を上げた
+	PRINTFORML %CALLNAME:MASTER%は慌てて頭をどけた
+ELSEIF ABL:TARGET:親密 > 5
+	SIF TALENT:TARGET:妊娠
+		PRINTFORML %CALLNAME:MASTER%は我が子を宿した%CALLNAME:TARGET%のお腹に耳を当てた……
+	PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%の顔を覗き込みながら頭を優しく撫でている…
+ELSEIF ABL:TARGET:親密 > 2
+	PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%の頭を優しく撫でている…
+ELSE
+	PRINTFORML %CALLNAME:TARGET%は身を縮めてじっとしている…
+ENDIF
+TFLAG:400 = RAND:2
+SIF TFLAG:400 && (DATE_HITOGOMI() || WITH_MOB() == 9)
+	CALL DATE_HITOGOMI_MESSAGE(CFLAG:PLAYER:現在位置)
+
+;-------------------------------------------------
+;306,お腹を撫でる
+;-------------------------------------------------
+@MESSAGE_COM306
+PRINTFORM %CALLNAME:PLAYER%は
+IF TALENT:TARGET:妊娠
+	PRINTFORM %CALLNAME:PLAYER%の子を宿している
+ELSEIF 充填率(TARGET,1) > 30
+	PRINT たっぷり子種を植え付けた
+ENDIF
+PRINTFORML %CALLNAME:TARGET%のお腹をなでた
+IF !FLAG:70
+	IF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%の手に自分の手を愛おしげに重ねた
+	ELSEIF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:TARGET%は露骨に不快そうだ
+	ELSE
+		PRINTFORML %CALLNAME:TARGET%は怪訝そうにしている…
+	ENDIF
+	TFLAG:400 = RAND:2
+	SIF TFLAG:400 && (DATE_HITOGOMI() || WITH_MOB() == 9)
+		CALL DATE_HITOGOMI_MESSAGE(CFLAG:PLAYER:現在位置)
+ENDIF
+
+;-------------------------------------------------
+;307,頬をつまむ
+;-------------------------------------------------
+@MESSAGE_COM307
+IF FLAG:70 == 1
+	PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の頬に手を伸ばした…
+	PRINTFORML 時間を止められた%CALLNAME:TARGET%は無抵抗のまま頬をつままれている…
+ELSEIF CFLAG:TARGET:睡眠
+	PRINTFORML %CALLNAME:PLAYER%は眠っている%CALLNAME:TARGET%の頬を指でつまんだ…
+	PRINTFORML %CALLNAME:TARGET%は嫌そうに顔を背けた…
+ELSE
+	PRINTFORM %CALLNAME:PLAYER%は\@ CFLAG:TARGET:添い寝中 ? 添い寝する # \@%CALLNAME:TARGET%の頬に手を伸ばし
+	IF TARGET == (NO:14)
+		PRINTDATA
+			DATAFORM ふにふにした…
+			DATAFORM ぷにぷにした…
+			DATAFORM むにむにした…
+			DATAFORM ぐにぐにした…
+			DATAFORM ぐいぐいした…
+		ENDDATA
+	ELSE
+		PRINTL 指でつまんだ…
+	ENDIF
+	IF TALENT:恋慕
+		PRINTFORML %CALLNAME:TARGET%は照れくさそうな表情を浮かべながらやり返してきた…
+	ELSEIF ABL:親密 > 5
+		PRINTFORML %CALLNAME:TARGET%もおずおずと%CALLNAME:PLAYER%の頬に手を伸ばした…
+	ELSEIF ABL:従順 >= 5
+		PRINTFORML %CALLNAME:TARGET%は照れくさそうな表情を浮かべながらも%CALLNAME:PLAYER%にされるがままになっている…
+	ELSE
+		PRINTFORML %CALLNAME:TARGET%は頬を膨らますと%CALLNAME:PLAYER%の手を払った…
+	ENDIF
+ENDIF
+
+;-------------------------------------------------
+;308,頬をつつく
+;-------------------------------------------------
+@MESSAGE_COM308
+IF CFLAG:TARGET:睡眠
+	PRINTFORML %CALLNAME:PLAYER%は眠っている%CALLNAME:TARGET%の頬を指でつついた
+	IF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:TARGET%は嬉しそうに微笑んでいる…
+	ELSEIF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:TARGET%は嫌そうに顔を背けた…
+	ENDIF
+ELSE
+	PRINTFORML %CALLNAME:PLAYER%は添い寝する%CALLNAME:TARGET%の頬を指でつついた
+	IF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:TARGET%はにやにやしながら仕返ししてきた…
+	ELSEIF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:TARGET%は頬を膨らますと%CALLNAME:PLAYER%の手を払った…
+	ENDIF
+ENDIF
+
+;-------------------------------------------------
+;309,頭を撫でる
+;-------------------------------------------------
+@MESSAGE_COM309
+IF FLAG:70 == 1
+	PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の頭に手を伸ばした
+	PRINTFORML 時間を止められた%CALLNAME:TARGET%は無抵抗のまま頭を撫でられている…
+ELSEIF CHK_DATENOW(CFLAG:TARGET:デート中) && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
+	PRINTFORML %CALLNAME:PLAYER%は\@ DATE_REMAINTIME() ? 隣を歩く # 隣に寄り添う \@%CALLNAME:TARGET%の頭を撫でた
+	SELECTCASE TFLAG:193
+		CASE 1
+			PRINTFORML %CALLNAME:TARGET%はリラックスしたような表情を浮かべて目を細めた…
+		CASE 0
+			IF ABL:親密 > 5
+				PRINTFORML %CALLNAME:TARGET%は照れくさそうな表情を浮かべながらもじっと%CALLNAME:PLAYER%に撫でられている…
+			ELSE
+				PRINTFORML %CALLNAME:TARGET%は顔を赤らめて%CALLNAME:PLAYER%の手を払いのけた…
+			ENDIF
+		CASE -1
+			PRINTFORML …少々馴れ馴れしくしすぎたようだ
+	ENDSELECT
+ELSEIF CFLAG:TARGET:睡眠
+	PRINTFORML %CALLNAME:PLAYER%は眠っている%CALLNAME:TARGET%の頭を優しく撫でた
+	IF ABL:親密 > 5
+		PRINTFORML %CALLNAME:TARGET%は気持よさそうに笑っている…
+	ELSE
+		PRINTFORML %CALLNAME:TARGET%は嫌がる素振りもなく%CALLNAME:PLAYER%に撫でられている…
+	ENDIF
+ELSE
+	PRINTFORML %CALLNAME:PLAYER%は\@ CFLAG:TARGET:添い寝中 ? 添い寝する # 優しく \@%CALLNAME:TARGET%の頭を撫でた
+	SELECTCASE TFLAG:193
+		CASE 1
+			PRINTFORML %CALLNAME:TARGET%はリラックスしたような表情を浮かべて目を細めた…
+		CASE 0
+			IF ABL:親密 > 5
+				PRINTFORML %CALLNAME:TARGET%は照れくさそうな表情を浮かべながらもじっと%CALLNAME:PLAYER%に撫でられている…
+			ELSE
+				PRINTFORML %CALLNAME:TARGET%は顔を赤らめて%CALLNAME:PLAYER%の手を払いのけた…
+			ENDIF
+		CASE -1
+			PRINTFORML …少々馴れ馴れしくしすぎたようだ
+	ENDSELECT
+ENDIF
+;-------------------------------------------------
+;331,お茶を淹れる（薬入り）
+;-------------------------------------------------
+@MESSAGE_COM331
+#DIM DYNAMIC 人数Ａ
+#DIM DYNAMIC 人数Ｂ
+#DIM DYNAMIC 加減
+VARSET LOCAL
+VARSET LOCALS
+IF TCVAR:TARGET:媚薬 == 210
+	LOCALS = 媚薬
+ELSEIF TCVAR:TARGET:利尿剤 == 210
+	LOCALS = 利尿剤
+ELSEIF TCVAR:TARGET:惚れ薬 == 210
+	LOCALS = 惚れ薬
+ELSEIF TCVAR:TARGET:睡眠薬強度 == 2
+	LOCALS = 睡眠薬
+ELSE
+	LOCALS = 薬
+ENDIF
+IF !RAND:2
+	人数Ａ = CHARANUM - 1
+	人数Ｂ = 0
+	加減 = -1
+ELSE
+	人数Ａ = 1
+	人数Ｂ = CHARANUM
+	加減 = 1
+ENDIF
+
+PRINTFORML %CALLNAME:PLAYER%は\@ CFLAG:TARGET:行動 == 5 ? 休憩がてら #  \@%LOCALS%入りお茶を淹れて%CALLNAME:TARGET%\@ GET_TARGETNUM() > 1 ? 達 # \@に差し出した…
+FOR LOCAL,人数Ａ,人数Ｂ,加減
+	SIF LOCAL == TARGET
+		CONTINUE
+	IF CFLAG:LOCAL:現在位置 == CFLAG:MASTER:現在位置 && (TCVAR:LOCAL:媚薬 == 210 || TCVAR:LOCAL:利尿剤 == 210 || TCVAR:LOCAL:惚れ薬 == 210 || (TCVAR:LOCAL:睡眠薬強度 == 2 && TCVAR:LOCAL:睡眠薬お茶使用))
+		PRINTFORML %CALLNAME:LOCAL%は美味しそうにお茶を飲んでいる
+		LOCAL:1 ++
+		IF LOCAL:1 > 4 && GET_TARGETNUM() > 5
+			PRINTFORML 配るのに手一杯で他の者達が飲んでるかまでは見て取れない
+			BREAK
+		ENDIF
+	ENDIF
+	IF CFLAG:LOCAL:現在位置 == CFLAG:MASTER:現在位置 && (TCVAR:LOCAL:媚薬 != 210 && TCVAR:LOCAL:利尿剤 != 210 && TCVAR:LOCAL:惚れ薬 != 210 && (TCVAR:LOCAL:睡眠薬強度 != 2 || !TCVAR:LOCAL:睡眠薬お茶使用))
+		IF TCVAR:LOCAL:睡眠薬強度 >= 2
+			PRINTFORML %CALLNAME:LOCAL%はあくびをしながらお茶を断った
+		ELSE
+			PRINTFORML %CALLNAME:LOCAL%は首をかしげ、お茶に口をつけなかった
+		ENDIF
+		LOCAL:2 ++
+		IF LOCAL:2 > 4 && GET_TARGETNUM() > 5
+			PRINTFORML 配るのに手一杯で他の者達が飲んでるかまでは見て取れない
+			BREAK
+		ENDIF
+	ENDIF
+NEXT
+PRINTL
+IF TFLAG:193 == 1
+	PRINTFORML %CALLNAME:TARGET%と%CALLNAME:PLAYER%はお茶を飲みながら\@ CFLAG:TARGET:行動 == 5 ? 休憩時間 # 楽しいひととき \@を過ごした…
+ELSEIF TFLAG:193 == -1
+	PRINTFORML %CALLNAME:TARGET%は物問いたげな視線をこちらに向け、お茶に口をつけなかった
+ELSE
+	PRINTFORML %CALLNAME:TARGET%は美味しそうにお茶を飲んでいる
+ENDIF
+LOCAL:1 = 0
+PRINTL 
+FOR LOCAL,人数Ａ,人数Ｂ,加減
+	IF CFLAG:LOCAL:現在位置 == CFLAG:MASTER:現在位置 && (TCVAR:LOCAL:媚薬 == 210 || TCVAR:LOCAL:利尿剤 == 210 || TCVAR:LOCAL:惚れ薬 == 210)
+		LOCAL:1 ++
+		IF LOCAL:1 > 4 && GET_TARGETNUM() > 5
+			PRINTFORML 他の者達の様子までは見て取れない
+			BREAK
+		ENDIF
+		PRINTFORM %CALLNAME:LOCAL%は
+		IF TCVAR:LOCAL:媚薬 == 210
+			PRINTFORML 頬を紅潮させ妙に熱っぽい吐息を漏らしている
+		ELSEIF TCVAR:LOCAL:利尿剤 == 210
+			PRINTFORML 僅かに内股になり、もじもじと腰を揺らしている
+		ELSEIF TCVAR:LOCAL:惚れ薬 == 210
+			PRINTFORML うっとりとした表情でじっとこちらを見つめている
+		ELSEIF TCVAR:LOCAL:睡眠薬強度 == 2
+			PRINTFORML 眠気を堪えるように欠伸をかみ殺している
+		ENDIF
+	ENDIF
+NEXT
+
+;-------------------------------------------------
+;333,愚痴を聞く
+;-------------------------------------------------
+@MESSAGE_COM333
+PRINTFORML %CALLNAME:TARGET%の愚痴を聞いてやった
+SELECTCASE TFLAG:193
+	CASE 1
+		PRINTFORML しゃべっているうちにまた怒りがぶり返してきたようだ…
+	CASE 2
+		PRINTFORML 言いたいことを言って落ち着いたようだ
+	CASE 3
+		PRINTFORML 一通り吐き出した%CALLNAME:TARGET%は、大人しく聞いてくれた%CALLNAME:MASTER%に礼を言った
+	CASE 4
+		PRINTFORML %CALLNAME:TARGET%はますます理不尽な絡み方をしてきた…
+	CASE 5
+		PRINTFORML 自分で何を言っているかわかっているのかも怪しい…
+		PRINTFORML 酔っ払いの話を真面目に聞いても無駄のようだ
+	CASE 6
+		PRINTFORML %CALLNAME:MASTER%が適当に相槌を打っていると、なにかツボにはまったのか%CALLNAME:TARGET%は急に笑い出した
+		PRINTFORML よく分からないが楽しそうなので良しとしよう
+ENDSELECT
+
+;-------------------------------------------------
+;334,杯を交わす
+;-------------------------------------------------
+@MESSAGE_COM334
+IF CFLAG:TARGET:妊娠自覚状態 == 1
+	PRINTFORML %CALLNAME:PLAYER%は妊娠中で酒を控えている%CALLNAME:TARGET%の皿に料理を盛りながら、一緒に食事を楽しんだ
+ELSEIF TALENT:TARGET:酒耐性 == -2
+	PRINTFORML %CALLNAME:PLAYER%は酒が苦手な%CALLNAME:TARGET%の皿に料理を盛りながら、一緒に食事を楽しんだ
+ELSE
+	PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の杯に酒を注ぎながら、一緒に酒を飲んだ
+ENDIF
+SELECTCASE TFLAG:193
+	CASE 1
+		PRINTFORML %CALLNAME:TARGET%はとても楽しそうだ…
+	CASE -1
+		PRINTFORML ほとんど会話が続かなかった…
+ENDSELECT
+
+;-------------------------------------------------
+;335,介抱する
+;-------------------------------------------------
+@MESSAGE_COM335
+PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%を介抱した
+SELECTCASE TFLAG:193
+	CASE 1
+		PRINTFORML %CALLNAME:TARGET%の酔いをいい感じに醒ますことができたようだ…
+	CASE -1
+		PRINTFORML あまり%CALLNAME:TARGET%の助けにはならなかったようだ…
+ENDSELECT
+
+;-------------------------------------------------
+;336,膝枕する
+;-------------------------------------------------
+@MESSAGE_COM336
+PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に膝枕した
+
+SELECTCASE ABL:TARGET:親密
+	CASE IS < 5
+		PRINTFORML %CALLNAME:TARGET%は居心地悪そうにしている…
+	CASE 5 TO 9
+		PRINTFORML %CALLNAME:TARGET%は気恥ずかしそうだ……
+	CASEELSE
+		PRINTFORML %CALLNAME:TARGET%は幸せそうだ……
+ENDSELECT
+
+IF TFLAG:193 > 0
+	PRINTFORML 気持ちよかったのか、%CALLNAME:TARGET%はそのままうたた寝してしまった
+	PRINTFORML %CALLNAME:MASTER%は%CALLNAME:TARGET%が起きるまで寝顔を眺めて過ごした
+ENDIF
+
+TFLAG:400 = RAND:2
+SIF TFLAG:400 && (DATE_HITOGOMI() || WITH_MOB() == 9)
+	CALL DATE_HITOGOMI_MESSAGE(CFLAG:PLAYER:現在位置)
+
+;-------------------------------------------------
+;337,子供とふれあう
+;-------------------------------------------------
+@MESSAGE_COM337
+#DIM CHARA
+#DIM CHILDNUM
+#DIMS 子供の名前
+;自立後
+IF TFLAG:描写中の子供 > 1000
+	CHARA = TFLAG:描写中の子供 % 1000
+	CHILDNUM = TFLAG:描写中の子供 / 1000
+;育児中
+ELSE
+	CHARA = TFLAG:描写中の子供
+	CHILDNUM = TALENT:CHARA:育児中
+ENDIF
+子供の名前 = %CHILDNAME:CHARA:CHILDNUM%
+
+SELECTCASE CHILD_ACT:CHARA:CHILDNUM
+CASE "睡眠"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が眠っている%子供の名前%に手を伸ばそうとすると
+		PRINTFORML %CALLNAME:CHARA%にその手をはたき落とされた……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:MASTER%は眠っている%子供の名前%を優しく撫でた
+		PRINTFORML %CALLNAME:CHARA%が不安げな顔でその様子を窺っている……
+	ELSE
+		IF CFLAG:CHARA:出産経過日 < CHILD_語彙
+			PRINTFORML %CALLNAME:MASTER%は眠っている%子供の名前%の頬を優しく撫でた
+			PRINTDATA
+				DATAFORM %子供の名前%は静かに寝息を立てている
+				DATAFORM %子供の名前%の暖かな温もりが伝わってくる
+				DATAFORM %子供の名前%は喜んでいるように見える
+				DATAFORM %子供の名前%の柔らかい肌の感触に癒やされた
+				DATAFORM %子供の名前%は指を咥えようとしてきた
+				DATAFORM %CALLNAME:CHARA%はその手を重ねて優しく微笑んだ
+				DATAFORM %CALLNAME:CHARA%と仄かな愛の温もりを分かち合った
+			ENDDATA
+			PRINTL 
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%は眠っている%子供の名前%を優しく撫でた
+			PRINTFORML %子供の名前%は静かに寝息を立てている
+		ENDIF
+	ENDIF
+CASE "起床"
+	IF CFLAG:CHARA:出産経過日 < CHILD_語彙
+		IF TFLAG:193 == -1
+			PRINTFORML %CALLNAME:MASTER%が%子供の名前%をあやそうとすると
+			PRINTFORML %CALLNAME:CHARA%にその手をはたき落とされた……
+		ELSEIF TFLAG:193 == 1
+			PRINTFORML %CALLNAME:MASTER%は目を覚ました%子供の名前%をあやした
+			PRINTFORML %CALLNAME:CHARA%が不安げな顔でその様子を窺っている……
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%は目を覚まして泣きじゃくる%子供の名前%をあやした
+			PRINTDATA
+				DATAFORM %子供の名前%はお腹を空かせているようだ……
+				DATAFORM %子供の名前%はおっぱいが飲みたいようだ……
+				DATAFORM %子供の名前%は%CALLNAME:CHARA%を求めているようだ……
+			ENDDATA
+			PRINTL 
+		ENDIF
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%におはようの挨拶をした
+		IF TFLAG:193 == -1
+			PRINTFORML %子供の名前%は眠たそうに返事をした
+		ELSEIF TFLAG:193 == 1
+			PRINTFORML %子供の名前%は元気に挨拶を返した
+		ELSE
+			PRINTDATA
+				DATAFORM %子供の名前%は元気に挨拶を返した
+				DATAFORM %子供の名前%は%CALLNAME:MASTER%にもたれかかってきた
+				DATAFORM %子供の名前%は眠たそうに返事をした
+				DATAFORM %子供の名前%は飛び起きて挨拶をした
+				DATAFORM %子供の名前%はあくびをしながら挨拶を返した
+			ENDDATA
+			PRINTL 
+		ENDIF
+	ENDIF
+CASE "入浴"
+	IF CFLAG:CHARA:出産経過日 < CHILD_語彙
+		;このへん状況的にありえるのだろうか……？
+		IF TFLAG:193 == -1
+			PRINTFORML %CALLNAME:MASTER%が%子供の名前%の身体を洗おうとすると
+			PRINTFORML %CALLNAME:CHARA%にその手をはたき落とされた……
+		ELSEIF TFLAG:193 == 1
+			PRINTFORML %CALLNAME:MASTER%は%子供の名前%の身体を洗った
+			PRINTFORML %CALLNAME:CHARA%が不安げな顔でその様子を窺っている……
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%は%子供の名前%の身体を洗った
+			PRINTDATA
+				DATAFORM %子供の名前%はくすぐったそうにしている
+				DATAFORM %子供の名前%はじっとこちらを見つめている
+				DATAFORM %子供の名前%は不安そうに%CALLNAME:CHARA%の方を見ている
+				DATAFORM %子供の名前%は手足をばたつかせている
+				DATAFORM %子供の名前%はリラックスしている
+			ENDDATA
+			PRINTL 
+		ENDIF
+	ELSE
+		IF TFLAG:193 == -1
+			PRINTFORML %CALLNAME:MASTER%が%子供の名前%の身体を洗おうとすると
+			PRINTFORML %CALLNAME:CHARA%にその手をはたき落とされた……
+		ELSEIF TFLAG:193 == 1
+			PRINTFORML %CALLNAME:MASTER%は%子供の名前%の身体を洗った
+			PRINTFORML %CALLNAME:CHARA%が不安げな顔でその様子を窺っている……
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%は%子供の名前%の身体を洗った
+			PRINTDATA
+				DATAFORM %子供の名前%はくすぐったそうにしている
+				DATAFORM %子供の名前%は楽しそうにはしゃいでいる
+				DATAFORM %子供の名前%は石鹸の泡を撒き散らして遊んでいる
+				DATAFORM %子供の名前%は真似をして%CALLNAME:CHARA%の身体を洗っている
+			ENDDATA
+			PRINTL 
+		ENDIF
+	ENDIF
+CASE "食事"
+	IF CFLAG:CHARA:出産経過日 < CHILD_離乳
+		IF TFLAG:193 == -1
+			PRINTFORML %CALLNAME:MASTER%が%子供の名前%に手を伸ばそうとすると
+			PRINTFORML %CALLNAME:CHARA%は守るように%子供の名前%の身を隠し、こちらを睨みつけた……
+		ELSEIF TFLAG:193 == 1
+			PRINTFORML %CALLNAME:MASTER%が%子供の名前%の頭を撫でようとすると
+			PRINTFORML %CALLNAME:CHARA%は鋭い目つきで睨みつけ、%子供の名前%の身を隠した……
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%はおっぱいを吸う%子供の名前%の頭を撫でた
+			PRINTDATA
+				DATAFORM %子供の名前%は夢中になって乳を吸っている
+				DATAFORM %子供の名前%はゆっくりと乳を吸っている
+				DATAFORM %子供の名前%は大人しく乳を吸っている
+				DATAFORM %CALLNAME:CHARA%は照れながら笑みを浮かべている
+				DATAFORM %CALLNAME:CHARA%は愛情で包むように%子供の名前%身体を揺らした
+				DATAFORM %CALLNAME:CHARA%からは母性が伝わってくる
+			ENDDATA
+			PRINTL 
+		ENDIF
+	ELSEIF CFLAG:CHARA:出産経過日 < CHILD_語彙
+		IF TFLAG:193 == -1
+			PRINTFORML %CALLNAME:MASTER%が%子供の名前%と並んで食事を取ろうとすると
+			PRINTFORML %CALLNAME:CHARA%は鋭い目つきで睨みつけ、%子供の名前%の身を隠した……
+		ELSEIF TFLAG:193 == 1
+			PRINTFORML %CALLNAME:MASTER%は%子供の名前%と並んで食事を取った
+			PRINTFORML %CALLNAME:CHARA%が不安げな顔でその様子を窺っている……
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%と%CALLNAME:CHARA%は%子供の名前%を囲んで食事を取った
+			PRINTDATA
+				DATAFORM %子供の名前%は無心で口に食事を入れられている
+				DATAFORM %子供の名前%は時折自分で食事を口に咥えようとしている
+				DATAFORM %子供の名前%はじっくり味わうかのように咀嚼している
+				DATAFORM %子供の名前%は口をあんぐり開けて食事を請いている
+				DATAFORM %CALLNAME:CHARA%はゆっくりと%子供の名前%の口に食事を運んでいる
+				DATAFORM %CALLNAME:CHARA%はあーんと口を開けて%子供の名前%に真似をさせている
+				DATAFORM %CALLNAME:CHARA%は口をむぐむぐさせて%子供の名前%に真似をさせている
+			ENDDATA
+			PRINTL 
+		ENDIF
+	ELSE
+		IF TFLAG:193 == -1
+			PRINTFORML %CALLNAME:MASTER%が%子供の名前%と並んで食事を取ろうとすると
+			PRINTFORML %CALLNAME:CHARA%は鋭い目つきで睨みつけ、%子供の名前%の身を隠した……
+		ELSEIF TFLAG:193 == 1
+			PRINTFORML %CALLNAME:MASTER%は%子供の名前%と並んで食事を取った
+			PRINTFORML %子供の名前%は不思議そうにこちらを窺いながら食事をとっている
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%は%子供の名前%と一緒に食事を取った
+			PRINTDATA
+				DATAFORM %子供の名前%は夢中で食事を取っている
+				DATAFORM %子供の名前%はたどたどしく食事を取っている
+				DATAFORM %子供の名前%は好物を最後に残して食べている
+				DATAFORM %子供の名前%は自分の好きな食べ物を教えてくれた
+				DATAFORM %子供の名前%はさり気なく野菜を残そうとしている……
+				DATAFORM %子供の名前%は食べているものの名前を聞いてきた
+				DATAFORM %CALLNAME:MASTER%は%子供の名前%に食事のマナーを躾けた
+				DATAFORM %CALLNAME:MASTER%は%子供の名前%にお箸の持ち方を教えた
+				DATAFORM %CALLNAME:MASTER%は%子供の名前%に味の違いを教えた
+			ENDDATA
+			PRINTL 
+		ENDIF
+	ENDIF
+CASE "玩具"
+	IF CFLAG:CHARA:出産経過日 < CHILD_自立前
+		IF TFLAG:193 <= 1
+			PRINTFORML %CALLNAME:MASTER%は%子供の名前%と玩具で遊んだ
+			PRINTFORML %子供の名前%は無邪気にはしゃいでいる
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%は%子供の名前%と玩具で遊んだ
+			PRINTDATA
+				DATAFORM %子供の名前%は楽しそうにはしゃいでいる
+				DATAFORM %子供の名前%は玩具をぶつけて遊んでいる
+				DATAFORM %子供の名前%は玩具を転がして遊んでいる
+				DATAFORM %子供の名前%は玩具を振り回してはしゃいでいる
+				DATAFORM %子供の名前%は玩具を投げてはしゃいでいる
+			ENDDATA
+			PRINTL 
+		ENDIF
+	ELSE
+		IF TFLAG:193 <= 1
+			PRINTFORML %CALLNAME:MASTER%は%子供の名前%と話をした
+			PRINTFORML あまり話は続かなかった……
+		ELSE
+			PRINTFORML %CALLNAME:MASTER%は%子供の名前%と話をした
+			PRINTFORML %子供の名前%は玩具の思い出を語ってくれた
+		ENDIF
+	ENDIF
+CASE "お絵かき"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%とお絵描きして遊んだ
+	PRINTDATA
+		DATAFORM %子供の名前%は%CALLNAME:CHARA%の絵を描いている
+		DATAFORM %子供の名前%は%CALLNAME:MASTER%の絵を描いている
+		DATAFORM %子供の名前%は妖怪の絵を描いている
+		DATAFORM %子供の名前%は果物の絵を描いている
+		DATAFORM %子供の名前%は動物の絵を描いている
+		DATAFORM %子供の名前%は山の絵を描いている
+		DATAFORM %子供の名前%は家の絵を描いている
+		DATAFORM %子供の名前%は自分の絵を描いている
+	ENDDATA
+	PRINTL 
+CASE "遊び"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%と遊ぼうとした
+		PRINTFORML %子供の名前%は一人で遊びたいようだ……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%と遊んだ
+		PRINTFORML %子供の名前%は無邪気にはしゃいでいる
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%と弾幕ごっこの真似事をした
+		PRINTDATA
+			DATAFORM %子供の名前%は元気にはしゃいでいる
+			DATAFORM %子供の名前%は必殺のスペルカードを考えている
+			DATAFORM %子供の名前%は%CALLNAME:CHARA%の弾幕を真似ている
+			DATAFORM %子供の名前%はグレイズごっこをしている
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%と%CALLNAME:CHARA%でどっちが強いのか聞いてきた
+			DATAFORM %子供の名前%はボールを放り投げてきた
+			DATAFORM %子供の名前%は体当りと称して抱きついてきた
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "勉強"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%の勉強を手伝ってあげた
+	IF TFLAG:193 == -1
+		PRINTFORML %子供の名前%は黙々と机に向かっている
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %子供の名前%は%CALLNAME:MASTER%にお礼を言って勉強を続けた
+	ELSE
+		PRINTDATA
+			DATAFORM %子供の名前%は判らないところを聞いてきた
+			DATAFORM %子供の名前%はスラスラと問題を解いていった
+			DATAFORM %子供の名前%はあっという間にノートを埋め尽くしてしまった
+			DATAFORM %子供の名前%と問題を出し合って盛り上がった
+			DATAFORM %CALLNAME:MASTER%でも判らない問題を一緒に解いた
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "読書"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%と本の話をした
+	IF TFLAG:193 == -1
+		PRINTFORML %子供の名前%は無視して本を読んでいる……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %子供の名前%はたどたどしく答えた
+	ELSE
+		PRINTDATA
+			DATAFORM %子供の名前%は好きな登場人物について語ってくれた
+			DATAFORM %子供の名前%は好きなシーンを熱く語ってくれた
+			DATAFORM %子供の名前%は話のおかしなところを指摘した
+			DATAFORM %子供の名前%は疑問に思ったことを尋ねてきた
+			DATAFORM %子供の名前%は読めない文字を聞いてきた
+			DATAFORM %子供の名前%は本の感想を語ってくれた
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "料理"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%の料理を手伝おうとした
+		PRINTFORML %子供の名前%は無視して黙々と作業を続けている……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%の料理を手伝った
+		PRINTFORML %子供の名前%は不思議そうな顔で料理を続けた
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%の料理を手伝った
+		PRINTDATA
+			DATAFORM %子供の名前%にレシピの読み方を教えた
+			DATAFORM %子供の名前%に道具の扱い方を教えた
+			DATAFORM %子供の名前%に料理の手順を教えた
+			DATAFORM %子供の名前%に皮むきのやり方を教えた
+			DATAFORM %子供の名前%には危ない作業を代わりにこなした
+			DATAFORM %子供の名前%に食材の名前を教えた
+			DATAFORM %子供の名前%に調味料の事を教えた
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "絵描き"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%と絵の話をした
+	IF TFLAG:193 == -1
+		PRINTFORML %子供の名前%は無視して絵を描いている……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %子供の名前%はたどたどしく答えた
+	ELSE
+		PRINTDATA
+			DATAFORM %子供の名前%は描きたいものの話をしてくれた
+			DATAFORM %子供の名前%は描いている絵の話をしてくれた
+			DATAFORM %子供の名前%は妖怪の姿について尋ねてきた
+			DATAFORM %子供の名前%は動物の姿について尋ねてきた
+			DATAFORM %子供の名前%は何を描いてると思うか尋ねてきた
+			DATAFORM %子供の名前%は外の世界について聞いてきた
+			DATAFORM %子供の名前%は夢で見た景色について語ってくれた
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "歌唱"
+	IF GROUPMATCH(1, MUSIC_ABLE(30), MUSIC_ABLE(31), MUSIC_ABLE(32), MUSIC_ABLE(33), MUSIC_ABLE(34), MUSIC_ABLE(35))
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%の歌に合わせて伴奏した
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%と一緒に歌った
+	ENDIF
+	IF TFLAG:193 == -1
+		PRINTFORML %子供の名前%は一人で歌いたいようだ……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %子供の名前%はぎこちなく合わせて歌ってくれた
+	ELSE
+		PRINTDATA
+			DATAFORM %子供の名前%は張り切って歌い出した
+			DATAFORM %子供の名前%は声量を上げて歌い出した
+			DATAFORM %子供の名前%はパフォーマンスの真似事をしながら歌った
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%の真似をしながら歌った
+			DATAFORM %子供の名前%は踊りながら歌い出した
+			DATAFORM %子供の名前%は笑顔で歌った
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "掃除"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%の掃除を手伝おうとした
+		PRINTFORML %子供の名前%は無視して黙々と作業を続けている……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%の掃除を手伝った
+		PRINTFORML %子供の名前%は不思議そうな顔で掃除を続けた
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%の掃除を手伝った
+		PRINTDATA
+			DATAFORM %子供の名前%はガラクタを大事そうに整理した
+			DATAFORM %子供の名前%は失くした筆記用具を探している
+			DATAFORM %子供の名前%はゴミ箱を漁っている
+			DATAFORM %子供の名前%は雑巾で部屋をビショビショにした……
+			DATAFORM %子供の名前%に効率的な掃除の手順を教えた
+			DATAFORM %子供の名前%に箒とちりとりの使い方を教えた
+			DATAFORM %子供の名前%に雑巾がけのやり方を教えた
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "支度"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%と寺子屋の話をした
+	IF TFLAG:193 == -1
+		PRINTFORML %子供の名前%は無視して黙々と作業を続けている……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %子供の名前%はたどたどしく答えた
+	ELSE
+		PRINTFORML %子供の名前%は今日の時間割の話をしてくれた
+	ENDIF
+CASE "登校"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%にいってらっしゃいの挨拶をした
+	IF TFLAG:193 == -1
+		PRINTFORML %子供の名前%は返事をしてくれなかった……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %子供の名前%は小さく返事をした
+	ELSE
+		PRINTFORML %子供の名前%は元気に返事をした
+	ENDIF
+CASE "授業"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%の授業を見守った
+	PRINTDATA
+		DATAFORM %子供の名前%は同級生と話している
+		DATAFORM %子供の名前%は同級生と遊んでいる
+		DATAFORM %子供の名前%は問題を解いている
+		DATAFORM %子供の名前%は質問している
+		DATAFORM %子供の名前%は張り切って手を挙げている
+		DATAFORM %子供の名前%はみんなの前に立っている
+		DATAFORM %子供の名前%は外の景色を眺めている
+		DATAFORM %子供の名前%は朗読している
+		DATAFORM %子供の名前%は計算している
+		DATAFORM %子供の名前%は先生の話を聞いている
+		DATAFORM %子供の名前%は考え事をしている
+		DATAFORM %子供の名前%は叱られている……
+		DATAFORM %子供の名前%は寝ている……
+	ENDDATA
+	PRINTL 
+CASE "帰宅"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%におかえりの挨拶をした
+	IF TFLAG:193 == -1
+		PRINTFORML %子供の名前%は返事をしてくれなかった……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %子供の名前%は小さく返事をした
+	ELSE
+		PRINTFORML %子供の名前%は元気に返事をした
+	ENDIF
+;仕事と散歩は自立後
+CASE "仕事"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%に話しかけた
+	IF TFLAG:193 == -1
+		PRINTFORML %子供の名前%は%CALLNAME:MASTER%の事を覚えていないようだった……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %子供の名前%は%CALLNAME:MASTER%の事をあまり快く思っていないようだった……
+	ELSE
+		PRINTDATA
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%の来訪を喜んでくれた
+			DATAFORM %子供の名前%は再会を喜び抱きついてきた
+			DATAFORM %子供の名前%はまた来てほしいとねだってきた
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%の噂について尋ねてきた
+			DATAFORM %子供の名前%は%CALLNAME:CHARA%の様子を尋ねてきた
+			DATAFORM %子供の名前%と世間話をした
+			DATAFORM %子供の名前%と最近の景気について話をした
+			DATAFORM %子供の名前%は今の生活について話してくれた
+			DATAFORM %子供の名前%は順調に仕事をこなせているようだ
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%が何の仕事をしているか不思議そうに尋ねてきた
+			DATAFORM %子供の名前%は一人暮らしの辛さと快適さについて話してくれた
+			DATAFORM %子供の名前%は尊敬する上司の話をしてくれた
+			DATAFORM %子供の名前%は将来の夢について語ってくれた
+			DATAFORM %子供の名前%は仕事の忙しさについて話してくれた
+			DATAFORM %子供の名前%は仕事の過酷さについて話してくれた
+			DATAFORM %子供の名前%は仕事のやりがいを語ってくれた
+			DATAFORM %子供の名前%は今の仕事風景を見せてくれた
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "散歩"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%に話しかけた
+	IF TFLAG:193 == -1
+		PRINTFORML %子供の名前%は%CALLNAME:MASTER%の事を覚えていないようだった……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %子供の名前%は%CALLNAME:MASTER%の事をあまり快く思っていないようだった……
+	ELSE
+		PRINTDATA
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%の来訪を喜んでくれた
+			DATAFORM %子供の名前%は再会を喜び抱きついてきた
+			DATAFORM %子供の名前%はまた来てほしいとねだってきた
+			DATAFORM %子供の名前%は一緒に遊ぼうと誘ってきた
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%の噂について尋ねてきた
+			DATAFORM %子供の名前%は%CALLNAME:CHARA%の様子を尋ねてきた
+			DATAFORM %子供の名前%と世間話をした
+			DATAFORM %子供の名前%と最近の景気について話をした
+			DATAFORM %子供の名前%は今の生活について話してくれた
+			DATAFORM %子供の名前%と思い出話に花を咲かせた
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%と%CALLNAME:CHARA%の馴れ初めについて尋ねてきた
+			DATAFORM %子供の名前%は気になってる人の話をしてきた……
+			DATAFORM %子供の名前%は最近の趣味ついて話してくれた
+			DATAFORM %子供の名前%と弾幕ごっこについて熱く語り合った
+			DATAFORM %子供の名前%は最近読んだ本について話してくれた
+			DATAFORM %子供の名前%は将来の夢について語ってくれた
+			DATAFORM %子供の名前%は%CALLNAME:CHARA%との思い出を語ってくれた
+			DATAFORM %子供の名前%は%CALLNAME:CHARA%と今どうしてるか尋ねてきた
+			DATAFORM %子供の名前%は友達の話をしてくれた
+			DATAFORM %子供の名前%は仕事の話をしてくれた
+			DATAFORM %子供の名前%はオリジナルの自炊料理を紹介してくれた
+			DATAFORM %子供の名前%は外の世界への憧れを語った
+			DATAFORM %子供の名前%は種族の違いについての悩みを打ち明けてくれた
+			DATAFORM %子供の名前%は最近の悩み事について語ってくれた
+			DATAFORM %子供の名前%と家族の話をした
+			DATAFORM %子供の名前%は一人暮らしの秘訣を教えてくれた
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%の身体を気遣ってくれた
+			DATAFORM %子供の名前%は%CALLNAME:CHARA%とも会いたいようだ
+			DATAFORM %子供の名前%は昔から思っていた疑問について尋ねてきた
+			DATAFORM %子供の名前%は自分の出生について尋ねてきた
+		ENDDATA
+		PRINTL 
+	ENDIF
+;以降はその他の行動,一部はCHARAと同室限定
+CASE "幼児期_抱かれる", "幼児期_眠たそう", "幼児期_大人しい"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が抱かれている%子供の名前%に手を伸ばそうとすると
+		PRINTFORML %CALLNAME:CHARA%にその手をはたき落とされた……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:MASTER%は抱かれている%子供の名前%を優しく撫でた
+		PRINTFORML %CALLNAME:CHARA%が不安げな顔でその様子を窺っている……
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は抱かれている%子供の名前%を優しく撫でた
+		PRINTDATA
+			DATAFORM %子供の名前%は喜びはしゃいでいる
+			DATAFORM %子供の名前%は口元を緩めて微笑んだ
+			DATAFORM %子供の名前%は手を伸ばして%CALLNAME:MASTER%の手を掴もうとしてきた
+			DATAFORM %子供の名前%はニコニコと笑っている
+			DATAFORM %子供の名前%は目を閉じてじっとしている
+			DATAFORM %子供の名前%は手の動きを追いかけている
+			DATAFORM %子供の名前%は眠そうにしている
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "幼児期_こちらを見る", "幼児期_何かを訴える"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が抱かれている%子供の名前%に手を伸ばそうとすると
+		PRINTFORML %CALLNAME:CHARA%にその手をはたき落とされた……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:MASTER%は抱かれている%子供の名前%をあやした
+		PRINTFORML %CALLNAME:CHARA%が不安げな顔でその様子を窺っている……
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は抱かれている%子供の名前%をあやした
+		PRINTDATA
+			DATAFORM %子供の名前%はじーっとこちらを見つめている
+			DATAFORM %子供の名前%は手をばたつかせている
+			DATAFORM %子供の名前%は泣き出しそうだ……
+			DATAFORM %子供の名前%は機嫌が悪そうだ……
+			DATAFORM %CALLNAME:CHARA%がその様子を見て笑っている
+			DATAFORM %CALLNAME:CHARA%が正しいあやし方の手本を見せてくれた
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "幼児期_何かを目で追う"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%の視線の先を辿ってみたが、何もない空間だった……
+CASE "幼児期_あやされる"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が%子供の名前%をあやそうとすると
+		PRINTFORML %CALLNAME:CHARA%にその手をはたき落とされた……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:MASTER%は抱かれている%子供の名前%をあやした
+		PRINTFORML %CALLNAME:CHARA%が不安げな顔でその様子を窺っている……
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は%CALLNAME:CHARA%に倣って%子供の名前%をあやした
+		PRINTDATA
+			DATAFORM %子供の名前%はキャッキャと笑っている
+			DATAFORM %子供の名前%は手を振ってはしゃいでいる
+			DATAFORM %子供の名前%は全身で喜びを表現している
+			DATAFORM %子供の名前%はご機嫌だ
+			DATAFORM %CALLNAME:CHARA%がその様子を見て笑っている
+			DATAFORM %CALLNAME:CHARA%も一緒になった%子供の名前%をあやした
+		ENDDATA
+		PRINTL 
+	ENDIF
+
+CASE "幼少期_会話"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が聞き耳を立てていると%CALLNAME:CHARA%に睨まれた……
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は二人の話に混ざった
+		PRINTDATA
+			DATAFORM %子供の名前%は楽しそうに話している
+			DATAFORM %子供の名前%はたどたどしく話をしている
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%の話をしている
+			DATAFORM %子供の名前%は%CALLNAME:CHARA%の話をしている
+			DATAFORM %子供の名前%は二人に疑問を投げかけてきた
+			DATAFORM %子供の名前%は自分の思っていることを話そうとしている
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "幼少期_教わる", "幼少期_しつけられる"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が聞き耳を立てていると%CALLNAME:CHARA%に睨まれた……
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は二人の様子を窺った
+		PRINTDATA
+			DATAFORM %CALLNAME:CHARA%は礼節について説いている
+			DATAFORM %CALLNAME:CHARA%は善悪について説いている
+			DATAFORM %CALLNAME:CHARA%はルールについて説いている
+			DATAFORM %CALLNAME:CHARA%は物の名前を教えている
+			DATAFORM %CALLNAME:CHARA%は言葉を教えている
+			DATAFORM %CALLNAME:CHARA%はひたすら質問をされて焦っている……
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "幼少期_親子遊び"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が遊びに混ざろうとすると%CALLNAME:CHARA%に睨まれた……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:MASTER%は二人の遊びに混ざった
+		PRINTFORML %子供の名前%は楽しそうにはしゃいでいる
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は二人の遊びに混ざった
+		PRINTDATA
+			DATAFORM %子供の名前%は楽しそうにはしゃいでいる
+			DATAFORM %子供の名前%は元気に駆け回っている
+			DATAFORM %子供の名前%は%CALLNAME:CHARA%に抱きついている
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%から逃げ回っている
+			DATAFORM 三人で和やかな一時を過ごした……
+			DATAFORM 三人で笑い合いながら幸せな空気に包まれた……
+			DATAFORM 三人で手を繋いで家族愛を分かち合った……
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "幼少期_一人遊び", "幼少期_はしゃぐ", "幼少期_うろちょろ", "幼少期_うずうず", "幼少期_遊ぼう", "幼少期_ぺたぺた", "幼少期_かまって"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%と遊ぼうとした
+		PRINTFORML %子供の名前%は恥ずかしがって隠れてしまった……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%と遊んだ
+		PRINTFORML %子供の名前%は無邪気にはしゃいでいる
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%と遊んであげた
+		PRINTDATA
+			DATAFORM %子供の名前%は元気にはしゃいでいる
+			DATAFORM %子供の名前%はニコニコ笑っている
+			DATAFORM %子供の名前%は遊んでもらって楽しそうだ
+			DATAFORM %子供の名前%は歓んで跳ねている
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%に抱きついてきた
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%の腕にしがみついてきた
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%の身体に登ってきた
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%の顔を弄り倒した
+			DATAFORM %子供の名前%とお馬さんごっこをして盛り上がった
+			DATAFORM %子供の名前%とジェスチャーゲームをして盛り上がった
+			DATAFORM %子供の名前%と指相撲をして盛り上がった
+			DATAFORM %子供の名前%とリズムゲームをして盛り上がった
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "幼少期_大人しい", "幼少期_考え事", "幼少期_眠そう", "幼少期_見つめる"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%とお話をした
+	IF TFLAG:193 == -1
+		PRINTFORML %子供の名前%は興味なさそうだ……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %子供の名前%はたどたどしく話している
+	ELSE
+		PRINTDATA
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%に質問を投げかけてきた
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%に難しい疑問を投げかけてきた
+			DATAFORM %子供の名前%は%CALLNAME:CHARA%の事を尋ねてきた
+			DATAFORM %子供の名前%は好きなものの事を教えてくれた
+			DATAFORM %子供の名前%は嫌いなものの事を教えてくれた
+			DATAFORM %子供の名前%は%CALLNAME:CHARA%の好きなところを教えてくれた
+			DATAFORM %子供の名前%となぞなぞをして盛り上がった
+			DATAFORM %子供の名前%と言葉遊びをして盛り上がった
+			DATAFORM %子供の名前%は自分の思っていることを話そうとしている
+		ENDDATA
+		PRINTL 
+	ENDIF
+
+CASE "自立前_会話", "自立前_笑い合う"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が聞き耳を立てていると%CALLNAME:CHARA%に睨まれた……
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は二人の話に混ざった
+		PRINTDATA
+			DATAFORM %子供の名前%は楽しそうに話している
+			DATAFORM %子供の名前%は流暢に話をしている
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%の話をしている
+			DATAFORM %子供の名前%は%CALLNAME:CHARA%の話をしている
+			DATAFORM %子供の名前%は二人に疑問を投げかけてきた
+			DATAFORM %子供の名前%は友達の話をしている
+			DATAFORM %子供の名前%は何処で知ったか判らない言葉を使っている……
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "自立前_教わる", "自立前_しつけられる"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が聞き耳を立てていると%CALLNAME:CHARA%に睨まれた……
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は二人の様子を窺った
+		PRINTDATA
+			DATAFORM %CALLNAME:CHARA%は少し怒った様子で説いている
+			DATAFORM %CALLNAME:CHARA%は家事を教えている
+			DATAFORM %CALLNAME:CHARA%は仕事を教えている
+			DATAFORM %CALLNAME:CHARA%は大事なことについて説いている
+			DATAFORM %CALLNAME:CHARA%は難しい言葉を教えている
+			DATAFORM %CALLNAME:CHARA%は歴史を教えている
+			DATAFORM %CALLNAME:CHARA%は種族について説いている
+			DATAFORM %CALLNAME:CHARA%は弾幕ごっこを教えている
+			DATAFORM %CALLNAME:CHARA%は難しい問いかけをしている
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "自立前_ひそひそ話"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が聞き耳を立てていると
+		PRINTFORML %CALLNAME:CHARA%は咄嗟に%子供の名前%の身を隠した……
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は二人の様子を窺った
+		PRINTDATA
+			DATAFORM %子供の名前%と%CALLNAME:CHARA%は微笑んでこちらに手を振っている
+			DATAFORM %子供の名前%と%CALLNAME:CHARA%は笑ってこちらに指を指している
+			DATAFORM %子供の名前%と%CALLNAME:CHARA%はニヤニヤしながら身を翻した
+			DATAFORM %子供の名前%は慌てて何かを隠した……
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "自立前_文句", "自立前_主張"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が聞き耳を立てていると%CALLNAME:CHARA%に睨まれた……
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%の意見を聞いてあげた
+		PRINTDATA
+			DATAFORM %子供の名前%はやりたいことがあるようだ
+			DATAFORM %子供の名前%は家庭のルールに文句があるようだ
+			DATAFORM %子供の名前%は門限を伸ばしてほしいようだ
+			DATAFORM %子供の名前%は自分の部屋が欲しいようだ
+			DATAFORM %子供の名前%は買って欲しいものがあるようだ
+			DATAFORM %子供の名前%は失くしたものがあるようだ
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "自立前_教えて"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が聞き耳を立てていると%CALLNAME:CHARA%に睨まれた……
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%の話を聞いてあげた
+		PRINTDATA
+			DATAFORM %子供の名前%は難しい言葉の意味を聞いてきた
+			DATAFORM %子供の名前%は昔の出来事について尋ねてきた
+			DATAFORM %子供の名前%はおいしい料理の作り方を聞いてきた
+			DATAFORM %子供の名前%は上手な絵の描き方を聞いてきた
+			DATAFORM %子供の名前%は楽器の使い方を聞いてきた
+			DATAFORM %子供の名前%は最も効率の良い掃除のやり方を聞いてきた
+			DATAFORM %子供の名前%は弾幕ごっこの上達手段を聞いてきた
+			DATAFORM %子供の名前%は道具の原理について聞いてきた
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "自立前_手伝い"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%が二人の様子を窺おうとすると%CALLNAME:CHARA%に睨まれた……
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は二人の様子を窺った
+		PRINTDATA
+			DATAFORM %CALLNAME:CHARA%は%子供の名前%を褒めてあげている
+			DATAFORM %CALLNAME:CHARA%は%子供の名前%に手ほどきをしている
+			DATAFORM %子供の名前%はテキパキと手伝いをこなしている
+			DATAFORM %子供の名前%は楽しそうに手伝いをしている
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "自立前_一人遊び"
+	IF TFLAG:193 == -1
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%と遊ぼうとした
+		PRINTFORML %子供の名前%は恥ずかしがって隠れてしまった……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%と遊んだ
+		PRINTFORML %子供の名前%は無邪気にはしゃいでいる
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は%子供の名前%と遊んであげた
+		PRINTDATA
+			DATAFORM %子供の名前%は元気にはしゃいでいる
+			DATAFORM %子供の名前%はニコニコ笑っている
+			DATAFORM %子供の名前%は遊んでもらって楽しそうだ
+			DATAFORM %子供の名前%と推理ゲームをして盛り上がった
+			DATAFORM %子供の名前%とジェスチャーゲームをして盛り上がった
+			DATAFORM %子供の名前%と指相撲をして盛り上がった
+			DATAFORM %子供の名前%とリズムゲームをして盛り上がった
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASE "自立前_考え事", "自立前_眠そう", "自立前_話したい", "自立前_気にする", "自立前_遠慮", "自立前_睨む"
+	PRINTFORML %CALLNAME:MASTER%は%子供の名前%と話をした
+	IF TFLAG:193 == -1
+		PRINTFORML %子供の名前%は興味なさそうに相槌を打った……
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML %子供の名前%は恥ずかしそうに話をしてくれた
+	ELSE
+		PRINTDATA
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%に質問を投げかけてきた
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%に難しい疑問を投げかけてきた
+			DATAFORM %子供の名前%は%CALLNAME:CHARA%の事を尋ねてきた
+			DATAFORM %子供の名前%となぞなぞをして盛り上がった
+			DATAFORM %子供の名前%と言葉遊びをして盛り上がった
+			DATAFORM %子供の名前%は友達のことを話してくれた
+			DATAFORM %子供の名前%は寺子屋での出来事を話してくれた
+			DATAFORM %子供の名前%は悩み事を打ち明けてくれた
+			DATAFORM %子供の名前%と%CALLNAME:CHARA%の料理の話で盛り上がった
+			DATAFORM %子供の名前%と弾幕ごっこの話で盛り上がった
+			DATAFORM %子供の名前%は将来の夢について語ってくれた
+			DATAFORM %子供の名前%は寺子屋の流行りを教えてくれた
+			DATAFORM %子供の名前%は%CALLNAME:MASTER%の秘密について尋ねてきた
+			DATAFORM %子供の名前%は何処で知ったか判らない言葉を使っている……
+		ENDDATA
+		PRINTL 
+	ENDIF
+CASEELSE
+	PRINTFORML 例外の発生
+	PRINTFORML %CHILD_ACT:CHARA:CHILDNUM%
+	THROW
+ENDSELECT
+PRINTFORML 
+SIF TFLAG:描写中の子供 < 1000
+	PRINTFORML 愛情度 +1(%子供の名前%)
+
+;-------------------------------------------------
+;352,告白する
+;-------------------------------------------------
+@MESSAGE_COM352
+IF TFLAG:193
+	PRINTFORML %CALLNAME:PLAYER%は意を決して%CALLNAME:TARGET%に恋情を伝えた…
+ELSE
+	PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に告白しようとしたが言葉が口から出てこない…
+ENDIF
+
+;-------------------------------------------------
+;353,イタズラする
+;-------------------------------------------------
+@MESSAGE_COM353
+PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%を起こさぬようにゆっくりと近づいた…
+
+;-------------------------------------------------
+;354,添い寝する
+;-------------------------------------------------
+@MESSAGE_COM354
+PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の隣に横になった…
+IF CFLAG:TARGET:衰弱 || CFLAG:TARGET:お招き
+	PRINTFORML %CALLNAME:TARGET%は小さく身をよじった…
+ELSE
+	PRINTFORML %CALLNAME:TARGET%は目を覚ますと嬉しそうに%CALLNAME:PLAYER%を迎え入れた
+ENDIF
+
+;-------------------------------------------------
+;355,時間停止
+;-------------------------------------------------
+@MESSAGE_COM355
+PRINTFORML ザ・ワールド！！　時よ止まれ！
+
+;-------------------------------------------------
+;360,身を任せる
+;-------------------------------------------------
+@MESSAGE_COM360
+SELECTCASE TCVAR:20
+;	;谷間を見せる
+;	CASE 27
+;		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の谷間をじっくりと視姦した……
+	;キス
+	CASE 30
+		PRINTFORML %CALLNAME:PLAYER%は目を細め、僅かに唇を寄せて%CALLNAME:TARGET%に応えた……
+	;前から抱きつく
+	CASE 32
+		IF TALENT:TARGET:体型 > TALENT:PLAYER:体型
+			PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の谷間に顔を埋め、甘い香りを吸い込んだ……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%はもたれ掛かる%CALLNAME:TARGET%の体温を静かに感じ取った……
+		ENDIF
+	;胸を揉ませる
+	CASE 33
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の腕に従って、導かれるように%OPPAI_DESCRIPTION(TARGET)%を愛撫した……
+	;スカートの中を見せる
+	CASE 35
+;		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の形の良い尻をじっくりと観賞した……
+		IF TEQUIP:TARGET:50 == MASTER
+			PRINTFORML %CALLNAME:PLAYER%は生々しい結合部を見せられ、一層熱く滾らせた
+		ELSEIF !EQUIP:下半身下着２
+			PRINTFORML %CALLNAME:PLAYER%はスカートの幕から垣間見える背徳的な性器に釘付けになった……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は堂々と見せびらかされた%PANTSNAME(EQUIP:下半身下着２, TARGET)%をじっくりと観賞した……
+		ENDIF
+	;おねだり
+	CASE 40 TO 49
+		;実行不可
+;		PRINTFORML 
+	;手淫,胸愛撫
+	CASE 50, 58
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%と見つめ合いながら快楽に身を委ねた……
+	;フェラチオ、クンニ,乳首吸い
+	CASE 51, 59
+		PRINTFORML %CALLNAME:PLAYER%は熱心に奉仕する%CALLNAME:TARGET%の姿を見ながら快楽に身を委ねた……
+	;素股、貝合わせ,乳合わせ,挿入される
+	CASE 52, 74, 80, 83, 84, 90
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に身を任せ、二人で快楽に耽けた……
+	;パイズリ
+	CASE 53
+		PRINTFORML %CALLNAME:PLAYER%はパイズリしている%CALLNAME:TARGET%の頭を撫でてあげた
+		IF TALENT:TARGET:恋慕 || TALENT:TARGET:思慕
+			PRINTFORML %CALLNAME:TARGET%は嬉しそうに目を細め、より一層激しく胸で奉仕してきた……
+		ELSEIF TALENT:TARGET:愛欲 || TALENT:TARGET:セフレ
+			PRINTFORML %CALLNAME:TARGET%は苦笑して、より一層激しく胸で責め立てて来た……
+		ELSE
+			PRINTFORML %CALLNAME:TARGET%は照れくさそうに笑いながらペニスを扱いている……
+		ENDIF
+	;足コキ
+	CASE 54
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に屈服してだらしなく喘ぎ声をあげた……
+	;アナル愛撫,アナル舐め
+	CASE 55, 56
+		PRINTFORML %CALLNAME:PLAYER%は頬を赤らめて尻穴に受ける快感を堪能した……
+	;指挿入
+	CASE 57
+		IF TALENT:PLAYER:処女 && TALENT:PLAYER:処女 != -1
+			PRINTFORML %CALLNAME:PLAYER%は顔を強張らせながらも%CALLNAME:TARGET%に身を任せた……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%と見つめ合いながら快楽に身を委ねた……
+		ENDIF
+	;ディープキス
+	CASE 60
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に応えるように舌を絡ませ\@ TALENT:TARGET:恋慕 ? て、愛を確かめ合った…… # た…… \@
+	;クンニ強制,アナル奉仕
+	CASE 70, 72
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に従い、舌だけを使ってご奉仕した……
+	;フェラチオ強制
+	CASE 71
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に従い、%TINKO(TARGET)%をしゃぶってご奉仕した……
+	;ぱふぱふ
+	CASE 73
+		SELECTCASE RAND:3
+		CASE 0
+			PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の乳房に包まれて幸せな一時を過ごした……
+		CASE 1
+			PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の谷間に挟まれ、甘い香りを堪能した……
+		CASEELSE
+			PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に乳房に顔を擦り付けて甘えた……
+		ENDSELECT
+	;強制アソコ愛撫
+	CASE 76
+		IF TALENT:TARGET:処女
+			PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に従い、優しく指を滑らせた……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に従い、満足行くまで愛撫してあげた……
+		ENDIF
+	;乳を吸わせる
+	CASE 77
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の%NIPPLE_DESCRIPTION(TARGET)%のコリコリした感触を味わった……
+	;85=Ｖ挿入する 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ
+	CASE 85,87 TO 89
+		PRINTFORML %CALLNAME:TARGET%は必死に腰を振って%CALLNAME:PLAYER%に奉仕している……
+	;だいしゅきホールド
+	CASE 86
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に抱きつかれたまま膣肉の感触を楽しむ事にした
+		PRINTFORML 辺りに水音と肉がぶつかり合う音と%CALLNAME:TARGET%の喘ぎ声が響いている……
+	CASEELSE
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に身を任せた……
+ENDSELECT
+
+;-------------------------------------------------
+;361,抵抗する
+;-------------------------------------------------
+@MESSAGE_COM361
+SELECTCASE TCVAR:20
+	;キス
+	CASE 30
+		PRINTFORML %CALLNAME:PLAYER%は目を瞑ってさり気なく顎を引いた……
+	;後ろから抱きつく,前から抱きつく
+	CASE 31, 32
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%を振り解こうと藻掻いた……
+	;胸を揉ませる
+	CASE 33
+		PRINTFORML %CALLNAME:PLAYER%は顔を赤くして腕を引く方へ力を入れた……
+	;股間をまさぐる,手淫
+	CASE 34, 50
+		PRINTFORML %CALLNAME:PLAYER%は快感を我慢した……
+	;スカートの中を見せる
+	CASE 35
+		PRINTFORML %CALLNAME:PLAYER%は退屈そうに視線を外した……
+	;後ろから胸もみもみ,胸愛撫,乳首吸い
+	CASE 36, 58, 59
+		PRINTFORML %CALLNAME:PLAYER%は身体をくねらせて抵抗した……
+	;おねだり
+	CASE 40 TO 49
+		IF BASE:PLAYER:気力 <= MAXBASE:PLAYER:気力 / 3 || BASE:PLAYER:精力 <= MAXBASE:PLAYER:精力 / 3
+			PRINTFORML %CALLNAME:PLAYER%は疲れた様子で身を引いた……
+		ELSEIF CFLAG:MASTER:性格傾向 == 2
+			PRINTFORML %CALLNAME:PLAYER%はそんなんじゃダメだとおあずけした……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は我慢してくれとおあずけした……
+		ENDIF
+	;フェラチオ、クンニ
+	CASE 51
+		IF TALENT:MASTER:汚臭耐性 < 0
+			PRINTFORML %CALLNAME:PLAYER%は汚いからやめたほうがいいと抵抗した……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は必死に快感を我慢した……
+		ENDIF
+	;素股、貝合わせ,乳合わせ,挿入される,挿入する
+	CASE 52, 74, 80, 83, 84, 85, 87 TO 89, 90
+		PRINTFORML %CALLNAME:PLAYER%は必死に快感を我慢した……
+	;パイズリ
+	CASE 53
+		IF TALENT:TARGET:バストサイズ < 0 || ABL:TARGET:胸 < 2
+			PRINTFORML %CALLNAME:PLAYER%は頑張ってパイズリしている%CALLNAME:TARGET%を見つめながら無理しなくていいよと苦笑いすると、
+			PRINTFORM %CALLNAME:TARGET%は
+			IF CFLAG:TARGET:性格傾向 == 1 || CFLAG:TARGET:性格傾向 == 3
+				PRINTFORML 悲しそうに涙を浮かべた……
+			ELSEIF CFLAG:TARGET:性格傾向 == 2
+				PRINTFORML 悔しそうに奉仕を続けた……
+			ELSE
+				PRINTFORML 申し訳なさそうに落胆した……
+			ENDIF
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は顔を反らして快感を我慢した……
+		ENDIF
+	;足コキ
+	CASE 54
+		PRINTFORML %CALLNAME:PLAYER%は歯を食いしばって%CALLNAME:TARGET%に抵抗の眼差しを向けた……
+	;アナル愛撫,アナル舐め
+	CASE 55, 56
+		IF TALENT:MASTER:汚臭耐性 < 0
+			PRINTFORML %CALLNAME:PLAYER%は汚いからやめたほうがいいと抵抗した……
+		ELSEIF TALENT:MASTER:痛覚 > 0
+			PRINTFORML %CALLNAME:PLAYER%は痛い痛いと喚いた……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は必死に快感を我慢した……
+		ENDIF
+	;指挿入
+	CASE 57
+		IF TALENT:PLAYER:処女 && TALENT:PLAYER:処女 != -1
+			PRINTFORML %CALLNAME:PLAYER%は手で秘所を隠そうと必死に抵抗した……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は快感を我慢した……
+		ENDIF
+	;ディープキス
+	CASE 60
+		IF TALENT:MASTER:汚臭耐性 < 0
+			PRINTFORML %CALLNAME:PLAYER%は送られてくる唾液に嫌悪感を感じ苦い顔を浮かべた……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は舌に力を入れて小さく抵抗した……
+		ENDIF
+	;クンニ強制
+	CASE 70
+		IF TALENT:MASTER:汚臭耐性 < 0
+			PRINTFORML %CALLNAME:PLAYER%は押し付けられた%CALLNAME:TARGET%の秘所から背けようとした……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は気が乗らずにたどたどしく奉仕した……
+		ENDIF
+	;フェラチオ強制,アナル奉仕
+	CASE 71, 72
+		IF TALENT:MASTER:汚臭耐性 < 0
+			PRINTFORML %CALLNAME:PLAYER%は顔を歪めて嘔吐いた……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は気が乗らずにたどたどしく奉仕した……
+		ENDIF
+	;ぱふぱふ
+	CASE 73
+		IF TALENT:TARGET:バストサイズ < 0
+			PRINTFORML %CALLNAME:PLAYER%は無理しなくていいよと苦笑いすると、
+			PRINTFORM %CALLNAME:TARGET%は
+			IF CFLAG:TARGET:性格傾向 == 1 || CFLAG:TARGET:性格傾向 == 3
+				PRINTFORML 悲しそうに涙を浮かべた……
+			ELSEIF CFLAG:TARGET:性格傾向 == 2
+				PRINTFORML 悔しそうに胸を押し付けた……
+			ELSE
+				PRINTFORML 申し訳なさそうに落胆した……
+			ENDIF
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%はふるふると顔を振るった……
+		ENDIF
+	;タワシ洗い
+	CASE 75
+		PRINTFORML %CALLNAME:PLAYER%は退屈そうにした……
+	;強制アソコ愛撫
+	CASE 76
+		IF TALENT:TARGET:処女
+			PRINTFORML %CALLNAME:PLAYER%は大事にしたほうがいいと消極的に愛撫した……
+		ELSEIF TALENT:MASTER:汚臭耐性 < 0
+			PRINTFORML %CALLNAME:PLAYER%は愛液が付くことに抵抗を感じ、さり気なく指を逸した……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は気が乗らずにたどたどしく愛撫した……
+		ENDIF
+	;乳を吸わせる
+	CASE 77
+		PRINTFORML %CALLNAME:PLAYER%は気が乗らずに乳首を舐めるだけに留まった……
+	;尻ズリ
+	CASE 78
+		IF TALENT:MASTER:汚臭耐性 < 0
+			PRINTFORML %CALLNAME:PLAYER%はそっちは違うと抵抗した……
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%はそっちは違うんじゃないかとぼやいた……
+		ENDIF
+	;だいしゅきホールド
+	CASE 86
+		PRINTFORML イキそうになった%CALLNAME:PLAYER%は慌てて身体を解こうとするが、がっちりと掴まれており
+		PRINTFORML 抵抗も虚しく「ごめんなさい」と謝りながら%CALLNAME:TARGET%に精を搾取された……
+	CASEELSE
+		PRINTFORML %CALLNAME:PLAYER%は抵抗した……
+ENDSELECT
+
+;-------------------------------------------------
+;363,読み聞かせ
+;-------------------------------------------------
+@MESSAGE_COM363
+IF CFLAG:TARGET:添い寝中
+	PRINTFORML %CALLNAME:PLAYER%は\@ INROOM(CFLAG:MASTER:現在位置) == 2 ? ベッド # ふとん \@の中で本を読んでやった…
+;		SIF CFLAG:TARGET:睡眠
+;			PRINTFORML %CALLNAME:TARGET%は寝息をたてている…
+;ELSEIF CFLAG:MASTER:現在位置 == 9
+ELSEIF TALENT:MASTER:体型 > TALENT:TARGET:体型 && INROOM(CFLAG:MASTER:現在位置)
+	PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%を膝の上に乗せながら本を読んでやった…
+ELSE
+	PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%に本を読んでやった
+ENDIF
+
+;-------------------------------------------------
+;364,豆まき
+;-------------------------------------------------
+@MESSAGE_COM364
+SIF TFLAG:193 > 1
+	PRINT みんなで
+PRINTFORML %CALLNAME:TARGET%に豆をぶつけた
+PRINTW …
+PRINTW ……
+PRINTW ………福が来た気がする！
+
+
+;-------------------------------------------------
+;368,自由行動に付き合う
+;-------------------------------------------------
+@MESSAGE_COM368
+TRYCALLFORM 自由行動内容_{Activity_Type:TARGET}(TARGET, "付き合う")

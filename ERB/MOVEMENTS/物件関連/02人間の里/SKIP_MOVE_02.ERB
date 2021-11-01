@@ -1,0 +1,187 @@
+﻿@SKIP_MOVE_2(ARG:0,ARG:1)
+#DIM CONST 人里の門 = 201
+#DIM CONST 中央広場 = 202
+#DIM CONST 南通り = 203
+#DIM CONST 東通り = 204
+#DIM CONST 北通り = 205
+#DIM CONST 西通り = 206
+#DIM CONST 龍神像 = 207
+
+#DIM CONST 雷鼓の部屋 = 208
+#DIM CONST 八橋の部屋 = 209
+#DIM CONST 弁々の部屋 = 210
+
+
+#DIM CONST 酒屋 = 211
+#DIM CONST カフェ = 212
+#DIM CONST 鈴奈庵 = 213
+#DIM CONST 長屋前 = 214
+#DIM CONST 花屋 = 215
+#DIM CONST 食料品店 = 216
+#DIM CONST 甘味所 = 217
+#DIM CONST 小料理屋 = 218
+#DIM CONST 集会所 = 219
+#DIM CONST 物見櫓 = 220
+#DIM CONST 稗田邸 = 221
+#DIM CONST SPT寺子屋 = 222
+#DIM CONST 銭湯 = 223
+#DIM CONST 慧音宅 = 224
+#DIM CONST SPT連れ込み宿 = 225
+#DIM CONST 小鈴私室 = 226
+#DIM CONST 八百屋 = 227
+#DIM CONST 貸切浴場 = 228
+#DIM CONST 阿求私室 = 229
+
+#DIM CONST あなたの部屋 = 230
+#DIM CONST 蛮奇の部屋 = 231
+#DIM CONST 蓮子の部屋 = 232
+#DIM CONST メリーの部屋 = 233
+#DIM CONST ユキの部屋 = 234
+#DIM CONST マイの部屋 = 235
+#DIM CONST 共同便所 = 236
+#DIM CONST 共同井戸 = 237
+
+#DIM CONST 鯢呑亭 = 238
+#DIM CONST 美宵の部屋 = 239
+#DIM CONST 長屋空き部屋 = 241
+
+;LOCAL一覧
+;0	現在の位置
+
+;現在位置取得
+LOCAL = CFLAG:MASTER:現在位置
+SIF ARG:1
+	LOCAL = ARG:1
+
+;暫定目的地に直接移動できる場合
+IF CAN_MOVE(LOCAL, ARG) & 1
+	;そこに移動
+	RETURN ARG
+ENDIF
+
+;袋小路から行ける場所は固定なので、そこを目指す
+SELECTCASE LOCAL
+CASE 人里の門
+	RETURN 南通り
+CASE 酒屋, カフェ, 小料理屋
+	RETURN 南通り
+CASE 甘味所
+	RETURN 東通り
+CASE SPT連れ込み宿
+	RETURN 西通り
+CASE 小鈴私室
+	RETURN 鈴奈庵
+CASE 阿求私室
+	RETURN 稗田邸
+CASE 貸切浴場
+	RETURN 銭湯
+CASE あなたの部屋 TO 共同井戸, 雷鼓の部屋 TO 弁々の部屋, 長屋空き部屋
+	RETURN 長屋前
+CASE 美宵の部屋
+	RETURN 鯢呑亭
+ENDSELECT
+
+;PRINTFORML LOCALは{LOCAL}
+
+;直接移動できない場合、1つ近い位置を暫定目的地に設定し直してループ
+;地点追加時要フォロー（全ケース修正すること）
+SELECTCASE ARG
+	CASE 人里の門, 酒屋, カフェ, 小料理屋
+		RETURN 南通り
+	CASE 中央広場
+		SELECTCASE LOCAL
+		CASE 鈴奈庵, 甘味所, 銭湯
+			RETURN 東通り
+		CASE 集会所, SPT寺子屋, 慧音宅
+			RETURN 北通り
+		CASE 長屋前, 稗田邸, 阿求私室, SPT連れ込み宿, 鯢呑亭
+			RETURN 西通り
+		CASEELSE
+			RETURN 南通り
+		ENDSELECT
+	CASE 南通り
+		SELECTCASE LOCAL
+		CASE 集会所, SPT寺子屋, 慧音宅
+			RETURN 東通り
+		CASEELSE
+			RETURN 中央広場
+		ENDSELECT
+	CASE 東通り
+		SELECTCASE LOCAL
+		CASE 長屋前
+			RETURN 南通り
+		CASE 稗田邸, 阿求私室
+			RETURN 北通り
+		CASEELSE
+			RETURN 中央広場
+		ENDSELECT
+	CASE 北通り
+		RETURN 中央広場
+	CASE 西通り
+		SELECTCASE LOCAL
+		CASE 集会所, SPT寺子屋, 慧音宅
+			RETURN 北通り
+		CASEELSE
+			RETURN 中央広場
+		ENDSELECT
+	CASE 龍神像
+		SELECTCASE LOCAL
+		CASE 集会所, 稗田邸, 阿求私室, SPT寺子屋, 慧音宅
+			RETURN 北通り
+		CASEELSE
+			RETURN 中央広場
+		ENDSELECT
+	CASE 鈴奈庵, 甘味所, 銭湯
+		RETURN 東通り
+	CASE 長屋前
+		SELECTCASE LOCAL
+		CASE 東通り
+			RETURN 南通り
+		CASEELSE
+			RETURN 西通り
+		ENDSELECT
+	CASE 花屋, 食料品店, 物見櫓
+		RETURN 中央広場
+	CASE 集会所, SPT寺子屋, 慧音宅
+		SELECTCASE LOCAL
+		CASE 西通り, 龍神像, 稗田邸, 阿求私室
+			RETURN 北通り
+		CASEELSE
+			RETURN 東通り
+		ENDSELECT
+	CASE 稗田邸
+		SELECTCASE LOCAL
+		CASE 龍神像, 集会所, SPT寺子屋, 慧音宅
+			RETURN 北通り
+		CASEELSE
+			RETURN 西通り
+		ENDSELECT
+	CASE SPT寺子屋, 慧音宅
+		SELECTCASE LOCAL
+		CASE 稗田邸, 阿求私室, 龍神像
+			RETURN 北通り
+		CASEELSE
+			RETURN 東通り
+		ENDSELECT
+	CASE SPT連れ込み宿, 鯢呑亭
+		RETURN 西通り
+	CASE 小鈴私室
+		RETURN 鈴奈庵
+	CASE 阿求私室
+		RETURN 稗田邸
+	CASE 八百屋
+		SELECTCASE LOCAL
+		CASE 集会所, SPT寺子屋, 慧音宅
+			RETURN 東通り
+		CASEELSE
+			RETURN 中央広場
+		ENDSELECT
+	CASE 貸切浴場
+		RETURN 銭湯
+	CASE あなたの部屋 TO 共同井戸, 雷鼓の部屋 TO 弁々の部屋, 長屋空き部屋
+		RETURN 長屋前
+	CASE 美宵の部屋
+		RETURN 鯢呑亭
+	CASEELSE
+		RETURN 人里の門
+ENDSELECT

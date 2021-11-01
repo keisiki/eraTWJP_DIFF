@@ -1,0 +1,181 @@
+﻿;==================================================
+;弾幕勝負
+;==================================================
+;
+@M_KOJO_MESSAGE_COM_K104_DANMAKU(ARGS, 相手残機)
+#DIM 相手残機
+;全体の流れ
+;①【戦闘前】→②ダイスロールとプレイヤー選択肢、ハンデをつけた場合は【ハンデ口上】→③対応スキルが発動した場合【スキル口上】→④被弾判定、キャラが被弾したなら【被弾口上】→
+;どちらかの残機が0になっていなければ②に戻る→⑤【戦闘後口上】
+
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+SIF FLAG:口上色
+	TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;戦闘前
+	HANDICAP_FIXED = 0
+	HANDICAP_RAND = 0
+	;ハンデをつけることができ、数値が大きいほどあなたが不利になる　数値が負ならあなたが有利に
+	;キャラの能力に関わらずクッソ強くしたり弱くしたりできる
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘前"
+		IF TALENT:恋慕 || TALENT:愛欲
+			IF ABL:戦闘能力 >= ABL:MASTER:戦闘能力
+				PRINTFORML 「えっ、勝負？　もちろんいいよ～」
+				PRINTFORML 「でも、ケガとかしないように気をつけてね？」
+				PRINTFORMW 「たぶん私が勝っちゃうし！」
+			ELSE
+				PRINTFORML 「勝負ね！　%CALLNAME:MASTER%が相手となると、気が抜けないな～」
+				PRINTFORMW 「でも、強いやつとやってこそだよね！」
+				PRINTFORMW 「頑張っちゃうから！」
+			ENDIF
+		ELSE
+			PRINTFORML 「ふ～ん、わたしを倒せると思ってるの？」
+			PRINTFORMW 「魔界の魔法使いは、その辺のやつらとはひと味違うんだから！」
+			PRINTFORMW 「さぁっ、やっつけてあげる！」
+		ENDIF
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;ハンデ
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "ハンデ"
+		;ハンデつけなかったら表示されないので無記入でよい
+		PRINTFORML 
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中TARGET被弾時口上
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "被弾" 
+		;別に一律で「やられたー」だけでもいいよ
+		SELECTCASE 相手残機
+			;残り残機3が表示されるのは【洽覧深識】持ちのみ
+			CASE 3
+				PRINTFORML
+			CASE 2
+				IF TALENT:恋慕 || TALENT:愛欲
+					PRINTFORML 「いったぁ～、やられちゃった……流石だねっ！」
+					PRINTFORMW 「でも、まだまだこれから！　行くよ～？」
+				ELSE
+					PRINTFORML 「あ、あれ？　おかしいなぁ……」
+					PRINTFORMW 「う～ん……よしっ、とりあえずもう一回！」
+				ENDIF
+			CASE 1
+				IF TALENT:恋慕 || TALENT:愛欲
+					PRINTFORML 「だめだぁ～、またやっちゃった……」
+					PRINTFORMW 「集中、集中！　かっこ悪いところばっかり見せられないもんね！」
+					PRINTFORMW 「よ～し、もう一回！」
+				ELSE
+					PRINTFORML 「いったーい！　よくもやったな～？」
+					PRINTFORMW 「本気だしちゃうから！！」
+				ENDIF
+			CASE 0
+				IF TALENT:恋慕 || TALENT:愛欲
+					PRINTFORMW 「うぇ～ん、なんでそんなに強いのよ～……」
+					PRINTFORMW 「お疲れ様、%CALLNAME:MASTER%……楽しかったよ」
+					PRINTFORMW 「……はぁ～」
+				ELSE
+					PRINTFORML 「こ、こんなはずじゃ……」
+					PRINTFORMW 「あなた、何者よ……」
+				ENDIF
+		ENDSELECT
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【残忍酷薄】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "残忍酷薄"
+		
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【乾坤一擲】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "乾坤一擲"
+		PRINTFORML 「よ～し、とっておき！」
+		PRINTFORMW 「これでも食らえ～！」
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【怪力乱神】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "怪力乱神"
+		
+	ENDIF
+	
+	;-------------------------------------------------
+	;戦闘後
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘後" 
+		PRINTFORML 
+		;残り残機4が表示されうるのは【洽覧深識】持ちのみ
+		;残機が1以上ならあなたの負け、0の場合はあなたの勝利
+		SELECTCASE 相手残機
+			CASE 4
+				PRINTFORML 
+			CASE 3
+				IF TALENT:恋慕 || TALENT:愛欲
+					PRINTFORML 「ちょっと、大丈夫？」
+					PRINTFORMW 「この辺は危ない奴も多いみたいだし……ちょっと不安だな～」
+					PRINTFORMW 「一緒に特訓してあげようか？」
+				ELSE
+					PRINTFORML 「あっはっは！　わたし、強いじゃない！」
+					PRINTFORMW 「ふふ～ん、%CALLNAME:MASTER%もよく頑張ったんじゃない？」
+				ENDIF
+			CASE 2
+				IF TALENT:恋慕 || TALENT:愛欲
+					PRINTFORML 「惜しかったね、%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
+					PRINTFORMW 「勝負なら、またいつでも付き合ってあげるからね」
+					PRINTFORMW 「勝負以外でも、その……もちろんいいけど」
+				ELSE
+					PRINTFORML 「このわたしにかすり傷を付けただけでも十分な成果よ！」
+					PRINTFORMW 「またやってあげても良いけど、次は完璧に叩きのめしてあげるわ」
+				ENDIF
+			CASE 1
+				IF TALENT:恋慕 || TALENT:愛欲
+					PRINTFORML 「う～ん、互角だね！」
+					PRINTFORMW 「訓練相手としては、お互い丁度いいんじゃない？」
+					PRINTFORMW 「一緒に頑張ろ！」
+				ELSE
+					PRINTFORML 「勝った……危な～」
+					PRINTFORMW 「ここまで追いつめられるなんて……ちょっとまずいなぁ」
+				ENDIF
+			CASE 0
+				IF TALENT:恋慕 || TALENT:愛欲
+					PRINTFORML 「わたし、弱いのかな……」
+					PRINTFORMW 「一緒に特訓とかしてくれない？」
+					PRINTFORMW 「なんとなく、マイには頼みづらくて……%CALLNAME:MASTER%なら、信頼できるし」
+				ELSE
+					PRINTFORML 「うう、めちゃくちゃ悔しい」
+					PRINTFORMW 「つ、次は負けないから……また今度、やろ」
+				ENDIF
+		ENDSELECT
+	ENDIF
+RESETCOLOR
+ENDIF
+RETURN 1
+

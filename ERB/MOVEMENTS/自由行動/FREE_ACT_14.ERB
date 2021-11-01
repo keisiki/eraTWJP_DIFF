@@ -1,0 +1,66 @@
+﻿@EXIST_FreeAct14
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+;オブジェクト本体
+@FreeAct14(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+#DIM 経過時間
+経過時間 = Activity_Duration:TARGET
+SELECTCASE O_DATA
+;自由行動に付き合うコマンドの名称
+CASE "名称"
+	CALLF MAKE_STR(V_NAME, "買い物を手伝う")
+CASE "CHAIN"
+;他キャラに連鎖しない場合コメントアウトすること
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "経過時間"
+;自由行動に付き合うコマンドでの経過時間
+;0だと30分か残り時間すべての小さい方
+	CALLF MAKE_INT(V_NAME, 0)
+ENDSELECT
+
+@自由行動内容_14(CHARA, ARGS, 時間係数, CHAIN)
+#DIM CHARA
+#DIM CHAIN
+#DIM 現在地
+#DIM メッセージ表示
+#DIM 時間係数
+#DIM 経過時間
+現在地 = CFLAG:CHARA:現在位置
+メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
+SELECTCASE ARGS
+	CASE "発生"
+		;お店にいる時
+		SIF !KAIDASHI_SHOP(現在地) && !FLOWER_SHOP(現在地) && !SAKE_SHOP(現在地) && !YASAI_SHOP(現在地)
+			RETURN 0
+		SIF BASE:CHARA:気力 <= 500
+			RETURN 0
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は\@ CHAIN ? %CALLNAME:CHAIN%に付き合い始めた。# 買い物かごを取り出した。\@
+		RETURN 60 + RAND:30
+	CASE "行動中"
+		IF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は%TEXTR("掘り出し物を探している/品物を手にとって値踏みしている/何を買おうか悩んでいる/気ままに買い物している")%。
+		ENDIF
+	CASE "完了"
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は買い物を終えたようだ。
+	CASE "中断"
+	CASE "付き合う"
+		;自由行動に付き合ったとき用メッセージ
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の買い物を手伝った
+		PRINTFORML %CALLNAME:TARGET%%TEXTR("はどれを買おうか悩んでいる…/に言われて似た商品をかき集めた…/の荷物を持ってあちこち移動した…")%
+	CASE "ソース"
+		;付き合うコマンド選択時の入手ソース、時間係数は付き合った時間の1/10
+		DOWNBASE:MASTER:体力 += 20 * 時間係数
+		DOWNBASE:MASTER:気力 += 20 * 時間係数
+		DOWNBASE:TARGET:体力 += 10 * 時間係数
+		DOWNBASE:TARGET:気力 += 10 * 時間係数
+		SOURCE:歓楽 = (200 + ((ABL:従順 + 好感度係数(TARGET))  * 50)) * 時間係数
+		TFLAG:98 = 1
+ENDSELECT

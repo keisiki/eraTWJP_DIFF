@@ -1,0 +1,189 @@
+﻿@EXIST_FreeAct16
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+;オブジェクト本体
+@FreeAct16(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+#DIM 経過時間
+経過時間 = Activity_Duration:TARGET
+SELECTCASE O_DATA
+;自由行動に付き合うコマンドの名称
+CASE "名称"
+	IF GROUPMATCH(TARGET, 5, 6, 7, 14, 111)
+		CALLF MAKE_STR(V_NAME, "いたずらに付き合う")
+	ELSE
+		CALLF MAKE_STR(V_NAME, "様子をうかがう")
+	ENDIF
+CASE "CHAIN"
+;他キャラに連鎖しない場合コメントアウトすること
+	;CALLF MAKE_INT(V_NAME, 1)
+CASE "経過時間"
+;自由行動に付き合うコマンドでの経過時間
+;0だと30分か残り時間すべての小さい方
+	CALLF MAKE_INT(V_NAME, 10)
+ENDSELECT
+
+@自由行動内容_16(CHARA, ARGS, 時間係数, CHAIN)
+#DIM CHARA
+#DIM CHAIN
+#DIM 現在地
+#DIM メッセージ表示
+#DIM 時間係数
+#DIM 経過時間
+#DIM 仕掛け = 5, 6, 7, 14, 111
+#DIM 発起者
+#DIM 記録, 150
+#DIM 落ちた
+#DIM ランク
+#DIM 発生地点
+#DIM リセット
+現在地 = CFLAG:CHARA:現在位置
+メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
+IF リセット != DAY
+	VARSET 記録
+	発起者 = 0
+	落ちた = 0
+	発生地点 = 0
+	リセット = DAY
+ENDIF
+SELECTCASE ARGS
+	CASE "発生"
+		;屋外で発生
+		SIF !OUTROOF(現在地)
+			RETURN 0
+		;仕事予定あれば仕掛けない
+		SIF MATCH(仕掛け, CHARA, 0) && !CHARA_HOLIDAY(CHARA)
+			RETURN 0
+		;三妖精とチルノ・クラウンピースが起点
+		IF MATCH(仕掛け, CHARA, 0) && !(発起者 || 発生地点)
+			発起者 = CHARA
+			発生地点 = 現在地
+			GOTO ACT
+		ENDIF
+		;すでに落とし穴があれば一回だけ参加
+		IF MATCH(仕掛け, CHARA, 0)
+			SIF 現在地 != 発生地点 || 記録:CHARA
+				RETURN 0
+			GOTO ACT
+		ENDIF
+		
+		;落とし穴に落ちる側判定
+		SIF !発起者 || 落ちた
+			RETURN 0
+		SIF 記録:CHARA || 発生地点 != 現在地
+			RETURN 0
+		ランク = CSVABL(CHARA, GETNUM(ABL, "戦闘能力"))
+		;原作の強キャラに回避補正
+		SIF ランク > 4 && !RAND:4
+			RETURN 0
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%が%CALLNAME:発起者%の掘った落とし穴に落っこちた！！
+		記録:CHARA = 1
+		落ちた = CHARA
+		;引っかかった人と参加者の行動時間を1に設定
+		FOR COUNT, 0, 5
+			SIF 記録:(仕掛け:COUNT) != 2 || Activity_Type:(仕掛け:COUNT) != 16 || !Activity_Duration:(仕掛け:COUNT)
+				CONTINUE
+			Activity_Duration:(仕掛け:COUNT) = 1
+		NEXT
+		RETURN 1
+		
+		;落とし穴仕掛ける側処理
+		$ACT
+		記録:CHARA = 2
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%\@ CHARA == 発起者 ? がイタズラで落とし穴を掘った # は%CALLNAME:発起者%の落とし穴に手を加えた \@…
+		;自由行動にかける時間をRETURNする
+		SIF CHARA == 発起者
+			RETURN 40 + RAND:30
+		SIF !Activity_Duration:発起者
+			RETURN 30 + RAND:20
+		RETURN Activity_Duration:発起者
+	CASE "行動中"
+		;行動中の処理、地の文もここで
+		SIF !メッセージ表示
+			RETURN
+		IF 落ちた
+			SELECTCASE ランク
+				CASE IS <= 1
+					PRINTFORMW %CALLNAME:CHARA%は%TEXTR(@"ケラケラと笑っている/小躍りして喜んでいる/派手にガッツポーズを決めている")%。
+				CASE 2, 3, 4
+					PRINTFORMW %CALLNAME:CHARA%は%TEXTR(@"なんとか笑いを噛み殺している/こっそりとガッツポーズを決めた")%。
+				CASEELSE
+					PRINTFORMW %CALLNAME:CHARA%%TEXTR("は逃げ出す準備をして/の顔が青ざめて")%いる…
+			ENDSELECT
+		ELSE
+			PRINTFORMW %CALLNAME:CHARA%は落とし穴%TEXTR("で掘り返した土を隠している/に落ち葉をかぶせて細工をしている/を増やしている")%。
+		ENDIF
+	CASE "完了"
+		;行動時間を使い切ったときの処理、地の文もここで
+		IF !MATCH(仕掛け, CHARA, 0)
+			IF メッセージ表示
+				SELECTCASE ランク
+					CASE IS <= 1
+						PRINTFORMW %CALLNAME:CHARA%はしばらく%TEXTR("目を回し/ひっくり返っ")%ていたが、這々の体で穴から這い上がってきた…
+					CASE 2, 3, 4
+						PRINTFORMW %CALLNAME:CHARA%はすぐに穴から飛び出して%TEXTR("犯人を探し始めた/、周りをキョロキョロ見回している")%…
+					CASEELSE
+						PRINTFORML しばらくして%CALLNAME:CHARA%が穴からふわりと浮かび上がってきた。
+						PRINTFORMW %TEXTR("なんだか雰囲気がやばい/無表情なのがかえって怖い/")%…
+				ENDSELECT
+			ENDIF
+		ELSEIF 落ちた
+			IF メッセージ表示
+				SELECTCASE ランク
+					CASE IS <= 1
+						PRINTFORMW %CALLNAME:CHARA%は%CALLNAME:落ちた%%TEXTR("を引っ張り上げた/に笑いながら謝った")%。
+					CASE 2, 3, 4
+						PRINTFORMW %CALLNAME:CHARA%は%TEXTR("素知らぬ顔をしている/笑いをこらえている")%。
+					CASEELSE
+						PRINTFORMW %CALLNAME:CHARA%は%TEXTR("冷や汗をかいている/身を隠している")%…
+				ENDSELECT
+			ENDIF
+		ELSEIF メッセージ表示
+			PRINTFORMW 誰も引っかからないので%CALLNAME:CHARA%は飽きてしまったようだ…
+		ENDIF
+		Activity_Type:CHARA = 0
+		SIF !落ちた
+			RETURN
+		FOR COUNT, 0, 5
+			SIF Activity_Type:(仕掛け:COUNT) == 16 && 発生地点 == CFLAG:(仕掛け:COUNT):現在位置
+				RETURN
+		NEXT
+		落ちた = 0
+		RETURN
+	CASE "中断"
+		;中断メッセージはうふふ突入時等でも表示されてしまうので表示しない
+	CASE "付き合う"
+		;自由行動に付き合ったとき用メッセージ
+		IF 落ちた
+			PRINTFORM %CALLNAME:PLAYER%は\@ TARGET != 落ちた ? %CALLNAME:TARGET%といっしょに # \@
+			SELECTCASE ランク
+				CASE IS <= 1
+					PRINTFORML %CALLNAME:落ちた%が落ちた穴を覗き込んだ。
+					PRINTFORML 穴の底で尻餅をついた%CALLNAME:落ちた%が見える…
+				CASE 2, 3, 4
+					PRINTFORML 落とし穴の様子を\@ TARGET != 落ちた ? こっそり # \@うかがった。
+					PRINTFORML 穴の底で%CALLNAME:落ちた%は元気よく悪態をついている。
+				CASEELSE
+					PRINTFORML %CALLNAME:落ちた%が落ちた穴に恐る恐る近づいた。
+					PRINTFORMW 穴の底から抑えきれない殺気が立ち込めている…
+			ENDSELECT
+		ELSE
+			PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%といっしょに落とし穴を%TEXTR("もうひとつ掘った/もっと深くした/目立たないように細工した")%
+		ENDIF
+	CASE "ソース"
+		;付き合うコマンド選択時の入手ソース、時間係数は付き合った時間の1/10
+		IF CHARA == 落ちた
+			SOURCE:鬱屈 += 50 + ランク * 50
+			SOURCE:苦痛 += 350 - ランク * 50
+		ELSE
+			SOURCE:歓楽 = 20 + ((ABL:親密 * 15)) * 時間係数
+			SOURCE:受動 = 10 + ((ABL:従順 * 10)) * 時間係数
+		ENDIF
+ENDSELECT

@@ -1,0 +1,371 @@
+﻿;材木商
+@COM623
+#DIM 製材判定
+#DIM 売値
+#DIM ループ数
+#DIM リザルト保管
+#DIM 候補番号
+#DIM 候補個数
+#DIM 売却個数
+#DIM ProcessingCharge
+ループ数 = 0
+
+;開店時間・閉店時間
+IF INRANGE(TIME:0, 540, 1080) == 0
+	PRINTFORMW 営業時間外のようだ
+	RETURN -1
+ENDIF
+
+
+;初回イベント
+IF FLAG:最後に材木商に訪れた日 == 0
+	;初回イベント前は、丸太持ちでなければ店にも入れない
+	IF ITEM:丸太 == 0
+		PRINTFORMW 特に今は用はない…売り物になる材木を伐ってこなくては
+		RETURN -1
+	ENDIF
+	;依頼の報酬など、伐採以外で丸太を入手してしまった場合の退避用
+	SIF !FLAG:丸太種類
+		FLAG:丸太種類 = MAX(RAND:12, 1)
+	PRINTFORMW 「はいどうも、私がここの主です。お客さまが、丸太を納めたいという方で？」
+	PRINTFORMW 「では、品のほうを拝見させていただきましょうか」
+	PRINTFORMW 「………」
+	PRINTFORMW 「ほう、なかなかのものですね……」
+	PRINTFORMW 「……え？　その気になれば、毎日でも持って来られる？　里の外ならいっぱい生えてるから？」
+	PRINTFORMW 「…………」
+	PRINTFORMW 「……ただ者じゃあないね、お客さん」
+	PRINTFORMW 「いいだろう。伐採してきた丸太、ウチで買い取らせてもらおう」
+	PRINTFORMW 「もちろん、材として価値のあるものは高く、そうでないものは安く買い取るぞ」
+	PRINTFORMW 「家具やらなにやらで製材が必要なら、持ってきた丸太を製材に加工してやってもいい。それなりに作業代はいただくがな」
+	PRINTFORMW 「それじゃあ、今回の品物をもう一度検めさせてもらおうか」
+	;売値はここで設定、基本的に中途キャンセルはしない
+	売値 = WOOD_VALUE(FLAG:丸太種類)
+	SETCOLOR 0x00FF00
+	PRINTFORMD 「
+	PRINTFORM %WOOD_NAME(FLAG:丸太種類)%
+	PRINTFORMD だな……
+	PRINTFORM \\{売値}
+	RESETCOLOR
+	PRINTFORMW で買い取らせてもらおう」
+	PRINTFORMW 　　所持金: \\%TOSTR(MONEY,"#,###")% → \\%TOSTR(MONEY + 売値,"#,###")%
+	PRINTFORMW 「これで取引終了だ。じゃあ、次の商品も待ってるぞ」
+	PRINTFORMW 「なに、妖精や妖怪が跋扈する山林から木を伐り出してこれる木こりなんて、そう多くはないからな。期待してるぞ？」
+	PRINTW 
+	MONEY += 売値
+	ITEM:丸太 = 0
+	FLAG:丸太種類 = 0
+	ループ数 = 1
+ENDIF
+
+$LOOP_SELECT
+
+IF ループ数
+	PRINTL 
+	PRINTFORMW 「さて、ほかにも用はあるか？」
+ELSE
+	;平常来店
+	PRINTL 
+	IF DAY:0 - FLAG:最後に材木商に訪れた日 > 28
+		PRINTFORMW 「おう、なんだ。てっきり山仕事からは足を洗ったのかと思ったぞ」
+	ELSEIF DAY:0 - FLAG:最後に材木商に訪れた日 > 14
+		PRINTFORMW 「おう、久しぶりだな」
+	ELSEIF FLAG:最後に材木商に訪れた日 == DAY:0
+		PRINTFORMW 「なんだ、忘れ物か？　せわしないやつだな」
+	ELSE
+		PRINTFORMW 「おう、今日は何の用だ？」
+	ENDIF
+ENDIF
+
+ループ数 ++
+FLAG:最後に材木商に訪れた日 = DAY:0
+
+PRINTFORML 　　所持金: \\%TOSTR(MONEY,"#,###")%
+DRAWLINE
+
+CALL ASK_M("丸太売却・製材", ITEM:丸太, "木材を売る", ITEM:木材, "製材を売る", 4, "取引内容を確認する", 5, "店を出る", 6)
+リザルト保管 = RESULT
+ProcessingCharge = LUMBERING(FLAG:丸太種類, "材木商")
+CLEARLINE 12
+SELECTCASE リザルト保管
+	;丸太を売る　製材してほしい
+	CASE 0
+		;依頼の報酬など、伐採以外で丸太を入手してしまった場合の退避用
+		SIF !FLAG:丸太種類
+			FLAG:丸太種類 = MAX(RAND:12, 1)
+		SETCOLOR 0x00FF00
+		PRINTFORML 「%WOOD_NAME(FLAG:丸太種類)%だな……」
+		売値 = WOOD_VALUE(FLAG:丸太種類)
+		PRINTFORMD 「買取なら買値は
+		PRINTFORM \\%TOSTR(売値,"#,###")%
+		PRINTFORMD 、製材するなら手間賃
+		PRINTFORM \\%TOSTR(ProcessingCharge,"#,###")%
+		RESETCOLOR
+		PRINTFORMW いただくぞ」
+		CALL ASK_M("売却", 1, "製材", MONEY > ProcessingCharge,"やっぱりやめる", 1)
+		SELECTCASE RESULT
+			CASE 0
+				PRINTFORMW 　所持金: \\ → \\%TOSTR(MONEY + 売値,"#,###")%
+				PRINTFORMW 「毎度。じゃあ、次の商品を待ってるぞ」
+				PRINTL 
+				MONEY += 売値
+			CASE 1
+				PRINTL 
+				PRINTFORMW 　所持金: \\%TOSTR(MONEY,"#,###")% → \\%TOSTR(MONEY - ProcessingCharge,"#,###")%
+				PRINT 　
+				CALL PAY_MONEY_YEN(ProcessingCharge, 2)
+				PRINTL 
+				PRINTFORMW 「はいよ。じゃあ、作業にかからせよう」
+				CALL LogRefine("材木商")
+			CASE 2
+				PRINTFORMW 「なんだ、別にアテがあるのか？」
+				PRINTL 
+				GOTO LOOP_SELECT
+		ENDSELECT
+		ITEM:丸太 = 0
+		FLAG:丸太種類 = 0
+	;木材を売る
+	CASE 1
+		候補個数 = ITEM:木材
+		候補番号 = 610
+		PRINTFORM 「%ITEMNAME:候補番号%なら　\\%TOSTR(ITEMPRICE:候補番号 / 2,"#,###")%で買い取るが、どうだ？」
+		CALL COM623_SELL(候補個数)
+		SELECTCASE RESULT
+			CASE 0
+				PRINTL 
+				GOTO LOOP_SELECT
+			CASE 1 TO 候補個数
+				CLEARLINE 2
+				売却個数 = RESULT
+				PRINTFORML 「それじゃあ%ITEMNAME:候補番号%を{売却個数}つ、\\%TOSTR((ITEMPRICE:(候補番号) / 2 * 売却個数),"#,###")%で買い取らせてもらおう」
+				PRINTFORMW 　所持金: \\%TOSTR(MONEY,"#,###")% → \\%TOSTR(MONEY + (ITEMPRICE:(候補番号) / 2 * 売却個数),"#,###")%
+				MONEY += (ITEMPRICE:(候補番号) / 2 * 売却個数)
+				ITEM:候補番号 -= 売却個数
+				PRINTL 
+				GOTO LOOP_SELECT
+		ENDSELECT
+	;製材を売る
+	CASE 2
+		製材判定 = 0
+		FOR LOCAL, 1, 50
+			SIF LOG_SALES:LOCAL
+				BREAK
+			製材判定 ++
+		NEXT
+		IF 製材判定 > 48
+			PRINTFORMW 製材を持ってない
+			PRINTL 
+			GOTO LOOP_SELECT
+		ENDIF
+		PRINTFORMW 「製材を仕入れてきたのか。どれどれ」
+		DRAWLINE
+		FOR LOCAL, 1, 50
+			SIF LOG_SALES:LOCAL == 0
+				CONTINUE
+			PRINTFORM 　
+			SIF LOCAL < 10
+				PRINTFORM  
+			PRINTFORM [{LOCAL}] 
+			PRINTFORM %WOOD_NAME(LOCAL), 16, LEFT%
+			PRINTFORM 製材数： 
+			SELECTCASE LOG_SALES:LOCAL
+				CASE IS < 10
+					PRINTFORM     
+				CASE IS < 100
+					PRINTFORM    
+				CASE IS < 1000
+					PRINTFORM   
+				CASE IS < 10000
+					PRINTFORM  
+			ENDSELECT
+			PRINTFORML {LOG_SALES:LOCAL}
+		NEXT
+		PRINTFORML 　 [0] やめる
+
+		$INPUT_LOOP03
+		INPUT
+		
+		リザルト保管 = RESULT
+		IF リザルト保管 && LOG_SALES:リザルト保管
+			売値 = WOOD_VALUE(リザルト保管, "製材")
+			候補個数 = LOG_SALES:リザルト保管
+			SETCOLOR 0x00FF00
+			PRINTFORMD 「
+			PRINTFORM %WOOD_NAME(リザルト保管)%
+			PRINTFORMD の製材なら
+			PRINTFORM \\%TOSTR(売値,"#,###")%
+			RESETCOLOR
+			PRINTFORML で買い取るが、どうだ？」
+			CALL COM623_SELL(候補個数)
+			SELECTCASE RESULT
+				CASE 0
+					PRINTL 
+					GOTO LOOP_SELECT
+				CASE 1 TO 候補個数
+					CLEARLINE 2
+					売却個数 = RESULT
+					PRINTFORML 「それじゃあ%WOOD_NAME(リザルト保管)%の製材を{売却個数}本、\\%TOSTR(売値 * 売却個数,"#,###")%で買い取らせてもらおう」
+					PRINTFORMW 　所持金: \\%TOSTR(MONEY,"#,###")% → \\%TOSTR(MONEY + (売値 * 売却個数),"#,###")%
+					MONEY += 売値 * 売却個数
+					LOG_SALES:リザルト保管 -= 売却個数
+					PRINTL 
+			ENDSELECT
+		ELSEIF リザルト保管 == 0
+			PRINTL 
+			GOTO LOOP_SELECT
+		ELSE
+			CLEARLINE 1
+			GOTO INPUT_LOOP03
+		ENDIF
+	;取引内容を確認する
+	CASE 3
+		PRINTFORMW 「持ち込みの丸太や竹材、製材を買い取り中だ」
+		PRINTFORMW 「持て余してるなら、端材・木材の類も引き取るぞ。まあ、二束三文にしかならないがな」
+		PRINTFORMW 「必要なら丸太の製材も請け負おう。ただし、丸太の種類・大きさに応じて作業費を払ってもらう」
+		PRINTFORMW 「ちなみに、此処で製材したものを此処に卸しても損しかしないからな。寄付のつもりなら歓迎するが」
+		PRINTFORMW 「……なに、家具が欲しい？　それはうちの領分じゃないな。家具職人をあたってくれよ」
+		PRINTL 
+	CASE 4
+		PRINTFORMW 「おう、それじゃあな」
+		PRINTL 
+		TIME += ループ数 * 5
+		RETURN -1
+ENDSELECT
+GOTO LOOP_SELECT
+
+;-------------------------------------------------
+;実行可能判定
+;-------------------------------------------------
+;材木商
+@COM_ABLE623
+;一括管理
+SIF GLOBAL_COMABLE(623)
+	RETURN RESULT
+
+IF !AT_HOME(MASTER)
+	SIF CFLAG:MASTER:現在位置 != 商家町
+		RETURN 0
+ELSE
+	;西通り
+	SIF CFLAG:MASTER:現在位置 != 206
+		RETURN 0
+ENDIF
+;睡眠中
+SIF CFLAG:睡眠
+	RETURN 0
+;時間停止中
+SIF FLAG:70
+	RETURN 0
+RETURN 1
+
+
+;-------------------------------------------------
+;丸太・製材の売却価格を設定する関数
+;何回か見る場合もあるので、その日の中では固定値出力
+;ARG:0		FLAG:丸太種類
+;Type		売却価格  省略時は丸太
+;-------------------------------------------------
+@WOOD_VALUE(ARG:0, Type)
+#FUNCTION
+#DIM Species
+#DIM 売値ベース
+#DIM 口八丁補正
+#DIMS Type
+
+Species = ARG % 100
+
+IF Type == "製材"
+	売値ベース =WoodValue_Plank:Species
+ELSE
+	売値ベース = WoodValue_Log:Species
+ENDIF
+
+;日替わり変動
+売値ベース += FLAG:日替わりイベント * 2
+
+;口八丁補正  日付で乱数を固定
+RANDOMIZE DAY:0
+口八丁補正 = RAND:(1 + ABL:MASTER:話術技能 * 5 + ABL:MASTER:教養)
+
+SELECTCASE 口八丁補正
+	CASE 0 TO 10
+
+	CASE 11 TO 20
+		TIMES 売値ベース, 1.05
+	CASE 21 TO 30
+		TIMES 売値ベース, 1.07
+	CASEELSE
+		TIMES 売値ベース, 1.10
+ENDSELECT
+
+;丸太の時のみ、巨木・大木補正
+IF Type != "製材"
+	IF ARG > 200
+		売値ベース *= 5
+	ELSEIF ARG > 100
+		売値ベース *= 3
+	ENDIF
+ENDIF
+RETURNF 売値ベース
+
+
+;-------------------------------------------------
+;FLAG:丸太種類から、巨木・大木を無視して木材種番号を取り出す関数
+;ARG…FLAG:丸太種類
+;-------------------------------------------------
+@WOOD_NUM(ARG)
+#FUNCTION
+
+RETURNF ARG % 100
+
+;-------------------------------------------------
+;製材コスト、製材数を割り出す関数
+;複数回選べるので、固定値を出す
+;ARG	FLAG:丸太種類
+;Type	価格ないし製材数
+;-------------------------------------------------
+@LUMBERING(ARG, Craft, Type)
+#FUNCTION
+#DIM 費用ベース
+#DIMS Craft
+#DIMS Type
+
+IF Type == "QTY"
+	RETURNF 1 + (ARG / 100) * 2
+ENDIF
+
+費用ベース = WOOD_VALUE(ARG)
+
+SELECTCASE Craft
+	CASE "材木商"
+		RETURNF 費用ベース / 2
+	CASE "製材所"
+		RETURNF 費用ベース / 4
+ENDSELECT
+
+RETURNF 0
+
+@COM623_SELL(候補個数)
+#DIM 候補個数
+SETCOLOR 0x777777
+PRINTFORML 　何個売りますか？(1～{候補個数}の個数を入力、0で戻る)
+RESETCOLOR
+PRINTL 
+PRINT 　
+PRINTBUTTON "[0] やめる", 0
+PRINT     
+PRINTBUTTON "[1] 1個", 1
+PRINT     
+IF 候補個数 >= 5
+	PRINTBUTTON "[5] 5個", 5
+	PRINT     
+ENDIF
+IF 候補個数 >= 10
+	PRINTBUTTON "[10] 10個", 10
+	PRINT    
+ENDIF
+INPUT
+SIF RESULT > 候補個数
+	RETURN 0
+SIF RESULT <= 0
+	RETURN 0
+RETURN RESULT

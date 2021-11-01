@@ -1,0 +1,780 @@
+﻿;-------------------------------------------------
+;贈り物を生成する関数
+;RESULT:0  GIFT_ID
+;RESULT:1  値段
+;RESULTS   名前
+;-------------------------------------------------
+@CREATE_GIFT(AREA)
+#DIM AREA
+#DIM MAIN
+#DIM ADJECT
+#DIM BASIC_PRICE
+#DIM MAGNIF_PRICE
+#DIMS GIFTNAME_MAIN
+#DIMS GIFTNAME_ADJECT
+VARSET RESULT
+
+CALL DRAW_GIFT_MAIN(AREA)
+MAIN = RESULT:0
+BASIC_PRICE = RESULT:1
+GIFTNAME_MAIN = %RESULTS:0%
+
+CALL DRAW_GIFT_ADJECT(AREA, RESULTS:1)
+ADJECT = RESULT:0
+MAGNIF_PRICE = RESULT:1
+GIFTNAME_ADJECT = %RESULTS:0%
+
+;値段の設定
+RESULT:1 = BASIC_PRICE * MAGNIF_PRICE / 100
+;半額セールとか値引き要素等
+SIF FLAG:土産屋大安売り >= 100 && FLAG:土産屋大安売り % 100 == CFLAG:MASTER:デート中
+	TIMES RESULT:1, 0.50
+
+;名前の設定
+RESULTS = %GIFTNAME_ADJECT%%GIFTNAME_MAIN%
+;IDの設定
+RESULT:0 = ADJECT * 1000 + MAIN
+RETURN RESULT:0
+
+;-------------------------------------------------
+;キャラクターに依存した贈り物を生成する関数
+;-------------------------------------------------
+@CREATE_GIFT_FROM_CHARA(CHARA, SCORE_MIN, SCORE_MAX)
+#DIM CHARA
+#DIM SCORE_MIN
+#DIM SCORE_MAX
+#DIM GIFT_ID
+#DIM MAIN
+#DIM ADJECT
+#DIM BASIC_PRICE
+#DIM MAGNIF_PRICE
+#DIMS GIFTNAME
+#DIMS GIFTNAME_MAIN
+#DIMS GIFTNAME_ADJECT
+#DIM SCORE
+VARSET RESULT
+SIF SCORE_MAX <= SCORE_MIN
+	SCORE_MAX = 1000
+
+CALL DRAW_GIFT_MAIN(99)
+MAIN = RESULT:0
+BASIC_PRICE = RESULT:1
+GIFTNAME_MAIN = %RESULTS:0%
+
+CALL DRAW_GIFT_ADJECT(99, RESULTS:1)
+ADJECT = RESULT:0
+MAGNIF_PRICE = RESULT:1
+GIFTNAME_ADJECT = %RESULTS:0%
+
+;値段の設定
+RESULT:1 = BASIC_PRICE * MAGNIF_PRICE / 100
+;名前の設定
+GIFTNAME = %GIFTNAME_ADJECT%%GIFTNAME_MAIN%
+;IDの設定
+GIFT_ID = ADJECT * 1000 + MAIN
+
+;評価
+CALL REVIEW_GIFT(CHARA, GIFT_ID)
+SCORE = RESULT
+
+IF INRANGE(RESULT, SCORE_MIN, SCORE_MAX)
+	RESULT:1 = SCORE
+	RESULTS = %GIFTNAME%
+	RETURN GIFT_ID
+ELSE
+	RESTART
+ENDIF
+
+;-------------------------------------------------
+;贈り物本体を抽選する関数
+;-------------------------------------------------
+@DRAW_GIFT_MAIN(AREA)
+#DIM AREA
+#DIM CATEGORY_MAIN
+#DIM GIFT_MAIN
+#DIM カテゴリ上限
+VARSET RESULT
+カテゴリ上限 = 52
+WHILE !RESULT
+	CATEGORY_MAIN = RAND:カテゴリ上限 + 1
+	GIFT_MAIN = CATEGORY_MAIN * 10 + RAND:10
+	CALL GIFTDATA_MAIN(GIFT_MAIN, AREA)
+WEND
+RETURN GIFT_MAIN
+
+;-------------------------------------------------
+;贈り物の形容詞を抽選する関数
+;-------------------------------------------------
+@DRAW_GIFT_ADJECT(AREA, SENSE)
+#DIM AREA
+#DIM CATEGORY_ADJECT
+#DIM GIFT_ADJECT
+#DIMS SENSE
+#DIM カテゴリ上限
+VARSET RESULT
+カテゴリ上限 = 21
+WHILE !RESULT
+	CATEGORY_ADJECT = RAND:カテゴリ上限 + 1
+	GIFT_ADJECT = CATEGORY_ADJECT * 100 + RAND:100
+	CALL GIFTDATA_ADJECT(GIFT_ADJECT, AREA, SENSE)
+WEND
+RETURN GIFT_ADJECT
+
+;-------------------------------------------------
+;贈り物を評価する関数
+;-------------------------------------------------
+@REVIEW_GIFT(CHARA, GIFT_ID)
+#DIM CHARA
+#DIM GIFT_ID
+#DIMS SENSE_CHARA_GOOD
+#DIMS SENSE_CHARA_BAD
+#DIMS SENSE_GIFT
+#DIM SENSE_GOOD
+#DIM SENSE_BAD
+#DIM MAGNIF_PRICE
+#DIM BASIC_PRICE
+
+;SENSE抽出
+SENSE_GIFT = 
+CALL GIFTDATA_ADJECT(GET_GIFTDATA(GIFT_ID, "形容詞"))
+SENSE_GIFT += RESULTS:1
+MAGNIF_PRICE = RESULT:1
+
+CALL GIFTDATA_MAIN(GET_GIFTDATA(GIFT_ID, "本体"))
+SENSE_GIFT += RESULTS:1
+BASIC_PRICE = RESULT:1
+
+;定価を見て10,000以上なら高級、1,500未満なら安物
+IF BASIC_PRICE * MAGNIF_PRICE / 100 >= 10000
+	SENSE_GIFT += "高級/"
+ELSEIF BASIC_PRICE * MAGNIF_PRICE / 100 < 1500
+	SENSE_GIFT += "安物/"
+ENDIF
+
+
+;キャラクターの感性
+SENSE_CHARA_GOOD = %GET_STR(, "キャラデータ", CHARA, "感性：好き")%
+SENSE_CHARA_BAD = %GET_STR(, "キャラデータ", CHARA, "感性：嫌い")%
+
+;共通設定：好き
+;［幼稚］はキャラクターが好き
+SIF TALENT:CHARA:幼稚
+	SENSE_CHARA_GOOD += "キャラクター/" * 3
+;［妖精］は自然が好き
+SIF CHECK_CHARA(CHARA, "妖精")
+	SENSE_CHARA_GOOD += "自然/" * 3
+;［付喪神］は付喪神と道具が好き
+SIF CHECK_CHARA(CHARA, "付喪神")
+	SENSE_CHARA_GOOD += "付喪神/道具/" * 3
+;妖怪は妖怪が好き
+SIF CHECK_CHARA(CHARA, "妖怪")
+	SENSE_CHARA_GOOD += "妖怪/" * 3
+;CSVの戦闘能力があるならスペルカードは好き
+SIF CSVABL(CHARA, GETNUM(ABL, "戦闘能力")) > 0
+	SENSE_CHARA_GOOD += "スペルカード/" * 3
+;キャノンボールはみんなが欲しがる
+SENSE_CHARA_GOOD += "キャノンボール/"
+
+;共通設定：嫌い
+;粗悪はみんな嫌い
+SIF 1
+	SENSE_CHARA_BAD += "粗悪/" * 6
+;妖怪・幽霊は巫術が好きでないなら巫術は嫌い
+IF (CHECK_CHARA(CHARA, "妖怪") || CHECK_CHARA(CHARA, "幽霊")) && STRFIND(SENSE_CHARA_GOOD, "巫術/") < 0
+	SENSE_CHARA_BAD += "巫術/" * 3
+	;法具が好きでないなら法具は嫌い
+	SIF STRFIND(SENSE_CHARA_GOOD, "法具/") < 0
+		SENSE_CHARA_BAD += "法具/" * 3
+ENDIF
+;妖怪ではなく妖術が好きでないなら妖術は嫌い,もしくは巫術が好きなら妖術は嫌い
+IF (!CHECK_CHARA(CHARA, "妖怪") && STRFIND(SENSE_CHARA_GOOD, "妖術/") < 0) || (STRFIND(SENSE_CHARA_GOOD, "巫術/") >= 0)
+	SENSE_CHARA_BAD += "妖術/" * 3
+	;さらに骨、血、毒も同様
+	SIF STRFIND(SENSE_CHARA_GOOD, "骨/") < 0
+		SENSE_CHARA_BAD += "骨/" * 3
+	SIF STRFIND(SENSE_CHARA_GOOD, "血/") < 0
+		SENSE_CHARA_BAD += "血/" * 3
+	SIF STRFIND(SENSE_CHARA_GOOD, "毒/") < 0
+		SENSE_CHARA_BAD += "毒/" * 3
+ENDIF
+;酒耐性が下戸なら酒は嫌い
+IF TALENT:CHARA:酒耐性 < -1
+	SENSE_CHARA_BAD += "酒/" * 3
+ELSEIF TALENT:CHARA:酒耐性 < 0
+	SENSE_CHARA_BAD += "酒/"
+ENDIF
+;CSVの戦闘能力がないならスペルカードはちょっと…
+SIF CSVABL(CHARA, GETNUM(ABL, "戦闘能力")) <= 0
+	SENSE_CHARA_BAD += "スペルカード/"
+
+;評価得点
+SENSE_GOOD = 300 + 100 * STR_MULTI_COUNT(SENSE_CHARA_GOOD, SENSE_GIFT)
+
+;;ムードによる補正,※封印しました
+;IF BASE:CHARA:ムード >= MAXBASE:CHARA:ムード
+;	TIMES SENSE_GOOD, 1.00
+;ELSEIF BASE:CHARA:ムード >= MAXBASE:CHARA:ムード / 2
+;	TIMES SENSE_GOOD, 0.80
+;ELSEIF BASE:CHARA:ムード >= MAXBASE:CHARA:ムード / 4
+;	TIMES SENSE_GOOD, 0.60
+;ELSE
+;	TIMES SENSE_GOOD, 0.40
+;ENDIF
+
+;;自宅地域による補正,※封印しました
+;SIF CFLAG:CHARA:デート中  == CFLAG:CHARA:自宅位置 / 100
+;	TIMES SENSE_GOOD, 0.80
+
+;祭日による補正
+SIF FESTIVAL() != ""
+	TIMES SENSE_GOOD, 1.25
+
+;評価減点
+SENSE_BAD = 300 + 100 * STR_MULTI_COUNT(SENSE_CHARA_BAD, SENSE_GIFT)
+
+;総評
+RESULT = SENSE_GOOD * 1000 / (SENSE_GOOD + SENSE_BAD)
+[IF_DEBUG]
+;	PRINTFORML 好き：%SENSE_CHARA_GOOD%
+;	PRINTFORML 嫌い：%SENSE_CHARA_BAD%
+;	PRINTFORML 品物：%SENSE_GIFT%
+;	PRINTFORML 得点：{SENSE_GOOD}
+;	PRINTFORML 減点：{SENSE_BAD}
+;	PRINTFORML 結果：{RESULT}
+;	WAIT
+[ENDIF]
+RETURN RESULT
+
+
+;-------------------------------------------------
+;一日の終わりに贈り物をお気に入りにするかの関数
+;-------------------------------------------------
+@GIFT_FAVORITE
+#DIM CHARA
+#DIM GIFT_ID
+#DIM GIFT_ADJECT
+#DIM GIFT_MAIN
+#DIM GIFT_SCORE, 3
+#DIMS GIFT_NAME
+#DIMS SENSE
+FOR CHARA, 1, CHARANUM
+	SIF !TCVAR:CHARA:今日の贈り物
+		CONTINUE
+	
+	GIFT_ID = TCVAR:CHARA:今日の贈り物
+	GIFT_ADJECT = GET_GIFTDATA(GIFT_ID, "形容詞")
+	GIFT_MAIN = GET_GIFTDATA(GIFT_ID, "本体")
+	GIFT_SCORE:1 = GET_GIFTDATA(GIFT_ID, "得点")
+	
+	;贈り物データの参照
+	CALL GIFTDATA_ADJECT(GIFT_ADJECT)
+	LOCALS:1 = %RESULTS:0%
+	CALL GIFTDATA_MAIN(GIFT_MAIN)
+	SENSE = %RESULTS:1%
+	LOCALS:2 = %RESULTS:0%
+	GIFT_NAME = %LOCALS:1%%LOCALS:2%
+;	PRINTFORMW SCORE{GIFT_SCORE:1}
+	
+	
+	PRINTL 
+	PRINTFORM %CALLNAME:CHARA%は%CALLNAME:MASTER%に貰った%GIFT_NAME%
+	IF GIFT_SCORE:1 >= 700
+		IF STRFIND(SENSE, "握る") >= 0
+			PRINTFORMW を大事そうに握りしめて眠りについた……。
+		ELSEIF STRFIND(SENSE, "抱く") >= 0
+			PRINTFORMW に思いを馳せながら抱きしめた……。
+		ELSEIF STRFIND(SENSE, "身につける") >= 0
+			PRINTFORMW を試しに身につけ、鏡の前で顔を赤らめた……。
+		ELSE
+			PRINTFORMW をうっとりと眺めてから眠りについた……。
+		ENDIF
+		;現在の贈り物と比較してお気に入りにする
+		IF CFLAG:CHARA:貰った贈り物
+			GIFT_SCORE:2 = GET_GIFTDATA(CFLAG:CHARA:貰った贈り物, "得点")
+		ELSE
+			GIFT_SCORE:2 = 0
+		ENDIF
+		IF GIFT_SCORE:1 >= GIFT_SCORE:2
+			CFLAG:CHARA:貰った贈り物 = TCVAR:CHARA:今日の贈り物
+			CALL COLORMESSAGE(@"%GIFT_NAME%は%CALLNAME:CHARA%のお気に入りになった！", C_YELLOW, 2)
+		ENDIF
+	ELSEIF GIFT_SCORE:1 >= 400
+		IF STRFIND(SENSE, "握る") >= 0
+			PRINTFORMW を棚の上に置いた……。
+		ELSEIF STRFIND(SENSE, "抱く") >= 0
+			PRINTFORMW を机の上に置いた……。
+		ELSEIF STRFIND(SENSE, "身につける") >= 0
+			PRINTFORMW をタンスにしまった……。
+		ELSE
+			PRINTFORMW をとりあえず保管した……。
+		ENDIF
+	ELSE
+		PRINTFORMW をこっそり質に入れた……。
+	ENDIF
+	PRINTL 
+NEXT
+
+;-------------------------------------------------
+;Look内で貰った贈り物を表示する関数
+;-------------------------------------------------
+@LOOK_GIFT(CHARA)
+#DIM CHARA
+#DIM GIFT_NAME
+#DIM GIFT_SCORE
+;うふふ中は表示しない
+SIF CFLAG:CHARA:うふふ
+	RETURN
+
+;お気に入り
+IF CFLAG:CHARA:貰った贈り物
+	PRINTL 
+	PRINT 【お気に】
+	CALL COLORMESSAGE("★", C_YELLOW, 0)
+	CALL GIFTNAME(CFLAG:CHARA:貰った贈り物)
+	PRINTFORM %RESULTS%
+	[IF_DEBUG]
+		CALL PRINT_GIFTDATA(CFLAG:CHARA:貰った贈り物, CHARA, "デバッグ")
+	[ENDIF]
+;お気に入りでない場合
+ELSEIF CFLAG:CHARA:贈り物ストック
+	GIFT_SCORE = GET_GIFTDATA(CFLAG:CHARA:贈り物ストック, "得点")
+	;400未満は携帯しない
+	IF GIFT_SCORE < 400
+		RETURN
+	ELSE
+		;評価得点が高いほど携帯しやすい
+		SIF FLAG:日替わりイベント * 10 > GIFT_SCORE
+			RETURN
+	ENDIF
+	PRINTL 
+	PRINT 【 携帯 】
+	CALL GIFTNAME(CFLAG:CHARA:贈り物ストック)
+	PRINTFORM %RESULTS%
+ENDIF
+
+;-------------------------------------------------
+;贈り物データを表示する関数
+;-------------------------------------------------
+@PRINT_GIFTDATA(GIFT_ID, CHARA, ARGS)
+#DIM GIFT_ID
+#DIM CHARA
+#DIM 回数
+#DIM GIFT_SCORE
+#DIM 貰った日
+#DIM 買った場所
+#DIM GIFT_ADJECT
+#DIM GIFT_MAIN
+#DIMS GIFT_NAME
+#DIM MAGNIF_PRICE
+#DIM SELL_AREA_ADJECT
+#DIM BASIC_PRICE
+#DIM SELL_AREA_MAIN
+#DIMS SENSE
+
+回数 = GET_GIFTDATA(GIFT_ID, "回数")
+GIFT_SCORE = GET_GIFTDATA(GIFT_ID, "得点")
+貰った日 = GET_GIFTDATA(GIFT_ID, "日付")
+買った場所 = GET_GIFTDATA(GIFT_ID, "場所")
+GIFT_ADJECT = GET_GIFTDATA(GIFT_ID, "形容詞")
+GIFT_MAIN = GET_GIFTDATA(GIFT_ID, "本体")
+CALL GIFTDATA_ADJECT(GIFT_ADJECT)
+MAGNIF_PRICE = RESULT:1
+SELL_AREA_ADJECT = RESULT:2
+LOCALS:1 = %RESULTS:0%
+SENSE = %RESULTS:1%
+CALL GIFTDATA_MAIN(GIFT_MAIN)
+BASIC_PRICE = RESULT:1
+SELL_AREA_MAIN = RESULT:2
+LOCALS:2 = %RESULTS:0%
+GIFT_NAME = %LOCALS:1%%LOCALS:2%
+SENSE += RESULTS:1
+
+IF ARGS == "あなたの"
+	PRINTFORM [{回数, 2}] %GIFT_NAME, 36, LEFT%
+	CALL REVIEW_STARS(GIFT_SCORE)
+	PRINT 　
+	CALL PRINT_DATE(貰った日)
+	PRINTFORM %GET_MAPNAME(買った場所)%からの帰り道で\@ 回数 == 1 ? 初めて # \@貰った
+	PRINTL 
+ELSEIF ARGS == "キャラの"
+	IF CFLAG:CHARA:貰った贈り物 == GIFT_ID
+		CALL COLORMESSAGE("★", C_YELLOW, 0)
+		PRINTFORM %GIFT_NAME, 34, LEFT%
+	ELSE
+		PRINTFORM %GIFT_NAME, 36, LEFT%
+	ENDIF
+	CALL REVIEW_STARS(GIFT_SCORE)
+	PRINT 　
+	CALL PRINT_DATE(貰った日)
+	PRINTFORM %GIFTSHOP_NAME(買った場所)%で\@ 回数 == 1 ? 初めて # {回数}回目に \@買ってあげた
+	PRINTL 
+ELSEIF ARGS == "デバッグ"
+	PRINTL 
+	CALL PRINT_DATE(貰った日)
+	PRINTFORML %GIFTSHOP_NAME(買った場所)%で%CALLNAME:CHARA%に{回数}回目に買ってあげた%GIFT_NAME%
+	PRINTFORML 定価は{BASIC_PRICE} * {MAGNIF_PRICE}\% = \\{BASIC_PRICE * MAGNIF_PRICE / 100}
+	PRINTFORML 評価得点は　{GIFT_SCORE }点
+	PRINTFORM この形容詞が売ってるのは
+	SIF GETBIT(SELL_AREA_ADJECT, 0)
+		PRINT 　神社
+	SIF GETBIT(SELL_AREA_ADJECT, 1)
+		PRINT 　寺　
+	SIF GETBIT(SELL_AREA_ADJECT, 2)
+		PRINT 　人里
+	SIF GETBIT(SELL_AREA_ADJECT, 3)
+		PRINT 　湖　
+	SIF GETBIT(SELL_AREA_ADJECT, 4)
+		PRINT 　竹林
+	SIF GETBIT(SELL_AREA_ADJECT, 5)
+		PRINT 　森　
+	SIF GETBIT(SELL_AREA_ADJECT, 6)
+		PRINT 　冥界
+	SIF GETBIT(SELL_AREA_ADJECT, 7)
+		PRINT 　山麓
+	SIF GETBIT(SELL_AREA_ADJECT, 8)
+		PRINT 　山頂
+	SIF GETBIT(SELL_AREA_ADJECT, 9)
+		PRINT 　地底
+	SIF GETBIT(SELL_AREA_ADJECT, 10)
+		PRINT 　月　
+	PRINTL 
+	PRINTFORM この本体が売ってるのは　
+	SIF GETBIT(SELL_AREA_MAIN, 0)
+		PRINT 　神社
+	SIF GETBIT(SELL_AREA_MAIN, 1)
+		PRINT 　寺　
+	SIF GETBIT(SELL_AREA_MAIN, 2)
+		PRINT 　人里
+	SIF GETBIT(SELL_AREA_MAIN, 3)
+		PRINT 　湖　
+	SIF GETBIT(SELL_AREA_MAIN, 4)
+		PRINT 　竹林
+	SIF GETBIT(SELL_AREA_MAIN, 5)
+		PRINT 　森　
+	SIF GETBIT(SELL_AREA_MAIN, 6)
+		PRINT 　冥界
+	SIF GETBIT(SELL_AREA_MAIN, 7)
+		PRINT 　山麓
+	SIF GETBIT(SELL_AREA_MAIN, 8)
+		PRINT 　山頂
+	SIF GETBIT(SELL_AREA_MAIN, 9)
+		PRINT 　地底
+	SIF GETBIT(SELL_AREA_MAIN, 10)
+		PRINT 　月　
+	PRINTL 
+	IF STRFIND(SENSE, "握る") >= 0
+		PRINTFORML 握れるものだ
+	ELSEIF STRFIND(SENSE, "抱く") >= 0
+		PRINTFORML 抱けるものだ
+	ELSEIF STRFIND(SENSE, "身につける") >= 0
+		PRINTFORML 身につけるものだ
+	ELSE
+		PRINTFORML 眺めるものだ
+	ENDIF
+	PRINTFORML SENSE：%SENSE%
+	RETURN
+ENDIF
+;-------------------------------------------------
+;贈り物データを抽出する関数
+;-------------------------------------------------
+@GET_GIFTDATA(GIFT_ID, ARGS)
+#FUNCTION
+#DIM GIFT_ID
+SELECTCASE ARGS
+CASE "回数"
+	RETURNF GIFT_ID / 10000000000000000
+CASE "得点"
+	RETURNF GIFT_ID / 10000000000000 % 1000
+CASE "日付"
+	RETURNF GIFT_ID / 1000000000 % 10000
+CASE "場所"
+	RETURNF GIFT_ID / 10000000 % 100
+CASE "形容詞"
+	RETURNF GIFT_ID / 1000 % 10000
+CASE "本体"
+	RETURNF GIFT_ID % 1000
+ENDSELECT
+
+;-------------------------------------------------
+;贈り物の名前を出力する関数
+;FUNCTIONSにしたかったけどCALLできなくて泣く泣くこのカタチに…
+;-------------------------------------------------
+@GIFTNAME(GIFT_ID)
+#DIM GIFT_ID
+#DIM GIFT_ADJECT
+#DIM GIFT_MAIN
+GIFT_ADJECT = GET_GIFTDATA(GIFT_ID, "形容詞")
+GIFT_MAIN = GET_GIFTDATA(GIFT_ID, "本体")
+
+CALL GIFTDATA_ADJECT(GIFT_ADJECT)
+LOCALS:1 = %RESULTS:0%
+CALL GIFTDATA_MAIN(GIFT_MAIN)
+LOCALS:2 = %RESULTS:0%
+
+RESULTS = %LOCALS:1%%LOCALS:2%
+RETURN
+
+;-------------------------------------------------
+;引数に地域を羅列するとそこのbitを入れて返す関数Ver.2.0
+;"全て"を入れると全て入れた数値(2^11-1)を返す
+;"以外"を入れると逆になる
+;COMMONに入れてもいいかもしれない（どこで使うか知らん）
+;-------------------------------------------------
+@AREA_SETBIT(ARGS)
+#FUNCTION
+VARSET RESULT
+SIF STRFIND(ARGS, "全て") >= 0
+	RETURNF 2047
+
+SIF STRFIND(ARGS, "神社") >= 0
+	SETBIT RESULT, 0
+SIF STRFIND(ARGS, "寺") >= 0
+	SETBIT RESULT, 1
+SIF STRFIND(ARGS, "里") >= 0
+	SETBIT RESULT, 2
+SIF STRFIND(ARGS, "湖") >= 0
+	SETBIT RESULT, 3
+SIF STRFIND(ARGS, "竹") >= 0
+	SETBIT RESULT, 4
+SIF STRFIND(ARGS, "森") >= 0
+	SETBIT RESULT, 5
+SIF STRFIND(ARGS, "冥界") >= 0
+	SETBIT RESULT, 6
+SIF STRFIND(ARGS, "山麓") >= 0
+	SETBIT RESULT, 7
+SIF STRFIND(ARGS, "山頂") >= 0
+	SETBIT RESULT, 8
+SIF STRFIND(ARGS, "地底") >= 0
+	SETBIT RESULT, 9
+SIF STRFIND(ARGS, "月") >= 0
+	SETBIT RESULT, 10
+
+IF STRFIND(ARGS, "以外") >= 0
+	FOR LOCAL, 0, 11
+		INVERTBIT RESULT, LOCAL
+	NEXT
+ENDIF
+RETURNF RESULT
+
+;-------------------------------------------------
+;デート帰りの贈り物イベントが発生するかのチェック
+;-------------------------------------------------
+@GIFT_DATE_CHECK(CHARA)
+#FUNCTION
+#DIM CHARA
+#DIM 上限
+#DIM 発生率
+;祭日でないなら上限80%
+IF FESTIVAL() == ""
+	上限 = 80
+ELSE
+	上限 = 100
+ENDIF
+
+;モブ子
+SIF TALENT:CHARA:行きずり
+	RETURNF 0
+;すでに渡している
+SIF DAY == GET_GIFTDATA(CFLAG:CHARA:渡した贈り物, "日付")
+	RETURNF 0
+;前回の贈り物から一週間以上経ってる（祭日を除く）
+SIF DAY - GET_GIFTDATA(CFLAG:CHARA:渡した贈り物, "日付") < 7 && FESTIVAL() == ""
+	RETURNF 0
+;反発刻印,不機嫌,怒り
+SIF MARK:CHARA:反発刻印 || TALENT:CHARA:機嫌 < 0 || CFLAG:CHARA:ブチギレ
+	RETURNF 0
+;ムード1200未満
+SIF BASE:CHARA:ムード < 1200
+	RETURNF 0
+
+;親密5以降から親密1につき5%上昇
+発生率 = (ABL:CHARA:親密 - 4) * 5
+;祭日なら1.5倍
+SIF FESTIVAL() != ""
+	TIMES 発生率, 1.5
+;恋人なら1.5倍
+SIF TALENT:CHARA:恋人
+	TIMES 発生率, 1.5
+;発生率%で発生
+SIF MIN(発生率, 上限) > RAND:100
+	RETURNF 1
+RETURNF 0
+
+;-------------------------------------------------
+;デート帰りの贈り物イベント
+;-------------------------------------------------
+@GIFT_DATE_EVENT(CHARA)
+#DIM CHARA
+#DIM GIFT_ID
+#DIMS GIFT_NAME
+#DIM 渡した回数
+#DIM 点数
+
+PRINTL 
+PRINTFORM デートからの帰り道、
+SELECTCASE CFLAG:CHARA:性格傾向
+;気弱系
+CASE 1
+	PRINTFORML %CALLNAME:CHARA%はもじもじした様子で懐から何かを取り出し、恐る恐る%CALLNAME:MASTER%に差し出してきた…
+;強気系
+CASE 2
+	PRINTFORML %CALLNAME:CHARA%は%CALLNAME:MASTER%の顔を見て、思い出したかのように何かを取り出すと得意気にそれを渡してきた…
+;素直系
+CASE 3
+	PRINTFORML %CALLNAME:CHARA%はおもむろに何かを取り出すと、%CALLNAME:MASTER%にあげると言ってそれを手渡してきた…
+;真面目系
+CASE 4
+	PRINTFORML %CALLNAME:CHARA%は%CALLNAME:MASTER%に渡したい物があると言って箱を取り出し、丁重に差し出してきた…
+;その他
+CASEELSE
+	PRINTFORML %CALLNAME:CHARA%は渡したい物があると言って何かを取り出し、%CALLNAME:MASTER%に差し出してきた…
+ENDSELECT
+PRINTW 
+
+;点数は必要ないけど一応
+点数 = 0
+
+;贈り物生成
+CALL CREATE_GIFT_FROM_CHARA(CHARA, 701, 1000)
+GIFT_ID = RESULT
+GIFT_NAME = %RESULTS%
+渡した回数 = GET_GIFTDATA(CFLAG:CHARA:渡した贈り物, "回数") + 1
+;IDの設定
+GIFT_ID = 渡した回数 * 10000000000000000 + 点数 * 10000000000000 + DAY * 1000000000 + CFLAG:MASTER:デート中 * 10000000 + GIFT_ID
+GIFT_GAVE:CHARA:(渡した回数 % 100) = GIFT_ID
+CFLAG:CHARA:渡した贈り物 = GIFT_ID
+TRYCALLFORM M_KOJO_EVENT_K{CHARA}_GIFT(GIFT_NAME)
+PRINTFORMW 【%GIFT_NAME%】を貰った！
+
+;-------------------------------------------------
+;土産屋の名前を返す関数
+;-------------------------------------------------
+@GIFTSHOP_NAME(買った場所, コマンド)
+#FUNCTIONS
+#DIM 買った場所
+#DIM コマンド
+SELECTCASE 買った場所
+CASE 5
+	RETURNF "香霖堂"
+CASEELSE
+	IF コマンド
+		RETURNF "土産屋"
+	ELSE
+		RETURNF GET_MAPNAME(買った場所)
+	ENDIF
+ENDSELECT
+
+;-------------------------------------------------
+;点数に応じた★を表示する関数
+;評価方法が特殊なので表示個数も変則的
+;-------------------------------------------------
+@REVIEW_STARS(SCORE)
+#DIM SCORE
+#DIM STAR
+#DIM STARCOLOR
+SELECTCASE SCORE
+CASE IS >= 800
+	STAR = 5
+CASE IS >= 700
+	STAR = 4
+CASE IS >= 500
+	STAR = 3
+CASE IS >= 400
+	STAR = 2
+CASEELSE
+	STAR = 1
+ENDSELECT
+FOR LOCAL, 1, 6
+	IF LOCAL <= STAR
+		IF STAR >= 4
+			SETCOLOR C_ORANGE
+		ELSEIF STAR <= 1
+			SETCOLOR C_AQUA
+		ELSE
+			SETCOLOR C_YELLOW
+		ENDIF
+		PRINT ★
+	ELSE
+		SETCOLOR C_GRAY
+		PRINT ☆
+	ENDIF
+NEXT
+RESETCOLOR
+
+;-------------------------------------------------
+;SHOPから呼ばれる表示関数
+;-------------------------------------------------
+@SHOW_COLLECTION_GIFT
+PRINTFORML ☆貰った贈り物☆
+FOR LOCAL, 1, CHARANUM
+	IF !CFLAG:LOCAL:出禁 && !TALENT:LOCAL:行きずり
+		SIF !GIFT_GAVE:LOCAL:1
+			SETCOLOR C_GRAY
+		PRINTFORMLC [{LOCAL}] %CALLNAME:LOCAL, 15, LEFT%
+		RESETCOLOR
+	ENDIF
+NEXT
+PRINTL 
+DRAWLINE
+PRINTFORML [999] - 戻る
+INPUT
+
+IF RESULT == 999
+		RETURN
+ELSEIF INRANGE(RESULT, 1, CHARANUM) && !CFLAG:RESULT:出禁 && !TALENT:RESULT:行きずり
+	CALL SHOW_GIFT_GAVE(RESULT)
+ENDIF
+RESTART
+
+;-------------------------------------------------
+;貰った贈り物を表示する関数
+;-------------------------------------------------
+@SHOW_GIFT_GAVE(CHARA)
+#DIM CHARA
+#DIM SCORE
+#DIM GIFT_NUM
+#DIM LINE
+#DIM FAVO
+PRINTFORML 　●選択するとレビューできます
+PRINTFORML 　☆%CALLNAME:CHARA%から貰った贈り物
+FOR LOCAL, 0, 100
+	;フラグ0番が100を兼ねているのでこの形に
+	SIF GIFT_GAVE:CHARA:((LOCAL + 1) % 100)
+		CALL PRINT_GIFTDATA(GIFT_GAVE:CHARA:((LOCAL + 1) % 100), CHARA, "あなたの")
+	IF !GIFT_GAVE:CHARA:((LOCAL + 1) % 100)
+		LINE = LOCAL
+		BREAK
+	ENDIF
+NEXT
+DRAWLINE
+CALL GIFTNAME(ITEM:お気に入りアイテム)
+PRINTFORML ☆現在のお気に入り：%RESULTS%
+CALL GIFTNAME(FAVO)
+PRINTFORML [999] - 戻る　　　　　　　　　　　　　　 \@ FAVO ? [998] %RESULTS%をお気に入りにする # \@
+INPUT
+IF RESULT == 999
+	FAVO = 0
+	RETURN
+ELSEIF RESULT == 998
+	ITEM:お気に入りアイテム = FAVO
+ELSEIF INRANGE(RESULT, 0, 100) && GIFT_GAVE:CHARA:RESULT
+	GIFT_NUM = RESULT
+	;星の数が変則的なので
+	SELECTCASE GET_GIFTDATA(GIFT_GAVE:CHARA:GIFT_NUM, "得点")
+	CASE IS >= 800
+		SCORE = 0
+	CASE IS >= 700
+		SCORE = 800
+	CASE IS >= 500
+		SCORE = 700
+	CASE IS >= 400
+		SCORE = 500
+	CASEELSE
+		SCORE = 400
+	ENDSELECT
+	GIFT_GAVE:CHARA:GIFT_NUM -= (GET_GIFTDATA(GIFT_GAVE:CHARA:GIFT_NUM, "得点") * 10000000000000)
+	GIFT_GAVE:CHARA:GIFT_NUM += (SCORE * 10000000000000)
+	FAVO = GIFT_GAVE:CHARA:GIFT_NUM
+ENDIF
+CLEARLINE 6 + LINE
+RESTART

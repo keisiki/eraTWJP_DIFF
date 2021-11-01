@@ -1,0 +1,405 @@
+﻿;-----------------------------------------------------------
+;処女設定
+;-----------------------------------------------------------
+;-----------------------------------------------------------
+;処女設定メニュー
+;-----------------------------------------------------------
+@VIRGIN_SET
+#DIMS choices, 11
+PRINTL 
+PRINTL ゲーム開始前に各キャラの処女・非処女を変更できます
+PRINTL 一括設定はどれかひとつのみ有効です
+DRAWLINE
+VARSET choices
+choices:0 '= "個別設定"
+choices:1 '= "全員セックスの意味すらわからないよ"
+choices:2 '= "全員処女に決まってんだろボケナス"
+choices:3 '= "幻想少女は長寿だから経験豊富だよ"
+choices:4 '= "むしろ全員ヤリマンだよ"
+choices:5 '= "全員処女だけどお股ゆるゆるだよ"
+SIF 全員の貞操
+	choices:全員の貞操 '= "<font color='#67e47e'>(有効)</font>" + choices:全員の貞操
+SIF 全員の貞操 ||SUMCARRAY(初期貞操)
+	choices:10 '= "全員初期設定に戻してみる"
+
+CALL ASK_CHOICES(choices, 100, "完了")
+SELECTCASE RESULT
+	;システム
+	CASE 0
+		CALL SET_VIRGINITY
+	CASE 10
+		CVARSET 初期貞操
+		VARSET 全員の貞操
+		PRINTW 全員ありのままの状態で開始します。
+	CASE 100
+		PRINTW 設定を終了します。
+		RETURN
+	CASE IS == 全員の貞操
+		全員の貞操 = 0
+		PRINTW 全体設定を無効にしました。
+	;貞操
+	CASE 1
+		全員の貞操 = RESULT
+		PRINTW 小兎姫さんこっちです。
+		PRINTW 全員処女かつ無知の状態で開始します。
+	CASE 2
+		全員の貞操 = RESULT
+		PRINTW この処女厨めが！
+		PRINTW 全員処女の状態で開始します。
+	CASE 3
+		全員の貞操 = RESULT
+		PRINTW 全員非処女の状態で開始します。
+	CASE 4
+		全員の貞操 = RESULT
+		PRINTW 全員ヤリマンの状態で開始します。
+	CASE 5
+		PRINTFORMW 面倒くさい奴だな。
+		全員の貞操 = RESULT
+		PRINTW 全員処女かつヤリマンの状態で開始します。
+	CASEELSE
+		THROW 無効な入力です。
+ENDSELECT
+RESTART
+
+;-----------------------------------------------------------
+;個別設定
+;-----------------------------------------------------------
+@SET_VIRGINITY
+#DIM CHARA_ID
+FOR CHARA_ID, 0, CHARANUM
+	SIF !IS_NAMED(CHARA_ID)
+		CONTINUE
+	SIF TALENT:CHARA_ID:処女
+		SETCOLOR C_PINK
+	SIF TALENT:CHARA_ID:ヤリマン
+		SETCOLOR C_P_BLUE
+	LOCALS '= @"[{CHARA_ID, 3}] %SET_VIRGINITY_KEY(初期貞操:CHARA_ID:0)%%CALLNAME:CHARA_ID%"
+	PRINTFORMLC %LOCALS%
+	RESETCOLOR
+NEXT
+PRINTL
+DRAWLINE
+PRINTL [999] 設定終了
+DO
+	INPUT
+	CHARA_ID = RESULT
+	SELECTCASE CHARA_ID
+		CASE 999
+			PRINTW 個別設定を終了します。
+			RETURN
+		CASEELSE
+			IF !IS_NAMED(CHARA_ID)
+				CLEARLINE 1
+				CONTINUE
+			ENDIF
+			BREAK
+	ENDSELECT
+LOOP 1
+
+初期貞操:CHARA_ID:0 ++
+SIF 初期貞操:CHARA_ID:0 >= 6
+	初期貞操:CHARA_ID:0 = 0
+
+SELECTCASE 初期貞操:CHARA_ID:0
+	CASE 0
+		PRINTFORMW %CALLNAME:CHARA_ID%の能力を初期設定に戻します
+	CASE 1
+		PRINTFORMW %CALLNAME:CHARA_ID%を処女かつ無知にします
+	CASE 2
+		PRINTFORMW %CALLNAME:CHARA_ID%を処女にします
+	CASE 3
+		PRINTFORMW %CALLNAME:CHARA_ID%を非処女にします
+	CASE 4
+		PRINTFORMW %CALLNAME:CHARA_ID%をヤリマンにします
+	CASE 5
+		PRINTFORMW %CALLNAME:CHARA_ID%を処女かつヤリマンにします
+	CASEELSE
+		THROW 貞操設定が不適切です
+ENDSELECT
+RESTART
+;-----------------------------------------------------------
+;設定略語
+;-----------------------------------------------------------
+@SET_VIRGINITY_KEY(ARG)
+#FUNCTIONS
+SELECTCASE ARG
+	CASE 0
+		RETURNF ""
+	CASE 1
+		RETURNF "[無知]"
+	CASE 2
+		RETURNF "[処女]"
+	CASE 3
+		RETURNF "[熟練]"
+	CASE 4
+		RETURNF "[ヤリ]"
+	CASE 5
+		RETURNF "[ヤ処]"
+	CASEELSE
+		THROW 貞操設定が不適切です
+ENDSELECT
+;-----------------------------------------------------------
+;処女設定適用
+;-----------------------------------------------------------
+@VIRGIN_SET_APPLY
+FOR LOCAL, 1, CHARANUM
+	IF 初期貞操:LOCAL:0
+		CALL VIRGIN_SET_APPLY_PART(LOCAL, 初期貞操:LOCAL:0)
+	ELSE
+		CALL VIRGIN_SET_APPLY_PART(LOCAL, 全員の貞操)
+	ENDIF
+NEXT
+
+;-----------------------------------------------------------
+;-----------------------------------------------------------
+@VIRGIN_SET_APPLY_PART(ARG, ARG:1)
+SELECTCASE ARG:1
+	CASE 0
+	CASE 1
+		CALL SET_VIRGIN(ARG:1)
+		TALENT:ARG:無知 = 1
+	CASE 2
+		CALL SET_VIRGIN(ARG)
+	CASE 3
+		CALL SET_WELL_EXP(ARG)
+	CASE 4
+		CALL SET_YARIMAN(ARG)
+	CASE 5
+		CALL SET_VIRGIN(ARG)
+		SIF TALENT:ARG:性別嗜好 == 1
+			TALENT:ARG:性別嗜好 = 0
+		ABL:ARG:欲望 = 3
+		TALENT:ARG:ヤリマン = 1
+		TALENT:ARG:貞操 = -1
+CASEELSE
+	THROW 貞操設定が不適切です
+ENDSELECT
+
+;-----------------------------------------------------------
+;体型変更
+;-----------------------------------------------------------
+@BODY_SET
+#DIMS choices, 11
+PRINTL 
+PRINTL ゲーム開始前にキャラの体型素質を変更できます
+PRINTL 複数の設定を併用することもできます
+DRAWLINE
+VARSET choices
+;ロリ
+choices:1 '= "全員少女もとい幼女だよ"
+SIF 全員ロリ化
+	choices:1 '= "<font color='#67e47e'>(有効)</font>" + choices:1
+;小人
+choices:2 '= "全員小人だよ"
+SIF 全員小人化
+	choices:2 '= "<font color='#67e47e'>(有効)</font>" + choices:2
+;動物耳
+choices:3 '= "全員動物耳だよ"
+SIF 全員動物耳化
+	choices:3 '= "<font color='#67e47e'>(有効)</font>" + choices:3
+;ふたなり
+choices:4 '= "全員おちんちんが生えてるよ"
+SIF 全員ふたなり化
+	choices:4 '= "<font color='#67e47e'>(有効)</font>" + choices:4
+;リセット
+IF 全員ロリ化 || 全員小人化 || 全員動物耳化 || 全員ふたなり化
+	choices:10 '= "全員初期設定に戻してみる"
+ELSE
+	choices:10 '= "全員ロリで小人で動物耳で生えてるよ"
+ENDIF
+CALL ASK_CHOICES(choices, 100, "完了")
+SELECTCASE RESULT
+	CASE 10
+		IF 全員ロリ化 || 全員小人化 || 全員動物耳化 || 全員ふたなり化
+			全員ロリ化 = 0
+			全員小人化 = 0
+			全員動物耳化 = 0
+			全員ふたなり化 = 0
+			PRINTW 設定をリセットしました。
+		ELSE
+			全員ロリ化 = 1
+			全員小人化 = 1
+			全員動物耳化 = 1
+			全員ふたなり化 = 1
+			PRINTW 全員ロリで小人で動物耳で生えてるようにして開始します。
+		ENDIF
+	CASE 100
+		PRINTW 設定を終了します。
+		RETURN
+	CASE 1
+		IF 全員ロリ化
+			全員ロリ化 = 0
+		ELSE
+			全員ロリ化 = 1
+			IF TALENT:MASTER:形状 < 6
+				PRINTFORML たまにはロリコンもいいよね！
+				PRINTFORML
+				PRINTW 全員幼女にして開始します。
+			ELSE
+				PRINTFORML このド外道がぁーッ！
+				PRINTFORML
+				PRINTW 全員幼女にして開始します。
+			ENDIF
+		ENDIF
+	CASE 2
+		IF 全員小人化
+			全員小人化 = 0
+		ELSE
+			全員小人化 = 1
+			IF TALENT:MASTER:形状 < 3
+				PRINTW 全員小人にして開始します。
+			ELSE
+				PRINTFORML このド畜生がァーッ！
+				PRINTFORML 
+				PRINTW 全員小人にして開始します。
+			ENDIF
+		ENDIF
+	CASE 3
+		IF 全員動物耳化
+			全員動物耳化 = 0
+		ELSE
+			全員動物耳化 = 1
+			PRINTFORMW 全員動物耳にして開始します。
+		ENDIF
+	CASE 4
+		IF 全員ふたなり化
+			全員ふたなり化 = 0
+		ELSE
+			全員ふたなり化 = 1
+			PRINTFORMW 全員ふたなりにして開始します。
+		ENDIF
+ENDSELECT
+RESTART
+
+@SET_BODY_APPLY
+;ロリの後に小人でないと小人が上書きされる
+IF 全員ロリ化
+	FOR LOCAL,1,CHARANUM
+		CALL SET_LOLI(LOCAL)
+	NEXT
+ENDIF
+IF 全員小人化
+	FOR LOCAL,1,CHARANUM
+		TALENT:LOCAL:体型 = -5
+	NEXT
+ENDIF
+IF 全員動物耳化
+	FOR LOCAL,1,CHARANUM
+		TALENT:LOCAL:143 = 1
+	NEXT
+ENDIF
+IF 全員ふたなり化
+	FOR LOCAL,1,CHARANUM
+		CALL SET_FUTANARI(LOCAL)
+	NEXT
+ENDIF
+
+;-----------------------------------------------------------
+;初期化
+;強くてニューゲームでも使用される
+;CFLAGのリセットは引き継ぎに支障があるので禁止
+;-----------------------------------------------------------
+@RESET_CHARA(ARG)
+FOR LOCAL, 0, VARSIZE("TALENTNAME")
+	TALENT:ARG:LOCAL = CSVTALENT(ARG, LOCAL)
+NEXT
+FOR LOCAL, 0, VARSIZE("EXPNAME")
+	EXP:ARG:LOCAL = CSVEXP(ARG, LOCAL)
+NEXT
+FOR LOCAL, 0, VARSIZE("ABLNAME")
+	ABL:ARG:LOCAL = CSVABL(ARG, LOCAL)
+NEXT
+FOR LOCAL, 0, VARSIZE("EXPNAME")
+	EXP:ARG:LOCAL = CSVEXP(ARG, LOCAL)
+NEXT
+FOR LOCAL, 0, VARSIZE("BASENAME")
+	BASE:ARG:LOCAL = CSVBASE(ARG, LOCAL)
+	MAXBASE:ARG:LOCAL = BASE:ARG:LOCAL
+NEXT
+
+;-----------------------------------------------------------
+;処女化
+;-----------------------------------------------------------
+@SET_VIRGIN(ARG)
+TALENT:ARG:処女 = 1
+EXP:ARG:Ｃ経験 = 0
+EXP:ARG:Ｂ経験 = 0
+EXP:ARG:Ｖ経験 = 0
+EXP:ARG:Ａ経験 = 0
+ABL:ARG:Ｖ感覚 = 0
+ABL:ARG:Ａ感覚 = 0
+EXP:ARG:Ｖ性交経験 = 0
+EXP:ARG:Ｖ拡張経験 = 0
+EXP:ARG:子宮口開発経験 = 0
+EXP:ARG:Ａ性交経験 = 0
+EXP:ARG:Ａ拡張経験 = 0
+EXP:ARG:手淫経験 = 0
+EXP:ARG:口淫経験 = 0
+EXP:ARG:パイズリ経験 = 0
+EXP:ARG:キス経験 = 0
+EXP:ARG:奉仕快楽経験 = 0
+EXP:ARG:愛情経験 = 0
+EXP:ARG:苦痛快楽経験 = 0
+EXP:ARG:嗜虐快楽経験 = 0
+EXP:ARG:露出快楽経験 = 0
+EXP:ARG:緊縛経験 = 0
+EXP:ARG:絶頂経験 = 0
+EXP:ARG:射精経験 = 0
+EXP:ARG:噴乳経験 = 0
+EXP:ARG:放尿経験 = 0
+EXP:ARG:精液経験 = 0
+EXP:ARG:精飲経験 = 0
+EXP:ARG:出産経験 = 0
+TALENT:ARG:キス未経験 = 1
+TALENT:ARG:ヤリマン = 0
+TALENT:ARG:性別嗜好 = CSVTALENT(ARG,81)
+TALENT:ARG:貞操 = CSVTALENT(ARG,30)
+ABL:ARG:腰 = CSVABL(ARG, GETNUM(ABL, "腰"))
+ABL:ARG:欲望 = CSVABL(ARG, GETNUM(ABL, "欲望"))
+
+;-----------------------------------------------------------
+;経験豊富
+;-----------------------------------------------------------
+@SET_WELL_EXP(ARG)
+TALENT:ARG:処女 = 0
+SIF TALENT:ARG:性別嗜好 == 1
+	TALENT:ARG:性別嗜好 = 0
+EXP:ARG:Ｖ経験 = MAX(EXP:ARG:Ｖ経験, 50)
+ABL:ARG:Ｖ感覚 = MAX(ABL:ARG:Ｖ感覚, 2)
+ABL:ARG:腰 = MAX(ABL:ARG:腰, 2)
+EXP:ARG:Ｖ性交経験 = MAX(EXP:ARG:Ｖ経験, 50)
+EXP:ARG:Ｖ拡張経験 = MAX(EXP:ARG:Ｖ拡張経験, 3)
+EXP:ARG:精液経験 = MAX(EXP:ARG:精液経験, 10)
+
+;-----------------------------------------------------------
+;ヤリマン
+;-----------------------------------------------------------
+@SET_YARIMAN(ARG)
+TALENT:ARG:処女 = 0
+SIF TALENT:ARG:性別嗜好 == 1
+	TALENT:ARG:性別嗜好 = 0
+EXP:ARG:Ｖ経験 = MAX(EXP:ARG:Ｖ経験, 100)
+ABL:ARG:Ｖ感覚 = MAX(ABL:ARG:Ｖ感覚, 3)
+ABL:ARG:腰 = MAX(ABL:ARG:腰, 3)
+ABL:ARG:欲望 = 3
+EXP:ARG:Ｖ性交経験 = MAX(EXP:ARG:Ｖ経験, 100)
+EXP:ARG:Ｖ拡張経験 = MAX(EXP:ARG:Ｖ拡張経験, 3)
+EXP:ARG:精液経験 = MAX(EXP:ARG:精液経験, 50)
+TALENT:ARG:ヤリマン = 1
+TALENT:ARG:貞操 = -1
+
+;-----------------------------------------------------------
+;ロリ
+;-----------------------------------------------------------
+@SET_LOLI(ARG)
+TALENT:ARG:バストサイズ = MAX(TALENT:ARG:バストサイズ - 2, -2)
+TALENT:ARG:体型 = -2
+
+;-----------------------------------------------------------
+;ふたなり
+;-----------------------------------------------------------
+@SET_FUTANARI(ARG)
+TALENT:ARG:性別 = 3
+TALENT:ARG:形状 = 3
+MAXBASE:ARG:勃起 = 1500
+MAXBASE:ARG:精力 = 1000

@@ -1,0 +1,104 @@
+﻿@CHARAMOVE_DATA_115(ARG,ARG:2)
+LOCAL = 115
+SELECTCASE ARG
+	;移動対象メンバーチェック
+	CASE 1
+	;移動確率
+	CASE 2
+	;起床時間帯
+	CASE 3
+		RETURN 睡眠時間(LOCAL)
+	;移動傾向
+	CASE 4
+		SELECTCASE ARG:2
+			;永遠亭の奥には行かない
+			CASE 405, 407 TO 430
+				RETURN -100
+			;他人の家には入らない
+			CASE 432, 437, 439, 440, 442, 443, 445
+				RETURN -100
+			;倉庫にはあまり行かない
+			CASE 456
+				RETURN -5
+			;玄関,ダイニング,リビング,庭によく居る
+			CASE 438, 450, 453, 461, 466
+				RETURN 5
+		ENDSELECT
+	;仕事時間帯
+	CASE 5
+	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
+	CASE 6
+		SELECTCASE ARG:2
+			CASE 4
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+	;出現場所
+	CASE 7
+		SELECTCASE ARG:2
+			CASE 41, 42, 47, 49
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+ENDSELECT
+
+@EXIST_キャラデータ115
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+@キャラデータ115(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+SELECTCASE O_DATA
+CASE "呼び名"
+	CALLF MAKE_STR(V_NAME, "エリー")
+;こっから衣装設定
+CASE "今日のパジャマ"
+	CALLF MAKE_STR(V_NAME, "パジャマ（ネグリジェ）セット")
+
+CASE "普段着：靴"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴", "靴"))
+CASE "普段着：靴下"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴下", "靴下"))
+CASE "普段着：帽子"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("帽子", "帽子"))
+CASE "普段着：ワンピース"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("ワンピース", "ワンピース"))
+
+CASE "固有下着形容詞"
+	CALLF MAKE_STR(V_NAME, "優雅にレースをあしらった")
+CASE "固有下半身下着名"
+	CALLF MAKE_STR(V_NAME, "エレガントショーツ")
+CASE "固有上半身下着"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有上半身下着名"
+	CALLF MAKE_STR(V_NAME, "エレガントブラ")
+CASE "固有下着着用条件"
+	SIF !RAND:(3 - (2 * 勝負下着判定([[エリー]])))
+		CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(前)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(後)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着生地厚さ"
+	CALLF MAKE_INT(V_NAME, 2)
+
+;料理関連
+CASE "料理：好きな味"
+	CALLF MAKE_STR(V_NAME, "魚料理/洋食/麺類/パイ/濃厚/豪華/鮮やか/グロテスク/サクサク/夢幻風/甘い/甘い/すっぱい/すっぱい/")
+CASE "料理：嫌いな味"
+	CALLF MAKE_STR(V_NAME, "辛い/辛い/" + "カエル/虫肉/スパイス/謎料理/" * 3)
+CASE "料理：助手効果"
+	CALLF MAKE_STR(V_NAME, "夢幻風/")
+;贈り物関連
+CASE "感性：好き"
+	CALLF MAKE_STR(V_NAME, "赤/混沌/怖い/洋風/シック/" + "死生/妖術/刃物/" * 3 + "死神の/" * 5)
+CASE "感性：嫌い"
+	CALLF MAKE_STR(V_NAME, "秩序/派手/マニアック/")
+ENDSELECT
+

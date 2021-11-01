@@ -1,0 +1,579 @@
+;---------------------------------------------------------------------
+;ITEMの細かい分類等をまとめて設定する関数
+;主に通信販売をはじめショップ用
+;SALES  0=購入可, -1=売切, -2=封印, ただしまとめ買いできるものはITEMSALES:ARGを返す
+;ARG:1  補足用の引数,値段の割引など
+;---------------------------------------------------------------------
+@ITEMDATA(ARG, ARGS, ARG:1)
+SELECTCASE ITEMNAME:ARG
+;無効なアイテム
+CASE ""
+	RETURN 0
+CASE "ローター", 
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			ITEM:ARG ++
+	CASE "TYPE:調教", "TYPE:河童道具", "TYPE:ローター", "SHOP:通信販売", "SHOP:河童の道具屋", "SHOP:診察"
+		RETURN 1
+	ENDSELECT
+CASE "Ｅマッサージャ", "クリキャップ", "オナホール", "バイブ", "アナルバイブ", "ニプルキャップ", "搾乳器", "ペニスバンド", "アイマスク", "縄", "プレイマット", "エプロン", "【捕縛技能】"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			ITEM:ARG ++
+	CASE "TYPE:調教", "TYPE:河童道具", "SHOP:通信販売", "SHOP:河童の道具屋", "SHOP:診察"
+		RETURN 1
+	ENDSELECT
+CASE  "アナルビーズ", "空気ポンプ", "拡張バルーン", "浣腸器＋プラグ", "鞭", "針", "ボールギャグ", "ビデオカメラ", "大鏡", "首輪", "電極プラグ", "触手使役術"
+	;現在未実装
+CASE "スカウター", "シューターギプス", "調合用品一式", "保温ジャー", "釣り竿", "ミキサー"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			ITEM:ARG ++
+	CASE "TYPE:日用品", "TYPE:河童道具", "SHOP:通信販売", "SHOP:河童の道具屋"
+		RETURN 1
+	ENDSELECT
+CASE "チェーンソー"
+	;チェーンソーは通販で買えない
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			ITEM:ARG ++
+	CASE "TYPE:日用品", "TYPE:河童道具", "SHOP:河童の道具屋"
+		RETURN 1
+	ENDSELECT
+CASE "簡易プール"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			ITEM:ARG ++
+	CASE "TYPE:日用品", "TYPE:河童道具", "TYPE:改造可能", "SHOP:通信販売", "SHOP:河童の道具屋"
+		RETURN 1
+	ENDSELECT
+CASE "折り畳み傘"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		IF !RESULT
+			ITEM:ARG ++
+			PRINTFORMW 新しい傘を買ったので壊れた傘は処分しました
+			ITEM:壊れた傘 = 0
+		ENDIF
+	CASE "TYPE:日用品", "TYPE:河童道具", "SHOP:通信販売", "SHOP:河童の道具屋"
+		RETURN 1
+	ENDSELECT
+CASE "キーボード", "ピアノ", "ギター", "トランペット", "ヴァイオリン"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			ITEM:ARG ++
+	CASE "TYPE:日用品", "TYPE:河童道具", "SHOP:通信販売", "SHOP:河童の道具屋"
+		RETURN 1
+	ENDSELECT
+CASE "ローション", "コンドーム", "ピル"
+	SELECTCASE ARGS
+	CASE "SALES"
+		;無限に補充される
+		RETURN 99
+	CASE "購入"
+		CALL ITEM_MATOMEGAI(ARG, ARG:1)
+	CASE "TYPE:消耗品", "TYPE:うさぎ薬品", "SHOP:通信販売"
+		RETURN 1
+	ENDSELECT
+CASE "媚薬", "利尿剤"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ABL:MASTER:教養 >= 2
+			;無限に補充される
+			RETURN 99
+		ELSE
+			RETURN -2
+		ENDIF
+	CASE "購入"
+		CALL ITEM_MATOMEGAI(ARG, ARG:1)
+	CASE "TYPE:消耗品", "SHOP:通信販売"
+		RETURN 1
+	ENDSELECT
+CASE "易書", "ミラダの石"
+	SELECTCASE ARGS
+	CASE "TYPE:消耗品"
+		RETURN 1
+	ENDSELECT
+CASE "包帯"
+	SELECTCASE ARGS
+	CASE "SALES"
+		;無限に補充される
+		RETURN 99
+	CASE "購入"
+		CALL ITEM_MATOMEGAI(ARG, ARG:1)
+	CASE "TYPE:消耗品", "TYPE:うさぎ薬品"
+		RETURN 1
+	ENDSELECT
+CASE "ビデオテープ", "フィルム", "低温蝋燭"
+	;現在未実装
+CASE "安物食材", "上質食材", "高級食材", "甘味材"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEMSALES:ARG <= 0
+			RETURN -1
+		ELSE
+			RETURN ITEMSALES:ARG
+		ENDIF
+	CASE "購入"
+		CALL ITEM_MATOMEGAI(ARG, ARG:1)
+	CASE "TYPE:食材", "SHOP:食料品店", "SHOP:通信販売"
+		RETURN 1
+	ENDSELECT
+CASE "どぶろく", "清酒", "鬼殺し", "甘酒"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEMSALES:ARG <= 0
+			RETURN -1
+		ELSE
+			RETURN ITEMSALES:ARG
+		ENDIF
+	CASE "購入"
+		CALL ITEM_MATOMEGAI(ARG, ARG:1)
+	CASE "TYPE:お酒", "SHOP:酒屋", "SHOP:通信販売"
+		RETURN 1
+	ENDSELECT
+CASE "お神酒", "蒸留酒", "薬酒", "一夜のクシナダ"
+	;非売品
+	SELECTCASE ARGS
+	CASE "TYPE:お酒"
+		RETURN 1
+	ENDSELECT
+CASE "ワイン", "梅酒", "", "", "", "", "", ""
+	;現在未実装
+CASE "クリスマスプレゼント"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		IF !RESULT
+			ITEM:ARG ++
+			PRINTFORMW 冬の24日限定で、デート中に渡せます
+		ENDIF
+	CASE "TYPE:日用品", "SHOP:通信販売"
+		RETURN 1
+	ENDSELECT
+CASE "菓子折り"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			ITEM:ARG ++
+	CASE "TYPE:日用品", "SHOP:通信販売"
+		RETURN 1
+	ENDSELECT
+CASE "山吹色の菓子折り", "白装束", "風呂敷", "エンゲージリング"
+	;現座未実装
+CASE "園芸用品一式"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			ITEM:ARG ++
+	CASE "TYPE:園芸用品", "SHOP:花屋"
+		RETURN 1
+	ENDSELECT
+CASE "キャベツの苗", "イチゴの苗", "カブの苗", "キュウリの苗", "トマトの苗", "タマネギの苗", "スイカの苗", "ナスの苗", "イモの苗", "カボチャの苗", "ハクサイの苗", "ニンジンの苗", "ネギの苗", "ローターの苗", "こやし"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEMSALES:ARG <= 0
+			RETURN -1
+		ELSE
+			RETURN ITEMSALES:ARG
+		ENDIF
+	CASE "購入"
+		CALL ITEM_MATOMEGAI(ARG, ARG:1)
+	CASE "TYPE:園芸用品", "SHOP:花屋"
+		RETURN 1
+	ENDSELECT
+CASE "キャベツ", "イチゴ", "カブ", "キュウリ", "トマト", "タマネギ", "スイカ", "ナス", "イモ", "カボチャ", "ハクサイ", "ニンジン", "ネギ"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEMSALES:ARG <= 0
+			RETURN -1
+		ELSE
+			RETURN ITEMSALES:ARG
+		ENDIF
+	CASE "購入"
+		CALL ITEM_MATOMEGAI(ARG, ARG:1)
+	CASE "TYPE:野菜", "SHOP:八百屋"
+		RETURN 1
+	ENDSELECT
+CASE "獣肉", "鳥肉"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEMSALES:ARG <= 0
+			RETURN -1
+		ELSE
+			RETURN ITEMSALES:ARG
+		ENDIF
+	CASE "購入"
+		CALL ITEM_MATOMEGAI(ARG, ARG:1)
+	CASE "TYPE:お肉", "SHOP:食料品店"
+		RETURN 1
+	ENDSELECT
+CASE "ヤマドリ"
+	;非売品
+	SELECTCASE ARGS
+	CASE "TYPE:お肉"
+		RETURN 1
+	ENDSELECT
+CASE "カエル", "魚", "うまい魚"
+	SELECTCASE ARGS
+	CASE "TYPE:お肉"
+		RETURN 1
+	ENDSELECT
+CASE "ブラックサンダー", "チョコレート", "高級チョコ", "本命チョコ"
+	SELECTCASE ARGS
+	CASE "TYPE:チョコ"
+		RETURN 1
+	ENDSELECT
+CASE "青汁", "ギンギンＺ", "ギンギラギンＸ", "精力剤『天元凸破』"
+	SELECTCASE ARGS
+	CASE "TYPE:回復"
+		RETURN 1
+	ENDSELECT
+CASE "ポーション", "マジックポーション", "破眠ポーション", "エリクサー", "仙丹"
+	SELECTCASE ARGS
+	CASE "TYPE:回復"
+		RETURN 1
+	ENDSELECT
+CASE "かしわもち", "アイス", "紅茶", "飴", "スポーツドリンク", "ヤツメ串"
+	SELECTCASE ARGS
+	CASE "SALES"
+		;無限に補充される
+		RETURN 99
+	CASE "TYPE:回復"
+		RETURN 1
+	ENDSELECT
+CASE "栄養ドリンク", "精力剤", "ウコンドリンク"
+	SELECTCASE ARGS
+	CASE "SALES"
+		;無限に補充される
+		RETURN 99
+	CASE "購入"
+		CALL ITEM_MATOMEGAI(ARG, ARG:1)
+	CASE "TYPE:回復", "TYPE:うさぎ薬品"
+		RETURN 1
+	ENDSELECT
+CASE "仙香玉兎", "国士無双の薬", "ガシングガーデン", "ポイズンボディ"
+	SELECTCASE ARGS
+	CASE "TYPE:調合物"
+		RETURN 1
+	ENDSELECT
+CASE "惚れ薬", "睡眠薬", "栄養強化剤"
+	SELECTCASE ARGS
+	CASE "SALES"
+		;無限に補充される
+		RETURN 99
+	CASE "購入"
+		CALL ITEM_MATOMEGAI(ARG, ARG:1)
+	CASE "TYPE:調合物", "TYPE:うさぎ薬品"
+		RETURN 1
+	ENDSELECT
+CASE "普通のキノコ", "毒キノコ", "ねばねばキノコ", "冬虫夏草", "やばいキノコ", "魔法のキノコ", "龍の爪", "薬草", "上薬草", "氷の鱗", "木材"
+	SELECTCASE ARGS
+	CASE "TYPE:素材"
+		RETURN 1
+	ENDSELECT
+CASE "山菜", "毒草", "特薬草", "彼岸花", "雪の霊草", "山芋", "ウコン", "高麗人参", "苦い根っこ", "マンドラゴラ"
+	SELECTCASE ARGS
+	CASE "TYPE:素材"
+		RETURN 1
+	ENDSELECT
+CASE "白い樹脂", "黄色い樹脂", "芳しい樹脂", "悪華の乳液", "竜血", "キイチゴ", "はちみつ", "アケビ", "たけのこ", "仙桃"
+	SELECTCASE ARGS
+	CASE "TYPE:素材"
+		RETURN 1
+	ENDSELECT
+CASE "骨くず", "石膏", "滑石", "竜骨", "辰砂", "ふん", "湯の花", "彷徨う魂", "ダークマター", "鳳凰の尾"
+	SELECTCASE ARGS
+	CASE "TYPE:素材"
+		RETURN 1
+	ENDSELECT
+CASE "蝦蟇の油", "魚粕", "龍涎香", "丸太", "竹材", "香木"
+	SELECTCASE ARGS
+	CASE "TYPE:素材"
+		RETURN 1
+	ENDSELECT
+CASE "【禁断の知識】"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF TALENT:MASTER:禁断の知識
+			RETURN -1
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			TALENT:MASTER:禁断の知識 = 1
+	CASE "TYPE:素質", "SHOP:通信販売"
+		RETURN 1
+	ENDSELECT
+CASE "【技巧UP】"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ABL:MASTER:技巧 < 5
+			RETURN 0
+		ELSE
+			RETURN -2
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			ABL:MASTER:技巧 ++
+	CASE "TYPE:素質"
+		RETURN 1
+	ENDSELECT
+CASE "【技巧DOWN】"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ABL:MASTER:技巧
+			RETURN 0
+		ELSE
+			RETURN -2
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			ABL:MASTER:技巧 --
+	CASE "TYPE:素質", "SHOP:通信販売"
+		RETURN 1
+	ENDSELECT
+CASE "【汚臭耐性UP】"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF TALENT:MASTER:汚臭耐性 < 2
+			RETURN 0
+		ELSE
+			RETURN -2
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			TALENT:MASTER:汚臭耐性 ++
+	CASE "TYPE:素質", "SHOP:通信販売"
+		RETURN 1
+	ENDSELECT
+CASE "【汚臭耐性DOWN】"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF TALENT:MASTER:汚臭耐性 > -2
+			RETURN 0
+		ELSE
+			RETURN -2
+		ENDIF
+	CASE "購入"
+		CALL SHOP_ASK(ARG, ARG:1)
+		SIF !RESULT
+			TALENT:MASTER:汚臭耐性 --
+	CASE "TYPE:素質", "SHOP:通信販売"
+		RETURN 1
+	ENDSELECT
+CASE "【調合知識】", "【汚名返上】"
+	;現在未実装
+CASE "薬の材料(双)"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSEIF !TALENT:MASTER:禁断の知識 || FINDCHARA(TALENT:性別, 1) == -1
+			RETURN -2
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+	CASE "TYPE:体質変化"
+		RETURN 1
+	ENDSELECT
+CASE "薬の材料(消)"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSEIF !TALENT:MASTER:禁断の知識 || FINDCHARA(TALENT:性別, 3) == -1
+			RETURN -2
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+	CASE "TYPE:体質変化"
+		RETURN 1
+	ENDSELECT
+CASE "赤いキャンディ"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSEIF !TALENT:MASTER:禁断の知識 || ALLSAMES(-1, FINDCHARA(TALENT:処女, 0), FINDCHARA(TALENT:処女, -1))
+			RETURN -2
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "TYPE:体質変化"
+		RETURN 1
+	ENDSELECT
+CASE "茶色のキャンディ"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSEIF !TALENT:MASTER:禁断の知識 || FINDCHARA(TALENT:動物耳, 0) == -1
+			RETURN -2
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+	CASE "TYPE:体質変化"
+		RETURN 1
+	ENDSELECT
+CASE "水色のキャンディ"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSEIF !TALENT:MASTER:禁断の知識 || !SUMCARRAY(TALENT:動物耳)
+			RETURN -2
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+	CASE "TYPE:体質変化"
+		RETURN 1
+	ENDSELECT
+CASE "排卵誘発剤"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSEIF !TALENT:MASTER:禁断の知識
+			RETURN -2
+		ELSE
+			RETURN 0
+		ENDIF
+	CASE "購入"
+	CASE "TYPE:体質変化"
+		RETURN 1
+	ENDSELECT
+CASE "元気になる薬", "青いキャンディ", "豊胸剤", "縮胸剤", "記憶消去薬"
+	;現在未実装
+CASE "魔水晶のペンダント", "コレクションのスキマ", "インスタント結界", "三粒の天滴", "ルナシューター養成ギプス", "スイート安眠枕"
+	SELECTCASE ARGS
+	CASE "TYPE:特殊"
+		RETURN 1
+	ENDSELECT
+CASE "兎符「開運大紋」"
+	SELECTCASE ARGS
+	CASE "SALES"
+		IF ITEM:ARG
+			RETURN -1
+		ELSE
+			RETURN 1
+		ENDIF
+	CASE "特殊"
+		RETURN 1
+	ENDSELECT
+CASE "メイド服", "ナース服", "サンタ服"
+	SELECTCASE ARGS
+	CASE "TYPE:衣装"
+		RETURN 1
+	ENDSELECT
+CASE "パワフルドラッグ", "アイシクルボム", "太乙の火種", "魅惑のエサ", "賢者の石", "バレットゴーレム", "エピタフ", "キング・クリムゾン"
+	SELECTCASE ARGS
+	CASE "TYPE:弾幕"
+		RETURN 1
+	ENDSELECT
+CASE "祭壇", "ヒノキ風呂", "キリのベッド", "イチョウのまな板", "ケヤキの机椅子", "ナラのソファー", "カスタム竹箒"
+	SELECTCASE ARGS
+	CASE "TYPE:特殊"
+		RETURN 1
+	ENDSELECT
+CASE "戦術指南書", "調理指南書", "字引", "御伽草子", "演奏指南書", "紙芝居", "おさかな図鑑", "採集ガイド", "薬学教本", "木こりの心得"
+	SELECTCASE ARGS
+	CASE "TYPE:書物"
+		RETURN 1
+	ENDSELECT
+CASE "守矢の守札", "壊れた傘", "宿題"
+	SELECTCASE ARGS
+	CASE "その他"
+		RETURN 1
+	ENDSELECT
+CASE "お気に入りアイテム"
+	;分類しない
+ENDSELECT
+;購入時はRESULTを返す
+SIF ARGS == "購入"
+	RETURN RESULT
+

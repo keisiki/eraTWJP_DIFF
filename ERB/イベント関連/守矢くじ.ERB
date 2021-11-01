@@ -1,0 +1,400 @@
+﻿;守矢神社謹製一番くじ、ついに販売開始です！
+;
+;ルール
+;1.くじは全部で300枚、引ききるか特賞を引くと箱が入れ替わる
+;2.最初に引くとき、もしくは箱の入れ替え時にどの順番で何が出るかは確定している（シャッフル配列を専用のくじ配列にコピー）
+;3.くじの結果を確認したら引いたくじを廃棄して前詰めする
+;4.特賞は1本、引いたらSETBIT FLAG:999, 3 で箱交換フラグを立てる
+;特賞の薬がどちらなのかはFLAG:999の第４ビットで判定（判定後INVERTBITでフラグを入れ替える）
+;ユーザー変数がセーブ出来ないのでSAVESTRを一つ拝借してそこに結果を文字列で残しておく
+;(16/07/02)仕様変更によりユーザー変数のセーブが可能になったのでSAVESTRの利用を停止
+@FOTUNE_MORIYA
+#DIM RANK_FORTUNE
+#DIM お相手
+#DIM SKIP_FLAG
+#DIMS くじ枚数,300
+
+IF MATCH(MORIYA_BOX, 0) >= 2 && STRLENS(SAVESTR:9)
+	SPLIT SAVESTR:9, ",", くじ枚数
+	FOR LOCAL:0, 0, 300
+		MORIYA_BOX:(LOCAL:0) = TOINT(くじ枚数:(LOCAL:0))
+	NEXT
+	SAVESTR:9 = ""
+ENDIF
+
+;兎符「開運大紋」
+WHILE TFLAG:194 && MORIYA_BOX:0 >= 60
+	SETCOLOR COLOR ("YELLOW")
+	PRINTFORMW 兎符「開運大紋」が発動！
+	RESETCOLOR
+	ARRAYSHIFT MORIYA_BOX, -1, -1
+	TFLAG:194 --
+WEND
+
+;博麗おみくじによる幸運補正、結果が悪ければそれを消滅して引き直す
+DO
+	SKIP_FLAG = 0
+	SELECTCASE TFLAG:幸運補正
+		CASE IS <= 0
+		;たわし回避
+		CASE 1 TO 2
+			SIF MORIYA_BOX:0 >= 130
+					SKIP_FLAG = 1
+		;７等までを回避
+		CASE 3 TO 4
+			SIF MORIYA_BOX:0 >= 60
+					SKIP_FLAG = 1
+		;５等までを回避
+		CASE 5
+			SIF MORIYA_BOX:0 >= 25
+					SKIP_FLAG = 1
+		CASEELSE
+	ENDSELECT
+	IF SKIP_FLAG
+		ARRAYSHIFT MORIYA_BOX, -1, -1
+		PRINTFORML 博麗神社でいいおみくじを引いたことだし、多分いいものが当たるだろう
+		TFLAG:幸運補正 --
+	ENDIF
+
+LOOP SKIP_FLAG
+
+;くじの結果は0～299。これを各賞に振り分けておく
+;内訳 特賞:1本, １等:3本, ２等:5本, ３等:6本, ４等:10本, ５等:15本, ６等:20本, ７等:30本, ８等:40本, ９等(たわし):70本, 10等(スカ):100本
+;RANK_FORTUNEをMORIYA_BOX:0へ依存させないように(やろうと思えば既存のものを弄らず下に追加できるよ。RANK_FORTUNEが混乱するからやらないと思うけど)
+SELECTCASE MORIYA_BOX:0
+;特賞：奇数回目であれば体力、偶数回であれば気力が上がる丸薬（最大値＋50）
+CASE 0
+	SETBIT FLAG:999, 3
+	RANK_FORTUNE = 0
+;１等：守矢神社の２柱＋風祝とのデートチケット。各１枚
+CASE 1 TO 3
+	お相手 = MORIYA_BOX:0 + 30
+	RANK_FORTUNE = 1
+;２等：東風谷早苗様による幸せの奇跡（全員上機嫌＋自分のステータス回復）
+CASE 4 TO 8
+	RANK_FORTUNE = 2
+;３等：MORIYAブートキャンプ招待券、わずか1時間で見違えるような効果が！
+CASE 9 TO 14
+	RANK_FORTUNE = 3
+;４等：楽しく呑もう、幻想郷呑み比べセット
+CASE 15 TO 24
+	RANK_FORTUNE = 4
+;５等：健康に興味ないあなたに、元気ハツラツぅ～？セット
+CASE 25 TO 39
+	RANK_FORTUNE = 5
+;６等：これであの子とイイ仲に！？恋のハプニングセット
+CASE 40 TO 59
+	RANK_FORTUNE = 6
+;７等：実りの喜びをあなたに、野菜の苗セット（野菜ができるとは言っていない）
+CASE 60 TO 89
+	RANK_FORTUNE = 7
+;８等：一度食べると止まらない、義理チョコの王様のエントリーだ！
+CASE 90 TO 129
+	RANK_FORTUNE = 8
+;残念…９等：たわし、10個集めると金のたわしと交換です！
+CASE 130 TO 199
+	RANK_FORTUNE = 9
+;スカ：ハズレくじ、5枚集めるともう一度引けます
+CASE 200 TO 299
+	RANK_FORTUNE = 10
+CASEELSE
+	RANK_FORTUNE = 99
+ENDSELECT
+;引いたくじは廃棄処分して前詰め、空いたところは-1で詰める
+ARRAYSHIFT MORIYA_BOX, -1, -1
+;SAVESTR:9 = {MORIYA_BOX:0}
+;FOR LOCAL:0, 1, 300
+;	SAVESTR:9 = %SAVESTR:9%,{MORIYA_BOX:(LOCAL:0)}
+;NEXT
+PRINTDATAW
+	DATAFORM 「さて、結果は…」
+	DATAFORM 「むむ、これは……」
+	DATAFORM 「あー…あー？あー、あー！」
+	DATAFORM 「えっと、これは…」
+	DATAFORM 「これが結果ですか……」
+	DATAFORM 「なにがでるかな、なにがでるかな？」
+	DATAFORM 「あらら、これを引きましたか」
+	DATAFORM 「えっと、これはですね…」
+	DATAFORM 「変な文字が…あ、上下逆でした」
+	DATAFORM 「ほぉほぉ、これはなかなかなものを…」
+	DATAFORM 「こんなんでましたけど～」
+	DATAFORM 「……？……！………！？」
+ENDDATA
+PRINTW 
+;結果処理。地の文まで書き込んでいます
+SELECTCASE RANK_FORTUNE
+;特賞：奇数回目であれば体力、偶数回であれば気力が上がる丸薬（最大値＋50）
+CASE 0
+	PRINTW 難しい顔をしていたが急に満面の笑みを浮かべる
+	PRINTL 「おめでとうございまーす！特賞、大当たりです！」
+	PRINTFORML 「特賞のあなたにはなんと、\@GETBIT(FLAG:999, 4) ? 活力の丸薬 # 生命の秘粉 \@を差し上げます」
+	PRINTL 「さぁ、ググッとお飲みください。あ、お水はこちらです」
+	PRINTW 渡された薬を水と一緒に飲むと体の底から力が湧き上がる感じがする……
+	IF GETBIT(FLAG:999, 4)
+		MAXBASE:MASTER:気力 += 50
+	ELSE
+		MAXBASE:MASTER:体力 += 50
+	ENDIF
+	PRINTFORML 力が湧き上がる感覚がなくなると、あなたは\@GETBIT(FLAG:999, 4) ? 気力 # 体力 \@の限界を少し超えた気がした
+	INVERTBIT FLAG:999, 4
+	
+	PRINTFORMW 「そうそう、言い忘れていました」
+	PRINTFORML 「特賞がこの箱から出ましたので、ご希望でしたら次のくじ箱をご用意いたします」
+	PRINTFORML 「新しい箱に変えたくなったら引く前に言ってくださいね」
+	PRINTFORMW 「ただし、新しい箱に変えると今の箱は廃棄しますので気をつけてくださいね」
+;１等：守矢神社の２柱＋風祝とのデートチケット。各１枚
+CASE 1
+	PRINTW 「これは……」
+	IF CFLAG:お相手:出禁
+		PRINTFORML 「申し訳ございません、これは１等の%NAME:お相手%様とのデート権なのですが、%NAME:お相手%様は現在どうしてもご都合がつかずこの権利を履行していただくことができません」
+		PRINTFORML 「代わりの賞品を以下の中からお選びください」
+		CALL ASK_M("返金",1,@"%NAME:31%とのデート権",!CFLAG:31:出禁,@"%NAME:32%とのデート権",!CFLAG:32:出禁,@"%NAME:33%とのデート権",!CFLAG:33:出禁,"いらない",1)
+		SELECTCASE RESULT
+			CASE 0
+				PRINTFORML 「それでは返金とさせていただきます」
+				PRINTFORML 「今回はこちらの不手際でご迷惑をおかけしました」
+				MONEY += 3000
+				RETURN 0
+			CASE 1 TO 3
+				お相手 = RESULT + 30
+			CASE 4
+				PRINTFORML 「そんな、それでは私の気持ちが収まりません……！」
+				PRINTFORML 「せめてこれをお納めください」
+				PRINTFORML はずれくじの束を押し付けられた……
+				ITEM:守矢の守札 += 50
+				RETURN 0
+		ENDSELECT
+	ELSEIF FLAG:デート相手
+		PRINTFORMW 「おめでとうございます、１等の%NAME:お相手%様とのモガッ！？」
+		PRINTFORML 「なんなんですかいきなり！え？今デート中だから大声で言わないでほしい？」
+		PRINTFORML 「あなたねえ、女の子連れてこんないかがわしいくじ引いてんじゃないわよ！」
+		PRINTFORML いかがわしいとか言ったぞ。
+		PRINTFORMW 「とにかく、%NAME:お相手%様とのデート権、当たりましたからね」
+	ELSE
+		PRINTFORML 「おめでとうございます、１等の%NAME:お相手%様とのデート権、当選です！」
+	ENDIF	
+	FLAG:守矢デート権 = お相手
+	PRINTFORML 「では、準備ができたらお声がけください」
+	CALL COLORMESSAGE(@"デート権を行使しないまま再度１等当選すると前回の権利は消失します",C_YELLOW,2)
+;２等：幸せの奇跡が幻想郷を包みます（全員上機嫌＋自分のステータス回復）
+CASE 2
+	PRINTL 「おめでとうございます、２等は東風谷早苗様による幸せの奇跡の実演です」
+	PRINTW 「いつもツンとしたあの娘も今日だけはデレてくれるかも？」
+	FOR LOCAL:0, 1, CHARANUM
+		TALENT:(LOCAL:0):機嫌 = 1
+		BASE:(LOCAL:0):怒り = 0
+	NEXT
+	PRINTL 心がとっても穏やかになった気がした
+	PRINTL 「あ、デレてくれたからといって度を超えたことをすると怒られるので気をつけてくださいね」
+	PRINTL 奇跡もそこまで万能ではなかったらしい
+	PRINTW ついでに自分の身体が軽くなった気がする
+	BASE:MASTER:体力 = MAXBASE:MASTER:体力
+	BASE:MASTER:気力 = MAXBASE:MASTER:気力
+	BASE:MASTER:精力 = MAXBASE:MASTER:精力
+	BASE:MASTER:TSP  = MAXBASE:MASTER:TSP
+	BASE:MASTER:酒気 = 0
+
+;３等：MORIYAブートキャンプ招待券、わずか1時間で見違えるような効果が！
+CASE 3
+	PRINTL 「３等当選おめでとうございます？」
+	PRINTL 「３等はMORIYAブートキャンプ優待券になります」
+	PRINTW 「なお使用期限は今日中ですので今から開始していただきます」
+	PRINTL いや、これから他の予定が……
+	PRINTW 「拒否権はありませんよ。ささ、こちらへ……」
+	PRINTL ………
+	PRINTL ……
+	PRINTL …
+	;会話経験、戦闘経験、学習経験のうち最も低いものを底上げする
+	;なお講師は会話／戦闘／学習で早苗／神奈子／諏訪子が担当
+	;……ケロちゃんのほうが戦闘高くて神奈子と教養が同じのは秘密だよ
+	;あ、ついでに講師にも経験を追加。教えるのもいい経験だし
+	IF EXP:MASTER:会話経験 < EXP:MASTER:戦闘経験 &&  EXP:MASTER:会話経験 < EXP:MASTER:学習経験
+		PRINTW 早苗による話し方講座により会話のコツを掴んだ！
+		EXP:MASTER:会話経験 += 10
+		EXP:31:会話経験 += 5
+	ELSEIF EXP:MASTER:戦闘経験 < EXP:MASTER:学習経験
+		PRINTL 神奈子直々の指導により戦闘技術を叩きこまれた！
+		PRINTW ついでに訓練の疲れも癒やしてくれた
+		EXP:MASTER:戦闘経験 += 10
+		EXP:32:戦闘経験 += 5
+	ELSE
+		PRINTW 諏訪子の丁寧な詰め込み教育はきっと今後役に立つだろう
+		EXP:MASTER:学習経験 += 10
+		EXP:33:学習経験 += 5
+	ENDIF
+	;あれだけ過酷な訓練でもわずか一時間、MORIYAブートキャンプ、恐るべし……
+	TIME += 60
+
+;４等：楽しく呑もう、幻想郷呑み比べセット
+CASE 4
+	PRINTL 「４等が当たりました」
+	PRINTL 「４等の景品は幻想郷呑み比べセットです」
+	PRINTL 「神奈子様秘蔵の甘酒にどぶろくと清酒、そして鬼殺しをご用意させていただきました」
+	PRINTW 「ゆっくりのみくらべてね！」
+	ITEM:甘酒 = MIN(ITEM:甘酒 + 1, 99)
+	ITEM:どぶろく = MIN(ITEM:どぶろく + 1, 99)
+	ITEM:清酒 = MIN(ITEM:清酒 + 1, 99)
+	ITEM:鬼殺し = MIN(ITEM:鬼殺し + 1, 99)
+	PRINTW 「あ、持ちきれなかったぶんは神奈子様に返さないといけないので置いていってくださいね」
+
+;５等：健康に興味ないあなたに、元気ハツラツぅ～？セット
+CASE 5
+	PRINTL 「おめでとう、５等ですよ」
+	PRINTL 「体力不足でお悩みのあなたに、元気ハッツラツぅ～？セットを差し上げます」
+	PRINTW 「疲れが酷い時はこれで乗り切ってくださいね」
+	PRINTL 中身は精力剤、ギンギンＺ、ポーション、ウコンドリンク5本
+	PRINTL 青汁顆粒10杯分（守矢のおいしい水2Lボトル付き）、スポーツドリンク10本だった
+	PRINTW 持って歩くだけで疲れるんですけど……
+	ITEM:精力剤 = MIN(ITEM:精力剤 + 1, 99)
+	ITEM:ギンギンＺ = MIN(ITEM:ギンギンＺ + 1, 99)
+	ITEM:ポーション = MIN(ITEM:ポーション + 1, 99)
+	ITEM:ウコンドリンク = MIN(ITEM:ウコンドリンク + 5, 99)
+	ITEM:青汁 = MIN(ITEM:青汁 + 10, 99)
+	ITEM:スポーツドリンク = MIN(ITEM:スポーツドリンク + 10, 99)
+	PRINTW 「あ、持ちきれなかったぶんは守矢神社への寄贈扱いで返却していただきます」
+
+;６等：これであの子とイイ仲に！？恋のハプニングセット
+CASE 6
+	PRINTL 「６等になります」
+	PRINTL 「景品は…恋のハプニングセット、だそうです」
+	PRINTW 顔を赤らめながら賞品を出してきた。
+	ITEM:ローション = MIN(ITEM:ローション + 1, 99)
+	ITEM:媚薬 = MIN(ITEM:媚薬 + 1, 99)
+	ITEM:惚れ薬 = MIN(ITEM:惚れ薬 + 1, 99)
+	ITEM:コンドーム = MIN(ITEM:コンドーム + 1, 99)
+	ITEM:ピル = MIN(ITEM:ピル + 1, 99)
+
+;７等：実りの喜びをあなたに、野菜の苗セット（野菜ができるとは言っていない）
+CASE 7
+	PRINTL 「７等でございます」
+	PRINTL 「賞品は野菜の苗セットです」
+	PRINTL 「頑張って豊作目指してくださいね」
+	PRINTW 「なお、我が守矢神社では豊作祈願及び奉納の受付も行っております」
+	FOR LOCAL, 0, 1000
+		SIF STRCOUNT(ITEMNAME:LOCAL, "の苗")
+			ITEM:LOCAL = MIN(ITEM:LOCAL + 1, 99)
+	NEXT
+	PRINTW 「あ、持ちきれなかったぶんは守矢神社への寄贈扱いで返してくださいね」
+
+;８等：一度食べると止まらない、義理チョコの王様のエントリーだ！
+CASE 8
+	PRINTL 「８等です」
+	PRINTL 「一つ食べるとやめられない止められない、義理チョコの代名詞のエントリーだ！」
+	PRINTL 「というわけでこちらをどうぞ」
+	PRINTW そう言いながら渡されたのはチョコ菓子の箱だった
+	ITEM:ブラックサンダー = MIN(ITEM:ブラックサンダー + 20, 99)
+
+;残念…９等：たわし、10個集めると金のたわしと交換です！
+CASE 9
+	PRINTL 「これは特別賞ですね」
+	PRINTL 「特別賞はたわしです」
+	PRINTL 「このたわし、ただのたわしではありません」
+	PRINTW 「10個集めて奉納いたしますと、なんとあちらの金のたわしと交換になります」
+	FLAG:999 += 1 << 5
+	
+	IF (FLAG:999 >> 5 & 15) == 10
+		PRINTL 「おめでとうございます、たわしが10個集まりましたので金のたわしと交換させていただきます」
+		PRINTL 金のたわしを手に入れた！
+		PRINTFORMW \@GETBIT(FLAG:999, 9)? 掃除 # 料理 \@が少しうまくなったような気がする
+		IF GETBIT(FLAG:999, 9)
+			EXP:MASTER:清掃経験 += 1
+		ELSE
+			EXP:MASTER:料理経験 += 1
+		ENDIF
+		;金のたわしの効果を変換、たわし収集個数をリセット
+		;15(0b1111)を5ビットシフトし、ビット反転したもの(0b000011111)をFLAG:999とビットごとの論理和させています、多分
+		INVERTBIT FLAG:999, 9
+		FLAG:999 &= ~(15 << 5)
+	ELSE
+		PRINTFORMW 「現在たわしは{(FLAG:999 >> 5) & 15}個集まっています、金のたわし目指してがんばってくださいね」
+	ENDIF
+;スカ：守矢の守札（はずれくじ）、5枚でもう一回引けるドン
+CASE 10
+	PRINTW にこやかな笑顔でくじをあなたに渡してきた
+	PRINTW ……
+	PRINTW …
+	PRINTL ┌─────────────┐
+	PRINTL ｜　　　　　　　　　　　　　｜
+	PRINTL ｜　　守矢の守札　　　　　　｜
+	PRINTL ｜　　　　　　　　　　　　　｜
+	PRINTL ｜　　五枚揃えると　　　　　｜
+	PRINTL ｜　　　くじを一回引けます　｜
+	PRINTL ｜　　　　　　　　　　　　　｜
+	PRINTL ｜　ご利益は保証しかねます　｜
+	PRINTL ｜　　　　　　　　　　　　　｜
+	PRINTL ｜　　　　　　　　守矢神社　｜
+	PRINTL └─────────────┘
+	PRINTW 遠回しに言ってはずれだよね、スカじゃないのこれ？
+	PRINTFORMW 「次はきっといいのが引けますよ、がんばれ%UNICODE(0x2665)%がんばれ%UNICODE(0x2665)%」
+	ITEM:守矢の守札 ++
+
+CASEELSE
+	PRINTFORML 「あれ、おかしいですね」
+	PRINTFORML くじの中身を見て首を傾げている
+	PRINTFORMW 「こんなくじ入っていないはずですのに」
+	PRINTFORML 「仕方ありません、今回はなかったことにして代金はお返ししますね」
+	PRINTFORMW どうやら関係ないくじが紛れていたらしい
+	MONEY += 3000
+ENDSELECT
+RETURN 0
+
+@守矢くじデート相手のリセット()
+;守矢くじのデートのときに該当キャラの起床時間etcを元に戻す
+IF FLAG:守矢くじデート相手
+	CFLAG:(FLAG:守矢くじデート相手):来訪時間 = CSVCFLAG(FLAG:守矢くじデート相手,352)
+	CFLAG:(FLAG:守矢くじデート相手):帰宅時間 = CSVCFLAG(FLAG:守矢くじデート相手,353)
+	CFLAG:(FLAG:守矢くじデート相手):就寝時間 = CSVCFLAG(FLAG:守矢くじデート相手,354)
+	CFLAG:(FLAG:守矢くじデート相手):起床時間 = CSVCFLAG(FLAG:守矢くじデート相手,355)
+	FLAG:守矢くじデート相手 = 0
+ENDIF
+
+
+@DATE_RIGHT
+#DIM お相手
+お相手 = FLAG:守矢デート権
+FLAG:守矢デート権 = 0
+PRINTL 「少々お待ちくださいね」奥の方に声をかける
+IF CFLAG:お相手:睡眠 || CFLAG:お相手:衰弱
+	PRINTFORML 「え？眠い？疲れた？そこをなんとか」
+	PRINTFORML 「少々お待ちくださいね、すぐ戻りますから」
+	PRINTFORMW 小走りで奥へ駆けて行った
+	PRINTFORMW ……
+	PRINTFORMW 不明瞭ながら、それでも神様ですか、好きで働いてるわけじゃないのは誰だって同じ、ここが信仰の稼ぎどころ、といった言葉が聞こえる……
+	PRINTFORMW ……
+	PRINTFORMW 戻ってきた
+	PRINTFORMW 「ふう、お待たせしました」
+	CFLAG:お相手:睡眠 = 0
+	CFLAG:お相手:衰弱 = 0
+	BASE:お相手:体力 = MAXBASE:お相手:体力 / 2
+	TALENT:お相手:機嫌 = -1
+ENDIF
+IF GET_MAPID(CFLAG:MASTER:現在位置) == MAIN_MAP
+	FOR LOCAL,1,CHARANUM
+		SIF !CFLAG:LOCAL:同行
+			CONTINUE
+		CFLAG:LOCAL:同行 = 0
+		SIF MATCH(LOCAL,31,32,33)
+			CALL 守矢くじデート相手のリセット()
+	NEXT
+ENDIF
+CFLAG:お相手:現在位置 = CFLAG:MASTER:現在位置
+;お相手のキャラの同行(MASTERも)，現在位置，デート中のCFLAGをセット
+IF GET_MAPID(CFLAG:MASTER:現在位置) != MAIN_MAP
+	CFLAG:MASTER:同行 = 60
+	CFLAG:お相手:同行 = 60
+	CFLAG:お相手:デート中 = CFLAG:MASTER:現在位置 / 100
+	FLAG:デート相手 = お相手
+	;守矢くじデート相手にデートの相手を格納
+	FLAG:守矢くじデート相手 = FLAG:デート相手
+	CFLAG:(FLAG:デート相手):来訪時間 = 0
+	CFLAG:(FLAG:デート相手):帰宅時間 = 0
+	CFLAG:(FLAG:デート相手):就寝時間 = 0
+	CFLAG:(FLAG:デート相手):起床時間 = 0
+;メインマップ時は最大三時間まで
+ELSE
+	CFLAG:MASTER:同行 = 180
+	CFLAG:お相手:同行 = 180
+	FLAG:守矢くじデート相手 = お相手
+ENDIF
+SIF !CFLAG:(お相手):面識
+	CALL KOJO_MESSAGE_SEND("ENCOUNTER",MASTER,FLAG:守矢くじデート相手,1,0)

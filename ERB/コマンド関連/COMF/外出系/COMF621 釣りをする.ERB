@@ -1,0 +1,852 @@
+﻿;釣りをする
+@COM621
+#DIM 釣れたもの
+#DIM 釣りパワー
+#DIM 釣りパワーM
+#DIM 釣りパワーT
+#DIM 釣れない補正
+#DIM 釣り運
+#DIM CHARA
+#DIM 相方が釣った
+#DIM 活性
+#DIM FISHED, 2
+
+相方が釣った = 0
+;参加者判定
+IF FLAG:デート相手
+	CHARA = FLAG:デート相手
+ELSEIF TARGET && ABL:TARGET:親密 >= 5 - TALENT:TARGET:釣りLv
+	CHARA = TARGET
+ELSE
+	CHARA = 0
+ENDIF
+;かわいそう；；
+IF CHARA == [[わかさぎ姫]] || TARGET == [[わかさぎ姫]]
+	PRINTFORMW 彼女の前で釣りをするのは酷なものだ…
+	RETURN -1
+ENDIF
+
+;季節ごとの活性
+SELECTCASE DAY:2
+	CASE 1  ;春
+		活性 = 10
+	CASE 2  ;夏
+		活性 = 7
+	CASE 3  ;秋
+		活性 = 10
+	CASE 4  ;冬
+		活性 = 3
+ENDSELECT
+;時刻ごとの活性補正
+SELECTCASE TIME:2
+	CASE 1, 4  ;早朝と昼下がり
+		活性 += 10
+	CASE 5, 6  ;夕と夜
+		活性 += 5
+ENDSELECT
+;天気による活性
+SELECTCASE TIME:5
+	CASE 3, 6 ;曇、霧雨
+		活性 += 5
+	CASE 4, 5 ;雨
+		活性 += 7
+	CASE 8 TO 13 ;雪系統はマイナス
+		活性 -= 3
+ENDSELECT
+;虹が出てるときは、雨の後で水が濁っているだろう
+SELECTCASE TIME:7
+	CASE 1
+		活性 += 7
+ENDSELECT
+
+;日替わりで-50～+50,アイテムやお祈り等で補正をかけることも可
+釣り運 = FLAG:日替わりイベント / 10 - 50
+
+;釣り技能で活性を察知
+IF TALENT:MASTER:釣りLv >= 3
+	SETCOLOR C_L_GRAY
+	SELECTCASE (活性 + 釣り運)
+		CASE IS <= 10
+			PRINTFORML （魚影がほとんど見えない…）
+		CASE 11 TO 30
+			PRINTFORML （魚影はまばらだ…）
+		CASE 31 TO 50
+			PRINTFORML （魚影はそれなりに見える…）
+		CASE 51 TO 65
+			PRINTFORML （魚影はかなり多く見える…）
+		CASEELSE
+			PRINTFORML （魚影がひしめき、水面がざわついている…）
+	ENDSELECT
+	RESETCOLOR
+ENDIF
+
+;釣りの醍醐味は待ち時間だと聞いた
+FOR LOCAL, 0, 5
+	REUSELASTLINE  \@ CHARA ? %CALLNAME:CHARA%と一緒に #  \@釣り中.%"." * LOCAL%
+	TWAIT 150, 1
+NEXT
+;釣りパワー設定
+釣りパワーM = 活性 + TALENT:MASTER:釣りLv * 15 + 釣り運 + 釣れない補正
+SIF CHARA
+	釣りパワーT = 活性 + TALENT:CHARA:釣りLv * 15 + 釣れない補正
+
+;（釣りパワー）％で釣れる
+FISHED:0 = RAND:100
+IF FISHED < 釣りパワーM
+	釣りパワー = 釣りパワーM
+	$FISH
+	;釣れたら補正リセット
+	釣れない補正 = 0
+	;釣りパワーで釣れるものが変わる
+	SELECTCASE MIN(RAND:釣りパワー, 100)
+	CASE IS < 5
+		;木材
+		釣れたもの = 610
+	CASE IS < 10
+		;守矢の守札
+		釣れたもの = 131
+	CASE 51 TO 60
+		;カエル
+		釣れたもの = 706
+	CASE 10 TO 50, 61 TO 89
+		FISHED:1 = (FISHED:0 + 10) / 10 * 10
+		釣れたもの = FISHING_CATCH(FISHED:1)
+	CASE IS < 95
+		釣れたもの = FISHING_CATCH(95)
+	CASEELSE
+		釣れたもの = FISHING_CATCH(100)
+		;ボーナス
+		IF 相方が釣った
+			EXP:CHARA:釣り経験 ++
+		ELSE
+			EXP:MASTER:釣り経験 ++
+		ENDIF
+	ENDSELECT
+	;アイテムに追加
+	SELECTCASE 釣れたもの
+		CASE 1 TO 10, 22 TO 23
+			CALL GET_ITEM("魚", 1, 1)
+		CASE 11 TO 20, 24 TO 60
+			CALL GET_ITEM("うまい魚", 1, 1)
+		CASE 21
+			CALL GET_ITEM("ローター", 1, 1)
+		CASEELSE
+			SIF ITEM:釣れたもの < 99
+				ITEM:釣れたもの ++
+	ENDSELECT
+;CHARAが釣った場合
+ELSEIF CHARA && RAND:100 < 釣りパワーT
+	釣りパワー = 釣りパワーT
+	相方が釣った = 1
+	GOTO FISH
+;釣れなかったら補正加算,釣れるまで蓄積していく
+ELSE
+	釣れない補正 += 10
+	釣れたもの = 0
+ENDIF
+
+;基本の経験
+EXP:MASTER:釣り経験 ++
+
+SIF ITEM:107 && !RAND:2
+	EXP:MASTER:釣り経験 ++
+
+SIF CHARA
+	EXP:CHARA:釣り経験 ++
+;釣った人の追加経験
+IF 釣れたもの
+	IF 相方が釣った
+		EXP:CHARA:釣り経験 ++
+	ELSE
+		EXP:MASTER:釣り経験 ++
+	ENDIF
+ENDIF
+;デート経験
+IF CHK_DATENOW(CFLAG:CHARA:デート中) && CHARA > 0
+	EXP:MASTER:デート経験 ++
+	EXP:CHARA:デート経験 ++
+ENDIF
+
+;あなたが釣ったら体力減少
+SIF 釣れたもの && !相方が釣った
+	DOWNBASE:MASTER:体力 = 50
+DOWNBASE:MASTER:気力 = 100
+
+;参加者のソース,適当に設定してます,同一コマンド制限を受けないので控えめに,ただし釣れないと毎回半減
+IF CHARA > 0
+	;固定で獲得するソース
+	SOURCE:CHARA:歓楽 = 400
+	SOURCE:CHARA:情愛 = 50
+	
+	;ABL:従順をみる
+	IF ABL:従順 <= 1
+		SOURCE:CHARA:歓楽 += (ABL:従順 * 40)
+		SOURCE:CHARA:情愛 += (ABL:親密 * 20)
+	ELSEIF ABL:従順 <= 3
+		SOURCE:CHARA:歓楽 += 200 + (ABL:従順 * 40)
+		SOURCE:CHARA:情愛 += 50 + (ABL:親密 * 30)
+	ELSEIF ABL:従順 <= 5
+		SOURCE:CHARA:歓楽 += 500 + (ABL:従順 * 40)
+		SOURCE:CHARA:情愛 += 200 + (ABL:親密 * 30)
+	ELSEIF ABL:従順 <= 8
+		SOURCE:CHARA:歓楽 += 750 + (ABL:従順 * 60)
+		SOURCE:CHARA:情愛 += 300 + (ABL:親密 * 40)
+	ELSEIF ABL:従順 <= 11
+		SOURCE:CHARA:歓楽 += 1000 + (ABL:従順 * 60)
+		SOURCE:CHARA:情愛 += 600 + (ABL:親密 * 40)
+	ELSE
+		SOURCE:CHARA:歓楽 += 1600 + (ABL:従順 * 30)
+		SOURCE:CHARA:情愛 += 1000 + (ABL:親密 * 20)
+	ENDIF
+	SIF CHARA != FLAG:デート相手 
+		SOURCE:CHARA:情愛 = 0
+	
+	;好感度はみない
+	
+	
+	SOURCE:CHARA:受動 = 200 + 100 * ABL:従順
+	SOURCE:CHARA:征服 = 200 + 100 * ABL:サドっ気
+	
+	;釣果をみる
+	SELECTCASE 釣れたもの
+	;釣れない
+	CASE 0
+		TIMES SOURCE:CHARA:歓楽 , 0.50
+		TIMES SOURCE:CHARA:受動 , 0.50
+		TIMES SOURCE:CHARA:征服 , 0.50
+	;木材, 守矢の守札
+	CASE 610, 131
+		TIMES SOURCE:CHARA:歓楽 , 0.10
+		TIMES SOURCE:CHARA:受動 , 0.50
+		TIMES SOURCE:CHARA:征服 , 0.50
+		SOURCE:CHARA:達成 = 20
+	;ウグイ, アマゴ, ヤマメちゃん, イワナ, コイなど
+	CASE 1 TO 10, 22
+		TIMES SOURCE:CHARA:歓楽 , 1.00
+		TIMES SOURCE:CHARA:受動 , 1.00
+		TIMES SOURCE:CHARA:征服 , 1.00
+		SOURCE:CHARA:達成 = 100
+	;カエル
+	CASE 706
+		IF CHARA == [[チルノ]]
+			TIMES SOURCE:CHARA:歓楽 , 2.00
+			TIMES SOURCE:CHARA:受動 , 2.00
+			TIMES SOURCE:CHARA:征服 , 2.00
+		ELSEIF CHARA == [[諏訪子]]
+			TIMES SOURCE:CHARA:歓楽 , 0.50
+			TIMES SOURCE:CHARA:受動 , 0.50
+			TIMES SOURCE:CHARA:征服 , 0.50
+		ELSE
+			TIMES SOURCE:CHARA:歓楽 , 1.25
+			TIMES SOURCE:CHARA:受動 , 1.00
+			TIMES SOURCE:CHARA:征服 , 1.00
+		ENDIF
+		SOURCE:CHARA:達成 = 150
+	;サケ, ワカサギ, ニジマス, カムルチーなど
+	CASE 11 TO 13, 15 TO 20, 24 TO 30, 32
+		TIMES SOURCE:CHARA:歓楽 , 1.50
+		TIMES SOURCE:CHARA:受動 , 1.50
+		TIMES SOURCE:CHARA:征服 , 1.50
+		SOURCE:CHARA:達成 = 200
+	;ヤツメウナギ
+	CASE 14
+		;みすちー
+		IF CHARA == 28
+			TIMES SOURCE:CHARA:歓楽 , 2.00
+			TIMES SOURCE:CHARA:受動 , 2.00
+			TIMES SOURCE:CHARA:征服 , 2.00
+		ELSE
+			TIMES SOURCE:CHARA:歓楽 , 1.50
+			TIMES SOURCE:CHARA:受動 , 1.50
+			TIMES SOURCE:CHARA:征服 , 1.50
+		ENDIF
+		SOURCE:CHARA:達成 = 250
+	;ローター
+	CASE 21
+		SOURCE:CHARA:欲情 = 200
+	;シーラカンス，タキタロウ，氷の鱗, 龍の爪，龍涎香
+	CASE 23, 31, 609, 606, 643
+		TIMES SOURCE:CHARA:歓楽 , 2.00
+		TIMES SOURCE:CHARA:受動 , 2.00
+		TIMES SOURCE:CHARA:征服 , 2.00
+		SOURCE:CHARA:達成 = 300
+	ENDSELECT
+ENDIF
+
+;時間経過
+TIME += 20
+
+;フラグ引き渡し
+TFLAG:SELECTCOMの分岐 = 釣れたもの
+TFLAG:SOURCEなどに影響しないSELECTCOMの分岐 = CHARA + (相方が釣った * 1000)
+
+RETURN 1
+
+;-------------------------------------------------
+;実行可能判定
+;-------------------------------------------------
+;釣りをする
+@COM_ABLE621
+;一括管理
+SIF GLOBAL_COMABLE(621)
+	RETURN RESULT
+;釣り竿がない
+SIF !ITEM:釣り竿
+	RETURN 0
+;釣り場でない（拠点でも可に）
+SIF !FISHING_SPOT(CFLAG:MASTER:現在位置)
+	RETURN 0
+;デート中はデート相手とだけ
+SIF FLAG:デート相手 && TARGET != FLAG:デート相手
+	RETURN 0
+;添い寝中
+SIF CFLAG:MASTER:添い寝中
+	RETURN 0
+;うふふ中
+SIF CFLAG:MASTER:うふふ
+	RETURN 0
+;睡眠中
+SIF CFLAG:MASTER:睡眠
+	RETURN 0
+;時間停止中
+SIF FLAG:70
+	RETURN 0
+RETURN 1
+
+;FileName_DATE_CMN.ERB ------------------------------- Rev1.00
+;釣りができる場所
+;CALL		USER
+;ARG		現在位置
+;RETURN		釣れる場所の指定
+;COMMENT	場所を追加した場合、CASEを変更の事
+;-----------------------------------------------------------
+@FISHING_SPOT(ARG)
+#FUNCTION
+IF !IN_HOME(ARG)
+	SELECTCASE ARG
+		CASE 霧の湖
+			RETURNF 1
+		CASE 三途の川
+			RETURNF 2
+		CASE 玄武の沢
+			RETURNF 3
+		CASE 大蝦蟇の池
+			RETURNF 4
+		CASE 九天の滝
+			RETURNF 5
+		CASE 山の湖
+			RETURNF 6
+		CASE 地獄の深道
+			RETURNF 7
+	ENDSELECT
+ELSE
+	SELECTCASE ARG
+		CASE 347;霧の湖
+			RETURNF 1
+		CASE 602;賽の河原
+			RETURNF 2
+		CASE 703;玄武の沢
+			RETURNF 3
+		CASE 708;大蝦蟇の池
+			RETURNF 4
+		CASE 806;滝の裏
+			RETURNF 5
+		CASE 814;湖畔（山の湖）
+			RETURNF 6
+		CASE 945;川岸
+			RETURNF 7
+		CASE 1068;純狐邸中庭
+			RETURNF 8
+	ENDSELECT
+ENDIF
+RETURNF 0
+
+;-------------------------------------------------
+;釣れたもの判定の拡張　場所、季節、時刻に応じて可変
+;ARG　…ランクに対応
+;-------------------------------------------------
+@FISHING_CATCH(ARG)
+#FUNCTION
+
+SELECTCASE ARG
+	CASE 20
+		SELECTCASE FISHING_SPOT(CFLAG:MASTER:現在位置)
+			CASE 1, 4 ;アブラハヤ
+				RETURNF 5
+			CASE 2, 7, 8 ;オイカワ
+				RETURNF 6
+			CASE 3, 5, 6 ;ウグイ
+				RETURNF 1
+		ENDSELECT
+	CASE 30
+		SELECTCASE FISHING_SPOT(CFLAG:MASTER:現在位置)
+			CASE 1, 2, 6 ;フナ
+				RETURNF 7
+			CASE 3, 5 ;アマゴ
+				RETURNF 2
+			CASE 4 ;カエル
+				RETURNF 706
+			CASE 7, 8 ;ピラニア
+				RETURNF 8
+		ENDSELECT
+	CASE 40
+		SELECTCASE FISHING_SPOT(CFLAG:MASTER:現在位置)
+			CASE 1, 2, 6 ;カジカ
+				RETURNF 16
+			CASE 3, 5 ;ヤマメちゃん
+				RETURNF 3
+			CASE 4, 8 ;カエル
+				RETURNF 706
+			CASE 7 ;ガーパイク
+				RETURNF 9
+		ENDSELECT
+	CASE 50
+		SELECTCASE FISHING_SPOT(CFLAG:MASTER:現在位置)
+			CASE 1, 6 ;ブルーギル
+				RETURNF 10
+			CASE 2, 7, 8 ;アユ（春夏）orオイカワ（秋冬）
+				IF DAY:2 < 3
+					RETURNF 17
+				ELSE
+					RETURNF 6
+				ENDIF
+			CASE 3, 5 ;イワナ
+				RETURNF 4
+			CASE 4 ;カエル
+				RETURNF 706
+		ENDSELECT
+	CASE 70
+		SELECTCASE FISHING_SPOT(CFLAG:MASTER:現在位置)
+			CASE 1, 4, 6 ;ナマズorワカサギ（冬）
+				IF DAY:2 == 4
+					RETURNF 12
+				ELSE
+					RETURNF 18
+				ENDIF
+			CASE 2, 7, 8 ;ウナギ
+				RETURNF 19
+			CASE 3, 5 ;ニジマスorサケ（秋）orワカサギ（冬）
+				IF DAY:2 == 3
+					RETURNF 11
+				ELSEIF DAY:2 == 4
+					RETURNF 12
+				ELSE
+					RETURNF 13
+				ENDIF
+		ENDSELECT
+	CASE 80
+		SELECTCASE FISHING_SPOT(CFLAG:MASTER:現在位置)
+			CASE 1;ヒメマス
+				RETURNF 20
+			CASE 2, 4, 6, 8 ;コイ
+				RETURNF 22
+			CASE 3, 5 ;ヤツメウナギ
+				RETURNF 14
+			CASE 7 ;チョウザメ
+				RETURNF 24
+		ENDSELECT
+	CASE 90
+		SELECTCASE FISHING_SPOT(CFLAG:MASTER:現在位置)
+			CASE 1;クニマス
+				RETURNF 25
+			CASE 2 ;ソウギョ
+				RETURNF 26
+			CASE 3 ;カムルチー
+				RETURNF 15
+			CASE 4 ;ヘラブナ
+				RETURNF 27
+			CASE 5 ;イトウ
+				RETURNF 28
+			CASE 6 ;オオクチバス
+				RETURNF 29
+			CASE 7 ;ピラルクー
+				RETURNF 30
+			CASE 8 ;アオウオ
+				RETURNF 32
+		ENDSELECT
+	CASE 95
+		SELECTCASE  FISHING_SPOT(CFLAG:MASTER:現在位置)
+			CASE 1 ;タキタロウ（新月の日）orローター
+				IF MOON_WATCH(DAY:3) == 1
+					RETURNF 31
+				ELSE
+					RETURNF 21
+				ENDIF
+			CASE 2 ;シーラカンス
+				RETURNF 23
+			CASEELSE
+				;ローター
+				RETURNF 21
+		ENDSELECT
+	CASE 100
+		SELECTCASE FISHING_SPOT(CFLAG:MASTER:現在位置)
+			CASE 1, 6, 8 ;龍涎香or氷の鱗（冬）
+				IF DAY:2 == 4
+					RETURNF 609
+				ELSE
+					RETURNF 643
+				ENDIF
+			CASE 2, 3, 5, 7 ;龍の爪or氷の鱗（冬）
+				IF DAY:2 == 4
+					RETURNF 609
+				ELSE
+					RETURNF 606
+				ENDIF
+			CASE 4 ;カエル
+				RETURNF 706
+		ENDSELECT
+ENDSELECT
+RETURNF 0
+
+;-----------------------------------------------------------
+;釣った魚のナンバーを名称に変換
+;コレクションリストにも利用するため、ローターは除外しておく
+;ARG　…釣れたものナンバーに対応
+;-----------------------------------------------------------
+@FISH_NAME(ARG)
+#FUNCTIONS
+
+SELECTCASE ARG
+	CASE 1
+		RETURNF "ウグイ"
+	CASE 2
+		RETURNF "アマゴ"
+	CASE 3
+		RETURNF "ヤマメ"
+	CASE 4
+		RETURNF "イワナ"
+	CASE 5
+		RETURNF "アブラハヤ"
+	CASE 6
+		RETURNF "オイカワ"
+	CASE 7
+		RETURNF "フナ"
+	CASE 8
+		RETURNF "ピラニア"
+	CASE 9
+		RETURNF "ガーパイク"
+	CASE 10
+		RETURNF "ブルーギル"
+	CASE 11
+		RETURNF "サケ"
+	CASE 12
+		RETURNF "ワカサギ"
+	CASE 13
+		RETURNF "ニジマス"
+	CASE 14
+		RETURNF "ヤツメウナギ"
+	CASE 15
+		RETURNF "カムルチー"
+	CASE 16
+		RETURNF "カジカ"
+	CASE 17
+		RETURNF "アユ"
+	CASE 18
+		RETURNF "ナマズ"
+	CASE 19
+		RETURNF "ウナギ"
+	CASE 20
+		RETURNF "ヒメマス"
+	CASE 22
+		RETURNF "コイ"
+	CASE 23
+		RETURNF "シーラカンス"
+	CASE 24
+		RETURNF "チョウザメ"
+	CASE 25
+		RETURNF "クニマス"
+	CASE 26
+		RETURNF "ソウギョ"
+	CASE 27
+		RETURNF "ヘラブナ"
+	CASE 28
+		RETURNF "イトウ"
+	CASE 29
+		RETURNF "オオクチバス"
+	CASE 30
+		RETURNF "ピラルクー"
+	CASE 31
+		RETURNF "タキタロウ"
+	CASE 32
+		RETURNF "アオウオ"
+	CASEELSE
+		RETURNF ""
+ENDSELECT
+
+;-------------------------------------------------
+;釣れた魚のサイズを一般的サイズ内でランダムに出力する変数
+;ARG　…釣れたものナンバーに対応
+;-------------------------------------------------
+@FISHING_SIZE(ARG)
+#FUNCTION
+
+LOCAL = 0
+SELECTCASE ARG
+	CASE 1 ;ウグイ
+		LOCAL = MAX(RAND:(56), 25)
+	CASE 2 ;アマゴ
+		LOCAL = MAX(RAND:(40), 18)
+	CASE 3 ;ヤマメちゃん
+		LOCAL = MAX(RAND:(50), 25)
+	CASE 4 ;イワナ
+		LOCAL = MAX(RAND:(70), 20)
+	CASE 5 ;アブラハヤ
+		LOCAL = MAX(RAND:(18), 10)
+	CASE 6 ;オイカワ
+		LOCAL = MAX(RAND:(18), 10)
+	CASE 7 ;フナ
+		LOCAL = MAX(RAND:(36), 15)
+	CASE 8 ;ピラニア
+		LOCAL = MAX(RAND:(61), 15)
+	CASE 9 ;ガーパイク
+		LOCAL = MAX(RAND:(300), 120)
+	CASE 10 ;ブルーギル
+		LOCAL = MAX(RAND:(28), 12)
+	CASE 11 ;サケ
+		LOCAL = MAX(RAND:(100), 65)
+	CASE 12 ;ワカサギ
+		LOCAL = MAX(RAND:(18), 8)
+	CASE 13 ;ニジマス
+		LOCAL = MAX(RAND:(105), 35)
+	CASE 14 ;ヤツメウナギ
+		LOCAL = MAX(RAND:(65), 45)
+	CASE 15 ;カムルチー
+		LOCAL = MAX(RAND:(115), 80)
+	CASE 16 ;カジカ
+		LOCAL = MAX(RAND:(18), 10)
+	CASE 17 ;アユ
+		LOCAL = MAX(RAND:(35), 25)
+	CASE 18 ;ナマズ
+		LOCAL = MAX(RAND:(80), 50)
+	CASE 19 ;ウナギ
+		LOCAL = MAX(RAND:(120), 85)
+	CASE 20 ;ヒメマス
+		LOCAL = MAX(RAND:(55), 20)
+	CASE 21 ;ローター
+		LOCAL = 5
+	CASE 22 ;コイ
+		LOCAL = MAX(RAND:(115), 55)
+	CASE 23 ;シーラカンス
+		LOCAL = MAX(RAND:(200), 100)
+	CASE 24 ;チョウザメ
+		LOCAL = MAX(RAND:(301), 100)
+	CASE 25 ;クニマス
+		LOCAL = MAX(RAND:(45), 30)
+	CASE 26 ;ソウギョ
+		LOCAL = MAX(RAND:(140), 70)
+	CASE 27 ;ヘラブナ
+		LOCAL = MAX(RAND:(62), 25)
+	CASE 28 ;イトウ
+		LOCAL = MAX(RAND:(220), 90)
+	CASE 29 ;オオクチバス
+		LOCAL = MAX(RAND:(55), 25)
+	CASE 30 ;ピラルクー
+		LOCAL = MAX(RAND:(400), 250)
+	CASE 31; タキタロウ
+		LOCAL = MAX(RAND:(550), 300)
+	CASE 32; アオウオ
+		LOCAL =  MAX(RAND:(220), 120)
+ENDSELECT
+RETURNF LOCAL
+
+;-------------------------------------------------
+;釣果の説明、消去行数の関係で５行に統一
+;ARG　…釣れたものナンバーに対応
+;-------------------------------------------------
+@FISHING_EXPLANATION(ARG)
+IF INRANGE(ARG, 11, 20) || INRANGE(ARG, 24, 60)
+	CALL COLOR_PRINT("　　☆うまい魚☆", "C_YELLOW")
+ELSE
+	PRINTFORM 　　◇普通の魚◇
+ENDIF
+PRINTL 
+SELECTCASE ARG
+	CASE 1 ;ウグイ
+		PRINTFORML 　　体長30cm～50cm前後、雑食性。背側は焦茶色、春には黒と赤の婚姻色を表す
+		PRINTFORML 　　２～４年で成魚となり、群れて生活する。小骨が多く、臭いあり
+		PRINTFORML 　　河川の上流から下流、はたまた山上湖にも生息。水質汚染や酸性水にも強い
+		PRINTFORML 
+		PRINTFORML 
+	CASE 2 ;アマゴ
+		PRINTFORML 　　体長20cm～30cm前後、小魚や昆虫食。ヤマメとよく似た姿だが、側面に散在する朱点で区別できる
+		PRINTFORML 　　サツキマスの陸封型（海や湖に降りず、河川で一生を終える）で、年間を通して水温の低い場所を好む
+		PRINTFORML 　　漢字は「雨子」「雨魚」などが当てられ、梅雨時～初夏など雨がちな時期によく釣れる
+		PRINTFORML 　　また、「甘い（美味しいの意）魚」という意味の異称を持つほど、美味である
+		PRINTFORML 
+	CASE 3 ;ヤマメちゃん
+		PRINTFORML 　　体長は～40cm前後、ミミズや昆虫食。背側は緑がかった黄褐色、若いうちは小判状の斑紋模様（パーマーク）を示す
+		PRINTFORML 　　サクラマスの陸封型（海や湖に降りず、河川で一生を終える）で、河川上流の冷水域に生息
+		PRINTFORML 　　寿命は３～４年。生活スタイルの似るイワナよりも下流に生息し「棲み分け」を行う
+		PRINTFORML 　　非常に警戒心が強く釣るのは難しいとされ、「渓流の女王」の異名をとる
+		PRINTFORML 
+	CASE 4 ;イワナ
+		PRINTFORML 　　体長20～60cm前後、貪欲な肉食性で、蛇すら食した事例も。背側は緑褐色や灰色で、地域によって様々
+		PRINTFORML 　　河川最上流の冷水域に生息し、生活スタイルの似るヤマメよりも上流に暮らし「棲み分け」を行う
+		PRINTFORML 　　かつては他のサケの仲間と同様に海に降りる生活をしていたようだが、本種はとりわけ冷水を好む性質ゆえ、
+		PRINTFORML 　　氷河期の終焉とともに陸封型の生活に固定され、地方地方の河川ごとに分断された結果、多様な亜種が生まれたようだ
+		PRINTFORML 
+	CASE 5 ;アブラハヤ
+		PRINTFORML 　　体長～15cm程度、雑食性。体色は黄褐色で鱗が小さく、ぬめりが強いため「アブラ」の名をとる
+		PRINTFORML 　　河川の中流から上流域、山地の湖沼など、低水温を好む。群れて産卵をする習性をもつ
+		PRINTFORML 　　多少の苦みがあるが、天ぷらやマリネ、南蛮漬けなどに
+		PRINTFORML 
+		PRINTFORML 
+	CASE 6 ;オイカワ
+		PRINTFORML 　　体長～15cm程度、背側は灰白色、繁殖期のオスには青緑とピンクの鮮やかな婚姻色が表れる
+		PRINTFORML 　　河川下流から中流域、湖沼などに生息。水質汚染や河川改修による環境変化に強い
+		PRINTFORML 　　草食寄りの雑食性。甘露煮や天ぷら、なれずしなどに
+		PRINTFORML 
+		PRINTFORML 
+	CASE 7 ;フナ
+		PRINTFORML 　　キンブナは体長15cm程度、ギンブナは30cm程度まで成長。キンブナは黄褐色の体色をしている
+		PRINTFORML 　　雑食性で、河川下流域や湖沼などに生息するコイの仲間
+		PRINTFORML 　　マブナとも言われるが、これはゲンゴロウブナ（ヘラブナ）と他のフナを区別するための総称
+		PRINTFORML 　　フナの仲間の分類は非常に難しく、いまだに定説はないとされている
+		PRINTFORML 
+	CASE 8 ;ピラニア
+		PRINTFORML 　　アマゾン川などの熱帯地方に生息する、鋭い歯を持つ肉食魚の総称
+		PRINTFORML 　　現地の言葉で「歯のある魚」の意味で、小型種では15cmほど、大型種では60cmほどまで成長する
+		PRINTFORML 　　「人食い魚」は誇張されたイメージで、実態は臆病。群れて暮らすが、群れ全体が興奮状態に入ると集団で攻撃を開始する
+		PRINTFORML 　　肉はタンパク質豊富で美味。地底の地熱で温かい川に適応しているのだろうか？
+		PRINTFORML 
+	CASE 9 ;ガーパイク
+		PRINTFORML 　　堅牢な硬鱗（ガノイン鱗）を持つ、魚類の中でも原始的なスタイルの魚。北アメリカ大陸の原産
+		PRINTFORML 　　細長い胴体と細長く伸びるアゴを持ち、種によっては３ｍに迫る巨体にまで成長することがある
+		PRINTFORML 　　近年日本の某河川でも排水（温水）によって定着しているのではないかと言われている
+		PRINTFORML 　　地底の地熱で温かい川に適応しているようだが……誰が持ち込んだのだろう？
+		PRINTFORML 
+	CASE 10 ;ブルーギル
+		PRINTFORML 　　北米大陸が原産の魚。体長～25cm程度。湖沼や流れの緩やかな河川に生息する
+		PRINTFORML 　　パンフィッシュ（フライパンに収まりやすい魚）と俗称されるグループの魚だけあり、丸っこく扁平な形をしている
+		PRINTFORML 　　非常に悪食で、何でも食べる貪欲さが移植先の水棲生物に大きな影響を与えてしまい、駆除の対象となっている
+		PRINTFORML 　　幻想郷にも分布を広げているのだとすれば、大変なことになりそうだ
+		PRINTFORML 
+	CASE 11 ;サケ
+		PRINTFORML 　　体長70cm程度まで成長。川でふ化した稚魚は3～4月に海に降り、非常に長い距離を回遊しながら成長する
+		PRINTFORML 　　４～６年ほど海で過ごした後、秋ごろに生まれた川を遡上し、湧水のある河床に産卵、一生を終える
+		PRINTFORML 　　遡上してくる産卵期の個体の食味は卵や白子の形成によって脂・旨味が落ちており、沖合で漁獲されたものに及ばない
+		PRINTFORML 　　……海のないはずの幻想郷で、一体何処でこれほどの成熟を遂げてくるのだろうか？
+		PRINTFORML 
+	CASE 12 ;ワカサギ
+		PRINTFORML 　　体長は成魚で15cm程度。湖沼やそれに注ぐ河川に生息。一部の個体は海に降りることもある
+		PRINTFORML 　　冬に産卵を行う一年魚で、冬・氷上の釣りがイメージされるが、実際は一年を通して釣れる
+		PRINTFORML 　　冷水を好むとともに、存外に塩分や水質汚染にも強く、大量産卵をすることで多くの仲間を増やす繁殖力を併せ持つ
+		PRINTFORML 　　食用にも向いており、諏訪湖をはじめ多くの湖に移植された
+		PRINTFORML 
+	CASE 13 ;ニジマス
+		PRINTFORML 　　別名レインボートラウト。体長は一般には40cm程度だが、湖などに住むものは80cm～1ｍ近くまで成長する
+		PRINTFORML 　　産卵しても１回では死なず、数年にわたって産卵を行うことができる
+		PRINTFORML 　　寄生虫がいないと言われ、刺身でも食べられる珍しい淡水魚で、繁殖期のオスには虹色の婚姻色が発現する
+		PRINTFORML 　　日本に移入されたのは明治時代。幻想郷が大結界で隔てられた後の事だが……どこから入ってきたのだろう？
+		PRINTFORML 
+	CASE 14 ;ヤツメウナギ
+		PRINTFORML 　　体長は50～60cm。無顎類（アゴを持たない魚類）と呼ばれる極めて原始的な魚類で「生きた化石」
+		PRINTFORML 　　体側に7対のエラの穴があり、それが目のように見えることから「八つ目」の名を持つ
+		PRINTFORML 　　清浄な冷水を好み、降海型と陸封型が存在する。なお、ウナギとは完全に別種である
+		PRINTFORML 　　食味は硬くクセはあるが栄養は豊富で、ビタミンＡの一種を多量に含み、夜盲症に絶大な効果があるという
+		PRINTFORML 
+	CASE 15 ;カムルチー
+		PRINTFORML 　　別名ライギョ。体長は１ｍ程度まで成長する。水流が緩やかで、水草などが多い環境を好む
+		PRINTFORML 　　魚食性だが、時にはカメや水鳥のヒナをも捕食する悪食。水底に潜み、待ち伏せを行う
+		PRINTFORML 　　白身で淡白な味わいで、揚げ物や鍋で食される。タイワンドジョウの別称の通り、ユーラシア大陸が原産の外来種
+		PRINTFORML 　　「そちら」の方面からやってきた誰かが持ち込んだものだろうか？
+		PRINTFORML 
+	CASE 16 ;カジカ
+		PRINTFORML 　　カサゴの仲間の淡水魚で体長15cm程度まで成長。体色は褐色～淡褐色まで変化に富む
+		PRINTFORML 　　綺麗な水の河川の瀬や砂利底に潜んでいることが多く、水生昆虫や小魚をエサとする
+		PRINTFORML 　　見た目は悪いが、とても美味でよいダシが出る。唐揚げや鍋、甘露煮など、広く料理に用いられる
+		PRINTFORML 
+		PRINTFORML 
+	CASE 17 ;アユ
+		PRINTFORML 　　体長～30cm程度、成魚になると石についた藻類を食べて成長する。１年で寿命を終える魚
+		PRINTFORML 　　成魚は縄張りを持ち、侵入したアユを追い払う習性をもつ。これを利用したのが囮のアユを泳がせて釣る「友釣り」
+		PRINTFORML 　　本来は川と海を回遊する魚であるが、琵琶湖流域では海の代わりに琵琶湖に降り、遡上して大きく成長するものもいるという
+		PRINTFORML 　　海のない幻想郷では、湖での成熟を行っているのだろうか？
+		PRINTFORML 
+	CASE 18 ;ナマズ
+		PRINTFORML 　　体長は60cm程度。河川の中～下流域や湖沼、水田や用水路にも生息。夜行性で、発達した口ヒゲで周囲を探る肉食魚
+		PRINTFORML 　　古くから、カエルをつけた仕掛けで水面を叩いて誘う「ポカン釣り」という手法で釣り上げられていた
+		PRINTFORML 　　なお、地震の予兆としてナマズが暴れる、という俗信があるが、科学的な裏付けはまだ取れていないとされる
+		PRINTFORML 　　地下に大ナマズがおり、これが暴れると大地震が起こる、というのも説話として有名……え？　夢に出た？
+		PRINTFORML 
+	CASE 19 ;ウナギ
+		PRINTFORML 　　体長は１ｍ程度まで成長する。河川の中～下流域や湖沼に生息。体表はヌルヌルした粘液に覆われる
+		PRINTFORML 　　夜行性の肉食魚で、淡水魚に分類されるが、海に降って産卵・ふ化を行う降河回遊を行う
+		PRINTFORML 　　深海でふ化し、海で成長してシラスウナギに、その後沿岸から川を遡上して成長を続け、５～１０年で成熟する
+		PRINTFORML 　　その姿形から龍の化身、菩薩の遣いになぞらえられることもあり、食すのを禁忌とする地域もあったようだ
+		PRINTFORML 　　めっきり外の世界で見なくなったのは、ウナギが幻想入りしているから、なのだろうか？
+	CASE 20 ;ヒメマス
+		PRINTFORML 　　体長は20～50cm。北米大陸に生息するベニザケの陸封型（海や湖に降りず、河川で一生を終える魚）
+		PRINTFORML 　　冷水を好むが、水深が深く冷たい湧水がある湖では暖地でも定着するため、いくつかの湖に移植された
+		PRINTFORML 　　体色は灰色で、甲殻類などの動物プランクトンを主食とし、ワカサギとはエサを巡り競合を起こす
+		PRINTFORML 　　サケ科の魚の中でも最も美味とされるが、すぐに食味が落ちてしまう
+		PRINTFORML 
+	;CASE 21 ;ローター
+
+	CASE 22 ;コイ
+		PRINTFORML 　　体長は60cm～１ｍ程度まで成長。規模の大きい河川の下流～中流域、湖沼、用水路などに広く生息
+		PRINTFORML 　　低水温や汚染に耐える生命力を持つうえ寿命が長く、70～80年も生き延びる個体も存在する
+		PRINTFORML 　　水底を吸い混ぜ、およそ口に入るものなら何でも食べる強い雑食性を示す
+		PRINTFORML 　　よく見られる体高の高いコイは、中国から大昔に移入されたものであるといわれている
+		PRINTFORML 　　琵琶湖水系などに生息するスリムなコイが日本に古来から生息するものと推測され、野鯉と俗称される
+	CASE 23 ;シーラカンス
+		PRINTFORML 　　体長は１ｍを超える。かつて広く世界中に分布した古代魚で、肉質のヒレを数多く持つ
+		PRINTFORML 　　現生の陸上脊椎動物は全てこの系統から進化したと言われており、深海から生存種が発見された生きた化石
+		PRINTFORML 　　味は申し訳ないがまずい。カニの肉をさらに薄味にしたような味、ハブラシのような食味、と評されている
+		PRINTFORML 　　この個体は淡水性で、外の世界ではとうに絶滅したはずの種と考えられる……幽霊？
+		PRINTFORML 
+	CASE 24 ;チョウザメ
+		PRINTFORML 　　体長１ｍ～４ｍにも成長。形はサメに似るが、サメとは別種の古代魚
+		PRINTFORML 　　卵を塩漬けにしたものがキャビアであり、各地で乱獲の憂き目にあった
+		PRINTFORML 　　かつて日本にも生息していたが、２０世紀初頭に絶滅したという
+		PRINTFORML 　　現代は温泉水の熱などを利用し、外国産の品種の養殖も行われている
+		PRINTFORML 
+	CASE 25 ;クニマス
+		PRINTFORML 　　体長30cm～40cm。体色は灰色から黒色。ヒメマスの亜種とも言われたが別種の可能性もあるという
+		PRINTFORML 　　水深の深い湖に生息し、産卵時は30～40ｍの比較的浅い所まで上がってくるという
+		PRINTFORML 　　もとは秋田県の田沢湖にのみ生息した固有種であったが、湖に酸性の河川水を引き入れた事により絶滅
+		PRINTFORML 　　しかし、昭和初期に山梨県の西湖に卵が移入されており、その子孫が絶滅宣言から70年後に再発見された
+		PRINTFORML 　　どう食べても非常に美味、と評されており、かつては特産品として献上されていた
+	CASE 26 ;ソウギョ
+		PRINTFORML 　　体長は1.2ｍ程度、高水温や酸欠にも強い、水草や水際の雑草を食する草食性のコイの仲間
+		PRINTFORML 　　もとは中国の大河に生息しており、上流で産卵した浮遊性の卵が水流に流されるうちにふ化する特性をもつ
+		PRINTFORML 　　卵が海まで流されると死んでしまうため、流れの緩やかで長大な流域面積を持つ河でないと繁殖できない
+		PRINTFORML 　　中国では四大家魚と称されるほどポピュラーな魚で、蒸し魚・煮魚・揚げ物・スープなど、広く食べられている
+		PRINTFORML 
+	CASE 27 ;ヘラブナ
+		PRINTFORML 　　琵琶湖水系のゲンゴロウブナの変種を品種改良したもので、横から見るとひし形の形をしている
+		PRINTFORML 　　体長は30～60cm程度。寿命は長く、数十年生きるものもいるという
+		PRINTFORML 　　「釣りはフナに始まりフナに終わる」の金言の、「終わりのフナ」が本種であるとされ、難易度が高い
+		PRINTFORML 　　季節により別種であるように行動が変わり、水温や天気によって遊泳層（タナ）も変わるうえ、
+		PRINTFORML 　　採餌も溶け出したエサを小さく吸い込むだけで、感度の高いウキや竿を用いなければアタリをとるのも難しい
+	CASE 28 ;イトウ
+		PRINTFORML 　　体長1～1.5ｍ、時に２ｍを超える日本最大の淡水魚。冷水で流れの緩い河川の中流～下流域に生息
+		PRINTFORML 　　背は青みがかった褐色。かつては本州北部にも生息していたが、現在は北海道にのみ分布する
+		PRINTFORML 　　日本のイトウはサケのように降海するが、幻想郷の本種は外国種のように陸封型の生活を送っているようだ
+		PRINTFORML 　　肉は白身で脂が乗って美味しいが、成長が遅いのが難点
+		PRINTFORML 
+	CASE 29 ;オオクチバス
+		PRINTFORML 　　体長30～50cm、北米原産の肉食魚で、湖沼や河川の中～下流域に生息
+		PRINTFORML 　　自分の体長の半分ほどの魚や、小鳥やカエル、ネズミまで丸呑みにしてみせる貪欲さを持つ
+		PRINTFORML 　　スポーツフィッシングの対象として有名だが、移入先で生態系を圧迫するなど問題も多い
+		PRINTFORML 　　肉は淡白な白身でクセが無く、ムニエルやフライなどでおいしく頂ける
+		PRINTFORML 
+	CASE 30 ;ピラルクー
+		PRINTFORML 　　南米大陸に生息している体長３ｍを超える大魚。魚食性で、丸太のような胴、平たい頭部と尾ひれが特徴
+		PRINTFORML 　　世界最大級の淡水魚の一種で、ガーの仲間と並んで古くから姿を変えていない古代魚
+		PRINTFORML 　　体色は黒から銀色まで様々で、成魚では後部が赤色に変色する。現地の言葉で「紅い魚」と呼ばれる由縁
+		PRINTFORML 　　肉は食べごたえがあり、無数の突起状の骨の通った舌（骨舌）はおろし器、鱗はヤスリや靴べらに、と広く利用された
+		PRINTFORML 
+	CASE 31; タキタロウ
+		PRINTFORML 　　体長３ｍ以上にもなるという大怪魚。大型のマスのような姿で口は兎のような三口、下あごが突き出ている
+		PRINTFORML 　　冷たく深い湖に生息しているとされ、その実態はいまだ掴めていない謎の魚
+		PRINTFORML 　　肉は赤身で多くの脂を含み、簡単には焼けないが非常に美味であるという
+		PRINTFORML 　　正体は、全くの新種の魚か、イワナの変種か、湖に残留するイトウか、はたまたキングサーモンか
+		PRINTFORML 　　その真相は、今も深く冷たい水の中に隠れている……
+	CASE 32;アオウオ
+		PRINTFORML 　　中国四大家魚のひとつ。成長すると体長２ｍにもなるコイの仲間。コイと比べスマートな顔立ちで、ヒゲはない
+		PRINTFORML 　　青、と名前にあるが、その体色はどちらかといえば群青～濃紺色をしており、ブラックカープとも呼ばれる
+		PRINTFORML 　　水底を吸い混ぜ底生動物を捕食し、特に貝類を好んで食べる雑食性
+		PRINTFORML 　　四大家魚の中では最も大きくなり、また最も流通が少ない。蒸し魚、煮魚、揚げ物、などで食される
+		PRINTFORML 　　味わいは濃厚だが、小骨があり食べるのに苦労するかも
+ENDSELECT

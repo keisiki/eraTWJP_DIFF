@@ -1,0 +1,1778 @@
+﻿
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;スキンシップ
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@KAGEROU_SKINSHIP
+SIF CFLAG:1001
+	RETURN RAND:10
+PRINTL [0]手を握る [1]頬を撫でる [2]頭の耳に触る [3]顎を擽る [4]髪に触る [98]ランダム
+PRINTL [5]肩を揉む [6]背を撫でる [7]脇腹をつつく [8]鼻を擽る [9]ぺたぺた [99]毎回ランダム
+INPUT
+SELECTCASE RESULT
+CASE 0 TO 9
+	RETURN RESULT
+CASE 98
+	RETURN RAND:10
+CASE 99
+	CFLAG:1001 = 1
+	PRINTW （戻したいときは私と一緒に願掛けするのよ）
+	PRINTL 
+	RETURN RAND:10
+;手入力で人狼ゲームを呼び出せます
+CASE 100
+	RETURN 100
+CASEELSE
+ENDSELECT
+RESTART
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;くんくん影狼
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@KUNKUN_KAGEROU
+#LOCALSIZE キャラクタ数上限
+#DIM LOCAL_ID
+;一緒に作った料理は食べない
+IF FLAG:20 && !TCVAR:353
+	PRINTFORMW 「む！これは%DISHNAME%の匂いね！」
+	PRINTL 
+	PRINTFORML 影狼は目にも止まらぬ速さで%CALLNAME:MASTER%の持っていた%DISHNAME%を取り上げると
+	PRINTFORMW これまたあっという間に平らげてしまった。
+	;EVENTCOMENDからコピペ。変更があったら対応の事。
+	IF DISH_DRG
+		CALL MESSAGE_EAT_DISH_DRG(TARGET)
+		WAIT
+	ENDIF
+	;CALL KOJO_MESSAGE_SEND("EVENT",14,TARGET,-1,-1)
+	CALL 食事(TARGET)
+	CALL RESET_DISH
+ELSE
+	CALLF FUNC_FISHER_YATES_SHAFFLE(LOCAL, CHARANUM)
+	;影狼ちゃんとモブ娘とMASTERは抽選対象から外します
+	ARRAYREMOVE LOCAL, FINDELEMENT(LOCAL, 63), 1
+	ARRAYREMOVE LOCAL, FINDELEMENT(LOCAL, MASTER), 1
+	ARRAYREMOVE LOCAL, FINDELEMENT(LOCAL, RANDOM_CHARANUM), 1
+	;FUNC_FISHER_YATES_SHAFFLE内で-1で初期化されるのでこれで全配列対象処理になる
+	;場所判定がよくわからんことになってたのでとりあえず近場のキャラ？にしてみるよ
+	FOR LOCAL_ID, 0, FINDELEMENT(LOCAL, -1)
+		;同じマップにいるキャラ限定
+		SIF GET_MAPID(CFLAG:(LOCAL:LOCAL_ID):現在位置) != GET_MAPID(CFLAG:63:現在位置)
+			CONTINUE
+		;同じ場所のキャラは除外
+		SIF CFLAG:(LOCAL:LOCAL_ID):現在位置 == CFLAG:63:現在位置
+			CONTINUE
+		PRINTFORMW 「ｸﾝｸﾝ……これは%CALLNAME:(LOCAL:LOCAL_ID)%の匂いね」
+		BREAK
+	NEXT
+ENDIF
+RETURN 1
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;影狼は特殊なので、関数化
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@影狼起床
+;満月の日
+SELECTCASE DAY:3
+CASE 15
+	;満月の下
+	IF MOON_WATCH(DAY:3) == 9
+		;しかも中秋の名月
+		SELECTCASE DAY:2
+		CASE 3
+			PRINTFORMW 「あら、%CALLNAME:MASTER%おはよう……」
+			PRINTFORMW 「今夜はその……十五夜ね……」
+			PRINTFORMW 「その、一緒にお月見してくれる…？」
+			PRINTFORML 「ほ、本当は恥ずかしいけど%CALLNAME:MASTER%になら」
+			PRINTFORMW 「ありのままの姿、見て欲しいの……」
+			PRINTFORMW 「なんだったらその……」
+			PRINTFORMW 「いえ、まずはこのまま一緒にお月見しましょ！」
+			BASE:63:理性 = 0
+			TCVAR:発情 = 1
+		;普通の満月
+		CASEELSE
+			PRINTFORMW 「あら、%CALLNAME:MASTER%おはよう……」
+			PRINTFORMW 「見て、今夜は満月よ」
+			PRINTFORML 「恥ずかしいけど、%CALLNAME:MASTER%にだったら…」
+			PRINTFORMW 「今の私、見て欲しいの……」
+			PRINTFORMW 「ふふ、こんなこと思った事なかったらなんか不思議だわ」
+			BASE:63:理性 = 0
+			TCVAR:発情 = 1
+		ENDSELECT
+	;まだ昼で晴れてない
+	ELSEIF TIME:2 >=1 && TIME:2 <= 4 && TIME:5 > 1
+		PRINTFORMW 「あら、%CALLNAME:MASTER%、おはよう」
+		PRINTFORMW 「その……今夜は満月ね……」
+		PRINTFORMW 「まだお天気がどうなるか分からないけど」
+		PRINTFORMW 「もし晴れたら私とお月見してくれる？」
+		CALL K63_ASK_OTSUKIMI
+	;まだ昼
+	ELSEIF TIME:2 >=1 && TIME:2 <= 4
+		PRINTFORMW 「あら、%CALLNAME:MASTER%、おはよう」
+		PRINTFORMW 「その……今夜は満月ね……」
+		PRINTFORMW 「まだお天気がどうなるか分からないけど」
+		PRINTFORMW 「とりあえず晴れることを祈りましょう」
+	;夜だけど晴れてない
+	ELSEIF TIME:5 > 1
+		;中秋の名月
+		SELECTCASE DAY:2
+		CASE 3
+			PRINTFORMW 「あら、%CALLNAME:MASTER%おはよう…」
+			PRINTFORMW 「せっかくの十五夜なのに、生憎のお天気ね……」
+			PRINTFORMW 「ねえ%CALLNAME:MASTER%、もし晴れたら私とお月見してくれる？」
+			CALL K63_ASK_OTSUKIMI
+		;普通の満月
+		CASEELSE
+			PRINTFORMW 「あら、%CALLNAME:MASTER%、おはよう」
+			PRINTFORMW 「せっかくの満月なのに、生憎のお天気ね……」
+			PRINTFORML 「……まぁ一種の生理周期だから」
+			PRINTFORMW 「変身はできるし、今でも中途半端に毛が……」
+			PRINTFORMW 「って、どこ見てるのよ！」
+		ENDSELECT
+	;夜で晴れてるけど室内（秋）
+	ELSEIF DAY:2 == 3
+		PRINTFORMW 「あら、%CALLNAME:MASTER%おはよう……」
+		PRINTFORMW 「今夜はその……十五夜ね……」
+		PRINTFORMW 「その、一緒にお月見してくれる…？」
+		PRINTFORML 「ほ、本当は恥ずかしいけど%CALLNAME:MASTER%になら」
+		PRINTFORMW 「ありのままの姿、見せても構わないわ……」
+		PRINTFORMW 「なんだったらその……」
+		PRINTFORMW 「いえ、まずは一緒にお月見しましょ！」
+	;夜で晴れてるけど室内
+	ELSE
+		PRINTFORMW 「あ…%CALLNAME:MASTER%おはよう……」
+		PRINTFORMW 「ねえ、今夜は満月よ」
+		PRINTFORML 「恥ずかしいけど、%CALLNAME:MASTER%にだったら…」
+		PRINTFORMW 「今の私、見られてもいいかなって……」
+		PRINTFORMW 「でもその……」
+		PRINTFORMW 「いえ、なんでもないわ！」
+	ENDIF
+;それ以外の日
+CASEELSE
+	SELECTCASE TIME:2
+	;朝は寝てるんで死に分岐ですが
+	CASE 1,2
+		PRINTFORMW 「おはよ～…」
+		PRINTFORMW 「朝から元気ねえ……」
+		PRINTFORMW 「私朝って苦手……」
+	;昼
+	CASE 3,4
+		PRINTFORMW 「あら%CALLNAME:MASTER%、おはよう！」
+		PRINTFORMW 「お昼は一日のはじまりだからね」
+	SIF TIME:0 < 901
+		PRINTFORMW 「……ふぁ～…眠い……」
+	;夜は分岐
+	CASE 5,6,7
+		SELECTCASE TIME:0
+		;19～22時
+		CASE 1140 TO 1320
+			SELECTCASE TIME:3
+			;18時以降起き
+			CASE 1080 TO 1320
+				PRINTFORMW 「あら%CALLNAME:MASTER%、おはよう！」
+				PRINTFORMW 「ふふ、あなたは夜型の人間だからね」
+				PRINTFORMW 「まさか無理して私に合わせてない？」
+				PRINTFORML 「う、嬉しいけど、健康にはよくないんだから」
+				PRINTFORMW 「ほどほどにして身体を労ってあげなさいよ」
+			;朝～昼起き
+			CASEELSE
+				PRINTFORMW 「あら%CALLNAME:MASTER%、おはよう！」
+				PRINTFORMW 「ふふ、日も落ちて夜の始まりね」
+			ENDSELECT
+		;22～28時
+		CASEELSE
+			SELECTCASE TIME:3
+			;22～27時起き
+			CASE 1320 TO 1440,0 TO 180
+				PRINTFORMW 「あら%CALLNAME:MASTER%、おはよう！」
+				PRINTFORMW 「ふふ、あなたは夜の人間だからね」
+				PRINTFORMW 「まさか無理して私に合わせてない？」
+				PRINTFORMW 「う、嬉しいけど、流石にこの時間に起きるのはよくないわよ」
+				PRINTFORMW 「私だって多少昼だって過ごしてるのよ」
+			CASEELSE
+				PRINTFORMW 「あら%CALLNAME:MASTER%、おはよう！」
+				PRINTFORMW 「すっかり夜も更けたわね」
+				PRINTFORMW 「ここからは妖怪の時間だから、%CALLNAME:MASTER%はあんまり出歩かない方がいいと思うわ」
+			ENDSELECT
+		ENDSELECT
+	ENDSELECT
+ENDSELECT
+TCVAR:350 = 1
+RETURN 1
+
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;お天気影狼
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@OTENKI_KAGEROU(ARG)
+SELECTCASE ARG
+;春
+CASE 1
+	SELECTCASE TIME:2
+	;昼
+	CASE 3,4
+		SELECTCASE TIME:7
+		;虹
+		CASE 1
+		RETURN 110
+		CASEELSE
+			SELECTCASE TIME:5
+			;晴れ
+			CASE 0,1
+				RETURN 111
+			;曇り
+			CASE 2,3
+				RETURN 112
+			;雨と霧
+			CASE 4,6,7
+				RETURN 113
+			;大雨
+			CASE 5
+				RETURN 114
+			ENDSELECT
+		ENDSELECT
+	;夜
+	CASE 5 TO 7
+		SELECTCASE TIME:7
+		;虹
+		CASE 1
+			RETURN 120
+		CASEELSE
+			SELECTCASE TIME:5
+			;晴れ
+			CASE 0,1
+				RETURN 121
+			;曇り
+			CASE 2,3
+				RETURN 122
+			;雨と霧
+			CASE 4,6,7
+				RETURN 123
+			;大雨
+			CASE 5
+				RETURN 124
+			ENDSELECT
+		ENDSELECT
+	ENDSELECT
+;夏
+CASE 2
+	SELECTCASE TIME:2
+	;昼
+	CASE 3,4
+		SELECTCASE TIME:7
+		;虹
+		CASE 1
+			RETURN 210
+		CASEELSE
+			SELECTCASE TIME:5
+			;晴れ
+			CASE 0,1
+				RETURN 211
+			;曇り
+			CASE 2,3
+				RETURN 212
+			;雨と霧
+			CASE 4,6,7
+				RETURN 213
+			;大雨
+			CASE 5
+				RETURN 214
+			ENDSELECT
+		ENDSELECT
+	;夜
+	CASE 5 TO 7
+		SELECTCASE TIME:7
+		;虹
+		CASE 1
+			RETURN 220
+		CASEELSE
+			SELECTCASE TIME:5
+			;晴れ
+			CASE 0,1
+				RETURN 221
+			;曇り
+			CASE 2,3
+				RETURN 222
+			;雨と霧
+			CASE 4,6,7
+				RETURN 223
+			;大雨
+			CASE 5
+				RETURN 224
+			ENDSELECT
+		ENDSELECT
+	ENDSELECT
+;秋
+CASE 3
+	SELECTCASE TIME:2
+	;昼
+	CASE 3,4
+		SELECTCASE TIME:7
+		;虹
+		CASE 1
+			RETURN 310
+		CASEELSE
+			SELECTCASE TIME:5
+			;晴れ
+			CASE 0,1
+				RETURN 311
+			;曇り
+			CASE 2,3
+				RETURN 312
+			;雨と霧
+			CASE 4,6,7
+				RETURN 313
+			;大雨
+			CASE 5
+				RETURN 314
+			ENDSELECT
+		ENDSELECT
+	;夜
+	CASE 5 TO 7
+		SELECTCASE TIME:7
+		;虹
+		CASE 1
+			RETURN 320
+		CASEELSE
+			SELECTCASE TIME:5
+			;晴れ
+			CASE 0,1
+				RETURN 321
+			;曇り
+			CASE 2,3
+				RETURN 322
+			;雨と霧
+			CASE 4,6,7
+				RETURN 323
+			;大雨
+			CASE 5
+				RETURN 324
+			ENDSELECT
+		ENDSELECT
+	ENDSELECT
+;冬
+CASE 4
+	SELECTCASE TIME:2
+	;昼
+	CASE 3,4
+		SELECTCASE TIME:7
+		;虹
+		CASE 1
+			RETURN 410
+		;ダイヤモンドダスト
+		CASE 2
+			RETURN 419
+		CASEELSE
+			SELECTCASE TIME:5
+			;晴れ
+			CASE 0,1
+				RETURN 411
+			;曇り
+			CASE 2,3
+				RETURN 412
+			;雨と霧
+			CASE 4,6,7
+				RETURN 413
+			;大雨
+			CASE 5
+				RETURN 414
+			;雪系
+			CASE 8,10,11,12,13
+				RETURN 415
+			;吹雪
+			CASE 9
+				RETURN 416
+			ENDSELECT
+		ENDSELECT
+	;夜
+	CASE 5 TO 7
+		SELECTCASE TIME:7
+		;虹
+		CASE 1
+			RETURN 420
+		;ダイヤモンドダスト
+		CASE 2
+			RETURN 429
+		CASEELSE
+			SELECTCASE TIME:5
+			;晴れ
+			CASE 0,1
+				RETURN 421
+			;曇り
+			CASE 2,3
+				RETURN 422
+			;雨と霧
+			CASE 4,6,7
+				RETURN 423
+			;大雨
+			CASE 5
+				RETURN 424
+			;雪系
+			CASE 8,10,11,12,13
+				RETURN 425
+			;吹雪
+			CASE 9
+				RETURN 426
+			ENDSELECT
+		ENDSELECT
+	ENDSELECT
+ENDSELECT
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+;草の根と雑談
+;会ってない日の一日の終了時にランダム呼び出し
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+@草の根と雑談
+#DIMS 会話相手
+;会ってない日の一日の終了時にランダム呼び出し
+SIF CFLAG:[[わかさぎ姫]]:最後に会った日 == DAY && CFLAG:[[蛮奇]]:最後に会った日 == DAY
+	RETURN 1
+IF CFLAG:[[わかさぎ姫]]:最後に会った日 == DAY
+	会話相手 = 蛮奇
+ELSEIF CFLAG:[[蛮奇]]:最後に会った日 == DAY
+	会話相手 = 姫
+ELSEIF !RAND:2
+	会話相手 = 姫
+ELSE
+	会話相手 = 蛮奇
+ENDIF
+
+PRINTFORMW 影狼は草の根の仲間と雑談している
+PRINTFORML 
+IF TALENT:恋慕 && !RAND:2
+	IF TALENT:育児中
+		IF CFLAG:出産経過日 > CHILD_就学
+			IF !RAND:2
+				PRINTFORMW 「ほら、%会話相手%お姉ちゃんに挨拶しなさい」
+				PRINTFORMW 「いい子ね」
+			ELSEIF !RAND:2
+				PRINTFORMW 「うちの子もだいぶ手がかからなくなって助かるわー」
+				PRINTFORMW 「%会話相手%にはお世話になったわね」
+			ELSE
+				PRINTFORMW 「%SHOW_CHILDNAME(63)%は元気にしてるわよ」
+				PRINTFORMW 「%CALLNAME:MASTER%が寺子屋に行かせるって言いだしたときはどうなる事かと思ったけど、うまくやってるみたい」
+			ENDIF
+		ELSEIF CFLAG:出産経過日 > CHILD_語彙
+			IF !RAND:3
+				PRINTFORMW 「あーこら騒がないの！もう！」
+				PRINTFORMW 「ごめんね%会話相手%、子供って難しいわ」
+			ELSEIF !RAND:2
+				PRINTFORMW 「大きくなったでしょ？もう話せるのよ」
+				PRINTFORMW 「ほら、%会話相手%お姉ちゃんって呼んでみて？」
+			ELSE					
+				PRINTFORMW 「%SHOW_CHILDNAME(63)%はいい子にしてた？」
+				PRINTFORMW 「今日は預かっててくれてありがとね、%会話相手%」
+			ENDIF
+		ELSE
+			IF !RAND:2
+				PRINTFORMW 「ふふ、可愛いでしょ」
+				PRINTFORMW 「%SHOW_CHILDNAME(63)%は%会話相手%のこと好きみたいね」
+			ELSEIF !RAND:2
+				PRINTFORMW 「それでね%会話相手%、その%TEXTR("妖精/兎/人間/")%が…」
+				PRINTFORMW 「あーどうしたの%SHOW_CHILDNAME(63)%！？お腹空いたのかな？」
+			ELSE
+				PRINTFORMW 「やっぱり育児って大変よ」
+			ENDIF
+		ENDIF
+	ELSE
+		IF !RAND:3
+			PRINTFORMW 「それでね%会話相手%、そのとき%CALLNAME:MASTER%が…」
+		ELSEIF !RAND:2
+			PRINTFORMW 「へー、それ今度%CALLNAME:MASTER%に%TEXTR("作ってもらおう/やってもらおう/聞いてみよう/")%かしら」
+		ELSE
+			PRINTFORMW 「わかるわー、%CALLNAME:MASTER%もそういうタイプだし」
+		ENDIF
+	ENDIF
+ELSEIF TALENT:思慕 && !RAND:2
+	IF 会話相手 == "姫"
+		PRINTFORMW 「ねえ姫、その、深い意味はないんだけど」
+		PRINTFORMW 「妖怪と人間の交際ってアリだと思う？　特に深い意味はないんだけど」
+	ELSE
+		PRINTFORML 「ねえ蛮奇、人間についてちょっと聞きたいことがあるんだけど…」
+		PRINTFORMW 「%TEXTR("そっかぁ/…ふーん、そうなんだ/へー、変なの/…引くわー/")%」
+	ENDIF
+ELSE
+	IF INRANGE(DAY:3,10,14)
+		PRINTFORMW 「満月が近くて毛の処理が大変なのよ」
+	ELSEIF !RAND:3
+		PRINTFORMW 「今度また一緒に人里にでも行かない？」
+	ELSEIF !RAND:2
+		PRINTFORMW 「あれ美味しいわよねー」
+	ELSE
+		PRINTFORMW 「%会話相手%は最近どう？」
+	ENDIF
+ENDIF
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+;お月見イベントを切り出し
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+@K63_ASK_OTSUKIMI
+CALL ASK_YN("晴れたらね","ちょっと忙しい")
+;《月霧/Moonmist》
+IF !RESULT
+	PRINTFORMW 「本当！？」
+	PRINTFORML 「じゃあ仕方ないわね……」
+	PRINTFORMW 「とっておきの呪文（スペル）カードを使う時が来たわ！」
+	PRINTL 
+	PRINTFORMW 影狼は物陰に隠れると、なにやら見慣れないスペルカードを取り出し呪文を唱えた。
+	PRINTFORML その途端、辺りが銀色に光る霧に包まれ、夜になったと思うと
+	PRINTFORMW 光が渦巻き、はじけ、やがて霧が晴れると影狼が姿を現した。
+	PRINTFORMW 気づくと天蓋には燦々と輝く太陽が昇っている。
+	PRINTL
+	PRINTFORMW 「ふふふ…みんなにはナイショよ♪」
+	PRINTFORMW 「さあ、十五夜を楽しみましょ」
+	TIME:5 = 1
+ELSE
+	PRINTFORMW 「……そう…」
+	PRINTFORMW 「まぁこんなお天気じゃね…無理言ってごめんなさい」
+	PRINTFORMW 「あ、気にしてないから大丈夫よ」
+ENDIF
+
+@K63_OTSUKIMI_TALK
+SELECTCASE MOON_WATCH(DAY:3)
+;新月
+CASE 1
+	PRINTFORMW 「今日は新月だから、いくら探しても月は見えないわよ」
+	PRINTFORMW 「その代わりにほら、星空がこんなに綺麗に見えるの」
+	SIF TALENT:恋慕
+		PRINTFORMW 「%CALLNAME:MASTER%となら月の無い夜も素敵なものね」
+;二日月
+CASE 2
+	PRINTFORMW 「あー、ちょうど月が沈んでいくわね」
+	PRINTFORMW 「意外と初月が見られるなんて珍しいことよ？」
+;三日月
+CASE 3
+	PRINTFORMW 「見て、綺麗な三日月！」
+	PRINTFORMW 「満月もいいけど、三日月のセクシィな形も魅力的よねぇ」
+	SIF TALENT:恋慕
+		PRINTFORMW 「ふふ、夜空が笑ってるみたいに見えるわね」
+;四～七日月
+CASE 4
+	PRINTFORMW 「今日のお月様は～…」
+	PRINTFORMW 「厳密には三日月じゃないけど、形としては三日月ね」
+;上弦
+CASE 5
+	PRINTFORMW 「綺麗な半月だわ」
+	PRINTFORMW 「ええと……平らな面が上だから…上弦の月ね」
+;九～十二日月
+CASE 6
+	PRINTFORMW 「あら、お月様が見えるわ」
+	PRINTFORMW 「ぷっくり膨らんできて、もうじき満月ね」
+	SIF TALENT:恋慕
+		PRINTFORMW 「お餅のように膨らむから望月……ごめん今のなしで！！」
+;十三夜
+CASE 7
+	;秋の十三夜
+	IF DAY:2 == 3
+		PRINTFORMW 「十三夜のお月様が綺麗に見えてるわね～」
+		PRINTFORMW 「満月じゃないから心置きなく楽しめるわ！」
+		IF TALENT:恋慕
+			PRINTW 「なんでって……ほら、私、変身しちゃうから……」
+			PRINTW 「毛の処理とか大変なのよ……」
+		ELSE
+			PRINTW 「いや、なんでもないわ……」
+		ENDIF
+	;普通の十三夜
+	ELSE
+	PRINTFORMW 「今日は十三夜だったわね」
+	PRINTFORMW 「ほら、楕円のお月様が浮かんでいるわ」
+	PRINTFORMW 「秋じゃなくても十三夜は十三夜よ？」
+	ENDIF
+;待宵
+CASE 8
+	PRINTFORMW 「今日は待宵の月ね」
+	PRINTFORMW 「つまり明日は満月！」
+	PRINTFORMW 「…………」
+	PRINTFORMW 「そわそわしてきたわ……」
+;満月（挨拶の段階で恋慕が前提）
+CASE 9
+	IF TALENT:恋慕
+		;中秋の名月
+		SELECTCASE DAY:2
+		CASE 3
+			PRINTFORMW 影狼と十五夜を見ることにした
+			PRINTL
+			$FULLMOON_INPUT_LOOP_01
+			PRINTL [0] 月が綺麗ですね 
+			PRINTL [1] 秋風に　たなびく雲の　絶え間より
+			PRINTL [2] お団子を食べよう！
+			INPUT
+			SELECTCASE RESULT
+			;I love you
+			CASE 0
+				PRINTFORMW 「あはは、知ってるわよ、それ」
+				PRINTFORMW 「まったく、恥ずかしげもなくそういう事を言うんだから」
+				PRINTFORMW 「嬉しいわ、ありがとう……」 
+				PRINTFORMW 「私もその…%CALLNAME:MASTER%のこと……」
+				IF TALENT:MASTER:恋人 == NO:63 && TALENT:63:恋人 == NO:63
+					PRINTFORMW 「好きよ……大好き……」
+					EXP:キス経験 += 1
+				ELSE
+					PRINTFORMW 「ううん、なんでもないわ……」
+				ENDIF
+				TIME += 10
+				SOURCE:情愛 += 200
+				EXP:63:愛情経験 += 1
+				CFLAG:63:4 += (ABL:MASTER:話術技能)
+				DOWNBASE:気力 -= 60
+			;和歌クイズ
+			CASE 1
+				$FULLMOON_INPUT_LOOP_02
+				PRINTL 
+				PRINTL [0] もれ出づる月の　影のさやけさ
+				PRINTL [1] 恋しかるべき　夜半の月かな　
+				PRINTL [2] 雲のいづこに　月宿るらむ　
+				INPUT
+				SELECTCASE RESULT
+				CASE 0
+					PRINTFORMW 「素敵～♪」
+					PRINTFORMW 「まさに今、こんな情景を詠った和歌ね」
+					PRINTFORMW 「十五夜ってのはほんと、侘寂が効いていて感慨深いわぁ」
+					SOURCE:歓楽 += 100
+					SOURCE:情愛 += 50
+					EXP:MASTER:会話経験 += (ABL:MASTER:話術技能) * 2
+					CFLAG:63:4 += (ABL:MASTER:話術技能) * 2
+					DOWNBASE:気力 -= 160
+				CASEELSE
+					PRINTFORMW 「…………あの……」
+					PRINTFORMW 「い、言いたいことは分かるわよ。うん…」
+					PRINTFORMW 「今度百人一首でもやろうかしら？ねえ、%CALLNAME:MASTER%」
+					SOURCE:歓楽 += 30
+					EXP:MASTER:会話経験 += 1
+					DOWNBASE:気力 += 40
+				ENDSELECT
+				TIME += 10
+				;月より団子
+				;団子は室内でしか食べられないが、縁側は室内かつ月見できるのでおすすめじゃぞ
+			CASE 2
+				PRINTFORML 「もー、%CALLNAME:MASTER%ってば花より団子…」
+				PRINTFORMW 「いや、月より団子ね」
+				PRINTFORMW 「ま！いいわ！私も食べたいし！」
+				PRINTFORMW 「やっぱりお月見にはお酒と肴よね～♪」
+				;雑穀は使わない。影狼が持参してくれているのだろう
+				;料理システムは改変がくるかもいれないので要チェック
+				CALL 料理生成("月見団子", [[影狼]])
+				SOURCE:歓楽 += 100 + (ABL:MASTER:料理技能) * 20
+				EXP:MASTER:料理経験 += 1
+				EXP:63:料理経験 += 1
+				DOWNBASE:MASTER:体力 += 50
+				DOWNBASE:MASTER:気力 += 100
+				TIME += 20
+			CASEELSE
+				GOTO FULLMOON_INPUT_LOOP_01
+			ENDSELECT
+		;普通の満月
+		CASEELSE
+			PRINTFORMW 「ふふ…綺麗な満月ね……」
+			PRINTFORMW 「大丈夫よ。突然変身して食ったりしないから」
+			PRINTFORMW 「でもほら、袖からも出ちゃうのよ……」
+			PRINTFORMW 「なにがって……あ！だめ！そんな見ないで！」
+			PRINTFORML 「まったくもう……。」
+			PRINTFORMW 「あとはそうね、身体の内から理性とは真逆の、荒々しい凶暴性が込み上げてくるの」
+			PRINTFORML 「今ではすっかりコントロールできるけど」
+			PRINTFORMW 「昔は本能のままに動かされて人間や家畜を襲ったものだわ」
+			PRINTFORML 「あはは。本来妖怪ってのはそういうものだからね」
+			PRINTFORMW 「今からでも恐れてくれていいのよ」
+			PRINTFORMW 「……でもやっぱり、%CALLNAME:MASTER%にはそんな風に思われたくない……」
+			PRINTFORML 「時代は変わったわ。人と妖が対立しながらも共に生きていける…」
+			PRINTFORMW 「せっかくこうして仲良くなれたんですもの」
+			PRINTFORMW 「できればずっと、啀み合う事はあっても%CALLNAME:MASTER%には側に居て欲しいわ……」
+		ENDSELECT
+		PRINTL
+		PRINTFORMW 「%CALLNAME:MASTER%と一緒に見る満月がこんなに楽しいなんて思ってなかったわ」
+		PRINTFORMW 「私今、とっても幸せよ……」
+		TIME += 10
+		SOURCE:歓楽 += 100
+		SOURCE:情愛 += 100
+		SOURCE:露出 += 100
+		SOURCE:恐怖 += 50
+		SOURCE:達成 += 10
+		SOURCE:逸脱 += 10
+		EXP:63:愛情経験 += 1
+		DOWNBASE:気力 -= 100
+		BASE:63:体力 += 100
+		CFLAG:63:信頼度 += (ABL:MASTER:話術技能)
+		BASE:63:ムード = MAXBASE:63:ムード
+		BASE:63:理性 = 0
+		TCVAR:発情 = 1
+		;恋慕じゃない
+	ELSE
+		PRINTFORMW 「今日はまんまるお月様、満月よ」
+		PRINTFORMW 「あぁ……うっとりしちゃうわ……」
+		TCVAR:発情 = 1
+	ENDIF
+;十六夜
+CASE 10
+	PRINTFORMW 「今宵のお月様は十六夜ね」
+	PRINTFORMW 「"じゅうろくや"って書いて"いざよい"って読むのよね」
+	PRINTFORMW 「…うっ！その言葉を聞くと嫌な思い出が……」
+	SIF TALENT:恋慕
+		PRINTFORMW 「いやなに……一度そんな名前のメイドにギッタンギッタンにされたのよ……」
+;十七～二十二夜（ここかはら住み込みしないと見られない）
+CASE 11
+	PRINTFORMW 「あら、月が出てるわね」
+	PRINTFORMW 「満月を越して徐々に小さくなっていく、二十日前後の月ね」
+	PRINTFORMW 「朝になると薄れていくし、なんだか哀愁漂うわ」
+;下弦
+CASE 12
+	PRINTFORMW 「今日は下弦の月が綺麗ね」
+	PRINTFORMW 「ちょうど天頂にきたとき消えていくのがもの悲しい…」
+	PRINTFORMW 「そんな月ね」
+;二十四～二十九夜
+CASE 13
+	PRINTFORMW 「昔はこんなに遅い月を健気に待つ慣習があったとかなかったとか」
+	PRINTFORMW 「それにしても逆さの三日月ってなんだか不気味よね」
+;三十夜（寝ずに起きてないと見られない。死に分岐？）
+CASE 14
+	PRINTFORMW 「あらあら、これまた貴重なミソカ月」
+	SELECTCASE DAY:2
+	CASE 1
+		PRINTFORMW 「三十日でミソカよ。もうすぐ夏ね～」
+	CASE 2
+		PRINTFORMW 「三十日でミソカよ。もうすぐ秋ね～」
+	CASE 3
+		PRINTFORMW 「三十日でミソカよ。もうすぐ冬ね～」
+	CASE 4
+		PRINTFORMW 「三十日でミソカよ。もうすぐ年越しね～」
+	ENDSELECT
+ENDSELECT
+TCVAR:351 = 1
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;挨拶
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@K63_GREETING
+IF FLAG:住み込みキャラ == 63
+	SELECTCASE TIME:2
+	;朝は寝てるんで死に分岐ですが
+	CASE 1,2
+		PRINTFORMW 「おはよ～…」
+		PRINTFORMW 「朝から元気ねえ……」
+		PRINTFORMW 「私朝って苦手……」
+	;昼
+	CASE 3,4
+		PRINTFORMW 「あら%CALLNAME:MASTER%、おはよう！」
+		PRINTFORMW 「お昼は一日のはじまりだからね」
+	SIF TIME:0 < 901
+		PRINTFORMW 「……ふぁ～…眠い……」
+	;夜は分岐
+	CASE 5 TO 7
+		SELECTCASE TIME:0
+		;19～22時
+		CASE 1140 TO 1320
+			SELECTCASE TIME:3
+			;18時以降起き
+			CASE 1080 TO 1320
+				PRINTFORMW 「あら%CALLNAME:MASTER%、おはよう！」
+				PRINTFORMW 「ふふ、あなたは夜型の人間だからね」
+				PRINTFORMW 「まさか無理して私に合わせてない？」
+				PRINTFORML 「う、嬉しいけど、健康にはよくないんだから」
+				PRINTFORMW 「ほどほどにして身体を労ってあげなさいよ」
+			;朝～昼起き
+			CASEELSE
+				PRINTFORMW 「あら%CALLNAME:MASTER%、こんばんわ！」
+				PRINTFORMW 「ふふ、日も落ちて夜の始まりね」
+			ENDSELECT
+		;22～28時
+		CASEELSE
+			SELECTCASE TIME:3
+			;22～27時起き
+			CASE 1320 TO 1440,0 TO 180
+				PRINTFORMW 「あら%CALLNAME:MASTER%、おはよう！」
+				PRINTFORMW 「ふふ、あなたは夜の人間だからね」
+				PRINTFORMW 「まさか無理して私に合わせてない？」
+				PRINTFORMW 「う、嬉しいけど、流石にこの時間に起きるのはよくないわよ」
+				PRINTFORMW 「私だって多少昼だって過ごしてるのよ」
+			CASEELSE
+				PRINTFORMW 「あら%CALLNAME:MASTER%、こんばんわ！」
+				PRINTFORMW 「すっかり夜も更けたわね」
+				PRINTFORMW 「ここからは妖怪の時間だから、%CALLNAME:MASTER%はあんまり出歩かない方がいいと思うわ」
+			ENDSELECT
+		ENDSELECT
+	ENDSELECT
+ELSEIF DAY - CFLAG:最後に会った日 >= 5
+	LOCAL = DAY - CFLAG:最後に会った日
+	IF TALENT:恋慕
+		PRINTFORML {LOCAL}日も会えなくて寂しかったわ
+		PRINTFORMW ねえ、%CALLNAME:MASTER%はこの{LOCAL}日間、ちょっとでも私に会いたいと思ったこと、あった？
+	ELSE
+		PRINTFORML {LOCAL}日ぶりね
+	ENDIF
+ELSE
+	SELECTCASE TIME:2
+	;朝は寝てるんで死に分岐ですが
+	CASE 1,2
+		PRINTFORMW 「おはよ～…」
+		PRINTFORMW 「朝から元気ねえ……」
+		PRINTFORMW 「私朝って苦手……」
+	;昼
+	CASE 3,4
+		PRINTFORMW 「あら、おはよう！」
+		PRINTFORMW 「え？もうお昼？」
+		PRINTFORMW 「私にとってお昼は一日のはじまりよ！」
+	;夜は分岐
+	CASE 5,6,7
+		SELECTCASE TIME:0
+		;19～22時
+		CASE 1140 TO 1320
+			PRINTFORMW 「こんばんわ～！」
+			PRINTFORMW 「ふふふ…すっかり日も落ちたし、ここからは妖怪の時間ね……」
+			PRINTFORMW 「%CALLNAME:MASTER%はもう寝たら？」
+		;22～28時
+		CASEELSE
+			PRINTFORMW 「こんな時間にこんばんわ～！」
+			PRINTFORMW 「すっかり夜も更けたし、もう人間の時間ではないわよ？」
+			PRINTFORMW 「まさか起きたばっかじゃないでしょうね……」
+		ENDSELECT
+	ENDSELECT
+ENDIF
+
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;ふるまうでも使うので関数化
+@MOGUMOGU_KAGEROU
+;恋慕
+IF TALENT:[[影狼]]:恋慕
+;吟味前
+		SELECTCASE DISHNAME
+		;最初に例外群
+		;"義大莉而鳥苗鳥肉"はこっちに移動
+		CASE "モッツァレラチーズとトマトのサラダ", "ドーピングコンソメスープ", "義大莉而鳥苗鳥肉"
+			$KINDAN
+			PRINTFORMW 「ちょっと%CALLNAME:MASTER%、大丈夫？」
+			PRINTFORMW 「おかしい…というより異常よ……」
+			PRINTFORMW 「た、食べて大丈夫なのかしら……」
+		CASE "ギンギー料理"
+			PRINTFORMW 「一応聞くけど…これ何の料理？」
+			PRINTL
+			PRINTFORMKW ギンギー料理
+			PRINTL
+			PRINTFORMW 「材料は…？」
+			PRINTL
+			PRINTFORMKW ギンギー
+			PRINTL
+			PRINTFORMW 「…………」
+		
+		;お魚系、天麩羅は唯一、魚料理がつかないので先に分岐
+		;まー、TASTEにはついてないが内実は想像にまかせるということで
+		CASE "天ぷら"
+			$OSAKANA
+			PRINTFORMW 「魚貝にありつけるのは久しぶりね」
+			PRINTFORMW 「幻想郷じゃ珍しいんじゃないかしら？」
+		;主食肉
+		;カエル料理もこの区分だが……
+		;だってこの娘、蛙肉だろうが喜んで食いそうなんだもん
+		CASE "ハンバーグ", "しゃぶしゃぶ", "生姜焼き", "ステーキ", "油淋鶏", "カエルのから揚げ", "カエルカレー", "カエルのソテー", "カエルの塩焼き"
+			PRINTFORMW 「やっぱりお肉は最高ね～♪」
+			PRINTFORMW 「普段は生肉だけれど」
+			IF TCVAR:[[影狼]]:353
+				PRINTFORMW 「%CALLNAME:MASTER%とお料理した方がずっといいわね♪」
+			ELSE
+				PRINTFORMW 「%CALLNAME:MASTER%のお料理を食べる方がずっといいわね♪」
+			ENDIF
+		;軽食肉
+		CASE "ハンバーガー", "シウマイ", "肉まん"
+			$ONIKU
+			PRINTFORMW 「%DISHNAME%はお手軽に食べられて」
+			PRINTFORMW 「お肉も入ってるからいいわよね」
+		[SKIPSTART]
+		;仕様変更とともに闇に消えたっぽいのでコメントアウト
+		CASE 79
+			PRINTFORMW 「もぐもぐ」
+			PRINTFORMW 「もぐもぐ」
+			PRINTFORMW 「もぐもぐ」
+			PRINTFORMW 「あらっ、もうなくなちゃった」
+		;おでん
+		CASE 86
+			PRINTFORMW 「温かくていいわね～♪」
+			PRINTFORMW 「じゃあさっそく私は……」
+		[SKIPEND]
+		
+		CASEELSE
+			IF STRCOUNT(DISH_TASTE, ESCAPE("ローター/"))
+				PRINTFORMW 「た、食べて大丈夫なのかしら……」
+			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("麺類/"))
+				IF TCVAR:[[影狼]]:353
+					PRINTFORMW 「たまごたまご……」
+					PRINTFORMW 「ほら、これで月見%DISHNAME%！」
+				ELSE
+					PRINTFORMW 「美味しそうな%DISHNAME%ね」
+					PRINTFORMW 「あら、たまごは入れないの？」
+				ENDIF
+				;月見ラーメンって何だ
+			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("魚料理/"))
+				GOTO OSAKANA
+			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("肉料理/"))
+				GOTO ONIKU
+			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("デザート/"))
+				PRINTFORMW 「お肉も好きだけど、こういうデザートも大好物よ♪」
+				PRINTFORMW 「狼なのに変？」
+				PRINTFORMW 「分かってないわねぇ%CALLNAME:MASTER%」
+				PRINTFORMW 「私は狼女、狼である前に女なの！」
+			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("野菜/"))
+				PRINTFORMW 「ウ…やっぱり菜食は苦手だわ……」
+				PRINTFORMW 「食べられなくはないけれど…」
+				PRINTFORMW 「ちゃんと消化できるか心配ね……」
+			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("軽食/"))
+			ENDIF
+		ENDSELECT
+	PRINTL
+ENDIF
+
+;吟味後（調味料は一緒に作らない時のみ）
+;おいしくなかった
+IF TFLAG:193 == -1
+	PRINTFORMW 「うーーん、今回のはちょっと微妙だったわね……」
+ELSEIF TASTE_REACTION("辛い")
+	PRINTFORMW 「ぎゃあ！！」
+	PRINTFORMW 「なによこれ！かっかっ！水！水！」
+ELSEIF TASTE_REACTION("甘い")
+	PRINTFORMW 「うえっ！！」
+	PRINTFORMW 「なにこれ…？一体なに入れたらこうなるの……？」
+ELSEIF TASTE_REACTION("わさび")
+	PRINTFORMW 「ひゃーーー！！」
+	PRINTFORMW 「な、なんでわさびが効いてるのよこれ……」
+	PRINTFORMW 「しかも入れすぎ……水……」
+ELSEIF TASTE_REACTION("すっぱい")
+	PRINTFORMW 「んーー！？」
+	PRINTFORMW 「く、腐ってないこれ……？」
+;おいしい
+ELSEIF TALENT:[[影狼]]:恋慕
+	PRINTFORMW 「ごちそうさま」
+	;一緒に作った
+	IF TCVAR:[[影狼]]:353 > 0
+		SELECTCASE RAND:5
+		CASE 0
+			PRINTFORMW 「やっぱり自分で作ると違う味に感じるわね」
+			PRINTFORMW 「それに%CALLNAME:MASTER%と一緒に食べるご飯は美味しいわ♪」
+		CASE 1
+		;お腹いっぱいじゃない時もあるけど
+			PRINTFORMW 「ふー、お腹いっぱい」
+			PRINTFORMW 「%CALLNAME:MASTER%はお料理上手ねぇ」
+		CASE 2
+			PRINTFORMW 「作るのはあんなに大変だったのに」
+			PRINTFORMW 「食べるときはあっという間に終わっちゃうのね」
+		CASE 3
+		;イベントあるかもね
+			PRINTFORMW 「そういえば%CALLNAME:MASTER%はどんな料理が好きなの？」
+			PRINTFORMW 「…その、今度作ってあげてもいいわよ？」
+		CASE 4
+			PRINTFORMW 「美味しかった～♪」
+			PRINTFORMW 「あ、後片付けはまかせてちょうだい」
+		ENDSELECT
+		CFLAG:1004 += 5
+	;作ってない
+	ELSEIF TFLAG:193 == 1
+		PRINTFORMW 「……！！」
+		PRINTFORMW 「これ、すっごく美味しいわ！」
+		CFLAG:1004 += 5
+	ELSE
+		PRINTFORMW 「%CALLNAME:MASTER%の作った料理は美味しいわね～」
+		CFLAG:1004 += 3
+	ENDIF
+;恋慕じゃない
+ELSEIF TFLAG:193 == 1
+	PRINTFORMW 「……！！」
+	PRINTFORMW 「これ、すっごく美味しいわ！」
+	CFLAG:1004 += 5
+ELSE
+	PRINTFORMW 「ごちそうさま」
+	PRINTFORMW 「美味しかったわ」
+	PRINTFORMW 「なかなか上手いじゃない」
+	CFLAG:1004 += 3
+ENDIF
+TCVAR:[[影狼]]:353 = 0
+RETURN 1
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;寝ながら考えた暇つぶし人狼ゲーム
+;推理もくそもないクソゲー
+;いつか怪盗を加えた真ワンナイト人狼にしたい
+;これちゃんとプログラミングできてたらすごいっすね
+;影狼と人狼ゲームをやるのが夢です
+;気が向いたらパターンを増やす予定。実質無限に書ける
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@ERATOHO_JINROU_GAME
+PRINTFORMW こんにちわ。案内役の十六夜咲夜でございます。
+PRINTFORML eratoho人狼は普段私たちが屋敷で行っている紅魔館ルール
+PRINTFORMW もといオリジナルルールを使用しますわ。
+PRINTFORMW さっそくだけどルールの説明が必要かしら？
+$JINROU_FIRSTTIME_INPUT_LOOP
+PRINTL  [0] 説明して！
+PRINTL  [1] いいからやろう！
+INPUT
+IF !RESULT
+	PRINTL 
+	PRINTFORML まずプレイヤー４人にそれぞれランダムで村人か人狼か占い師かが決定されます。
+	PRINTFORMW 自分以外の役職は分かりません。この時人狼は１人か２人必ず混ざります。
+	PRINTFORMW 次に占い師は他のプレイヤー１人の役職を占いで見ることができます。
+	PRINTFORMW その後、人狼は仲間が誰か分かります。１人の時は仲間がいないことが分かります。
+	PRINTL 
+	PRINTFORML そして夜が明けゲーム開始です。
+	PRINTFORMW 議論の後、誰を吊るか（殺すか）の投票を行います。
+	PRINTFORML 最多票を得た１人か２人のプレイヤーが吊られます。
+	PRINTFORMW 全員１票だった場合誰も吊ることができません。
+	PRINTL 
+	PRINTFORMW １人でも人狼が吊られた場合、村人側の全てのプレイヤーが勝利します。（占い師は村人側）
+	PRINTFORMW 人狼が１人も吊られなかった場合、人狼側の全てのプレイヤーが勝利します。
+	PRINTFORMW 説明は以上です。まぁ聡明なあなたならすぐに理解できるでしょう。
+	PRINTFORMW ちんぷんかんぷんでもフィーリングで楽しんでいただければいいんじゃないかしら。
+	PRINTFORMW なおこのゲームは雰囲気だけで、実際の内容はク○ゲーなので悪しからず。
+ELSEIF RESULT == 1
+ELSE
+	GOTO JINROU_FIRSTTIME_INPUT_LOOP
+ENDIF
+
+PRINTFORMW ではいってらっしゃいませ。
+PRINTL
+PRINTFORMW これより役職が決定されます。
+PRINTL 
+SELECTCASE RAND:10
+;あなた＆影狼：村人　霊夢＆魔理沙：人狼
+CASE 0,1
+	PRINTFORMW あなたは村人です。
+	PRINTFORMW 夜が明けました。
+	PRINTL 
+	PRINTFORMW 霊夢「それじゃあまず占い師、いるかしら？」
+	PRINTFORMW 魔理沙「私が占い師だ。%CALLNAME:MASTER%を見たぜ。村人だ」
+	PRINTFORMW 影狼「ちょっとちょっと、偽物はやめてもらえるかしら？私が占い師よ！」
+	PRINTFORMW 影狼「霊夢を見たわ。霊夢は人狼。つまりこの二人は人狼ってこと」
+	PRINTFORMW 影狼「いい？%CALLNAME:MASTER%？霊夢を吊るわよ」
+	PRINTFORMW 霊夢「人狼ならもっとうまく嘘をつくのね」
+	PRINTFORMW 霊夢「%CALLNAME:MASTER%、魔理沙、あんたら村人ならこいつを吊るのよ」
+	PRINTFORMW 魔理沙「言われなくてもこの偽占い師を吊るぜ」
+	CALL JINROU_TOUHYOU
+	SELECTCASE RESULT
+	CASE 1
+		PRINTFORMW 霊夢２票　影狼２票　二人とも吊られました。
+		PRINTFORMW 霊夢と魔理沙は人狼でした。あなたと影狼の勝利です。
+		PRINTFORMW 影狼「うぅ…信じてくれたのね……ありがとう%CALLNAME:MASTER%」
+	CASE 2
+		PRINTFORMW 霊夢１票　魔理沙１票　影狼２票　影狼は吊られました。
+		PRINTFORMW 影狼は占い師でした。あなたと影狼の敗北です。
+		PRINTFORMW 影狼「なんでよ%CALLNAME:MASTER%！霊夢って言ったでしょ！ばか！」
+	CASE 3
+		PRINTFORMW 霊夢１票　影狼３票　影狼は吊られました。
+		PRINTFORMW 影狼は占い師でした。あなたと影狼の敗北です。
+		PRINTFORMW 影狼「うぅ…ひどいわ%CALLNAME:MASTER%……」
+	ENDSELECT
+
+;あなた＆霊夢：村人　魔理沙＆影狼：人狼
+CASE 2
+	PRINTFORMW あなたは村人です。
+	PRINTFORMW 夜が明けました。
+	PRINTL 
+	PRINTFORMW 霊夢「それじゃあまず占い師、いるかしら？」
+	PRINTFORMW 魔理沙「私が占い師だ。%CALLNAME:MASTER%を見たぜ。村人だ」
+	PRINTFORMW 霊夢「残念、占い師は私なの。%CALLNAME:MASTER%の村人を見たわ」
+	PRINTFORMW 影狼「むむ…どっちが本物だと思う？%CALLNAME:MASTER%？」
+	PRINTFORMW 霊夢「あんたは部外者だから悪いけど考える必要ないのよ」
+	PRINTFORMW 魔理沙「え？どういうことだ？」
+	PRINTFORMW 霊夢「はい投票ー」
+	PRINTFORMW 影狼「ちょっと早い早いっ！」
+	CALL JINROU_TOUHYOU
+	SELECTCASE RESULT
+	CASE 1
+		PRINTFORMW 霊夢３票　魔理沙１票　霊夢は吊られました。
+		PRINTFORMW 霊夢は占い師でした。影狼は人狼でした。あなたと霊夢の敗北です。
+		PRINTFORMW 影狼「へっへっへっ。やり口が強引すぎたわね」
+	CASE 2
+		PRINTFORMW 霊夢２票　魔理沙２票　二人とも吊られました。
+		PRINTFORMW 魔理沙と影狼は人狼でした。あなたと霊夢の勝利です。
+		PRINTFORMW 影狼「あちゃー。見抜かれていたか～」
+	CASE 3
+		PRINTFORMW 霊夢２票　魔理沙１票　影狼１票　霊夢は吊られました。
+		PRINTFORMW 霊夢は占い師でした。影狼は人狼でした。あなたと霊夢の敗北です。
+		PRINTFORMW 影狼「%CALLNAME:MASTER%はちょろいわね～♪」
+	ENDSELECT
+
+;あなた＆魔理沙：村人　霊夢＆影狼：人狼
+CASE 3
+	PRINTFORMW あなたは村人です。
+	PRINTFORMW 夜が明けました。
+	PRINTL 
+	PRINTFORMW 霊夢「それじゃあまず占い師、いるかしら？」
+	PRINTFORMW 魔理沙「私が占い師だ。%CALLNAME:MASTER%を見たぜ。村人だ」
+	PRINTFORMW 霊夢「残念、占い師は私なの。%CALLNAME:MASTER%の村人を見たわ」
+	PRINTFORMW 影狼「ええ！？やめてよ！あなたら人狼ね！？私が占い師よ！」
+	PRINTFORMW 魔理沙「何を見たんだ？」
+	PRINTFORMW 影狼「…%CALLNAME:MASTER%の村人……」
+	PRINTFORMW 霊夢「なんでみんな%CALLNAME:MASTER%ばっか見るのよ」
+	PRINTFORMW 魔理沙「それはお前たちが後出ししたからだろうが。%CALLNAME:MASTER%、霊夢を吊るぞ」
+	PRINTFORMW 影狼「ふん、人狼のあんたには言われたくないわね。魔理沙を吊るわよ」
+	PRINTFORMW 霊夢「それはこっちの台詞。影狼を吊るのよ」
+	CALL JINROU_TOUHYOU
+	SELECTCASE RESULT
+	CASE 1
+		PRINTFORMW 霊夢２票　魔理沙２票　二人とも吊られました。
+		PRINTFORMW 霊夢と影狼は人狼でした。あなたと魔理沙の勝利です。
+		PRINTFORMW 影狼「くぅ～…曇り無き眼ね……」
+	CASE 2
+		PRINTFORMW 霊夢１票　魔理沙３票　魔理沙は吊られました。
+		PRINTFORMW 魔理沙は占い師でした。あなたと魔理沙の敗北です。
+		PRINTFORMW 影狼「残念♪私を信じてくれてありがとね♪」
+	CASE 3
+		PRINTFORMW 霊夢１票　魔理沙２票　影狼１票　魔理沙は吊られました。
+		PRINTFORMW 魔理沙は占い師でした。あなたと魔理沙の敗北です。
+		PRINTFORMW 影狼「ふふ、流石に惑わされたんじゃない？」
+	ENDSELECT
+
+;あなた＆影狼：人狼　霊夢＆魔理沙：村人
+CASE 4,5
+	PRINTFORMW あなたは人狼です
+	PRINTFORMW 影狼も人狼です
+	PRINTL 
+	PRINTFORMW 夜が明けました
+	PRINTFORMW 霊夢「それじゃあまず占い師、いるかしら？」
+	PRINTFORMW 魔理沙「私が占い師だ。%CALLNAME:MASTER%を見たぜ。人狼だ」
+	CALL JINROU_TAIKOU
+	SELECTCASE RESULT
+	CASE 0
+		PRINTFORMW 影狼「ちょっとちょっと、偽物はやめてもらえるかしら？私が占い師よ」
+		IF RAND:2
+			PRINTFORMW 影狼「霊夢を見たわ。霊夢は人狼。つまりこの二人は人狼ってこと」
+			PRINTFORMW 影狼「いい？%CALLNAME:MASTER%？霊夢を吊るわよ」
+			PRINTFORMW 霊夢「人狼ならもっとうまく嘘をつくのね」
+			PRINTFORMW 霊夢「%CALLNAME:MASTER%、観念してこいつを吊るのよ」
+			PRINTFORMW 魔理沙「言われなくてもこの偽占い師を吊るぜ」
+			CALL JINROU_TOUHYOU
+			SELECTCASE RESULT
+			CASE 1
+				PRINTFORMW 霊夢２票　影狼２票　二人とも吊られました。
+				PRINTFORMW 影狼は人狼でした。あなたと影狼の敗北です。
+			CASE 2
+				PRINTFORMW 霊夢１票　魔理沙１票　影狼２票　影狼は吊られました。
+				PRINTFORMW 影狼は占い師でした。あなたと影狼の敗北です。
+			CASE 3
+				PRINTFORMW 霊夢１票　影狼３票　影狼は吊られました。
+				PRINTFORMW 影狼は占い師でした。あなたと影狼の敗北です。
+			ENDSELECT
+			PRINTFORMW 影狼「ありゃ？そうか私が吊られたら負けなんだわ……」
+			PRINTFORMW 影狼「ごめん！%CALLNAME:MASTER%！」
+		ELSE
+			PRINTFORMW 影狼「霊夢を見たわ。霊夢は村人！」
+			PRINTFORMW 影狼「仲良いからって魔理沙を信じるのはナシよ～！」
+			PRINTFORMW 霊夢「いや、むしろ魔理沙だから信用ならないわ」
+			PRINTFORMW 霊夢「でもあんたは狼女だからねぇ…」
+			PRINTFORMW 魔理沙「はっはっは！ま、そういうのは置いといて」
+			PRINTFORMW 魔理沙「私は当然影狼を吊るぜ」
+			CALL JINROU_TOUHYOU
+			SELECTCASE RESULT
+			CASE 1
+				IF RAND:2
+					PRINTFORMW 霊夢１票　魔理沙２票　影狼１票　魔理沙は吊られました。
+					PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+					PRINTFORMW 影狼「ふー助かった！ふふふ…本物の人狼の演技、どうだったかしら♪」
+				ELSE
+					PRINTFORMW 霊夢１票　魔理沙１票　影狼２票　影狼は吊られました。
+					PRINTFORMW 影狼は人狼でした。あなたと影狼の敗北です。
+					PRINTFORMW 影狼「く…流石に博麗の巫女の勘は鋭いわね……」
+				ENDIF
+			CASE 2
+				IF RAND:2
+					PRINTFORMW 魔理沙３票　影狼１票　魔理沙は吊られました。
+					PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+					PRINTFORMW 影狼「ふー助かった！ふふふ…本物の人狼の演技、どうだったかしら♪」
+				ELSE
+					PRINTFORMW 魔理沙２票　影狼２票　二人とも吊られました。
+					PRINTFORMW 影狼は人狼でした。あなたと影狼の敗北です。
+					PRINTFORMW 影狼「く…流石に博麗の巫女の勘は鋭いわね……」
+				ENDIF
+			CASE 3
+				IF RAND:2
+					PRINTFORMW 魔理沙２票　影狼２票　二人とも吊られました。
+				ELSE
+					PRINTFORMW 魔理沙１票　影狼３票　影狼は吊られました。
+				ENDIF
+					PRINTFORMW 影狼は人狼でした。あなたと影狼の敗北です。
+					PRINTFORMW 影狼「ちょっと%CALLNAME:MASTER%！なんで私に投票してるのよ！ばか！」
+			ENDSELECT
+		ENDIF
+	CASE 10
+		PRINTFORMW 霊夢「ふーん。どっちが偽物かしら？」
+		PRINTFORMW 影狼「仲良いからって魔理沙を信じるのはナシよ？」
+		PRINTFORMW 霊夢「いや、むしろ魔理沙だから信用ならないわ」
+		PRINTFORMW 魔理沙「おいおい！そういうのもナシだろ！」
+		PRINTFORMW 魔理沙「ともかく私は当然%CALLNAME:MASTER%を吊るぜ」
+		CALL JINROU_TOUHYOU
+		CALL JINROU_PATTERN_01(RESULT)
+	CASE 11
+		PRINTFORMW 霊夢「ふーん。ま、%CALLNAME:MASTER%が偽物ね」
+		PRINTFORMW 魔理沙「そういうこった。さっさと吊るすぜ」
+		PRINTFORMW 影狼「え！ちょっ！」
+		CALL JINROU_TOUHYOU
+		CALL JINROU_PATTERN_02(RESULT)
+	CASE 20
+		PRINTFORMW 魔理沙「え？私は占い師だぞ？」
+		PRINTFORMW 霊夢「ま、%CALLNAME:MASTER%はこんなものね」
+		PRINTFORMW 影狼「え！ちょっ！」
+		CALL JINROU_TOUHYOU
+		CALL JINROU_PATTERN_02(RESULT)
+	CASE 21
+		PRINTFORMW 魔理沙「ほう。面白い、私と戦おうってんだな？」
+		PRINTFORMW 影狼「ふーむ、どっちが本物かしらね（ﾁﾗ」
+		PRINTFORMW 霊夢「どっちも普段から怪しいからねぇ…」
+		PRINTFORMW 魔理沙「影狼は%CALLNAME:MASTER%と仲が良いみたいだが」
+		PRINTFORMW 魔理沙「真剣勝負に贔屓はナシだぜ？」
+		PRINTFORMW 影狼「え！そ、そうかしら、ま、まぁ本物の狼の洞察力で見抜いてみせるわ…」
+		CALL JINROU_TOUHYOU
+		CALL JINROU_PATTERN_01(RESULT)
+	CASE 30
+		PRINTFORMW 影狼「そ、そう。どっちが本物かしらね…」
+		PRINTFORMW 霊夢「どっちも普段から怪しいからねぇ…」
+		PRINTFORMW 魔理沙「影狼は%CALLNAME:MASTER%と仲が良いみたいだが」
+		PRINTFORMW 魔理沙「真剣勝負に贔屓はナシだぜ？」
+		PRINTFORMW 影狼「え！そ、そうかしら、ま、まぁ本物の狼の洞察力で見抜いてみせるわ…」
+		CALL JINROU_TOUHYOU
+		CALL JINROU_PATTERN_01(RESULT)
+	CASE 31
+		PRINTFORMW 影狼「なんですって！？ふん、%CALLNAME:MASTER%なんて嫌いだわ！」
+		PRINTFORMW 霊夢「あらあら、いつもベタベタなのに珍しいわね」
+		PRINTFORMW 影狼「え！？そ、そんなこと……ないわよ……ね？」
+		PRINTFORMW 魔理沙「はっはっは！ま、今は真剣勝負だからしかたないさ」
+		PRINTFORMW 魔理沙「ともかく私は当然%CALLNAME:MASTER%を吊るぜ」
+		PRINTFORMW 霊夢（%CALLNAME:MASTER%が真ならどっちを吊ればいいのかしら…）
+		CALL JINROU_TOUHYOU
+		SELECTCASE RESULT
+		CASE 1
+			IF CFLAG:1:信頼度 >= 2500
+				PRINTFORMW %CALLNAME:MASTER%１票　霊夢１票　魔理沙２票　魔理沙は吊られました。
+				PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+				PRINTFORMW 影狼「ファインプレーよ%CALLNAME:MASTER%！なかなか人狼っぷりに磨きがかかってきたんじゃない？」
+			ELSE
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMW %CALLNAME:MASTER%１票　霊夢１票　魔理沙２票　魔理沙は吊られました。
+					PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+					PRINTFORMW 影狼「ファインプレーよ%CALLNAME:MASTER%！狼男の素質あるんじゃない？」
+				CASE 1
+					PRINTFORMW %CALLNAME:MASTER%１票　霊夢１票　魔理沙１票　影狼１票　誰も吊られませんでした。
+					PRINTFORMW あなたと影狼は人狼でした。あなたと影狼の勝利です。
+					PRINTFORMW 影狼「ファインプレーよ%CALLNAME:MASTER%！狼男の素質あるんじゃない？」
+				CASE 2
+					PRINTFORMW %CALLNAME:MASTER%２票　霊夢１票　魔理沙１票　%CALLNAME:MASTER%は吊られました。
+					PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたと影狼の敗北です。
+					PRINTFORMW 影狼「あら残念。やっぱり%CALLNAME:MASTER%は単純だから狼男には向いてないかもね」
+				ENDSELECT
+			ENDIF
+		CASE 2
+			IF CFLAG:1:信頼度 >= 2500
+				PRINTFORMW %CALLNAME:MASTER%１票　魔理沙３票　魔理沙は吊られました。
+				PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+				PRINTFORMW 影狼「ファインプレーよ%CALLNAME:MASTER%！なかなか人狼っぷりに磨きがかかってきたんじゃない？」
+			ELSE
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMW %CALLNAME:MASTER%１票　魔理沙３票　魔理沙は吊られました。
+					PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+					PRINTFORMW 影狼「ファインプレーよ%CALLNAME:MASTER%！狼男の素質あるんじゃない？」
+				CASE 1
+					PRINTFORMW %CALLNAME:MASTER%１票　魔理沙２票　影狼１票　魔理沙は吊られました。
+					PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+					PRINTFORMW 影狼「ファインプレーよ%CALLNAME:MASTER%！狼男の素質あるんじゃない？」
+				CASE 2
+					PRINTFORMW %CALLNAME:MASTER%２票　魔理沙２票　二人とも吊られました。
+					PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたと影狼の敗北です。
+					PRINTFORMW 影狼「あら残念。やっぱり%CALLNAME:MASTER%は単純だから狼男には向いてないかもね」
+				ENDSELECT
+			ENDIF
+		CASE 3
+			IF CFLAG:1:信頼度 >= 2500
+				PRINTFORMW %CALLNAME:MASTER%１票　魔理沙２票　影狼１票　魔理沙は吊られました。
+				PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+				PRINTFORMW 影狼「ファインプレーよ%CALLNAME:MASTER%！なかなか人狼っぷりに磨きがかかってきたんじゃない？」
+			ELSE
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMW %CALLNAME:MASTER%１票　魔理沙２票　影狼１票　魔理沙は吊られました。
+					PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+					PRINTFORMW 影狼「ファインプレーよ%CALLNAME:MASTER%！狼男の素質あるんじゃない？」
+				CASE 1
+					PRINTFORMW %CALLNAME:MASTER%１票　魔理沙１票　影狼２票　影狼は吊られました。
+					PRINTFORMW 影狼は人狼でした。あなたと影狼の敗北です。
+					PRINTFORMW 影狼「え！？%CALLNAME:MASTER%！なんで私に投票してるのよ！ばか！」
+				CASE 2
+					PRINTFORMW %CALLNAME:MASTER%２票　魔理沙１票　影狼１票　%CALLNAME:MASTER%は吊られました。
+					PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたと影狼の敗北です。
+					PRINTFORMW 影狼「あら残念。やっぱり%CALLNAME:MASTER%は単純だから狼男には向いてないかもね」
+				ENDSELECT
+			ENDIF
+		ENDSELECT
+	ENDSELECT
+
+;あなた：人狼　霊夢＆魔理沙＆影狼：村人
+CASE 6,7
+	PRINTFORMW あなたは人狼です
+	PRINTFORMW 仲間はいません。
+	PRINTL 
+	PRINTFORMW 夜が明けました
+	PRINTFORMW 霊夢「それじゃあまず占い師、いるかしら？」
+	PRINTFORMW 魔理沙「私が占い師だ。%CALLNAME:MASTER%を見たぜ。人狼だ」
+	CALL JINROU_TAIKOU
+	SELECTCASE RESULT
+	CASE 0
+		PRINTFORMW 影狼「……あれ？」
+		PRINTFORMW 魔理沙「なぁ霊夢、これは…」
+		PRINTFORMW 霊夢「悪いわね%CALLNAME:MASTER%、あなたに死の宣告よ」
+		PRINTFORMW 影狼「あはは……ごめんね%CALLNAME:MASTER%…」
+		CALL JINROU_TOUHYOU
+		CALL JINROU_PATTERN_05(RESULT)
+		PRINTFORMW 影狼「独りを見破られたら対抗ででなくちゃだめよ？」
+	CASE 10
+		PRINTFORMW 霊夢「ふーむ、どっちかしらね」
+		PRINTFORMW 影狼「なんか魔理沙はいつも占い師な気がしない？」
+		PRINTFORMW 魔理沙「しょうがないだろ。引くんだから」
+		PRINTFORMW 霊夢「オオカミ少年ね」
+		PRINTFORMW 魔理沙「少女だよ」
+		PRINTFORMW 影狼「あっはっは、あんた達面白いわねぇ」
+		CALL JINROU_TOUHYOU
+		CALL JINROU_PATTERN_04(RESULT)
+	CASE 11
+		PRINTFORMW 霊夢「はぁ！？」
+		PRINTFORMW 魔理沙「おう、霊夢、吊るぞ」
+		PRINTFORMW 影狼「あらら。%CALLNAME:MASTER%、落ち着いて考えなきゃだめよ」
+		CALL JINROU_TOUHYOU
+		CALL JINROU_PATTERN_05(RESULT)
+		PRINTFORMW 影狼「人狼は２人にばれたら負けちゃうのよ？」
+	CASE 20
+		PRINTFORMW 魔理沙「えっ」
+		PRINTFORMW 影狼「やっちゃったわね%CALLNAME:MASTER%」
+		PRINTFORMW 霊夢「とーひょー」
+		CALL JINROU_TOUHYOU
+		CALL JINROU_PATTERN_05(RESULT)
+		PRINTFORMW 影狼「%CALLNAME:MASTER%は魔理沙を敵にしなきゃ」
+	CASE 21
+		PRINTFORMW 魔理沙「お？私と張ろうってか」
+		PRINTFORMW 霊夢「どっちもどっちね」
+		PRINTFORMW 影狼「え～%CALLNAME:MASTER%が私を騙す真似なんて……」
+		PRINTFORMW 魔理沙「なんだお前、好きなのか」
+		PRINTFORMW 影狼「なんでそうなるのよ！」
+		PRINTFORMW 霊夢「あんたも怪しいわね」
+		CALL JINROU_TOUHYOU
+		CALL JINROU_PATTERN_04(RESULT)
+	CASE 30
+		PRINTFORMW 影狼「あら、ありがと%CALLNAME:MASTER%」
+		PRINTFORMW 霊夢「まだ分からないわよ」
+		PRINTFORMW 魔理沙「お前、狼女なのに人狼に騙されてるぞ」
+		PRINTFORMW 影狼「わ、分かってるわよそれくらい！」
+		PRINTFORMW 霊夢「どうかしらねぇ」
+		CALL JINROU_TOUHYOU
+		CALL JINROU_PATTERN_04(RESULT)
+	CASE 31
+		PRINTFORMW 影狼「え！？」
+		PRINTFORMW 霊夢「地獄行きね」
+		PRINTFORMW 魔理沙「まぁ次があるさ、なぁ%CALLNAME:MASTER%」
+		CALL JINROU_TOUHYOU
+		CALL JINROU_PATTERN_05(RESULT)
+		PRINTFORMW 影狼「人狼は２人にばれたら負けちゃうのよ？」
+	ENDSELECT
+
+;あなた＆霊夢＆魔理沙：村人　影狼：人狼
+;台詞が違うだけで全部同じじゃねーか！
+CASE 8,9
+	PRINTFORMW あなたは占い師です
+	CALL JINROU_URANAI_01
+	PRINTL
+	PRINTFORMW 夜が明けました
+	PRINTFORMW 霊夢「それじゃあまず占い師、いるかしら？」
+	SELECTCASE RESULT
+	CASE 1
+		CALL JINROU_URANAI_00
+		IF RESULT
+			PRINTFORMW 影狼「ふふふ、欺こうったってそうはいかないわ」
+			PRINTFORMW 影狼「私が占い師よ。残念ながら見たのは%CALLNAME:MASTER%の人狼だけど」
+			PRINTFORMW 魔理沙「後から出てくるなんて怪しいぜ」
+			PRINTFORMW 影狼「そんなこと言われたってタイミングってのがあるでしょう！」
+			PRINTFORMW 霊夢「そうね。%CALLNAME:MASTER%が偽って私を白にする事だってあり得るわ」
+			PRINTFORMW 魔理沙「お？そうか？」
+			PRINTFORMW 影狼「どうして信じてくれないのよ～！」
+			PRINTFORMW 魔理沙「悪い悪い。なんせ本物の人狼だから色眼鏡で見ちゃうぜ」
+			PRINTFORMW 霊夢「%CALLNAME:MASTER%も十分怪しいからねぇ…」
+			CALL JINROU_TOUHYOU
+			CALL JINROU_PATTERN_03(RESULT)
+
+		;パターンが膨大になるので現在未実装。といいつつちょっと書いた。
+		ELSE
+			PRINTW
+			PRINTFORMW 魔理沙「いない……のか？」
+			PRINTFORMW 影狼「ということはつまり……」
+			PRINTFORMW 霊夢「人狼は二人……」
+			PRINTFORMW 魔理沙「完全に運じゃないか！」
+			PRINTFORMW 影狼「たまにはこういうのも面白いわね」
+			PRINTFORMW 霊夢「ま、勘で決めればいいのよ勘で」
+		ENDIF
+	CASE 2
+		CALL JINROU_URANAI_00
+		IF RESULT
+			PRINTFORMW 影狼「ふふふ、欺こうったってそうはいかないわ」
+			PRINTFORMW 影狼「私が占い師よ。残念ながら見たのは%CALLNAME:MASTER%の人狼だけど」
+			PRINTFORMW 魔理沙「後から出てくるなんて怪しいぜ」
+			PRINTFORMW 影狼「そんなこと言われたってタイミングってのがあるでしょう！」
+			PRINTFORMW 霊夢「そうね。%CALLNAME:MASTER%が偽って魔理沙を白にする事だってあり得るわ」
+			PRINTFORMW 魔理沙「お？そうか？」
+			PRINTFORMW 影狼「どうして信じてくれないのよ～！」
+			PRINTFORMW 魔理沙「悪い悪い。なんせ本物の人狼だから色眼鏡で見ちゃうぜ」
+			PRINTFORMW 霊夢「%CALLNAME:MASTER%も十分怪しいからねぇ…」
+			CALL JINROU_TOUHYOU
+			CALL JINROU_PATTERN_03(RESULT)
+		ELSE
+		ENDIF
+	CASE 3
+		CALL JINROU_URANAI_00
+		IF RESULT
+			PRINTFORMW 影狼「ふふふ、欺こうったってそうはいかないわ」
+			PRINTFORMW 影狼「私が占い師よ。残念ながら見たのは%CALLNAME:MASTER%の人狼だけど」
+			PRINTFORMW 魔理沙「後から出てくるなんて怪しいぜ」
+			PRINTFORMW 影狼「そんなこと言われたってタイミングってのがあるでしょう！」
+			PRINTFORMW 霊夢「どっちも黒を出し合ってるとなると、完全に二択ね」
+			PRINTFORMW 魔理沙「鬼が出るか蛇が出るか…」
+			PRINTFORMW 霊夢「出るのは狼でしょうよ」
+			CALL JINROU_TOUHYOU
+			CALL JINROU_PATTERN_03(RESULT)
+		ELSE
+		ENDIF
+	ENDSELECT
+ENDSELECT
+RETURN 1
+
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;投票
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@JINROU_TOUHYOU
+PRINTL 
+PRINTL 誰に投票しますか？
+PRINTL  [1] 霊夢
+PRINTL  [2] 魔理沙
+PRINTL  [3] 影狼
+INPUT
+SIF INRANGE(RESULT, 1, 3)
+	RETURN RESULT
+RESTART
+
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;対抗占い師
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@JINROU_TAIKOU
+#DIM CHECK_CHARA
+PRINTL 
+PRINTL 偽占い師を名乗り出ますか？
+PRINTL  [0] はい
+PRINTL  [1] いいえ
+INPUT
+IF !RESULT
+	DO
+		PRINTL 誰を見たことにしますか？
+		PRINTL  [1] 霊夢
+		PRINTL  [2] 魔理沙
+		PRINTL  [3] 影狼
+		INPUT
+		CHECK_CHARA = RESULT
+	LOOP !INRANGE(CHECK_CHARA, 1, 3)
+	DO
+		PRINTL 何を見たことにしますか？
+		PRINTL  [0] 村人
+		PRINTL  [1] 人狼
+		INPUT
+		SIF INRANGE(RESULT, 0, 1)
+			RETURN (CHECK_CHARA * 10 + RESULT)
+	LOOP 1
+ELSE
+	RETURN 0
+ENDIF
+RETURN 0
+
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;占い師
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@JINROU_URANAI_01
+$JINROU_URANAI_INPUT_LOOP_1
+PRINTL 
+PRINTL 誰を占いますか？
+PRINTL  [1] 霊夢
+PRINTL  [2] 魔理沙
+PRINTL  [3] 影狼
+INPUT
+SELECTCASE RESULT
+CASE 1
+	PRINTW 霊夢は村人だ
+	RETURN 1
+CASE 2
+	PRINTW 魔理沙は村人だ
+	RETURN 2
+CASE 3
+	PRINTW 影狼は人狼だ！
+	RETURN 3
+CASEELSE
+	GOTO JINROU_URANAI_INPUT_LOOP_1
+ENDSELECT
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@JINROU_URANAI_00
+PRINTL 
+PRINTL 占い師を名乗り出ますか？
+PRINTL  [0] はい
+PRINTL  [1] いいえ
+INPUT
+IF !RESULT
+	RETURN 1
+ELSE
+	PRINTW ……ごめんなさい、占い師がいないパターンは未実装ですわ。
+	RETURN 1
+ENDIF
+
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;あなた＆影狼：人狼　霊夢＆魔理沙：村人の勝利パターン
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@JINROU_PATTERN_01(ARG)
+SELECTCASE ARG
+CASE 1
+	IF CFLAG:1:信頼度 >= 2500
+		PRINTFORMW %CALLNAME:MASTER%１票　霊夢１票　魔理沙２票　魔理沙は吊られました。
+		PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+		PRINTFORMW 影狼「ナイスよ%CALLNAME:MASTER%！なかなか人狼っぷりに磨きがかかってきたんじゃない？」
+	ELSE
+		IF RAND:2
+			PRINTFORMW %CALLNAME:MASTER%１票　霊夢１票　魔理沙２票　魔理沙は吊られました。
+			PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+			PRINTFORMW 影狼「ナイスよ%CALLNAME:MASTER%！狼男の素質あるんじゃない？」
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%２票　霊夢１票　魔理沙１票　%CALLNAME:MASTER%は吊られました。
+			PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたと影狼の敗北です。
+			PRINTFORMW 影狼「あら残念。やっぱり%CALLNAME:MASTER%は単純だから狼男には向いてないかもね」
+		ENDIF
+	ENDIF
+CASE 2
+	IF CFLAG:1:信頼度 >= 2500
+		PRINTFORMW %CALLNAME:MASTER%１票　魔理沙３票　魔理沙は吊られました。
+		PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+		PRINTFORMW 影狼「ナイスよ%CALLNAME:MASTER%！なかなか人狼っぷりに磨きがかかってきたんじゃない？」
+	ELSE
+		IF RAND:2
+			PRINTFORMW %CALLNAME:MASTER%１票　魔理沙３票　魔理沙は吊られました。
+			PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+			PRINTFORMW 影狼「ナイスよ%CALLNAME:MASTER%！狼男の素質あるんじゃない？」
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%２票　魔理沙２票　二人とも吊られました。
+			PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたと影狼の敗北です。
+			PRINTFORMW 影狼「あら残念。やっぱり%CALLNAME:MASTER%は単純だから狼男には向いてないかもね」
+		ENDIF
+	ENDIF
+CASE 3
+	IF CFLAG:1:信頼度 >= 2500
+		PRINTFORMW %CALLNAME:MASTER%１票　魔理沙２票　影狼１票　魔理沙は吊られました。
+		PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+		PRINTFORMW 影狼「ナイスよ%CALLNAME:MASTER%！なかなか人狼っぷりに磨きがかかってきたんじゃない？」
+	ELSE
+		IF RAND:2
+			PRINTFORMW %CALLNAME:MASTER%１票　魔理沙２票　影狼１票　魔理沙は吊られました。
+			PRINTFORMW 魔理沙は占い師でした。あなたと影狼の勝利です。
+			PRINTFORMW 影狼「ナイスよ%CALLNAME:MASTER%！狼男の素質あるんじゃない？」
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%２票　魔理沙１票　影狼１票　%CALLNAME:MASTER%は吊られました。
+			PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたと影狼の敗北です。
+			PRINTFORMW 影狼「あら残念。やっぱり%CALLNAME:MASTER%は単純だから狼男には向いてないかもね」
+		ENDIF
+	ENDIF
+ENDSELECT
+RETURN 1
+
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;あなた＆影狼：人狼　霊夢＆魔理沙：村人の敗北パターン
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@JINROU_PATTERN_02(ARG)
+SELECTCASE ARG
+CASE 1
+	PRINTFORMW %CALLNAME:MASTER%２票　霊夢１票　魔理沙１票　%CALLNAME:MASTER%は吊られました。
+	PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたと影狼の敗北です。
+CASE 2
+	PRINTFORMW %CALLNAME:MASTER%２票　魔理沙２票　二人とも吊られました。
+	PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたと影狼の敗北です。
+CASE 3
+	PRINTFORMW %CALLNAME:MASTER%２票　影狼１票　%CALLNAME:MASTER%は吊られました。
+	PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたと影狼の敗北です。
+ENDSELECT
+PRINTFORMW 影狼「もー、%CALLNAME:MASTER%なにやってるのよ～！」
+RETURN 1
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;あなた＆霊夢＆魔理沙：村人　影狼：人狼の通常パターン
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@JINROU_PATTERN_03(ARG)
+SELECTCASE ARG
+CASE 1
+	IF CFLAG:1:信頼度 >= 2500 && CFLAG:11:信頼度 >= 2500
+		PRINTFORMW %CALLNAME:MASTER%１票　霊夢１票　影狼２票　影狼は吊られました。
+		PRINTFORMW 影狼だけが人狼でした。あなたと霊夢と魔理沙の勝利です。
+		PRINTFORMW 影狼「うわ！みんなひどい～！」
+	ELSE
+		SELECTCASE RAND:4
+		CASE 0
+			PRINTFORMW %CALLNAME:MASTER%１票　霊夢１票　影狼２票　影狼は吊られました。
+			PRINTFORMW 影狼だけが人狼でした。あなたと霊夢と魔理沙の勝利です。
+			PRINTFORMW 影狼「うわ！みんなひどい～！」
+		CASE 1,2
+			PRINTFORMW %CALLNAME:MASTER%２票　霊夢１票　影狼１票　%CALLNAME:MASTER%は吊られました。
+			PRINTFORMW %CALLNAME:MASTER%は占い師でした。あなたと霊夢と魔理沙の敗北です。
+			PRINTFORMW 影狼「あっはっは！なーんで私に投票しないのよ！あっはっは！」
+		CASE 3
+			PRINTFORMW %CALLNAME:MASTER%３票　霊夢１票　%CALLNAME:MASTER%は吊られました。
+			PRINTFORMW %CALLNAME:MASTER%は占い師でした。あなたと霊夢と魔理沙の敗北です。
+			PRINTFORMW 影狼「ふふーん♪日頃の行いの差ってやつかしらねぇ」
+		ENDSELECT
+	ENDIF
+CASE 2
+	IF CFLAG:1:信頼度 >= 2500 && CFLAG:11:信頼度 >= 2500
+		PRINTFORMW %CALLNAME:MASTER%１票　魔理沙１票　影狼２票　影狼は吊られました。
+		PRINTFORMW 影狼だけが人狼でした。あなたと霊夢と魔理沙の勝利です。
+		PRINTFORMW 影狼「うわ！みんなひどい～！」
+	ELSE
+		SELECTCASE RAND:4
+		CASE 0
+			PRINTFORMW %CALLNAME:MASTER%１票　魔理沙１票　影狼２票　影狼は吊られました。
+			PRINTFORMW 影狼だけが人狼でした。あなたと霊夢と魔理沙の勝利です。
+			PRINTFORMW 影狼「うわ！みんなひどい～！」
+		CASE 1,2
+			PRINTFORMW %CALLNAME:MASTER%２票　魔理沙１票　影狼１票　%CALLNAME:MASTER%は吊られました。
+			PRINTFORMW %CALLNAME:MASTER%は占い師でした。あなたと霊夢と魔理沙の敗北です。
+			PRINTFORMW 影狼「あっはっは！なーんで私に投票しないのよ！あっはっは！」
+		CASE 3
+			PRINTFORMW %CALLNAME:MASTER%３票　魔理沙１票　%CALLNAME:MASTER%は吊られました。
+			PRINTFORMW %CALLNAME:MASTER%は占い師でした。あなたと霊夢と魔理沙の敗北です。
+			PRINTFORMW 影狼「ふふーん♪日頃の行いの差ってやつかしらねぇ」
+		ENDSELECT
+	ENDIF
+CASE 3
+	IF CFLAG:1:信頼度 >= 2500 && CFLAG:11:信頼度 >= 2500
+		PRINTFORMW %CALLNAME:MASTER%１票　影狼３票　影狼は吊られました。
+		PRINTFORMW 影狼だけが人狼でした。あなたと霊夢と魔理沙の勝利です。
+		PRINTFORMW 影狼「うわ！みんなひどい～！」
+	ELSE
+		SELECTCASE RAND:4
+		CASE 0
+			PRINTFORMW %CALLNAME:MASTER%１票　影狼３票　影狼は吊られました。
+			PRINTFORMW 影狼だけが人狼でした。あなたと霊夢と魔理沙の勝利です。
+			PRINTFORMW 影狼「うわ！みんなひどい～！」
+		CASE 1,2
+			PRINTFORMW %CALLNAME:MASTER%２票　影狼２票　二人とも吊られました。
+			PRINTFORMW 影狼だけが人狼でした。あなたと霊夢と魔理沙の勝利です。
+			PRINTFORMW 影狼「うーん、流石に部が悪かったかしら……」
+		CASE 3
+			PRINTFORMW %CALLNAME:MASTER%３票　影狼１票　%CALLNAME:MASTER%は吊られました。
+			PRINTFORMW %CALLNAME:MASTER%は占い師でした。あなたと霊夢と魔理沙の敗北です。
+			PRINTFORMW 影狼「ふふーん♪日頃の行いの差ってやつかしらねぇ」
+		ENDSELECT
+	ENDIF
+ENDSELECT
+RETURN 1
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;あなた：人狼　の勝ちパターン
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@JINROU_PATTERN_04(ARG)
+SELECTCASE ARG
+CASE 1
+	SELECTCASE RAND:4
+	CASE 0
+		PRINTFORMW %CALLNAME:MASTER%１票　霊夢１票　魔理沙２票　魔理沙は吊られました。
+		PRINTFORMW 魔理沙は占い師でした。あなたの勝利です。
+		PRINTFORMW 「むぅ…%CALLNAME:MASTER%も嘘つくのね……」
+	CASE 1
+		PRINTFORMW %CALLNAME:MASTER%２票　霊夢１票　魔理沙１票　%CALLNAME:MASTER%は吊られました。
+		PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたの敗北です。
+		PRINTFORMW 「危なかったわ…。危うく%CALLNAME:MASTER%に騙されるところだった…」
+	CASE 2
+		PRINTFORMW %CALLNAME:MASTER%２票　霊夢１票　魔理沙１票　%CALLNAME:MASTER%は吊られました。
+		PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたの敗北です。
+		PRINTFORMW 「ふふん、私を騙そうったってそうはいかないわよ」
+	CASE 3
+		PRINTFORMW %CALLNAME:MASTER%３票　霊夢１票　%CALLNAME:MASTER%は吊られました。
+		PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたの敗北です。
+		PRINTFORMW 「あはは、残念♪普段怪しいことやってるからよ」
+	ENDSELECT
+CASE 2
+	SELECTCASE RAND:4
+	CASE 0
+		PRINTFORMW %CALLNAME:MASTER%１票　魔理沙３票　魔理沙は吊られました。
+		PRINTFORMW 魔理沙は占い師でした。あなたの勝利です。
+		PRINTFORMW 「むぅ…%CALLNAME:MASTER%も嘘つくのね……」
+	CASE 1
+		PRINTFORMW %CALLNAME:MASTER%２票　魔理沙２票　二人とも吊られました。
+		PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたの敗北です。
+		PRINTFORMW 「危なかったわ…。危うく%CALLNAME:MASTER%に騙されるところだった…」
+	CASE 2
+		PRINTFORMW %CALLNAME:MASTER%２票　魔理沙２票　二人とも吊られました。
+		PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたの敗北です。
+		PRINTFORMW 「ふふん、私を騙そうったってそうはいかないわよ」
+	CASE 3
+		PRINTFORMW %CALLNAME:MASTER%３票　魔理沙１票　%CALLNAME:MASTER%は吊られました。
+		PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたの敗北です。
+		PRINTFORMW 「あはは、残念♪普段怪しいことやってるからよ」
+	ENDSELECT
+CASE 3
+	SELECTCASE RAND:4
+	CASE 0
+		PRINTFORMW %CALLNAME:MASTER%１票　魔理沙２票　影狼１票　魔理沙は吊られました。
+		PRINTFORMW 魔理沙は占い師でした。あなたの勝利です。
+		PRINTFORMW 「むぅ…%CALLNAME:MASTER%も嘘つくのね……」
+	CASE 1
+		PRINTFORMW %CALLNAME:MASTER%２票　魔理沙１票　影狼１票　%CALLNAME:MASTER%は吊られました。
+		PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたの敗北です。
+		PRINTFORMW 「危なかったわ…。危うく%CALLNAME:MASTER%に騙されるところだった…」
+	CASE 2
+		PRINTFORMW %CALLNAME:MASTER%２票　魔理沙１票　影狼１票　%CALLNAME:MASTER%は吊られました。
+		PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたの敗北です。
+		PRINTFORMW 「ふふん、私を騙そうったってそうはいかないわよ」
+	CASE 3
+		PRINTFORMW %CALLNAME:MASTER%３票　影狼１票　%CALLNAME:MASTER%は吊られました。
+		PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたの敗北です。
+		PRINTFORMW 「あはは、残念♪普段怪しいことやってるからよ」
+	ENDSELECT
+ENDSELECT
+RETURN 1
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;あなた：人狼　の負けパターン
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@JINROU_PATTERN_05(ARG)
+SELECTCASE ARG
+CASE 1
+	PRINTFORMW %CALLNAME:MASTER%３票　霊夢１票　%CALLNAME:MASTER%は吊られました。
+	PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたの敗北です。
+CASE 2
+	PRINTFORMW %CALLNAME:MASTER%３票　魔理沙１票　%CALLNAME:MASTER%は吊られました。
+	PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたの敗北です。
+CASE 3
+	PRINTFORMW %CALLNAME:MASTER%３票　影狼１票　%CALLNAME:MASTER%は吊られました。
+	PRINTFORMW %CALLNAME:MASTER%は人狼でした。あなたの敗北です。
+ENDSELECT
+RETURN 1
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;デイリーイベントの発生
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+@K63_職場見学
+;通い狼発生済み
+SIF !GETBIT(FLAG_DAILY_EV28, 0)
+	RETURN
+;前回から10日以上経ってないと駄目
+SIF DAY - FLAG_DAILY_EV29_LASTTIME < 10
+	RETURN
+SIF MARK:[[影狼]]:反発刻印
+	RETURN
+SIF ABL:[[わかさぎ姫]]:親密 < 3 || ABL:[[蛮奇]]:親密 < 3
+	RETURN
+TCVAR:354 = 1
+;初回
+IF !GETBIT(FLAG_DAILY_EV29, 0)
+	PRINTFORML 「蛮奇は人里の料理屋で人間のふりして働いてるらしいのよね」
+	PRINTFORML 「姫と行ってみたいんだけど、やっぱりちょっと怖くって……%CALLNAME:MASTER%がエスコートしてくれない？」
+	CALL ASK_YN("喜んで","ちょっと無理")
+	IF !RESULT
+		CALL SPTALK, [[影狼]], "笑顔", 0, @"「本当？じゃあ今夜、人里からちょっと離れたところで待ち合わせね！」", 1 
+		CALL COLORMESSAGE(@"一日の終了時にイベントが発生します（実際に移動する必要はありません）",C_YELLOW,2)
+		CFLAG:[[影狼]]:1005 = 1
+		CALL KIGEN_CHANGE(TARGET,100,1)
+	ELSE
+		PRINTFORML 「そう…気が変わったら教えてね」
+	ENDIF
+ELSE
+	PRINTFORML 「そうそう、また例の店に行きたいんだけど、今夜都合つく？」
+	CALL ASK_YN("大丈夫","今夜は無理")
+	IF !RESULT
+		CALL SPTALK, [[影狼]], "笑顔", 0, @"「じゃあ今夜、いつもの場所でね」", 1 
+		CALL COLORMESSAGE(@"一日の終了時にイベントが発生します（実際に移動する必要はありません）",C_YELLOW,2)
+		CFLAG:[[影狼]]:1005 = 1
+		CALL KIGEN_CHANGE(TARGET,100,1)
+	ELSE
+		PRINTFORML 「じゃあまた日を改めて、ね」
+	ENDIF
+ENDIF
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;━━━━━━━━━━━━━━━━━━━━━━━━━
+;━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -1,0 +1,926 @@
+﻿;-------------------------------------------------
+; eraTheWorld用 夢子口上
+;
+; おっぱいが敏感になる夢子の口上です！（ばーん！
+; 子供なしでも噴乳ができるように調整する予定です。
+;-------------------------------------------------
+;他者による修正、加筆、改変については、同梱のライセンス条項に従ってください。
+
+;**** FlagManagement **********************************************************
+;本口上にて使用しているCFLAG・TCVAR等
+;TCVAR:103:350				時止め時邂逅判定
+;TCVAR:103:351				時止め位置（あなた）
+;TCVAR:103:352				時止め解除位置（あなた）
+;TCVAR:103:353				前回体位
+;CFLAG:103:1001 			潜在的母乳体質フラグ
+;CSTR:103:K103_CS_ペニス	ペニスの呼び方
+;CSTR:103:K103_CS_ヴァギナ	ヴァギナの呼び方
+;CSTR:103:K103_CS_アヌス 	アヌスの呼び方
+;CSTR:103:K103_CS_ザーメン	ザーメンの呼び方
+;CFLAG:103:1100	バージョン	管理番号
+;
+;K103_TC_*、K103_CF_*、K103_CS_* については、同梱のERHファイルを参照してください
+;******************************************************************************
+
+;### 口上存在判定 ###################################
+@M_KOJO_K103(ARG)
+;ここでRESULTSを設定すると他の同キャラ口上を突っ込まれても正常動作する。
+
+;RESULTS = _TEST_
+
+;と設定すると、"EVENT"系イベントだと
+;M_KOJO_TEST_EVENT_K103_1() とかで呼ばれる…はず。（未テスト機能）
+
+;ここでCFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります
+
+;コメントアウトを外して眠姦口上有、時間停止口上有に1を入れると、それぞれ時間停止時、眠姦時、なりきり時にコマンド口上が読み込まれるように
+;入れないと時間停止時、眠姦時、なりきり時は一切喋りません
+
+;破瓜キャンセル口上有に1を入れると、@M_KOJO_EVENT_K103_LOST_VIRGIN_STOPでキャンセルの成否を操作できます
+;口上内抱き寄せ判定_初回と口上内抱き寄せ判定_通常に1を入れるとM_KOJO_EVENT_K103_PERMISSIONで押し倒しの成否を操作できます
+
+;Xにはキャラ番号を入れてください
+
+;CFLAG:X:眠姦口上有 = 0
+CFLAG:103:時間停止口上有 = 1
+;CFLAG:X:なりきり口上有 = 0
+;CFLAG:X:破瓜キャンセル口上有 = 0
+;CFLAG:X:口上内抱き寄せ判定_初回 = 0
+;CFLAG:X:口上内抱き寄せ判定_通常 = 0
+
+;CFLAG:押し倒し禁止に1を入れると自分から押し倒してこなくなります
+;以下は恋慕かセフレがつくまで押し倒してこなくなる使用例
+;IF !TALENT:X:恋慕 && !TALENT:X:セフレ
+;	CFLAG:X:押し倒し禁止 = 1
+;ELSE
+;	CFLAG:X:押し倒し禁止 = 0
+;ENDIF
+
+;口上存在判定です、けしてコメントアウトしないでください
+RETURN 1
+;### 口上色判定 ###################################
+@M_KOJO_COLOR_K103
+;ここでSETCOLORすることで口上に色を付けられます
+SETCOLOR 0xFF1177
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;"UPDATE判定"
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_UPDATE_K103
+#DIM VERSION
+;口上独自のUPDATE用
+;ENCOUNTER専用に独自分岐フラグを仕込んだ場合等にどうぞ
+;UPDATE判定でCFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります
+VERSION = K103_TC_バージョン
+IF CFLAG:103:1100 == VERSION
+	PRINTFORML 最新バージョンです(ver.{CFLAG:103:1100 / 100}.{CFLAG:103:1100 % 100})
+ELSE
+	PRINTFORML 夢子の性格を強気にしますがよろしいですか？（特徴に【気丈】が付きます。サドじゃないです。）
+	PRINTFORML
+	PRINTL [1] - いいよ
+	PRINTL [0] - いやだ
+	INPUT
+	IF RESULT
+		TALENT:103:度胸 = 1
+		PRINTFORMW 夢子の性格を強気にしました。
+	ENDIF
+	PRINTFORML
+	PRINTFORML 子供が居なくても、頑張れば母乳が出るようにしますか？
+	PRINTFORML （累積膣射量とB経験&B絶頂経験が一定量溜まると【母乳体質】および【B敏感】を得ます）
+	PRINTFORML
+	PRINTL [1] - いえす！
+	PRINTL [0] - いや、子供あってこその母乳だ
+	INPUT
+	IF RESULT
+		CFLAG:103:1001 = 1
+		PRINTFORMW 夢子を潜在的母乳体質にしました。
+	ENDIF
+	CFLAG:103:1100 = VERSION
+	PRINTFORML
+	PRINTFORML アップデートが完了しました。(ver.{CFLAG:103:1100 / 100}.{CFLAG:103:1100 % 100})
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;現在関係判定
+;10の桁で陥落素質判断
+;	10=他人 20=同行許可 30=思慕 40=恋慕 50=恋人 60=セフレ 70=愛欲
+;1の桁で不機嫌度合いを判断
+;	4=怒り 3=不機嫌 2=上機嫌 1=普通
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_KANKEI()
+#FUNCTION
+VARSET LOCAL
+IF TALENT:恋人
+	;あなたと恋仲である
+	LOCAL = 50
+ELSEIF TALENT:恋慕
+	;あなたに対して恋慕を抱いている
+	LOCAL = 40
+ELSEIF TALENT:思慕
+	;あなたに対して思慕を抱いている
+	LOCAL = 30
+ELSEIF TALENT:愛欲
+	;あなたに溺れている
+	LOCAL = 70
+ELSEIF TALENT:セフレ > 0
+	;あなたとはセフレである
+	LOCAL = 60
+ELSEIF !TALENT:恋慕 && !TALENT:思慕 && CFLAG:態度
+	;あなたに対して特別な感情は抱いていないが同行を許可している
+	LOCAL = 20
+ELSE
+	;あなたに対して何の感情も抱いていない。
+	LOCAL = 10
+ENDIF
+IF CFLAG:ブチギレ
+	LOCAL += 4
+ELSE
+	SELECTCASE TALENT:機嫌
+	CASE -1
+	   	LOCAL += 3
+	CASE 1
+		LOCAL += 2
+	CASE 0
+		LOCAL += 1
+	ENDSELECT
+ENDIF
+RETURNF LOCAL
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;挨拶
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_AISATSU
+#FUNCTIONS
+SELECTCASE TIME
+CASE CLOCK_TO_TIME(4, 0) TO CLOCK_TO_TIME(10, 0)
+	RETURNF "おはよう"
+CASE CLOCK_TO_TIME(10, 0) TO CLOCK_TO_TIME(16, 0)
+	RETURNF "こんにちわ"
+CASEELSE
+	RETURNF "こんばんわ"
+ENDSELECT
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;神綺、もしくはアリスと一緒にいるかどうかの判定 結果はビット
+;0:神綺と一緒　1：アリスと一緒　2：神綺とデート中　3：アリスとデート中
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_ISTOGETHER
+#FUNCTION
+LOCAL = 0
+SIF CFLAG:現在位置 == CFLAG:102:現在位置
+	LOCAL += 1p0
+SIF CFLAG:現在位置 == CFLAG:17:現在位置
+	LOCAL += 1p1
+SIF FLAG:デート相手 == 102
+	LOCAL += 1p2
+SIF FLAG:デート相手 == 17
+	LOCAL += 1P3
+RETURNF LOCAL
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;邂逅時処理
+;時止め時に使用する、出会った処理
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_MEET
+SIF !CFLAG:18
+	CFLAG:18 = 1
+SIF !TCVAR:182
+	TCVAR:182 = 1
+CFLAG:384 = DAY:0
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;時止め判定処理
+;ARG=時止め後状態（※イベント口上17番参照）
+;射精箇所等には対応していないので、改造したい人うぇるかむです
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_PREVTW(ARG)
+IF !CFLAG:18 && ARG == 2
+	;面識無&絶頂
+	TCVAR:350 = 9
+ELSEIF !CFLAG:18 && ARG == 1
+	;面識無&快感
+	TCVAR:350 = 8
+ELSEIF !CFLAG:18 && ARG == 3
+	;面識無&パンツが無い
+	TCVAR:350 = 7
+ELSEIF !CFLAG:18 && ARG == 0
+	;面識無
+	TCVAR:350 = 6
+ELSEIF !TCVAR:182 && ARG == 2
+	;今日初&絶頂
+	TCVAR:350 = 5
+	CALL M_KOJO_K103_MEET
+ELSEIF !TCVAR:182 && ARG == 1
+	;今日初&快感
+	TCVAR:350 = 4
+	CALL M_KOJO_K103_MEET
+ELSEIF !TCVAR:182 && ARG == 3
+	;今日初&パンツが無い
+	TCVAR:350 = 3
+	CALL M_KOJO_K103_MEET
+ELSEIF !TCVAR:182 && ARG == 0
+	;今日初
+	TCVAR:350 = 2
+	CALL M_KOJO_K103_MEET
+ELSE
+	;目の前で時止め&解除したかの分岐
+	;時止め直後
+	IF TCVAR:351 != TCVAR:352
+		;突然現れた
+		SELECTCASE ARG
+		CASE 2 ;絶頂
+			TCVAR:350 = 14
+		CASE 1 ;快感
+			TCVAR:350 = 13
+		CASE 3 ;パンツが無い
+			TCVAR:350 = 12
+		CASEELSE ;何もしてない
+			TCVAR:350 = 11
+		ENDSELECT
+	ELSE
+		;目の前での時止め&解除
+		SELECTCASE ARG
+		CASE 2 ;絶頂
+			TCVAR:350 = 18
+		CASE 1 ;快感
+			TCVAR:350 = 17
+		CASE 3 ;パンツが無い
+			TCVAR:350 = 16
+		CASEELSE ;何もしてない
+			TCVAR:350 = 15
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;時止め判定リセット
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_RESETTW
+TCVAR:350 = 0
+TCVAR:351 = 0
+TCVAR:352 = 0
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;ハートマーク記述用式中関数
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_HEART(ARG = 1)
+#FUNCTIONS
+LOCALS = %UNICODE(0x2764) * ARG%
+RETURNF LOCALS
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;母乳体質獲得関数
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_BONYU_SET
+IF CFLAG:1001 && !TALENT:母乳体質
+	;潜在的母乳体質であり、母乳体質でない場合のみ判定
+	IF EXP:Ｂ絶頂経験 > 200 && EXP:Ｂ経験 > 1000
+		PRINTFORMDL
+		PRINTFORMW 「え、ちょっと、これって…」
+		PRINTFORMDL
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMDW 夢子はびくりと身体を揺らすと、自分の乳首を摘まみ上げて見ている
+			PRINTFORMDW よく見ると、その先からは白い液体が滲み出ていた
+			PRINTFORMDL
+			PRINTFORMW 「赤ちゃんも居ないのに…こんなことってあるのね……あ、たれちゃう…」
+			PRINTFORMDL
+			PRINTFORMDL %CALLNAME:MASTER%は夢子の胸に飛び込み、滴り落ちそうになっていた母乳を舐めとった
+			PRINTFORMDL
+			PRINTFORMW 「あんっ……もう………ん、ちょっと張ってるのかも……」
+			PRINTFORMW 「責任もって%CALLNAME:MASTER%が飲んでよね……」
+		;それ以外
+		ELSE
+			PRINTFORMDW 夢子はびくりと身体を揺らすと、自分の胸を持ち上げて見ている
+			PRINTFORMDW よく見ると、その先はしっとりと濡れているように見えた
+			PRINTFORMDL
+			PRINTFORMW 「……え？ いや、まってまって…うそ、こんなの…」
+			PRINTFORMDL
+			PRINTFORMDL %CALLNAME:MASTER%は夢子の胸から染み出す母乳を見ながら、ハンカチを取り出して夢子に手渡す
+			PRINTFORMDL
+			PRINTFORMW 「あ…ありがと……こんなとこ見せちゃって……でもこれ、どうしようかしら………」
+			PRINTFORMDL
+			PRINTFORMDW 夢子は困った顔をして、とりあえず今の服をどうするか考え始めた…
+		ENDIF
+		PRINTFORMDL
+		
+		TALENT:母乳体質 = 2
+		
+		PRINTFORMDW 夢子は母乳が出るようになった…
+		PRINTFORMDL
+			RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;固有文字列変数ゲッター
+;UPDATEされてない状態だと文字列系が空なのでワンクッション置かないといけない
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_GET(ARGS)
+#FUNCTIONS
+LOCALS = ""
+SELECTCASE ARGS
+	CASE "ペニス","ちんこ","ちんぽ"
+		SIF CSTR:103:K103_CS_ペニス == ""
+			CSTR:103:K103_CS_ペニス = おちんちん
+		LOCALS = %CSTR:103:K103_CS_ペニス%
+	CASE "ヴァギナ","まんこ","おまんこ"
+		SIF CSTR:103:K103_CS_ヴァギナ == ""
+			CSTR:103:K103_CS_ヴァギナ = おまんこ
+		LOCALS = %CSTR:103:K103_CS_ヴァギナ%
+	CASE "アヌス","アナル","尻の穴","おしりの穴"
+		SIF CSTR:103:K103_CS_アヌス == ""
+			CSTR:103:K103_CS_アヌス = おしりの穴
+		LOCALS = %CSTR:103:K103_CS_アヌス%
+	CASE "ザーメン","スペルマ","精液","子種汁"
+		SIF CSTR:103:K103_CS_ザーメン == ""
+			CSTR:103:K103_CS_ザーメン = 精液
+		LOCALS = %CSTR:103:K103_CS_ザーメン%
+ENDSELECT
+RETURNF LOCALS
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;パンツチェッカー関数
+;RETURN -3:ズボン -2:ずらせない下着 -1:スカートだけどずらせない下着 0:ノーパンズボン 1:スカートかつずらせる 2:ノーパンスカート 3:フリーダム 
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_PANTSU()
+#FUNCTION
+IF CFLAG:ノーパン
+	SIF GETBIT(TEQUIP:下半身着衣状況, 0)
+		RETURNF 2							;ノーパンスカート
+	SIF GETBIT(TEQUIP:下半身着衣状況, 3)
+		RETURNF 0							;ノーパンズボン
+	RETURNF 3								;フリーダム
+ELSE
+	IF GETBIT(TEQUIP:下半身着衣状況, 0)
+		SIF GETBIT(TEQUIP:下半身着衣状況, 0)
+			RETURNF 1							;スカートかつずらせる下着
+		RETURNF -1								;スカートだけどずらせない下着
+	ENDIF
+	SIF GETBIT(TEQUIP:下半身着衣状況, 3)
+		RETURNF -3							;ズボン
+	RETURNF -2								;ずらせない下着
+ENDIF
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;めくりずらし関数
+;めくったりずらしたりしてる描写の文字列を返す
+;ズボンの描写に関しては多分大体実行判定で辿り着けない
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_ZURASHI()
+#FUNCTIONS
+LOCALS = ""
+SELECTCASE M_KOJO_K103_PANTSU() 
+CASE 3
+	;フリーダム
+	;何もないから何もしない
+CASE 2
+	;ノーパンスカート
+	LOCALS = %SHOW_BOTTOM(TARGET, 1)%をめくりあげて
+CASE 1
+	;スカートかつずらせる下着
+	LOCALS = %SHOW_BOTTOM(TARGET, 1)%をめくりあげて%SHOW_BOTTOM(TARGET, 2)%をずらし、
+CASE 0
+	;ノーパンズボン
+	LOCALS = %SHOW_BOTTOM(TARGET, 4)%の上から
+CASE -1
+	;スカートだけどずらせない下着
+	LOCALS = %SHOW_BOTTOM(TARGET, 1)%をめくりあげ、%SHOW_BOTTOM(TARGET, 3)%の上から
+CASE -2
+	;ずらせない下着
+	LOCALS = %SHOW_BOTTOM(TARGET, 3)%の上から
+CASE -3
+	;ズボン
+	LOCALS = %SHOW_BOTTOM(TARGET, 4)%の上から
+CASEELSE
+ENDSELECT
+RETURNF LOCALS
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;ランダムセレクタ用、RANDOM NOT REPEATの略 連続同数回避用共通ランダム関数
+;引数 =>(ランダム範囲, 管理番号※一応コマンド毎に分けられるように1～999まで。省略すると1)
+;DIMが静的変数であることを利用してRAND変数繰り返し時の同数取得を回避する
+;すごい無駄が多い…可変長配列って無いのかな…
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_RANDNR(ARG, ARG:1 = 1)
+#FUNCTION
+#DIM PRELOCAL,999
+IF ARG > 2 || (ARG:1 > 0 && ARG:1 < 1000)
+	LOCAL = RAND:ARG
+	WHILE LOCAL == PRELOCAL:(ARG:1)
+		LOCAL = RAND:ARG
+	WEND
+	PRELOCAL:(ARG:1) = LOCAL
+	RETURNF PRELOCAL:(ARG:1) 
+ELSE
+	PRINTFORMDL M_KOJO_K103_RANDNRの引数の値が範囲外です
+	RETURNF 0
+ENDIF
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;口上内共通喘ぎ声ランダムセレクタ
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_AEGI
+#FUNCTIONS
+LOCAL = M_KOJO_K103_RANDNR(19,1)
+SELECTCASE LOCAL
+CASE 1
+	LOCALS = あっ…あっ…
+CASE 2
+	LOCALS = あっ…んっ…
+CASE 3
+	LOCALS = ああん…
+CASE 4
+	LOCALS = あ…だめ…あっ…
+CASE 5
+	LOCALS = ふあっ…あっ…
+CASE 6
+	LOCALS = んっ…んあっ……
+CASE 7
+	LOCALS = ……はっ………はっ…
+CASE 8
+	LOCALS = ん、だめ…だめ……
+CASE 9
+	LOCALS = …あっ…あああ……
+CASE 10
+	LOCALS = あ…ああああっ…
+CASE 11
+	LOCALS = ひっ…あっっ…
+CASE 12
+	LOCALS = あ……もっと…あっ…
+CASE 13
+	LOCALS = はっ……あっ…あっ…
+CASE 14
+	LOCALS = んんんっ……んんっ…
+CASE 15
+	LOCALS = あっ……あんっ…
+CASE 16
+	LOCALS = あひっ……んっ…
+CASE 17
+	LOCALS = あんっ……ああんっ…
+CASE 18
+	LOCALS = あっ…あんっ…あんっ…
+CASEELSE
+	LOCALS = あんっ……ああんっ…
+ENDSELECT
+RETURNF LOCALS
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;口上内共通フェラ声ランダムセレクタ
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_FELLA
+#FUNCTIONS
+LOCAL = M_KOJO_K103_RANDNR(18,2)
+SELECTCASE LOCAL
+CASE 1
+	LOCALS = ん…んちゅ…はぁ…
+CASE 2
+	LOCALS = ぺろ…んむ……
+CASE 3
+	LOCALS = ちゅ…はむっ…
+CASE 4
+	LOCALS = れろ…ぷちゅ…
+CASE 5
+	LOCALS = んっ……ぢゅっ…
+CASE 6
+	LOCALS = あむっ…むっ…ぐぷっ……
+CASE 7
+	LOCALS = ぺろっ…ぺろっ……れるれる…
+CASE 8
+	LOCALS = ぢゅっ…ぷっ…ぢゅっ…ぷっ…
+CASE 9
+	LOCALS = …ん…ぷはぁ…
+CASE 10
+	LOCALS = はむっ…あむっ…
+CASE 11
+	LOCALS = んぢゅ…ぷぁ……
+CASE 12
+	LOCALS = …んっ……ぢゅぷ…んっ…
+CASE 13
+	LOCALS = …ちゅっ……ふー……あむっ…
+CASE 14
+	LOCALS = あむ…んむ…
+CASE 15
+	LOCALS = ぐっぷ…ぐっぷ…ぐっぷ……ぷあっ…
+CASE 16
+	LOCALS = れる……ちゅっ…
+CASE 17
+	LOCALS = じゅっぷ…じゅっぷ…
+CASEELSE
+	LOCALS = れろ…れる……んちゅ……
+ENDSELECT
+
+IF (TALENT:思慕 || TALENT:恋慕) && RAND:(MAX(20 - ABL:親密, 5)) == 1
+	LOCAL = M_KOJO_K103_RANDNR(5,3)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = %LOCALS%%M_KOJO_K103_GET("ペニス")%おいし…
+	CASE 2
+		LOCALS = %LOCALS%%M_KOJO_K103_GET("ペニス")%、%M_KOJO_K103_GET("ペニス")%…
+	CASE 3
+		LOCALS = %LOCALS%%CALLNAME:MASTER%の%M_KOJO_K103_GET("ペニス")%おいひぃよぉ…
+	CASE 4
+		LOCALS = %LOCALS%%M_KOJO_K103_GET("ペニス")%…かわいい…
+	CASE 5
+		LOCALS = %LOCALS%%M_KOJO_K103_GET("ペニス")%…この匂い…好き…
+	ENDSELECT
+ENDIF
+RETURNF LOCALS
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;口上内共通苦しみ声ランダムセレクタ
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_KURUSHIMI
+#FUNCTIONS
+LOCAL = M_KOJO_K103_RANDNR(9,4)
+SELECTCASE LOCAL
+CASE 1
+	LOCALS = う゛っ…
+CASE 2
+	LOCALS = あぐっ…
+CASE 3
+	LOCALS = あ゛っ…お゛っ…
+CASE 4
+	LOCALS = あ…ぎっ…
+CASE 5
+	LOCALS = んぐっ…
+CASE 6
+	LOCALS = んっ…ぎっ……
+CASE 7
+	LOCALS = ……はっ…はっ…はっ…
+CASE 8
+	LOCALS = んぐっ！？ ……
+CASEELSE
+	LOCALS = いぎっ……うっ…
+ENDSELECT
+RETURNF LOCALS
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;口上内共通イき声ランダムセレクタ ARG=強度
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_IKU(ARG)
+#FUNCTIONS
+SELECTCASE ARG
+CASE 1
+	LOCAL = M_KOJO_K103_RANDNR(6,5)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = イクっ…
+	CASE 2
+		LOCALS = あっ…イく、イっちゃう…
+	CASE 3
+		LOCALS = んんんん、イく…っ
+	CASE 4
+		LOCALS = あ…イキそう…あっ…あっあっイクっ…っ
+	CASE 5
+		LOCALS = もうだめ、イっちゃう、あ、あ、あっ…
+	CASEELSE
+		LOCALS = あ、イく…っイく…っ
+	ENDSELECT
+CASE 2
+	LOCAL = M_KOJO_K103_RANDNR(6,6)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = イク…イクイク…あっ…とまんな…あっ…
+	CASE 2
+		LOCALS = あっ…イクイクイク、イっちゃう、あ、あああああ…
+	CASE 3
+		LOCALS = だめぇ！ …もうイク、イっちゃうの！ ああんっ…イクっ……
+	CASE 4
+		LOCALS = あ…イク…あっ…イク……あっ…もうイってるのに…あ…イクっ…
+	CASE 5
+		LOCALS = もうだめ、イっちゃう、イっちゃう、イっちゃう！！！
+	CASEELSE
+		LOCALS = あ、イクイクイクイクイっちゃう…っ
+	ENDSELECT
+CASE 3
+	LOCAL = M_KOJO_K103_RANDNR(6,7)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = イクっ…イクっ…あ゛っ…とまんな…あ゛っ…気持ちいいの止まんないのっ…あ゛っ…
+	CASE 2
+		LOCALS = あっ…イクイクイグ、イっちゃう、あああああ、頭おかしくなっちゃう、イグ…っっ
+	CASE 3
+		LOCALS = だめぇ！ …もうイク、イっちゃうの！ ああんっ…まだイクっ、あっ、もうダメ、ダメなの…あっ…イクっ…
+	CASE 4
+		LOCALS = あ…イクっ…あ゛っ…イグっ……あ゛っ…もうイってるのぉ……あ…イぐっ…
+	CASE 5
+		LOCALS = もうだめ、イっちゃう、イっちゃうイっちゃうイっちゃうイっちゃう、ああああああ！！！
+	CASEELSE
+		LOCALS = あ、イクイクイクイク、だめ、もうダメ、ダメなの、あ、イク、イクっ…っっ
+	ENDSELECT
+ENDSELECT
+RETURNF LOCALS
+
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;各部位絶頂用記述用式中関数
+;ARG= 1:クリ 2:おっぱい 3:口 4:おまんこ 5:おしりの穴
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_OG(ARG)
+#FUNCTIONS
+LOCALS = 
+SELECTCASE ARG
+CASE 1
+	LOCAL = M_KOJO_K103_RANDNR(6,8)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = お豆、お豆気持ちいい
+	CASE 2
+		LOCALS = あ、クリが痺れてっ…っ
+	CASE 3
+		LOCALS = お豆、お豆がっ、あっ
+	CASE 4
+		LOCALS = あー、クリ駄目、あ、あ、あ
+	CASE 5
+		LOCALS = クリ気持ちいい、気持ちいいよぉ
+	CASEELSE
+		LOCALS = あ、お豆痺れる、あっ
+	ENDSELECT
+CASE 2
+	LOCAL = M_KOJO_K103_RANDNR(9,9)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = おっぱい、おっぱい気持ちいい
+	CASE 2
+		LOCALS = あ、乳首ダメっ…っ
+	CASE 3
+		LOCALS = 乳首、乳首がっ、あっ
+	CASE 4
+		LOCALS = あ、乳首きゅーってする、あ、あ
+	CASE 5
+		LOCALS = おっぱい気持ちいい、おっぱい気持ちいいよぉ
+	CASE 6
+		LOCALS = おっぱいすごい、すごいよぉ
+	CASE 7
+		LOCALS = おっぱい感じちゃうのっっ
+	CASE 8
+		LOCALS = おっぱいもっと、もっとっっ
+	CASEELSE
+		LOCALS = 乳首、乳首で感じるのっ
+	ENDSELECT
+CASE 3
+	LOCAL = M_KOJO_K103_RANDNR(5,10)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = おくひでひてるだけなのにぃ
+	CASE 2
+		LOCALS = あ、あ、あ、あ
+	CASE 3
+		LOCALS = んむっ…んんんんん…
+	CASE 4
+		LOCALS = お口、びりびりするっ
+	CASE 5
+		LOCALS = わらひまで気持ちひいっ
+	ENDSELECT
+CASE 4
+	LOCAL = M_KOJO_K103_RANDNR(9,11)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = %M_KOJO_K103_GET("ヴァギナ")%、%M_KOJO_K103_GET("ヴァギナ")%気持ちいいよぉ…
+	CASE 2
+		LOCALS = あぁ、%M_KOJO_K103_GET("ヴァギナ")%の奥っ…ぎっ…っ
+	CASE 3
+		LOCALS = %M_KOJO_K103_GET("ヴァギナ")%、%M_KOJO_K103_GET("ヴァギナ")%がっ、あっ…
+	CASE 4
+		LOCALS = あ、%M_KOJO_K103_GET("ヴァギナ")%きもぢ、あ、あぁぁぁ…
+	CASE 5
+		LOCALS = %M_KOJO_K103_GET("ヴァギナ")%壊れちゃう、壊れちゃうよぉ
+	CASE 6
+		LOCALS = ああぁぁ、だめ、だめ、%M_KOJO_K103_GET("ヴァギナ")%ぐちゃぐちゃ…
+	CASE 7
+		LOCALS = %M_KOJO_K103_GET("ヴァギナ")%もっと掻き回してぇ…
+	CASE 8
+		LOCALS = %M_KOJO_K103_GET("ヴァギナ")%すごい、あっ、奥で感じるっ…
+	CASEELSE
+		LOCALS = %M_KOJO_K103_GET("ヴァギナ")%気持ちいい…、あっ…あっ…あっ…っ
+	ENDSELECT
+CASE 5
+	LOCAL = M_KOJO_K103_RANDNR(6,12)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = %M_KOJO_K103_GET("アナル")%、%M_KOJO_K103_GET("アナル")%気持ちいいのっ
+	CASE 2
+		LOCALS = あ、%M_KOJO_K103_GET("アナル")%なのにっっ…っ
+	CASE 3
+		LOCALS = %M_KOJO_K103_GET("アナル")%、%M_KOJO_K103_GET("アナル")%がっ、あっ…
+	CASE 4
+		LOCALS = %M_KOJO_K103_GET("アナル")%の奥が熱いの、熱いの…
+	CASE 5
+		LOCALS =  %M_KOJO_K103_GET("アナル")%気持ちいい、 %M_KOJO_K103_GET("アナル")%なのに気持ちいいよぉ
+	CASEELSE
+		LOCALS =  %M_KOJO_K103_GET("アナル")%掻き回してっ
+	ENDSELECT
+ENDSELECT
+RETURNF LOCALS
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;各部位射精記述用式中関数
+;ARG= 1:手 2:おっぱい 3:口 4:おまんこ 5:おしりの穴
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_ZAMEN(ARG)
+#FUNCTIONS
+#DIMS 射精音
+#DIMS 射精量
+IF NOWEX:MASTER:射精 > 2
+	LOCAL = M_KOJO_K103_RANDNR(5,13)
+	SELECTCASE LOCAL
+	CASE 1
+		射精音 = びゅーっ、びゅーーっ
+	CASE 2
+		射精音 = びゅるるるるっ
+	CASE 3
+		射精音 = どぷどぷどぷっ
+	CASE 4
+		射精音 = びゅくびゅくっ
+	CASEELSE
+		射精音 = どぷどぷっっ
+	ENDSELECT
+ELSEIF NOWEX:MASTER:射精 > 1
+	LOCAL = M_KOJO_K103_RANDNR(5,13)
+	SELECTCASE LOCAL
+	CASE 1
+		射精音 = びゅーっびゅーっ
+	CASE 2
+		射精音 = びゅるびゅるびゅるっ
+	CASE 3
+		射精音 = どぷどぷっ
+	CASE 4
+		射精音 = びゅびゅっっ
+	CASEELSE
+		射精音 = どぴゅっっ
+	ENDSELECT
+ELSE
+	LOCAL = M_KOJO_K103_RANDNR(5,13)
+	SELECTCASE LOCAL
+	CASE 1
+		射精音 = びゅーっ
+	CASE 2
+		射精音 = びゅるびゅるっ
+	CASE 3
+		射精音 = とぷとぷっ
+	CASE 4
+		射精音 = びゅっびゅっ
+	CASEELSE
+		射精音 = どぴゅっ
+	ENDSELECT
+ENDIF
+
+IF NOWEX:MASTER:射精 > 2
+	LOCAL = M_KOJO_K103_RANDNR(3,14)
+	SELECTCASE LOCAL
+	CASE 1
+		射精量 = たーっくさん
+	CASE 2
+		射精量 = 溺れちゃいそうなくらい
+	CASEELSE
+		射精量 = 物凄くいーっぱい
+	ENDSELECT
+ELSEIF NOWEX:MASTER:射精 > 1
+	LOCAL = M_KOJO_K103_RANDNR(3,14)
+	SELECTCASE LOCAL
+	CASE 1
+		射精量 = たくさん
+	CASE 2
+		射精量 = いっぱい
+	CASEELSE
+		射精量 = 物凄い勢いで
+	ENDSELECT
+ELSE
+	LOCAL = M_KOJO_K103_RANDNR(3,14)
+	SELECTCASE LOCAL
+	CASE 1
+		射精量 = 元気に
+	CASE 2
+		射精量 = 勢いよく
+	CASEELSE
+		射精量 = 気持ちよさそうに
+	ENDSELECT
+ENDIF
+LOCALS = ""
+SELECTCASE ARG
+CASE 1
+	LOCAL = M_KOJO_K103_RANDNR(5,15)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = %射精音%て%射精量%出たねぇ、気持ちよかった？
+	CASE 2
+		LOCALS = %射精音%て%射精量%でてるっ……%M_KOJO_K103_GET("ペニス")%そんなに気持ちよかった？
+	CASE 3
+		LOCALS = %射精音%%射精音%て、凄い凄い、もっと出るかなぁ…
+	CASE 4
+		LOCALS = %射精音%て……%CALLNAME:MASTER%気持ちよさそう……
+	CASEELSE
+		LOCALS = %M_KOJO_K103_GET("ペニス")%が暴れて、%射精音%て………見て、%M_KOJO_K103_GET("ザーメン")%まみれよ…？
+	ENDSELECT
+CASE 2
+	LOCAL = M_KOJO_K103_RANDNR(5,15)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = %射精音%て%射精量%出たねぇ、おっぱい気持ちよかった？
+	CASE 2
+		LOCALS = %射精音%て%射精量%でてるっ……%M_KOJO_K103_GET("ペニス")%そんなに気持ちよかった？
+	CASE 3
+		LOCALS = %射精音%%射精音%て、凄い凄い、もっと出るかなぁ…
+	CASE 4
+		LOCALS = %射精音%て……%CALLNAME:MASTER%気持ちよさそう……
+	CASEELSE
+		LOCALS = %M_KOJO_K103_GET("ペニス")%が暴れて、%射精音%て………あぁ、おっぱいが%M_KOJO_K103_GET("ザーメン")%でべとべと…
+	ENDSELECT
+CASE 3
+	IF ABL:精液中毒 > 4
+		LOCAL = M_KOJO_K103_RANDNR(5,15)
+		SELECTCASE LOCAL
+		CASE 1
+			LOCALS = ん、んくっ…ごくっ…おいしぃ…
+		CASE 2
+			LOCALS = ん……んく…んく…ぷあっ…全部飲んだよ？
+		CASE 3
+			LOCALS = んむっ…んんー…ごくごく…ふごい量…
+		CASE 4
+			LOCALS = ん…こく…こく……れろ………もうおしまい？
+		CASEELSE
+			LOCALS = ん……んくっ…ちゅー………ぽんっ……ん、中のもぜーんぶ飲んだ
+		ENDSELECT
+	ELSE
+		LOCAL = M_KOJO_K103_RANDNR(5,15)
+		SELECTCASE LOCAL
+		CASE 1
+			LOCALS = ん、んぶっ…
+		CASE 2
+			LOCALS = ん…んむっ…
+		CASE 3
+			LOCALS = んむっ…んんー…
+		CASE 4
+			LOCALS = ん…こぷっ…けほっ…けほっ…
+		CASEELSE
+			LOCALS = ん……えふっ……
+		ENDSELECT
+	ENDIF
+CASE 4
+	LOCAL = M_KOJO_K103_RANDNR(9,15)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = %M_KOJO_K103_GET("ヴァギナ")%の中に%射精量%%M_KOJO_K103_GET("ザーメン")%が%射精音%て…
+	CASE 2
+		LOCALS = %M_KOJO_K103_GET("ヴァギナ")%の奥に%M_KOJO_K103_GET("ザーメン")%が%射精音%てきてるっ…っ
+	CASE 3
+		LOCALS = %M_KOJO_K103_GET("ザーメン")%で%M_KOJO_K103_GET("ヴァギナ")%の中\@ NOWEX:ARG:射精 > 2 ? 溺れちゃいそう # いっぱい \@……
+	CASE 4
+		LOCALS = あ、あ、%M_KOJO_K103_GET("ヴァギナ")%から%M_KOJO_K103_GET("ザーメン")%\@ NOWEX:ARG:射精 > 2 ? どぷどぷ # どろどろ \@って出ちゃう……
+	CASE 5
+		LOCALS = 膣内に%M_KOJO_K103_GET("ザーメン")%%射精音%て%射精量%出てる…
+	CASE 6
+		LOCALS = %M_KOJO_K103_GET("ヴァギナ")%に%射精音%て……お腹膨らんじゃう…
+	CASE 7
+		LOCALS = 今%M_KOJO_K103_GET("ヴァギナ")%から%M_KOJO_K103_GET("ペニス")%抜いちゃダメ……%M_KOJO_K103_GET("ザーメン")%\@ NOWEX:ARG:射精 > 2 ? どぷどぷ # どろどろ \@って出てっちゃう……
+	CASE 8
+		LOCALS = %M_KOJO_K103_GET("ヴァギナ")%すごい、あっ、奥で%M_KOJO_K103_GET("ザーメン")%%射精音%て…
+	CASEELSE
+		LOCALS = %M_KOJO_K103_GET("ザーメン")%%射精音%てされてるの感じる…%M_KOJO_K103_GET("ヴァギナ")%あったかいよぉ…
+	ENDSELECT
+CASE 5
+	LOCAL = M_KOJO_K103_RANDNR(4,15)
+	SELECTCASE LOCAL
+	CASE 1
+		LOCALS = %M_KOJO_K103_GET("アナル")%の中で%M_KOJO_K103_GET("ザーメン")%%射精音%て出てる…
+	CASE 2
+		LOCALS = あ、%M_KOJO_K103_GET("ザーメン")%%射精音%て…お腹の中あったかい……
+	CASE 3
+		LOCALS = %M_KOJO_K103_GET("アナル")%で%M_KOJO_K103_GET("ザーメン")%%射精量%出たね……
+	CASEELSE
+		LOCALS = %M_KOJO_K103_GET("アナル")%の奥に熱いの%射精音%てきてるっ…
+	ENDSELECT
+ENDSELECT
+IF !(ARG == 3 && ABL:精液中毒 <= 4)
+	LOCALS = 「%LOCALS%%M_KOJO_K103_HEART(1)%」
+ELSE
+	LOCALS = 「%LOCALS%」
+ENDIF
+RETURNF LOCALS
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;各部位絶頂用記述用式中呼び出し関数
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_K103_CALL_ZAMEN()
+IF NOWEX:MASTER:射精 > 0
+	;TCVAR:2 射精箇所フラグ（-1=コンドーム 1=膣内 2=アナル 3=手淫 4=口淫 5=パイズリ 6=素股 7=足コキ 8=体表 9=アナル奉仕 10=道具 11=触手 12=Ａ責め 13=Ｖ責め）
+	SELECTCASE TCVAR:PLAYER:2
+	CASE 4
+		PRINTFORMW %M_KOJO_K103_ZAMEN(3)%
+	CASE 5
+		PRINTFORMW %M_KOJO_K103_ZAMEN(2)%
+	CASE 1
+		PRINTFORMW %M_KOJO_K103_ZAMEN(4)%
+	CASE 2
+		PRINTFORMW %M_KOJO_K103_ZAMEN(5)%
+	CASEELSE
+		PRINTFORMW %M_KOJO_K103_ZAMEN(1)%
+	ENDSELECT
+ENDIF
+RETURN 1
+

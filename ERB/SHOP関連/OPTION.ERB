@@ -1,0 +1,960 @@
+﻿;オプション設定処理
+@OPTION
+LOCAL:1 = 0
+DRAWLINEFORM =
+FOR LOCAL, 0, 100
+	SIF OPTION_SETNAME(LOCAL) == ""
+		CONTINUE
+	PRINTFORML [{LOCAL, 2}] - %OPTION_SETNAME(LOCAL), 30, RIGHT%：%RESULTS:1%
+	LOCAL:1 ++
+NEXT
+DRAWLINEFORM －
+PRINTFORML [92] - 地図の種類: \@ RECOLOREDMAPS ? カラーマップ # デフォルト \@ \@ ANIMATERECOLOREDMAPS ? + 動画モード #  \@
+PRINTFORML [94] - オート喘ぎ一括設定
+PRINTFORML [95] - 簡易フィルタの一括設定
+;PRINTFORML [96] - 料理のオプション設定
+PRINTFORML [97] - 画像表示設定
+PRINTFORML [98] - 登場キャラ切り替え
+PRINTFORML [99] - コマンドフィルタ
+DRAWLINE
+IF DAY > 120
+	PRINTFORML [200] - バイツァ・ダスト
+	LOCAL:1 ++
+ENDIF
+PRINTFORML [999] - 設定完了
+INPUT
+IF OPTION_SETNAME(RESULT) != ""
+	CALL OPTION_SETTING(RESULT)
+	CLEARLINE 10 + LOCAL:1
+ELSEIF RESULT == 92
+	IF RECOLOREDMAPS
+		IF ANIMATERECOLOREDMAPS
+			RECOLOREDMAPS = 0
+			ANIMATERECOLOREDMAPS = 0
+		ELSE
+			ANIMATERECOLOREDMAPS = 1000
+		ENDIF
+	ELSE
+		RECOLOREDMAPS = 1
+	ENDIF
+ELSEIF RESULT == 94
+	CALL OPTION_オート喘ぎ一括設定
+ELSEIF RESULT == 95
+	CALL 簡易フィルタ一括設定
+;ELSEIF RESULT == 96
+;	CALL SET_OPTION_COOKING
+ELSEIF RESULT == 97
+	CALL OPTION_画像表示詳細設定
+ELSEIF RESULT == 98
+	CALL 登場キャラ切り替え
+ELSEIF RESULT == 99
+	CALL OPTION_COMMAND_FILTER
+ELSEIF RESULT == 200; && DAY > 120
+	PRINTFORML 時間を吹き飛ばして一日目に戻りますか？
+	PRINTL 
+	PRINTL [0]「スイッチ」を押させるなーーッ
+	PRINTL [1] いいや！限界だ押すね！今だッ！
+	INPUT
+	IF RESULT == 1
+		CALL 強くてニューゲーム
+	ELSE
+;		PRINTW 「スイッチ」を押すのは止められなかったが、幸運にもオプション選択までしか戻らなかった。
+	ENDIF
+ELSE
+	RETURN
+ENDIF
+RESTART
+
+@OPTION_SETNAME(ARG)
+#FUNCTIONS
+VARSET RESULTS
+SELECTCASE ARG
+CASE 0
+	RESULTS:0 = 妊娠の有無 ※基本OFF
+	IF FLAG:妊娠スイッチ
+		RESULTS:1 = 妊娠する ※何かあったら自己責任で
+	ELSE
+		RESULTS:1 = 妊娠しない
+	ENDIF
+CASE 1
+	RESULTS:0 = 子供の性別
+	SELECTCASE FLAG:子供の性別
+	CASE 0
+		RESULTS:1 = ランダム
+	CASE 1
+		RESULTS:1 = 女の子
+	CASE 2
+		RESULTS:1 = 男の子
+	ENDSELECT
+CASE 2
+	RESULTS:0 = 子供の描写 
+	IF FLAG:子供描写
+		RESULTS:1 = あり
+	ELSE
+		RESULTS:1 = なし
+	ENDIF
+CASE 3
+	RESULTS:0 = 住み込みイベント
+	IF FLAG:住み込みイベント
+		RESULTS:1 = なし
+	ELSE
+		RESULTS:1 = あり
+	ENDIF
+CASE 4
+	RESULTS:0 = 宴会の発生
+	IF FLAG:宴会の有無
+		RESULTS:1 = あり
+	ELSE
+		RESULTS:1 = なし
+	ENDIF
+CASE 5
+	RESULTS:0 = 相手からの告白
+	IF FLAG:告白禁止
+		RESULTS:1 = 告白してこない
+	ELSE
+		RESULTS:1 = 告白してくる
+	ENDIF
+CASE 6
+	RESULTS:0 = セフレ系から恋慕系への陥落変化
+	IF FLAG:陥落路線変化
+		RESULTS:1 = 変化する
+	ELSE
+		RESULTS:1 = 変化しない
+	ENDIF
+CASE 7
+	RESULTS:0 = イベントによる[無知]喪失
+	IF FLAG:無知自動喪失禁止
+		RESULTS:1 = 喪失しない
+	ELSE
+		RESULTS:1 = 喪失する
+	ENDIF
+CASE 8
+	RESULTS:0 = テキスト設定
+	IF FLAG:情景テキスト設定 == 1 && FLAG:口上テキスト設定 == 2
+		RESULTS:1 = 口上＋情景テキスト
+	ELSEIF FLAG:情景テキスト設定 == 1 && FLAG:口上テキスト設定 == -1
+		RESULTS:1 = 情景テキストのみ
+	ELSEIF FLAG:情景テキスト設定 == 0 && FLAG:口上テキスト設定 == -1
+		RESULTS:1 = テキストを表示しない
+	ENDIF
+CASE 9
+	RESULTS:0 = 口上色
+	IF FLAG:口上色
+		RESULTS:1 = あり
+	ELSE
+		RESULTS:1 = なし
+	ENDIF
+CASE 10
+	RESULTS:0 = 汚れ度表示
+	IF FLAG:ゴミ表示OFF
+		RESULTS:1 = しない
+	ELSE
+		RESULTS:1 = する
+	ENDIF
+CASE 11
+	RESULTS:0 = カウンターの地の文
+	IF FLAG:カウンター地の文制御
+		RESULTS:1 = 素質で変化する
+	ELSE
+		RESULTS:1 = 変化しない
+	ENDIF
+CASE 12
+	RESULTS:0 = おっぱいテキスト
+	IF FLAG:Look表示用乳房 == 1 && FLAG:Look表示用乳首 == 1
+		RESULTS:1 = 全て固定
+	ELSEIF FLAG:Look表示用乳房 == 1 && FLAG:Look表示用乳首 == 0
+		RESULTS:1 = 乳房のみ固定
+	ELSEIF FLAG:Look表示用乳房 == 0 && FLAG:Look表示用乳首 == 1
+		RESULTS:1 = 乳首のみ固定
+	ELSEIF FLAG:Look表示用乳房 == 0 && FLAG:Look表示用乳首 == 0
+		RESULTS:1 = 固定しない
+	ENDIF
+CASE 13
+	RESULTS:0 = 好意/理性の壁の表示
+	IF FLAG:好意理性短縮
+		RESULTS:1 = 短縮する
+	ELSE
+		RESULTS:1 = 短縮しない
+	ENDIF
+CASE 14
+	RESULTS:0 = 能力表示の表記
+	IF FLAG:能力表記
+		RESULTS:1 = 数字表記
+	ELSE
+		RESULTS:1 = 記号表記
+	ENDIF
+CASE 15
+	RESULTS:0 = ターン毎のABLUP
+	IF FLAG:ABLUP省略
+		RESULTS:1 = 省略する
+	ELSE
+		RESULTS:1 = 省略しない
+	ENDIF
+CASE 16
+	RESULTS:0 = ファーストキスの記録
+	SELECTCASE FLAG:ＦＫ判定
+	CASE 0
+		RESULTS:1 = キスのみ・自覚のみ
+	CASE 1
+		RESULTS:1 = キスのみ・未自覚あり
+	CASE 2
+		RESULTS:1 = フェラあり・自覚のみ
+	CASE 3
+		RESULTS:1 = フェラあり・未自覚あり
+	ENDSELECT
+CASE 17
+	RESULTS:0 = 移動時立ち止まり
+	SELECTCASE FLAG:立ち止まり
+	CASE 0
+		RESULTS:1 = 無条件で立ち止まる
+	CASE 1
+		RESULTS:1 = 口上が存在する場合のみ
+	CASE 2
+		RESULTS:1 = 立ち止まらない
+	ENDSELECT
+CASE 18
+	RESULTS:0 = 遭遇時の依頼提示
+	IF FLAG:依頼スルー
+		RESULTS:1 = 表示しない
+	ELSE
+		RESULTS:1 = 表示する
+	ENDIF
+CASE 19
+	RESULTS:0 = 消耗品の自動購入
+	IF FLAG:消耗品自動購入
+		RESULTS:1 = する
+	ELSE
+		RESULTS:1 = しない
+	ENDIF
+CASE 20
+	RESULTS:0 = 自動時止め移動
+	SELECTCASE FLAG:瞬間移動
+	CASE 0
+		RESULTS:1 = ＯＦＦ
+	CASE 1
+		RESULTS:1 = 外出先の散策時のみ
+	CASE 2
+		RESULTS:1 = 拠点内の移動時のみ
+	CASE 3
+		RESULTS:1 = 外出先/拠点内両方
+	ENDSELECT
+CASE 21
+	RESULTS:0 = 押し倒されなくなる判定
+	IF FLAG:押し倒し
+		RESULTS:1 = あり
+	ELSE
+		RESULTS:1 = なし
+	ENDIF
+CASE 22
+	RESULTS:0 = 注意札使用
+	IF FLAG:注意札使用
+		RESULTS:1 = あり
+	ELSE
+		RESULTS:1 = なし
+	ENDIF
+CASE 23
+	RESULTS:0 = 来訪モード
+	SELECTCASE FLAG:交流来訪モード
+	CASE 0
+		RESULTS:1 = 通常
+	CASE 1
+		RESULTS:1 = 好感度50以下は来訪しない
+	CASE 2
+		RESULTS:1 = 来訪しない
+	ENDSELECT
+CASE 24
+	RESULTS:0 = 脱衣コマンドの扱い
+	SELECTCASE FLAG:脱衣選択
+	CASE 0
+		RESULTS:1 = 毎回選択
+	CASE 1
+		RESULTS:1 = 全裸
+	CASE 2
+		RESULTS:1 = 半脱ぎ
+	ENDSELECT
+CASE 25
+	RESULTS:0 = 時間停止脱衣コマンドの扱い
+	SELECTCASE FLAG:パンツ泥棒
+	CASE 0
+		RESULTS:1 = 毎回選択
+	CASE 1
+		RESULTS:1 = 常にくすねる
+	CASE 2
+		RESULTS:1 = 常に脱がすだけ
+	ENDSELECT
+CASE 26
+	RESULTS:0 = 一部キャラのニーソックス着用
+	IF FLAG:ニーソックス着用
+		RESULTS:1 = あり
+	ELSE
+		RESULTS:1 = なし
+	ENDIF
+CASE 27
+	RESULTS:0 = エッチな下着の追加
+	IF FLAG:セクシーパンツ追加
+		RESULTS:1 = 追加する
+	ELSE
+		RESULTS:1 = 追加しない
+	ENDIF
+CASE 28
+	RESULTS:0 = パンツ収集状況表示
+	IF FLAG:パンツ収集状況タイプB
+		RESULTS:1 = 未入手でも表示する
+	ELSE
+		RESULTS:1 = 未入手は表示しない
+	ENDIF
+ENDSELECT
+RETURNF RESULTS:0
+
+@OPTION_SETTING(ARG)
+SELECTCASE OPTION_SETNAME(ARG)
+CASE "妊娠の有無 ※基本OFF"
+	FLAG:妊娠スイッチ = !FLAG:妊娠スイッチ
+CASE "テキスト設定"
+	IF FLAG:情景テキスト設定 == 1 && FLAG:口上テキスト設定 == 2
+		FLAG:情景テキスト設定 = 1
+		FLAG:口上テキスト設定 = -1
+	ELSEIF FLAG:情景テキスト設定 == 1 && FLAG:口上テキスト設定 == -1
+		FLAG:情景テキスト設定 = 0
+		FLAG:口上テキスト設定 = -1
+	ELSEIF FLAG:情景テキスト設定 == 0 && FLAG:口上テキスト設定 == -1
+		FLAG:情景テキスト設定 = 1
+		FLAG:口上テキスト設定 = 2
+	ENDIF
+CASE "消耗品の自動購入"
+	FLAG:消耗品自動購入 = !FLAG:消耗品自動購入
+CASE "汚れ度表示"
+	FLAG:ゴミ表示OFF = !FLAG:ゴミ表示OFF
+CASE "移動時立ち止まり"
+	CALL オプション切り替え("立ち止まり", 2)
+CASE "押し倒されなくなる判定"
+	FLAG:押し倒し = !FLAG:押し倒し
+CASE "自動時止め移動"
+	CALL オプション切り替え("瞬間移動", 3)
+CASE "住み込みイベント"
+	FLAG:住み込みイベント = !FLAG:住み込みイベント
+CASE "注意札使用"
+	FLAG:注意札使用 = !FLAG:注意札使用
+CASE "一部キャラのニーソックス着用"
+	FLAG:ニーソックス着用 = !FLAG:ニーソックス着用
+CASE "宴会の発生"
+	FLAG:宴会の有無 = !FLAG:宴会の有無
+CASE "来訪モード"
+	CALL オプション切り替え("交流来訪モード", 2)
+CASE "脱衣コマンドの扱い"
+	CALL オプション切り替え("脱衣選択", 2)
+CASE "時間停止脱衣コマンドの扱い"
+	CALL オプション切り替え("パンツ泥棒", 2)
+CASE "口上色"
+	FLAG:口上色 = !FLAG:口上色
+CASE "おっぱいテキスト"
+	IF FLAG:Look表示用乳房 == 1 && FLAG:Look表示用乳首 == 1
+		FLAG:Look表示用乳房 = 1
+		FLAG:Look表示用乳首 = 0
+	ELSEIF FLAG:Look表示用乳房 == 1 && FLAG:Look表示用乳首 == 0
+		FLAG:Look表示用乳房 = 0
+		FLAG:Look表示用乳首 = 1
+	ELSEIF FLAG:Look表示用乳房 == 0 && FLAG:Look表示用乳首 == 1
+		FLAG:Look表示用乳房 = 0
+		FLAG:Look表示用乳首 = 0
+	ELSEIF FLAG:Look表示用乳房 == 0 && FLAG:Look表示用乳首 == 0
+		FLAG:Look表示用乳房 = 1
+		FLAG:Look表示用乳首 = 1
+	ENDIF
+CASE "能力表示の表記"
+	FLAG:能力表記 = !FLAG:能力表記
+CASE "カウンターの地の文"
+	FLAG:カウンター地の文制御 = !FLAG:カウンター地の文制御
+CASE "エッチな下着の追加"
+	FLAG:セクシーパンツ追加 = !FLAG:セクシーパンツ追加
+	IF !FLAG:セクシーパンツ追加
+		PRINTFORMW 幻想郷に訪れたエッチな下着ブームが終息しました
+		PRINTL 
+		PRINTFORML 所持しているエッチな下着を削除しますか？
+		PRINTFORML 削除対象：スキャンティ、ふんどし、Gストリング、シースルーショーツ、オープンショーツ、ばんそうこう、ドロワーズ（股空き）
+		PRINTL 
+		PRINTL [0] もう要らない
+		PRINTL [1] 大事に持っとく
+		INPUT
+		IF RESULT == 0
+			CALL DELETE_SEXYPANTS
+			CLEARLINE 10
+		ELSE
+			CLEARLINE 8
+		ENDIF
+	ENDIF
+CASE "セフレ系から恋慕系への陥落変化"
+	FLAG:陥落路線変化 = !FLAG:陥落路線変化
+CASE "相手からの告白"
+	FLAG:告白禁止 = !FLAG:告白禁止
+CASE "ターン毎のABLUP"
+	FLAG:ABLUP省略 = !FLAG:ABLUP省略
+CASE "イベントによる[無知]喪失"
+	FLAG:無知自動喪失禁止 = !FLAG:無知自動喪失禁止
+CASE "好意/理性の壁の表示"
+	FLAG:好意理性短縮 = !FLAG:好意理性短縮
+CASE "子供の描写"
+	FLAG:子供描写 = !FLAG:子供描写
+CASE "子供の性別"
+	CALL オプション切り替え("子供の性別", 2)
+CASE "パンツ収集状況表示"
+	FLAG:パンツ収集状況タイプB = !FLAG:パンツ収集状況タイプB
+CASE "ファーストキスの記録"
+	CALL オプション切り替え("ＦＫ判定", 3)
+CASE "遭遇時の依頼提示"
+	FLAG:依頼スルー = !FLAG:依頼スルー
+ENDSELECT
+
+@オプション切り替え(ARGS, ARG)
+FLAG:ARGS ++
+SIF FLAG:ARGS > ARG
+	FLAG:ARGS = 0
+
+@OPTION_オート喘ぎ一括設定
+CALL ASK_M("全員無効",1,"全員有効（下品なし）",1,"全員有効（下品あり）",1, "キャンセル",1)
+IF INRANGE(RESULT, 0, 2)
+	FOR LOCAL,1,CHARANUM
+		CFLAG:LOCAL:オート喘ぎ = RESULT
+	NEXT
+	PRINTFORMW 一括設定しました
+ENDIF
+
+@登場キャラ切り替え
+PRINTL 　指定したキャラを登場しないようにします。（"*"は口上のあるキャラ）
+DRAWLINE
+FOR LOCAL,1,CHARANUM
+	SIF TALENT:LOCAL:行きずり
+		CONTINUE
+	SIF CFLAG:LOCAL:出禁
+		SETCOLOR C_D_RED
+	RESULT = 0
+	TRYCALLFORM M_KOJO_K{NO:LOCAL}
+	PRINTFORMLC [{LOCAL, 3}] \@ RESULT ? * # \@%CALLNAME:LOCAL%
+	RESETCOLOR
+NEXT
+PRINTL 　
+DRAWLINE
+PRINTFORML [999] 設定終了　出禁キャラ：{FLAG:出禁人数}人　[998]リセット
+$LOOP
+INPUT
+IF RESULT >= 1 && RESULT <= CHARANUM
+	IF CFLAG:RESULT:出禁 && FLAG:なりきり != RESULT
+		CFLAG:RESULT:出禁 = 0
+		SIF CFLAG:RESULT:現在位置 == CFLAG:RESULT:初期位置 && CFLAG:RESULT:睡眠
+			LOCK:(CFLAG:RESULT:初期位置) = 1
+		FLAG:出禁人数 --
+	ELSEIF TALENT:RESULT:行きずり
+		PRINTFORMW このキャラは出禁解除できません
+		GOTO LOOP
+	ELSEIF FLAG:なりきり == RESULT
+		IF CFLAG:(FLAG:なりきり):出禁 == 1
+			PRINTFORML 現在そのキャラになりきっているため、%CALLNAME:RESULT%が二人いることになってしまいますが…
+			PRINTL それでも登場させますか？
+			PRINTL [0]はい [1]いいえ
+			INPUT
+			IF RESULT == 0
+				CFLAG:(FLAG:なりきり):出禁 = 0
+				SIF CFLAG:(FLAG:なりきり):現在位置 == CFLAG:(FLAG:なりきり):初期位置 && CFLAG:(FLAG:なりきり):睡眠
+					LOCK:(CFLAG:(FLAG:なりきり):初期位置) = 1
+				FLAG:出禁人数 --
+				PRINTFORMW %CALLNAME:(FLAG:なりきり)%を登場させます
+			ELSE
+				GOTO LOOP
+			ENDIF
+		ELSE
+			CFLAG:(FLAG:なりきり):出禁 = 1
+			SIF LOCK:(CFLAG:(FLAG:なりきり):初期位置) && CFLAG:(FLAG:なりきり):初期位置 < 100
+				LOCK:(CFLAG:(FLAG:なりきり):初期位置) = 0
+			FLAG:出禁人数 ++
+		ENDIF
+	ELSE
+		CFLAG:RESULT:出禁 = 1
+		SIF LOCK:(CFLAG:RESULT:初期位置) && CFLAG:RESULT:初期位置 < 100
+			LOCK:(CFLAG:RESULT:初期位置) = 0
+		FLAG:出禁人数 ++
+	ENDIF
+	RESTART
+ELSEIF RESULT == 999
+	PRINTW 設定終了しました。
+ELSEIF RESULT == 998
+	FOR LOCAL,1,CHARANUM
+		SIF FLAG:なりきり == LOCAL
+			CONTINUE
+		SIF TALENT:LOCAL:行きずり
+			CONTINUE
+		CFLAG:LOCAL:出禁 = 0
+	NEXT
+	FLAG:出禁人数 = 0
+	RESTART
+ELSE
+	GOTO LOOP
+ENDIF
+
+;簡易フィルタ制御関数
+;仕様上の問題として、設定項目が増えすぎると設計をしなおす必要がある
+@簡易フィルタ一括設定
+#DIM OP_CFLAG_Ｖアンフィルタ
+#DIM OP_CFLAG_Ａアンフィルタ
+#DIM OP_CFLAG_ＳＭアンフィルタ
+#DIM OP_CFLAG_奉仕アンフィルタ
+#DIM OP_CFLAG_セクハラアンフィルタ
+#DIM OP_SETTING
+IF !LOCAL
+	OP_CFLAG_Ｖアンフィルタ       = GETNUM(CFLAG, "Ｖアンフィルタ")
+	OP_CFLAG_Ａアンフィルタ       = GETNUM(CFLAG, "Ａアンフィルタ")
+	OP_CFLAG_ＳＭアンフィルタ     = GETNUM(CFLAG, "ＳＭアンフィルタ")
+	OP_CFLAG_奉仕アンフィルタ     = GETNUM(CFLAG, "奉仕アンフィルタ")
+	OP_CFLAG_セクハラアンフィルタ = GETNUM(CFLAG, "セクハラアンフィルタ")
+	LOCAL ++
+ENDIF
+PRINTFORML ～簡易フィルタ設定～
+PRINTFORML ※個別のコマンドフィルタはこれとは別に設定されています
+PRINTFORML 
+PRINTFORML [29] 全キャラの全ての簡易フィルタオフ
+PRINTFORML [28] 全キャラへの[Ｖ]を開放
+PRINTFORML [27] 全キャラへの[Ａ]を開放
+PRINTFORML [26] 全キャラへの[ＳＭ]を開放
+PRINTFORML [25] 全キャラへの[奉仕]を開放
+PRINTFORML [24] 全キャラへの[セクハラ]を開放
+PRINTFORML [23] [家事]を開放
+PRINTFORML 
+PRINTFORML [19] 全キャラの全ての簡易フィルタオン
+PRINTFORML [18] 全キャラへの[Ｖ]を制限
+PRINTFORML [17] 全キャラへの[Ａ]を制限
+PRINTFORML [16] 全キャラへの[ＳＭ]を制限
+PRINTFORML [15] 全キャラへの[奉仕]を制限
+PRINTFORML [14] 全キャラへの[セクハラ]を制限
+PRINTFORML [13] [家事]を制限
+PRINTFORML 
+PRINTFORML [99] 設定終了
+DO
+	INPUT
+	OP_SETTING = (RESULT / 10) - 1
+	;20で1、10で0
+	SELECTCASE RESULT
+	CASE 29, 19
+		CVARSET CFLAG, OP_CFLAG_Ｖアンフィルタ, OP_SETTING
+		CVARSET CFLAG, OP_CFLAG_Ａアンフィルタ, OP_SETTING
+		CVARSET CFLAG, OP_CFLAG_ＳＭアンフィルタ, OP_SETTING
+		CVARSET CFLAG, OP_CFLAG_奉仕アンフィルタ, OP_SETTING
+		CVARSET CFLAG, OP_CFLAG_セクハラアンフィルタ, OP_SETTING
+		FLAG:家事アンフィルタ = OP_SETTING
+		IF OP_SETTING
+			PRINTFORMW 全キャラの全ての簡易フィルタを＜オフ＞にしました
+		ELSE
+			PRINTFORMW 全キャラの全ての簡易フィルタを＜オン＞にしました
+		ENDIF
+	CASE 28, 18
+		CVARSET CFLAG, OP_CFLAG_Ｖアンフィルタ, OP_SETTING
+		IF OP_SETTING
+			PRINTFORMW 全キャラへの[Ｖ]コマンドを＜開放＞します
+		ELSE
+			PRINTFORMW 全キャラへの[Ｖ]コマンドを＜制限＞します
+		ENDIF
+	CASE 27, 17
+		CVARSET CFLAG, OP_CFLAG_Ａアンフィルタ, OP_SETTING
+		IF OP_SETTING
+			PRINTFORMW 全キャラへの[Ａ]コマンドを＜開放＞します
+		ELSE
+			PRINTFORMW 全キャラへの[Ａ]コマンドを＜制限＞します
+		ENDIF
+	CASE 26, 16
+		CVARSET CFLAG, OP_CFLAG_ＳＭアンフィルタ, OP_SETTING
+		IF OP_SETTING
+			PRINTFORMW 全キャラへの[ＳＭ]コマンドを＜開放＞します
+		ELSE
+			PRINTFORMW 全キャラへの[ＳＭ]コマンドを＜制限＞します
+		ENDIF
+	CASE 25, 15
+		CVARSET CFLAG, OP_CFLAG_奉仕アンフィルタ, OP_SETTING
+		IF OP_SETTING
+			PRINTFORMW 全キャラへの[奉仕]コマンドを＜開放＞します
+		ELSE
+			PRINTFORMW 全キャラへの[奉仕]コマンドを＜制限＞します
+		ENDIF
+	CASE 24, 14
+		CVARSET CFLAG, OP_CFLAG_セクハラアンフィルタ, OP_SETTING
+		IF OP_SETTING
+			PRINTFORMW 全キャラへの[セクハラ]コマンドを＜開放＞します
+		ELSE
+			PRINTFORMW 全キャラへの[セクハラ]コマンドを＜制限＞します
+		ENDIF
+	CASE 23, 13
+		FLAG:家事アンフィルタ = OP_SETTING
+		IF OP_SETTING
+			PRINTFORMW 家事コマンドを＜開放＞します
+		ELSE
+			PRINTFORMW 家事コマンドを＜制限＞します
+		ENDIF
+	CASE 99
+		PRINTFORMW 簡易フィルタの設定を終了します
+		RETURN
+	CASEELSE
+		PRINTFORML 無効な入力です
+		CONTINUE
+	ENDSELECT
+	BREAK
+LOOP 1
+RESTART
+
+;---------------------------------------------------------------
+;	画像詳細設定
+;	設定が増えたので新設
+;---------------------------------------------------------------
+@OPTION_画像表示詳細設定
+TARGET = [[霊夢]]
+FOR LOCAL, 1, 11
+	TARGET:LOCAL = LOCAL
+NEXT
+PRINTL ▼サンプル▼
+CALL PRINT_TARGET_IMAGE(TARGET)
+PRINTL 
+PRINTFORML [ 0] - 画像表示\@ FLAG:画像表示 ? する # しない \@
+IF FLAG:画像表示
+	PRINTFORML [ *]┬ 現在の\@ FLAG:立ち絵種類 ? 顔絵 # 立ち絵 \@の表示人数 {FLAG:画像表示}人
+	PRINTFORML [ 1]├ 増やす
+	PRINTFORML [ 2]└ 減らす
+	PRINTFORML [ 3] - キャラ画像のタイプ \@ FLAG:立ち絵種類 ? [顔] # [立ち絵] \@
+	PRINTFORML [ 4]┬ 現在の画像サイズ[\@ FLAG:マルチサイズ? 原寸大 # {デフォルトキャラ画像横幅} \@]：{100 + isModifier}％
+	PRINTFORML [ 5]├ 拡大
+	PRINTFORML [ 6]└ 縮小
+	PRINTFORML [ 7] - \@ FLAG:立ち絵種類 ? 顔絵 # 立ち絵 \@の表示位置 [\@ FLAG:画像表示位置 ? 左寄せ# 中央寄せ \@]
+	PRINTFORML [ 8] - 画像表示に枠をつける \@ FLAG:画像枠表示 ? ON # OFF \@
+	PRINTFORML [ 9] - \@ FLAG:巨乳差分表示? 巨乳以上なら差分画像があるキャラは表示する# 巨乳差分表示しない\@
+	PRINTFORML [10] - \@ FLAG:追加エフェクト? 追加エフェクトを表示する# 追加エフェクトを表示しない\@
+	PRINTFORML [11] - 就寝後の\@ FLAG:自慰画像非表示? 自慰画像を表示しない# 自慰画像を表示する\@
+	PRINTFORML [12] - 顔絵付きメッセージ\@ 顔絵付きメッセージ ? あり # なし\@
+	PRINTL 
+	PRINTFORML [13]\@ FLAG:挿絵表示 ? ┬ # %" "%- \@ 挿絵を表示する \@ FLAG:挿絵表示 ? ON # OFF \@
+	IF FLAG:挿絵表示
+		PRINT [14]└ 射精画像の種類
+		SELECTCASE FLAG:射精画像種類
+			CASE 0
+				PRINTL  [断面＋効果音]
+			CASE 1
+				PRINTL  [断面のみ]
+			CASE 2
+				PRINTL  [効果音のみ]
+		ENDSELECT
+	ELSE
+		PRINTL 
+	ENDIF
+	PRINTFORML [15]\@ FLAG:アニメーション ? ┬ # %" "%- \@アニメーション設定 \@ FLAG:アニメーション ? 繰り返し回数 {FLAG:アニメーション}回 # OFF \@
+	IF FLAG:アニメーション
+		PRINTFORML [16]└挿入中は毎ターンアニメ表示：\@FLAG:挿入アニメフィルタ & アニメフィルタ_挿入 ? [×]# [〇]\@
+	ELSE
+		PRINTL 
+	ENDIF
+ELSE
+	FOR LOCAL, 1, 13
+		PRINTL 
+	NEXT
+ENDIF
+PRINTFORML [999] - 戻る
+INPUT
+IF RESULT == 999
+	VARSET TARGET
+	RETURN 0
+ELSEIF RESULT == 0
+	FLAG:画像表示 = !FLAG:画像表示
+ELSEIF RESULT == 1
+	FLAG:画像表示++
+	SIF FLAG:画像表示 > 10
+		FLAG:画像表示 = 10
+ELSEIF RESULT == 2
+	FLAG:画像表示--
+	SIF FLAG:画像表示 < 1
+		FLAG:画像表示 = 1
+ELSEIF RESULT == 3
+	FLAG:立ち絵種類 = !FLAG:立ち絵種類
+ELSEIF RESULT == 4
+	IF FLAG:マルチサイズ
+		FLAG:マルチサイズ = !FLAG:マルチサイズ
+		デフォルトキャラ画像横幅 = 180
+	ELSEIF デフォルトキャラ画像横幅 == 180
+		デフォルトキャラ画像横幅 = 270
+	ELSE
+		FLAG:マルチサイズ = !FLAG:マルチサイズ
+	ENDIF
+ELSEIF RESULT == 5
+	isModifier = MIN(isModifier + 10, 50)
+ELSEIF RESULT == 6
+	isModifier = MAX(isModifier - 10, -50)
+ELSEIF RESULT == 7
+	FLAG:画像表示位置 = !FLAG:画像表示位置
+ELSEIF RESULT == 8
+	FLAG:画像枠表示 = !FLAG:画像枠表示
+ELSEIF RESULT == 9
+	FLAG:巨乳差分表示 = !FLAG:巨乳差分表示
+ELSEIF RESULT == 10
+	FLAG:追加エフェクト = !FLAG:追加エフェクト
+ELSEIF RESULT == 11
+	FLAG:自慰画像非表示 = !FLAG:自慰画像非表示
+ELSEIF RESULT == 12
+	INVERTBIT 顔絵付きメッセージ, 0
+ELSEIF RESULT == 13
+	FLAG:挿絵表示 = !FLAG:挿絵表示
+ELSEIF RESULT == 14 && FLAG:挿絵表示
+	FLAG:射精画像種類++
+	SIF FLAG:射精画像種類 >= 3
+		FLAG:射精画像種類 = 0
+ELSEIF RESULT == 15
+	FLAG:アニメーション++
+	SIF FLAG:アニメーション >= 6
+		FLAG:アニメーション = 0
+ELSEIF RESULT == 16
+	INVERTBIT FLAG:挿入アニメフィルタ, 0
+	;CALL ASK_M("挿入表示切替",1,"絶頂表示切替",1,"射精表示切替",1,"射精表示切替",1,"戻る",1)
+	;SIF RESULT == 4
+	;	RESTART
+	;INVERTBIT FLAG:挿入アニメフィルタ, RESULT
+	RESTART
+ENDIF
+RESTART
+
+[SKIPSTART]
+;;料理オプション設定関数
+;;0:手動決定,1:異物不可,2:薬物不可
+;@SET_OPTION_COOKING
+;#DIM CONST OP_BIT_手動決定 = 0
+;#DIM CONST OP_BIT_異物不可 = 1
+;#DIM CONST OP_BIT_薬物不可 = 2
+;#DIM CONST OP_BIT_採点オン = 3
+;PRINTFORML 料理関連のオプションを設定します
+;PRINTFORML 現在の設定
+;IF GET_OPTION_COOKING("料理内容手動決定")
+;	PRINTFORML 　料理内容：手動で決定
+;ELSE
+;	PRINTFORML 　料理内容：自動で決定
+;ENDIF
+;IF GET_OPTION_COOKING("異物混入不可")
+;	PRINTFORML 　異物混入：しない
+;ELSE
+;	PRINTFORML 　異物混入：する
+;ENDIF
+;IF GET_OPTION_COOKING("薬物混入不可")
+;	PRINTFORML 　薬物混入：しない
+;ELSE
+;	PRINTFORML 　薬物混入：する
+;ENDIF
+;SELECTCASE GET_OPTION_COOKING("自動味付け設定")
+;CASE 0
+;	PRINTFORML 　自動味付：しない
+;CASE 10
+;	PRINTFORML 　自動味付：自動で普通の味
+;CASE 11
+;	PRINTFORML 　自動味付：自動で濃い味
+;CASE 12
+;	PRINTFORML 　自動味付：自動で薄味
+;ENDSELECT
+;IF GET_OPTION_COOKING("採点機能オフ")
+;	PRINTFORML 　採点機能：オフ
+;ELSE
+;	PRINTFORML 　採点機能：オン
+;ENDIF
+;DO
+;	PRINTFORML [9] 料理内容の設定変更
+;	PRINTFORML [8] 異物混入の設定変更
+;	PRINTFORML [7] 薬物混入の設定変更
+;	PRINTFORML [6] 自動味付の設定変更
+;	PRINTFORML [5] 採点機能の設定変更
+;	PRINTFORML 
+;	PRINTFORML 
+;	PRINTFORML [0] 決定
+;	INPUT
+;	SELECTCASE RESULT
+;	CASE 9
+;		INVERTBIT FLAG:料理オプション, OP_BIT_手動決定
+;	CASE 8
+;		INVERTBIT FLAG:料理オプション, OP_BIT_異物不可
+;	CASE 7
+;		INVERTBIT FLAG:料理オプション, OP_BIT_薬物不可
+;	CASE 6
+;		PRINTFORML 自動味付け機能の設定
+;		PRINTFORML [12] 自動味付け＜薄味＞
+;		PRINTFORML [11] 自動味付け＜濃い味＞
+;		PRINTFORML [10] 自動味付け＜普通の味＞
+;		PRINTFORML [ 0] 自動味付けを使わない
+;		DO
+;			INPUT
+;			SELECTCASE RESULT
+;			CASE 10, 11, 12
+;				CLEARBIT FLAG:料理オプション, 10, 11, 12
+;				SETBIT   FLAG:料理オプション, RESULT
+;			CASE 0
+;				CLEARBIT FLAG:料理オプション, 10, 11, 12
+;			CASEELSE
+;			PRINTFORML 無効な入力です
+;			CONTINUE
+;			ENDSELECT
+;			BREAK
+;		LOOP 1
+;	CASE 5
+;		INVERTBIT FLAG:料理オプション, OP_BIT_採点オン
+;	CASE 0
+;		RETURN 
+;	CASEELSE
+;		PRINTFORML 無効な入力です
+;		CONTINUE
+;	ENDSELECT
+;	BREAK
+;LOOP 1
+;RESTART
+;
+;
+;;料理オプションの内容取得関数
+;@GET_OPTION_COOKING(TYPE)
+;#FUNCTION
+;#DIMS DYNAMIC TYPE
+;#DIM CONST OP_BIT_手動決定 = 0
+;#DIM CONST OP_BIT_異物混入不可 = 1
+;#DIM CONST OP_BIT_薬物混入不可 = 2
+;#DIM CONST OP_BIT_採点機能オン = 3
+;#DIM CONST OP_BIT_自動味付け_普通 = 10
+;#DIM CONST OP_BIT_自動味付け_濃い = 11
+;#DIM CONST OP_BIT_自動味付け_薄い = 12
+;SELECTCASE TYPE
+;CASE "料理内容手動決定"
+;	SIF GETBIT(FLAG:料理オプション, OP_BIT_手動決定)
+;		RETURNF 1
+;CASE "料理内容自動決定"
+;	RETURNF !GET_OPTION_COOKING("料理内容手動決定")
+;
+;CASE "異物混入不可"
+;	SIF GETBIT(FLAG:料理オプション, OP_BIT_異物混入不可)
+;		RETURNF 1
+;CASE "異物混入可能"
+;	RETURNF !GET_OPTION_COOKING("異物混入不可")
+;
+;CASE "薬物混入不可"
+;	SIF GETBIT(FLAG:料理オプション, OP_BIT_薬物混入不可)
+;		RETURNF 1
+;CASE "薬物混入可能"
+;	RETURNF !GET_OPTION_COOKING("薬物混入不可")
+;CASE "自動味付け設定"
+;	SIF GETBIT(FLAG:料理オプション, OP_BIT_自動味付け_普通)
+;		RETURNF OP_BIT_自動味付け_普通
+;	SIF GETBIT(FLAG:料理オプション, OP_BIT_自動味付け_濃い)
+;		RETURNF OP_BIT_自動味付け_濃い
+;	SIF GETBIT(FLAG:料理オプション, OP_BIT_自動味付け_薄い)
+;		RETURNF OP_BIT_自動味付け_薄い
+;CASE "採点機能オン"
+;	SIF GETBIT(FLAG:料理オプション, OP_BIT_採点機能オン)
+;		RETURNF 1
+;CASE "採点機能オフ"
+;	RETURNF !GET_OPTION_COOKING("採点機能オン")
+;CASEELSE
+;	THROW 不明なTYPE%TYPE%
+;ENDSELECT
+;RETURNF 0
+[SKIPEND]
+
+
+@SIMATTYAUOJISAN
+;TW414_移動パッチにて右クリックやマクロによるスキップもしまっちゃうように修正
+;PRINTでのウェイトをなくすかわりにFORCEWAITでスキップ解除するように
+;
+FORCEWAIT
+PRINT 「画面上に表示されていない数字を手打ちする子はここかな？」
+FORCEWAIT
+PRINT しまっちゃうおじさんが現れた！
+FORCEWAIT
+PRINT 「さあ、画面上に表示されていない数字を手打ちする子のお金は、どんどんしまっちゃうからね」
+FORCEWAIT
+PRINTFORM しまっちゃうおじさんは%CALLNAME:MASTER%の有り金をしまってしまった
+MONEY = 0
+FORCEWAIT
+PRINT 「画面上に表示されていない数字を手打ちする子のアイテムも、どんどんしまっちゃうからね」
+FORCEWAIT
+PRINTFORM %CALLNAME:MASTER%のアイテムはしまわれてしまった
+FOR LOCAL,0,500
+	ITEM:LOCAL = 0
+NEXT
+FORCEWAIT
+PRINT 「画面上に表示されていない数字を手打ちする子の技巧も、どんどんしまっちゃうからね」
+FORCEWAIT
+PRINTFORM %CALLNAME:MASTER%の技巧はしまわれてしまった
+FORCEWAIT
+FOR LOCAL,0,100
+	ABL:0:LOCAL = 0
+NEXT
+PRINT 「画面上に表示されていない数字を手打ちする子の経験も、どんどんしまっちゃうからね」
+FORCEWAIT
+PRINTFORM %CALLNAME:MASTER%の経験はしまわれてしまった
+FORCEWAIT
+FOR LOCAL,0,100
+	EXP:0:LOCAL = 0
+NEXT
+;せっかくだしコレクションもしまっちゃいましょう（eraTW4.15パンツ対策パッチにて追加）
+;
+PRINT 「画面上に表示されていない数字を手打ちする子のパンツコレクションも、どんどんしまっちゃうからね」
+FORCEWAIT
+PRINTFORM %CALLNAME:MASTER%が丹精込めて収集した珠玉のパンツコレクションはしまわれてしまった
+FORCEWAIT
+FLAG:700 = 0
+FOR LOCAL,1,CHARANUM
+	FOR LOCAL:1,0,MAXPANTS
+		CFLAG:LOCAL:(LOCAL:1 + パンツ管理) = 0
+	NEXT
+NEXT
+PRINT 「画面上に表示されていない数字を手打ちする子の信頼も、どんどんしまっちゃうからね」
+FORCEWAIT
+PRINTFORM %CALLNAME:MASTER%の少女たちからの信頼はしまわれてしまった
+FOR LOCAL,1,CHARANUM
+	CFLAG:LOCAL:信頼度 = 0
+NEXT
+FORCEWAIT
+;
+;
+;PRINT 「画面上に表示されていない数字を手打ちする子の基礎能力も、どんどんしまっちゃうからね」
+;FORCEWAIT
+;PRINTFORM %CALLNAME:MASTER%の基礎能力はしまわれてしまった
+;FOR LOCAL,0,9
+;	MAXBASE:0:LOCAL = 99
+;	BASE:0:LOCAL = min(MAXBASE:0:LOCAL,BASE:0:LOCAL)
+;NEXT
+;さすがにやり過ぎは良くないと思ったのでクリック連打で許してみた
+;作者様へ　勝手に当てたパッチですので不愉快でしたらこの部分だけパッチ前に戻してくださって構いません。
+;
+;
+FORCEWAIT
+PRINTW もうだめだあ～～～～
+
+
+;セクシーパンツ削除
+@DELETE_SEXYPANTS
+#DIM 対象
+#DIM 種類
+#DIM 所有数
+
+VARSET RESULT
+
+FOR 対象,1,CHARANUM
+	FOR 種類,20,26
+		所有数 = CFLAG:対象:(種類 + 100)
+		IF 所有数 >= 1
+			RESULT:0 += (所有数)
+			CFLAG:対象:(種類 + 100) = 0
+		ENDIF
+	NEXT
+NEXT
+
+;バイブパンツ削除
+@DELETE_VIBEPANTS
+#DIM 対象
+#DIM 種類
+#DIM 所有数
+
+VARSET RESULT
+
+FOR 対象,1,CHARANUM
+	FOR 種類,27,30
+		所有数 = CFLAG:対象:(種類 + 100)
+		IF 所有数 >= 1
+			RESULT:0 += (所有数)
+			CFLAG:対象:(種類 + 100) = 0
+		ENDIF
+	NEXT
+NEXT
+
+

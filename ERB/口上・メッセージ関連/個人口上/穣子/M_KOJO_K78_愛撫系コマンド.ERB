@@ -1,0 +1,1250 @@
+﻿;※※※※※※※※※※※※※※※※※※※※※※※※※
+;愛撫系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;0,愛撫
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_0
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_0_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_0_1
+#DIM 腋フラグ
+腋フラグ = 0
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;挿入中
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	;V挿入
+	IF LOCAL:1 && TEQUIP:50 == PLAYER
+		;射精した
+		IF NOWEX:PLAYER:11
+			PRINTFORMW 
+			RETURN 1
+		ELSE
+			PRINTFORMW 
+			RETURN 1
+		ENDIF
+	;A挿入
+	ELSEIF LOCAL:1 && TEQUIP:51 == PLAYER
+		;射精した
+		IF NOWEX:PLAYER:11
+			PRINTFORMW 
+			RETURN 1
+		ELSE
+			PRINTFORMW 
+			RETURN 1
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;ふたなり
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && (TALENT:2 & 3) == 3
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	
+	IF !TEQUIP:継続キス && !TEQUIP:乳首吸い && !K78_EXCESSIVE_STATURE_GAP() && !RAND:3
+		;腋汗ジミあり
+		IF K78_SWEATY_UNDERARMS()
+			PRINTFORMDL \@ K78_ARMPIT_SWEAT() == 2 ?性的興奮のためか #腋がムレたらしく \@、%CALLNAME:TARGET%の腋の下にジットリと汗によるシミができている。
+			PRINTFORMDL %CALLNAME:MASTER%はそこに顔を近付け、濃厚な香りをたのしんだ。
+			腋フラグ = 1
+		;腋が露出してる
+		ELSEIF K78_ARMPIT_EXPOSURE()
+			PRINTFORMDL %CALLNAME:MASTER%は%CALLNAME:TARGET%の全身を愛撫しながら、%K78_ARMPIT_HAIR_MODIFIER()%腋を舐め上げた。
+			SELECTCASE CFLAG:1007
+			CASE 0,1
+				PRINTFORMDL \@ CFLAG:1007 == 0 ?すべすべ #ざらざら \@\@ K78_ARMPIT_SWEAT() ?のそこは甘い香りのする汗でしっとりと湿っている。 #とした感触が心地よい。 \@
+			CASE 2,3
+				PRINTFORMD \@ CFLAG:1007 == 2 ?やわらかな腋毛 #ボーボーの腋毛 \@
+				IF K78_ARMPIT_SWEAT()
+					PRINTFORMDL は汗でむれ、いつもの焼き芋のような甘い匂いとは異なる体臭を放っている。
+				ELSE
+					PRINTFORMDL に顔を突っ込み、舌でかきわけながら%CALLNAME:TARGET%の腋を味わう。
+				ENDIF
+			ENDSELECT
+			腋フラグ = 1
+		ENDIF
+	ENDIF
+	IF K78_BASIC_CONDITION_IN_MATING()
+		$PETTING_LOOP
+		IF TALENT:恋慕 || TALENT:愛欲
+			IF 腋フラグ
+				SELECTCASE RAND:4
+				CASE 1
+					IF K78_ARMPIT_SWEAT()
+						CALL K78_HPH_PRINT,@"「だめぇHPH いま汗かいてるから嗅がないでぇっHPH」","L" 
+					ELSE
+						GOTO PETTING_LOOP
+					ENDIF
+				CASE 2
+					CALL K78_HPH_PRINT,@"「やぁんHPH 腋は恥ずかしいHPH」","L"
+				CASE 3
+					CALL K78_HPH_PRINT,@"「また変なところ舐めてるHPH」","L"
+				CASEELSE
+					CALL K78_HPH_PRINT,@"「腋はこそばゆいったらぁHPH」","L" 
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:5
+				CASE 1
+					IF EXP_UP(27,TARGET)
+						CALL K78_HPH_PRINT,@"「あふ、んちゅHPH もっとキス欲しい…HPH」","L" 
+					ELSE
+						GOTO PETTING_LOOP
+					ENDIF
+				CASE 2
+					CALL K78_HPH_PRINT,@"「あなたの指に触れられるの大好きHPH」","L" 
+				CASE 3
+					CALL K78_HPH_PRINT,@"「んっ、きもちいい…… もっとしてHPH」","L" 
+				CASE 4
+					CALL K78_HPH_PRINT,@"「あっHPH 胸、いいわHPH ん…そう、やさしくねHPH」","L" 
+				CASEELSE
+					CALL K78_HPH_PRINT,@"「\@TALENT:性別 & 2 ?おちんぽ #お豆 \@イイっHPH もっとさわってぇっHPH」","L" 
+				ENDSELECT
+			ENDIF
+		ELSE
+			IF 腋フラグ
+				PRINTFORML 「ちょっと！ わ、腋はやめなさいよっ」
+			ELSEIF EXP_UP(27,TARGET) && RAND:2
+				PRINTFORML 「はむ……ん……ちゅ… あっ、はぁっ」
+			ELSE
+				PRINTFORML 「あっ… んっ、んはっ、はっ　んぁっ」
+			ENDIF
+		ENDIF
+	ENDIF
+	SIF 腋フラグ || K78_BASIC_CONDITION_IN_MATING()
+		WAIT
+ENDIF
+RETURN 1
+;==================================================
+;1,クンニ
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_1
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_1_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_1_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORML 「なめるの？ き、汚くない？ においとか… 大丈夫かな？」
+		PRINTFORMDW 顔を赤らめる%CALLNAME:TARGET%のそこをねぶると、いつもの甘いよい香りがした。
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;膣内射精直後
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && TCVAR:100 == PLAYER
+		IF TCVAR:102
+			PRINTFORMW 
+			RETURN 1
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;絶頂した
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && NOWEX:0
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	
+	;陰毛が非デフォルトで大きな体格差なし
+	IF CFLAG:1003 && !K78_EXCESSIVE_STATURE_GAP()
+		PRINTFORMDL %CALLNAME:TARGET%の股ぐらに顔を突っ込み、%K78_GENITAL_HAIR_MODIFIER()%外陰部に舌をはわせる。
+		SELECTCASE CFLAG:1003
+		CASE -2
+			PRINTFORMDL すべすべとした感触が心地よい。
+		CASE -1
+			PRINTFORMDL 伸びかけの陰毛が鼻先にチクチクと感じられる。
+		CASE 1
+			PRINTFORMDL やわらかな毛が%CALLNAME:MASTER%の頬をなでた。
+		CASE 2
+			PRINTFORMDL ボリューミーな毛に顔をなかばうずめ、ジャングルのなかを舌で探検した。
+		ENDSELECT
+		PRINTL
+	ENDIF
+	IF K78_BASIC_CONDITION_IN_MATING()
+		$CUNNILINGS_LOOP
+		IF TALENT:恋慕 || TALENT:愛欲
+			SELECTCASE RAND:9
+			CASE 1
+				IF NOWEX:Ｃ絶頂
+					CALL K78_HPH_PRINT,@"「あっHPH それすごいっHPH キちゃうっ　キちゃうのっHPH」","L" 
+					PRINTFORMDL 絶頂をむかえようとする%CALLNAME:TARGET%は、%CALLNAME:MASTER%の顔を太ももでギュッとしめつけた。
+				ELSE
+					GOTO CUNNILINGS_LOOP
+				ENDIF
+			CASE 2
+				IF ABL:MASTER:舌 >= 3
+					CALL K78_HPH_PRINT,@"「あっ、やっHPH 舌、すごくてっHPH だめぇっHPH」","L"
+				ELSE
+					GOTO CUNNILINGS_LOOP
+				ENDIF
+			CASE 3
+				IF !TEQUIP:縄 && !TEQUIP:拘束 && !TEQUIP:シックスナイン
+					PRINTFORMDL クンニリングスをしていると%CALLNAME:TARGET%に頭をなでられた。
+					CALL K78_HPH_PRINT,@"「んー？ なんとなく撫でたくなったのHPH」","L" 
+				ELSE
+					GOTO CUNNILINGS_LOOP
+				ENDIF
+			CASE 4
+				IF !TEQUIP:アイマスク && !TEQUIP:シックスナイン
+					PRINTFORMDL 敏感な部分を舌で責めると、膣口のみならず肛門もひくひくと反応してかわいらしい。
+					CALL K78_HPH_PRINT,@"「ちょっと、どこ見てるのHPH」","L"
+				ELSE
+					GOTO CUNNILINGS_LOOP
+				ENDIF
+			CASE 5
+				IF PALAM:潤滑 >= PALAMLV:4
+					PRINTFORMDL 秘処からは甘い蜜液がとどまることなくあふれ、舐めとっても舐めとってもキリがない。
+					CALL K78_HPH_PRINT,@"「やぁHPH すすらないでぇHPH 音、恥ずかしいからぁHPH」","L"
+				ELSE
+					GOTO CUNNILINGS_LOOP
+				ENDIF
+			CASE 6
+				IF PALAM:潤滑 < PALAMLV:3
+					PRINTFORMDL %CALLNAME:MASTER%がねぶっているうちに、膣が少しずつ蜜液を漏らしだした。
+					CALL K78_HPH_PRINT,@"「あっHPH おつゆが…HPH」","L"
+				ELSE
+					GOTO CUNNILINGS_LOOP
+				ENDIF
+			CASE 7
+				IF ( EXP:絶頂経験 - EXP:無自覚絶頂経験 ) >= 35
+					CALL K78_HPH_PRINT,@"「ふふ、ありがとHPH いつも気持ちよくしてくれてHPH」","L"
+				ELSE
+					PRINTFORML 「あ、あんまり強くしないでね」
+				ENDIF
+			CASE 8
+				CALL K78_HPH_PRINT,@"「んっHPH あぁんHPH \@ TALENT:性別 & 2 ?おちんちん #クリ \@いいのっHPH」","L" 
+			CASEELSE
+				CALL K78_HPH_PRINT,@"「はぁっ、んはぁっ　いいっHPH %CALLNAME:MASTER%っHPH 気持ちいいよっHPH」","L"
+			ENDSELECT
+		ELSE
+			IF ( TALENT:思慕 || TALENT:セフレ ) && !RAND:5
+				PRINTFORML 「また舐めてくれるの？ うれしいけど、無理はしなくていいからね」
+				PRINTFORMDL 気遣い無用とばかりにたっぷりと奉仕した。
+			ELSE
+				SELECTCASE RAND:2
+				CASE 1
+					PRINTFORML 「ん…はぁ…… あっ、そこはっ…」
+				CASEELSE
+					PRINTFORML 「あっ、はぁっ　そこっ、気持ちいいっ」
+				ENDSELECT
+			ENDIF
+		ENDIF
+	ENDIF
+	SIF ( CFLAG:1003 && !K78_EXCESSIVE_STATURE_GAP() ) || K78_BASIC_CONDITION_IN_MATING()
+		WAIT
+ENDIF
+RETURN 1
+;あとは適当な分岐を追加してください
+;==================================================
+;2,フェラする
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_2
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_2_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_2_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;基本セット
+	;時姦中
+	IF FLAG:70
+		PRINTFORMW 
+		RETURN 1
+	;恋慕
+	ELSEIF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 1
+	;屈服3
+	ELSEIF MARK:不埒刻印 == 3
+		PRINTFORMW 
+		RETURN 1
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;3,指挿入れ
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_3
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_3_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_3_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;時姦中
+	IF FLAG:70
+		PRINTFORMW 
+		RETURN 1
+	;恋慕
+	ELSEIF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 1
+	;屈服3
+	ELSEIF MARK:不埒刻印 == 3
+		PRINTFORMW 
+		RETURN 1
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;4,アナル舐め
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_4
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_4_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_4_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		IF K78_BASIC_CONDITION_IN_MATING()
+			PRINTFORMW 「ちょ、ちょっと！ どこ舐めてるのよっ」
+			PRINTFORMDW 不浄の穴をねぶり出した%CALLNAME:MASTER%に%CALLNAME:TARGET%は叫んだ。
+			PRINTFORMW 「そこはちがうってばっ　はっ…ふぁ…… あっ、や、あぁんっ」
+			PRINTFORMDW いやがる%CALLNAME:TARGET%の腕をおさえこんで執拗になめ続けると、次第に抵抗が弱くなり艶っぽい声がもれだした。
+		ENDIF
+		RETURN 1
+	ENDIF
+	
+	IF !K78_EXCESSIVE_STATURE_GAP()
+		IF CFLAG:1002 && TCVAR:351 && RAND:2
+			SELECTCASE RAND:9
+			CASE 1 TO 4
+				PRINTFORMDL 排便後の%TEXTR("肛門/アヌス/尻の穴")%は強烈な臭気をまとっている。
+			CASE 5 TO 8
+				PRINTFORMDL 排泄物の残滓をなめとるという倒錯的な行為が%CALLNAME:MASTER%の興奮に拍車をかけた。
+			CASEELSE
+				PRINTFORMDL 消化されずに残った%TEXTR("コーンの皮/ニラ/トマトの皮")%が肛門に付着していた。
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+			CASE 1
+				PRINTFORMDL 体内に侵入しようとする舌に反応して%TEXTR("肛門/アヌス/尻の穴")%がヒクヒクとうごめいている。
+			CASE 2
+				PRINTFORMDL \@ CFLAG:1003 == 2 && RAND:3 ?%TEXTR("だらしなく/下品な/豊かな")%毛にふちどられた # \@%TEXTR("肛門/アヌス/尻の穴")%%TEXTR("に舌を這わせる/をねぶる")%と、\@ CFLAG:1002 && !TCVAR:351 ?大便のにおいがほのかに感じられた。 #%CALLNAME:TARGET%の吐息がハッハッと浅くはやいものに変わってきた。 \@
+			CASEELSE
+				SELECTCASE ABL:アナル
+				CASE IS >= 4
+					PRINTFORMD %TEXTR("ほぐれきった/開発されきった/使い込まれた")%
+				CASE 2,3
+					PRINTFORMD %TEXTR("開発途上の/ほぐれはじめた/性器へと変わりつつある")%
+				CASE IS <= 1
+					PRINTFORMD %TEXTR("キュッとすぼまった/かたく閉じた/まだまだ未開発の")%
+				ENDSELECT
+				PRINTFORMDL %CALLNAME:TARGET%の%TEXTR("肛門/アヌス/尻の穴")%は、唾液で濡れていやらしく光っている。
+			ENDSELECT
+		ENDIF
+		IF K78_BASIC_CONDITION_IN_MATING()
+			IF TALENT:恋慕 || TALENT:愛欲
+				SELECTCASE RAND:3
+				CASE 1
+					CALL K78_HPH_PRINT,@"「やだっ、うんちするところペロペロしちゃダメぇHPH」","L"
+				CASE 2
+					CALL K78_HPH_PRINT,@"「きたないのにっHPH ダメなのにHPH や、あっHPH ふぁ、はぁんっHPH」","L"
+				CASEELSE
+					CALL K78_HPH_PRINT,@"「あっHPH き、きもちいけど…やっぱりこんなのダメよぉHPH」","L"
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:2
+				CASE 1
+					PRINTFORML 「そんなところ舐めるのはっ、あっ、さ、さすがに変態すぎっ、んっ」
+				CASEELSE
+					PRINTFORML 「きたないってばっ　もう、やめなさいよっ　あっ、んぁっ」
+				ENDSELECT
+			ENDIF
+		ENDIF
+		WAIT
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;5,アナル愛撫
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_5
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_5_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_5_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;基本セット
+	;時姦中
+	IF FLAG:70
+		PRINTFORMW 
+		RETURN 1
+	;恋慕
+	ELSEIF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 1
+	;屈服3
+	ELSEIF MARK:不埒刻印 == 3
+		PRINTFORMW 
+		RETURN 1
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;6,胸愛撫
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_6
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_6_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_6_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;基本セット
+	;時姦中
+	IF FLAG:70
+		PRINTFORMW 
+		RETURN 1
+	;恋慕
+	ELSEIF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 1
+	;屈服3
+	ELSEIF MARK:不埒刻印 == 3
+		PRINTFORMW 
+		RETURN 1
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;7,乳首責め
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_7
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_7_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_7_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	
+	IF !TEQUIP:乳首吸い && !K78_EXCESSIVE_STATURE_GAP() && ( TEQUIP:上半身着衣状況 == 0 || ( TEQUIP:上半身はだけ状態 && ( TEQUIP:上半身着衣状況 & 4 ) == 0 ) )
+		SELECTCASE RAND:3
+		CASE 1
+			PRINTFORMDL %K78_NIPPLE_MODIFIER()%乳首の周りにそえた指を第五指から第一指へとリズムよく屈伸させ、\@ TALENT:母乳体質 ?母乳を絞り出すべく #搾乳するかのように \@マッサージした。
+		CASE 2
+			PRINTFORMDL \@ TALENT:母乳体質 ?乳腺の発達により張りのある乳房をときほぐすように揉み #やわらかな乳房を存分に揉みしだいて堪能し \@つつ、%K78_NIPPLE_MODIFIER()%乳首を指先でつまみあげた。
+		CASEELSE
+			PRINTFORMDL %K78_NIPPLE_MODIFIER()%乳首を丹念に刺激すると、\@ TALENT:母乳体質 ?母乳をしたたらす # \@乳頭が次第に%TEXTR("ピンと/固く/ムクムクと")%勃起してきた。
+		ENDSELECT
+	ENDIF
+	IF K78_BASIC_CONDITION_IN_MATING()
+		$NIPPLE_KNEADING_LOOP
+		IF TALENT:恋慕 || TALENT:愛欲
+			SELECTCASE RAND:5
+			CASE 1
+				IF TALENT:母乳体質
+					CALL K78_HPH_PRINT,@"「もっとつねってっHPH おっぱいビュービューってしてぇっHPH」","L"
+				ELSE
+					GOTO NIPPLE_KNEADING_LOOP
+				ENDIF
+			CASE 2
+				IF TALENT:母乳体質
+					CALL K78_HPH_PRINT,@"「乳首すごいよぉHPH おっぱいがぴゅっぴゅってっHPH はぁんHPH」","L"
+				ELSE
+					GOTO NIPPLE_KNEADING_LOOP
+				ENDIF
+			CASE 3
+				CALL K78_HPH_PRINT,@"「ん、んんぅHPH …はぁHPH 乳首なのに…なんでこんなに感じちゃうんだろHPH」","L"
+			CASE 4
+				CALL K78_HPH_PRINT,@"「んぁHPH あ…あっHPH あなたの指だとすっごくキモチイイHPH」","L"
+			CASEELSE
+				CALL K78_HPH_PRINT,@"「先っぽいいのぉHPH もっといじってぇHPH」","L"
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+			CASE 1
+				IF ABL:MASTER:指 >= 4
+					PRINTFORML 「あっ、んぁ、んぅ… なんでそんなに上手なのよ…」
+				ELSE
+					GOTO NIPPLE_KNEADING_LOOP
+				ENDIF
+			CASE 2
+				PRINTFORML 「あ、ふぁっ、乳首ぴりぴりしてっ… んんっ」
+			CASEELSE
+				PRINTFORML 「や、あんっ　強いの、きもちっ、あぁっ」
+			ENDSELECT
+		ENDIF
+	ENDIF
+	SIF ( !TEQUIP:乳首吸い && !K78_EXCESSIVE_STATURE_GAP() && ( TEQUIP:上半身着衣状況 == 0 || ( TEQUIP:上半身はだけ状態 && ( TEQUIP:上半身着衣状況 & 4 ) == 0 ) ) ) || K78_BASIC_CONDITION_IN_MATING()
+		WAIT
+ENDIF
+RETURN 1
+
+;==================================================
+;8,秘貝開帳
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_8
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_8_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_8_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	
+	IF CFLAG:1003
+		PRINTFORMDL %K78_GENITAL_HAIR_MODIFIER()%秘処が%CALLNAME:TARGET%の手でさらけ出されると、甘い匂いがただよってきた。
+		SELECTCASE CFLAG:1003
+		CASE -2
+			PRINTFORMDL 毛がまったく無いそこは少女の神聖な清さを際立たせている。
+		CASE -1
+			PRINTFORMDL 秘裂の周りのざらざらと硬そうな短毛が、生々しくいやらしい。
+		CASE 1
+			PRINTFORMDL 秘裂をふちどる繁みはとりわけかぐわしい匂いをまとっている。
+		CASE 2
+			PRINTFORMDL 鬱蒼とした繁みの奥にかいまみえる赤い粘膜が%CALLNAME:MASTER%の情欲をくすぐる。
+		ENDSELECT
+	ENDIF
+	IF K78_CONSCIOUS_AND_TOLERANT() && !TALENT:無知
+		IF TALENT:恋慕 || TALENT:愛欲
+			IF ABL:露出癖 - TALENT:羞恥心 >= 3
+				IF TCVAR:Vに中出しされたフラグ
+					;主人以外が直前に中出し
+					IF TCVAR:Vに中出ししたキャラの番号 > 0 && FLAG:なりきり != TCVAR:Vに中出ししたキャラの番号
+						CALL K78_HPH_PRINT,@"「見てHPH \@ TCVAR:Vに中出ししたキャラの番号 == 77 ?姉さん #%CALLNAME:(TCVAR:Vに中出ししたキャラの番号)% \@に出された精液がこんなにHPH」","L"
+						;主人にペニスあり
+						SIF TALENT:MASTER:性別 & 2
+							CALL K78_HPH_PRINT,@"「あなた以外の精液、あなたのおちんちんでかきだしてっHPH あなたの精液で上書きしてっHPH」","L"
+					ELSE
+						;ピルなし、非安全日
+						IF !TCVAR:ピル && CFLAG:生理周期 >= 3
+							CALL K78_HPH_PRINT,@"「避妊しないでこんなに出して……ほんとに赤ちゃんできちゃうかもHPH」","L"
+						ELSE
+							CALL K78_HPH_PRINT,@"「あはHPH あなたの精液があふれてくるHPH」","L"
+						ENDIF
+					ENDIF
+				ELSE
+					IF ABL:膣 >= 2 && PALAM:潤滑 >= PALAMLV:3 && RAND:2
+						CALL K78_HPH_PRINT,@"「しないの？ ここはもう準備できてるよHPH」","L"
+					ELSE
+						CALL K78_HPH_PRINT,@"「%CALLNAME:MASTER%に見られると…うずいてくるの…HPH」","L"
+					ENDIF
+				ENDIF
+			ELSE
+				IF TCVAR:Vに中出しされたフラグ
+					CALL K78_HPH_PRINT,@"「やぁHPH あふれてきちゃうHPH」","L"
+				ELSEIF !TEQUIP:アイマスク && RAND:2
+					CALL K78_HPH_PRINT,@"「そんなにまじまじと見ないでぇHPH」","L"
+				ELSE
+					CALL K78_HPH_PRINT,@"「んぅ… 恥ずかしすぎるわよぉHPH」","L"
+				ENDIF
+			ENDIF
+		ELSE
+			IF ABL:露出癖 >= 2
+				PRINTFORML 「見られてるだけじゃ……なんだか落ち着かないわ…」
+				PRINTFORMDL %CALLNAME:TARGET%はさわって欲しいのか、期待のこもった目を%CALLNAME:MASTER%に向けている。
+			ELSE
+				PRINTFORML 「こんなところ見るのがそんなに楽しいの？」
+				PRINTFORMDL %CALLNAME:TARGET%は眉をひそめながらもしぶしぶ%CALLNAME:MASTER%の言葉に従った。
+			ENDIF
+		ENDIF
+	ENDIF
+	SIF CFLAG:1003 || ( K78_CONSCIOUS_AND_TOLERANT() && !TALENT:無知 )
+		WAIT
+ENDIF
+RETURN 1
+
+;==================================================
+;9,自慰
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_9
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_9_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_9_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 1
+	;屈服3
+	ELSEIF MARK:不埒刻印 == 3
+		PRINTFORMW 
+		RETURN 1
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+[SKIPSTART]
+;別コマンド化
+;==================================================
+;10,乳首吸い
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_10
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_10_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_10_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;基本セット
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 1
+	;屈服3
+	ELSEIF MARK:不埒刻印 == 3
+		PRINTFORMW 
+		RETURN 1
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+[SKIPEND]
+;==================================================
+;11,乳首吸い
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_11
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_11_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_11_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	
+	IF !K78_EXCESSIVE_STATURE_GAP() && ( TEQUIP:上半身着衣状況 == 0 || ( TEQUIP:上半身はだけ状態 && ( TEQUIP:上半身着衣状況 & 4 ) == 0 ) )
+		PRINTL
+		SELECTCASE RAND:3
+		CASE 1
+			PRINTFORMDL %K78_NIPPLE_MODIFIER()%乳首を口にふくんで乳頭を舌先でつつくと、次第に固くしこってくる。
+		CASE 2
+			PRINTFORMDL さらけだされた%CALLNAME:TARGET%の乳首に吸いつくと、%K78_NIPPLE_MODIFIER()%それはほんのりと甘い味がする。
+		CASEELSE
+			PRINTFORMDL %CALLNAME:MASTER%は、%K78_NIPPLE_MODIFIER()%乳首を乳輪ごとほおばり、赤くあとが残るほど強く吸い上げた。
+		ENDSELECT
+		IF TALENT:母乳体質
+			SELECTCASE RAND:3
+			CASE 1
+				PRINTFORMDL 乳首からにじみ出た甘い母乳が%CALLNAME:MASTER%の喉をうるおした。
+			CASE 2
+				PRINTFORMDL 怒張した静脈が浮き出てかたく張った乳房は勢いよく母乳を噴き出し、%CALLNAME:MASTER%の口いっぱいに独特の甘い味がひろがった。
+			CASEELSE
+				PRINTFORMDL ビュービューと噴き出た大量の母乳は%CALLNAME:MASTER%の口からあふれ、白いしずくが垂れ落ちた。
+			ENDSELECT
+		ENDIF
+	ENDIF
+	IF K78_BASIC_CONDITION_IN_MATING()
+		$NIPPLE_SUCKING_LOOP
+		IF TALENT:恋慕 || TALENT:愛欲
+			SELECTCASE RAND:6
+			CASE 1
+				IF TALENT:母乳体質 && TALENT:母性
+					CALL K78_HPH_PRINT,@"「はいはいHPH だいちゅきなおっぱいでちゅよーHPH あはは♪ かわいいかもHPH」","L"
+				ELSE
+					GOTO NIPPLE_SUCKING_LOOP
+				ENDIF
+			CASE 2
+				IF TALENT:母乳体質
+					CALL K78_HPH_PRINT,@"「んっHPH 飲んでHPH 私のおっぱいちゅーちゅーしてHPH」","L"
+				ELSE
+					GOTO NIPPLE_SUCKING_LOOP
+				ENDIF
+			CASE 3
+				IF TALENT:母乳体質
+					CALL K78_HPH_PRINT,@"「あ、すごっHPH おっぱいがぴゅっぴゅってぇHPH いっぱい出ちゃうよぉHPH」","L"
+				ELSE
+					GOTO NIPPLE_SUCKING_LOOP
+				ENDIF
+			CASE 4
+				IF !TALENT:母乳体質
+					CALL K78_HPH_PRINT,@"「やぁHPH そんなに吸ってもおっぱいは出ないってばぁHPH」","L"
+				ELSE
+					GOTO NIPPLE_SUCKING_LOOP
+				ENDIF
+			CASE 5
+				CALL K78_HPH_PRINT,@"「乳首ぺろぺろって、あっHPH すごくキモチイイのHPH」","L"
+			CASEELSE
+				CALL K78_HPH_PRINT,@"「乳首せつないよぉHPH もっと強く吸ってHPH ちゅーちゅーってしてっHPH」","L"
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+			CASE 1
+				IF EXP:出産経験 == 0
+					PRINTFORML 「赤ちゃんが生まれたらこんな感じなのかしら」
+				ELSE
+					GOTO NIPPLE_SUCKING_LOOP
+				ENDIF
+			CASE 2
+				PRINTFORML 「んんぅっ、はっ…ん… 乳首で感じちゃ… あんっ」
+			CASEELSE
+				PRINTFORML 「んぁ、あ、んくぅっ… ぺろぺろだめぇっ、んぅっ」
+			ENDSELECT
+		ENDIF
+	ENDIF
+	SIF ( !K78_EXCESSIVE_STATURE_GAP() && ( TEQUIP:上半身着衣状況 == 0 || ( TEQUIP:上半身はだけ状態 && ( TEQUIP:上半身着衣状況 & 4 ) == 0 ) ) ) || K78_BASIC_CONDITION_IN_MATING()
+		WAIT
+ENDIF
+RETURN 1
+;==================================================
+;12,胸もみ
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_12
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_12_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_12_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;基本セット
+	;時姦中
+	IF FLAG:70
+		PRINTFORMW 
+		RETURN 1
+	;恋慕
+	ELSEIF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 1
+	;屈服3
+	ELSEIF MARK:不埒刻印 == 3
+		PRINTFORMW 
+		RETURN 1
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;13,アナル開帳
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_13
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_13_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_13_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	
+	IF CFLAG:1002 && TCVAR:Aに中出しされたフラグ
+		PRINTFORMDL 肛門からあふれ出てくる精液は腸内の糞便がまざってマーブル状に色付いている。
+	ELSEIF CFLAG:1003 >= 2
+		PRINTFORMDL 丸見えになった%CALLNAME:TARGET%のアヌスの周辺には毛が下品におい茂って卑猥さを増し加えていた。
+	ENDIF
+	IF K78_CONSCIOUS_AND_TOLERANT() && !TALENT:無知
+		IF TALENT:恋慕 || TALENT:愛欲
+			SELECTCASE ABL:露出癖
+			CASE IS >= 5
+				IF TCVAR:Aに中出しされたフラグ
+					IF TALENT:MASTER:性別 & 2 && RAND:2
+						CALL K78_HPH_PRINT,@"「精液でぐちょぐちょのおしり、きっとすっごくキモチイイよHPH ね、またおちんちん挿れてHPH」","L"
+					ELSE
+						CALL K78_HPH_PRINT,@"「\@ TCVAR:Aに中出ししたキャラの番号 == MASTER ?あなたの # \@精液でドロドロのおしりまんこ見てぇHPH」","L"
+					ENDIF
+				ELSE
+					IF ABL:アナル >= 2 && RAND:2
+						CALL K78_HPH_PRINT,@"「見るだけじゃやぁHPH おしりほじほじして欲しいのHPH」","L"
+					ELSE
+						CALL K78_HPH_PRINT,@"「私の汚いうんちの穴見て興奮してるの？HPH ヘンタイなんだからHPH」","L"
+					ENDIF
+				ENDIF
+			CASE 3,4
+				IF TCVAR:Aに中出しされたフラグ
+					CALL K78_HPH_PRINT,@"「\@ TCVAR:Aに中出ししたキャラの番号 == MASTER ?%CALLNAME:MASTER%に # \@いっぱい出されたのがあふれ出てきちゃうHPH」","L"
+				ELSE
+					CALL K78_HPH_PRINT,@"「そんなにおしりの穴見たいの？ においとか嗅いじゃだめだからねHPH」","L"
+				ENDIF
+			CASE IS <= 2
+				CALL K78_HPH_PRINT,@"「あなただからしてるんだからねっ　はしたないなんて思わないでよっHPH」","L"
+			ENDSELECT
+		ELSE
+			SELECTCASE ABL:露出癖
+			CASE IS >= 5
+				PRINTFORMDL 恥ずかしい部位を見られて興奮したのか、%CALLNAME:TARGET%は辛抱できない様子でクリトリスをこねくりだした。
+				PRINTFORML 「ねぇ……見るだけ？」
+			CASE 3,4
+				PRINTFORML 「女の子にこんな破廉恥な格好させて…」
+				PRINTFORMDL %CALLNAME:TARGET%は眉をひそめながらも、みずから臀部の肉をぐいと脇に寄せて肛門をさらけ出した。
+			CASE IS <= 2
+				PRINTFORMDL イヤイヤと首を振っていた%CALLNAME:TARGET%だったが、%CALLNAME:MASTER%の懇願に負け、涙目になりながら肛門を開帳して見せた。
+				PRINTFORML 「こんなの……恥ずかしすぎるわ…」
+			ENDSELECT
+		ENDIF
+	ENDIF
+	SIF ( CFLAG:1002 && TCVAR:Aに中出しされたフラグ ) || CFLAG:1003 >= 2 || ( K78_CONSCIOUS_AND_TOLERANT() && !TALENT:無知 )
+		WAIT
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;ソフト系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;19,キスする
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_19
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_19_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_19_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;基本セット
+	;時姦中
+	IF FLAG:70
+		PRINTFORMW 
+		RETURN 1
+	;恋慕
+	ELSEIF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 1
+	;屈服3
+	ELSEIF MARK:不埒刻印 == 3
+		PRINTFORMW 
+		RETURN 1
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;20,キスする
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_20
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_20_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_20_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	
+	IF K78_BASIC_CONDITION_IN_MATING()
+		IF TALENT:恋慕 || TALENT:愛欲
+			SELECTCASE RAND:3
+			CASE 1
+				PRINTFORMDL %CALLNAME:MASTER%と%CALLNAME:TARGET%はまるで軟体動物の交尾のように舌をからませ合い、とめどなく分泌される唾液でびちゃびちゃの口内を貪り合った。
+				CALL K78_HPH_PRINT,@"「ちゅ…ぴちゃ……ちゅぱ……ちゅる…んはぁHPH %CALLNAME:MASTER%、好き、愛してるHPH」","W"
+			CASE 2
+				PRINTFORMDL ひたすらに甘い%CALLNAME:TARGET%の吐息にあてられ、なかば朦朧としながら舌を動かしつづけた。
+				CALL K78_HPH_PRINT,@"「はむ…んちゅっ、ん、んふぅ…れろ……ちゅぷ…はぁHPH まだ、もっとぉHPH」","W"
+			CASEELSE
+				PRINTFORMDL 果実のように甘い%CALLNAME:TARGET%の唾液のとりこになった%CALLNAME:MASTER%は、時間のたつのも忘れて無心に味わいつづけた。
+				CALL K78_HPH_PRINT,@"「んむ…じゅぷ…ちゅHPH …じゅる、じゅるるっ……ちゅぱHPH」","W"
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:2
+			CASE 1
+				PRINTFORMW 「ちゅっ……んっ……はぁ……んむ…ちゅっ…んぅ」
+			CASEELSE
+				PRINTFORMW 「ん…ちゅぷ……んちゅ……んはっ……はむ…ちゅ」
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+
+
+;==================================================
+;21,何もしない
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_21
+;CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_21_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_21_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;基本セット
+	;時姦中
+	IF FLAG:70
+		PRINTFORMW 
+		RETURN 1
+	;恋慕
+	ELSEIF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 1
+	;屈服3
+	ELSEIF MARK:不埒刻印 == 3
+		PRINTFORMW 
+		RETURN 1
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;22,誘い受ける
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_22
+;CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_22_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_22_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;基本セット
+	;時姦中
+	IF FLAG:70
+		PRINTFORMW 
+		RETURN 1
+	;恋慕
+	ELSEIF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 1
+	;屈服3
+	ELSEIF MARK:不埒刻印 == 3
+		PRINTFORMW 
+		RETURN 1
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;23,ピロートーク
+;==================================================
+@M_KOJO_MESSAGE_COM_K78_23
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K78_23_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K78_23_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;初めて
+	;記入チェック
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;失敗
+	IF TFLAG:193
+		PRINTFORMW 
+		RETURN 1
+	;恋慕
+	ELSEIF TALENT:恋慕
+		PRINTFORMW 
+		RETURN 1
+	;思慕
+	ELSEIF TALENT:思慕
+		PRINTFORMW 
+		RETURN 1
+	;それ以外
+	ELSE
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1

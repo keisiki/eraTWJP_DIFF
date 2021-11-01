@@ -1,0 +1,294 @@
+﻿@COM619
+#DIMS 表情
+#DIMS 台詞
+
+DRAWLINE
+
+表情 = 笑顔
+IF FLAG:最後に酒屋に訪れた日 == 0
+	台詞 = 「初めてのお客さんだね？サービスするよ」
+ELSEIF DAY - FLAG:最後に酒屋に訪れた日 > 7
+	台詞 = 「お久しぶりですねー、どうぞごゆっくり」
+ELSEIF FLAG:最後に酒屋に訪れた日 == DAY
+	台詞 = 「いらっしゃい、ってあらら？どうしたの？」
+ELSEIF FLAG:酒屋での累積購入額 > 1000000 && FLAG:開始日 != DAY
+	台詞 = 「いらっしゃい、%CALLNAME:MASTER%のために沢山仕入れておいたよ」
+ELSEIF FLAG:開始日 == DAY
+	台詞 = 「間が悪かったね、さっきいたお客さんがほとんど買って行っちゃったよ」
+	表情 = 通常
+;ここは甘酒を除く
+ELSEIF ITEMSALES:どぶろく + ITEMSALES:清酒 + ITEMSALES:鬼殺し > 30
+	台詞 = 「いらっしゃい、いいお酒がたくさんそろってるよー」
+ELSE
+	台詞 = 「いらっしゃいませー」
+ENDIF
+SIF FLAG:酒屋買取強化
+	台詞 = %台詞%/「ただいま買取強化キャンペーン中だよ。卸してくれるなら色を付けるよ」
+CALL SPTALK, 0, @"%表情%", 11, @"%台詞%", 1 
+$INPUT_LOOP2
+DRAWLINE
+PRINTL [ 1] - 酒を買う
+PRINTL [ 2] - 酒を売る
+PRINTL [ 0] - 戻る
+$INPUT_LOOP
+INPUT
+
+IF RESULT == 1
+	CALL 酒購入
+	GOTO INPUT_LOOP2
+ELSEIF RESULT == 2
+	CALL 酒卸売
+	GOTO INPUT_LOOP2
+ELSEIF RESULT != 0
+	GOTO INPUT_LOOP
+ENDIF
+
+FLAG:最後に酒屋に訪れた日 = DAY
+IF FLAG:酒屋の累積転売利益 > 3000000 && FLAG:酒屋の売却率フラグ == 2
+	FLAG:酒屋の売却率フラグ = 3
+	PRINTL 
+	PRINTFORML 店を出ようとすると呼び止められた
+	台詞 = 「沢山お酒を卸してくれて本当に助かるわ～、今度からもっと買取金額あげるわね」
+ELSEIF FLAG:酒屋の累積転売利益 > 1000000 && FLAG:酒屋の売却率フラグ == 1
+	FLAG:酒屋の売却率フラグ = 2
+	PRINTL 
+	PRINTFORML 店を出ようとすると呼び止められた
+	台詞 = 「沢山お酒を卸してくれて助かるわー、買取金額あげるからもっと卸してみない？」
+ELSEIF FLAG:酒屋の累積転売利益 > 100000 && FLAG:酒屋の売却率フラグ == 0
+	FLAG:酒屋の売却率フラグ = 1
+	PRINTL 
+	PRINTFORML 店を出ようとすると呼び止められた
+	台詞 = 「いつもお酒を卸してくれてありがとう、御礼に次回から買取金額あげるねー」
+ELSE
+	台詞 = 「またのおこしをー」
+ENDIF
+CALL SPTALK, 0, "笑顔", 11, @"%台詞%", 1 
+TIME += 10
+RETURN -1
+
+@酒購入
+#DIM 買うもの
+#DIM 割引
+
+DRAWLINE
+;通信販売から無くなったので定価になります
+;;割引を20％に設定(定価の80％で販売)
+;割引 = 20
+
+PRINTL 
+IF FLAG:最後に酒屋に訪れた日 == 0
+	PRINTFORML 「初めてだからサービスだー」
+	;値引率を40％に設定(定価の60％で販売)
+	割引 = 40
+ELSE
+	PRINTFORML 「どれもお買い得だよー」
+	;値引率を20％に設定(定価の80％で販売)
+	割引 = 20
+ENDIF
+$INPUT_LOOP2
+DRAWLINE
+PRINTFORML 所持金:%金額表示(MONEY)%
+DRAWLINE
+CALL ITEM_SHOPPING(GETNUM(ITEM, "どぶろく"), "ほんのり甘い安酒", 割引)
+CALL ITEM_SHOPPING(GETNUM(ITEM, "清酒"), "標準的な日本酒", 割引)
+CALL ITEM_SHOPPING(GETNUM(ITEM, "鬼殺し"), "お高くとまったきついお酒", 割引)
+CALL ITEM_SHOPPING(GETNUM(ITEM, "甘酒"), "ドリンク感覚の易しいお酒", 割引)
+DRAWLINE
+PRINTL [999] 戻る
+INPUT
+
+IF RESULT == 999
+	RETURN -1
+ELSE
+	買うもの = RESULT
+	CALL ITEMDATA(買うもの, "SHOP:酒屋")
+	IF RESULT
+		IF ITEMSALES:買うもの <= 0
+			PRINTFORMW 「ごめんなさい、売り切れちゃいました」
+		ELSEIF ITEM:買うもの >= 所持数制限
+			PRINTFORMW 「お客さん、それだけもってれば十分でしょ？　むしろ卸してちょうだいよー」
+		ELSE
+			CALL ITEMDATA(買うもの, "購入", 割引)
+			IF RESULT
+				FLAG:酒屋での累積購入額 += RESULT
+				IF FLAG:酒屋での累積購入額 > 100000 && !RAND:9
+					PRINTL 
+					PRINTFORML 「いつも買ってくれてありがとう、これおまけね」
+					PRINTFORMW ―おまけとして%ITEMNAME:GETNUM(ITEM, "ウコンドリンク")%をもらった―
+					ITEM:ウコンドリンク ++
+				ELSE
+					PRINTL 
+					PRINTFORMW 「まいどありー」
+				ENDIF
+				
+			ELSE
+				RESTART
+			ENDIF
+		ENDIF
+	ENDIF
+ENDIF
+
+@酒卸売
+#DIM 値引率
+#DIM 所持数
+#DIM 選択した商品
+#DIM 売却個数
+#DIM 売却額
+
+SELECTCASE FLAG:酒屋の売却率フラグ
+	CASE 0
+		;値引率を90％に設定(定価の10％で購入してくれる)
+		値引率 = 90
+	CASE 1
+		;値引率を85％に設定(定価の15％で購入してくれる)
+		値引率 = 85
+	CASE 2
+		;値引率を80％に設定(定価の20％で購入してくれる)
+		値引率 = 80
+	CASE 3
+		;値引率を70％に設定(定価の30％で購入してくれる)
+		値引率 = 70
+ENDSELECT
+SIF FLAG:酒屋買取強化
+	値引率 -= 20
+$INPUT_LOOP2
+DRAWLINE
+PRINT 「
+IF FLAG:酒屋買取強化
+	PRINT 買取強化キャンペーン中だから特別に
+ELSEIF FLAG:酒屋の売却率フラグ
+	PRINT お得意様だから特別に
+ENDIF
+PRINTFORML 定価の{100 - 値引率}％で買い取るわ」
+DRAWLINE
+PRINT 何を売ろうか…　
+PRINTFORML 所持金:%金額表示(MONEY)%
+FOR LOCAL, GETNUM(ITEM, "どぶろく"), GETNUM(ITEM, "鬼殺し") + 1
+	LOCALS = [{LOCAL}]%ITEMNAME:(LOCAL)%
+	IF ITEMPRICE:LOCAL
+		PRINTFORML %LOCALS%	(\\{ITEMPRICE:(LOCAL) * (100 - 値引率) / 100})  	(所持:{ITEM:LOCAL})
+	ENDIF
+NEXT
+PRINT [100] - 戻る
+$INPUT_LOOP
+INPUT
+IF RESULT == 100
+	RETURN -1
+ELSEIF INRANGE(RESULT, GETNUM(ITEM, "どぶろく"), GETNUM(ITEM, "鬼殺し"))
+	;選んだ番号にしたがって所持数を格納
+	所持数 = ITEM:RESULT
+	
+	;所持0の場合
+	IF 所持数 == 0
+		PRINTL 
+		PRINTW 品物がないので売ろうにも売れない
+	;所持0で無い場合個数を尋ねる
+	ELSE
+		;もう一回INPUTを使うため今の値を退避
+		選択した商品 = RESULT
+		売却個数 = 0
+		$SELL_LOOP
+		PRINTFORML %ITEMNAME:選択した商品%をいくつ売ろうか…
+		PRINTFORML 売る数：{売却個数}
+		PRINTFORML [-100]　[ -10]　[  -1]　[  +1]　[ +10]　[+100]
+		PRINTBUTTON "[全部] ", 999
+		PRINTBUTTON " [リセット]", -999
+		PRINTL 
+		PRINTBUTTON "[売る]", 0
+		INPUT
+		IF RESULT
+			IF RESULT == 999
+				売却個数 = 所持数
+			ELSEIF RESULT == -999
+				売却個数 = 0
+			ELSE
+				売却個数 = LIMIT(売却個数 + RESULT, 0, 所持数)
+			ENDIF
+			CLEARLINE 6
+			GOTO SELL_LOOP
+		ENDIF
+		IF 売却個数 <= 0
+			PRINTL 
+			PRINTL やっぱり売るのはやめよう
+			GOTO INPUT_LOOP2
+		ENDIF
+		IF 売却個数 > 所持数
+			PRINTL 
+			PRINTL そんなにたくさん持ってない
+			GOTO INPUT_LOOP2
+		ENDIF
+		
+		;一つあたりの売却額を算出
+		売却額 = ITEMPRICE:選択した商品 * (100 - 値引率) / 100
+		ITEM:選択した商品 -= 売却個数
+		MONEY += 売却額 * 売却個数
+		;お店は定価の80％で販売
+		FLAG:酒屋の累積転売利益 += ITEMPRICE:選択した商品 * (値引率 - 20) / 100 * 売却個数
+		PRINTFORMW %ITEMNAME:選択した商品%を%金額表示(売却額 * 売却個数)%で{売却個数}個売却しました
+		;販売個数を増加させる処理
+		ITEMSALES:選択した商品 += 売却個数
+	ENDIF
+	GOTO INPUT_LOOP2
+ELSE
+	GOTO INPUT_LOOP
+ENDIF
+
+;-------------------------------------------------
+;在庫の変動
+;SHOP_ITEM.erbにあるEVENTTURNENDから一日一回呼ばれる
+;-------------------------------------------------
+@酒屋の在庫
+#DIM 在庫増加数
+;宴会前日は酒が品薄に
+IF FLAG:開始日 == DAY + 1
+	ITEMSALES:どぶろく += RAND:(2 + FLAG:酒屋の売却率フラグ * 1)
+	ITEMSALES:清酒     += RAND:(2 + FLAG:酒屋の売却率フラグ * 1)
+	ITEMSALES:鬼殺し   += RAND:(1 + FLAG:酒屋の売却率フラグ * 1)
+	ITEMSALES:甘酒     += RAND:(3 + FLAG:酒屋の売却率フラグ * 2)
+ELSE
+	ITEMSALES:どぶろく += RAND:(3 + FLAG:酒屋の売却率フラグ * 3)
+	ITEMSALES:清酒     += RAND:(3 + FLAG:酒屋の売却率フラグ * 2)
+	ITEMSALES:鬼殺し   += RAND:(2 + FLAG:酒屋の売却率フラグ * 1)
+	ITEMSALES:甘酒     += RAND:(4 + FLAG:酒屋の売却率フラグ * 3)
+ENDIF
+;累積購入額に応じても在庫が増加
+IF FLAG:酒屋での累積購入額
+	在庫増加数 = MAX(FLAG:酒屋での累積購入額 / 100000 - 3, 0) + 1
+	ITEMSALES:どぶろく += RAND:在庫増加数
+	ITEMSALES:清酒     += RAND:在庫増加数
+	ITEMSALES:鬼殺し   += RAND:在庫増加数
+	ITEMSALES:甘酒     += RAND:在庫増加数
+ENDIF
+;最大数制限
+ITEMSALES:どぶろく = MIN(ITEMSALES:どぶろく, 32)
+ITEMSALES:清酒     = MIN(ITEMSALES:清酒, 24)
+ITEMSALES:鬼殺し   = MIN(ITEMSALES:鬼殺し, 16)
+ITEMSALES:甘酒     = MIN(ITEMSALES:甘酒, 32)
+;-------------------------------------------------
+;実行可能判定
+;-------------------------------------------------
+;酒屋
+@COM_ABLE619
+;一括管理
+SIF GLOBAL_COMABLE(619)
+	RETURN RESULT
+;酒屋ではない場所
+SIF !SAKE_SHOP(CFLAG:MASTER:現在位置)
+	RETURN 0
+;睡眠中
+SIF CFLAG:睡眠
+	RETURN 0
+;時間停止中
+SIF FLAG:70
+	RETURN 0
+RETURN 1
+
+;酒屋を判定する関数
+@SAKE_SHOP(ARG)
+#FUNCTION
+;酒屋
+SIF ARG == GET_MAP_REPLACEMENT(211)
+	RETURNF 1
+SIF ARG == GET_MAP_REPLACEMENT(1012)
+	RETURNF 1
+RETURNF 0

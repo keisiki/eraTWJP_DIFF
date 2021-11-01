@@ -1,0 +1,65 @@
+﻿@EXIST_FreeAct12
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+;オブジェクト本体
+@FreeAct12(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+#DIM 経過時間
+経過時間 = Activity_Duration:TARGET
+SELECTCASE O_DATA
+;自由行動に付き合うコマンドの名称
+CASE "名称"
+	CALLF MAKE_STR(V_NAME, "一緒にのんびりする")
+CASE "CHAIN"
+;他キャラに連鎖しない場合コメントアウトすること
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "経過時間"
+;自由行動に付き合うコマンドでの経過時間
+;0だと30分か残り時間すべての小さい方
+	CALLF MAKE_INT(V_NAME, 0)
+ENDSELECT
+
+@自由行動内容_12(CHARA, ARGS, 時間係数, CHAIN)
+#DIM CHARA
+#DIM CHAIN
+#DIM 現在地
+#DIM メッセージ表示
+#DIM 時間係数
+#DIM 経過時間
+現在地 = CFLAG:CHARA:現在位置
+メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
+SELECTCASE ARGS
+	CASE "発生"
+		;昼間に休憩できる場所または憩いスペースにいる時
+		SIF !INRANGE(TIME, 600, 960)
+			RETURN 0
+		SIF !休憩可(現在地) && !憩いスペース(現在地)
+			RETURN 0
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は\@ CHAIN ? %CALLNAME:CHAIN%に釣られてまったりし始めた。# 一息ついてまったりし始めた。\@
+		RETURN 60 + RAND:30
+	CASE "行動中"
+		IF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は%TEXTR("あくびをしている/まったりしている/ぼーっとしている/のんびりしている")%。
+		ENDIF
+	CASE "完了"
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は休息を終えたようだ。
+	CASE "中断"
+	CASE "付き合う"
+		;自由行動に付き合ったとき用メッセージ
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%と一緒に%TEXTR("ぼーっとして/ダラダラして/のんびりして")%時を過ごした…
+	CASE "ソース"
+		;付き合うコマンド選択時の入手ソース、時間係数は付き合った時間の1/10
+		CALL RECOVER_PERMIL(MASTER,20, "体力", 1)
+		CALL RECOVER_PERMIL(MASTER,30, "気力", 1)
+		CALL RECOVER_PERMIL(TARGET,20, "体力", 1)
+		CALL RECOVER_PERMIL(TARGET,30, "気力", 1)
+		SOURCE:歓楽 = (100 + ((ABL:親密 + 好感度係数(TARGET)) * 10)) * 時間係数
+		SOURCE:受動 = (50 + ((ABL:従順 + 好感度係数(TARGET)) * 5)) * 時間係数
+ENDSELECT

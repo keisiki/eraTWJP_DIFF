@@ -1,0 +1,482 @@
+﻿;--------------------------------------------------
+;	MAP_MANAGE.ERB
+;	引越しパッチ管理
+;				公開開始：2015/09/14
+;				最終更新：2015/10/17
+;--------------------------------------------------
+;
+;実装済み：
+;	"[400]移動"時マップ表示
+;	"[400]移動"時移動不能判定
+;	MASTER遠距離移動
+;	地点関連性応答処理
+;	地名文字列取得
+;	風呂、掃除、勉強、訓練のコマンド表示判定
+;	CHARA帰宅関連
+;	CHARA風呂関連
+;	仕事、宴会関係
+;未実装：
+;	気配察知の実装
+;	その他
+;------------------------------------------
+;"移動する"で表示されるマップ画面を表示させる
+;引越し計画ではMAIN_MAP以外はODEKAKEMAPを使う予定だった
+;要参照COMF400_移動.ERB
+;------------------------------------------
+@MAP_VIEWING
+TRYCALLFORM MAP_VIEWING_{MAIN_MAP}
+
+;------------------------------------------
+;気配表示を自宅かそうでないかによって処理を変えられるようにしたGETMAP
+;要参照COMF400_移動.ERB、呼び出し元
+;要参照MAP_0.ERB
+;ARG,場所ID
+;------------------------------------------
+@GETMAP(ARG)
+IF MAIN_MAP == GET_MAPID(ARG)
+	IF TALENT:MASTER:居場所察知 && FLAG:察知モード == 1
+		SIF ROOMDATA:(ARG % 100) & 場所_モブ
+			SETCOLOR C_D_PINK
+		TRYCALLFORM GETMAP_{MAIN_MAP}(ARG)
+	ENDIF
+	CALL GETMAP_YOGORE(ARG)
+ELSE
+ENDIF
+;------------------------------------------
+;間にいくつもCALL GETMAPを挟んだマップを書き起こすのが面倒だったので作った関数
+;------------------------------------------
+@PRINTMAP(ARGS,ARG,ARGS:1,ARG:1,ARGS:2,ARG:2,ARGS:3,ARG:3,ARGS:4)
+#DIM 地点数
+
+FOR 地点数,0,5
+	PRINTFORM %ARGS:地点数%
+	IF !ARG:地点数
+		PRINTL
+		BREAK
+	ENDIF
+	CALL GETMAP(ARG:地点数)
+NEXT
+
+;------------------------------------------
+;お招き部屋の名前文字列を返す。招かれる前はTARGETのお招き部屋文字列を返す
+;呼び出し元:NAME_FROM_PLACE()
+;ARG,VOID
+;------------------------------------------
+@OMANEKI_PLACE(ARG)
+#FUNCTIONS
+#DIMS PNAME
+#DIM OMANEKI_TARGET
+IF CFLAG:MASTER:お招き
+	OMANEKI_TARGET = CFLAG:MASTER:お招き
+ELSE
+	OMANEKI_TARGET = TARGET
+ENDIF
+SIF ARG
+	OMANEKI_TARGET = ARG
+
+PNAME = %CALLNAME:(OMANEKI_TARGET)%
+
+IF TEQUIP:お風呂場プレイ
+	PNAME = %PNAME%のお風呂
+ELSE
+	SELECTCASE OMANEKI_TARGET
+		CASE 80;ひえだの
+				PNAME = 稗田邸
+		CASEELSE
+			IF OUTROOF(CFLAG:OMANEKI_TARGET:自宅位置)
+				PNAME = %PNAME%の住まい
+			ELSE
+				PNAME = %PNAME%の部屋
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURNF PNAME
+
+;------------------------------------------
+;参道（出入り口）の場所IDを返す
+;------------------------------------------
+@GET_ENTRANCE(MAPID)
+#FUNCTION
+#DIM MAPID
+;	//ODEKAKEMAP使用時
+SIF MAPID != MAIN_MAP
+	RETURNF MAPID * 100
+
+IF GET_EXISTMAP(MAPID)
+	RETURNF ENTRANCE
+ELSE
+	RETURNF MAPID * 100
+ENDIF
+;------------------------------------------
+;場所IDがMAPIDの参道（出入り口）か判定する
+;MAPIDを省略した場合はMAPIDにARGの所属MAPを代入する
+;ARG:場所ID
+;MAPID：対象MAP
+;------------------------------------------
+@CHK_ENTRANCE(ARG, MAPID = 999)
+#FUNCTION
+#DIM MAPID
+;	// MAPIDが省略された場合
+SIF MAPID == 999
+	MAPID = GET_MAPID(ARG)
+;	//ODEKAKEMAP使用時
+SIF ARG == GET_ENTRANCE(MAPID)
+	RETURNF 1
+;出発専用のエントランス(裏口),何かのために区別できるよう2にしておく
+SIF MAPID == 7 && ARG == 732
+	RETURNF 2
+RETURNF 0
+;------------------------------------------
+;	引っ越しの表示と処理
+;------------------------------------------
+@SET_MAINHOME
+#DIM CHK_TRAINING
+#DIM CHK_GARDENING
+#DIM 設定前MAIN_MAP
+#DIM 設定前酒虫
+#DIM 設定前初期位置
+#DIM 設定前大家
+#DIM ANIMATION_SEED
+
+ANIMATION_SEED = 0
+
+;Map Animation Code
+$MAPANIMATION
+LINESTART = LINECOUNT
+SIF ANIMATERECOLOREDMAPS && !FLAG:70
+	ANIMATION_SEED ++
+;
+;
+;メンバーの起床時間再設定
+;
+IF !引っ越し
+	IF ゲーム開始処理中 || ゲーム引き継ぎ処理中
+		MAIN_MAP = 0
+		TRYCALLFORM ROOMSETTING_{MAIN_MAP}
+	ENDIF
+	設定前MAIN_MAP = MAIN_MAP
+	設定前酒虫 = 拠点_酒虫
+	設定前初期位置 = デフォルト初期位置
+	設定前大家 = 拠点_大家
+	引っ越し = 1
+ENDIF
+IF FLAG:一時滞在
+	PRINTFORMW お泊り中のキャラがいるので引っ越しできません
+	RETURN
+ENDIF
+DRAWLINE
+;Color map
+IF RECOLOREDMAPS
+	CALL DRAW_COLOREDMAP(ANIMATION_SEED, "HIKKOSHI")
+ELSE
+	CALL DRAW_MAP("HIKKOSHI")
+ENDIF
+DRAWLINE
+PRINTFORML ■%GET_MAPNAME(MAIN_MAP)%
+CALL 物件データ(MAIN_MAP)
+PRINTFORM 採集可能地点：
+CALL ShowGatheringSpots(MAIN_MAP)
+PRINTFORML 
+FONTITALIC
+CALLFORM マップ紹介_{MAIN_MAP}
+FONTREGULAR
+PRINTL 
+DRAWLINEFORM =
+PRINT 自宅を設定できます。どこにしますか？　
+PRINTBUTTON @"[プレビューマップ切り替え({TFLAG:マップ切り替え})]", 1997
+PRINTL 
+FOR LOCAL, 0, 11
+	SIF MAIN_MAP == LOCAL
+		SETCOLOR C_AQUA
+	SIF GET_EXISTMAP(LOCAL)
+		PRINTFORM [{LOCAL + 2000}] %GET_MAPNAME(LOCAL), 16, LEFT%
+	SIF GROUPMATCH(LOCAL, 4, 9, 10)
+		PRINTL 
+	RESETCOLOR
+NEXT
+PRINT [1999] 決定　　　　　　
+SIF !ゲーム開始処理中 && !ゲーム引き継ぎ処理中
+	PRINT [1998] キャンセル
+PRINTL 
+;Map Animation Code
+IF ANIMATERECOLOREDMAPS && !FLAG:70
+	CURRENTREDRAW
+	ORIREDRAW = RESULT
+	REDRAW ORIREDRAW
+	TINPUT ANIMATERECOLOREDMAPS,99999,0,""
+ELSE
+	INPUT
+ENDIF
+;拠点切り替え
+IF RESULT == 99999
+	REDRAW 0
+	CLEARLINE LINECOUNT - LINESTART
+	GOTO MAPANIMATION
+ELSEIF RESULT >= 2000 && GET_EXISTMAP(RESULT - 2000)
+	MAIN_MAP = RESULT - 2000
+	CALLFORM ROOMSETTING_{MAIN_MAP}
+	CALLFORM DEFAULT_OWNER_{MAIN_MAP}
+	TFLAG:マップ切り替え = 1
+	RESTART
+;プレビュー切り替え
+ELSEIF RESULT == 1997
+	TFLAG:マップ切り替え += 1
+	SIF TFLAG:マップ切り替え > MAP_PAGES
+		TFLAG:マップ切り替え = 1
+	RESTART
+;キャンセル
+ELSEIF RESULT == 1998 && !ゲーム開始処理中 && !ゲーム引き継ぎ処理中
+	引っ越し = 0
+	MAIN_MAP = 設定前MAIN_MAP
+	拠点_酒虫 = 設定前酒虫
+	デフォルト初期位置 = 設定前初期位置
+	拠点_大家 = 設定前大家
+	CALLFORM ROOMSETTING_{MAIN_MAP}
+	RETURN
+;決定
+ELSEIF RESULT == 1999
+	SIF 設定前MAIN_MAP == MAIN_MAP
+	CALLFORM DEFAULT_OWNER_{MAIN_MAP}
+ELSE
+	RESTART
+ENDIF
+;決定後
+FLAG:おみくじ契約 = 0
+CALL SET_ENKAI_LOCATIONDISPLAY
+FOR LOCAL,1,CHARANUM
+	;来訪時間
+	CFLAG:LOCAL:来訪時間 = CSVCFLAG(LOCAL,352)
+	;帰宅時間
+	CFLAG:LOCAL:帰宅時間 = CSVCFLAG(LOCAL,353)
+	;就寝時間
+	CFLAG:LOCAL:就寝時間 = CSVCFLAG(LOCAL,354)
+	;起床時間
+	CFLAG:LOCAL:起床時間 = CSVCFLAG(LOCAL,355)
+	CFLAG:LOCAL:神社在住 = 0
+	CFLAG:LOCAL:初期位置 = CSVCFLAG (LOCAL,311)
+	CFLAG:LOCAL:自宅位置 = CSVCFLAG (LOCAL,358)
+NEXT
+CALL MAP_DEFAULTRESIDENT(MAIN_MAP)
+;施錠
+VARSET LOCK
+
+FOR LOCAL,1,CHARANUM
+	CALL CHARA_SLEEP, LOCAL, 0
+NEXT
+CHK_TRAINING = 0
+CHK_GARDENING = 0
+FOR LOCAL,1,100
+	SIF ROOMDATA:LOCAL & 場所_訓練
+		CHK_TRAINING = 1
+	SIF ROOMDATA:LOCAL & 場所_菜園
+		CHK_GARDENING = 1
+NEXT
+SIF !CHK_TRAINING
+	CALL COLORMESSAGE(@"このマップでは[戦闘訓練]ができません",C_YELLOW,2)
+SIF !CHK_GARDENING
+	CALL COLORMESSAGE(@"このマップでは[家庭菜園]ができません",C_YELLOW,2)
+SIF FLAG:なりきり && CFLAG:(FLAG:なりきり):出禁 && MAIN_MAP == GET_MAPID(CSVCFLAG(FLAG:なりきり,311))
+	CFLAG:MASTER:初期位置 = CSVCFLAG(FLAG:なりきり,311)
+
+@HAS_DUPLICATE_KEY, ARG
+#FUNCTION
+FOR LOCAL, 1, CHARANUM
+	IF CFLAG:LOCAL:311 == ARG
+		SIF TALENT:LOCAL:恋慕
+			RETURNF 1
+	ENDIF
+NEXT
+
+@MAP_DEFAULTRESIDENT(ARG)
+;ARG=マップ番号
+FLAG:住み込みキャラ = 0
+MAIN_MAP = ARG
+FOR LOCAL,1,CHARANUM
+	IF MAP_住人(MAIN_MAP,LOCAL)
+		CFLAG:LOCAL:初期位置 = CSVCFLAG(LOCAL,311)
+		CFLAG:LOCAL:神社在住 = CFLAG:LOCAL:初期位置
+		DEBUGPRINTFORML %CALLNAME:LOCAL%が拠点に住みます
+		IF LOCAL == 57
+			CFLAG:RESULT:神社在住 = 55
+			CFLAG:RESULT:初期位置 = 55
+		ELSEIF  LOCAL == 71
+			CFLAG:71:神社在住 = 54
+			CFLAG:71:初期位置 = 54
+		ENDIF
+	ELSE
+		PRIVATEROOM:(CFLAG:LOCAL:初期位置 % 100) = 0
+		CFLAG:LOCAL:初期位置 = SUKIMA()
+		CFLAG:LOCAL:神社在住 = 0
+	ENDIF
+	CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:初期位置
+	CFLAG:LOCAL:デート中 = MAIN_MAP
+NEXT
+PRINTFORMW %GET_MAPNAME(ARG)%に設定しました
+CALL ROOMSETTING
+CFLAG:MASTER:初期位置 = デフォルト初期位置
+CFLAG:MASTER:現在位置 = CFLAG:MASTER:初期位置
+引っ越し = 0
+
+@ROOMSETTING
+#DIM R_ID
+#DIM 私室候補
+私室候補 = 0
+SUMIKOMI_ROOM = 0
+TRYCCALLFORM ROOMSETTING_{MAIN_MAP}
+	PRINTFORMW %GET_MAPNAME(MAIN_MAP)%の部屋情報を設定しました
+	IF FLAG:住み込みキャラ && SUMIKOMI_ROOM
+		R_ID = SUMIKOMI_ROOM % 100
+		ROOMDATA:R_ID |= 場所_布団
+		ROOMDATA:R_ID |= 場所_屋内
+		ROOMDATA:R_ID |= 場所_厨房
+		ROOMDATA:R_ID |= 場所_勉強
+		ROOMDATA:R_ID |= 場所_休憩
+		ROOMDATA:R_ID |= 場所_うたた寝_可能
+		ROOMDATA:R_ID |= 場所_プライベート
+		ROOMDATA:R_ID &= ~場所_過疎
+	ENDIF
+	FOR LOCAL, 1, 100
+		;補完設定
+		IF ROOMDATA:LOCAL & 場所_ワンルーム
+			ROOMDATA:LOCAL |= 場所_布団
+			ROOMDATA:LOCAL |= 場所_屋内
+			ROOMDATA:LOCAL |= 場所_厨房
+			ROOMDATA:LOCAL |= 場所_勉強
+			ROOMDATA:LOCAL |= 場所_休憩
+			ROOMDATA:LOCAL |= 場所_うたた寝_可能
+			ROOMDATA:LOCAL |= 場所_プライベート
+		ENDIF
+		IF ROOMDATA:LOCAL & 場所_布団
+			ROOMDATA:LOCAL |= 場所_休憩
+			ROOMDATA:LOCAL |= 場所_うたた寝_可能
+		ENDIF
+	NEXT
+CATCH
+	PRINTFORMW 部屋情報の設定に失敗しました
+ENDCATCH
+FOR LOCAL,1,CHARANUM
+	IF CFLAG:LOCAL:神社在住 && !CFLAG:LOCAL:出禁
+		;PRIVATEROOM変数に、そこの家主の番号を保存
+		PRIVATEROOM:(CFLAG:LOCAL:初期位置 % 100) = LOCAL 
+	 	SIF CFLAG:LOCAL:大家候補
+			私室候補 ++
+	ENDIF
+NEXT
+IF (ゲーム開始処理中 || ゲーム引き継ぎ処理中) || !デフォルト初期位置 || 引っ越し
+	IF 私室候補
+		CALL 引っ越し初期位置設定
+	ELSE
+		CALL デフォルト引っ越し
+	ENDIF
+ENDIF
+
+@デフォルト引っ越し
+TRYCCALLFORM DEFAULT_OWNER_{MAIN_MAP}
+CATCH
+	PRINTFORMW 部屋情報の設定に失敗しました
+ENDCATCH
+PRINTFORMW %NAME_FROM_PLACE(デフォルト初期位置)%は%CALLNAME:MASTER%の私室になった
+
+@引っ越し初期位置設定
+#DIM CHARA
+#DIM ANIMATION_SEED
+ANIMATION_SEED = 0
+
+;Map Animation Code
+$MAPANIMATION
+LINESTART = LINECOUNT
+SIF ANIMATERECOLOREDMAPS && !FLAG:70
+	ANIMATION_SEED ++
+DRAWLINE
+IF RECOLOREDMAPS
+	CALL DRAW_COLOREDMAP(ANIMATION_SEED)
+ELSE
+	CALL DRAW_MAP
+ENDIF
+DRAWLINE
+PRINTFORML %PRINT_COLOR("このマップには", C_WHITE) + PRINT_COLOR("私室候補", C_ORANGE) + PRINT_COLOR("が複数あります。", C_WHITE)%
+SIF DAY <= 1
+	PRINTFORML 初日限定で、必要信頼度にかかわらず部屋を選択できます。
+PRINTBUTTON @"[プレビューマップ切り替え({TFLAG:マップ切り替え})]", 1997
+PRINTL 
+FOR CHARA, 1, CHARANUM
+	IF CFLAG:CHARA:神社在住 && CFLAG:CHARA:大家候補
+		SIF CFLAG:CHARA:住み込み必要信頼度 > CFLAG:CHARA:信頼度 && DAY > 1
+			SETCOLOR C_L_GRAY
+		PRINTBUTTON @"[{CFLAG:CHARA:大家候補 % 100, 3}] - %NAME_FROM_PLACE(CFLAG:CHARA:大家候補), 20, LEFT%　大家:%CALLNAME:CHARA, 15, LEFT%　必要信頼度:{CFLAG:CHARA:住み込み必要信頼度}", CHARA
+		PRINTL 
+		RESETCOLOR
+	ENDIF
+NEXT
+PRINTFORML [  0] - ({デフォルト初期位置 % 100, 2})%NAME_FROM_PLACE(デフォルト初期位置)%（デフォルト設定）
+;Map Animation Code
+IF ANIMATERECOLOREDMAPS && !FLAG:70
+	CURRENTREDRAW
+	ORIREDRAW = RESULT
+	REDRAW ORIREDRAW
+	TINPUT ANIMATERECOLOREDMAPS,1234,0,""
+ELSE
+	INPUT
+ENDIF
+
+IF RESULT == 0
+	CALL デフォルト引っ越し
+ELSEIF RESULT == 1234
+	REDRAW 0
+	CLEARLINE LINECOUNT - LINESTART
+	GOTO MAPANIMATION
+ELSEIF RESULT < CHARANUM && CFLAG:RESULT:神社在住 && CFLAG:RESULT:大家候補
+	CHARA = RESULT
+	IF CHARA != 0 && CFLAG:CHARA:住み込み必要信頼度 > CFLAG:CHARA:信頼度 && DAY > 1
+		PRINTFORMW %CALLNAME:CHARA%はそこまで%CALLNAME:MASTER%を信頼していない…
+		RESTART
+	ELSE
+		拠点_大家 = CHARA
+		デフォルト初期位置 = CFLAG:CHARA:大家候補
+		ROOMDATA:(デフォルト初期位置 % 100) |= 場所_布団
+		ROOMDATA:(デフォルト初期位置 % 100) |= 場所_プライベート
+		PRINTFORMW %NAME_FROM_PLACE(CFLAG:CHARA:大家候補)%は%CALLNAME:MASTER%の私室になった
+	ENDIF
+;プレビュー切り替え
+ELSEIF RESULT == 1997
+	TFLAG:マップ切り替え += 1
+	SIF TFLAG:マップ切り替え > MAP_PAGES
+		TFLAG:マップ切り替え = 1
+	RESTART
+ELSE
+	RESTART
+ENDIF
+
+;マップ内の採集可能地点を表示する関数
+@ShowGatheringSpots(ARG)
+#DIM cStart
+#DIM cEnd
+#DIM SpotID
+#DIM Num
+#DIM Wordcount
+#DIM pCount
+
+cStart = 1 + ARG * 100
+cEnd = 99 + ARG * 100
+Num = 0
+pCount = 0
+FOR LOCAL, cStart, cEND
+	SpotID = GATHERING_SPOT(LOCAL, 1)
+	IF SpotID
+		pCount ++
+		STRLENFORM %ForagePlaceName(SpotID)%
+		Wordcount = RESULT:0
+		Num += Wordcount
+		IF Num > 110
+			PRINTL 
+			PRINTFORM 　　　　　　　
+			Num = Wordcount
+		ENDIF
+		PRINTFORM %ForagePlaceName(SpotID)%
+		SIF Num <= 106
+			PRINTFORM 　　
+	ENDIF
+NEXT
+SIF !pCount
+	PRINT なし
+PRINTFORML 

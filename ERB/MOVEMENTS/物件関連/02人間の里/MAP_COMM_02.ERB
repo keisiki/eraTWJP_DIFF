@@ -1,0 +1,171 @@
+﻿;--------------------------------------------------
+;	マップ内移動処理拡張パッチ付属
+;	命蓮寺MAP用関数
+;--------------------------------------------------
+
+@MAP_PLACENAME_2(ARG)
+#FUNCTIONS
+#DIM PLACEID
+
+IF GET_MAPID(ARG) == MAIN_MAP
+	SELECTCASE ARG
+		CASE 201 TO (MAXROOM - 1)
+			RETURNF STR:(ARG + 8000)
+		CASE 298
+			RETURNF OMANEKI_PLACE()
+		CASE 299
+			RETURNF "スキマ空間"
+		CASE MAXROOM
+			RETURNF "道の向こう"
+		CASEELSE
+			RETURNF "不明"
+	ENDSELECT
+ELSE
+	RETURNF "不明"
+ENDIF
+
+@MAP_VIEWING_2(AA,COLOR)
+#DIMS REF AA, 0
+#DIMS REF COLOR, 0
+IF !TFLAG:マップ切り替え
+	SELECTCASE CFLAG:MASTER:現在位置
+		CASE 214, 230 TO 237, 208 TO 210, 241
+			TFLAG:マップ切り替え = 2
+		CASE 213, 226
+			TFLAG:マップ切り替え = 3
+		CASE 238, 239
+			TFLAG:マップ切り替え = 4
+		CASEELSE
+			TFLAG:マップ切り替え = 1
+	ENDSELECT
+ENDIF
+CALL DRAW_INFORMATIONLINE(@"%MAPNAME:(TFLAG:マップ切り替え)%")
+PRINTFORML 
+IF RECOLOREDMAPS
+TRYCCALLFORM COLOREDMAP_SATO_{TFLAG:マップ切り替え}(AA,COLOR)
+CATCH
+RECOLOREDMAPS = 0
+CALL DRAW_MAP
+RECOLOREDMAPS = 1
+RETURN
+ENDCATCH
+ELSE
+TRYCALLFORM MAP_SATO_{TFLAG:マップ切り替え}(AA)
+ENDIF
+
+@MAP_CAN_MOVE_2(ARG, ARG:1)
+#FUNCTION
+#DIM 在宅
+SELECTCASE ARG
+	;小鈴私室
+	CASE 226
+		IF ARG:1 == MASTER
+			IF FLAG:70
+				RETURNF 1
+			ELSEIF CFLAG:[[小鈴]]:同行 || CFLAG:[[阿求]]:同行
+				RETURNF 1
+			ELSEIF TALENT:[[小鈴]]:恋慕
+				RETURNF 1
+			ELSEIF TALENT:[[小鈴]]:思慕 && CFLAG:[[小鈴]]:現在位置 == ARG
+				RETURNF 1
+			ELSE
+				TFLAG:移動不能メッセージ = ARG
+				RETURNF 0
+			ENDIF
+		;本人は入れる,阿求も入れる
+		ELSEIF ARG:1 == [[小鈴]] || ARG:1 == [[阿求]]
+			RETURNF 1
+		ELSE
+			RETURNF 0
+		ENDIF
+	;阿求私室
+	CASE 229
+		IF ARG:1 == MASTER
+			IF FLAG:70
+				RETURNF 1
+			ELSEIF CFLAG:[[阿求]]:同行
+				RETURNF 1
+			ELSEIF TALENT:[[阿求]]:恋慕
+				RETURNF 1
+			ELSEIF TALENT:[[阿求]]:思慕 && CFLAG:[[阿求]]:現在位置 == ARG
+				RETURNF 1
+			ELSE
+				TFLAG:移動不能メッセージ = ARG
+				RETURNF 0
+			ENDIF
+		;本人は入れる,相性の良いキャラも入れる
+		ELSEIF ARG:1 == [[阿求]] || RELATION:[[阿求]]:(ARG:1) >= 100
+			RETURNF 1
+		ELSE
+			RETURNF 0
+		ENDIF
+	;美宵の部屋
+	CASE 239
+		IF ARG:1 == MASTER
+			IF FLAG:70
+				RETURNF 1
+			ELSEIF CFLAG:[[美宵]]:同行
+				RETURNF 1
+			ELSEIF TALENT:[[美宵]]:恋慕
+				RETURNF 1
+			ELSEIF TALENT:[[美宵]]:思慕 && CFLAG:[[美宵]]:現在位置 == ARG
+				RETURNF 1
+			ELSE
+				TFLAG:移動不能メッセージ = ARG
+				RETURNF 0
+			ENDIF
+		;本人は入れる
+		ELSEIF ARG:1 == [[美宵]]
+			RETURNF 1
+		ELSE
+			RETURNF 0
+		ENDIF
+	;櫓と連れ込み宿,あなた以外は入らない
+	CASE 220, 225
+		SIF ARG:1 != MASTER
+			RETURNF 0
+	;貸切浴場,あなた以外は入らない,貸し切っていないと入れない
+	CASE 228
+		SIF ARG:1 != MASTER
+			RETURNF 0
+		IF !銭湯貸切(DAY)
+			TFLAG:移動不能メッセージ = ARG
+			RETURNF 0
+		ENDIF
+	CASEELSE
+		RETURNF 1
+ENDSELECT
+RETURNF 1
+
+
+@MAP_CANNOT_WORD_2(ARG)
+SELECTCASE TFLAG:移動不能メッセージ
+	CASE 224,231 TO 235, 208 TO 210, 241
+		PRINTFORMW 鍵がかかってる
+	CASE 226, 229, 239
+		PRINTFORMW 勝手に入るのはまずい
+	CASE 228
+		PRINTFORMW 直接入るには貸し切らないといけない
+ENDSELECT
+
+;疑似TFLAGとして扱う,日付が変わると終了
+;ARG = DAY
+@銭湯貸切(ARG, 貸し切る)
+#FUNCTION
+#DIM 貸切日
+#DIM 貸し切る
+IF 貸し切る
+	貸切日 = ARG
+	RETURNF 1
+ELSEIF 貸切日 == ARG
+	RETURNF 1
+ENDIF
+RETURNF 0
+
+@マップ紹介_2
+;とりあえず5行
+PRINTFORML 漫画などでお馴染み人間の里。
+PRINTFORML 他のエリアへのアクセスがよく、鈴奈庵など各種施設が充実しており、仕事で定期的に来訪するキャラも多いが
+PRINTFORML 弾幕勝負や家庭菜園ができない、採集スポットが存在しないといった欠点がある。
+PRINTFORML 妖怪の山山頂行きの索道がある。
+PRINTFORML 

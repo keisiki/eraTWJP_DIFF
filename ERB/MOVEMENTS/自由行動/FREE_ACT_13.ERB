@@ -1,0 +1,81 @@
+﻿@EXIST_FreeAct13
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+;オブジェクト本体
+@FreeAct13(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+#DIM 経過時間
+経過時間 = Activity_Duration:TARGET
+SELECTCASE O_DATA
+;自由行動に付き合うコマンドの名称
+CASE "名称"
+	CALLF MAKE_STR(V_NAME, "晩酌に付き合う")
+CASE "CHAIN"
+;他キャラに連鎖しない場合コメントアウトすること
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "経過時間"
+;自由行動に付き合うコマンドでの経過時間
+;0だと30分か残り時間すべての小さい方
+	CALLF MAKE_INT(V_NAME, 0)
+ENDSELECT
+
+@自由行動内容_13(CHARA, ARGS, 時間係数, CHAIN)
+#DIM CHARA
+#DIM CHAIN
+#DIM 現在地
+#DIM メッセージ表示
+#DIM 時間係数
+#DIM 経過時間
+現在地 = CFLAG:CHARA:現在位置
+メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
+SELECTCASE ARGS
+	CASE "発生"
+		;酒飲めるキャラが夜間に憩いスペースにいる時
+		SIF TALENT:CHARA:酒耐性 < 0
+			RETURN 0
+		SIF !INRANGE(TIME, 1200, 1440) && !INRANGE(TIME, 0, 120)
+			RETURN 0
+		SIF !憩いスペース(現在地)
+			RETURN 0
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は\@ CHAIN ? %CALLNAME:CHAIN%に付き合い始めた。# お酒を取り出し晩酌を始めた。\@
+		RETURN 60 + RAND:30
+	CASE "行動中"
+		;ちょっとずつ酔う,酔いすぎるとSHIRAHUではなくなり中断されるので注意
+		BASE:CHARA:酒気 += TIME_PROGRESS(TIME:1) * (RAND:3 + 1) * (4 - TALENT:CHARA:酒耐性)
+		IF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は%TEXTR("お酒を飲んで微笑んでいる/じっくりとお酒を味わっている/ほろ酔い気分に浸っている/まったりとお酒を飲んでいる")%。
+		ENDIF
+	CASE "完了"
+		BASE:CHARA:酒気 += TIME_PROGRESS(TIME:1) * (RAND:3 + 1) * (4 - TALENT:CHARA:酒耐性)
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は晩酌を終えたようだ。
+	CASE "中断"
+		BASE:CHARA:酒気 += TIME_PROGRESS(TIME:1) * (RAND:3 + 1) * (4 - TALENT:CHARA:酒耐性)
+	CASE "付き合う"
+		;自由行動に付き合ったとき用メッセージ
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の晩酌に付き合い、杯を交わした
+		SELECTCASE TALENT:TARGET:酒耐性
+		CASE 0, 1
+			PRINTFORML 温い酒の味と共に談笑した…
+		CASE 2
+			PRINTFORML 心地の良い酒に生酔いした…
+		CASEELSE
+			PRINTFORML 強烈な酒だった…
+		ENDSELECT
+	CASE "ソース"
+		;付き合うコマンド選択時の入手ソース、時間係数は付き合った時間の1/10
+		;相手の酒耐性によって飲む酒が変わる,ソースも相手の酒耐性依存,なお酒耐性マイナスは晩酌しない
+		DOWNBASE:MASTER:体力 += 20 * 時間係数
+		DOWNBASE:MASTER:気力 += 10 * 時間係数
+		CALL DRUNKEN(MASTER, MAX(50 + TALENT:TARGET:酒耐性, 51))
+		SOURCE:歓楽 = (150 + ((ABL:親密 + TALENT:TARGET:酒耐性) * 50)) * 時間係数
+		SOURCE:受動 = (100 + ((ABL:従順 + TALENT:TARGET:酒耐性) * 50)) * 時間係数
+		SOURCE:征服 = (100 + ((ABL:サドっ気 + TALENT:TARGET:酒耐性) * 50)) * 時間係数
+		TFLAG:98 = 1
+ENDSELECT

@@ -1,0 +1,103 @@
+﻿@CHARAMOVE_DATA_64(ARG,ARG:2)
+LOCAL = 64
+SELECTCASE ARG
+	;移動対象メンバーチェック
+	CASE 1
+	;移動確率
+	CASE 2
+	;起床時間帯
+	CASE 3
+		RETURN 睡眠時間(LOCAL)
+	;移動傾向
+	CASE 4
+		SELECTCASE ARG:2
+			;行かない
+			CASE 901 TO 930, 935, 937, 939, 940, 941, 942, 943
+				RETURN -100
+			;酒場と鬼の溜まり場に行きやすい
+			CASE 933, 938
+				RETURN 100
+			
+		ENDSELECT
+	;仕事時間帯
+	CASE 5
+	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
+	CASE 6
+		SELECTCASE ARG:2
+			CASE 9
+				RETURN 1
+			CASE 2, 7
+				SIF DAY:2 == 1 || DAY:2 == 3
+					RETURN 1
+				RETURN 0
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+	;出現場所
+	CASE 7
+		SELECTCASE ARG:2
+			CASE 23, 71,72,73, 91,92,93,96
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+ENDSELECT
+
+@EXIST_キャラデータ64
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+@キャラデータ64(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+SELECTCASE O_DATA
+CASE "呼び名"
+	CALLF MAKE_STR(V_NAME, "勇儀")
+;こっから衣装設定
+CASE "今日のパジャマ"
+	CALLF MAKE_STR(V_NAME, "パジャマ（襦袢）セット")
+
+CASE "普段着：靴"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴", "下駄"))
+CASE "普段着：スカート"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("スカート", "スカート"))
+CASE "普段着：上半身上着２"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("上半身上着２", "ブラウス"))
+CASE "普段着：その他１"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("その他１", "拘束具"))
+
+CASE "固有下着形容詞"
+	CALLF MAKE_STR(V_NAME, "とっても強い")
+CASE "固有下半身下着名"
+	CALLF MAKE_STR(V_NAME, "虎皮の鬼パンツ")
+CASE "固有上半身下着"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有上半身下着名"
+	CALLF MAKE_STR(V_NAME, "サラシ")
+CASE "固有下着着用条件"
+	SIF !RAND:(1 + (2 * 勝負下着判定([[勇儀]])))
+		CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(前)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(後)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着生地厚さ"
+	CALLF MAKE_INT(V_NAME, 3)
+
+;料理関連
+CASE "料理：好きな味"
+	CALLF MAKE_STR(V_NAME, "肉料理/スパイス/和食/鍋物/おつまみ/辛い/ガッツリ/濃厚/芸術的/野趣/豪快/サクサク/地底風/天狗流/" + "しょっぱい/" * 3)
+CASE "料理：嫌いな味"
+	CALLF MAKE_STR(V_NAME, "あっさり/淡白/甘い/甘い/謎料理/謎料理/謎料理/化学的/化学的/化学的/" + "小人族秘伝の味/" * 5)
+CASE "料理：助手効果"
+	CALLF MAKE_STR(V_NAME, "地底風/得意料理＊豪快＊/")
+;贈り物関連
+CASE "感性：好き"
+	CALLF MAKE_STR(V_NAME, "赤/金/混沌/かっこいい/パワフル/壮大/" + "食器/鎖の/酒/" * 3 + "鬼の/華の/鬼力の/力の/" * 5)
+CASE "感性：嫌い"
+	CALLF MAKE_STR(V_NAME, "精神/ポップ/繊細/知的/ロリータ/" + "刃物/弾/書物/機械/" * 3 + "河童の/天狗の/" * 10)
+ENDSELECT
+

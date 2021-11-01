@@ -1,0 +1,223 @@
+﻿@SKIP_MOVE_6(ARG:0,ARG:1)
+#DIM 現在の位置
+#DIM CONST SPT中有の道 = 601
+#DIM CONST SPT賽の河原 = 602
+#DIM CONST 積石塚 = 603
+#DIM CONST SPT彼岸 = 604
+
+#DIM CONST 潤美の家 = 608
+#DIM CONST 瓔花の家 = 609
+#DIM CONST 是非曲直庁ホール = 610
+
+#DIM CONST 法廷 = 612
+#DIM CONST 是非曲直庁廊下 = 613
+#DIM CONST 是非曲直庁ラウンジ = 614
+#DIM CONST 映姫の部屋 = 615
+#DIM CONST 小町の部屋 = 616
+#DIM CONST 是非曲直庁風呂 = 617
+#DIM CONST 是非曲直庁空き部屋 = 618
+
+#DIM CONST 冥界の門 = 620
+#DIM CONST SPT白玉楼庭 = 621
+#DIM CONST 白玉楼廊下 = 622
+#DIM CONST 幽々子私室 = 623
+#DIM CONST 妖夢私室 = 624
+#DIM CONST あなた私室 = 625
+#DIM CONST 白玉楼台所 = 626
+#DIM CONST 白玉楼風呂 = 627
+#DIM CONST 白玉楼居間 = 628
+#DIM CONST 西行妖 = 629
+#DIM CONST 八雲邸玄関 = 630
+#DIM CONST 八雲邸廊下 = 631
+#DIM CONST 八雲邸庭 = 632
+#DIM CONST 紫私室 = 633
+#DIM CONST 八雲邸空き部屋 = 634
+#DIM CONST 橙私室 = 635
+#DIM CONST 八雲邸風呂 = 636
+#DIM CONST 八雲邸台所 = 637
+#DIM CONST 藍私室 = 638
+#DIM CONST 八雲邸居間 = 639
+#DIM CONST 異界の関所 = 640
+#DIM CONST 畜生メトロポリス = 641
+#DIM CONST SPT霊長園 = 642
+#DIM CONST 霊長園の風呂 = 643
+#DIM CONST 袿姫の部屋 = 644
+#DIM CONST 磨弓の部屋 = 645
+#DIM CONST 八千慧宅の風呂 = 646
+#DIM CONST 八千慧宅のリビング = 647
+#DIM CONST 八千慧宅の寝室 = 648
+
+#DIM CONST 早鬼宅のリビング = 650
+#DIM CONST 早鬼宅の寝室 = 651
+#DIM CONST 早鬼宅の風呂 = 652
+;現在位置取得
+現在の位置 = CFLAG:MASTER:現在位置
+SIF ARG:1
+	現在の位置 = ARG:1
+
+;暫定目的地に直接移動できる場合
+IF CAN_MOVE(現在の位置,ARG) & 1
+	;そこに移動
+	RETURN ARG
+ENDIF
+
+;各エリアから外部へ行く場合
+;是非曲直庁から外部
+IF INRANGE(現在の位置, 是非曲直庁ホール, 619) && !INRANGE(ARG, 是非曲直庁ホール, 619)
+	RETURN 是非曲直庁ホール
+ENDIF
+;白玉楼から外部
+IF INRANGE(現在の位置, SPT白玉楼庭, 西行妖) && !INRANGE(ARG, 冥界の門, 西行妖)
+	RETURN 冥界の門
+ENDIF
+;八雲邸から外部
+IF INRANGE(現在の位置, 八雲邸廊下, 八雲邸居間) && !INRANGE(ARG, 八雲邸玄関, 八雲邸居間)
+	RETURN 八雲邸玄関
+ENDIF
+;畜生界から外部
+IF INRANGE(現在の位置, 畜生メトロポリス, 早鬼宅の風呂) && !INRANGE(ARG, 異界の関所, 早鬼宅の風呂)
+	RETURN 異界の関所
+ENDIF
+
+;袋小路から行ける場所は固定なので、そこを目指す
+SELECTCASE 現在の位置
+CASE 潤美の家
+	RETURN SPT賽の河原
+CASE 瓔花の家
+	RETURN 積石塚
+CASE 映姫の部屋
+	RETURN 是非曲直庁ラウンジ
+CASE 小町の部屋, 是非曲直庁風呂, 是非曲直庁空き部屋
+	RETURN 是非曲直庁廊下
+CASE 妖夢私室, あなた私室, 白玉楼風呂
+	RETURN 白玉楼廊下
+CASE 八雲邸風呂, 八雲邸台所
+	RETURN 八雲邸廊下
+CASE 霊長園の風呂, 袿姫の部屋, 磨弓の部屋
+	RETURN SPT霊長園
+CASE 八千慧宅の風呂, 八千慧宅の寝室
+	RETURN 八千慧宅のリビング
+CASE 早鬼宅の寝室, 早鬼宅の風呂
+	RETURN 早鬼宅のリビング
+ENDSELECT
+
+;直接移動できない場合、1つ近い位置を暫定目的地に設定し直してループ
+;地点追加時要フォロー（全ケース修正すること）
+SELECTCASE ARG
+CASE SPT中有の道
+	RETURN SPT賽の河原
+CASE SPT賽の河原
+	RETURN SPT彼岸
+CASE 積石塚
+	SELECTCASE 現在の位置
+	CASE SPT中有の道
+		RETURN SPT賽の河原
+	CASEELSE
+		RETURN SPT彼岸
+	ENDSELECT
+CASE SPT彼岸
+	RETURN SPT賽の河原
+CASE 潤美の家
+	RETURN SPT賽の河原
+CASE 瓔花の家
+	RETURN 積石塚
+
+;是非曲直庁は欠番の611があるので一応残しておく
+CASE 是非曲直庁ホール
+	SELECTCASE 現在の位置
+	CASE 611 TO 619
+		RETURN 是非曲直庁廊下
+	CASEELSE
+		RETURN SPT彼岸
+	ENDSELECT
+CASE 法廷
+	SELECTCASE 現在の位置
+	CASE 是非曲直庁ホール TO 619
+		RETURN 是非曲直庁廊下
+	CASEELSE
+		RETURN 是非曲直庁ホール
+	ENDSELECT
+CASE 是非曲直庁廊下
+	RETURN 是非曲直庁ホール
+CASE 是非曲直庁ラウンジ, 小町の部屋, 是非曲直庁風呂, 是非曲直庁空き部屋
+	RETURN 是非曲直庁廊下
+CASE 映姫の部屋
+	RETURN 是非曲直庁ラウンジ
+
+CASE 冥界の門
+	SELECTCASE 現在の位置
+	CASE 白玉楼廊下 TO 西行妖
+		RETURN SPT白玉楼庭
+	CASEELSE
+		RETURN SPT彼岸
+	ENDSELECT
+CASE SPT白玉楼庭
+	SELECTCASE 現在の位置
+	CASE 幽々子私室 TO 白玉楼風呂
+		RETURN 白玉楼廊下
+	CASEELSE
+		RETURN 冥界の門
+	ENDSELECT
+CASE 白玉楼廊下
+	RETURN SPT白玉楼庭
+CASE 幽々子私室, 妖夢私室, あなた私室, 白玉楼台所, 白玉楼風呂
+	RETURN 白玉楼廊下
+CASE 白玉楼居間
+	SELECTCASE 現在の位置
+	CASE 妖夢私室, あなた私室, 白玉楼風呂
+		RETURN 白玉楼廊下
+	CASEELSE
+		RETURN SPT白玉楼庭
+	ENDSELECT
+CASE 西行妖
+	RETURN SPT白玉楼庭
+
+CASE 八雲邸玄関
+	SELECTCASE 現在の位置
+	CASE 紫私室 TO 八雲邸居間
+		RETURN 八雲邸廊下
+	CASEELSE
+		RETURN SPT賽の河原
+	ENDSELECT
+CASE 八雲邸廊下, 八雲邸庭
+	RETURN 八雲邸玄関
+CASE 紫私室, 八雲邸風呂, 八雲邸台所, 藍私室, 八雲邸居間
+	RETURN 八雲邸廊下
+CASE 八雲邸空き部屋, 橙私室
+	SELECTCASE 現在の位置
+	CASE 紫私室 TO 八雲邸居間
+		RETURN 八雲邸廊下
+	CASEELSE
+		RETURN 八雲邸玄関
+	ENDSELECT
+
+CASE 異界の関所
+	SELECTCASE 現在の位置
+	CASE SPT霊長園 TO 早鬼宅の風呂
+		RETURN 畜生メトロポリス
+	CASEELSE
+		RETURN SPT彼岸
+	ENDSELECT
+CASE 畜生メトロポリス
+	SELECTCASE 現在の位置
+	CASE 霊長園の風呂, 袿姫の部屋, 磨弓の部屋
+		RETURN SPT霊長園
+	CASE 八千慧宅の風呂, 八千慧宅の寝室
+		RETURN 八千慧宅のリビング
+	CASE 早鬼宅の寝室, 早鬼宅の風呂
+		RETURN 早鬼宅のリビング
+	CASEELSE
+		RETURN 異界の関所
+	ENDSELECT
+CASE SPT霊長園, 八千慧宅のリビング, 早鬼宅のリビング
+	RETURN 畜生メトロポリス
+CASE 霊長園の風呂, 袿姫の部屋, 磨弓の部屋
+	RETURN SPT霊長園
+CASE 八千慧宅の風呂, 八千慧宅の寝室
+	RETURN 八千慧宅のリビング
+CASE  早鬼宅の寝室, 早鬼宅の風呂
+	RETURN 早鬼宅のリビング
+
+CASEELSE
+	RETURN SPT中有の道
+ENDSELECT

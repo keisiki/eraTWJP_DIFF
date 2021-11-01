@@ -1,0 +1,2337 @@
+﻿;※※※※※※※※※※※※※※※※※※※※※※※※※
+;日常系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;300,会話
+;TFLAG:193(1=大成功 0=成功 -1=失敗 -2=大失敗（TARGETがMASTERより教養が4以上高い)
+;TCVAR:302(0=会話可能 1>=非恋慕時会話不能)
+;MARK:反発刻印(3以上=会話不能)(4以上はバグ
+;TCVAR:泥酔(1=通常成功or大失敗)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_300
+;コマンド共通メッセージ(TRAIN_MESSAGE) 
+;削除すると「～話をした。」とかが消えます
+CALL TRAIN_MESSAGE
+;口上メイン呼出
+CALL M_KOJO_MESSAGE_COM_K11_300_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_300_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;ここに口上書いて下さい
+	;霧雨魔理沙の幻想郷探訪？
+	IF CHK_DATENOW(CFLAG:TARGET:デート中)
+	SELECTCASE CFLAG:11:現在位置
+		;道中
+		CASE 100 TO 109,200 TO 209,300 TO 309,400 TO 409,500 TO 509,600 TO 609,700 TO 709,800 TO 809,900 TO 909
+			IF TALENT:恋慕
+				SELECTCASE RAND:10
+				CASE 0,1,2,3,4
+					PRINTFORML 「%CALLNAME:MASTER%とデートか…へへ、楽しみだぜ♪」
+					PRINTFORMW 魔理沙は眩しいくらいの笑顔をこちらに向けている。
+				CASE 5,6,7
+					PRINTFORMW 「おーい、%CALLNAME:MASTER%、早くしないと置いて行っちゃうぜ？」
+				CASE 8,9
+					PRINTFORML 「そうだ、着いたら何をしようか？」
+					PRINTFORMW 「私は%CALLNAME:MASTER%と一緒なら何でもいいぜ♪」
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:10
+				CASE 0,1,2,3
+					PRINTFORML 「%CALLNAME:MASTER%とデートか…」
+					PRINTFORMW 「ま、楽しませてくれよなー」
+				CASE 4,5,6,7
+					PRINTFORML 「おっと、結構歩くの早いんだな」
+					PRINTFORMW 「そんなに急ぐことも無いんじゃないか？」
+				CASE 8,9
+					PRINTFORML 「そうだ、着いたら何をするんだ？」
+					PRINTFORMW 「%CALLNAME:MASTER%に任せるぜ」
+				ENDSELECT
+			ENDIF
+		;博麗神社…これでいいの？
+		CASE 10 TO 90
+			SELECTCASE RAND:5
+			CASE 0
+				PRINTFORML 「相変わらず賑わってるなー、ここは、妖怪ばっかりだけど…」
+				PRINTFORML 「あ、だからといって妖怪以外に好かれていないわけではないぞ？」
+				PRINTFORML 「人間も妖怪も、それ以外に妖精や神様すらも惹きつける魅力が霊夢にある」
+				PRINTFORMW 「本当に不思議な奴だと思うぜ」
+			CASE 1
+				PRINTFORML 「%CALLNAME:MASTER%、せっかくだし参拝していくか？」
+				PRINTFORML 「まあ、何の御利益があるのかわからないが…何かいいことがあるかもしれないぞ？」
+				PRINTFORMW 「ああそうだ、確実に起きるいいことがあったな、それは霊夢の機嫌が良くなることだ」
+			CASE 2
+				PRINTFORML 「神社の裏のミズナラの木は光の三妖精の住処だ、霊夢に懐いている」
+				PRINTFORML 「前に霊夢に気に入られたくて喧嘩を売って、案の定コテンパンにされた」
+				PRINTFORML 「でもいつの間にか霊夢が手懐けていた」
+				PRINTFORMW 「流石にやりすぎたと思ったのか？霊夢ってあれでいて結構甘いところもあるんだよな」
+			CASE 3
+				PRINTFORML 「一度ここの結界が開いた時に外の世界に出たことがあるんだが…凄かったな」
+				PRINTFORMW 「いたるところがキラキラしてたなー、もう一度見てみたいが、無理だろうな」
+			CASE 4
+				PRINTFORML 「そういえば外の世界では神前結婚式ってのがあるんだろ？」
+				PRINTFORML 「やるとしたら霊夢が結婚式を仕切るのかあ…出来るのか？ちょっと見てみたいが」
+					IF TALENT:恋人
+						PRINTFORML 「え？そんな話はまだ早い？私はいつでも構わないんだけどなー」
+						PRINTFORMW 「ま、楽しみにしておくぜ♪」
+					ELSEIF TALENT:恋慕
+						PRINTFORML 「……あ、す、すまん、結婚式なんて、変なこと言っちゃったな…」
+						PRINTFORMW 魔理沙は真っ赤になって慌てている。
+					ELSE
+						PRINTFORML 「……あ、す、すまん、結婚式なんて、変なこと言っちゃったな…」
+						PRINTFORMW 魔理沙は気まずそうに目をそらしている。
+					ENDIF
+			ENDSELECT
+		;命蓮寺、神霊廟
+		CASE お地蔵通り,枝垂れ柳の下,命蓮寺境内,命蓮寺本堂,墓地,聖徳道場
+			SELECTCASE RAND:8
+			CASE 0
+				PRINTFORML 「白蓮は人間と妖怪の平等を訴えている、物好きというか…まあ珍しいやつだ」
+				PRINTFORML 「昔に危険だとされて魔界に封印されていたんだが、白蓮を慕う妖怪たちが封印を解いた」
+				PRINTFORML 「今はまた封印しようなんて動きはない、人間と妖怪はそれなりにうまく付き合ってるからな」
+				PRINTFORMW 「白蓮がいいやつなのは保証するぜ、何かあったら頼ってみるといい」
+			CASE 1
+				PRINTFORML 「白蓮は魔法使いなんだ、かなり強力な魔法も使える」
+				PRINTFORML 「得意なのは身体能力を強化する魔法だ、八卦炉で攻撃しても平気なくらい丈夫になる」
+				PRINTFORML 「それに動きを早くすることも出来るんだ、天狗とか集中した時の妖夢に匹敵するくらいになるかな」
+				PRINTFORMW 「マネしても中々うまくいかないな」
+			CASE 2
+				PRINTFORML 「しかし命蓮寺には色んな妖怪がいるよなー」
+				PRINTFORML 「ネズミ、山彦、入道使い、船幽霊、虎、魔法使い、それに鵺に狸の親分か」
+				PRINTFORML 「そしてそれぞれ個性的な弾幕を放ってくるんだ」
+				PRINTFORMW 「いやぁ、苦労させられたぜ」
+			CASE 3
+				PRINTFORML 「命蓮寺にはぬえって大妖怪が住んでいるんだが…」
+				PRINTFORML 「そいつは白蓮の封印を村紗達が解くのを楽しそうだからって理由で邪魔をして」
+				PRINTFORML 「神子の復活が妖怪の危機になると早とちりして外の世界からマミゾウを呼んできた」
+				PRINTFORMW 「大妖怪なのは間違いないんだが、子供っぽいところがあるやつだ」
+			CASE 4
+				PRINTFORML 「神子は十人の話を同時に聞いて、理解することが出来る」
+				PRINTFORML 「私もやってみたけど出来る気がしなかった、まさしく天才の成しえる技だな」
+				PRINTFORML 「さらに相手が何を欲しているか瞬時に読み取れる、相手の資質と未来が視えるってことらしい」
+				PRINTFORMW 「他にはいろんな眉唾物の話があるな、まあとんでもないやつだ」
+			CASE 5
+				PRINTFORML 「白蓮と神子は仲が良くないんだ、まあ仏教徒の白蓮と仏教を踏み台にしたような神子だから当然だが」
+				PRINTFORML 「しかし、互いに認め合ってるように私には見えるな」
+				PRINTFORMW 「あいつらって実は相性がいいんじゃないか？」
+			CASE 6
+				IF TALENT:恋人
+					SELECTCASE RAND:3
+					CASE 0,1
+						PRINTFORML 「神子達は尸解の術を使って不老不死になったらしい」
+						PRINTFORML 「一度死んで復活する術だって話だが…なかなかリスクが高そうだよなー」
+						PRINTFORMW 「私？遠慮しておくぜ」
+					CASE 2
+						PRINTFORML 「ここの仙人たちは不老不死だ」
+						PRINTFORML 「ん？私は不老不死になるのかって？」
+						PRINTFORML 「まあ、魔法をたくさん研究できるようになるし、人間の体で出来なかったことも出来るようになるだろう」
+						PRINTFORML 「興味が無いって訳じゃない、がそれは人間を止めることとほとんど同じだ」
+						PRINTFORMW 「私は愛する%CALLNAME:MASTER%と共に歩みたい、だから不老不死にはならないぜ」
+					ENDSELECT
+				ELSE
+						PRINTFORML 「神子達は尸解の術を使って不老不死になったらしい」
+						PRINTFORML 「一度死んで復活する術だって話だが…なかなかリスクが高そうだよなー」
+						PRINTFORMW 「私？遠慮しておくぜ」
+				ENDIF
+			CASE 7
+				PRINTFORML 「仙人は死神に狙われるらしいが、もっととんでもないやつが襲ってくることもあるみたいだ」
+				PRINTFORML 「ここらでよく見る青娥って仙人が地獄の鬼神長の一人に襲われていた、河童の住処が大変なことになってたぜ」
+				PRINTFORMW 「まあ、それをあしらう青娥もとんでもないが…」
+			ENDSELECT
+		;人里
+		CASE 広場,商家町,呑屋小道,寺子屋,大衆浴場,長屋街,連れ込み宿
+				SELECTCASE RAND:5
+			CASE 0
+				PRINTFORML 「小鈴は貸本屋の鈴奈庵の娘なんだが…」
+				PRINTFORML 「普通じゃないものに惹かれるものすごく危なっかしいやつだ」
+				PRINTFORMW 「はあ…本当に手を焼かされたぜ」
+			CASE 1 
+				PRINTFORML 「阿求は幻想郷縁起を書いていく役割がある」
+				PRINTFORML 「見たものを忘れないし転生が出来るんだが短命なんだ、３０年も生きられないらしい」
+				PRINTFORML 「書物の内容を忘れないのは羨ましいが、短命なのは私は嫌だな」
+				PRINTFORMW 「ああ、短命だからって阿求を哀れむのは止めておけ、あいつは十分楽しんで生きているからな」
+			CASE 2
+				PRINTFORML 「一見平和だが人里の裏では妖怪どもが色々と企んでいる」
+				PRINTFORML 「いくら取り決めがあるといっても、注意はしておかないとな」
+				PRINTFORMW 「妖怪退治なら霊夢じゃなくて私に相談してくれ」
+			CASE 3
+				PRINTFORML 「寺子屋では慧音って半分人間が勉強を教えている」
+				PRINTFORML 「幻想郷でも有数の知識人なんだが…どうも授業の評価は良くないみたいだ」
+				PRINTFORML 「知識があるのと教えるのは別物ってことだな」
+				PRINTFORMW 「満月の時には白澤に変身するぞ、普段は温厚だがこの時は気が立っていることが多い」
+			CASE 4
+				PRINTFORML 「…なんだ？｛霧雨道具店｝に興味があるのか？」
+					IF TALENT:恋人
+						PRINTFORML 「え？家出して後悔してないかって？いや全くしていない」
+						PRINTFORML 「魔法の研究して色々な所に出かけて、そして色々なやつに会えた、私の人生はとても充実してるぜ」
+						PRINTFORML 「もちろん、%CALLNAME:MASTER%と出会えて、恋人になれたこともその要因だ」
+						PRINTFORMW 「大好きだぜ、%CALLNAME:MASTER%」
+					ELSEIF TALENT:恋慕
+						PRINTFORML 「え？家出して後悔してないかって？いや全くしていない」
+						PRINTFORML 「魔法の研究して色々な所に出かけて、そして色々なやつに会えた、私の人生はとても充実してるぜ」
+						PRINTFORMW 「もちろん、%CALLNAME:MASTER%と出会えて、仲良くなれたこともその要因だ」
+					ELSE
+						PRINTFORMW 「それなりに繁盛はしてるみたいだから、何かいい物が見つかるだろう、ただ私は行かないぞ？」
+					ENDIF
+				ENDSELECT
+		;湖と廃洋館
+		CASE 霧の湖,氷のかまくら,廃洋館
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「チルノは妖精の中でも力はかなり強いぞ、バカだけど」
+				PRINTFORML 「私も油断すると危ないくらいだ」
+				PRINTFORML 「甘く見てると氷漬けにされるかもしれないぜ」
+				PRINTFORMW 「夏はいいけど冬に出てこられるのはやめて欲しい、寒いのは苦手なんでな」
+			CASE 1
+				PRINTFORML 「この辺りにはわかさぎ姫って人魚が住んでいるんだ」
+				PRINTFORML 「…ん？わかさぎって妖怪になったらあんなナリになるのか？」
+				PRINTFORML 「それと姫って何だ？わかさぎたちにも社会があるのか？」
+				PRINTFORMW 「…意外と謎が深いやつかもしれないな」
+			CASE 2
+				PRINTFORML 「プリズムリバー三姉妹は色々な所でライブをしている、見かけることもあるだろうな」
+				PRINTFORML 「最近解散したんだがすぐに再結成して、メンバーに雷鼓が加入したみたいだ」
+				PRINTFORMW 「ホリズムリバー？とか言ってたっけ」
+				ENDSELECT
+		;紅魔館
+		CASE 正門,広間,食堂,大図書館,地下室
+			SELECTCASE RAND:5
+			CASE 0
+				PRINTFORML 「レミリアはいつもは物凄くわがままで、子供っぽい」
+				PRINTFORML 「だが紳士的な面を持ってるし、たまーに吸血鬼らしくカリスマを見せる」
+				PRINTFORMW 「伊達にここの主をやっているわけじゃないってことだな」
+			CASE 1
+				PRINTFORML 「咲夜はなんというか、本当に便利なやつだよなー」
+				PRINTFORML 「掃除、料理、菓子作り、時間を止める、空間を広げる、色々なことが出来る」
+				PRINTFORMW 「ちょっと抜けてる所はあるが、一家に一人は欲しいな」
+			CASE 2
+				PRINTFORML 「パチュリーは火水木金土と日月の属性の魔法が使えて、さらに二つの属性を合わせた魔法を使えるんだ」
+				PRINTFORML 「火と水みたいな相反する属性でも合わせることが出来る」
+				PRINTFORML 「喘息持ちで詠唱がうまくできないなんてこともあるが、魔法使いとしては優れていると思うぜ」
+				PRINTFORMW 「しかし火水木金土の属性って五行のことだし東洋風だよな、あいつ西洋の出なのに」
+			CASE 3
+				PRINTFORML 「なあ%CALLNAME:MASTER%、ちょっと私に協力してくれないか？」
+				PRINTFORML 「%CALLNAME:MASTER%がパチュリーと小悪魔を引き付けておいて、私がその間に本を借りる作戦だ」
+				PRINTFORMW 「…あー？犯罪に手を貸したくない？だから死んだら返すって…」
+			CASE 4
+				PRINTFORML 「この館には、レミリアの妹のもう一人の吸血鬼がいる」
+				PRINTFORML 「普段は地下にいるからなかなか見かけないレアキャラだ」
+				PRINTFORML 「色々とアブナイからあまり出てきて欲しくはないな」
+				PRINTFORMW 「もし出てきたら？なに、私に任せておけ」
+				ENDSELECT
+		;迷いの竹林
+		CASE 竹林入り口,迷いの小道,斜角の竹林,兎の洞穴
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「この辺りではミスティアって夜雀が屋台を開いている」
+				PRINTFORML 「看板商品はヤツメウナギだ、鳥目によく効くぞ」
+				PRINTFORML 「ミスティアが能力で鳥目にしてヤツメウナギを売る…マッチポンプってやつか？」
+				PRINTFORML 「まあ策にハマらなければ普通に楽しめる」
+				PRINTFORML 「普通の食べ物もちゃんと売ってるし、雀酒なんてレアなものも飲めることもあるぞ、焼き鳥は売ってないが」
+				PRINTFORMW 「因みに屋台の他にも鳥獣戯楽なんてのを命蓮寺の響子とやっている、鳥頭のくせに多芸なやつだ」
+			CASE 1
+				PRINTFORML 「この辺りには妹紅っていう死なない人間が住んでいる」
+				PRINTFORML 「永い時間を生きている間に特に炎関連の色んな術を習得したみたいだ、そこらの妖怪を軽くあしらう程度には強い」
+				PRINTFORML 「ここで迷ったらこいつを見つければ安全だろう、見つけられるかが問題だが…」
+				PRINTFORML 「詳しいことは知らないが輝夜を憎んでいて、定期的に殺し合いをしている、まあどっちも死なないけどな」
+				PRINTFORML 「こいつらにとっては暇つぶしみたいなものなんだろう…私には想像できないが」
+				PRINTFORMW 「しかし、あれだけ炎を放ったり纏ったりしてるけど服はどうなってるんだ？」
+			CASE 2
+				PRINTFORML 「ここらの兎のリーダーは永遠亭にいるてゐってやつだ」
+				PRINTFORML 「なんでも見つけると幸運が訪れる…らしいが竹林を無事に抜けられた時点で幸運は終わっているようだ」
+				PRINTFORML 「幸運が欲しいからってわざわざ探しに行っても疲れるだけってことだな、オマケにイタズラされることもよくある」
+				PRINTFORMW 「あんなナリをしているが実は物凄く長生きらしいぞ、妙に知恵があるのも納得だ」
+				ENDSELECT
+		;永遠亭
+		CASE 永遠亭,永遠亭奥ノ院
+			SELECTCASE RAND:5
+			CASE 0
+				PRINTFORML 「永琳は輝夜の従者兼薬屋だ」
+				PRINTFORML 「あらゆる薬をつくることが出来るし、薬の効能もばっちりだ、さらに診察もやってるぞ」
+				PRINTFORML 「と言ってもあらゆる薬をつくるなんてオマケみたいなものだ、あいつは頭脳も使う術も規格外だ、流石の私も手に余る」
+				PRINTFORMW 「弾幕は行動を制限してくるものばっかりだ、弄ばれてるようで気に入らん、まあ本気で来られたら勝てないんだが…」
+			CASE 1
+				PRINTFORML 「輝夜は永遠亭のお姫様だ」
+				PRINTFORML 「永遠と須臾を操る…らしいが能力を使うところを殆ど見たことが無いからどんな能力なのかよくわからない」
+				PRINTFORML 「あいつのスペルカードは宝具の力を使ったものばかりだ、輝夜本人の力は謎に包まれているな」
+				PRINTFORMW 「ただ馬鹿でかい天板を両手で持ち上げることが出来るから相当強そうだが…あれには驚かされたぜ」
+			CASE 2
+				PRINTFORML 「鈴仙は｛元｝月の兎で、今は永琳の部下みたいなものだ」
+				PRINTFORML 「今はもう月の都の味方をすることはないみたいだ」
+				PRINTFORML 「波長を操る妙な術を使うんだが…弾幕に限っては使わない方が強いんじゃないかと思う」
+				PRINTFORML 「人里で薬を売ってるから、薬が欲しければ鈴仙から買うのが手っ取り早いだろう」
+				PRINTFORMW 「そういえば前に妙な鼠避けを売っていたな、もう止めたのか？」
+			CASE 3
+				PRINTFORML 「永遠亭には月の都で使われている物が眠っていて、たまにそれの展覧会が開かれるんだ」
+				PRINTFORMW 「いくつか借りて行きたいところだが、まあ相手が悪すぎるな」
+			CASE 4
+				IF TALENT:恋人
+					SELECTCASE RAND:3
+					CASE 0,1
+						PRINTFORML 「永琳と輝夜は不老不死だ」
+						PRINTFORML 「一見わからないが実は途轍もなく永い時間を過ごしているんだろうな」
+						PRINTFORML 「その間永琳は輝夜にずっと付き従ってたってことになる、永琳は輝夜より強いだろうに」
+						PRINTFORMW 「そうなったのは永琳に何かあるのか、輝夜のカリスマによるのか、あるいはその両方か…」
+					CASE 2
+						PRINTFORML 「永琳と輝夜は不老不死だ」
+						PRINTFORML 「ん？私は不老不死になるのかって？」
+						PRINTFORML 「まあ、魔法をたくさん研究できるようになるし、人間の体で出来なかったことも出来るようになるだろう」
+						PRINTFORML 「興味が無いって訳じゃない、がそれは人間を止めることとほとんど同じだ」
+						PRINTFORMW 「私は愛する%CALLNAME:MASTER%と共に歩みたい、だから不老不死にはならないぜ」
+					ENDSELECT
+				ELSE
+						PRINTFORML 「永琳と輝夜は不老不死だ」
+						PRINTFORML 「一見わからないが実は途轍もなく永い時間を過ごしているんだろうな」
+						PRINTFORML 「その間永琳は輝夜にずっと付き従ってたってことになる、永琳は輝夜より強いだろうに」
+						PRINTFORMW 「そうなったのは永琳に何かあるのか、輝夜のカリスマによるのか、あるいはその両方か…」
+				ENDIF
+				ENDSELECT
+		;無明の丘
+	;	CASE 460
+	;		SELECTCASE RAND:2
+	;		CASE 0　由来
+	;		CASE 1メディ
+	;			ENDSELECT
+		;太陽の畑
+		CASE 太陽の畑
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「そうだ、%CALLNAME:MASTER%って好きな花ってあるか？」
+				PRINTFORMW 「私は紫陽花かな、派手だし、数も多いし」
+			CASE 1
+				PRINTFORML 「この畑には幽香って妖怪が住んでいる」
+				PRINTFORML 「花を操るなんて可愛らしいと思うだろ？それに騙されちゃいけない、あいつは力も強いし、恐ろしい」
+				PRINTFORMW 「花を折りでもしたら命の保証は出来ないぜ」
+				ENDSELECT
+		;魔法の森
+		CASE 森の入り口,香霖堂,古木の大樹,霧雨魔法店,人形の洋館
+			SELECTCASE RAND:7
+			CASE 0
+				PRINTFORML 「ふと思ったんだが、ここってデートに向いてなくないか？」
+				PRINTFORML 「いや、見どころが全くないわけではないが…やっぱり環境がなあ」
+				PRINTFORMW 「体調が悪くなったらすぐに言ってくれよ？」
+			CASE 1
+				PRINTFORML 「香霖は元は｛霧雨道具店｝で働いていたんだが自分の能力を活かすために自分の店を持ったんだ」
+				PRINTFORML 「物を見ただけで名前と用途がわかるんだが使い方まではわからない、だからあまり役には立たない」
+				PRINTFORML 「私や霊夢とは小さい頃からの付き合いだ」
+				PRINTFORMW 「八卦炉をくれたり面倒見はいいやつなんだが…色々と残念な所があると思う」
+			CASE 2
+				PRINTFORML 「そうだ、私の家を見て行くか？」
+				PRINTFORMW 「魔法やマジックアイテムはもちろんツチノコや竜の爪なんかもあるぞ？退屈はさせないぜ」
+			CASE 3
+				PRINTFORML 「アリスは元人間の魔法使いだ」
+				PRINTFORML 「だから…なのかはわからないが人間には好意的だ、人里で人形劇もやってるぜ」
+				PRINTFORML 「人形を作ったり、操ってるから物凄く器用だ、そして面倒見がいい」
+				PRINTFORMW 「仲良くなっておいて損はないだろう」
+			CASE 4
+				PRINTFORML 「香霖堂にも最近客が増えたなー」
+				PRINTFORML 「菫子、華仙、影狼辺りをよく見るな、前は私か霊夢くらいしか常連はいなかったのに」
+				PRINTFORML 「影狼は何やらゲームを主催していて、菫子は外の世界の道具を売ってるみたいだ」
+				PRINTFORML 「だが華仙は何の目的があるんだ？香霖堂にそれほど用事があるとは思えないんだが…」
+				PRINTFORMW 「そういえば菫子と同時に見かけることが多いな…何か企んでいるのか？」
+			CASE 5
+				PRINTFORML 「そうそう、この辺りには外の世界から流れてきた電波塔？ってのがあるんだ」
+				PRINTFORML 「まあ今じゃ妖精たちの遊び場になってるけどな」
+				PRINTFORMW 「外の世界の人間はこれより高いものも作れるんだろ？ちょっと考えられないな」
+			CASE 6
+				PRINTFORML 「ここにあるキノコはなにも危ないものしかないってわけじゃない」
+				PRINTFORML 「美味いキノコもあるし、ちゃんとした薬の材料になるものもある」
+				PRINTFORMW 「…まあ幻覚を見せるキノコや毒キノコばっかりだけどな」
+			ENDSELECT
+		;再思の道　無縁塚
+		CASE 再思の道,無縁塚
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「この辺りは幻想郷の端っこで外の世界や冥界と交ざり合っているんだ」
+				PRINTFORMW 「だから外の世界の人間が見られることがたまーにある」
+			CASE 1
+				PRINTFORML 「無縁塚には外の世界の道具が落ちていることがある」
+				PRINTFORMW 「私はあまり欲しいと思わないが、香霖や命蓮寺のネズミはよく来ているみたいだ」
+				ENDSELECT
+		;冥界
+		CASE 中有の道,三途の川,彼岸,白玉楼庭,白玉楼,マヨヒガ
+		SELECTCASE RAND:5
+			CASE 0 
+				PRINTFORML 「妖夢は半分人間で半分幽霊だ」
+				PRINTFORML 「なのに幽霊や怪談の類がてんで苦手なんだ、面白いだろ？この間の百物語の時は傑作だったぜ」
+				PRINTFORML 「真面目なのもあって基本的にいじられ役だ」
+				PRINTFORML 「ただ半人前とか言われてるが剣術の腕は確かだ、斬れぬものなど殆どない！ってのも納得だ」
+				PRINTFORMW 「からかい過ぎて斬られないようにな」
+			CASE 1
+				PRINTFORML 「冥界の桜は綺麗だぞ、神社で花見もいいが、こっちも捨てがたい」
+				PRINTFORML 「ただ咲かない桜の木が一本あるんだ、前に幽々子が春を集めて咲かせようとしていたんだが、満開にはならなかった」
+				PRINTFORMW 「一体何の秘密があるんだろうな」
+			CASE 2
+				PRINTFORML 「幽々子は冥界で転生を待つ幽霊の管理をしている」
+				PRINTFORML 「死を操るなんてとんでもない能力持ちだ、むやみに能力を使うことは無いが、気に留めておけよ」
+				PRINTFORML 「そしてふわふわしてて掴みどころがないやつだ、何を考えているか読めん」
+				PRINTFORML 「さらに紫の友人ときた、厄介極まりないぜ」
+				PRINTFORML 「機嫌を取りたいなら何か珍しい食べ物を持っていくといい、亡霊なのに食べることが好きなんだ」
+				PRINTFORMW 「食いしん亡霊…なんてな」
+			CASE 3
+				PRINTFORML 「紫は幻想郷を創った賢者の一人だ、常識と非常識を結界で分けるなんてあいつにしか出来ないだろうな」
+				PRINTFORML 「とにかく胡散臭いし、何を考えているのかわからない」
+				PRINTFORML 「ただあいつの行動は幻想郷のことを考えてのものだろうから、そこは信頼してやっていい」
+				PRINTFORML 「しかし下克上の異変に結界を破った女子高生に月の都の異変のとばっちりに鈴奈庵に別の賢者…」
+				PRINTFORMW 「色々あってあいつも苦労してるのかもな」
+			CASE 4
+				PRINTFORML 「彼岸には閻魔がいるぞ」
+				PRINTFORML 「幻想郷の担当の映姫って閻魔がたまーに幻想郷まで来て説教して回っている」
+				PRINTFORML 「…まあこっちのことを思って説教してるんだろうが、近付きたくは無いな」
+				PRINTFORMW 「因みに私は舌抜きの刑だそうだ」
+				ENDSELECT
+		;妖怪の山山麓
+		CASE 麓の樹海,玄武の沢,大蝦蟇の池,仙人の屋敷,間欠泉地下センター,マヨヒガ
+			SELECTCASE RAND:5
+			CASE 0
+				PRINTFORML 「華扇は博麗神社に良く来る仙人だ」
+				PRINTFORML 「動物を使役したり、空間を創ったり、色々な術を使ったりと多芸なやつだ」
+				PRINTFORML 「お節介で口うるさいが悪いやつではない…がどうも何かを企んでいるような気がするんだよなー」
+				PRINTFORMW 「そういえば何か食べていることが多いな、仙人でも食は楽しむものなのか？」
+			CASE 1
+				PRINTFORML 「この辺りには華扇の家がある」
+				PRINTFORML 「楽園みたいなところだったなあ、静かで暖かくて」
+				PRINTFORML 「でも一回行った後はあいつの家に着かないんだよな」
+				PRINTFORMW 「華扇はレアアイテムをたくさん持っているから借りて行きたいんだが…」
+			CASE 2
+				PRINTFORML 「間欠泉地下センターではさとりのペットの空がエネルギーを管理している」
+				PRINTFORML 「核融合って技術で大きなエネルギーを生み出しているらしい、よくわからないが」
+				PRINTFORML 「ただ八卦炉で出せないくらい物凄い熱を出せるのはわかった、あとこいつのおかげで温泉が湧いたのも」
+				PRINTFORMW 「私も核融合を研究してみようかな？前方の物を全て溶かす核融合マスタースパーク…流石に強力すぎるか」
+			CASE 3
+				PRINTFORML 「ん？あの虎は華扇のペットじゃないか」
+				PRINTFORML 「今度こそ毛皮を…って流石に今やることじゃないよな」
+				PRINTFORMW 「引っかかれるのも嫌だし、次はちゃんと作戦を立てて実行しよう」
+			CASE 4
+				PRINTFORML 「マヨヒガの物を持ち帰ると幸せになるらしい」
+				PRINTFORMW 「まあ橙はどうとでもなるんだが、あいつを苛めると保護者が出てくるんだよなー」
+				ENDSELECT
+		;妖怪の山山頂　九天の滝　山の湖　絶景の丘　本殿　境内　天界
+		CASE 九天の滝,絶景の丘,山の湖,守矢神社境内,守矢神社本殿,天界
+		SELECTCASE RAND:6
+			CASE 0
+				PRINTFORML 「文は最もよく見かける天狗だな」
+				PRINTFORML 「写真撮ったり取材したり新聞作ったり、天狗の仕事もあるだろうに忙しいやつだ」
+				PRINTFORML 「この間もシュウカンシ？とやらを作っていた、発行は止めたそうだが」
+				PRINTFORMW 「それなりに面白いやつなんだが、力も強いし頭も回るから敵にはしたくないな」
+			CASE 1
+				PRINTFORML 「早苗は守矢神社の巫女で外の世界から来た人間だ、まあ神様でもあるけど」
+				PRINTFORML 「%CALLNAME:MASTER%とは話が合うことも多いだろう、人里でもよく見るから会ってみるといいかもな」
+				PRINTFORML 「真面目で悪いやつではない…んだがどこかズレてる気がするんだよな」
+				PRINTFORMW 「あと奇跡を起こせるらしいんだが、あいつ何かそれっぽいことやってたっけ？」
+			CASE 2
+				PRINTFORML 「守矢神社には早苗の他に神が二人いる」
+				PRINTFORML 「一人は神奈子だ、注連縄を背負っていることが多いぞ、戦うときは御柱まで付いてくる派手な神様だ」
+				PRINTFORML 「表に出てきて活動してるのは殆ど神奈子だ、フランクで接しやすいが相手は神様なのは忘れるなよ？」
+				PRINTFORML 「でもう一人は諏訪子だ、ヘンな帽子を被っていてカエルっぽい動きをする、よくわからない神様だ」
+				PRINTFORML 「表にはあまり出てこないが、祟り神を操ることが出来る、実は怖い神様だ」
+				PRINTFORMW 「早苗を含めて三人で仲良くやってるぜ」
+			CASE 3
+				PRINTFORML 「最近守矢神社と里を繋ぐロープウェイが出来たんだ」
+				PRINTFORML 「天狗やら河童やらが絡んでどうなるかと思ったが、上手くやっているようだ」
+				PRINTFORMW 「ますます博麗神社に人間が来なくなるな…大丈夫なのか？」
+			CASE 4
+				PRINTFORML 「天界には天子っていう物凄くワガママな天人がいる」
+				PRINTFORML 「天界はヒマだからって幻想郷に異変を起こした本当に迷惑な奴だ」
+				PRINTFORML 「能力で要石を操って地面を、持っている剣で天気を操る」
+				PRINTFORMW 「力はあるし馬鹿なわけでもない、自分に自信があるからワガママなんだろう」
+			CASE 5
+				PRINTFORML 「この辺りは本当にいいところだよなー」
+				PRINTFORML 「空気は美味いし、眺めも抜群だ、幻想郷を一望できる」
+				PRINTFORMW 「%CALLNAME:MASTER%にはまだ外の世界への未練があるかもしれないが、幻想郷もいいところだろ？」
+				ENDSELECT
+		;地底
+		;CASE 幻想風穴,地獄の深道,旧地獄街道,旧地獄温泉,地霊殿,灼熱地獄跡,ラブホ
+		;SELECTCASE RAND:5
+		;	CASE 0
+		;		PRINTFORML 「旧地獄では嫌われ者達が暮らしている」
+		;		PRINTFORML 「ただ、嫌われ者が集まっているからといって雰囲気が悪いって訳じゃない」
+		;		PRINTFORMW 「まあ危険な妖怪ばかりではあるが、楽しいところだ」
+		;	CASE 1
+		;	CASE 2
+		;		PRINTFORML 「地霊殿の主のさとりは相手の心を読むことができる」
+		;		PRINTFORML 「で、その能力を活かして怨霊の管理を任されているんだとさ」
+		;		PRINTFORML 「地霊殿に客は滅多に来ない、そりゃ考えていることを読まれる相手なんて近寄りたくないよなあ」
+		;		PRINTFORML 「嫌われ者が集まっているここでも嫌われている、まあペットには好かれているが」
+		;		PRINTFORML 「因みに妹がいる、ただしそいつは心を閉ざしたから心が読めない」
+		;		PRINTFORMW 「…こうして見るとなかなかの苦労人だよな、さとりって」
+		;	CASE 3
+		;		PRINTFORML 「こいしはさとりの妹だ、姉と違って色々な所をふらついているぞ」
+		;		PRINTFORML 「あいつは心を閉ざして心を読むことを止めて、無意識のままに行動するようになった」
+		;		PRINTFORML 「心を読めるってことは便利ではあるが、見たくないものも見えてしまうからな…」
+		;		PRINTFORMW 「サトリの能力を捨てたサトリ妖怪…なんて呼べばいいんだろうな」
+		;	CASE 4　空と猫　星と熱は私の専売特許だ
+		;		ENDSELECT
+		;月
+		;CASE 槐安通路,月の都,綿月亭,玉兎の街,桃林～砂浜,静かの海
+		;SELECTCASE RAND:5
+		;	CASE 0 ロケット
+		;	CASE 1　依姫
+		;	CASE 2　サグメ
+		;	CASE 3　純狐
+		;	CASE 4　クラピ　弾幕
+				ENDSELECT
+		
+			
+	ELSEIF TFLAG:193 == -1
+		PRINTFORMW 「なんだ？話題がないなら無理に話さなくてもいいぞ？」
+	ELSE
+	SELECTCASE RAND:30
+		CASE 0
+			PRINTFORML 「霧雨魔法店は何をやっているかって？」
+			PRINTFORML 「水道工事から妖怪退治まで幅広く対応してるぜ、まあ何でも屋ってやつかな」
+			PRINTFORMW 「料金については成功払いだから気軽に依頼していいぞ」
+		CASE 1
+			PRINTFORML 「博麗神社は外の世界と幻想郷の境に立っているんだ」
+			PRINTFORML 「かなり重要な役目があるんだが、賽銭はほとんど入らない」
+			PRINTFORML 「まあ参道が整備されてないわ妖怪がたまってるわ何の神様が祀ってあるかわからないわじゃ無理もないよな」
+			PRINTFORMW 「そんな訳だから霊夢の気を引きたいなら賽銭を入れてやるといいかもな」
+		CASE 2
+			PRINTFORML 「霊夢とはどういう関係かって？」
+			PRINTFORML 「うーん…腐れ縁ってやつか？」
+			PRINTFORML 「小さい頃から一緒だから、少なくとも私にとっては一番長いこと一緒にいる相手だろうな」
+			PRINTFORML 「霊夢と一緒にいるととにかく退屈しなくていいんだ」
+			PRINTFORMW 「大げさかもしれないが、霊夢がいなかったらつまらなくて死んじゃう…かもな」
+		CASE 3
+			PRINTFORML 「幻想郷にも外の世界から来たやつはいるぜ」
+			PRINTFORML 「まず紅魔館の連中だな」
+			PRINTFORML 「吸血鬼だの時間を止める人間だの生粋の魔法使いだのいろんなやつがいるな」
+			PRINTFORML 「次は守矢神社の早苗と神奈子と諏訪子だな」
+			PRINTFORML 「二柱の神と巫女のような役割の早苗だ。面白いやつらだから会ってみるといいんじゃないか？」
+			PRINTFORML 「次は化け狸のマミゾウだな」
+			PRINTFORML 「何を企んでいるのか読めないやつだ。会うことがあったら警戒しておくことをオススメするぜ」
+			PRINTFORML 「最後は菫子だな、なんでも女子高生っていう最強の種族らしい」
+			PRINTFORML 「寝ている間だけ幻想郷に来れるんだってさ、原理はわからんがそういうことらしい」
+			PRINTFORMW 「ほかにも私は知らないが、何やら大学生？の二人組がいるらしいぞ」
+		CASE 4
+			PRINTFORML 「なあ、外の世界から来たんだったらメルトダウンってなんだか知ってるか？」
+			PRINTFORML 「地獄鴉が言ってたんだが意味がよくわからないんだよな」
+			PRINTFORMW 「メルトダウンって何だろうな。もの凄く熱いのかな。その名のとおりとろけるくらい甘いのかな。」
+		CASE 5
+			PRINTFORML 「香霖堂には外の世界から流れ着いたものが並んでるぞ」
+			PRINTFORML 「お前からすると、懐かしいものになるな」
+			PRINTFORML 「行ってみると面白いものが見つかるかもしれないぜ」
+			PRINTFORML 「ただ売ってくれるかは交渉次第だし、香霖のやつはとにかく話が長いんだ」
+			PRINTFORMW 「なかなか厄介な店主だから行くときは気を付けるんだな」
+		CASE 6
+			PRINTFORML 「なあ、%CALLNAME:MASTER%？」
+			PRINTFORML 「これ、食べてみてくれないか？」
+			PRINTFORML 魔理沙は星形のお菓子？をあなたに薦めてきた。食べて大丈夫なんだろうか？
+			PRINTFORML 「なんだ？毒なんて入ってないぜ」
+			PRINTFORML 不安を覚えたが、せっかくの申し出なのであなたはそれを食べることにした…
+			PRINTFORML 「どうだ？」
+			PRINTFORML 甘い。でも何の甘さなのかわからない…
+			PRINTFORMW 「それは私の弾幕なんだ。前に月に行った時に食べられたんだが、どんな味がするのか気になってな」
+		CASE 7
+			PRINTFORML 「なんでこんな格好してるのかって？」
+			PRINTFORML 「魔女といえばこんな格好だろ？あと汚れが目立たないんだ」
+			PRINTFORML 「服はいろいろ持っているが黒ばっかりだ」
+			PRINTFORML 「服といえば霊夢はいつもあの巫女装束だよな、髪型はころころ変えているけど」
+			PRINTFORMW 「冬でもあの服着てて寒くないんだろうか？」
+		CASE 8
+			PRINTFORML 「ふむ、弾幕の勉強がしたいと」
+			PRINTFORML 「そんな%CALLNAME:MASTER%にオススメの本があるんだ」
+			PRINTFORML 「その本の名は｛The Grimoire of Marisa｝だ」
+			PRINTFORMW 「いろんなやつの弾幕を私の解説付きで紹介しているんだ、価値ある本だぞ？」
+		CASE 9
+			PRINTFORML 「魔法の森は魔力を高めてくれるキノコが生えている」
+			PRINTFORML 「だから魔法使いにはもってこいの場所なんだ」
+			PRINTFORML 「まあ、そのキノコは幻覚を見せてくるから普通の人間には厳しい環境だが」
+			PRINTFORML 「やばくなったら私の家か、人形がたくさん飾ってある洋館を見つけるといい」
+			PRINTFORMW 「洋館には元人間のアリスって魔法使いが住んでいるんだ。保護してくれるだろう」
+		CASE 10
+			PRINTFORML 「チルノに光の三妖精、なんだか妖精に絡まれることが多くなったなー」
+			PRINTFORML 「うーむ、私何かしたっけ？」
+			PRINTFORMW …好奇心旺盛で悪戯好きなのが妖精に似ているからではないだろうか、とあなたは思った。
+		CASE 11
+			PRINTFORML 「魔法にもいろいろあるが、私が好きなのは光と熱の魔法だ」
+			PRINTFORMW 「やっぱり派手じゃなければ魔法じゃないよなー」
+		CASE 12
+			PRINTFORML 「私の性質は｛水｝なんだ」
+			PRINTFORML 「霧雨なんて名前のせいなのか住んでるところのせいなのかわからないが」
+			PRINTFORML 「光と熱の魔法とは逆なのかもしれないな」
+			PRINTFORML 「水の魔法を使ったらもっと強くなれるんだろうか？」
+			PRINTFORMW 「でも私は派手な魔法が好きだしなー」
+		CASE 13
+			PRINTFORML 「勘違いしているやつもいると思うが、私は箒がなくても飛べるんだ」
+			PRINTFORML 「じゃあなんで箒にまたがって飛んでるのかって？」
+			PRINTFORMW 「それは魔法使いは箒で飛ぶものだから、だぜ」
+		CASE 14
+			PRINTFORML 「幻想郷になじむコツかあ…私にそれを訊かれてもな」
+			PRINTFORML 「あ、まだこっちに来たばかりのときに早苗がこんなことを言っていたな」
+			PRINTFORML 「この幻想郷では常識にとらわれてはいけないのですね！って」
+			PRINTFORML 「あれ以降早苗はこっちになじんでいった気がするぜ」
+			PRINTFORMW 「まあそれと同時に遠慮が無くなった気もするが…」
+		CASE 15
+			PRINTFORML 「最近占いを始めたんだ」
+			PRINTFORML 「星座占いと弾幕を組み合わせた画期的な占いだ」
+			PRINTFORML 「何の弾幕に被弾したらラッキーかを占うぜ」
+			PRINTFORML 「詳しくは店に来てくれ」
+			PRINTFORMW 「まあ家にいる私を見つけられればそれだけでラッキーだけどな」
+		CASE 16
+			PRINTFORML 「私は妖怪どもから物を盗んでいるんじゃなくて借りているだけだ」
+			PRINTFORML 「妖怪どもに比べれば人間の一生はとても短い」
+			PRINTFORML 「私の一生の期間で物を借りているってことだ」
+			PRINTFORMW 「私が死んだらその期間は終わる、それだけのことじゃないか」
+		CASE 17
+			PRINTFORML 「菫子は相当外の世界を嫌っているようだが、外の世界と比べて幻想郷はそんなに魅力的なのか？」
+			PRINTFORML 「少しだけ私は外の世界に出たことがあるが、十分外の世界も面白そうに見えたぞ？」
+			PRINTFORMW 「まあ短時間ではわからんこともあるし、日常で見ないものは新鮮だからってのはあるだろうけどな」
+		CASE 18
+			PRINTFORML 「スペルカードルール、それは殺し合いを遊びに変えるものだ」
+			PRINTFORML 「それに美しさや思念に勝るものは無く、攻撃には意味を持たせなきゃいけない」
+			PRINTFORML 「だからこそ弾幕に個性が生まれて見ているだけでも楽しめるんだ」
+			PRINTFORML 「避けられないくらいの物量や速さで攻めるのはダメだ、それじゃ全く面白くないからな」
+			PRINTFORMW 「スペルカードルールがあるからこそ弾幕は活き活きとするんだ」
+		CASE 19
+			PRINTFORML 「何の星が一番好きかって？私が一番好きな星は流れ星だ、厳密に言えば星じゃないけどな」
+			PRINTFORMW 「一瞬で流れて消える一番目立つ星、流れ星こそ夜空の主役だ」
+		CASE 20
+			PRINTFORML 「魔法使いには三種類のタイプがある」
+			PRINTFORML 「一つ目は人間が修行して魔法使いになるパターン、二つ目は生まれながらにして魔法使いなパターンだ」
+			PRINTFORML 「前者の例はアリスや白蓮、後者の例はパチュリーだ」
+			PRINTFORMW 「そして最後は私のこと、｛普通の｝魔法使いだ」
+		CASE 21
+			PRINTFORML 「紅魔館の地下には大きな図書館がある、幻想郷では最も本があるところだ」
+			PRINTFORML 「でもほとんどは魔導書だ、%CALLNAME:MASTER%が読みたい本は見つからないだろうな」
+			PRINTFORMW 「ただ珍しい本が多いから鈴奈庵で読みたい本が無かったら行ってみるのもいいかもな」
+		CASE 22
+			PRINTFORML 「んー？%CALLNAME:MASTER%、ケガしてないか？」
+			PRINTFORML 「あ、腕に切り傷が出来てるぜ、血が出てるからちゃんと処置しておけよ？」
+			PRINTFORML 魔理沙の言う通り、腕に小さい傷が出来ていた。でもなんで気付いたんだ、と聞くと
+			PRINTFORML 「ふっ…こう修羅場をくぐっているとなあ、戦場の匂いくらい判るもんだ」
+			PRINTFORMW とイイ笑顔を浮かべて魔理沙は言った。何だそのキャラクターは…
+		CASE 23
+			PRINTFORML 「この間氷属性のマスタースパークを使ってみたんだが、あまり威力が増した感じは無かったな」
+			PRINTFORMW 「うーむ、もう少し試してみるかな」
+		CASE 24
+			PRINTFORML 「玄武の沢の河童のところに行けば、外の世界で使ってたような機械が見つかるかもな」
+			PRINTFORML 「だが、行くんだったら気を付けた方がいいぞ、臆病だけどあいつらも妖怪だからな」
+			PRINTFORML 「特に水の近くには行かないようにな」
+			PRINTFORML 「後は…がめつい奴がいるんだ、吹っ掛けられて余計に金を取られないように気を付けろよ？」
+			PRINTFORMW 「あ、そうだ、きゅうりを持っていくと何かと便利かもな、交渉に使えるかもしれん」
+		CASE 25
+			PRINTFORML 「%CALLNAME:MASTER%って幻想郷の裏からバランスを取る仕事に興味ないか？」
+			PRINTFORML 「…ってその前にあいつに気に入られなきゃいけないんだった、すまん、忘れてくれ」
+			PRINTFORML 「はあ、私は私の好きなように生きていく、って言ったじゃないか…諦めの悪い神様だぜ」
+			PRINTFORMW 何やらとんでもないものに気に入られてしまったようである。
+		CASE 26
+		;成子？成美？
+			PRINTFORML 「魔法の森には存在その物を変容させる魔力があるらしい」
+			PRINTFORML 「で、その影響で命を得た元地蔵がいるんだ」
+			PRINTFORML 「独りが好きなタイプだし出不精でもあるから中々見かけないかもしれないが」
+			PRINTFORMW 「見かけたら？うーん、拝んで行けばいいんじゃないか？まあ、仲良くしてやってくれ」
+		CASE 27
+			PRINTFORML 「なあ、外の世界の海ってどういうものなんだ？」
+			PRINTFORML 「一応月には海はあったんだが、生き物が棲んでなかったんだ」
+			PRINTFORML 「そして幻想郷には湖とか池とか川とかはあるんだが海は無い」
+			PRINTFORMW 「ちゃんと生きている海を見てみたいぜ」
+		CASE 28
+			PRINTFORML 「願い事は神社でするのもいいが、流れ星に願い事をする方法もあるぞ」
+			PRINTFORML 「いつ現れるかわかりにくい欠点はあるが、年に数回は流星群があるんだ」
+			PRINTFORML 「その時なら確実に願い事ができる」
+			PRINTFORMW 「それにあの光景は凄いぞ、一度見たら病みつきになっちゃうぜ」
+		CASE 29
+			PRINTFORML 「人間の里以外で活動する人間なんてそうはいないぞ？」
+			PRINTFORML 「純粋な人間なら私、霊夢、咲夜くらいか、幻想郷の人間ではないが菫子もだな」
+			PRINTFORML 「半分幽霊とか神様でもある人間とか半分妖怪とか死なない人間とか神様の手先とか、一応人間のやつもいるが…」
+			PRINTFORML 「人間の里から外に出れば出会うのは九割超は人間以外だ」
+			PRINTFORMW 「物好きなのは結構だが、気を付けろよなー」
+		ENDSELECT
+		RETURN 1
+	ENDIF
+	RETURN 1
+ENDIF
+RETURN 1
+;==================================================
+;301,お茶を淹れる
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_301
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_301_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_301_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == -1
+			PRINTFORML 「んー？お茶か、悪いな、いただくぜ」
+			PRINTFORML 「うーむ、これは苦すぎるな…」
+			PRINTFORMW 「これは練習しなきゃな、%CALLNAME:MASTER%」
+	ELSEIF TFLAG:193 == 0
+			PRINTFORML 「んー？お茶か、悪いな、いただくぜ」
+			PRINTFORMW 「ふむ、これは中々…」
+	ELSE
+			PRINTFORML 「んー？お茶か、悪いな、いただくぜ」
+			PRINTFORMW 「おお、美味いな、これはイケるぜ」
+	ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;302,スキンシップ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_302
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_302_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_302_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == -1
+		PRINTFORML 「あー？私にさわりたい？だーめーだ」
+		PRINTFORMW 魔理沙に手を伸ばしたあなただったが、スッと距離を取られてしまった。
+	ELSEIF CFLAG:MASTER:現在位置 == 13 || CFLAG:MASTER:現在位置 == 24 || CFLAG:MASTER:現在位置 == 30 || CFLAG:MASTER:現在位置 == 39
+		IF TALENT:恋人
+					PRINTFORML
+					PRINTFORML 「さあ、お背中流しますわ、旦那様、なんてな、ふふふ…」
+					PRINTFORML 魔理沙があなたの背中を丁寧に洗っている…
+					PRINTFORML 「よし、こんなものかな」
+					PRINTFORML 「さて、私のカラダも洗ってみるか？」
+					PRINTFORMW 体を密着させながら、魔理沙はあなたの耳元で囁いた。
+		ELSEIF TALENT:恋慕
+					PRINTFORML
+					PRINTFORML 「ほら、背中流してやるぜ」
+					PRINTFORML 魔理沙があなたの背中を丁寧に洗っている…
+					PRINTFORML 「よし、こんなものかな」
+					PRINTFORML 「さて、私のカラダも洗ってみるか？」
+					PRINTFORMW 妖しい笑みを浮かべながら、魔理沙はあなたの耳元で囁いた。
+		ENDIF
+		RETURN 1
+		;肩をもむ　擽る　手をにぎにぎ　髪触る　背中をつつー　ペタペタ　耳にふーっ　うなじ、ほっぺキス（恋人）　
+	ELSE
+		SELECTCASE RAND:8
+			CASE 0
+				PRINTFORML あなたは魔理沙の肩を揉んでみた。
+				PRINTFORML 「ん？肩を揉んでくれるのか？せっかくだし頼むぜ」
+				PRINTFORML ………
+				PRINTFORML 「おー、上手いじゃないか、気持ちいいぜー♪」
+				PRINTFORML 「魔法の研究に没頭してると肩がこっちゃってな」
+				PRINTFORMW 「ありがとな%CALLNAME:MASTER%、また頼むぜ」
+			CASE 1
+				PRINTFORML あなたは魔理沙を擽ってみた。
+				PRINTFORML 「………」
+				PRINTFORML こちょこちょ…
+				PRINTFORML 「………」
+				PRINTFORML こちょこちょこちょ…
+				PRINTFORML 「ぷっ…くくっ…はははははっ」
+				PRINTFORML 「ふーっ、わかったわかった、私の負けだ」
+				PRINTFORMW 「じゃあ今度は私の番だな、%CALLNAME:MASTER%、覚悟しろよー？」
+			CASE 2
+				PRINTFORML あなたは魔理沙の背中をさすってみた。
+				PRINTFORML 「うひゃあ!?な、何するんだ!?」
+				PRINTFORML 「くそー、変な声出させやがって…覚えてろよ？」
+				PRINTFORMW …なかなか面白いものが見られた気がする。
+			CASE 3
+				PRINTFORML あなたは魔理沙の髪をさわってみた。
+				PRINTFORML ふわふわしていて綺麗な金色の髪だ、それにほのかにいい匂いがする。
+				PRINTFORML 「…私の髪なんてさわってて楽しいか？」
+				PRINTFORMW 「まあ、髪に夢中になってくれるのは悪い気はしないけどな」
+			CASE 4
+				PRINTFORML あなたは魔理沙の手を握ってみた。
+				PRINTFORML 「%CALLNAME:MASTER%の手って大きいよな、頼りがいがある気がする」
+				PRINTFORMW 「そういえば掃除してると筋肉がつくのか？」
+			CASE 5
+				PRINTFORML あなたは魔理沙の耳に息を吹きかけてみた。
+				PRINTFORML 「なあっ!?な、何するんだ!?」
+				PRINTFORML 「くそー、変な声出させやがって…覚えてろよ？」
+				PRINTFORMW …なかなか面白いものが見られた気がする。
+			CASE 6
+				PRINTFORML 「むー、そんなに楽しいか？私の体をさわるのは」
+				IF TALENT:恋慕
+					PRINTFORML 「んっ…そんなところまで…」
+					PRINTFORML 魔理沙は熱い息を吐いている。
+					PRINTFORML 「ふふふ、もう我慢できないのかー？」
+					PRINTFORMW 「%CALLNAME:MASTER%がシたいならいつでもいいぜ？」
+				ELSEIF TALENT:思慕
+					PRINTFORML 「ちょっ、そんなところまで…」
+					PRINTFORML 「…はいはい、もう終わりだぜ」
+					PRINTFORMW 魔理沙は少し顔を赤らめている。
+				ELSE
+					PRINTFORML 「そのー、あまりベタベタしないでくれるか？」
+				ENDIF
+		;スキンシップじゃねえ
+			CASE 7
+				PRINTFORML あなたは魔理沙をじーっと見つめてみた。
+					IF TALENT:恋人
+						PRINTFORML 「………」
+						PRINTFORML 魔理沙もこちらを綺麗な瞳でじーっと見つめてくる。
+						PRINTFORML 「ふーん、それだけか？じゃあ私から行くぜ？」
+						PRINTFORML 魔理沙はあなたを抱き寄せてそっとキスをした。
+						PRINTFORMW 「へへ、ごちそうさま♪」
+				ELSEIF TALENT:恋慕
+						PRINTFORML 「………」
+						PRINTFORML 魔理沙もこちらを綺麗な瞳でじーっと見つめてくる。
+						PRINTFORML 「………」
+						PRINTFORML 魔理沙はあなたに寄ってきて上目遣いであなたを見つめてきた。
+						PRINTFORML 「………」
+						PRINTFORML たまらずあなたは目を反らしてしまった。
+						PRINTFORMW 「よーし、私の勝ちだな、ふふふ、ドキドキしちゃったのか？」
+				ELSEIF TALENT:思慕
+						PRINTFORML 「うーむ、そんなに見つめないでくれ、ちょっと恥ずかしいぜ」
+						PRINTFORMW 少し顔を赤らめながら、魔理沙は目を反らした。
+				ELSE
+						PRINTFORML 「うーむ、そんなに見つめないでくれ、ちょっと恥ずかしいぜ」
+						PRINTFORMW 魔理沙は目を反らした。
+				ENDIF
+			ENDSELECT
+	ENDIF
+	RETURN 1
+ENDIF
+RETURN 1
+;==================================================
+;303,謝る
+;TFLAG:193(2=菓子折成功 1=大成功 0=成功 -1=失敗 -2=菓子折失敗)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_303
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_303_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_303_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;304,仕事を手伝う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;CFLAG:350(仕事内容(JOB_仕事内容.ERB参照のこと
+;TCVAR:手伝えない(=2 手伝っても早くは終わらない、時間停止中不可 永琳の診察等)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_304
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_304_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_304_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+	;通常
+	ELSE
+		PRINTFORML 「ん、手伝ってくれるのか？」
+			IF TFLAG:193 == 1
+				PRINTFORMW 「おお、すごく捗ったぜ、ありがとな♪」
+			ELSEIF TFLAG:193 == 0
+				PRINTFORMW 「よし、こんなもんかな、手伝ってくれてありがとな♪」
+			ELSE
+				PRINTFORML 「あー、うまくいかなかったか、気にするな」
+				PRINTFORMW 「手伝ってくれてありがとな」
+			ENDIF
+	ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;305,膝枕してもらう
+;TFLAG:193(-5=MASTERがTARGETよりも巨体の場合(TALENT:MASTER:体型 > TALENT:体型 + 2) 1=大成功 0=成功 -1=失敗)(-5以外は地の文分岐無し)
+;ABL:親密(6以上=顔をのぞき込みながら頭を撫でてくれる 3以上=ただ頭を撫でてくれる 2以下=縮こまっている)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_305
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_305_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_305_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORML 「ふふふ、なんだ？私に甘えたいのか？」
+	PRINTFORMW 「まったく、仕方のないやつだな…」
+ENDIF
+RETURN 1
+;==================================================
+;306,お腹を撫でる
+;TFLAG:193(1=ABL:親密6以上かつ妊娠時 0=成功 -1=ABL:親密5以下)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_306
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_306_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_306_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+	;通常
+	ELSE
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;307,頬をつまむ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐無し
+	;以下は先に書いた条件が優先される
+	;TALENT:恋慕(受け入れつつ笑顔でやり返す
+	;ABL:親密(6以上=おずおずとやり返す
+	;ABL:従順(5以上=されるがまま
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_307
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_307_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_307_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+	;通常
+	ELSE
+	ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;308,頬をつつく
+;添い寝中or睡眠中限定
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_308
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_308_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_308_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;睡眠中
+	IF CFLAG:睡眠
+	;通常
+	ELSE
+	ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;309,頭を撫でる
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;ABL:親密(6以上=通常成功時分岐
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_309
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_309_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_309_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+	;通常
+	ELSEIF TFLAG:193 == 1
+		PRINTFORMW 「へへ、%CALLNAME:MASTER%に撫でられると、なんだか落ち着くな…」
+	ELSEIF TFLAG:193 == 0
+		PRINTFORMW 「あまり子ども扱いしないでほしいんだが…まあ%CALLNAME:MASTER%がしたいならいいか」
+	ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;331,お茶を淹れる（薬入り）
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_331
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_331_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_331_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == -1
+			PRINTFORML 「んー？何か入ってるよな、このお茶」
+			PRINTFORMW 「まったく、魔法使いをなめるなよ？」
+	ELSE
+		ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;332,お酒をふるまう
+;TFLAG:193(0=下戸飲み成功 -1=下戸飲み失敗 -2=下戸飲み大失敗 -5=下戸飲みあきらめ)
+;TFLAG:194(51=どぶろく 52=清酒 53=鬼殺し)
+;ALCOHOL_TASTE(TFLAG:194)(15以上=気に入る 9以下=口に合わない)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_332
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_332_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_332_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;333,愚痴を聞く
+;TFLAG:193(6=大成功(酔い) 5=成功(酔い) 4=失敗(酔い) 3=大成功 2=成功 1=失敗)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_333
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_333_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_333_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		CASE 6
+		;大成功（酔い）
+		CASE 5
+		;成功（酔い）
+		CASE 4
+		;失敗（酔い）
+		CASE 3
+		;大成功
+		CASE 2
+		;成功
+		CASE 1
+		;失敗
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;334,杯を交わす
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;CFLAG:妊娠自覚状態(1=食事)
+;TALENT:酒耐性(-2=食事)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_334
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_334_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_334_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		CASE 1
+		;大成功
+		CASE 0
+		;成功
+		CASE -1
+		;失敗
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;335,介抱する
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_335
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_335_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_335_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		CASE 1
+		;大成功
+		CASE 0
+		;成功
+		CASE -1
+		;失敗
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;336,膝枕する
+;ABL:親密(4以下=居心地悪げ 9以下=恥ずかしげ それ以上=幸せそう
+;TIME_PROGRESS(TFLAG:膝枕した)(44以下=失敗
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_336
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_336_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_336_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 > 0
+	;寝ちゃった
+	ELSE
+	;それ以外
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;350,押し倒す（時姦時イタズラする
+;TFLAG:194 (0=成功 1=人目がある　2=野外は嫌でござりまする　3=多人数プレイは勘弁　4=合意があってもムードが足りぬ）
+;TCVAR:抱き寄せ初回　1=普通に合意ゲット　2=先にキスぐらいしろよ　3=媚薬or発情には勝てなかったよお…　4=悔しい…刻印さえなければﾋﾞｸﾋﾞｸﾝ
+;5=強引に迫られると断れぬ(素質臆病持ち専用) 6=まんざらでもない　7=駄目　8=論外
+;構文がわからなかったのでクラウンピース口上よりお借りしております。問題があれば削除します
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_350
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_350_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_350_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;押し倒され値	ENDURE(11) >= RAND:300 + 300で真,しかしRANDの値は変化するのでここでは400を超えたら押し倒されることにする
+	IF FLAG:時間停止 == 1
+	;野外失敗
+	ELSEIF TFLAG:194 == 2
+		IF ENDURE(11) > 400
+			PRINTFORMW 「お、おいおい、こんなところでするのか？」
+		ELSE
+			PRINTFORMW 「おいおい、ここは外だぞ？我慢してくれ」
+		ENDIF
+	;人目失敗
+	ELSEIF TFLAG:194 == 1
+		IF ENDURE(11) > 400
+			PRINTFORMW 「お、おいおい、こんなところでするのか？」
+		ELSE
+			PRINTFORMW 「いや、シたくなったのはいいんだが…流石に人目があるのは…な」
+		ENDIF
+	;乱交失敗
+	ELSEIF TFLAG:194 == 3
+		PRINTFORMW 「私は二人きりがいいんだけど…ダメか？」
+	;ムード失敗
+	ELSEIF TFLAG:194 == 4
+		PRINTFORMW 「おいおい、こういうのはもっと段階ってものがあるんじゃないか？」
+	ENDIF
+	
+	IF !FLAG:70 && !TFLAG:194
+		PRINTFORML 
+		SELECTCASE TCVAR:11:抱き寄せ初回
+		;普通の初回
+		CASE 1, 2
+			PRINTFORML 「うわっ、何すんだ!?」
+			PRINTFORML あなたは魔理沙を押し倒し、じっと顔を見つめた。
+			PRINTFORML 「…そうか、私とヤリたいってことか…」
+			PRINTFORML 「………」
+			PRINTFORML 「いいぜ、%CALLNAME:MASTER%となら…」
+			PRINTFORMW 魔理沙は体から力を抜いた…
+		;媚薬or発情
+		CASE 3
+			PRINTFORMW （はあっ、はあっ、体が疼いて…逆らえないっ）
+		CASE 4
+			PRINTFORMW （え？なんでコイツに逆らえないんだ？私…）
+;		CASE 5
+;			PRINTFORML 押しの弱い%CALLNAME:TARGET%は、%CALLNAME:MASTER%を拒むことができなかった…
+		;もうちょっと
+		CASE 6
+			PRINTFORML 「えっ？ちょ、ちょっと待ってくれ」
+			PRINTFORML 「すまないが、もう少し時間をくれないか？」
+			PRINTFORMW 「イヤってわけじゃないんだ、ただ心の準備がちょっと…な」
+		;ダメ
+		CASE 7
+			PRINTFORML 「は？何のつもりだ？今すぐ離れてくれ、さもないと…」
+			PRINTFORMW 魔理沙は八卦炉を取り出してこちらに向けてきた…
+		;早すぎ
+		CASE 8
+			PRINTFORML 「…は？何のつもりだ？お前、吹き飛ばされたいのか？」
+			PRINTFORMW 魔理沙は八卦炉を取り出してこちらに向けてきた…
+		;初回じゃない
+		CASEELSE
+			IF TALENT:恋人
+				PRINTFORML 「ふふふ、随分と強引だな？」
+				PRINTFORML あなたは魔理沙を押し倒した。
+				PRINTFORML 「そんなにがっつかなくても私は逃げないぞ？」
+				PRINTFORML 「もう我慢できないんだな？」
+				PRINTFORML 妖艶な笑みを浮かべながら魔理沙は言う。あなたは喉をならしながらうなずく。
+				PRINTFORML 「そうかそうか、私も%CALLNAME:MASTER%が欲しくて我慢できないんだ」
+				PRINTFORMW 「さあ、いっぱい愛し合おうぜ…」
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「ふふふ、随分と強引だな？」
+				PRINTFORML あなたは魔理沙を押し倒した。
+				PRINTFORML 「私のこと、欲しいか？」
+				PRINTFORML 妖艶な笑みを浮かべながら魔理沙は言う。あなたは喉をならしながらうなずく。
+				PRINTFORMW 「いいぜ、%CALLNAME:MASTER%、いっぱいシような…」
+			ELSE
+				PRINTFORML 「うわっ、何すんだ!?」
+				PRINTFORML あなたは魔理沙を押し倒し、じっと顔を見つめた。
+				PRINTFORML 「…私とヤリたくなったってことか…」
+				PRINTFORML 「………」
+				PRINTFORML 「わかった、可愛がってくれよ？」
+				PRINTFORMW 魔理沙は体から力を抜いた…
+			ENDIF
+		ENDSELECT
+			
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;351,連れ出す
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_351
+;連れ出しにはTRAIN_MESSAGEが無い
+CALL M_KOJO_MESSAGE_COM_K11_351_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_351_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;TARGET連れ出し
+	IF CFLAG:同行 == 60
+		PRINTFORMW 「ん、いいぜ、どこ行くんだ？」
+	;TARGET以外連れ出し(TARGET同行中のみ
+	ELSE
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;352,告白する
+;FLAG:甲斐性無(1=失敗)
+;TFLAG:193 (1=成功 0=失敗)
+;恋慕じゃないと消化不良感が…
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_352
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_352_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_352_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == 1
+		IF TALENT:恋慕
+			PRINTFORMW …あなたは魔理沙を呼び止めた。
+			PRINTFORMW 「うん？どうした？」
+			PRINTFORMW 魔理沙があなたの顔をじっと見つめてくる。
+			PRINTFORMW 「ふむ…何か言いたいことがあるみたいだな」
+			PRINTFORMW 「遠慮なく言っていいぜ、受け止めてやるから」
+			PRINTFORMW ここまで魔理沙に言わせたのだ…覚悟を決めねばならない。
+			PRINTFORMW ………
+			PRINTFORMW 魔理沙のことが好きだ。付き合ってくれないか？
+			PRINTFORMW ………
+			PRINTFORMW 「あーあ、告白は私がしようと思ってたのになあ…」
+			PRINTFORMW …魔理沙がとんでもないことを言い出す。ということは…
+			PRINTFORMW 「私も%CALLNAME:MASTER%のことが好きだ。これからよろしく、%CALLNAME:MASTER%の彼女として」
+			PRINTFORMW 魔理沙があなたの胸にとび込んでくる。
+			PRINTFORMW 「へへ、%CALLNAME:MASTER%、大好き、だぜ」
+			PRINTFORMW そう言って魔理沙はこれまで見たことのない、とびきりの笑顔を%CALLNAME:MASTER%に向けている。
+		ELSE
+			PRINTFORMW …あなたは魔理沙を呼び止めた。
+			PRINTFORMW 「うん？どうした、%CALLNAME:MASTER%？」
+			PRINTFORMW 魔理沙があなたの顔をじっと見つめてくる。
+			PRINTFORMW ………
+			PRINTFORMW 魔理沙のことが好きだ。付き合ってくれないか？
+			PRINTFORMW ………
+			PRINTFORMW 「えっ、%CALLNAME:MASTER%が、私のことを？」
+			PRINTFORMW 魔理沙は驚いている様子だ。
+			PRINTFORMW 「うーん、わかった。これからよろしく、%CALLNAME:MASTER%の彼女として」
+			PRINTFORMW どうやら告白は成功したようだ…
+		ENDIF
+		RETURN 1
+	ENDIF
+	RETURN 1
+
+ENDIF
+RETURN 1
+;==================================================
+;353,イタズラする
+;FLAG:甲斐性無(1=失敗)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_353
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_353_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_353_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;354,添い寝する（相手は起きて布団に招く感じ）
+;CFLAG:衰弱(1以上=起きない
+;CFLAG:お招き(0以外=起きない
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_354
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_354_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_354_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;355,時止め（地の文の改変程度に留めるべき
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_355
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_355_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_355_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;360,身を任せる
+;TCVAR:20(27=谷間を見せる 32=前から抱きつく 35=スカートの中を見せる 53=パイズリ 73=ぱふぱふ 77=乳を吸わせる 85=Ｖ挿入する 86=だいしゅきホールド 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_360
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_360_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_360_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;363,読み聞かせ（[幼稚]持ち専用）
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐無し
+;CFLAG:添い寝中(1=布団orベッドの中で本を読む
+;MASTERがTARGETより大柄の場合、膝の上にTARGETを乗せる
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_363
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_363_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_363_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;364,豆まき(萃香、勇儀、スカーレット姉妹用
+;TFLAG:193(豆まきに参加してる人数
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_364
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_364_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_364_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;365,守矢神社へ移動(早苗、神奈子、諏訪子用
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_365
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_365_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_365_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;402,就寝
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_402
+;就寝にTRAIN_MESSAGEは無い
+CALL M_KOJO_MESSAGE_COM_K11_402_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_402_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;403,休憩
+;CFLAG:TARGET:睡眠(1=TARGETが寝てる隣で休憩
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_403
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_403_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_403_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:TARGET:睡眠
+	ELSEIF TALENT:恋慕
+		PRINTFORML 「うん？どうした%CALLNAME:MASTER%、疲れたのか？」
+		PRINTFORMW 「ほら、膝枕してやるから、少し休むといいぜ」
+	ELSE
+		PRINTFORML 「うん？どうした%CALLNAME:MASTER%、疲れたのか？」
+		PRINTFORMW 「無理は禁物だ、少し休むといいぜ」
+	ENDIF
+	RETURN 1
+ENDIF
+RETURN 1
+;==================================================
+;405,出掛ける(同行時デート
+;条件が厄介なので、COMF405 出掛ける.ERBを参照のこと
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_405
+;出掛けるにTRAIN_MESSAGEは無い
+CALL M_KOJO_MESSAGE_COM_K11_405_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_405_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;TARGETとデート
+	IF CFLAG:同行
+		IF TALENT:恋慕
+			PRINTFORML 「ふふ、デートのお誘いか？」
+			PRINTFORML 「せっかく%CALLNAME:MASTER%が誘ってくれてるんだ、当然受けるぜ」
+			PRINTFORMW 「さて、どこ行くんだ？」
+		ELSE
+			PRINTFORML 「二人きりで出掛けないかって？それって…」
+			PRINTFORMW 「でもせっかく誘ってくれてるんだし…わかった、行こうぜ」
+		ENDIF
+	;TARGET以外とデート
+	ELSEIF CFLAG:MASTER:同行
+		IF TALENT:恋人
+			PRINTFORML 「いやな、恋人の目の前で他の女をデートに誘うってのは流石にどうかと思うんだが」
+			PRINTFORMW 「はあ…まあいいか、次は私とデート行こうぜ」
+		ELSEIF TALENT:恋慕
+			PRINTFORML 「え？ああ、そいつとデートに行くのか…」
+			PRINTFORMW 「今度は私を誘ってくれると嬉しいぜ」
+		ELSE
+			PRINTFORMW 「ふーん、デートに行くのか、楽しんでこいよ」
+		ENDIF
+	;お出かけお見送り
+	ELSE
+		IF TALENT:恋人
+			PRINTFORML 「えー？一人で出かけるのか？」
+			PRINTFORMW 「私も一緒に行きたいんだが…まあいいか、次は私とデート行こうぜ」
+		ELSEIF TALENT:恋慕
+			PRINTFORML 「ああ、一人で出かけるのか…」
+			PRINTFORMW 「私も一緒に行きたいんだが…仕方ないか」
+		ELSE
+			PRINTFORMW 「ん、どこか出かけるのか、楽しんでこいよ」
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;410,掃除
+;FLAG:70(1=時間停止中
+;TFLAG:193(0=見てるだけ 1=一緒に掃除)
+;TFLAG:194(3=汚れ高 2=汚れ中 1=汚れ低 0=汚れ最小
+;OUTROOF(CFLAG:現在位置)(野外掃除（冬は雪かき
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_410
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_410_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_410_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF FLAG:時間停止
+	ELSEIF TFLAG:193 == 1
+		PRINTFORML 「あー、掃除するのか？」
+		PRINTFORMW 「仕方ないな、掃除は苦手だが手伝ってやるぜ」
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;411,戦闘訓練
+;TFLAG:194(3=夏の昼間 2=ヤバい天気 1=悪天候 0=屋内or通常天気
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_411
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_411_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_411_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+SELECTCASE RAND:5
+		CASE 0
+			PRINTFORML 「弾幕で一番大事なことを教えてやる」
+			PRINTFORMW 「弾幕は…パワーだぜ!!」
+		CASE 1
+			PRINTFORML 「私のお気に入りの魔法を見せてやるぜ!」
+			PRINTFORML 「｛恋符｝マスタースパーク！」
+			PRINTFORMW 魔理沙の持つ八卦炉から広大な光線が撃ち出される!
+		CASE 2
+			PRINTFORML 「よし、こんなのはどうかな？」
+			PRINTFORML 「｛魔符｝ミルキーウェイ」
+			PRINTFORMW 魔理沙は色とりどりの星形の弾幕を放ってくる!
+		CASE 3
+			PRINTFORML 「ふふふ、私から逃げられるかな？」
+			PRINTFORML 「いくぞ、ブレイジングスター!」
+			PRINTFORMW マスタースパークを後ろに撃ち、猛烈な勢いで魔理沙が突っ込んでくる!
+		CASE 4
+			PRINTFORML 「これを使いこなせれば弾幕の幅が増えそうなんだ」
+			PRINTFORML 「という訳でちょっと練習に付き合ってくれ」
+			PRINTFORML 「｛魔弾｝テストスレイブ」
+			PRINTFORMW 魔理沙は大きな弾幕を操りつつ攻撃してくる!
+		ENDSELECT
+		RETURN 1
+
+ENDIF
+RETURN 1
+;==================================================
+;412,勉強
+;ABL:教養(ABL:MASTER:教養より大=MASTERが教えてもらう ABL:MASTER:教養より小=TARGETが教えてもらう
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_412
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_412_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_412_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF ABL:MASTER:教養 >= ABL:TARGET:教養
+		PRINTFORML 「お、%CALLNAME:MASTER%、勉強してるのか」
+		PRINTFORML 「へえ、これは中々興味深いな」
+		PRINTFORMW 「魔法使いたるもの、研鑽は怠れないからな、%CALLNAME:MASTER%、教えてくれないか？」
+	ELSE
+		PRINTFORML 「お、%CALLNAME:MASTER%、勉強してるのか」
+		PRINTFORML 「ふむ、私が教えてやろう」
+		PRINTFORML 魔理沙が…勉強を教える…？あなたは不思議そうな顔をしている。
+		PRINTFORML 「おいおい、私に学がないとでも思っているのか？」
+		PRINTFORMW 「魔法使いに知識は必要不可欠だぞ、ほらほら、教えてやるからよーく聞いておけよ？」
+	ENDIF
+	RETURN 1
+
+ENDIF
+RETURN 1
+;==================================================
+;413,料理
+;TFLAG:194(100以上=禁断のメニュー 3=デザート 2=主食 1=軽食
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_413
+;TFLAG:194が100以上の場合のみ
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_413_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_413_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORML 「お、何か作るのか%CALLNAME:MASTER%？どれ、手伝ってやろう」
+	PRINTFORML 魔理沙の料理か…キノコ以外の調理は出来るのだろうか？
+	PRINTFORML 「む、何だその目は？ちゃんと料理はできるぞ？大丈夫だ」
+	PRINTFORML …少し不安を覚えながらも、ふたりで料理を作った…
+	PRINTFORML どうやらその不安は杞憂に終わったようだ。
+	PRINTFORMW 「ははは、だから大丈夫だって言ったろ？」
+ENDIF
+RETURN 1
+;==================================================
+;414,食事を取る
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;TFLAG:194(1=ノーパンしゃぶしゃぶ 2=禁断のメニュー 31=ドーピングコンソメスープ 30=モッツァレラチーズとトマトのサラダ 34=ギンギー料理
+;TCVAR:MASTER:308(bit0=濃い味 bit1=薄味 bit3=激辛 bit4=激甘 bit5=わさび bit6=激酸っぱ
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_414
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_414_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_414_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == 1
+		PRINTFORML 「うん？これ食べていいのか？」
+		PRINTFORML 「たまにはキノコ以外も食べなきゃな…いただきまーす♪」
+		PRINTFORMW 「おお、これは美味い、ありがとな、%CALLNAME:MASTER%♪」
+	ELSEIF TFLAG:193 == 0
+		PRINTFORML 「うん？これ食べていいのか？」
+		PRINTFORML 「たまにはキノコ以外も食べなきゃな…いただきまーす♪」
+		PRINTFORMW 「ふむ、これは中々…」
+	ELSE
+		PRINTFORML 「うん？これ食べていいのか？」
+		PRINTFORML 「たまにはキノコ以外も食べなきゃな…いただきまーす♪」
+		PRINTFORMW 「うーむ、これは私の口には合わないな…」
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;415,食事をふるまう
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;TCVAR:MASTER:308(bit0=濃い味 bit1=薄味 bit3=激辛 bit4=激甘 bit5=わさび bit6=激酸っぱ
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_415
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_415_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_415_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == 1
+		PRINTFORML 「うん？これ食べていいのか？」
+		PRINTFORML 「たまにはキノコ以外も食べなきゃな…いただきまーす♪」
+		PRINTFORMW 「おお、これは美味い、ありがとな、%CALLNAME:MASTER%♪」
+	ELSEIF TFLAG:193 == 0
+		PRINTFORML 「うん？これ食べていいのか？」
+		PRINTFORML 「たまにはキノコ以外も食べなきゃな…いただきまーす♪」
+		PRINTFORMW 「ふむ、これは中々…」
+	ELSE
+		PRINTFORML 「うん？これ食べていいのか？」
+		PRINTFORML 「たまにはキノコ以外も食べなきゃな…いただきまーす♪」
+		PRINTFORMW 「うーむ、これは私の口には合わないな…」
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;416,演奏する
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;TFLAG:使用楽器(1=キーボード 2=ピアノ 3=ギター 4=トランペット 5=ヴァイオリン)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_416
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_416_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_416_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	
+ENDIF
+RETURN 1
+;==================================================
+;417,昼寝をする
+;TFLAG:193(0=MASTERを抱き枕にして寝ている 1=MASTERの膝を枕にして寝ている 2=寝顔にキスされた 3=寝顔をのぞき込まれた 4=MASTERが膝枕されてる 5=秘処orペニス揉み
+;CFLAG:添い寝中(1=一緒に寝ている
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_417
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_417_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_417_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;421,願掛けする
+;条件が複雑なので、COMF421 願掛け.ERBおよび、EVENT_MESSAGE_COM400.ERBの願掛けするの項を参照のこと
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_421
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_421_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_421_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;422～430は、特殊コマンドなのでテンプレでは対応しません
+;==================================================
+
+;==================================================
+;431,お風呂でくつろぐ
+;TFLAG:209(4=人里の銭湯で番台ちゃんを怒らせている 1=銭湯に入った
+;TFLAG:211(4=地底の温泉で番台妖怪を怒らせている 1=温泉に入った
+;TFLAG:194(1=連続入浴不可(表示しない可能性あり？
+;なんだこれ
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_431
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_431_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_431_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TALENT:恋慕
+		PRINTFORML 「あー、生き返るぜー♪」
+		PRINTFORML 魔理沙の肢体が目に入る…
+		PRINTFORML 白い肌にしなやかな体躯、とても綺麗だ…ある一部分の女性らしさは足りないが。
+		PRINTFORML 「やっぱり風呂はいいな、%CALLNAME:MASTER%」
+		PRINTFORML 「…うん？どうした？私のことじっと見て…もしかして、見とれてるのか？」
+		PRINTFORMW ニヤリと笑う魔理沙から、あなたは思わず目をそらしてしまった。
+	ELSE
+		PRINTFORML 「ふう、やっぱり風呂はいいな」
+		PRINTFORML あなたは魔理沙と一緒に風呂に入っている。
+		PRINTFORMW 「…あんまりこっち見るなよ、流石に恥ずかしいからな」
+	ENDIF
+	RETURN 1
+ENDIF
+RETURN 1
+;==================================================
+;432,お風呂でくつろぐ
+;表示タイミングは入浴後なので、お風呂上がりでの
+;TFLAG:209(4=人里の銭湯で番台ちゃんを怒らせている 1=銭湯に入った
+;TFLAG:211(4=地底の温泉で番台妖怪を怒らせている 1=温泉に入った
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_432
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_432_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_432_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;440,待つ
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_440
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_440_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_440_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;441,授業を受ける(慧音専用
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_441
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_441_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_441_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;442,伐採する（未実装
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_442
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_442_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_442_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;442以降のコマンドは、実行しても口上はおそらく表示されないのでテンプレでもスルー
+;==================================================
+
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;デート系コマンド
+;デート系口上は文字通り外出先で発生
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+[SKIPSTART]
+;現状未実装
+;==================================================
+;600,デート会話
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_600
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_600_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_600_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;601,デートスキンシップ
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_601
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_601_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_601_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;602,デートキス
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_602
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_602_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_602_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+[SKIPEND]
+;==================================================
+;603,手を繋ぐ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(失敗でもふりほどかれたりはしません
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_603
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_603_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_603_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TALENT:恋人
+		PRINTFORML 「あー、違うだろ？恋人の手の繋ぎ方は…こうするんだ」
+		PRINTFORML 魔理沙は自分の指をあなたの指に絡めてきた。
+		PRINTFORMW 「…自分でやっておいてなんだが、ちょっと恥ずかしいかもな」
+	ELSEIF TALENT:恋慕
+		PRINTFORML 「え？私と手を繋ぎたいのか？」
+		PRINTFORML 「研究したり採集したりしてるから、汚いと思うぜ？勿論ちゃんと洗ってるけどさ」
+		PRINTFORML 「それでもよかったら、ほら」
+		PRINTFORML 汚れなんて全く無い、小さくて可愛らしい手だ。あなたはきゅっと、その手を握った。
+		PRINTFORML 「…へへ、何だかこう…あったかい気持ちになるな」
+		PRINTFORMW 魔理沙はとても嬉しそうにあなたに微笑みかけている。
+	ELSE
+		PRINTFORML 「え？私と手を繋ぎたいのか？」
+		PRINTFORML 「研究したり採集したりしてるから、汚いと思うぜ？勿論ちゃんと洗ってるけどさ」
+		PRINTFORML 「それでもよかったら、ほら」
+		PRINTFORML 汚れなんて全く無い、小さくて可愛らしい手だ。あなたはきゅっと、その手を握った。
+		PRINTFORML 「………」
+		PRINTFORMW 魔理沙は少し複雑そうな表情を浮かべている。
+	ENDIF
+	RETURN 1
+
+ENDIF
+RETURN 1
+
+;==================================================
+;604,散策する
+;デート中の場合、CFLAG:現在位置に移動先の場所が既に入ってる
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_604
+;散策するにはTRAIN_MESSAGEが無い
+CALL M_KOJO_MESSAGE_COM_K11_604_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_604_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;605,寄り道する
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文無し
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_605
+;寄り道するにはTRAIN_MESSAGEが無い
+CALL M_KOJO_MESSAGE_COM_K11_605_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_605_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;610,食事に誘う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_610
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_610_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_610_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == -1
+		PRINTFORML
+	ELSE
+		PRINTFORML 「ん？食事に行かないかって？」
+		PRINTFORML 「そういえば外で食事することってあまり無いな…いい機会だ」
+		PRINTFORMW 「せっかくの申し出だ、行こうぜ、%CALLNAME:MASTER%」
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;613,お金稼ぎする（オミットされました
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_613
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_613_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_613_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;614,食材の買い出し
+;TFLAG:193(1=購入＆デート経験アップ 0=購入 -1=非購入)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_614
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_614_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_614_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+		PRINTFORML 「よし、キノコの目利きなら任せろ」
+		PRINTFORMW 「えっ？いらない？そ、そうか…」
+ENDIF
+RETURN 1
+;==================================================
+;615,お弁当を食べる
+;実行可能場所　お地蔵通り,枝垂れ柳の下,霧の湖,玄武の沢,大蝦蟇の池,絶景の丘,山の湖,天界
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;ABL:料理技能(2未満=微妙な出来 4未満=そこそこ美味しい 4以上=絶品)
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_615
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_615_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_615_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == -1
+		PRINTFORML 
+		PRINTFORML 「さて、どうだ？味は」
+		PRINTFORML ………
+		PRINTFORML 「…ああ、こりゃダメか」
+		PRINTFORML 魔理沙は苦笑いを浮かべながら言った。
+	ELSE
+		IF ABL:料理技能 < 2
+			PRINTFORML 
+			PRINTFORML 「さて、どうだ？味は？」
+			PRINTFORML …まずまず、かな。
+			PRINTFORML 「うーん、反応が鈍いな…」
+			PRINTFORML 「人に食べさせるための料理なんてあまりしないからなあ…」
+			PRINTFORMW 魔理沙は苦笑いを浮かべながら言った。
+		ELSEIF ABL:料理技能 < 4
+			PRINTFORML 
+			PRINTFORML 「さて、どうだ？味は？」
+			PRINTFORML ああ、美味しいよ。
+			PRINTFORML 「おお、それは良かった、修行の甲斐があったぜ」
+			PRINTFORMW 魔理沙はとても嬉しそうだ。
+		ELSE
+			PRINTFORML 「…さて、どうだ？味は？」
+			PRINTFORML これは…文句のつけようがないくらいだ。
+			PRINTFORML 「へへーん、どうだ、見違えたろ？」
+			PRINTFORMW 魔理沙は薄い胸を張って誇らしげに言った。
+		ENDIF
+	ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;617,甘味処に誘う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐は大成功のみ追加
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_617
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_617_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_617_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == -1
+		PRINTFORML
+	ELSE
+		PRINTFORML 「ん、甘味処に行こうって？」
+		PRINTFORML 「神社じゃ安いものしか出してくれないし、たまには美味い甘味も食べたいな」
+		PRINTFORMW 「よし、行こうぜ、何食べようかなー♪」
+	ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;618,花屋（口上は表示されない模様？
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_618
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_618_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_618_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;620,鈴奈庵
+;TFLAG:193(1=貸し出しOK 0=貸し出し不可
+;ITEM:10X (X=1戦術指南書 X=2調理指南書 X=3字引 X=4御伽草子
+;なんか勝手に小鈴ちゃんに喋らせてるけど小鈴口上とか作られて問題があれば削除します
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_620
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_620_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_620_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == -1
+		PRINTFORML 
+	ELSE
+		PRINTFORML 「借りた本はちゃんと返すんだぞ？」
+		PRINTFORML 『えー、魔理沙さんがそれを言うんですか…』
+		PRINTFORML 「おいおい、ここで借りた本はちゃんと返しているだろ？」
+		PRINTFORML 『確かにそうですけど…魔理沙さんが言う台詞じゃないですよ…』
+		PRINTFORMW 『えっと、%CALLNAME:MASTER%さん、ちゃんと返してくださいね？』
+	ENDIF
+	RETURN 1
+ENDIF
+RETURN 1
+;==================================================
+;660,読書
+;TFLAG:193(選択肢文学(1=忍殺(文学？) 2=失敗 3=文学),選択肢実用書(4=失敗 5=実用書),選択肢エッチな本(6=薄い高い本 7=保健体育 8=カーマスートラ))
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_660
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_660_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_660_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;698,部屋に入る
+;TARGETの部屋に入る場合のみ表示
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_698
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_698_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_698_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORML 「あー、私の部屋に？散らかってるけど大丈夫か？」
+	PRINTFORML 研究道具やマジックアイテムが散乱していて足の踏み場がほとんどない…
+	PRINTFORML 「あ、それは雑に扱うと爆発するから気を付けろよ？」
+	PRINTFORMW どうやらとんでもない場所に来てしまったようだ…
+ENDIF
+RETURN 1
+;==================================================
+;699,外に出る
+;==================================================
+@M_KOJO_MESSAGE_COM_K11_699
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K11_699_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K11_699_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;派生コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;60,耳かき
+;前ターン膝枕後スキンシップコマンド
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(失敗するのはTARGET
+;==================================================
+@M_KOJO_MESSAGE_SCOM_K11_60
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_SCOM_K11_60_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K11_60_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;61,抱きまくら
+;(TARGET睡眠時間or衰弱)添い寝中、前ターン抱きつく後就寝コマンド
+;分岐無し
+;==================================================
+@M_KOJO_MESSAGE_SCOM_K11_61
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_SCOM_K11_61_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K11_61_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;62,デコちゅー
+;前ターン頭撫で後キスする
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐無し
+;ABL:欲望(5以上=物足りない
+;ABL:親密(5以上=照れる
+;==================================================
+@M_KOJO_MESSAGE_SCOM_K11_62
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_SCOM_K11_62_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K11_62_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;63,もっとキスする
+;前ターンキスする後キスする
+;分岐条件はEVENT_MESSAGE_COM500.ERB参照
+;==================================================
+@M_KOJO_MESSAGE_SCOM_K11_63
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_SCOM_K11_63_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K11_63_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	IF FLAG:70
+	ELSE
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;80,手を引く
+;デート出発後目的地に着くまでの間
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_MESSAGE_SCOM_K11_80
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_SCOM_K11_80_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K11_80_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 「お、何だ、エスコートしてくれるのか？」
+ENDIF
+RETURN 1

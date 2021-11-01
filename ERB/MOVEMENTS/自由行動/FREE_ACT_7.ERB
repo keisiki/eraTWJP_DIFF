@@ -1,0 +1,119 @@
+﻿@EXIST_FreeAct7
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+;オブジェクト本体
+@FreeAct7(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+#DIM 経過時間
+経過時間 = Activity_Duration:TARGET
+SELECTCASE O_DATA
+;自由行動に付き合うコマンドの名称
+CASE "名称"
+	IF Activity_Duration:ARG > 30
+		CALLF MAKE_STR(V_NAME, "料理を手伝う")
+	ELSE
+		CALLF MAKE_STR(V_NAME, "料理を分けてもらう")
+	ENDIF
+CASE "CHAIN"
+;他キャラに連鎖しない場合コメントアウトすること
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "経過時間"
+;自由行動に付き合うコマンドでの経過時間
+;0だと30分か残り時間すべての小さい方
+	IF Activity_Duration:TARGET > 30
+		経過時間 = Activity_Duration:TARGET - 30
+	ELSE
+		経過時間 = 0
+	ENDIF
+	CALLF MAKE_INT(V_NAME, 経過時間)
+ENDSELECT
+
+@自由行動内容_7(CHARA, ARGS, 時間係数, CHAIN)
+#DIM CHARA
+#DIM CHAIN
+#DIM 現在地
+#DIM メッセージ表示
+#DIM 時間係数
+#DIM 経過時間
+現在地 = CFLAG:CHARA:現在位置
+メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
+SELECTCASE ARGS
+	CASE "発生"	
+		;料理技能1以上のキャラが空腹状態で台所にいる時
+		SIF ABL:CHARA:料理技能 < 1
+			RETURN 0
+		SIF !KITCHEN(現在地)
+			RETURN 0
+		SIF TIME_PROGRESS(TCVAR:CHARA:空腹時刻) <= 0
+			RETURN 0
+		IF メッセージ表示
+			IF CHAIN
+				IF Activity_Duration:CHARA > 30
+					PRINTFORMW %CALLNAME:CHARA%は%CALLNAME:CHAIN%を手伝い始めた。
+				ELSE
+					PRINTFORMW %CALLNAME:CHARA%は%CALLNAME:CHAIN%の料理を分けてもらった。
+				ENDIF
+			ELSE
+				PRINTFORMW %CALLNAME:CHARA%は空腹を感じ、料理を始めた。
+			ENDIF
+		ENDIF
+		RETURN 60 + RAND:30
+	CASE "行動中"
+		;食事とセット
+		IF Activity_Duration:CHARA > 30
+			SIF メッセージ表示
+				PRINTFORMW %CALLNAME:CHARA%は軽快に料理をしている。
+		ELSE
+			SIF メッセージ表示
+				PRINTFORMW %CALLNAME:CHARA%は作った料理を食べている。
+			CALL 自由行動食事(CHARA)
+		ENDIF
+	CASE "完了"
+		;完了までしたら料理経験+2
+		EXP:CHARA:料理経験 += 2
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は食事を終えたようだ。
+		CALL 自由行動食事(CHARA)
+	CASE "中断"
+		EXP:CHARA:料理経験 += 1
+		SIF Activity_Duration:CHARA <= 30
+			CALL 自由行動食事(CHARA)
+	CASE "付き合う"
+		;自由行動に付き合ったとき用メッセージ
+		IF TFLAG:193 == 2
+			PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の料理を手伝った
+			SELECTCASE ABL:TARGET:料理技能
+			CASE IS <= 1
+				PRINTFORML %CALLNAME:TARGET%の料理は危なっかしい…
+			CASE 2, 3
+				PRINTFORML %CALLNAME:TARGET%は落ちついて料理をしている…
+			CASEELSE
+				PRINTFORML %CALLNAME:TARGET%は手際よく料理をして付いていくのが大変だ…
+			ENDSELECT
+			PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の作った料理を分けてもらった
+		ELSEIF TFLAG:193 < 0
+			PRINTFORML それほどお腹は空いていなかった…
+		ELSE
+			PRINTFORML 少しお腹が満たされた…
+		ENDIF
+
+	CASE "ソース"
+		IF Activity_Duration:TARGET > 30
+			;付き合うコマンド選択時の入手ソース、時間係数は付き合った時間の1/10
+			DOWNBASE:MASTER:体力 += 20 * 時間係数
+			DOWNBASE:MASTER:気力 += 20 * 時間係数
+			DOWNBASE:TARGET:体力 += 10 * 時間係数
+			DOWNBASE:TARGET:気力 += 10 * 時間係数
+			SOURCE:歓楽 = (100 + ((ABL:従順 + ABL:MASTER:料理技能) * 50)) * 時間係数
+			TFLAG:98 = 1
+			EXP:MASTER:料理経験 ++
+			TFLAG:193 = 2
+		ELSE
+			CALL FreeActMeal(TARGET, 時間係数)
+		ENDIF
+ENDSELECT

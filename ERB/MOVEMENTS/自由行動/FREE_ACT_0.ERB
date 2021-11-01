@@ -1,0 +1,82 @@
+﻿;考え事
+@EXIST_FreeAct0
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+;オブジェクト本体
+@FreeAct0(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+SELECTCASE O_DATA
+CASE "名称"
+	CALLF MAKE_STR(V_NAME, "なに考えてるの")
+CASE "CHAIN"
+;他キャラに連鎖する場合コメントアウト外すこと
+;	CALLF MAKE_INT(V_NAME, 1)
+CASE "経過時間"
+;自由行動に付き合うコマンドでの経過時間
+	CALLF MAKE_INT(V_NAME, Activity_Duration:TARGET)
+ENDSELECT
+
+@自由行動内容_0(CHARA, ARGS,時間係数, CHAIN)
+#DIM CHARA
+#DIM CHAIN
+#DIM 現在地
+#DIM メッセージ表示
+#DIM 時間係数
+現在地 = CFLAG:CHARA:現在位置
+メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
+TRYCCALLFORM UNIQUE_FA_{CHARA}(CHARA, ARGS, 時間係数)
+RETURN RESULT
+CATCH
+SELECTCASE ARGS
+	CASE "発生"
+		;在住キャラが自室にいる時
+		SIF !CFLAG:CHARA:神社在住
+			RETURN 0
+		SIF 現在地 != CFLAG:CHARA:神社在住
+			RETURN 0
+		SIF BASE:CHARA:気力 <= 500
+			RETURN 0
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%はなにやら考え事をし始めた。
+		;返し値は行動時間
+		RETURN 20 + RAND:20
+	CASE "行動中"
+		IF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は%TEXTR("沈思黙考している/ほおづえをついて考えている/上の空で考え事をしている/考えに耽っている")%。
+		ENDIF
+	CASE "完了"
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は考え事を終えたようだ。
+	CASE "中断"
+		;中断メッセージはうふふ突入時等でも表示されてしまうので表示しない
+	CASE "付き合う"
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:CHARA%に考え事を訪ねた
+		IF TFLAG:193 < 0
+			PRINTFORML %CALLNAME:CHARA%は身体を強張らせ、はぐらかされてしまった…
+		ELSE
+			PRINTFORML とりとめのない考えだったようだ…
+		ENDIF
+	CASE "ソース"
+		;信頼度が低いと失敗
+		IF CFLAG:TARGET:信頼度 < 275 -(ABL:TARGET:親密 * 25)
+			TFLAG:193 = -1
+			DOWNBASE:MASTER:気力 += 40 * 時間係数
+			DOWNBASE:TARGET:気力 += 40 * 時間係数
+			SOURCE:歓楽 = (50 + ((ABL:親密 + ABL:MASTER:話術技能) * 25)) * 時間係数
+			SOURCE:受動 = (30 + ((ABL:従順 + ABL:MASTER:話術技能) * 15)) * 時間係数
+			EXP:MASTER:会話経験 ++
+		ELSE
+			DOWNBASE:MASTER:気力 += 20 * 時間係数
+			DOWNBASE:TARGET:気力 += 20 * 時間係数
+			SOURCE:歓楽 = (100 + ((ABL:親密 + ABL:MASTER:話術技能) * 50)) * 時間係数
+			SOURCE:受動 = (60 + ((ABL:従順 + ABL:MASTER:話術技能) * 30)) * 時間係数
+			TFLAG:98 = 1
+			EXP:MASTER:会話経験 ++
+		ENDIF
+ENDSELECT
+ENDCATCH

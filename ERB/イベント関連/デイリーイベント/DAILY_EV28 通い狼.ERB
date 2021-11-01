@@ -1,0 +1,461 @@
+﻿@DAILY_CONDITION_EV28
+SIF !TALENT:[[影狼]]:恋慕 && !TALENT:[[影狼]]:思慕
+	RETURN -1
+SIF TALENT:[[影狼]]:育児中 || TALENT:[[影狼]]:妊娠
+	RETURN -1
+SIF MARK:[[影狼]]:反発刻印
+	RETURN -1
+;誰かと同居中だと駄目
+SIF PRIVATEROOM:(CFLAG:MASTER:初期位置 % 100)
+	RETURN -1
+;一時滞在キャラがいると駄目
+SIF FLAG:一時滞在
+	RETURN -1
+
+IF !GETBIT(FLAG_DAILY_EV28, 0)
+	;初回は必ず発生
+ELSE
+	LOCAL = 25 - CFLAG:[[影狼]]:1004
+	SIF GETBIT(FLAG_DAILY_EV28, 1)
+		LOCAL -= 2
+	LOCAL = MAX(LOCAL, 5)
+	SIF RAND:LOCAL > 0
+		RETURN -1
+ENDIF
+CALL DAILY_EV28
+RETURN 1
+
+@DAILY_EV28
+CFLAG:[[影狼]]:最後に来訪した日 = DAY
+CFLAG:[[影狼]]:1004 = 0
+IF !GETBIT(FLAG_DAILY_EV28, 0)
+	CALL DAILY_EV28_0
+ELSE
+	CALL DAILY_EV28_1
+ENDIF
+
+;初回用
+@DAILY_EV28_0
+CALL SPTALK, [[影狼]], "通常", 0, @"「こんばんわー」", 1
+PRINTFORMW 戸を開けると立派な山鳥を抱えた影狼が立っていた
+PRINTFORML 「ね、これすごいでしょ？さっき獲ってきたの」
+PRINTFORMW 「%CALLNAME:MASTER%料理得意でしょ？おすそ分けするからなにか作ってくれない？」
+PRINTFORML 
+CALL ASK_YN("しょうがないなあ", "ご相伴させてくれるなら")
+CALL EV28_MEAL(300)
+CALL GET_ITEM("ヤマドリ", 5, 1)
+PRINTFORML 
+PRINTFORML 「いまさらこんなことを聞くのもなんだけど…」
+PRINTFORML 「いきなり夜中に押しかけて迷惑だった？」
+PRINTFORML 
+CALL ASK_YN("いつでも歓迎","またお土産よろしく")
+CALL PRINT_FACE, [[影狼]], "笑顔", "服", "", ""
+IF !RESULT
+	PRINTFORML 「ほんと？ありがとう！」
+ELSE
+	PRINTFORML 「今回みたいな大物はなかなか獲れないと思うけどね」
+ENDIF
+PRINTFORMW 「それじゃ、またお邪魔させてもらうわね」
+CALL CHANGE_CFLAG(2,[[影狼]],150)
+CALL CHANGE_CFLAG(4,[[影狼]],50)
+SETBIT FLAG_DAILY_EV28, 0
+
+;二回目以降
+@DAILY_EV28_1
+#DIM CAN_WOLFHUNT
+#DIM MANHUNT
+#DIM 変動値
+VARSET LOCALS
+CAN_WOLFHUNT = 0
+MANHUNT = 0
+IF CFLAG:[[影狼]]:生解禁 == 2 && BASE:MASTER:精力 >= 500 && BASE:MASTER:体力 >= 1500
+	CAN_WOLFHUNT = 1
+ENDIF
+
+CALL SPTALK, [[影狼]], "笑顔", 0, @"「こんばんわー」", 1
+PRINTFORMW また影狼がやってきた
+PRINTFORMW 「上がっていい？」
+SELECTCASE RAND:10
+	CASE 0
+		PRINTFORML 「見て見て、大きいのが獲れたの！また捌いてくれない？」
+		CALL EV28_MEAL(300)
+		CALL GET_ITEM("ヤマドリ", 5, 1)
+	CASE 1
+		PRINTFORML 「珍しい石を見つけたから持ってきたわ」
+		PRINTFORMW 「あ、姫には内緒よ？」
+		CALL GET_ITEM("辰砂", 1, 1)
+	CASE 2, 3
+		PRINTFORML 「お魚を獲ってきたわ」
+		PRINTFORMW 「ウサギ狩りしてよかったらもっとお肉が食べられるんだけどね」
+		CALL EV28_MEAL(100)
+	CASEELSE
+		PRINTFORML 「はいお土産！」
+		LOCALS = %TEXTR("たけのこ/高麗人参/山菜/苦い根っこ")%
+		CALL GET_ITEM(LOCALS, 3, 1)
+ENDSELECT
+IF CFLAG:[[影狼]]:1006
+	PRINTFORMW 「それとこれは姫からね」
+	IF !RAND:10
+		LOCALS = 龍の爪
+		CALL GET_ITEM(LOCALS, 1, 1)
+	ELSE
+		LOCALS = %TEXTR("上薬草/魚粕/薬草/魚/うまい魚/滑石")%
+		CALL GET_ITEM(LOCALS, 5, 1)
+	ENDIF
+	CFLAG:[[影狼]]:1006 = 0
+ENDIF
+
+PRINTFORMW 
+PRINTFORML 「何をしましょうか」
+IF CAN_WOLFHUNT
+	CALL ASK_M("雑談",1,"月見酒（要：清酒）",ITEM:清酒,"オオカミ狩り",1)
+ELSE
+	CALL ASK_M("雑談",1,"月見酒（要：清酒）",ITEM:清酒)
+ENDIF
+SELECTCASE RESULT
+	CASE 0
+		変動値 = 100
+	CASE 1
+		ITEM:清酒 --
+		変動値 = 300
+	CASE 2
+		CALL WOLF_HUNTING
+		RETURN 1
+ENDSELECT
+{
+LOCALS = 遠吠えの練習をさせられた/草の根妖怪ネットワークの話をした/TRPGのシナリオ作成を手伝った
+/狩猟採集の話をした/人里の話をした/香林堂の話をした/服飾の話をした/新しいゲームをした
+}
+SIF CFLAG:[[影狼]]:生解禁 == 2
+	LOCALS += "/将来についての話をした"
+SIF CFLAG:[[影狼]]:子供人数 - CFLAG:[[影狼]]:育児人数
+	LOCALS += "/独り立ちしていった子供の話をした"
+
+;晴れじゃないと月見酒の効果低下
+IF !GROUPMATCH(TIME:5, 0, 1) && RESULT
+	PRINTFORML 「今夜は月は見れないわね…」
+	変動値 = 200
+ENDIF
+PRINTFORML \@ RESULT == 1? お酒を楽しみながら# \@ %TEXTR(@"%LOCALS%")%
+
+PRINTFORMW ………
+PRINTFORMW ……
+PRINTFORMW …
+CALL BUFF_BASE(MASTER,BASE_気力,変動値,1)
+CALL CHANGE_CFLAG(2,[[影狼]], 変動値)
+CALL CHANGE_CFLAG(4,[[影狼]], 変動値/2)
+IF TALENT:[[影狼]]:恋慕 && RESULT == 1 && !RAND:2
+	IF !RAND:2
+		CALL DAILY_EV28_2
+	ELSE
+		CALL DAILY_EV28_3
+	ENDIF
+	RETURN 1
+ENDIF
+PRINTFORMW 「そろそろお暇するわね」
+PRINTFORMW 「それじゃ、おやすみなさい」
+RETURN 1
+
+@WOLF_HUNTING
+#DIM 注入量
+#DIM 基本注入量
+#DIM 好感度上昇量
+#DIM 回数
+#DIM 経験増加数,58
+VARSET 経験増加数
+回数 = MAX(MIN(ABL:[[影狼]]:欲望 / 2, 10) + CFLAG:[[影狼]]:溜まってる度 / 200,1)
+注入量 = 0
+
+経験増加数:0 += 1 + RAND:(回数 * 3) 
+経験増加数:1 += 1 + RAND:(回数 * 5) 
+経験増加数:20 += 回数 
+経験増加数:4 += 3 + ABL:[[影狼]]:Ｍ感覚 * 2
+経験増加数:3 += RAND:(回数 * 2) 
+経験増加数:5 += 経験増加数:0 / 2
+経験増加数:6 = 回数 * RAND(3, 5)
+経験増加数:8 += 経験増加数:3 / 2
+経験増加数:10 += 経験増加数:0 / 2
+経験増加数:25 = 経験増加数:4
+経験増加数:27 = 経験増加数:4
+EXP:MASTER:Ｍ経験 += 経験増加数:4
+EXP:MASTER:キス経験 += 経験増加数:4
+EXP:MASTER:口淫経験 += 経験増加数:4
+EXP:MASTER:挿入経験 += 経験増加数:20
+
+CALL PRINT_FACE, [[影狼]], "発情", "服", "", ""
+IF !GETBIT(FLAG_DAILY_EV28, 1)
+	;初回
+	PRINTFORMW 「へっ？えっと、それって……」
+	PRINTFORMW 「あっ……」
+	PRINTFORML ………
+	PRINTFORML ……
+	PRINTFORMW …
+	PRINTFORMW 「んっ……ちゅっ……」
+	PRINTFORMW 「もっと……」
+	PRINTFORML ………
+	PRINTFORML ……
+	PRINTFORMW …
+	CALL HPH_PRINT,@"「あっ……HPH　はあっ……んっ……HPH」","W"
+	PRINTFORML ………
+	PRINTFORML ……
+	PRINTFORMW …
+	{
+	CALL HPH_PRINT,@"「%TEXTR("んっ/あっ/あんっ/フーーッ")%HPH %TEXTR("んっ/あっ/あんっ/フーーッ")%HPH 
+	ひんっ %TEXTR("んっ/あっ/あんっ/フーーッ")%HPH んはぁっHPH」","W"
+	}
+	PRINTFORML ………
+	PRINTFORML ……
+	PRINTFORMW …
+	CALL HPH_PRINT,@"「ひーッHPH ひーッHPH ひぃーーッHPH ひぃいーーッHPH 」","W"
+	PRINTFORML ………
+	PRINTFORML ……
+	PRINTFORMW …
+	FONTBOLD
+	CALL HPH_PRINT,@"「オ゛ッHPH オ゛ッHPH オ゛ッHPH オ゛オ゛オッHPH 」","W"
+	CALL HPH_PRINT,@"「ア゛オ゛オ゛～～～～～～～～ッ ホオ゛～～～～～～～～～～～～～～～～HPH 」","W"
+	FONTREGULAR
+	PRINTFORML ………
+	PRINTFORML ……
+	PRINTFORMW …
+	CALL PRINT_FACE, [[影狼]], "オナニー", "裸", "", "吐息"
+	CALL HPH_PRINT,@"「はーーッ……HPH %CALLNAME:MASTER%に狩られちゃった……HPH」","W"
+	PRINTFORMW 「狩った獲物は手放しちゃ駄目よ？」
+	PRINTFORMW 影狼は%CALLNAME:MASTER%にきゅっと抱き着いた
+ELSE
+	;二回目以降
+	IF CFLAG:[[影狼]]:溜まってる度 < 500
+		PRINTFORMW 「あっ…その……」
+		PRINTFORMW 「お手柔らかに……」
+	ELSE
+		PRINTFORMW 「%TEXTR("うん…期待、してた……/あは♪　やっぱりしたかったのね/今夜も、いっぱい哭かされちゃうのね……/素敵な狩人さんに狙われちゃったわね")%」
+		CALL HPH_PRINT,@"「んっHPH」","W"
+	ENDIF
+	PRINTFORML ………
+	PRINTFORML ……
+	PRINTFORMW …
+	SELECTCASE RAND:3
+		CASE 0
+			CALL HPH_PRINT,@"「すきっHPH すきっHPH すきっHPH 」","W"
+		CASE 1
+			CALL HPH_PRINT,@"「%TEXTR("んっ/あっ/あんっ/フーーッ")%HPH %TEXTR("んっ/あっ/あんっ/フーーッ")%HPH% TEXTR("んっ/あっ/あんっ/フーーッ")%HPH」","W"
+		CASE 2
+			CALL HPH_PRINT,@"「はあぁ～～～～HPH HPH 」","W"
+	ENDSELECT
+	PRINTFORML ………
+	PRINTFORML ……
+	PRINTFORMW …
+	FONTBOLD
+	SELECTCASE RAND:3
+		CASE 0
+			CALL HPH_PRINT,@"「ほお゛おお゛～～～～HPH お゛お゛お゛お゛ーーHPH 」","W"
+		CASE 1
+			CALL HPH_PRINT,@"「%TEXTR("ああ゛/ほお゛おお゛/あ゛～/はへえ")%～～～～～～～HPH」","W"
+		CASE 2
+			CALL HPH_PRINT,@"「オ゛オ゛ーッHPH オ゛オ゛ーッHPH オ゛オ゛ーッHPH オ゛オ゛オオ゛ーッHPH 」","W"
+	ENDSELECT
+	FONTREGULAR
+	PRINTFORML ………
+	PRINTFORML ……
+	PRINTFORMW …
+	CALL PRINT_FACE, [[影狼]], "オナニー", "裸", "", "吐息"
+	CALL HPH_PRINT,@"「もう、いっつも激しいんだから……HPH」","W"
+ENDIF
+
+基本注入量 = (ABL:[[影狼]]:膣 + 1) * 20 + BASE:MASTER:精力 / 20
+FOR LOCAL,1,回数
+	注入量 += 基本注入量 + RAND:(基本注入量)
+NEXT
+
+注入量 = MIN(注入量, BASE:MASTER:精力)
+
+CALL ADD_SAMEN_V([[影狼]], 注入量)
+SETCOLOR C_YELLOW
+FOR LOCAL,0,58
+	IF 経験増加数:LOCAL
+		PRINTFORML %EXPNAME:LOCAL% ＋{経験増加数:LOCAL}
+		EXP:[[影狼]]:LOCAL += 経験増加数:LOCAL
+	ENDIF
+NEXT
+RESETCOLOR
+CALL JUEL_UP_SPECIAL([[影狼]],"欲情","欲望",20,1)
+CALL JUEL_UP_SPECIAL([[影狼]],"快Ｖ","Ｖ感覚",15,1)
+CALL ADD_EXP_LESNIAN(回数 * 5, [[影狼]], "PRINT")
+好感度上昇量 = 回数 * ABL:[[影狼]]:親密 * 10
+CALL CHANGE_CFLAG(2,[[影狼]],好感度上昇量)
+;竹林以外が拠点なら泊まっていく
+IF MAIN_MAP != 4
+	FLAG:一時滞在 = [[影狼]]
+	CFLAG:[[影狼]]:本来の初期位置 = CFLAG:[[影狼]]:初期位置
+	CFLAG:[[影狼]]:初期位置 = CFLAG:MASTER:初期位置
+	CFLAG:[[影狼]]:神社在住 = CFLAG:[[影狼]]:初期位置
+ENDIF
+CFLAG:[[影狼]]:溜まってる度 = 0
+CALL RECOVER(MASTER,回数 * -300,"体力", @"{回数}度に及ぶ夜通しの交尾")
+CALL RECOVER(MASTER,回数 * -300,"気力", @"{回数}度に及ぶ夜通しの交尾")
+
+CFLAG:MASTER:徹夜 = 1
+SETBIT FLAG_DAILY_EV28, 1
+
+;人里長屋限定
+IF CFLAG:MASTER:初期位置 == 230
+	CALL PRINT_FACE, [[影狼]], "通常", "裸", "", ""
+	IF !DAILY_EV28_壁ドン
+		PRINTFORML 「ところでシてる最中、お隣の壁がすごいドンドンいってたんだけど……」
+		PRINTFORML 
+		CALL ASK_YN("よくあること","人里の風習")
+		IF !RESULT
+			PRINTFORMW 「変わったお隣さんなのね」
+		ELSE
+			PRINTFORMW 「人間はよくわからないことするわね」
+		ENDIF
+	ELSEIF DAILY_EV28_壁ドン == 5
+		PRINTFORML 「最近は隣のドンドン聞かないわね、馴れたのかしら？」
+	ELSEIF DAILY_EV28_壁ドン < 3
+		PRINTFORML 「お隣、またドンドンいってたわね」
+		PRINTFORML 
+		CALL ASK_YN("気にしないでいい","祝福されている")
+		IF !RESULT
+			PRINTFORMW 「%CALLNAME:MASTER%がそう言うならそうなのかな」
+		ELSE
+			PRINTFORMW 「流石にそれはないと思うけど」
+		ENDIF
+	ENDIF
+	IF DAILY_EV28_壁ドン >= 5
+		LOCAL = 回数 / 3 + 1
+		CALL COLORMESSAGE(@"自慰経験＋{LOCAL}（蛮奇）",C_PINK,1)
+		EXP:[[蛮奇]]:自慰経験 += LOCAL
+		CALL JUEL_UP_SPECIAL([[蛮奇]],"恥情","自慰中毒", LOCAL)
+		CALL JUEL_UP_SPECIAL([[蛮奇]],"欲情","欲望",5 + LOCAL,1)
+		CFLAG:[[蛮奇]]:溜まってる度 = 0
+	ELSE
+		CALL JUEL_UP_SPECIAL([[蛮奇]],"欲情","欲望",5,1)
+		CFLAG:[[蛮奇]]:溜まってる度 += 500
+		CALL COLORMESSAGE(@"蛮奇の欲求不満が上がった",C_YELLOW,1)
+		CALL COLORMESSAGE(@"蛮奇の機嫌が悪くなった",C_RED,1)
+		TALENT:[[蛮奇]]:機嫌 = -1
+	ENDIF
+	DAILY_EV28_壁ドン ++
+ENDIF
+
+@MAN_HUNTING
+;相手から襲ってくるパターン（未作成）
+IF !RAND:2
+	PRINTFORMW 「ねえ」
+	PRINTFORMW 「%CALLNAME:MASTER%が欲しくなっちゃった」
+	PRINTFORMW 「ふふ、人間狩りの時間ね」
+ELSE
+	PRINTFORMW 「こうやって二人で過ごすのは楽しいけど、家族が増えたらもっと楽しいわ」
+	PRINTFORMW 「ね、増やしましょう？」
+ENDIF
+
+PRINTFORML 「%CALLNAME:MASTER%のカラダって好きよ」
+PRINTFORML 「綺麗で、引き締まってて、美味しそうな牡鹿みたい」
+PRINTFORML 「今夜はぜんぶ、私のものだから」
+
+PRINTFORML 「あら、お疲れ？」
+PRINTFORML 「それじゃあ続きは帰ってからにしましょうね」
+PRINTFORML %CALLNAME:MASTER%はオオカミの巣穴にお持ち帰りされてしまいました
+
+@EV28_MEAL(ARG)
+PRINTFORMW ………
+PRINTFORMW ……
+PRINTFORMW …
+PRINTFORMW 「御馳走様！おいしかったわ」
+CALL BUFF_BASE(MASTER,BASE_体力,ARG,1)
+CALL BUFF_BASE(MASTER,BASE_気力,ARG,1)
+CALL BUFF_BASE(MASTER,BASE_精力,ARG,1)
+CALL BUFF_BASE([[影狼]],BASE_体力,ARG,1)
+CALL BUFF_BASE([[影狼]],BASE_気力,ARG,1)
+EXP:MASTER:料理経験 ++
+
+@DAILY_EV28_2
+PRINTFORML 「なんだかいい気分……」
+PRINTFORML 「ね、踊りましょう？」
+LOCALS = %TEXTR("ぐるぐる/ゆらゆら/ふらふら/バタバタ/ピョコピョコ")%
+$choice
+CALL ASK_M("踊る",1,"どうやって？",1,"音楽を奏でる",1)
+SELECTCASE RESULT
+	CASE 0
+	CASE 1
+		PRINTFORMW 「私もよく知らないけど……なんか%LOCALS%動けばいいと思うわ！」 
+	CASE 2
+		PRINTFORML 「音楽とかいいから、私は%CALLNAME:MASTER%と踊りたいの！」
+		PRINTFORMW 怒られた
+		GOTO choice
+ENDSELECT
+PRINTFORMW 夜更けまで二人で%LOCALS%と踊った
+TALENT:[[影狼]]:機嫌 = 1
+CALL CHANGE_CFLAG(2,[[影狼]], 300)
+
+@DAILY_EV28_3
+#DIM 周回数
+#DIM cost
+#DIM finish
+finish = 0
+周回数 = 1
+PRINTFORML 「ふふ、酔ってきちゃった」
+PRINTFORML 「ね、抱っこして」
+CALL ASK_M("抱っこ",1,"お姫様抱っこ",1,"ブライダルお姫様抱っこ",1)
+PRINTFORML %CALLNAME:MASTER%は影狼を抱え上げた
+PRINTFORML 結構重い……
+PRINTFORML 「それじゃこのままこの辺りを一周して」
+$LOOP
+cost = 周回数 * 100
+CALL COLORMESSAGE(@"残り体力{BASE:MASTER:体力}",C_YELLOW,1)
+CALL ASK_M("一周する", BASE:MASTER:体力 > cost ,"時間停止でサボりながらやる", BASE:MASTER:体力 > cost/ 2 && BASE:MASTER:TSP > cost, "疲れた", 周回数 > 1)
+SELECTCASE RESULT
+	CASE 0
+		PRINTFORMW ………
+		PRINTFORMW ……
+		PRINTFORMW …
+		PRINTFORMW 「んふー♪」
+		CALL RECOVER(MASTER,cost * -1,"体力")
+		CALL BUFF_BASE([[影狼]],BASE_気力,50,1)
+		CALL CHANGE_CFLAG(2,[[影狼]], 100)
+		周回数 ++
+	CASE 1
+		PRINTFORMW ………
+		PRINTFORMW ……
+		PRINTFORMW …
+		PRINTFORMW 「なんか短くない？　酔ってるせいかしら……」
+		CALL RECOVER(MASTER,cost * -1 / 2,"体力")
+		CALL RECOVER(MASTER,cost * -1,"TSP")
+		CALL BUFF_BASE([[影狼]],BASE_気力,30,1)
+		CALL CHANGE_CFLAG(2,[[影狼]], 30)
+		周回数 ++
+	CASE 2
+		finish = 1
+ENDSELECT
+IF !finish
+	SIF RAND:周回数 > RAND:5 || 周回数 >= 5
+		finish = 2
+ENDIF
+IF finish == 1
+	IF 周回数 < 3
+		PRINTFORML 「もう？　しょうがないわね……」
+		PRINTFORML 「あふ……　それじゃあ、おやすみなさい」
+	ELSE
+		PRINTFORML 「お疲れ様！楽しかったわ」
+		PRINTFORML 「おやすみなさい、また来るわね」
+		PRINTFORMW 影狼は機嫌よさげに帰っていった
+		CALL CHANGE_CFLAG(2,[[影狼]], 300)
+		TALENT:[[影狼]]:機嫌 = 1
+		CFLAG:[[影狼]]:翌日来訪 = 1
+	ENDIF
+	RETURN
+ELSEIF finish == 2
+	PRINTFORML 「………ぐぅ」
+	PRINTFORML 寝落ちしたようだ
+	CALL CHANGE_CFLAG(2,[[影狼]], 300)
+	;竹林以外が拠点なら泊まっていく
+	TALENT:[[影狼]]:機嫌 = 1
+	IF MAIN_MAP != 4
+		FLAG:一時滞在 = [[影狼]]
+		CFLAG:[[影狼]]:本来の初期位置 = CFLAG:[[影狼]]:初期位置
+		CFLAG:[[影狼]]:初期位置 = CFLAG:MASTER:初期位置
+		CFLAG:[[影狼]]:神社在住 = CFLAG:[[影狼]]:初期位置
+	ENDIF
+	RETURN
+ENDIF
+PRINTFORMW 「もう一周して」
+GOTO LOOP

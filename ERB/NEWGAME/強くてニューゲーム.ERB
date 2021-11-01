@@ -1,0 +1,352 @@
+﻿;-----------------------------------------------------------
+;強くてニューゲーム
+;-----------------------------------------------------------
+@強くてニューゲーム
+
+ゲーム引き継ぎ処理中 = 1
+FLAG:周回数 ++
+CALL BUFF_RESET
+CALL BITE_THE_DUST_BACKUP
+CALL BITE_THE_DUST_CLEAR
+CALL BITE_THE_DUST_RESTORE
+CALL BITE_THE_DUST_NEW
+CALL BITE_THE_DUST_SWEEP
+ゲーム引き継ぎ処理中 = 0
+CALL NEWGAME_VERUP
+RETURN 1
+
+
+;-----------------------------------------------------------
+;変数退避
+;-----------------------------------------------------------
+@BITE_THE_DUST_BACKUP
+;なりきり
+IF FLAG:なりきり
+	前回のなりきり出禁 = CFLAG:(FLAG:なりきり):出禁
+ENDIF
+;周回前の成長分を記録
+前回の体力 = MAXBASE:MASTER:体力
+前回の気力 = MAXBASE:MASTER:気力
+前回の精力 = MAXBASE:MASTER:精力
+
+前回の体力増加量 = MAX(0, MAXBASE:MASTER:体力 - CSVBASE(FLAG:なりきり, GETNUM(BASE, "体力")))
+前回の気力増加量 = MAX(0, MAXBASE:MASTER:気力 - CSVBASE(FLAG:なりきり, GETNUM(BASE, "気力")))
+前回の精力増加量 = MAX(0, MAXBASE:MASTER:精力 - 1000)
+
+;リセット前のキャラ人数をLOCAL:6に控えておく。
+前回のキャラ人数 = CHARANUM
+
+FOR LOCAL,1,CHARANUM
+	前回のCFLAG:LOCAL = CFLAG:LOCAL:口上用引継ぎ枠
+	IF TALENT:LOCAL:恋人 || GETBIT(CFLAG:LOCAL:引き継ぎ, 1)
+		SETBIT TFLAG:(LOCAL + 500), 1
+	ELSEIF TALENT:LOCAL:恋慕 || TALENT:LOCAL:愛欲 || GETBIT(CFLAG:LOCAL:引き継ぎ, 0)
+		SETBIT TFLAG:(LOCAL + 500), 0
+	ENDIF
+	SIF TALENT:LOCAL:自慰狂い || GETBIT(CFLAG:LOCAL:引き継ぎ, 2)
+		SETBIT TFLAG:(LOCAL + 500), 2
+	SIF TALENT:LOCAL:淫壺 || GETBIT(CFLAG:LOCAL:引き継ぎ, 3)
+		SETBIT TFLAG:(LOCAL + 500), 3
+	SIF TALENT:LOCAL:尻穴狂い || GETBIT(CFLAG:LOCAL:引き継ぎ, 4)
+		SETBIT TFLAG:(LOCAL + 500), 4
+	SIF TALENT:LOCAL:淫乳 || GETBIT(CFLAG:LOCAL:引き継ぎ, 5)
+		SETBIT TFLAG:(LOCAL + 500), 5
+	SIF TALENT:LOCAL:キス魔 || GETBIT(CFLAG:LOCAL:引き継ぎ, 6)
+		SETBIT TFLAG:(LOCAL + 500), 6
+	FOR LOCAL:1,0,40
+		前回のパンツ:LOCAL:(LOCAL:1) = CFLAG:LOCAL:(LOCAL:1 + 100)
+	NEXT
+NEXT
+
+;-----------------------------------------------------------
+;変数クリア
+;-----------------------------------------------------------
+@BITE_THE_DUST_CLEAR
+VARSET JUEL
+VARSET MOBGIRL_PLACE, 99
+CALL BITE_THE_DUST_CLEAR_FLAG
+;貸本リセット
+VARSET ITEM, 0, 101, 110
+CFLAG:MASTER:お招き = 0
+CFLAG:MASTER:育児人数 = 0
+CFLAG:MASTER:子供人数 = 0
+;あなたの既成事実及び[恋人]をクリア
+CLEARBIT CFLAG:MASTER:既成事実, 2
+TALENT:MASTER:恋人 = 0
+;あなた以外全員リセット。
+;CHARANUMの値が変わるので注意
+TARGET = 0
+ASSI = 0
+VARSET MOBGIRL_PLACE, 99
+PICKUPCHARA MASTER
+VARSET JUEL
+;あなたリセット
+PRINTFORML %CALLNAME:MASTER%の経験・能力もリセットしますか？
+CALL COLORMESSAGE(@"実績で取得した素質などもキャンセルされるためおすすめしません",C_YELLOW,1)
+CALL ASK_YN
+IF !RESULT
+	FOR LOCAL,0, 100
+		ABL:MASTER:LOCAL = 0
+		EXP:MASTER:LOCAL = 0
+	NEXT
+	FOR LOCAL,100, 150
+		EXP:MASTER:LOCAL = 0
+	NEXT
+	PRINTFORMW リセットしました。
+ENDIF
+
+;-----------------------------------------------------------
+;FLAGリセット
+;-----------------------------------------------------------
+@BITE_THE_DUST_CLEAR_FLAG
+FOR LOCAL,0, VARSIZE("FLAG")
+	;範囲による指定
+	SELECTCASE LOCAL
+		;パンツと実績
+		CASE 700 TO 709
+			CONTINUE
+		;OPTION
+		CASE 4 TO 7
+			CONTINUE
+		CASE 1001 TO 1099
+			IF FLAGNAME:LOCAL != "出禁人数"
+				CONTINUE
+			ENDIF
+		CASE IS >= 1500
+			CONTINUE
+		CASEELSE
+			;名称による指定
+			SELECTCASE FLAGNAME:LOCAL
+				CASE "周回数", "なりきり"
+					CONTINUE
+				CASE "願掛け内容", "精力強化回数"
+					CONTINUE
+				CASE "重婚可能人数", "恋慕特典", "恋慕特典2", "恋人特典", "恋人特典2"
+					CONTINUE
+				;累計回数
+				CASE "掃除中毒"
+					CONTINUE
+				;OPTION
+				CASE "生理周期可視化", "察知モード", "Cスキマ自動仕様"
+					CONTINUE
+			ENDSELECT
+	ENDSELECT
+	FLAG:LOCAL = 0
+NEXT
+
+;-----------------------------------------------------------
+;キャラ復帰
+;-----------------------------------------------------------
+@BITE_THE_DUST_RESTORE
+;リセット前のキャラ人数でFOR文を回す
+FOR LOCAL, 1, 前回のキャラ人数
+	;CSVファイルの存在判定
+	IF !EXISTCSV(LOCAL)
+		CONTINUE
+	ENDIF
+	IF GETCHARA (LOCAL) == -1
+		ADDCHARA LOCAL
+		;試しにCALL KOJO_MULTIPLEをFOR~NEXTループの外に出す
+		;CALL KOJO_MULTIPLE(LOCAL)
+	ENDIF
+	;効率化追求のため引き継ぎフラグと同時に回す
+	;ファイルチェックはすでにしてるんだからその中で回せば済む話でした（反省）
+	FOR LOCAL:1,0,40
+		;引き継ぎフラグのセット
+		IF LOCAL:1 < 7 && GETBIT(TFLAG:(LOCAL + 500), LOCAL:1)
+			SETBIT CFLAG:LOCAL:引き継ぎ, LOCAL:1
+		ENDIF
+		;パンツコレクションの引き継ぎ
+		CFLAG:LOCAL:(LOCAL:1 + 100) = 前回のパンツ:LOCAL:(LOCAL:1)
+	NEXT
+	CFLAG:LOCAL:口上用引継ぎ枠 = 前回のCFLAG:LOCAL
+	;キス未経験のリセット
+	SIF EXP:LOCAL:キス経験 == 0
+		 TALENT:LOCAL:キス未経験 = 1
+NEXT
+
+;上のループから引っ越し
+FOR LOCAL,1,前回のキャラ人数
+	CALL KOJO_MULTIPLE(LOCAL)
+NEXT
+;なりきっているキャラの出禁をチェック
+IF 前回のなりきり出禁
+	CFLAG:(FLAG:なりきり):出禁 = 前回のなりきり出禁
+	FLAG:出禁人数 ++
+ENDIF
+
+;-----------------------------------------------------------
+;疑似ニューゲーム
+;-----------------------------------------------------------
+@BITE_THE_DUST_NEW
+;デフォルトオプション
+CALL DEFAULT_OPTION
+CALL SET_CHARISMA("RESET")
+PBAND = 12
+;日付１日目
+DAY = 1
+DAY:2 = 1
+DAY:3 = 1
+FLAG:酒虫 = 1
+STR:16 = ボロ小屋
+;MASTER起床時間セット（7時）
+VARSET TIME
+TIME:3 = 420
+;MASTER睡眠中フラグON
+CALL SET_SLEEP(1, MASTER, 0)
+CFLAG:MASTER:就寝時間 = 0
+BASE:MASTER:体力 = MAXBASE:MASTER:体力
+BASE:MASTER:気力 = MAXBASE:MASTER:気力
+BASE:MASTER:精力 = MAXBASE:MASTER:精力
+IF !FLAG:なりきり
+	PRINTFORML %CALLNAME:MASTER%のカスタマイズをしますか？
+	CALL ASK_YN
+	IF !RESULT
+		CALL CUSTOM_TERMINAL(MASTER)
+	ELSE
+		CALL CUSTOM_INIT(MASTER)
+	ENDIF
+ENDIF
+;BASEの成長値の加算処理
+LOCAL = 0
+IF 前回の体力増加量 > 0 && (MAXBASE:MASTER:体力 != 前回の体力)
+	PRINTFORML "前の世界"での経験が%CALLNAME:MASTER%の力となる
+	PRINTFORML ……%CALLNAME:MASTER%の体力が{前回の体力増加量}増加した
+	MAXBASE:MASTER:体力 += 前回の体力増加量
+	BASE:MASTER:体力 = MAXBASE:MASTER:体力
+	LOCAL ++
+ENDIF
+IF 前回の気力増加量 > 0 && (MAXBASE:MASTER:気力 != 前回の気力)
+	SIF !LOCAL
+		PRINTFORML "前の世界"での経験が%CALLNAME:MASTER%の力となる
+	PRINTFORML ……%CALLNAME:MASTER%の気力が{前回の気力増加量}増加した
+	MAXBASE:MASTER:気力 += 前回の気力増加量
+	BASE:MASTER:気力 = MAXBASE:MASTER:気力
+	LOCAL ++
+ENDIF
+IF 前回の精力増加量 > 0 && (MAXBASE:MASTER:精力 != 前回の精力)
+	SIF !LOCAL
+		PRINTFORML "前の世界"での経験が%CALLNAME:MASTER%の力となる
+	PRINTFORML ……%CALLNAME:MASTER%の精力が{前回の精力増加量}増加した
+	MAXBASE:MASTER:精力 += 前回の精力増加量
+	BASE:MASTER:精力 = MAXBASE:MASTER:精力
+	LOCAL ++
+ENDIF
+SIF LOCAL
+	WAIT
+CALL SET_MAINHOME
+CALL NEWGAME_OPTION
+
+;初期地点設定
+FOR LOCAL, 0, CHARANUM
+	;開始位置
+	CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:初期位置
+	;服装
+	CALL SELECT_CLOTHES(LOCAL, "今日の衣装")
+	CALL CTRL_CLOTHES_SET(LOCAL, "現在衣装の変更_普段着")
+	CALL 下着確認リセット(LOCAL)
+	;これ多分問題なさそうだけど一応
+	CFLAG:LOCAL:パジャマ = 0
+	CALL CLOTHES_SETTING_TRAIN(LOCAL)
+	CVARSET BASE, GETNUM(BASE, "酒気"), 0
+NEXT
+
+;-----------------------------------------------------------
+;変数の掃除
+;-----------------------------------------------------------
+@BITE_THE_DUST_SWEEP
+VARSET 前回の体力
+VARSET 前回の体力増加量
+VARSET 前回の気力
+VARSET 前回の気力増加量
+VARSET 前回のキャラ人数
+VARSET 前回のなりきり出禁
+VARSET 前回のCFLAG
+VARSET 前回のパンツ
+
+
+
+
+;-----------------------------------------------------------
+;同キャラ口上複数存在判定
+;ARG=キャラナンバー
+;現在同キャラ口上は最大で四つまで想定
+;-----------------------------------------------------------
+@KOJO_MULTIPLE(C_ID)
+#DIM C_ID
+#DIM DYNAMIC 口上カウント
+#DIM DYNAMIC 口上数
+#DIM DYNAMIC 口上実装数
+;同キャラ口上複数確認
+FOR 口上カウント,0,5
+	IF 口上カウント
+		RESULT = 0
+		TRYCALLFORM M_KOJO_K{C_ID}_{口上カウント}
+		IF RESULT
+			IF !GETBIT(CFLAG:C_ID:口上実装状況,口上カウント)
+				口上数 += 1
+				口上実装数 += 1
+				SETBIT CFLAG:C_ID:口上実装状況,口上カウント
+			ELSEIF GETBIT(CFLAG:C_ID:口上実装状況,口上カウント)
+				口上実装数 += 1
+			ENDIF
+		ENDIF
+	ELSE
+		TRYCALLFORM M_KOJO_K{C_ID}
+		IF RESULT
+			IF !GETBIT(CFLAG:C_ID:口上実装状況,口上カウント)
+				口上数 += 1
+				口上実装数 += 1
+				SETBIT CFLAG:C_ID:口上実装状況,口上カウント
+			ELSEIF GETBIT(CFLAG:C_ID:口上実装状況,口上カウント)
+				口上実装数 += 1
+			ENDIF
+		ELSE
+			CFLAG:C_ID:口上実装状況 = 0
+		ENDIF
+	ENDIF
+	SIF !RESULT
+		BREAK
+NEXT
+;口上存在判定
+IF 口上数
+	;新規別人口上追加
+	IF 口上実装数 > 1
+		RESULTS:1 = 
+		;口上名の保存及び実装状況の上書き
+		FOR 口上カウント,0,口上実装数 + 1
+			IF 口上カウント
+				RESULT = 0
+				TRYCALLFORM M_KOJO_K{C_ID}_{口上カウント}
+			ELSE
+				TRYCALLFORM M_KOJO_K{C_ID}
+			ENDIF
+			SIF !RESULT
+				BREAK
+			SIF RESULTS:1 == ""
+				RESULTS:1 = 初期
+			IF RESULT
+				LOCALS:(口上カウント + 1) = %CALLNAME:C_ID%%RESULTS:1%口上
+				RESULT = 0
+			ENDIF
+		NEXT
+		PRINTFORML %CALLNAME:C_ID%には複数の口上が存在します
+		PRINTFORML 変更しますか
+		CALL ASK_YN
+		;口上選択
+		IF !RESULT
+			LOCALS:0 = どの口上を使いますか
+			CALL CHOICE(LOCALS:0, LOCALS:1, LOCALS:2, LOCALS:3, LOCALS:4)
+			CFLAG:C_ID:口上セレクタ = RESULT
+			RETURN 2
+		ELSE
+			PRINTFORML 変更しませんでした
+			RETURN 1
+		ENDIF
+	ELSE
+		RETURN 2
+	ENDIF
+ENDIF
+SIF 口上実装数
+	RETURN 1
+RETURN 0

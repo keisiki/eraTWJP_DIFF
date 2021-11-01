@@ -1,0 +1,1341 @@
+﻿;*********************************************************************************
+;K53_PLIST_NUM			喘ぎ声リスト数			喘ぎ声パターンを追加したらこの数をいじる
+;K53_PVOICE_FRAG			使用可能な喘ぎ声リスト		(=0 使用不可　=1 使用可
+;		0:対象部位　1:あなた部位　2:快感　3:苦痛　4:反感　5:キス　6:フェラ　7:吐息　8:イラマチオ　9:声我慢
+;
+;K53_台詞使用可			台詞系は使用一回まで		(=0 使用不可　=1 使用可
+;RAND:K53_台詞発生確率
+;*********************************************************************************
+@K53_AUTO_PVOICE
+
+;初期化・初期設定
+VARSET LOCALS
+
+K53_NUM = 40
+K53_台詞発生確率 = 3
+
+;使用喘ぎリスト初期化
+FOR LOCAL, 0, K53_PLIST_NUM
+	K53_PVOICE_FRAG:LOCAL = 0
+NEXT
+K53_台詞使用可 = 1
+
+
+;*********************************************************************************
+;合計快感量、快感から接触部位を判定
+;総PALAMLVとってるけどたぶん使わないかも
+;*********************************************************************************
+;快感総量判定
+K53_快感 = CUP:快Ｃ + CUP:快Ｖ + CUP:快Ａ + CUP:快Ｂ + CUP:快Ｍ
+
+;快感を与えられている部位の総PALAMLVと
+;快感を与えられている部位を検索
+;検索する快感0:快Ｃ 1:快Ｖ 2:快Ａ 3:快Ｂ 4:快Ｍ
+K53_総PALAMLV = 0
+K53_接触部位 = 
+FOR LOCAL,0, 5
+	;快感が与えられている
+	IF CUP:TARGET:LOCAL > 0
+		;総PALAMLV増加
+		K53_総PALAMLV += GETPALAMLV(PALAM:TARGET:LOCAL,4)
+		
+		;接触部位記憶
+		SELECTCASE LOCAL
+			CASE 0
+				K53_接触部位 += "Ｃ"
+			CASE 1
+				K53_接触部位 += "Ｖ"
+			CASE 2
+				K53_接触部位 += "Ａ"
+			CASE 3
+				K53_接触部位 += "Ｂ"
+			CASE 4
+				K53_接触部位 += "Ｍ"
+		ENDSELECT
+
+	ENDIF
+	
+NEXT
+;*********************************************************************************
+;使用可能喘ぎ声リスト判定
+;*********************************************************************************
+;イラマチオ中
+IF SELECTCOM == 140
+	;イマラチオ
+	K53_PVOICE_FRAG:8 = 1
+	IF STRCOUNT(K53_接触部位, "Ｃ") || STRCOUNT(K53_接触部位, "Ｖ") || STRCOUNT(K53_接触部位, "Ａ") || STRCOUNT(K53_接触部位, "Ｂ")
+		;あえぎ声
+		IF K53_刺激LV("反感") >= 1
+			;反感
+			K53_PVOICE_FRAG:4 = 1
+		;強い快感
+		ELSEIF K53_刺激LV("快感") >= 2
+			;口ふさぎ　部位　快感
+			K53_PVOICE_FRAG = 1
+			K53_PVOICE_FRAG:2 = 1
+			K53_PVOICE_FRAG:9 = 1
+		ENDIF
+	ELSE
+		;イラマチオ嫌
+		IF K53_刺激LV("反感") >= 1
+			;反感
+			K53_PVOICE_FRAG:4 = 1
+		ENDIF
+	ENDIF
+ELSEIF STRCOUNT(K53_接触部位, "Ｍ")
+	;フェラ中
+	IF TEQUIP:TARGET:口接触部位 == 1
+		;Ｍ以外の接触部位がある
+		IF STRCOUNT(K53_接触部位, "Ｃ") || STRCOUNT(K53_接触部位, "Ｖ") || STRCOUNT(K53_接触部位, "Ａ") || STRCOUNT(K53_接触部位, "Ｂ")
+			;強い快感
+			IF K53_刺激LV("快感") >= 2
+				;快感が強い場合口ふさぎ強快感で代用、フェラ喘ぎ無し
+				K53_PVOICE_FRAG:2 = 1
+				K53_PVOICE_FRAG:9 = 1
+			ELSE
+				;フェラ　快感　部位
+				K53_PVOICE_FRAG = 1
+				K53_PVOICE_FRAG:1 = 1
+				K53_PVOICE_FRAG:2 = 1
+				K53_PVOICE_FRAG:6 = 1
+			ENDIF
+			
+		;フェラ系のみ
+		ELSE
+			;フェラ
+			K53_PVOICE_FRAG:1 = 1
+			K53_PVOICE_FRAG:6 = 1
+		ENDIF
+		
+	;キスor愛撫or継続キス中の行為
+	ELSE
+		;Ｍ以外の接触部位がある
+		IF STRCOUNT(K53_接触部位, "Ｃ") || STRCOUNT(K53_接触部位, "Ｖ") || STRCOUNT(K53_接触部位, "Ａ") || STRCOUNT(K53_接触部位, "Ｂ")
+			;チュパ
+			;強い快感の場合口ふさぎで代用
+			IF K53_刺激LV("快感") >= 2
+				K53_PVOICE_FRAG:9 = 1
+			ELSE
+				K53_PVOICE_FRAG:5 = 1
+			ENDIF
+			;キス中に反発の付きかねないコマンド実行
+			IF K53_刺激LV("苦痛") >= 1 || K53_刺激LV("反感") >= 1
+				;継続キス中に指入れ処女膜喪失、子宮口責め等
+				
+				IF K53_刺激LV("苦痛") >= 1
+					;苦痛
+					K53_PVOICE_FRAG = 1
+					K53_PVOICE_FRAG:1 = 1
+					K53_PVOICE_FRAG:3 = 1
+				ELSE
+					;反感
+					K53_PVOICE_FRAG = 1
+					K53_PVOICE_FRAG:1 = 1
+					K53_PVOICE_FRAG:4 = 1
+				ENDIF
+				
+			;キス＋喘ぎ
+			ELSE
+				;チュパ　快感　部位
+				K53_PVOICE_FRAG = 1
+				K53_PVOICE_FRAG:1 = 1
+				K53_PVOICE_FRAG:2 = 1
+			ENDIF
+			
+		;キス
+		ELSE
+			;キス嫌		この分岐は発生しないかもしれない
+			IF K53_刺激LV("反感") >= 1
+				;チュパ　反感
+				K53_PVOICE_FRAG:4 = 1
+				K53_PVOICE_FRAG:5 = 1
+				
+			;キス、継続キス
+			ELSE
+				;チュパ
+				K53_PVOICE_FRAG:5 = 1
+			ENDIF
+		ENDIF
+	ENDIF
+
+;奉仕系		奉仕快楽判定
+;騎乗位、逆レイプ系も含まれる
+ELSEIF TCVAR:108 == 1
+	;喘ぎ声のみ
+	IF K53_刺激LV("快感") >= 2
+		;快感　部位
+		K53_PVOICE_FRAG = 1
+		K53_PVOICE_FRAG:2 = 1
+		
+	;吐息＋喘ぎ
+	ELSEIF STRCOUNT(K53_接触部位, "Ｃ") || STRCOUNT(K53_接触部位, "Ｖ") || STRCOUNT(K53_接触部位, "Ａ") || STRCOUNT(K53_接触部位, "Ｂ")
+		;奉仕　快感
+		K53_PVOICE_FRAG = 1
+		K53_PVOICE_FRAG:1 = 1
+		K53_PVOICE_FRAG:2 = 1
+		K53_PVOICE_FRAG:7 = 1
+		
+	;吐息のみ
+	ELSE
+		;吐息
+		K53_PVOICE_FRAG:1 = 1
+		K53_PVOICE_FRAG:7 = 1
+	ENDIF
+;
+ELSE
+	;苦痛
+	;痛み目安	処女:1250 子宮口責め:～500 スパンキング:450+幼稚350 アナル愛撫:100 正常位アナル:800
+	IF K53_刺激LV("苦痛") >= 1
+		;快感も強い
+		IF K53_刺激LV("快感") >= 2
+			;苦痛　快感
+			K53_PVOICE_FRAG = 1
+			K53_PVOICE_FRAG:1 = 1
+			K53_PVOICE_FRAG:2 = 1
+			K53_PVOICE_FRAG:3 = 1
+			
+		;悲鳴のみ
+		ELSE
+			;苦痛　部位
+			K53_PVOICE_FRAG = 1
+			K53_PVOICE_FRAG:1 = 1
+			K53_PVOICE_FRAG:3 = 1
+		ENDIF
+		
+	;反感・恐怖
+	;反感目安	後背位:600 挿入Ｇスポット・子宮口責め:500+貞操観念1000
+	ELSEIF K53_刺激LV("反感") >= 1 || K53_刺激LV("恐怖") >= 1
+		;快感も強い		挿入Ｇスポット等	2000くらい？
+		IF K53_刺激LV("快感") >= 2
+			;反感　部位　快感
+			K53_PVOICE_FRAG = 1
+			K53_PVOICE_FRAG:1 = 1
+			K53_PVOICE_FRAG:2 = 1
+			K53_PVOICE_FRAG:4 = 1
+			
+		;悲鳴のみ
+		ELSE
+			;反感　あなた部位　
+			K53_PVOICE_FRAG = 1
+			K53_PVOICE_FRAG:1 = 1
+			K53_PVOICE_FRAG:4 = 1
+		ENDIF
+		
+	;快感
+	ELSEIF STRCOUNT(K53_接触部位, "Ｃ") || STRCOUNT(K53_接触部位, "Ｖ") || STRCOUNT(K53_接触部位, "Ａ") || STRCOUNT(K53_接触部位, "Ｂ")
+		;快感　部位　あなた部位
+		K53_PVOICE_FRAG = 1
+		K53_PVOICE_FRAG:1 = 1
+		K53_PVOICE_FRAG:2 = 1
+	
+	;その他
+	ELSE
+		;薬系・道具不使用の何もしない、等
+		;吐息
+		K53_PVOICE_FRAG:7 = 1
+	ENDIF
+ENDIF
+
+;修正
+;睡姦中
+IF CFLAG:睡眠
+	;台詞系無し
+	K53_PVOICE_FRAG = 0
+	K53_PVOICE_FRAG:1 = 0
+	
+	;苦痛、恐怖、反感なし
+	K53_PVOICE_FRAG:3 = 0
+	K53_PVOICE_FRAG:4 = 0
+	
+	;快感を吐息へ
+	IF STRCOUNT(K53_接触部位, "Ｃ") || STRCOUNT(K53_接触部位, "Ｖ") || STRCOUNT(K53_接触部位, "Ａ") || STRCOUNT(K53_接触部位, "Ｂ")
+		K53_PVOICE_FRAG:2 = 0
+		K53_PVOICE_FRAG:7 = 1
+	ENDIF
+
+ELSE
+	[SKIPSTART]
+	;喘ぎ声我慢（作りかけ　地の文が無いため、よくわからないことになっている
+	
+	;Ｍ以外の接触部位がある
+	IF STRCOUNT(K53_接触部位, "Ｃ") || STRCOUNT(K53_接触部位, "Ｖ") || STRCOUNT(K53_接触部位, "Ａ") || STRCOUNT(K53_接触部位, "Ｂ")
+		;素質
+		IF TALENT:プライド || TALENT:自制心 || TALENT:貞操 || TALENT:羞恥心 || TALENT:快感応答 == -1
+			K53_PVOICE_FRAG:9 = 1
+			;確立で完全がまん
+			SELECTCASE RAND:4
+				CASE 0
+					K53_PVOICE_FRAG:2 = 0
+			ENDSELECT
+		;状況
+		;ベッドルームで後背位
+		ELSEIF BEDROOM() && TEQUIP:体位 == 2
+			K53_PVOICE_FRAG:9 = 1
+			;確立で完全がまん
+			SELECTCASE RAND:4
+				CASE 0
+					K53_PVOICE_FRAG:2 = 0
+			ENDSELECT
+		ENDIF
+	ENDIF
+	[SKIPEND]
+ENDIF
+
+
+;押し倒され
+IF CFLAG:うふふ == 2
+
+ENDIF
+;*********************************************************************************
+;K53_部位台詞設定
+;責められている部位への台詞
+;*********************************************************************************
+K53_部位台詞 =
+IF STRCOUNT(K53_接触部位, "Ｃ")
+	IF TEQUIP:クリキャップ
+		SELECTCASE RAND:2
+			CASE 0
+				K53_部位台詞 = く、クリぶるぶるっ、や、やぁっ
+			CASE 1
+				K53_部位台詞 = く、くりとりしゅっ
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				K53_部位台詞 = クリ
+			CASE 1
+				K53_部位台詞 = われめ
+			CASE 2
+				K53_部位台詞 = おまめ
+		ENDSELECT
+	ENDIF
+ELSEIF STRCOUNT(K53_接触部位, "Ｖ")
+	IF TEQUIP:バイブ
+		K53_部位台詞 = やっ、やぁっ、おなか、なか…っ、…うぃん、うぃんっ、て…
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				K53_部位台詞 = おまた
+			CASE 1
+				K53_部位台詞 = なか
+			CASE 2
+				K53_部位台詞 = われめ
+		ENDSELECT
+	ENDIF
+ELSEIF STRCOUNT(K53_接触部位, "Ａ")
+	IF TEQUIP:アナルバイブ
+		K53_部位台詞 = うっ、ふぅっ、おしりっ、ふ、ぅっ…、…ぶるぶる、ふるえ…っ
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				K53_部位台詞 = しりあな
+			CASE 1
+				K53_部位台詞 = うんちあな
+			CASE 2
+				K53_部位台詞 = おしり
+		ENDSELECT
+	ENDIF
+ELSEIF STRCOUNT(K53_接触部位, "Ｂ")
+	SELECTCASE RAND:3
+		CASE 0
+			K53_部位台詞 = むね
+		CASE 1
+			K53_部位台詞 = おっぱい
+		CASE 2
+			K53_部位台詞 = ちくび
+	ENDSELECT
+ELSE
+	K53_PVOICE_FRAG = 0
+ENDIF
+
+;*********************************************************************************
+;コマンド台詞設定
+;コマンドに対する台詞
+;*********************************************************************************
+K53_コマンド台詞 =
+SELECTCASE SELECTCOM
+	;愛撫
+	CASE 0
+		IF TEQUIP:ニプルキャップ || TEQUIP:クリキャップ
+			SELECTCASE RAND:2
+				CASE 0
+					K53_コマンド台詞 = つみゃむなっ、それ、つみゃむなっ、あっあぁっあぁぁ～～～っ
+				CASE 1
+					K53_コマンド台詞 = いっ、は、はじくなぁっ、キャップといっしょ、きんしっ、ひあっ
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					K53_コマンド台詞 = やっ、そこ…くりくりってっ、いじるの…っ
+				CASE 1
+					K53_コマンド台詞 = こんなの、べつに、きもちよく…ない……っ
+				CASE 2
+					K53_コマンド台詞 = ゆび、そこばっかり、し、しつこい～…っ
+			ENDSELECT
+		ENDIF
+	;クンニ
+	CASE 1
+		IF TCVAR:102
+			K53_コマンド台詞 = あ、あんたが汚したんだから、ちゃんときれいにしてよね…っ
+		ELSE
+			SELECTCASE RAND:2
+				CASE 0
+					K53_コマンド台詞 = ぺろぺろ
+				CASE 1
+					K53_コマンド台詞 = 舌
+					SELECTCASE RAND:2
+						CASE 0
+							K53_コマンド台詞 += "でつんつん"
+						CASE 1
+							K53_コマンド台詞 += "でぺろぺろ"
+					ENDSELECT
+			ENDSELECT
+		ENDIF
+	;指入れ
+	CASE 3
+		IF EX:膣内精液 > 300
+			K53_コマンド台詞 = せいえきっ…%K53_ハート付与()%なかで、ぐちゃぐちゃって…っ
+		ELSE
+			IF TEQUIP:バイブ
+				K53_コマンド台詞 = だ、だめっ、それ、ずぼずぼっ、するの、やっやあ～～～っ
+			ELSE
+				SELECTCASE RAND:2
+					CASE 0
+						K53_コマンド台詞 = ゆび
+					CASE 1
+						K53_コマンド台詞 = ゆびちんぽ
+				ENDSELECT
+			ENDIF
+		ENDIF
+	;アナル舐め
+	CASE 4
+		SELECTCASE RAND:2
+			CASE 0
+				K53_コマンド台詞 = ぺろぺろ
+			CASE 1
+				K53_コマンド台詞 = やぁっ、そこきたないっ、きたなっやっ
+		ENDSELECT
+	;アナル愛撫
+	CASE 5
+		IF TEQUIP:アナルバイブ
+			K53_コマンド台詞 = ほっ、おっ、ひ、ひっぱるなっ、それ、ぬきさし、や、やめっ
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					K53_コマンド台詞 = 浅いとこ、くにくにってっ、へんな、かんじ…っ
+				CASE 1
+					K53_コマンド台詞 = おしりほじほじ、ち、ちから抜けちゃ…っ
+				CASE 2
+					K53_コマンド台詞 = やっ、ゆ、ゆび、ぬくとき、ぞわぞわぁっ、て…
+			ENDSELECT
+		ENDIF
+	;胸愛撫系
+	CASE 6, 7, 12
+		IF TEQUIP:ニプルキャップ
+			K53_コマンド台詞 = やっ、ちくびぶるぶるやぁっ、やめっ、いっしょにするのやぁっ
+		ELSE
+			SELECTCASE RAND:2
+				CASE 0
+					K53_コマンド台詞 = ちくび、ぎゅーってするの…、やっ…
+				CASE 1
+					K53_コマンド台詞 = や、やぁっ…、ちくび、指ではじくなぁ…っ
+			ENDSELECT
+		ENDIF
+	;乳首吸い
+	CASE 11
+		SELECTCASE RAND:3
+			CASE 0
+				K53_コマンド台詞 = うぅ…、乳首ちゅぱちゅぱ…、やぁ…っ
+			CASE 1
+				K53_コマンド台詞 = ひゃぁっ！？か、噛むなっ、甘噛みきんし…っ
+			CASE 2
+				K53_コマンド台詞 = こ、こらぁ、ちゅうちゅう吸うなぁ…っ
+		ENDSELECT
+	;秘貝・アナル開帳
+	CASE 8, 13
+		;リスト操作:反感閉じる　吐息開放
+		K53_PVOICE_FRAG:4 = 0
+		K53_PVOICE_FRAG:7 = 1
+		;中出しされた
+		IF TCVAR:102
+			K53_コマンド台詞 = あーあ、ろりこんちんぽに汚されちゃったぁ、お師匠様に言いつけちゃおっかなぁ～
+		;ELSEIF TCVAR:104
+		ELSE
+			K53_コマンド台詞 = …ほら、これで満足？……へんたい
+		ENDIF
+	;自慰
+	CASE 9
+		;リスト操作
+		K53_PVOICE_FRAG = 0
+		K53_PVOICE_FRAG:4 = 0
+		;IF ABL:露出癖 >= 3
+		;TEQUIP:バイブ && TEQUIP:アナルバイブ
+		;IF TEQUIP:バイブ
+		;IF TEQUIP:アナルバイブ
+		;IF TEQUIP:バイブ && TEQUIP:アナルバイブ && ABL:Ｖ感覚 >= 5 && ABL:Ａ感覚 >= 5 && ABL:Ｃ感覚 >= 5 && ABL:Ｂ感覚 >= 5 && PALAM:欲情 >= PALAMLV:4
+		;ELSEIF TEQUIP:バイブ && ABL:Ｖ感覚 >= 5 && ABL:Ｃ感覚 >= 5 && ABL:Ｂ感覚 >= 5 && PALAM:欲情 >= PALAMLV:4
+		;ELSEIF TEQUIP:アナルバイブ && ABL:Ａ感覚 >= 5 && ABL:Ｃ感覚 >= 5 && ABL:Ｂ感覚 >= 5 && PALAM:欲情 >= PALAMLV:4
+		;ELSEIF ABL:自慰中毒 >= 3 && ABL:Ｃ感覚 >= 5 && ABL:Ｂ感覚 >= 5 && PALAM:欲情 >= PALAMLV:4
+			
+		;ELSE
+			K53_コマンド台詞 = み、みるなぁ…っ、ヘンタイ…へんたい～…っ
+		;ENDIF
+	;性交Ｖ系
+	CASE 60, 61, 64, 65, 67, 68, 71
+		K53_コマンド台詞 = %K53_TINPO()%
+	;Ｇスポ責め
+	CASE 72
+		K53_コマンド台詞 = やっ、そこっ%K53_ハート付与()%しげきつよいぃっ
+	;子宮責め
+	CASE 73
+		SELECTCASE EXP:TARGET:子宮口開発経験
+			CASE IS < 25
+				K53_コマンド台詞 = お、おぐ…っ%K53_ハート付与()%ふっ、ふか…いっ、……っ！ふっ、う"っ
+			CASE 25 TO 50
+				SELECTCASE RAND:3
+					CASE 0
+						K53_コマンド台詞 = やっ、そこ…っ%K53_ハート付与()%こん、こんって…、しゅるなぁ……っ
+					CASE 1
+						K53_コマンド台詞 = あっ、あたままで…っ%K53_ハート付与()%ずんずんって…く、くるぅ……
+					CASE 2
+						K53_コマンド台詞 = そこっ、ぐりぐりだめっ、はなせっ%K53_ハート付与()%ちんぽはなせぇ～～っ
+				ENDSELECT
+			CASE IS > 50
+				SELECTCASE RAND:3
+					CASE 0
+						K53_コマンド台詞 = い、いちばんおく…っ、はいって、りゅ……っ%K53_ハート付与()%お"っ
+					CASE 1
+						K53_コマンド台詞 = りゃ、りゃめ%K53_ハート付与()%ちんぽ、そこはいっちゃ、りゃめ……っ
+					CASE 2
+						K53_コマンド台詞 = し、ぎゅうっ%K53_ハート付与()%ずんずん、らめっ、こわれ、こわっれ、りゅ…っ
+				ENDSELECT
+		ENDSELECT
+	;性交Ａ系
+	CASE 62, 63, 66, 69, 70, 71, 74, 75
+		SELECTCASE RAND:3
+			CASE 0
+				K53_コマンド台詞 = ふうぅっ、おし、りぃ…っ、くるし、い……っ
+			CASE 1
+				K53_コマンド台詞 = やっ、もっとゆっくり…、ゆっくりして…っ
+			CASE 2
+				K53_コマンド台詞 = ち、ちから、ぬけっりゅ、うっ、だめ…、だめへぇ…っ
+		ENDSELECT
+	;手淫
+	CASE 80
+		SELECTCASE RAND:2
+			CASE 0
+				K53_コマンド台詞 = こんなの握らせるなんて…、ほんと、さいてー…
+			CASE 1
+				K53_コマンド台詞 = うぅ～…%K53_TINPO()%汁出しすぎ･･･
+		ENDSELECT
+	;フェラチオ・バキュームフェラ
+	CASE 81, 88
+		IF GETPALAMLV(PALAM:欲情, 15) >= 9
+			SELECTCASE RAND:3
+				CASE 0
+					K53_コマンド台詞 = も、もう…、%K53_TINPO()%で、あたまいっぱいに、なる…
+				CASE 1
+					K53_コマンド台詞 = んうぅん…%K53_TINPO()%汁、おいひい…じゅるるる…
+				CASE 2
+					K53_コマンド台詞 = しゅき…%CALLNAME:MASTER%%K53_TINPO()%のにおい、しゅきぃ…
+			ENDSELECT
+		ELSEIF GETPALAMLV(PALAM:欲情, 15) >= 6
+			SELECTCASE RAND:3
+				CASE 0
+					K53_コマンド台詞 = スンスン…はぁ…%CALLNAME:MASTER%の、くさチンポぉ…
+				CASE 1
+					K53_コマンド台詞 = この、%K53_TINPO()%…、私がきれいにしてあげるんだから…
+				CASE 2
+					K53_コマンド台詞 = はぁ～…このにおい…あたまふわぁ～って、しゅる…
+			ENDSELECT
+		ELSEIF GETPALAMLV(PALAM:欲情, 15) >= 3
+			SELECTCASE RAND:3
+				CASE 0
+					K53_コマンド台詞 = んむぅ…ここにもチンカスついてる……
+				CASE 1
+					K53_コマンド台詞 = くっさ…じゅるるる……ほんと、さいあく…
+				CASE 2
+					K53_コマンド台詞 = やぁっ、%K53_TINPO()%なめてる顔、みるなぁ～…っ
+			ENDSELECT
+		ELSEIF GETPALAMLV(PALAM:欲情, 15) >= 0
+			SELECTCASE RAND:3
+				CASE 0
+					K53_コマンド台詞 = んんぅ…なんか…へんな味、しゅる…
+				CASE 1
+					K53_コマンド台詞 = …なんかへんなニオイ、するんだけど…
+				CASE 2
+					K53_コマンド台詞 = …ねぇ、これちゃんと洗ってるの？…くさいんだけど…
+			ENDSELECT
+		ENDIF
+	;パイズリ
+	CASE 82
+		K53_コマンド台詞 = %K53_TINPO()%
+	;素股
+	CASE 83
+		IF EQUIP:0
+			SELECTCASE RAND:3
+				CASE 0
+					K53_コマンド台詞 = やっ、ぱんつに、%K53_TINPO()%、くいこむ…っ
+				CASE 1
+					K53_コマンド台詞 = うぅ～…ぱんつに、%K53_TINPO()%のニオイついちゃう…っ
+				CASE 2
+					K53_コマンド台詞 = おまたからおちんちん、出たり入ったりして…やらし…っ
+			ENDSELECT
+		ELSE
+			;ちんぽいれたい
+			IF BASE:MASTER:勃起 >= 1000 && EXP:Ｖ経験 >= 100 && ABL:欲望 >= 8
+				K53_コマンド台詞 = こんなおっきくしてるのに、まんこ入れないの？いれよ？おまんこしよう？
+			;ちんぽはいっちゃう
+			ELSEIF BASE:MASTER:勃起 >= 1000 && EXP:Ｖ経験 >= 50 && PALAM:潤滑 >= PALAMLV:4
+				K53_コマンド台詞 = やっ…はげしくしたら、ちんぽはいっちゃう、だ、だめだからねっ
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						K53_コマンド台詞 = %K53_TINPO()%が、われめにっ、こすこすって…っ
+					CASE 1
+						K53_コマンド台詞 = こ、これは、あんたの%K53_TINPO()%で、おなにーしてるだけなんだから…っ
+					CASE 2
+						K53_コマンド台詞 = やっ、おしり、つかむなっ、ゆび、くいこませすぎっ、へんたい、ヘンタイ…っ
+				ENDSELECT
+			ENDIF
+		ENDIF
+	;泡踊り
+	CASE 84
+		K53_コマンド台詞 = なんでわたしが、こんな…
+	;足コキ
+	CASE 85
+		SELECTCASE RAND:3
+			CASE 0
+				K53_コマンド台詞 = 足で%K53_TINPO()%シコシコきもちいい？
+			CASE 1
+				K53_コマンド台詞 = ちいさい子に踏まれてこーふんするんだ、ふ～ん
+			CASE 2
+				K53_コマンド台詞 = …くすくす、%K53_TINPO()%びくびくしてる、かわい～
+		ENDSELECT
+	;媚薬、利尿剤
+	CASE 181, 182
+		;口移し
+		SIF ABL:MASTER:技巧 >= 3
+			K53_PVOICE_FRAG:5 = 1
+	;腰を動かす（Ｖ）
+	CASE 317
+		SELECTCASE TFLAG:194
+			;激しく
+			CASE 1
+				SELECTCASE RAND:2
+					CASE 0
+						K53_コマンド台詞 = やっやぁ～っ%K53_ハート付与()%はっはげしっ%K53_ハート付与()%はげししゅぎりゅぅ～～～っ
+					CASE 1
+						K53_コマンド台詞 = だめっ%K53_ハート付与()%だめっ%K53_ハート付与()%だめっ%K53_ハート付与()%だめえへぇえぇぇ～～～～っ
+				ENDSELECT
+			;ねちっこく
+			CASE 2
+			;グラインド
+			CASE 3
+				K53_コマンド台詞 = ま、まわすのだめっ、ひろがりゅっ%K53_ハート付与()%おまんこあなひろがりゅぅ～～～っ
+			;通常
+			CASEELSE
+				K53_コマンド台詞 = う、うごくなぁっ%K53_ハート付与()%わたしがするのっ、うごいちゃ、やっ、やぁっ
+		ENDSELECT
+	;相手主導性交系
+	CASE 320, 321, 322, 323
+		K53_コマンド台詞 = んんっ、…きた…っ%K53_ハート付与()%%K53_TINPO()%はいってきたぁ～っ
+	
+	CASEELSE
+		;コマンド台詞閉じる
+		K53_PVOICE_FRAG:1 = 0
+ENDSELECT
+;派生系
+SELECTCASE TFLAG:50
+	;シックスナイン
+	CASE 1
+	;岩清水
+	CASE 2
+	;Gスポット刺激
+	CASE 3
+	;乱れ牡丹
+	CASE 4
+	;手淫フェラ
+	CASE 5
+	;パイズリフェラ
+	CASE 12
+ENDSELECT
+
+;*********************************************************************************
+;イきそう台詞
+;コマンド台詞に上書き
+;*********************************************************************************
+IF NOWEX:Ｃ絶頂 || NOWEX:Ｖ絶頂 || NOWEX:Ａ絶頂 || NOWEX:Ｂ絶頂 || NOWEX:Ｍ絶頂
+	
+	;一応コマンド台詞開放
+	;睡姦中でない
+	SIF !CFLAG:睡眠
+		K53_PVOICE_FRAG:1 = 1
+	;共通
+	IF K53_合計絶頂数 >= 1
+		SELECTCASE RAND:2
+			CASE 0
+				K53_コマンド台詞 = ま、またくるっ%K53_ハート付与()%また、またおおきいの、くる…っ！
+			CASE 1
+				K53_コマンド台詞 = あっ、またイくっ%K53_ハート付与()%また、イっ、くぅ～～～…っっ！
+		ENDSELECT
+	ELSEIF K53_合計絶頂数 == 0
+		SELECTCASE RAND:3
+			CASE 0
+				K53_コマンド台詞 = あ、あたまぼーって%K53_ハート付与()%してき……イっ…～～～っ！
+			CASE 1
+				K53_コマンド台詞 = な、なんかっくる…っき、きちゃぅ%K53_ハート付与()%きちゃ…～っ！
+			CASE 2
+				K53_コマンド台詞 = な、んか、ふ、ふわぁ～って%K53_ハート付与()%の、のぼって、あっ！
+		ENDSELECT
+	ENDIF
+	
+	SELECTCASE SELECTCOM
+		;性交Ｖ系
+ 		CASE 60, 61, 64, 65, 67, 68, 71, 72, 73, 317
+		;挿入直後
+		K53_コマンド台詞 = いっ、いぃ…っ%K53_ハート付与()%イくっ、%K53_TINPO()%で、膣イキアクメ…っしゅるぅ～っ
+	ENDSELECT
+	
+	K53_合計絶頂数 = EX:Ｃ絶頂 + EX:Ｖ絶頂 + EX:Ａ絶頂 + EX:Ｂ絶頂 + EX:Ｍ絶頂
+	
+ENDIF
+
+;*********************************************************************************
+;喘ぎ声作成
+;開放されているリストからランダムに選択し、LOCALSに追加する、を繰り返す
+;台詞系は一度使用したら閉じる
+;開放されていないリストも選択する可能性があるため、無駄処理が発生しやすい
+;文字数が一定（K53_NUM）に達したら終了　台詞系で大幅に超過する可能性あり
+;*********************************************************************************
+REPEAT 999
+	;ランダムにリスト選択
+	SELECTCASE RAND:K53_PLIST_NUM
+		;責められている部位
+		CASE 0
+			IF K53_PVOICE_FRAG
+				LOCALS += K53_部位台詞
+				K53_PVOICE_FRAG = 0
+				K53_PVOICE_FRAG:1 = 0
+				
+				LOCALS += K53_ハート付与()
+			ENDIF
+		;あなたの責めている部位
+		CASE 1
+			IF K53_PVOICE_FRAG:1
+				LOCALS += K53_コマンド台詞
+				K53_PVOICE_FRAG:1 = 0
+				K53_PVOICE_FRAG = 0
+				
+				LOCALS += K53_ハート付与()
+			ENDIF
+		;快感
+		CASE 2
+			;使用可能
+			IF K53_PVOICE_FRAG:2
+				;喘ぎ声
+				IF K53_刺激LV("快感") >= 2
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "ひあぁ"
+						CASE 1
+							LOCALS += "あっ"
+						CASE 2
+							LOCALS += "ああっ"
+						CASE 3
+							LOCALS += "んあっ"
+						CASE 4
+							LOCALS += "やぁっ"
+						CASE 5
+							LOCALS += "ひゃ"
+						CASE 6
+							LOCALS += "んんんっ"
+						CASE 7
+							LOCALS += "～～～っ"
+						CASE 8
+							LOCALS += "～っ"
+					ENDSELECT
+					SELECTCASE RAND:6
+						CASE 1
+							LOCALS += "！"
+						CASE 2
+							LOCALS += "！？"
+						CASEELSE
+							LOCALS += K53_ハート付与()
+					ENDSELECT
+				ELSEIF K53_刺激LV("快感") == 1
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "あ"
+						CASE 1
+							LOCALS += "あっ"
+						CASE 2
+							LOCALS += "あんっ"
+						CASE 3
+							LOCALS += "やっ"
+						CASE 4
+							LOCALS += "やぁっ"
+						CASE 5
+							LOCALS += "ふぁっ"
+						CASE 6
+							LOCALS += "んんっ"
+						CASE 7
+							LOCALS += "はぁっ"
+						CASE 8
+							LOCALS += "ひぅっ"
+					ENDSELECT
+					SELECTCASE RAND:4
+						CASE 1
+							LOCALS += "…"
+						CASEELSE
+							LOCALS += K53_ハート付与()
+					ENDSELECT
+				ELSEIF K53_刺激LV("快感") == 0
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "ん"
+						CASE 1
+							LOCALS += "んっ"
+						CASE 2
+							LOCALS += "んんっ"
+						CASE 3
+							LOCALS += "んう…"
+						CASE 4
+							LOCALS += "ふぁっ"
+						CASE 5
+							LOCALS += "あっ…"
+						CASE 6
+							LOCALS += "はふ"
+						CASE 7
+							LOCALS += "………"
+						CASE 8
+							LOCALS += "ん…"
+					ENDSELECT
+					SELECTCASE RAND:4
+						CASE 0
+							LOCALS += "…"
+						CASEELSE
+							LOCALS += K53_ハート付与()
+					ENDSELECT
+				ENDIF
+				
+				;台詞
+				IF K53_台詞使用可
+					SELECTCASE RAND:K53_台詞発生確率
+						CASE 0
+							IF K53_刺激LV("快感") >= 2
+								SELECTCASE RAND:3
+									CASE 0
+										LOCALS += "しゅ、しゅごっ"
+									CASE 1
+										LOCALS += "だ、だめぇ～～っ"
+									CASE 2
+										LOCALS += "つ、つよいぃっ"
+								ENDSELECT
+							ELSEIF K53_刺激LV("快感") == 1
+								SELECTCASE RAND:3
+									CASE 0
+										LOCALS += "……これ…っ"
+									CASE 1
+										LOCALS += "き、きもちぃ……"
+									CASE 2
+										LOCALS += "びくびくっ…、て…"
+								ENDSELECT
+							ELSEIF K53_刺激LV("快感") == 0
+								SELECTCASE RAND:3
+									CASE 0
+										LOCALS += "な、なんか…へん…っ"
+									CASE 1
+										LOCALS += "へんな、感じが…"
+									CASE 2
+										LOCALS += "むずむずっ、って…"
+								ENDSELECT
+							ENDIF
+						K53_台詞使用可 = 0
+						LOCALS += K53_ハート付与(1)
+					ENDSELECT
+				ENDIF
+			ENDIF
+		;苦痛
+		CASE 3
+			IF K53_PVOICE_FRAG:3
+				IF K53_刺激LV("苦痛") == 2
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "ひっ"
+						CASE 1
+							LOCALS += "ひぎっ"
+						CASE 2
+							LOCALS += "ひぎゃっ"
+						CASE 3
+							LOCALS += "あぎっ"
+						CASE 4
+							LOCALS += "あぐっ"
+						CASE 5
+							LOCALS += "いつっ"
+						CASE 6
+							LOCALS += "いたいっ"
+						CASE 7
+							LOCALS += "いぎぃっ"
+						CASE 8
+							LOCALS += "～～～っ"
+					ENDSELECT
+					SELECTCASE RAND:4
+						CASE 0
+							LOCALS += "！"
+						CASE 1
+							LOCALS += "！？"
+						CASE 2
+							LOCALS += "…"
+						CASE 3
+							LOCALS += "、"
+					ENDSELECT
+				ELSEIF K53_刺激LV("苦痛") == 1
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "いっ"
+						CASE 1
+							LOCALS += "いたっ"
+						CASE 2
+							LOCALS += "いつっ"
+						CASE 3
+							LOCALS += "やっ"
+						CASE 4
+							LOCALS += "やめてっ"
+						CASE 5
+							LOCALS += "やだっ"
+						CASE 6
+							LOCALS += "やあっ"
+						CASE 7
+							LOCALS += "………っ"
+						CASE 8
+							LOCALS += "いぅっ"
+					ENDSELECT
+					SELECTCASE RAND:5
+						CASE 0
+							LOCALS += "！"
+						CASE 1
+							LOCALS += "！？"
+						CASE 2
+							LOCALS += "…"
+						CASE 3
+							LOCALS += "……"
+						CASE 4
+							LOCALS += "、"
+					ENDSELECT
+				ENDIF
+				;台詞
+				IF K53_台詞使用可
+					SELECTCASE RAND:K53_台詞発生確率
+						CASE 0
+							IF K53_刺激LV("反感") == 2
+								SELECTCASE RAND:3
+									CASE 0
+										LOCALS += "いやいやいやっ"
+									CASE 1
+										LOCALS += "やめてなさいっ"
+									CASE 2
+										LOCALS += "もうやめてぇっ"
+								ENDSELECT
+							ELSEIF K53_刺激LV("反感") == 1
+								SELECTCASE RAND:3
+									CASE 0
+										LOCALS += "いやっ"
+									CASE 1
+										LOCALS += "もうやっ…"
+									CASE 2
+										LOCALS += "やめて…っ"
+								ENDSELECT
+							ENDIF
+						K53_台詞使用可 = 0
+					ENDSELECT
+					
+				ENDIF
+			ENDIF
+		;反感
+		CASE 4
+			IF K53_PVOICE_FRAG:4
+				IF K53_刺激LV("反感") >= 2  || K53_刺激LV("恐怖") >= 2
+					SELECTCASE RAND:8
+						CASE 0
+							LOCALS += "やだ"
+						CASE 1
+							LOCALS += "やだっ"
+						CASE 2
+							LOCALS += "やだやだっ"
+						CASE 3
+							LOCALS += "やあぁあっ"
+						CASE 4
+							LOCALS += "いやっ"
+						CASE 5
+							LOCALS += "いやぁっ"
+						CASE 6
+							LOCALS += "やめてっ"
+						CASE 7
+							LOCALS += "やめてやめてっ"
+						CASE 8
+							LOCALS += "もうやだっ"
+					ENDSELECT
+					SELECTCASE RAND:3
+						CASE 0
+							LOCALS += "！"
+						CASE 1
+							LOCALS += "！？"
+						CASE 2
+							LOCALS += "、"
+					ENDSELECT
+				ELSEIF K53_刺激LV("反感") == 1 || K53_刺激LV("恐怖") == 1
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "やっ"
+						CASE 1
+							LOCALS += "やだっ"
+						CASE 2
+							LOCALS += "いや"
+						CASE 3
+							LOCALS += "いやっ"
+						CASE 4
+							LOCALS += "やめっ"
+						CASE 5
+							LOCALS += "やめて"
+						CASE 6
+							LOCALS += "…っ"
+						CASE 7
+							LOCALS += "～～～っ"
+						CASE 8
+							LOCALS += "やぁっ"
+					ENDSELECT
+					SELECTCASE RAND:3
+						CASE 0
+							LOCALS += "…"
+						CASE 1
+							LOCALS += "！"
+						CASE 2
+							LOCALS += "、"
+					ENDSELECT
+				ENDIF
+				;台詞
+				IF K53_台詞使用可
+					SELECTCASE RAND:K53_台詞発生確率
+						CASE 0
+							IF K53_刺激LV("反感") >= 2  || K53_刺激LV("恐怖") >= 2
+								SELECTCASE RAND:3
+									CASE 0
+										LOCALS += "いやいやいやっ"
+									CASE 1
+										LOCALS += "やめてよぉっ"
+									CASE 2
+										LOCALS += "もうやめてぇっ"
+								ENDSELECT
+							ELSEIF K53_刺激LV("反感") == 1 || K53_刺激LV("恐怖") == 1
+								SELECTCASE RAND:3
+									CASE 0
+										LOCALS += "い、いや…"
+									CASE 1
+										LOCALS += "もういやぁ…"
+									CASE 2
+										LOCALS += "これいや…っ"
+								ENDSELECT
+							ENDIF
+						K53_台詞使用可 = 0
+					ENDSELECT
+					
+				ENDIF
+			ENDIF
+		;キス
+		CASE 5
+			IF K53_PVOICE_FRAG:5
+				SELECTCASE RAND:9
+					CASE 0
+						LOCALS += "ん"
+					CASE 1
+						LOCALS += "んっ"
+					CASE 2
+						LOCALS += "んちゅ"
+					CASE 3
+						LOCALS += "ちゅ"
+					CASE 4
+						LOCALS += "ちゅっ"
+					CASE 5
+						LOCALS += "ちゅむ"
+					CASE 6
+						LOCALS += "はぁ…"
+					CASE 7
+						LOCALS += "はっ…"
+					CASE 8
+						LOCALS += "………っ"	
+				ENDSELECT
+				SELECTCASE RAND:2
+					CASE 0
+						LOCALS += "…"
+					CASE 1
+						LOCALS += K53_ハート付与()
+				ENDSELECT
+			ENDIF
+		;フェラ
+		CASE 6
+			IF K53_PVOICE_FRAG:6
+				IF ABL:TARGET:舌 >= 5
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "じゅぶ"
+						CASE 1
+							LOCALS += "じゅぷ"
+						CASE 2
+							LOCALS += "じゅぽ"
+						CASE 3
+							LOCALS += "じゅぶぶっ"
+						CASE 4
+							LOCALS += "じゅるるる"
+						CASE 5
+							LOCALS += "れろれろれろ"
+						CASE 6
+							LOCALS += "ぐぽぐぽぐぽ"
+						CASE 7
+							LOCALS += "ぐっぽぐっぽ"
+						CASE 8
+							LOCALS += "ちゅっちゅっ"
+					ENDSELECT
+					SELECTCASE RAND:4
+						CASE 0
+							LOCALS += K53_ハート付与()
+						CASE 1
+							LOCALS += "～～"
+						CASEELSE
+							LOCALS += ""
+					ENDSELECT
+				ELSEIF ABL:TARGET:舌 >= 3
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "んぶっ"
+						CASE 1
+							LOCALS += "ちゅぶ"
+						CASE 2
+							LOCALS += "ちゅむ"
+						CASE 3
+							LOCALS += "ちゅぅ"
+						CASE 4
+							LOCALS += "れるれる"
+						CASE 5
+							LOCALS += "れろ"
+						CASE 6
+							LOCALS += "じゅるる"
+						CASE 7
+							LOCALS += "んっんん"
+						CASE 8
+							LOCALS += "はふ"	
+					ENDSELECT
+					SELECTCASE RAND:4
+						CASE 0
+							LOCALS += K53_ハート付与()
+						CASE 1
+							LOCALS += "～～"
+						CASEELSE
+							LOCALS += ""
+					ENDSELECT
+				ELSE
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "あむぅ"
+						CASE 1
+							LOCALS += "んっ"
+						CASE 2
+							LOCALS += "んちゅ"
+						CASE 3
+							LOCALS += "んん"
+						CASE 4
+							LOCALS += "ちゅ"
+						CASE 5
+							LOCALS += "ちゅむ"
+						CASE 6
+							LOCALS += "はっ"
+						CASE 7
+							LOCALS += "けふっ"
+						CASE 8
+							LOCALS += "えふっ"	
+					ENDSELECT
+					SELECTCASE RAND:3
+						CASE 0
+							LOCALS += "…"
+						CASE 1
+							LOCALS += "……"
+						CASE 2
+							LOCALS += K53_ハート付与()
+					ENDSELECT
+				ENDIF
+			ENDIF
+		;吐息
+		CASE 7
+			IF K53_PVOICE_FRAG:7
+				IF GETPALAMLV(PALAM:欲情, 15) >= 4
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "ん"
+						CASE 1
+							LOCALS += "んっ"
+						CASE 2
+							LOCALS += "んんっ"
+						CASE 3
+							LOCALS += "ふふっ"
+						CASE 4
+							LOCALS += "はっ"
+						CASE 5
+							LOCALS += "はぁっ"
+						CASE 6
+							LOCALS += "ふう"
+						CASE 7
+							LOCALS += "ふぅっ"
+						CASE 8
+							LOCALS += "ふあっ"
+					ENDSELECT
+					SELECTCASE RAND:4
+						CASE 0
+							LOCALS += "、"
+						CASE 1
+							LOCALS += "…"
+						CASEELSE
+							LOCALS += K53_ハート付与()
+					ENDSELECT
+				ELSE
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "ん"
+						CASE 1
+							LOCALS += "んっ"
+						CASE 2
+							LOCALS += "んんっ"
+						CASE 3
+							LOCALS += "んう…"
+						CASE 4
+							LOCALS += "はっ"
+						CASE 5
+							LOCALS += "はぁ…"
+						CASE 6
+							LOCALS += "ふぅ"
+						CASE 7
+							LOCALS += "………"
+						CASE 8
+							LOCALS += "ん…"
+					ENDSELECT
+					SELECTCASE RAND:4
+						CASE 0
+							LOCALS += "…"
+						CASEELSE
+							LOCALS += K53_ハート付与()
+					ENDSELECT
+				ENDIF
+			ENDIF
+		;イラマチオ
+		CASE 8
+			IF K53_PVOICE_FRAG:8
+				SELECTCASE RAND:9
+					CASE 0
+						LOCALS += "おぼぅっ"
+					CASE 1
+						LOCALS += "んぶっ"
+					CASE 2
+						LOCALS += "んぼっ"
+					CASE 3
+						LOCALS += "うぶっ"
+					CASE 4
+						LOCALS += "うぶぅっ"
+					CASE 5
+						LOCALS += "むっ"
+					CASE 6
+						LOCALS += "むぅ"
+					CASE 7
+						LOCALS += "むぶっ"
+					CASE 8
+						LOCALS += "おぶっ"
+				ENDSELECT
+				IF CFLAG:睡眠
+					SELECTCASE RAND:5
+						CASE 0
+							LOCALS += "？"
+						CASE 1
+							LOCALS += "…"
+						CASEELSE
+							LOCALS += K53_ハート付与()
+					ENDSELECT
+				ELSE
+					SELECTCASE RAND:5
+						CASE 0
+							LOCALS += "！"
+						CASE 1
+							LOCALS += "！？"
+						CASEELSE
+							LOCALS += K53_ハート付与()
+					ENDSELECT
+				ENDIF
+			ENDIF
+		;声がまん・口ふさぎ
+		CASE 9
+			IF K53_PVOICE_FRAG:9
+				;刺激が大きい場合キス感覚外処理
+				IF K53_刺激LV("快感") >= 2 || K53_刺激LV("苦痛") >= 1 || K53_刺激LV("反感") >= 1
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "んっんっんっ"
+						CASE 1
+							LOCALS += "んっ"
+						CASE 2
+							LOCALS += "んむぅ～～！？"
+						CASE 3
+							LOCALS += "んんっ！"
+						CASE 4
+							LOCALS += "んうぅぅ～～っ"
+						CASE 5
+							LOCALS += "んんんっ！？"
+						CASE 6
+							LOCALS += "んぶっ"
+						CASE 7
+							LOCALS += "んむぅっ"
+						CASE 8
+							LOCALS += "～～～っ"	
+					ENDSELECT
+					SELECTCASE RAND:2
+						CASE 0
+							LOCALS += K53_ハート付与()
+					ENDSELECT
+				ELSEIF K53_刺激LV("快感") >= 0
+					SELECTCASE RAND:9
+						CASE 0
+							LOCALS += "ん"
+						CASE 1
+							LOCALS += "んっ"
+						CASE 2
+							LOCALS += "ん～"
+						CASE 3
+							LOCALS += "んぅっ"
+						CASE 4
+							LOCALS += "ふっ"
+						CASE 5
+							LOCALS += "ふぅっ"
+						CASE 6
+							LOCALS += "っぅ"
+						CASE 7
+							LOCALS += "っふ"
+						CASE 8
+							LOCALS += "うぅぅっ"	
+					ENDSELECT
+					SELECTCASE RAND:2
+						CASE 0
+							LOCALS += K53_ハート付与()
+						CASE 1
+							LOCALS += "…"
+					ENDSELECT
+				ENDIF
+			ENDIF
+	ENDSELECT
+	
+	;文字数が一定に達したら終了
+	SIF STRLENSU(LOCALS) > K53_NUM
+		BREAK
+REND
+
+;*********************************************************************************
+;あえぎ声描画
+PRINTFORML 「%LOCALS%」
+PRINTW
+
+

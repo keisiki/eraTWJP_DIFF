@@ -1,0 +1,41 @@
+﻿;-------------------------------------------------
+;追う
+;日常系コマンド、レベル1
+;-------------------------------------------------
+@COM482
+#DIM GOAL
+GOAL = CFLAG:STALKED:現在位置
+IF !MAP_CAN_MOVE(GOAL)
+	PRINTFORMW そこには行けない
+	RETURN -1
+ENDIF
+IF IN_HOME(GOAL) != 1
+	PRINTFORMW %CALLNAME:STALKED%はこの近くにはいないようだ
+	RETURN -1
+ENDIF
+
+CALL SKIP_MOVE(CFLAG:MASTER:現在位置, GOAL)
+;-------------------------------------------------
+;実行判定
+;-------------------------------------------------
+@COM_ABLE482
+;自宅外は不可
+SIF AT_HOME(MASTER) == 0
+	RETURN 0
+;停止中は不可
+SIF FLAG:70 == 1
+	RETURN 0
+;移動実行判定
+SIF !TFLAG:100
+	RETURN 0
+;一括管理
+SIF GLOBAL_COMABLE(482)
+	RETURN RESULT
+SIF !STALKED
+	RETURN 0
+SIF CFLAG:MASTER:現在位置 == CFLAG:STALKED:現在位置
+	RETURN 0
+SIF CFLAG:うふふ == 2
+	RETURN 0
+RETURN 1
+

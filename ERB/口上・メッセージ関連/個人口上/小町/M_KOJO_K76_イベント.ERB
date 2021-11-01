@@ -1,0 +1,4300 @@
+﻿;-------------------------------------------------
+; eraTheWorld 4.576用 ○○口上（キャラクターの名前を入れる、下にコンセプトなど一言あれば入れる）
+;-------------------------------------------------
+;他者による修正、加筆、改変については、同梱のライセンス条項に従ってください。
+
+;------ ｷﾘﾄﾘ ｶｲｼ -----------
+;eraTheWorld proto4.07パッチ取り込み用 Ver1.13
+;テンプレートの使い方
+;初めに置換コマンド等により K76 を K(キャラNo) に変更して下さい  
+;キャラNoはCSVフォルダのCharaファイルを参照　例(霧雨 魔理沙の場合)：K76 =置換=> K11
+;
+;------ ｷﾘﾄﾘ ｵﾜﾘ -----------
+
+;**** FlagManagement **********************************************************
+;本口上にて使用しているCFLAG・TCVAR等
+;
+;
+;ほったらかしの週数{CFLAG:1493 / 7}
+;CFLAG:1010 屋外セックス回数
+;CFLAG:1020 映姫様の部屋でセックス回数
+;CFLAG:1100 スケベスイッチ
+;******************************************************************************
+
+;### 口上存在判定 ###################################
+@M_KOJO_K76(ARG)
+;ここでRESULTSを設定すると他の同キャラ口上を突っ込まれても正常動作する。
+
+;RESULTS = _TEST_
+
+;と設定すると、"EVENT"系イベントだと
+;M_KOJO_TEST_EVENT_K76_1() とかで呼ばれる…はず。（未テスト機能）
+
+;ここでCFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります
+
+;コメントアウトを外して眠姦口上有、時間停止口上有に1を入れると、それぞれ時間停止時、眠姦時、なりきり時にコマンド口上が読み込まれるように
+;入れないと時間停止時、眠姦時、なりきり時は一切喋りません
+
+;破瓜キャンセル口上有に1を入れると、@M_KOJO_EVENT_K76_LOST_VIRGIN_STOPでキャンセルの成否を操作できます
+;口上内抱き寄せ判定_初回と口上内抱き寄せ判定_通常に1を入れるとM_KOJO_EVENT_K76_PERMISSIONで押し倒しの成否を操作できます
+
+;Xにはキャラ番号を入れてください
+
+;CFLAG:X:眠姦口上有 = 0
+;CFLAG:X:時間停止口上有 = 0
+;CFLAG:X:なりきり口上有 = 0
+;CFLAG:X:破瓜キャンセル口上有 = 0
+;CFLAG:X:口上内抱き寄せ判定_初回 = 0
+;CFLAG:X:口上内抱き寄せ判定_通常 = 0
+
+;CFLAG:押し倒し禁止に1を入れると自分から押し倒してこなくなります
+;以下は恋慕かセフレがつくまで押し倒してこなくなる使用例
+;IF !TALENT:X:恋慕 && !TALENT:X:セフレ
+;	CFLAG:X:押し倒し禁止 = 1
+;ELSE
+;	CFLAG:X:押し倒し禁止 = 0
+;ENDIF
+
+;口上存在判定です、けしてコメントアウトしないでください
+RETURN 1
+;### 口上色判定 ###################################
+@M_KOJO_COLOR_K76
+
+;ここでSETCOLORすることで口上に色を付けられます
+;例：SETCOLOR 0xC07070
+SETCOLOR 0xFF003C
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;"UPDATE判定"
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_UPDATE_K76
+;口上独自のUPDATE用
+;ENCOUNTER専用に独自分岐フラグを仕込んだ場合等にどうぞ
+;UPDATE判定でCFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;"ENCOUNTER"系イベント（エクストラ構文）
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_ENCOUNTER_K76
+;初対面、挨拶のタイミング
+;TALENTの変更はここでどうぞ。
+;経験の変更は齟齬が出る場合がありますので、CSVを修正し同梱する事を推奨します
+PRINTL
+PRINTFORMW %CALLNAME:MASTER%は一人の少女に気がついた。
+PRINTFORMW 女性にしては長身で、背丈と変わらないほどの巨大で歪な鎌を肩にかけている
+PRINTFORMW 少女はこちらの視線に気づくと、にこやかに片手を挙げて近づいてきた
+PRINTL
+PRINTFORMW 「お前さん、あたいのことが気になるのかい？」
+PRINTFORMW 「あたいは小野塚小町。しがない死神の船頭だよ」
+PRINTFORMW 「ああ、別にあんたの魂を刈り取ろうってわけじゃないんだ」
+PRINTFORMW 「三途の川の橋渡しが主な仕事なんだよ」
+PRINTL 
+PRINTFORMW 「えっ、船頭の仕事はどうしたのかって？」
+PRINTFORMW 「いやぁ、働いてばかりだと仕事の能率だって落ちるし、見識も狭くなるじゃないか」
+PRINTFORMW 「こうして、たまには外の空気を吸って気持ちも新たに仕事に向かうってわけさ」
+PRINTL 
+PRINTFORMW そういえば、幻想郷にはサボリ魔の死神がいるという話を思い出した
+PRINTFORMW 「あ、今こいつがサボり魔の死神だなって思ったろう？顔に出てるよ」
+PRINTFORMW 自覚はあったらしい
+PRINTL 
+PRINTFORMW 「ひどいねぇ。あたいは死神全体のことを考えて、適度に仕事をしているっていうのに」
+PRINTFORMW 「ほら、えーと、あれさね、働き方改革、ってやつ？」
+PRINTFORMW 自覚はすれど反省はしないらしい
+
+PRINTL 
+PRINTFORMW しかしよくしゃべる死神だ。死神はもっと陰鬱なものかと思っていたが
+PRINTFORMW 「別に死に関わるからって、お固い性格じゃないといけないってわけじゃないよ」
+PRINTFORMW 「あ、あたいの話好きは性格だけどさ」
+PRINTL 
+PRINTFORMW 「まあここで袖すりあったのも多生の縁だ」
+PRINTFORMW 「もう少しあたいとの世間話に付き合っておくれよ」
+PRINTFORMW ツインテールの死神は人懐っこく笑った
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;"SP_EVENT"系イベント
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;デート帰りにファーストKISS（合意も付く）
+;==================================================
+@M_KOJO_SPEVENT_K76_1(ARG,ARG:1)
+;口上主はTARGET
+;地の文表示
+CALL SPEVENT_MESSAGE_1(ARG,ARG:1)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+;地の文
+CALL SPEVENT_MESSAGE_1(ARG,ARG:1)
+IF LOCAL
+	PRINTFORML 「%CALLNAME:MASTER%、こっち向いておくれよ」
+	PRINTFORML 振り向くと、唇に柔らかいものが押し当てられた
+	PRINTW 
+	PRINTFORML 「えへへ、あたいね、実は唇を許したことあるのはお前さんだけなんだよ」
+	PRINTFORML 小町は頬を掻きはにかんだ
+	PRINTW 
+	PRINTFORML 「また遊んでおくれよ。お前さんといると楽しいんだ」
+	PRINTFORMW 小町との距離が近づいたような気がした
+	;キスをキャンセルしたい場合は以下を開放
+	;TCVAR:キスキャンセル = 1
+ENDIF
+RETURN 1
+
+;==================================================
+;デート帰りに告白（恋人が付く）
+;==================================================
+@M_KOJO_SPEVENT_K76_2(ARG,ARG:1)
+;口上主はTARGET
+;地の文表示
+CALL SPEVENT_MESSAGE_2(ARG,ARG:1)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;告白内容
+	;この告白内容表示後に受けるかどうかの選択分が表示されます
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 0
+		PRINTFORML 「%CALLNAME:MASTER%、ちょい待ち」
+		PRINTW 
+		IF TALENT:恋慕
+			PRINTFORML 何事かと振り返ると、小町は後手を組んでもじもじしている
+			PRINTW 
+			PRINTFORML 「む～～、なんかこういうのはあたいの柄じゃないからはっきり言うよ」
+			PRINTFORML 「あたい、%CALLNAME:MASTER%のことが……好きなんだよっ」
+			PRINTFORMW 「あたいと、小野塚小町と一緒になっておくれっ！」
+			PRINTW 
+			PRINTW
+			PRINTW  
+			PRINTFORML 「いや、何か言っておくれよ！？　はいとかいいえとか。あ、いいえは嫌だなぁ……」
+			PRINTW 
+		ELSEIF TALENT:思慕
+			PRINTFORML 「あたいと付き合ってくれないかい？」
+			PRINTFORML 「今も付き合ってるだろうって？　そういう意味じゃなくって」
+			PRINTFORML 「あたいの恋人になっておくれって言ってるんだよ」
+			PRINTW 
+			PRINTFORML 「いやー、今の関係も全然悪くなんだけどさ」
+			PRINTFORML 「お前さんのこと、もっと知りたいんだよ」
+			PRINTFORML 「あたいじゃ、駄目かい？」
+		ELSE
+			PRINTFORML 「あたいとさぁ、付き合ってみない？」
+			PRINTFORML 「まー早い話が、お前さんのこと気にいっちゃったんだよね」
+			PRINTFORML 「一緒にいて楽しいし、話もよく聞いてくれるしさ」
+			PRINTW
+			PRINTFORML 「ってわけで、%CALLNAME:MASTER%さえよけえば」
+			PRINTFORML 「あたいとお付き合いしてくれないかな、どうかな？」
+			PRINTW 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;告白オッケー（恋人が付く）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		IF TALENT:恋慕
+		PRINTFORML 「あぁ～～、よかったぁ。」
+		PRINTFORML 小町は心底ホッとした表情を浮かべ脱力している
+		PRINTW
+		PRINTFORML 「こんなに緊張したのは四季様に初めて説教で呼び出されたとき以来……」
+		PRINTFORML 説教と愛の告白を同列に語るのはどうか
+		PRINTFORML 「そんな顔しないでおくれよ。とにかく、それくらいすごくドキドキしてたってことだよ」
+		PRINTW 
+		PRINTFORML 「これからどうしようかねぇ」
+		PRINTFORML 「せっかく恋仲になるんだから、一緒に温泉に行ったり、部屋に泊まったり、それから……」
+		PRINTFORML 小町はこれからの恋人生活を想像して舞い上がっている
+		PRINTW
+		ELSEIF TALENT:思慕
+			PRINTFORML 「ホントに？　あたいでいいのかい？」
+			PRINTFORML 「やったぁ、思い切ってみるもんだね」
+			PRINTFORML 小町は%CALLNAME:MASTER%に向かってニカっと笑うとピースサインをしてみせた
+			PRINTW
+			PRINTFORML 「今も結構いい仲だと思ってるけどさ、もっともっとお前さんのこと教えておくれよ」
+			PRINTFORML 「あたいのことも%CALLNAME:MASTER%に知ってほしいしさ」
+			PRINTFORML 「おっぱいの大きさが知りたい？　そんなこと知ってどうするのさ。まあいいけど」
+			PRINTW  
+		ELSE
+			PRINTFORML 「えっ、いいの？　ほんとに？」
+			PRINTFORML 「よかったぁ、断られたらどうしようかと思ってたよ」
+			PRINTW 
+			PRINTFORML 「まあ、恋人同士になってすぐ世界が変わるかっていったらそうでもないけど」
+			PRINTFORML 「あたいにできることだったらしてあげるよ」
+			PRINTFORML 「せっかく、晴れて恋人同士になったわけだしね」
+			PRINTW 
+		ENDIF
+		PRINTFORMW 「それにしても、お前さんも物好きだね。死神と付き合いたいなんて」
+		PRINTFORML 「まあ、それを言ったらあたいだって変わり者か」
+		PRINTFORML 「あんたと恋仲になりたいっていうんだから」
+		PRINTW
+		PRINTFORMW 「変わり者同士、これからよろしく頼むよ。%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;告白失敗
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	IF TALENT:恋慕
+	ELSEIF TALENT:思慕
+		PRINTFORML 「そっか、お前さんを振り向かせるにはまだ魅力が足りないかねぇ」
+		PRINTW 
+		PRINTFORML 「でも、これで諦めたつもりはないよ」
+		PRINTFORML 「そのうち、あたいに惚れさせてやるからね」
+		PRINTFORMW そう言って小町はニカッ笑った
+	ELSE
+		PRINTFORMW 「そっかー、まぁ、まだ気が早かったかねぇ」
+		PRINTFORMW 「でもさ、気が向いたらあたいと付き合っておくれよ」
+		PRINTFORMW 「お前さんとなら気が合いそうな気がするんだよねぇ」
+		PRINTL 
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;デート帰り
+;==================================================
+@M_KOJO_SPEVENT_K76_3(ARG,ARG:1)
+;口上主はTARGET
+;地の文表示
+CALL SPEVENT_MESSAGE_3(ARG,ARG:1)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;通常帰宅
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 0
+		IF CFLAG:1100 == 1
+			PRINTFORML 「楽しかったねぇ、%CALLNAME:MASTER%」
+			PRINTFORML 「さて、この後、どうする？」
+			IF CFLAG:MASTER:初期位置 == CFLAG:76:初期位置
+				PRINTFORML 「部屋に帰って、朝までイチャイチャしちゃうかい」
+				IF YOUBI_MATCH(DAY, "月水金")
+					PRINTFORML 「明日は休みだし、一日中絡み合っていようよぉ%UNICODE(0x2665) *1%」
+					PRINTFORML 「部屋の中、助平な臭いでむせ返っちゃうくらい、愛し合おうよ……%UNICODE(0x2665) *1%」
+				ELSE
+					PRINTFORML 「明日は仕事だけど、遅れちゃったらその時はその時で……%UNICODE(0x2665) *1%」
+					PRINTFORML 「仕事は大事だけど、お前さんと気持ちいいことするほうがもっと大事だしね……%UNICODE(0x2665) *1%」
+				ENDIF
+				PRINTW 
+			ELSE
+				PRINTFORML 「うちに来るかい？　なんなら、泊まっていきなよ」
+				IF YOUBI_MATCH(DAY, "月水金")
+					PRINTFORML 「明日は休みだし、昼まで寝ることになっても、平気だしね……%UNICODE(0x2665) *1%」
+				ELSE
+					PRINTFORML 「明日は仕事だけど、遅れちゃったらその時はその時で……%UNICODE(0x2665) *1%」
+				ENDIF
+				PRINTW 
+			ENDIF
+		ELSEIF TALENT:恋人
+			PRINTFORML 「%CALLNAME:MASTER%、また行こうね。とっても楽しかったよ」
+			IF CFLAG:MASTER:初期位置 == CFLAG:76:初期位置
+			ELSE
+				PRINTFORML 「今日、どうする？　部屋泊まっていく？
+			ENDIF
+			PRINTW 
+		ELSEIF TALENT:恋慕
+			PRINTFORML 「楽しかったねぇ。また、二人で行きたいな」
+			PRINTW 
+		ELSE
+			PRINTFORML 「%CALLNAME:MASTER%って、面白いやつだねぇ」
+			PRINTFORML 「よかったら、また誘っておくれよ」
+			PRINTW 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;反発刻印消去イベント
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML 「ま、反省してくれてるみたいだしね。許してあげるよ」
+		PRINTFORML 「その代わり、またあたいをデートに誘うこと♪」
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;反発刻印2>1レベルダウンイベント
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML (まあ、ホントはもう許してあげてもいいんだけど）
+		PRINTFORML 「んー、楽しかった、よ。でも、まだ許してないからね」
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;反発刻印3>2レベルダウンイベント
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML 「ま、楽しかったのは認めるけどさ」
+		PRINTFORML 「でも、それとこれとは話は別。お前さんはまだ反省が必要だよ」
+		PRINTW 
+		RETURN 1
+	ENDIF
+	PRINTFORML
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;"EVENT"系イベント
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;部屋で遭遇
+;==================================================
+@M_KOJO_EVENT_K76_1(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;MASTERが入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		;小町の部屋
+		IF CFLAG:MASTER:現在位置 == 616
+			;小町と映姫様が同室
+			IF K76_FIND_AROUND() == 30
+				;レズっ気ここまで上げるのってあなたと同性じゃなきゃ難しいからいいよね
+				;逆に数値を上げすぎると死に口上になりそうな気がしないでもない
+				IF ABL:レズっ気 >= 3 && ABL:(NO:30):レズっ気 >= 3
+					;ガチ百合
+					IF PALAM:欲情 >= PALAMLV:10 && PALAM:(NO:30):欲情 >= PALAMLV:10
+						IF !TALENT:キス未経験 && !TALENT:(NO:30):キス未経験
+							PRINTFORML 「四季様ぁ……%UNICODE(0x2665) *1%　ぷぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「えへへ、可愛いですよ、四季様……%UNICODE(0x2665) *1%」
+							PRINTW 
+							PRINTFORML 部屋をのぞくと、小町と映姫は愛し合っている最中だった
+							PRINTFORML 十指を絡めながら手を繋ぎ、互いに貪るように唇を重ねあう
+							PRINTFORML 二人の頬は紅潮し、夢見心地のような表情を浮かべている
+							PRINTW 
+							PRINTFORML 二人が唇を離したタイミングを見計らい、今入ってきた体を装って声を掛けた
+							PRINTFORML 「%CALLNAME:MASTER%……%CALLNAME:MASTER%！？」
+							PRINTFORML %CALLNAME:MASTER%の闖入に気付いた小町は、慌てて映姫から距離をとった
+							PRINTFORML 二人の顔は先ほど情事に耽っていた時よりも真っ赤になっている
+							PRINTW 
+							PRINTFORML 「か、顔が赤いって？　ほら、今日は暑いからさー……あはは♪」
+							PRINTFORML 下手糞な言い訳でこの場をごまかそうとする小町。一方の映姫は、真っ赤にしたまま顔を上げようともしない
+							PRINTFORML 素晴らしいものを見せてもらったかわりに、今日のことは黙っておこう。%CALLNAME:MASTER%はそう思った
+							PRINTW 
+						ELSE
+							PRINTFORML 「四季様……いい、ですよね……？」
+							PRINTW 
+							PRINTFORML 部屋をのぞくと、小町と映姫は秘め事の最中だった
+							PRINTFORML 二人は十指を絡めながら手を繋ぎ、互いの吐息がかかるほど顔を近づけている
+							PRINTW 
+							PRINTFORML このまま覗いていたらどうなるだろうか、と固唾を飲んで見守っていたが、うっかり足元にあった小物を蹴飛ばしてしまった
+							PRINTFORML 「……っ、%CALLNAME:MASTER%！？」
+							PRINTW 
+							PRINTFORML 物音に振り返った小町と映姫は、手を離すと慌てて距離を取り、互いに明後日の方向を向いている
+							PRINTFORML 「や、やー……%CALLNAME:MASTER%。今日はいい天気だねぇ」
+							PRINTFORML 屋内なのでいい天気もクソもあったものではないが、とりあえず会話を合わせてやった
+							PRINTW 
+						ENDIF
+					;KENZEN
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「んっ……？」
+							PRINTFORML 小町と映姫は、棒状のお菓子を互いに端から咥えて齧っている最中だったようだ
+							PRINTFORML 互いの顔は吐息がかかるほど近く、もう少しで唇同士が届きそうだ
+							PRINTW 
+							PRINTFORML 「！　もぐもぐ……んっ、あはっ、あははっ、どうしたんだい、%CALLNAME:MASTER%」
+							PRINTFORML 二人は慌てて菓子を折って飲み込み、笑顔でとりつくろったが、その顔は赤かった
+							PRINTFORML もう少し遅れて入っていたら、もっといい光景が見れたのだろうか
+							PRINTW 
+						CASEELSE
+							PRINTFORML 「四季様の髪、綺麗ですよねぇ。それに、いい匂い……♪」
+							PRINTFORML 部屋をのぞくと、小町が映姫の髪を梳いている最中だった
+							PRINTW 
+							PRINTFORML 小町は映姫を後ろから抱きながら髪の匂いを嗅ぎ、うっとりとしている
+							PRINTFORML 一方の映姫は、拒みこそしないものの、とても恥ずかしそうに抗議している
+							PRINTW 
+							PRINTFORML 「おや、%CALLNAME:MASTER%。何そんなところで突っ立ってるんだい？」
+							PRINTFORML %CALLNAME:MASTER%の姿を見つけた小町が声を掛けてきた
+							PRINTFORML 「もーう。せっかくの上司とのスキンシップの時間を邪魔するなんて、%CALLNAME:MASTER%は無粋だねぇ」
+							PRINTW 
+						ENDSELECT
+					ENDIF
+				ELSE
+					PRINTFORML 「……で、ですね、四季様。おや、%CALLNAME:MASTER%じゃないか」
+					PRINTFORML 部屋では小町と映姫が和やかに談笑していた
+					PRINTFORML %CALLNAME:MASTER%の姿を入り口に見つけた二人は、笑顔で手招きする
+					PRINTW 
+					PRINTFORML 「なんだよう。あたいが四季様と普通に話してるのがそんなに珍しいかい？」
+					PRINTFORML 「いやまあ、外じゃ説教されてるほうが多いかもしれないけどさあ……」
+					PRINTFORML バツが悪そうにしている小町を見て、映姫は口元を隠して笑っている
+					PRINTW 
+				ENDIF
+			;映姫様は同室でない
+			ELSE
+				IF CFLAG:1100 == 1
+					IF CFLAG:MASTER:初期位置 == CFLAG:76:初期位置 && CFLAG:MASTER:現在位置 == CFLAG:76:初期位置
+						PRINTFORML 「お帰り、%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
+						PRINTFORML 小町は%CALLNAME:MASTER%を出迎えると、ギュッと抱きしめてきた
+						PRINTFORML 「ああ、癒されるねぇ……%UNICODE(0x2665) *1%」
+						PRINTW 
+					ELSE
+						PRINTFORML 「あっ、%CALLNAME:MASTER%%UNICODE(0x2665) *1%　会いに来てくれたのかい？」
+						PRINTFORML 「嬉しいねぇ。あたいは、いつでも大歓迎だよ」
+						PRINTFORML 小町は%CALLNAME:MASTER%に抱きつき、胸元に頬ずりした
+						PRINTW 
+					ENDIF
+				ELSE
+					IF TALENT:恋人
+						IF CFLAG:MASTER:初期位置 == CFLAG:76:初期位置 && CFLAG:MASTER:現在位置 == CFLAG:76:初期位置
+							PRINTFORML 「%CALLNAME:MASTER%、おかえり」
+							PRINTFORML 「嬉しそうな顔してるけど、何かいいことあったのかい？」
+							PRINTW 
+						ELSE
+							PRINTFORML 「ああ、%CALLNAME:MASTER%、いらっしゃい」
+							PRINTFORML 「そんなところに立ってないでこっちにおいでよ」
+						ENDIF
+						PRINTW 
+					ELSEIF TALENT:恋慕
+						PRINTFORML 「%CALLNAME:MASTER%、来てくれたのかい？」
+						PRINTFORML 「嬉しいねぇ。さ、こっちにおいでよ。いい茶葉が手に入ったんだ」
+						PRINTW 
+					ELSE
+						PRINTFORML 「おや、いらっしゃい」
+						PRINTFORML 「入り口で立ってるのもなんだし、こっちにおいでよ」
+						PRINTW 
+					ENDIF
+				ENDIF
+			ENDIF
+		;映姫の部屋
+		ELSEIF CFLAG:MASTER:現在位置 == 615
+			;小町と映姫様が同室
+			IF K76_FIND_AROUND() == 30
+				;レズっ気ここまで上げるのってあなたと同性じゃなきゃ難しいからいいよね
+				;逆に数値を上げすぎると死に口上になりそうな気がしないでもない
+				IF ABL:レズっ気 >= 3 && ABL:(NO:30):レズっ気 >= 3
+					;ガチ百合
+					IF PALAM:欲情 >= PALAMLV:10 && PALAM:(NO:30):欲情 >= PALAMLV:10
+						;フレーバーだから別にいらんだろうけど
+						IF !TALENT:キス未経験 && !TALENT:(NO:30):キス未経験
+							PRINTFORML 「四季様ぁ……%UNICODE(0x2665) *1%　ぷぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「えへへ、可愛いですよ、四季様……%UNICODE(0x2665) *1%」
+							PRINTW 
+							PRINTFORML 部屋をのぞくと、小町と映姫は愛し合っている最中だった
+							PRINTFORML 十指を絡めながら手を繋ぎ、互いに貪るように唇を重ねあう
+							PRINTFORML 二人の頬は紅潮し、夢見心地のような表情を浮かべている
+							PRINTW 
+							PRINTFORML 二人が唇を離したタイミングを見計らい、今入ってきた体を装って声を掛けた
+							PRINTFORML 「%CALLNAME:MASTER%……%CALLNAME:MASTER%！？」
+							PRINTFORML %CALLNAME:MASTER%の闖入に気付いた小町は、慌てて映姫から距離をとった
+							PRINTFORML 二人の顔は先ほど情事に耽っていた時よりも真っ赤になっている
+							PRINTW 
+							PRINTFORML 「か、顔が赤いって？　ほら、今日は暑いからさー……あはは♪」
+							PRINTFORML 下手糞な言い訳でこの場をごまかそうとする小町。一方の映姫は、真っ赤にしたまま顔を上げようともしない
+							PRINTFORML 素晴らしいものを見せてもらったかわりに、今日のことは黙っておこう。%CALLNAME:MASTER%はそう思った
+							PRINTW 
+						ELSE
+							PRINTFORML 「四季様……いい、ですよね……？」
+							PRINTW 
+							PRINTFORML 部屋をのぞくと、小町と映姫は秘め事の最中だった
+							PRINTFORML 二人は十指を絡めながら手を繋ぎ、互いの吐息がかかるほど顔を近づけている
+							PRINTW 
+							PRINTFORML このまま覗いていたらどうなるだろうか、と固唾を飲んで見守っていたが、うっかり足元にあった小物を蹴飛ばしてしまった
+							PRINTFORML 「……っ、%CALLNAME:MASTER%！？」
+							PRINTW 
+							PRINTFORML 物音に振り返った小町と映姫は、手を離すと慌てて距離を取り、互いに明後日の方向を向いている
+							PRINTFORML 「や、やー……%CALLNAME:MASTER%。今日はいい天気だねぇ」
+							PRINTFORML 屋内なのでいい天気もクソもあったものではないが、とりあえず会話を合わせてやった
+							PRINTW 
+						ENDIF
+					;KENZEN百合
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「んっ……？」
+							PRINTFORML 小町と映姫は、棒状のお菓子を互いに端から咥えて齧っている最中だったようだ
+							PRINTFORML 互いの顔は吐息がかかるほど近く、もう少しで唇同士が届きそうだ
+							PRINTW 
+							PRINTFORML 「！　もぐもぐ……んっ、あはっ、あははっ、どうしたんだい、%CALLNAME:MASTER%」
+							PRINTFORML 二人は慌てて菓子を折って飲み込み、笑顔でとりつくろったが、その顔は赤かった
+							PRINTFORML もう少し遅れて入っていたら、もっといい光景が見れたのだろうか
+							PRINTW 
+						CASEELSE
+							PRINTFORML 「四季様の髪、綺麗ですよねぇ。それに、いい匂い……♪」
+							PRINTFORML 部屋をのぞくと、小町が映姫の髪を梳いている最中だった
+							PRINTW 
+							PRINTFORML 小町は映姫を後ろから抱きながら髪の匂いを嗅ぎ、うっとりとしている
+							PRINTFORML 一方の映姫は、拒みこそしないものの、とても恥ずかしそうに抗議している
+							PRINTW 
+							PRINTFORML 「おや、%CALLNAME:MASTER%。何そんなところで突っ立ってるんだい？」
+							PRINTFORML %CALLNAME:MASTER%の姿を見つけた小町が声を掛けてきた
+							PRINTFORML 「もーう。せっかくの上司とのスキンシップの時間を邪魔するなんて、%CALLNAME:MASTER%は無粋だねぇ」
+							PRINTW 
+						ENDSELECT
+					ENDIF
+				ELSE
+					PRINTFORML 「……で、ですね、四季様。おや、%CALLNAME:MASTER%じゃないか」
+					PRINTFORML 部屋では小町と映姫が和やかに談笑していた
+					PRINTFORML %CALLNAME:MASTER%の姿を入り口に見つけた二人は、笑顔で手招きする
+					PRINTW 
+					PRINTFORML 「なんだよう。あたいが四季様と普通に話してるのがそんなに珍しいかい？」
+					PRINTFORML 「いやまあ、外じゃ説教されてるほうが多いかもしれないけどさあ……」
+					PRINTFORML バツが悪そうにしている小町を見て、映姫は口元を隠して笑っている
+					PRINTW 
+				ENDIF
+			;映姫様と同室ではない
+			ELSE
+				IF CFLAG:1100 == 1
+					PRINTFORML 「あれ、こんなところで会うなんて」
+					PRINTFORML 「ひょっとして、あたいのこと探してくれたのかい？　だったら嬉しいねぇ……%UNICODE(0x2665) *1%」
+					PRINTW 
+					PRINTFORML 「……ねぇ、%CALLNAME:MASTER%。ここで今口づけしておくれよ」
+					PRINTFORML 「上司の部屋だと思うとドキドキしちゃって、ね。したくなっちゃったんだ……%UNICODE(0x2665) *1%」
+					PRINTW 
+					PRINTFORML 「それとも、%CALLNAME:MASTER%は別のことがしたいのかい……%UNICODE(0x2665) *1%」
+					PRINTW 
+				ELSE
+					IF TALENT:恋慕
+						IF TALENT:(NO:30):恋人
+							PRINTFORML 「ん、なんでこんなところにいるのかって？」
+							PRINTFORML 「いやー、別に理由はないんだけどさー、なんとなく？」
+							PRINTFORML （恋人同士の部屋ってどんなものか気になったなんて、言えないよねぇ……）
+							PRINTW 
+						ELSEIF TALENT:(NO:30):恋慕
+							PRINTFORML 「ん、なんでこんなところにいるのかって？」
+							PRINTFORML 「いやー、別に理由はないんだけどさー、なんとなく？」
+							PRINTFORML （まさか、恋敵の部屋を偵察とか、死んでも言えないよねぇ……たはは）
+							PRINTW 
+						ELSE
+							PRINTFORML 「ん、なんでこんなところにいるのかって？」
+							PRINTFORML 「いやー、四季様に男の影がないか調べているんだけど、まったくないねぇ」
+							PRINTFORML 「やっぱり、忙しいとそれどころじゃないのかねぇ」
+							PRINTW 
+						ENDIF
+					ELSE
+						PRINTFORML 「ん、なんでこんなところにいるのかって？」
+						PRINTFORML 「ふっふっふ、四季様がどんな下着付けてるのか、物色にきたんだよ」
+						PRINTFORML 「止めないでおくれ。これは浪漫なんだよ」
+						PRINTW 
+					ENDIF
+				ENDIF
+			ENDIF
+		ELSE
+			PRINTFORML 「おや、%CALLNAME:MASTER%。ここで会うなんて偶然だね」
+			PRINTW 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;TARGETが入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINT 「おや、
+		;映姫様とあなたが先客
+		IF K76_FIND_AROUND() == 30
+			IF TALENT:恋人
+				IF TALENT:(NO:30):恋慕
+					PRINTFORML 「%CALLNAME:MASTER%、ここにいたのかい？」
+					PRINTFORML 「それに、映姫様まで。奇遇ですねえ」
+					PRINTFORML 「ん、なんか二人の距離近くないですか？」
+					PRINTW 
+				ELSE
+					PRINTFORML 「%CALLNAME:MASTER%、ここにいたのかい？」
+					PRINTFORML 「それに、映姫様まで。奇遇ですねえ」
+					PRINTFORML 「ん、ひょっとして四季様から説教されてたのかい？　それはご愁傷さま」
+					PRINTW 
+				ENDIF
+			ELSEIF TALENT:恋慕
+				IF TALENT:(NO:30):恋人
+					PRINTFORML 「%CALLNAME:MASTER%、ここにいたのかい？」
+					PRINTFORML 「それに、映姫様まで。奇遇ですねえ」
+					PRINTFORML 「ん、顔が赤いけど、二人とも、ここでいかがわしいことでもしてたのかい？」
+					PRINTW 
+				ELSEIF TALENT:(NO:30):恋慕
+					PRINTFORML 「%CALLNAME:MASTER%、ここにいたのかい？」
+					PRINTFORML 「それに、映姫様まで。奇遇ですねえ」
+					PRINTFORML 「ん、なんか二人の距離近くないですか？」
+					PRINTW 
+				ELSE
+					PRINTFORML 「%CALLNAME:MASTER%、ここにいたのかい？」
+					PRINTFORML 「それに、映姫様まで。奇遇ですねえ」
+					PRINTFORML 「ん、ひょっとして四季様から説教されてたのかい？　それはご愁傷さま」
+					PRINTW 
+				ENDIF
+			ELSEIF TALENT:思慕
+				IF TALENT:(NO:30):恋人
+					PRINTFORML 「%CALLNAME:MASTER%、ここにいたのかい？」
+					PRINTFORML 「それに、映姫様まで。奇遇ですねえ」
+					PRINTFORML 「ひょっとして、さっきまでイチャついてました？」
+					PRINTW 
+				ELSEIF TALENT:(NO:30):恋慕
+					PRINTFORML 「%CALLNAME:MASTER%、ここにいたのかい？」
+					PRINTFORML 「それに、映姫様まで。奇遇ですねえ」
+					PRINTFORML 「ん、なんか二人の距離近くないですか？」
+					PRINTW 
+				ELSE
+					PRINTFORML 「%CALLNAME:MASTER%、ここにいたのかい？」
+					PRINTFORML 「それに、映姫様まで。奇遇ですねえ」
+					PRINTFORML 「ん、ひょっとして四季様から説教されてたのかい？　それはご愁傷さま」
+					PRINTW 
+				ENDIF
+			ELSE
+				IF TALENT:(NO:30):恋人
+					PRINTFORML 「%CALLNAME:MASTER%、ここにいたのかい？」
+					PRINTFORML 「それに、映姫様まで。奇遇ですねえ」
+					PRINTFORML 「あ、ひょっとしてさっきまで乳繰り合ってました？」
+					PRINTW 
+				ELSEIF TALENT:(NO:30):恋慕
+					PRINTFORML 「%CALLNAME:MASTER%、ここにいたのかい？」
+					PRINTFORML 「それに、映姫様まで。奇遇ですねえ」
+					PRINTFORML 「ん、なんか二人の距離近くないですか？」
+					PRINTW 
+				ELSE
+					PRINTFORML 「%CALLNAME:MASTER%、ここにいたのかい？」
+					PRINTFORML 「それに、映姫様まで。奇遇ですねえ」
+					PRINTFORML 「ん、ひょっとして四季様から説教されてたのかい？　それはご愁傷さま」
+					PRINTW 
+				ENDIF
+			ENDIF
+		;映姫様がいない
+		ELSE
+			IF TALENT:恋慕 || TALENT:恋人
+				PRINTFORML 「%CALLNAME:MASTER%、ここにいたんだ」
+				PRINTFORML 「偶然とはいえ、会えてうれしいよ」
+			ELSEIF TALENT:思慕
+				PRINTFORML 「%CALLNAME:MASTER%じゃないか」
+			ELSE
+				PRINTFORML 「%CALLNAME:MASTER%…だっけ？」
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;EVENTCOMEND2に風呂追い出し条件詳細記述
+	;キャラの@風呂追い出し条件(ARG)に風呂追い出し条件(LOCAL:1)がマッチすると追い出される？
+	;COMF400移動に反応分岐
+	;一緒に入る……時間停止中、同性（ふたなりは×？）、TALENT:羞恥心が-1（恥薄い）かつ親密5以上、うふふ状態
+	;追い出される…TALENT:態度が1以下
+	;              CFLAG:既成事実が1未満(BIT 0=キス 1=うふふ 2=恋人 3=A 4=SM)
+	;              恋慕またはセフレ未所持
+	;              のいずれかに引っかかる
+	;羞恥心が-1（=恥薄い）でも親密4以下なら平然としているが追い出される。「恥薄い」がないと悲鳴を上げて追い出される
+	;-------------------------------------------------
+	;TARGETが風呂に入ってきて一緒に入る
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		IF CFLAG:1100 == 1
+			PRINTFORML 「おや、%CALLNAME:MASTER%。先に入ってたのかい？」
+			PRINTFORML 小町は豊満な胸や秘部を堂々と晒し、%CALLNAME:MASTER%に近寄ってきた
+			PRINTFORML 「よかったら、あたいが背中を流してあげるよ」
+			PRINTFORML 「あっ、背中なんかより、こっちの方がいいよね……%UNICODE(0x2665) *1%」
+			PRINTW 
+		ELSEIF TALENT:恋人
+			PRINTFORML 「おや、%CALLNAME:MASTER%。先に入ってたのかい？」
+			PRINTFORML 小町は豊満な胸や秘部を隠すことなく%CALLNAME:MASTER%に近寄ってきた
+			PRINTFORML 「せっかくだし、体の洗いっこしようか♪」
+			PRINTW 
+		ELSEIF TALENT:恋慕
+			PRINTFORML 「おや、%CALLNAME:MASTER%。先に入ってたのかい？」
+			PRINTFORML 小町は豊満な胸や秘部を隠すことなく%CALLNAME:MASTER%に近寄ってきた
+			PRINTFORML 「よかったら、あたいが背中を流してあげるよ」
+			PRINTFORML 「ついでに、あたいの体も洗ってくれると嬉しいな……♪」
+			PRINTW 
+		ELSE
+			PRINTFORML 「おや、%CALLNAME:MASTER%。先に入ってたのかい？」
+			PRINTFORML 小町は豊満な胸や秘部を隠すことなく%CALLNAME:MASTER%に近寄ってきた
+			PRINTFORML 「ちょうどよかった。あたいの背中流しておくれよ」
+			PRINTW 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;TARGETが風呂に入ってきて出て行った
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		PRINTFORML 「おや、先客がいたのかい」
+		PRINTFORML 小町は豊満な胸や秘部を隠すことなく風呂場の入り口に立っている
+		PRINTFORML 「一緒に入るかって？　んー、今は一人で入りたい気分だから後にするよ」
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;TARGETが風呂に入ってきて追い出された
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		PRINTFORML 「おや、%CALLNAME:MASTER%じゃないのさ。お前さんもひとっ風呂浴びにきたのかい？」
+		PRINTFORML 小町は%CALLNAME:MASTER%に裸を見られてもあっけらかんとしている
+		PRINTFORML 「あーでももうちょっと待っておくれよ。もうすぐ上がるからさ」
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;外出先で遭遇した
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		IF TALENT:恋人
+			PRINTFORML 「%CALLNAME:MASTER%じゃないか♪」
+			PRINTFORML 小町が満面の笑みを浮かべながら%CALLNAME:MASTER%に抱きついてきた
+			PRINTFORML 「暇だったら、あたいとどこかに行かないかい？」
+			PRINTW 
+		ELSEIF TALENT:恋慕
+			PRINTFORML 「%CALLNAME:MASTER%じゃないか。お出かけかい？」
+			PRINTFORML 「もし暇だったら、あたいのおしゃべりに付き合っておくれよ」
+		ELSEIF TALENT:思慕
+			PRINTFORML 「よう、%CALLNAME:MASTER%じゃないか」
+			PRINTFORML 小町は%CALLNAME:MASTER%に笑顔で出迎えた
+		ELSE
+			PRINTFORML 「おや、%CALLNAME:MASTER%じゃないか」
+			PRINTFORML 「ちょうどよかった。あたいの話し相手になっておくれよ」
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;他キャラとデート中に遭遇した
+	;ARG:1にデート相手
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		IF TALENT:恋人
+			IF ARG:1 == 30
+				PRINTFORML 「%CALLNAME:MASTER%……あっ」
+				PRINTFORML 小町が満面の笑みを浮かべながら%CALLNAME:MASTER%に抱きつこうとしたところで、
+				PRINTFORML %CALLNAME:MASTER%の隣にいる女の存在に気付いた
+				PRINTW 
+				PRINTFORML 「ちょいとぉ、あたいってものがありながら四季様とイチャつかないでおくれよっ」
+				PRINTFORML 小町は%CALLNAME:MASTER%の顔をぐいっと引き寄せ、自分の胸に押し付けた
+				PRINTW 
+				PRINTFORML 「%CALLNAME:MASTER%、おっぱい好きだろう？　ほら、もっと顔を埋めていいんだよ～～♪」
+				PRINTFORML 「四季様っ、%CALLNAME:MASTER%はあたいのですからね、上司といえど譲れません」
+				PRINTFORML 言い争いが終わるまで、%CALLNAME:MASTER%は映姫と小町の胸を何度も往復することになった
+				PRINTW 
+			ELSE
+				PRINTFORML 「%CALLNAME:MASTER%……あっ」
+				PRINTFORML 小町が満面の笑みを浮かべながら%CALLNAME:MASTER%に抱きつこうとしたところで、
+				PRINTFORML %CALLNAME:MASTER%の隣にいる女の存在に気付いた
+				PRINTW 
+				PRINTFORML 「ちょいとぉ、あたいってものがありながら他の女に現を抜かすなんていい度胸だねぇ」
+				PRINTFORML 小町は%CALLNAME:MASTER%の顔をぐいっと引き寄せ、自分の胸に押し付けた
+				PRINTW 
+				PRINTFORML 「%CALLNAME:MASTER%には、あたいの良さをもっと分かってもらわないとね」
+				PRINTFORML デート相手と小町との間で、%CALLNAME:MASTER%はもみくちゃにされてしまった
+				PRINTW 
+			ENDIF
+		ELSEIF TALENT:恋慕
+			IF ARG:1 == 30
+				PRINTFORML 「%CALLNAME:MASTER%……あっ」
+				PRINTFORML 小町が満面の笑みを浮かべながら%CALLNAME:MASTER%に抱きつこうとしたところで、
+				PRINTFORML %CALLNAME:MASTER%の隣にいる女の存在に気付いた
+				PRINTW 
+				PRINTFORML 「四季様も、随分%CALLNAME:MASTER%に熱を上げているんですね。でも」
+				PRINTFORML 小町は%CALLNAME:MASTER%の顔をぐいっと引き寄せ、自分の胸に押し付けた
+				PRINTW 
+				PRINTFORML 「あたいだって負けてませんから。たとえ上司であっても、譲れませんねぇ」
+				PRINTFORML 頭上で激しい火花が散ったような気がした……
+				PRINTW 
+			ELSE
+				PRINTFORML 「%CALLNAME:MASTER%……あっ」
+				PRINTFORML 小町が満面の笑みを浮かべながら%CALLNAME:MASTER%に抱きつこうとしたところで、
+				PRINTFORML %CALLNAME:MASTER%の隣にいる女の存在に気付いた
+				PRINTW 
+				PRINTFORML 「ひょっとして彼女かい？　モテる奴は大変だねぇ」
+				PRINTFORML 小町は%CALLNAME:MASTER%の顔をぐいっと引き寄せ、自分の胸に押し付けた
+				PRINTW 
+				PRINTFORML 「後であたいもデートに誘っておくれよ。待ってるからさ」
+				PRINTFORML  頭上で激しい火花が散ったような気がした……
+				PRINTW 
+			ENDIF
+		ELSEIF TALENT:思慕
+			IF ARG:1 == 30
+				PRINTFORML 「%CALLNAME:MASTER%……あっ」
+				PRINTFORML 小町が満面の笑みを浮かべながら%CALLNAME:MASTER%に挨拶しようとしたところで、
+				PRINTFORML %CALLNAME:MASTER%の隣にいる女の存在に気付いた
+				PRINTW 
+				PRINTFORML 「四季様……%CALLNAME:MASTER%と仲がいいんですね」
+				PRINTFORML 「二人はひょっとして……その、お付き合いしてるんですか？」
+				PRINTFORML 小町は困ったような怒ったような表情を浮かべている
+				PRINTW 
+			ELSE
+				PRINTFORML 「%CALLNAME:MASTER%……あっ」
+				PRINTFORML 小町が満面の笑みを浮かべながら%CALLNAME:MASTER%に挨拶しようとしたところで、
+				PRINTFORML %CALLNAME:MASTER%の隣にいる女の存在に気付いた
+				PRINTW 
+				PRINTFORML 「ふーん、そちらさんは、その……恋人かい？」
+				PRINTFORML 「いやあ、興味だよただの興味。あははははっ」
+				PRINTFORML 小町は妙にそわそわとしている
+				PRINTW 
+			ENDIF
+		ELSE
+			;デートの相手が映姫
+			IF ARG:1 == 30
+				PRINTFORML 「%CALLNAME:MASTER%……って、おやおやおや」
+				PRINTFORML 小町は%CALLNAME:MASTER%の隣にいる女の存在に気付くと、ニヒヒと笑った
+				PRINTW 
+				PRINTFORML 「四季様っ、%CALLNAME:MASTER%と仲がおよろしいようで……あ、他の死神には内緒にしときますから♪」
+				PRINTFORML 堅物と思っていた上司が知人とデートしている姿を目撃し、小町は楽しそうだ
+				PRINTW 
+			ELSE
+				PRINTFORML 「%CALLNAME:MASTER%……おやおや♪」
+				PRINTFORML 小町は%CALLNAME:MASTER%の隣にいる女の存在に気付くと、ニヤニヤと笑みを浮かべた
+				PRINTW 
+				PRINTFORML 「お盛んだねぇ♪　モテモテじゃないか、このこのっ♪」
+				PRINTFORML 小町は%CALLNAME:MASTER%を肘でツンツンと突いてきた
+				PRINTW 
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;朝起きたとき（おはよう口上）
+;==================================================
+@M_KOJO_EVENT_K76_2(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;非同棲かつ相手が先に起きてる
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		;-------------------------------------------------
+		;TARGET私室にMASTERが入っている（恋慕時添い寝中就寝時のみ？
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && !ARG:1
+			PRINTFORMW 
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;MASTER私室にTARGETが入ってきてる(恋慕無しでも入ってくる可能性有り
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML 「よっ。随分ぐっすりだったねぇ」
+			PRINTFORML いつの間に入ってきたのか、目を覚ますと小町が%CALLNAME:MASTER%の顔を覗き込んで笑っていた
+			PRINTW 
+			RETURN 1
+		ENDIF
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;同棲かつ相手が起きている
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML 「おはよ、%CALLNAME:MASTER%」
+		PRINTFORML 「ほら、顔洗っといで。もうすぐ朝ごはんできるから」
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;同棲かつ相手が寝ている
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML 「うにゃ、%CALLNAME:MASTER%、好きぃ……♪　えへへぇ……♪」
+		PRINTFORML すごく幸せそうな顔で小町は寝言をつぶやいている
+		PRINTFORML かわいそうなので起こさず待っていてあげよう
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;MASTERが起きていて、相手が起きてきた
+	;添い寝時TARGET起床はこちら（TARGET衰弱or添い寝中TARGET睡魔負け後そのままMASTERが起き続けた上で相手が起床した場合限定
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		;-------------------------------------------------
+		;非同棲
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && !ARG:1
+			PRINTFORML 「あれ……%CALLNAME:MASTER%……？　なんで、ここに……」
+			PRINTFORML 「あー……あたい途中で寝落ちしちゃったのか……」
+			PRINTW 
+			PRINTFORML 「でも乙女の寝顔を覗き見るたぁ趣味が悪いねぇ」
+			PRINTFORML 「乙女じゃないだろうって？　がーん。そういうの、『せくはら』っていうんだよぉ」
+			PRINTW 
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;同棲中
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML 「あれ……%CALLNAME:MASTER%……私、寝てた……？」
+			PRINTFORML 「ひょっとして、寝顔見られっぱなしだった？　うひゃー、恥ずかしいなぁ」
+			PRINTFORML 「あたいの寝顔なんて見ても何もいいことないだろう？　可愛かった？　もう、およしよ」
+			PRINTFORML 照れ隠しに小町に指で突かれた
+			PRINTW 
+			RETURN 1
+		ENDIF
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;夜寝るとき（おやすみ口上）
+;==================================================
+@M_KOJO_EVENT_K76_3(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;自室に帰る（定時になって寝る）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML 「もういい時間だし。帰って寝るよ。おやすみ」
+		PRINTFORML 小町は大きな欠伸を漏らすと、ひらひらと手を振って去っていった
+		PRINTW 
+		PRINTFORML しかし、途中で歩みを止め、こちらを振り返るとニカっと笑った
+		PRINTFORML 「また、明日」
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;眠そうにしている
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML 「うー……あー……」
+		PRINTFORML 小町は頭をくわんくわんと回している
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;睡眠中（起きていないので会話というよりは寝言？）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORMW 「んおおおお……四季様、悔悟棒は、悔悟棒だけは勘弁を……きゃん」
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;イタズラ中
+	;記入チェック（=0, 非表示、1, 表示）
+	;LOCAL:1 = 0
+	;-------------------------------------------------
+	;IF LOCAL:1 && ARG == 4
+		;PRINTFORMW 
+		;RETURN 1
+	;ENDIF
+	;-------------------------------------------------
+	;衰弱中（恋慕付き拠点内キャラがMAIN_MAPで衰弱状態になった場合か、お招き部屋で相手が衰弱した場合に発生
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;MASTERがダウン（部屋まで運ばれる）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		PRINTFORML 「%CALLNAME:MASTER%に無理させちゃったなぁ……」
+		PRINTFORML 「ごめんよぅ、%CALLNAME:MASTER%。お前さんが恋しかったんだよぅ」
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;TARGETが自室まで戻ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		;-------------------------------------------------
+		;そのまま着替えて寝た
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 0
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;部屋から追い出された
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;他キャラとのＨを止めさせて寝た
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 2
+			RETURN 1
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;非在住TARGETがMAIN_MAPで休憩
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 8
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;前のターンから一緒の部屋にいる状態で相手が寝る（お招き部屋含む（
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 9
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;移動時すれちがい
+;==================================================
+@M_KOJO_EVENT_K76_4(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;立ち止まった
+	;この後遭遇口上に接続
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML 「なんだい、あたいに会いに来てくれたのかい？　嬉しいねぇ」
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;軽く会釈して通り過ぎた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML 「おや、そんなに急いでどこ行くんだい？」
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;無視して通り過ぎた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML 「慌ただしいねぇ」
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;他者介入でムード変化
+;==================================================
+@M_KOJO_EVENT_K76_5(ARG,ARG:1)
+;口上主はTARGET
+;ARGに入ってきたキャラ（人数が膨大なので、自己把握自己責任で
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;霊夢が入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;る～ことが入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他（キャラ指定なし
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;情事を目撃した
+;==================================================
+@M_KOJO_EVENT_K76_6(ARG,ARG:1)
+;口上主はTARGET
+;ARGに情事相手
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;情事を目撃した（馴れ合い度:低）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 1
+		PRINTFORML 「誰かいるのかい……うわっ！？」
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;負けじと参加（馴れ合い度:高）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 2
+		IF TALENT:恋人
+			;情事相手に映姫様が混ざっている
+			IF ARG == 30
+				IF TALENT:(NO:30):恋慕 && TALENT:恋慕
+					PRINTFORML 「ちょ、ちょちょちょっ、四季様っ！？　それに%CALLNAME:MASTER%も！？」
+					PRINTFORML 「二人とも何やってるのさ！」
+					PRINTW 
+					PRINTFORML 小町は二人の情事現場に激怒するかと思ったが、着物をはだけさせ、大きな胸をぶるんと露出させた
+					PRINTFORML 「ずるいじゃないか！　あたいも混ぜておくれよう！」
+					PRINTFORML 「浮気なんてしてくれたんだ。%CALLNAME:MASTER%には頑張ってもらうよ」
+					PRINTFORML 「四季様も逃げちゃ駄目ですよぅ～？　あたいたちが愛し合うところ、最後まで見てってくださいね～～？」
+					PRINTFORML  あ、これは怒ってるやつだと%CALLNAME:MASTER%は思った
+					PRINTW 
+				ELSE
+					PRINTFORML 「ちょ、ちょちょちょっ、四季様っ！？　それに%CALLNAME:MASTER%も！？」
+					PRINTFORML 「二人とも何やってるのさ！」
+					PRINTW 
+					PRINTFORML 小町は二人の情事現場に激怒するかと思ったが、着物をはだけさせ、大きな胸をぶるんと露出させた
+					PRINTFORML 「あたいって恋人がいるっていうのに、浮気を、ましてや上司となんて」
+					PRINTFORML 「あたいの愛し方が足りなかったって事かい？　なら、足腰立たなくなるまでもっと愛さないとねぇ」
+					PRINTFORML 「四季様とどれだけよろしくやってたか知らないけど、%CALLNAME:MASTER%には頑張ってもらうよ」
+					PRINTFORML 「四季様は服を着てください！　この人はあたいの彼氏です！」
+					PRINTW 
+				ENDIF
+			ELSE
+				PRINTFORML 「お前さんっ！？　何やってるのさ！」
+				PRINTFORML 「あたいともあろうものが、他の女に現を抜かすなんて！」
+				PRINTFORML ぶりぶりと怒り、二人の元へズカズカやってくる小町
+				PRINTW 
+				PRINTFORML さすがに引っぱたかれると思ったが、平手は飛んでこなかった
+				PRINTFORML 小町は浮気相手から%CALLNAME:MASTER%をむしり取り、豊かな胸に顔を埋めさせた
+				PRINTFORML 「この人はあたいのなんですー！　もちろんちんぽもですー！」
+				PRINTFORML 小町は浮気相手に思いっきり舌を出して威嚇（？）をしている
+				PRINTW 
+			ENDIF
+		;こまっちゃんは恋人ではない
+		ELSE
+			IF ARG == 30
+				;映姫様が恋人で、こまっちゃんが恋慕持ち
+				;小町はこんなキャラじゃない気もするけど、eraワールドだしいいよね！
+				IF TALENT:ARG:恋人 && TALENT:恋慕
+					PRINTFORML 「あうう……分かってる、駄目だって分かってるんだけど」
+					PRINTFORML 小町はベソをかきながら%CALLNAME:MASTER%にすがりつく
+					PRINTFORML 「あたいも%CALLNAME:MASTER%のことが好きなんだよぅ、諦められないんだよぅ」
+					PRINTFORML 「あたいのことも、抱いておくれよぅ」
+					PRINTFORML 「四季様ぁ、駄目な部下でごめんなさい、同じ人を好きになってごめんなさいぃ」
+					PRINTW 
+				;映姫様も恋人ではない
+				ELSEIF TALENT:恋慕
+					PRINTFORML 「その……あたいも、混ぜておくれよ」
+					PRINTFORML 「いや、二人の見てたら、あたいのここも、こんなになっちゃって……%UNICODE(0x2665) *1%」
+					PRINTFORML 「四季様のようにあたいのことも気持ちよくしてくれると嬉しいな～～、なんて……%UNICODE(0x2665) *1%」
+					PRINTW 
+				;二人とも恋慕持ちではない
+				ELSE
+					PRINTFORML 「すごいところ見ちゃった。あたいも混ぜておくれよ」
+					PRINTFORML 小町はニヤリと笑うと、胸元をはだけさせ、豊かな胸をぶるんと露出させた
+					PRINTFORML 「しかし四季様も隅におけませんねぇ♪　肉食系、ってやつですか？」
+					PRINTFORML 「ちゃんと他の奴には秘密にしておきますから。あたいも混ぜてくださいよ♪」
+					PRINTW 
+				ENDIF
+			ELSE
+				;情事相手が恋人で、こまっちゃんが恋慕持ち
+				IF TALENT:ARG:恋人 && TALENT:恋慕
+					PRINTFORML 「やー、愛し合っているところ申し訳ないんだけど」
+					PRINTFORML 「あたいもそこに混ぜてもらえないかねぇ……%UNICODE(0x2665) *1%」
+					PRINTFORML 小町は胸元をはだけさせ、%CALLNAME:MASTER%らの元にすり寄ってきた
+					PRINTW 
+				ELSEIF TALENT:恋慕
+					PRINTFORML 「やー、乳繰り合ってるとこと申し訳ないんだけど」
+					PRINTFORML 「あたいも一緒に気持ちよくしておくれよ……%UNICODE(0x2665) *1%」
+					PRINTW 
+				ELSE
+					PRINTFORML 「いーことしてる人たち発見♪」
+					PRINTFORML 「あたいも混ぜておくれよー♪」
+					PRINTFORML 遊びに加わるような口調で、小町は絡み合いに加わってきた
+				ENDIF
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;気まずそうに立ち去る
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 3
+		IF CFLAG:1100 == 1
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「あは～、申し訳ない。お取込み中だったねぇ」
+				PRINTFORML 「あたいのことは気にせず続けて続けて……んじゃっ」
+				PRINTFORML 去り際、小町は片手で何かをしごくような仕草を見せ、「あ・と・で・ね%UNICODE(0x2665) *1%」と口だけを動かし去っていった
+			CASEELSE
+				PRINTFORML 「あは～、申し訳ない。お取込み中だったねぇ」
+				PRINTFORML 「あたいのことは気にせず続けて続けて……んじゃっ」
+				PRINTFORML 去り際、小町は胸元を開いて乳頭を露出させると、自ら揉みしだいてニヤリと笑った
+			ENDSELECT
+		ELSE
+			PRINTFORML 「あは～、申し訳ない。お取込み中だったねぇ」
+			PRINTFORML 「あたいのことは気にせず続けて続けて……んじゃっ」
+			PRINTFORML 小町は片手を挙げスタスタと去っていった
+		ENDIF
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;情事を見られた
+;==================================================
+@M_KOJO_EVENT_K76_7(ARG,ARG:1)
+;口上主はTARGET
+;ARGに目撃者
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;私的メモ
+	;馴れ合い強度:合意か弱味がないと3にならない
+	;TCVAR:MASTER:馴れ合い >= 3 && GETBIT(CFLAG:ARG:既成事実 , 1)
+	;なので恋慕付きでも馴れ合い強度：低はある、かと思ったけど、恋慕取得には奉仕精神いるからひょっとして死に分岐？
+	;TCVARのA/V挿入フラグに挿入状態が代入されると馴れ合い状態が発生する、であってるんだろうか……
+	;MASTERの馴れ合い度1＝軽いセクハラ、キス可能　2＝胸愛撫など強めのセクハラ可能、告白可能
+	;要はおせっせできれば馴れ合いレベル高いってことで、まま、ええやろ（適当）
+	;-------------------------------------------------
+	;情事を見られた（目撃者の馴れ合い度:低）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 1
+		;映姫様がみてる
+		IF ARG == 30
+			PRINTFORML 「あー……四季様、どうもー……」
+			IF YOUBI_MATCH(DAY, "月水金")
+				;仕事中にナニやっとんねん
+				IF TIME:0 > 600 && TIME:0 < 960
+					PRINTFORML 「仕事中に何してるのかって？　えーと、そのー、ナニを……」
+					;屋外
+					IF OUTROOF(CFLAG:TARGET:現在位置)
+						PRINTFORML 「ごっ、ごめんなさいっ、だって、部屋まで我慢できなかったんですよぉ～～」
+					;屋内
+					ELSE
+						;小町の部屋
+						IF CFLAG:MASTER:現在位置 == 616
+							PRINTFORML 「ごっ、ごめんなさいっ！　でもでも、他の場所でするわけにもいかないじゃないですかぁ」
+						;映姫様の部屋
+						ELSEIF CFLAG:MASTER:現在位置 == 615
+							PRINTFORML 「四季様の部屋を勝手に使ったのはごめんなさいっ！　でも、我慢できなかったんですよぉ～～」
+						;屋内汎用
+						ELSE
+							PRINTFORML 「ごっ、ごめんなさいっ！　仕事が終わるまで我慢できなかったんですよぉ～～」
+						ENDIF
+						IF TEQUIP:Ｖセックス || TEQUIP:Ａセックス
+							PRINTFORML 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、今動いちゃイヤぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　上司に見られながらイッちゃうよォ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ELSEIF TEQUIP:アナルバイブ || TEQUIP:バイブ
+							PRINTFORML 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、今動かしちゃイヤぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　上司に見られながらイッちゃうよォ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ELSE
+							PRINTFORM 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、
+							SELECTCASE RAND:3
+							CASE 0
+								PRINTFORML 胸を揉むんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							CASE 1
+								PRINTFORML あそこを弄るんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							CASEELSE
+								PRINTFORML イタズラするんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							ENDSELECT
+							PRINTW 
+						ENDIF
+					ENDIF
+				;仕事の後のナニは格別ですねぇ！
+				ELSE
+					;野外は最高ですねぇ！
+					IF OUTROOF(CFLAG:TARGET:現在位置)
+						PRINTFORML 「だっ、だって、部屋まで我慢できなかったんですよぉ～～」
+						IF TEQUIP:Ｖセックス || TEQUIP:Ａセックス
+							PRINTFORML 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、今動いちゃイヤぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　外で上司に見られながらイッちゃうよォ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ELSEIF TEQUIP:アナルバイブ || TEQUIP:バイブ
+							PRINTFORML 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、今動かしちゃイヤぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　外で上司に見られながらおもちゃでイッちゃうよォ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ELSE
+							PRINTFORM 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、
+							SELECTCASE RAND:3
+							CASE 0
+								PRINTFORML 胸を揉むんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							CASE 1
+								PRINTFORML あそこを弄るんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							CASEELSE
+								PRINTFORML イタズラするんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							ENDSELECT
+							PRINTW 
+						ENDIF
+					;屋内
+					ELSE
+						;小町の部屋
+						IF CFLAG:MASTER:現在位置 == 616
+							PRINTFORML 「べっ、別に自分の部屋で何してたっていいじゃないですかぁ～～」
+							;映姫様の恋人に何しとんねん
+							;恋人は恋慕なしでも可なので半分は生き残るはず。生き残れ生き残れ……
+							IF TALENT:(NO:30):恋人
+								IF TALENT:恋慕
+									PRINTFORML 「その人は私の恋人って、そう、ですけど、そうなんですけどぉ……」
+								ELSE
+									PRINTFORML 「あっ、恋人をお借りしたことは謝りますけど……えへへ」
+								ENDIF
+							;映姫様は恋人ではない
+							ELSE
+								IF TALENT:恋人
+									IF TALENT:(NO:30):恋慕
+										PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ　あたいのですっ」
+										PRINTFORML （四季様が%CALLNAME:MASTER%のこと好きなのは知ってるけどさ……）
+									ELSE
+										PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ　あたいのですっ」
+									ENDIF
+								ELSE
+									IF TALENT:恋慕
+										IF TALENT:(NO:30):恋慕
+											PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ」
+											PRINTFORML （いやまぁ、あたいのでもないけど……あたいだって%CALLNAME:MASTER%のこと好きだしっ）
+										ELSE
+											PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ　あたいのでもないけどっ」
+										ENDIF
+									ELSE
+										IF TALENT:(NO:30):恋慕
+											PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ」
+											PRINTFORML （いやまぁ、あたいのでもないけど）
+										ELSE
+											PRINTFORML 「今いいところだったんですからねっ」
+										ENDIF
+									ENDIF
+								ENDIF
+							ENDIF
+							IF TEQUIP:Ｖセックス || TEQUIP:Ａセックス
+								PRINTFORML 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、今動いちゃイヤぁっ%UNICODE(0x2665) *1%」
+								PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+								PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　上司に見られながらイッちゃうよォ%UNICODE(0x2665) *1%」
+								PRINTW 
+							ELSEIF TEQUIP:アナルバイブ || TEQUIP:バイブ
+								PRINTFORML 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、今動かしちゃイヤぁっ%UNICODE(0x2665) *1%」
+								PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+								PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　上司に見られながらおもちゃでイッちゃうよォ%UNICODE(0x2665) *1%」
+								PRINTW 
+							ELSE
+								PRINTFORM 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、
+								SELECTCASE RAND:3
+								CASE 0
+									PRINTFORML 胸を揉むんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+								CASE 1
+									PRINTFORML あそこを弄るんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+								CASEELSE
+									PRINTFORML イタズラするんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+								ENDSELECT
+								PRINTW 
+							ENDIF
+						;映姫様の部屋でやるセックスは格別ですねぇ！
+						ELSEIF CFLAG:MASTER:現在位置 == 615
+							PRINTFORML 「あっ、いや四季様の部屋でシてるのは、なりゆきというか、なんというか……」
+							;映姫様の恋人に何しとんねん
+							;恋人は恋慕なしでも可なので半分は生き残るはず。生き残れ生き残れ……
+							IF TALENT:(NO:30):恋人
+								IF TALENT:恋慕
+									PRINTFORML 「えっ、%CALLNAME:MASTER%って四季様の恋人でしたっけ？　き、聞いてましたっけ？　え、えへへ」
+								ELSE
+									PRINTFORML 「あっ、恋人をお借りしたことは謝りますけど……えへへ」
+								ENDIF
+							ELSE
+								IF TALENT:恋人
+									IF TALENT:(NO:30):恋慕
+										PRINTFORML 「四季様の部屋でシてたことは謝りますけど、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ　あたいのですっ」
+										PRINTFORML （四季様が%CALLNAME:MASTER%のこと好きなのは知ってるけどさ……）
+									ELSE
+										PRINTFORML 「四季様の部屋でシてたことは謝りますけど、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ　あたいのですっ」
+									ENDIF
+								ELSE
+									IF TALENT:恋慕
+										IF TALENT:(NO:30):恋慕
+											PRINTFORML 「四季様の部屋でシてたことは謝りますけど、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ」
+											PRINTFORML （いやまぁ、あたいのでもないけど……あたいだって%CALLNAME:MASTER%のこと好きだしっ）
+										ELSE
+											PRINTFORML 「四季様の部屋でシてたことは謝りますけど、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ　あたいのでもないけどっ」
+										ENDIF
+									ELSE
+										IF TALENT:(NO:30):恋慕
+											PRINTFORML 「四季様の部屋でシてたことは謝りますけど、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ」
+											PRINTFORML （いやまぁ、あたいのでもないけど）
+										ELSE
+											PRINTFORML 「今いいところだったんですからねっ　邪魔しないでくださ……あいたっ！」
+										ENDIF
+									ENDIF
+								ENDIF
+							ENDIF
+							IF TEQUIP:Ｖセックス || TEQUIP:Ａセックス
+								PRINTFORML 「あっ、その顔怖いです四季様っ、ああんっ、%CALLNAME:MASTER%、今動いちゃイヤぁっ%UNICODE(0x2665) *1%」
+								PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+								PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　上司の部屋で上司に見られながらイッちゃうよォ%UNICODE(0x2665) *1%」
+								PRINTW 
+							ELSEIF TEQUIP:アナルバイブ || TEQUIP:バイブ
+								PRINTFORML 「あっ、その顔怖いです四季様っ、ああんっ、%CALLNAME:MASTER%、今動かしちゃイヤぁっ%UNICODE(0x2665) *1%」
+								PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+								PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　上司の部屋で上司に見られながらおもちゃでイッちゃうよォ%UNICODE(0x2665) *1%」
+								PRINTW 
+							ELSE
+								PRINTFORM 「あっ、その顔怖いです四季様っ、ああんっ、%CALLNAME:MASTER%、
+								SELECTCASE RAND:3
+								CASE 0
+									PRINTFORML 胸を揉むんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+								CASE 1
+									PRINTFORML あそこを弄るんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+								CASEELSE
+									PRINTFORML イタズラするんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+								ENDSELECT
+								PRINTW 
+							ENDIF
+						;屋内汎用
+						ELSE
+							;映姫様の恋人に何しとんねん
+							;恋人は恋慕なしでも可なので半分は生き残るはず。生き残れ生き残れ……
+							IF TALENT:(NO:30):恋人
+								IF TALENT:恋慕
+									PRINTFORML 「えっ、%CALLNAME:MASTER%って四季様の恋人でしたっけ？　き、聞いてましたっけ？　え、えへへ」
+								ELSE
+									PRINTFORML 「あっ、恋人をお借りしたことは謝りますけど……えへへ」
+								ENDIF
+							ELSE
+								IF TALENT:恋人
+									IF TALENT:(NO:30):恋慕
+										PRINTFORML 「別に、恋人同士がどこでいちゃついていようが、四季様には関係ないでしょうっ」
+										PRINTFORML （四季様が%CALLNAME:MASTER%のこと好きなのは知ってるけどさ……）
+									ELSE
+										PRINTFORML 「別に、恋人同士がどこでいちゃついていようが、四季様には関係ないでしょうっ」
+									ENDIF
+								ELSE
+									IF TALENT:恋慕
+										IF TALENT:(NO:30):恋慕
+											PRINTFORML 「別に、好きあってる同士がどこでいちゃついていようがいいでしょうっ」
+											PRINTFORML （いやまぁ、四季様もそうなんだろうけどさ……）
+										ELSE
+											PRINTFORML 「別に、好きあってる同士がどこでいちゃついていようがいいでしょうっ」
+										ENDIF
+									ELSE
+										IF TALENT:(NO:30):恋慕
+											PRINTFORML 「別に、あたいが誰といちゃついてても勝手でしょうっ」
+											PRINTFORML （いやまぁ、四季様の恋の相手ってのは分かってるけど……）
+										ELSE
+											PRINTFORML 「今いいところだったんですからねっ　邪魔しないでくださ……あいたっ！」
+										ENDIF
+									ENDIF
+								ENDIF
+							ENDIF
+							IF TEQUIP:Ｖセックス || TEQUIP:Ａセックス
+								PRINTFORML 「あっ、その顔怖いです四季様っ、ああんっ、%CALLNAME:MASTER%、今動いちゃイヤぁっ%UNICODE(0x2665) *1%」
+								PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+								PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　上司の部屋で上司に見られながらイッちゃうよォ%UNICODE(0x2665) *1%」
+								PRINTW 
+							ELSEIF TEQUIP:アナルバイブ || TEQUIP:バイブ
+								PRINTFORML 「あっ、その顔怖いです四季様っ、ああんっ、%CALLNAME:MASTER%、今動かしちゃイヤぁっ%UNICODE(0x2665) *1%」
+								PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+								PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　上司の部屋で上司に見られながらおもちゃでイッちゃうよォ%UNICODE(0x2665) *1%」
+								PRINTW 
+							ELSE
+								PRINTFORM 「あっ、その顔怖いです四季様っ、ああんっ、%CALLNAME:MASTER%、
+								SELECTCASE RAND:3
+								CASE 0
+									PRINTFORML 胸を揉むんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+								CASE 1
+									PRINTFORML あそこを弄るんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+								CASEELSE
+									PRINTFORML イタズラするんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+								ENDSELECT
+								PRINTW 
+							ENDIF
+						ENDIF
+					ENDIF
+				ENDIF
+			;休日のナニは別格ですねぇ！
+			ELSE
+				;野外は最高ですねぇ！
+				IF OUTROOF(CFLAG:TARGET:現在位置)
+					PRINTFORML 「だっ、だって、部屋まで我慢できなかったんですよぉ～～」
+					IF TEQUIP:Ｖセックス || TEQUIP:Ａセックス
+						PRINTFORML 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、今動いちゃイヤぁっ%UNICODE(0x2665) *1%」
+						PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+						PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　外で上司に見られながらイッちゃうよォ%UNICODE(0x2665) *1%」
+						PRINTW 
+					ELSEIF TEQUIP:アナルバイブ || TEQUIP:バイブ
+						PRINTFORML 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、今動かしちゃイヤぁっ%UNICODE(0x2665) *1%」
+						PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+						PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　外で上司に見られながらおもちゃでイッちゃうよォ%UNICODE(0x2665) *1%」
+						PRINTW 
+					ELSE
+						PRINTFORM 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、
+						SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 胸を揉むんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+						CASE 1
+							PRINTFORML あそこを弄るんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+						CASEELSE
+							PRINTFORML イタズラするんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+						ENDSELECT
+						PRINTW 
+					ENDIF
+				;屋内
+				ELSE
+					;小町の部屋
+					IF CFLAG:MASTER:現在位置 == 616
+						PRINTFORML 「べっ、別に自分の部屋で何してたっていいじゃないですかぁ～～」
+						;映姫様の恋人に何しとんねん
+						;恋人は恋慕なしでも可なので半分は生き残るはず。生き残れ生き残れ……
+						IF TALENT:(NO:30):恋人
+							IF TALENT:恋慕
+								PRINTFORML 「四季様の恋人を誘ったことは申し訳ないですけど……」
+							ELSE
+								PRINTFORML 「あっ、恋人をお借りしたことは謝りますけど……えへへ」
+							ENDIF
+						ELSE
+							IF TALENT:恋人
+								IF TALENT:(NO:30):恋慕
+									PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ　あたいのですっ」
+									PRINTFORML （四季様が%CALLNAME:MASTER%のこと好きなのは知ってるけどさ……）
+								ELSE
+									PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ　あたいのですっ」
+								ENDIF
+							ELSE
+								IF TALENT:恋慕
+									IF TALENT:(NO:30):恋慕
+										PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ」
+										PRINTFORML （いやまぁ、あたいのでもないけど……あたいだって%CALLNAME:MASTER%のこと好きだしっ）
+									ELSE
+										PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ　あたいのでもないけどっ」
+									ENDIF
+								ELSE
+									IF TALENT:(NO:30):恋慕
+										PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ」
+										PRINTFORML （いやまぁ、あたいのでもないけど）
+									ELSE
+										PRINTFORML 「今いいところだったんですからねっ」
+									ENDIF
+								ENDIF
+							ENDIF
+						ENDIF
+						IF TEQUIP:Ｖセックス || TEQUIP:Ａセックス
+							PRINTFORML 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、今動いちゃイヤぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　外で上司に見られながらイッちゃうよォ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ELSEIF TEQUIP:アナルバイブ || TEQUIP:バイブ
+							PRINTFORML 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、今動かしちゃイヤぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　外で上司に見られながらおもちゃでイッちゃうよォ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ELSE
+							PRINTFORM 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、
+							SELECTCASE RAND:3
+							CASE 0
+								PRINTFORML 胸を揉むんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							CASE 1
+								PRINTFORML あそこを弄るんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							CASEELSE
+								PRINTFORML イタズラするんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							ENDSELECT
+							PRINTW 
+						ENDIF
+					;映姫様の部屋でやるセックスは格別ですねぇ！
+					ELSEIF CFLAG:MASTER:現在位置 == 615
+						PRINTFORML 「べっ、別に自分の部屋で何してたっていいじゃないですかぁ～～」
+						;映姫様の恋人に何しとんねん
+						;恋人は恋慕なしでも可なので半分は生き残るはず。生き残れ生き残れ……
+						IF TALENT:(NO:30):恋人
+							IF TALENT:恋慕
+								PRINTFORML 「えっ、%CALLNAME:MASTER%って四季様の恋人でしたっけ？　き、聞いてましたっけ？　え、えへへ」
+								PRINTFORML （ここはシラを切り通さないとっ、色々と終わっちゃうよ！）
+							ELSE
+								PRINTFORML 「あっ、恋人をお借りしたことは謝りますけど……えへへ」
+							ENDIF
+						ELSE
+							IF TALENT:恋人
+								IF TALENT:(NO:30):恋慕
+									PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ　あたいのですっ」
+									PRINTFORML （四季様が%CALLNAME:MASTER%のこと好きなのは知ってるけどさ……）
+								ELSE
+									PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ　あたいのですっ」
+								ENDIF
+							ELSE
+								IF TALENT:恋慕
+									IF TALENT:(NO:30):恋慕
+										PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ」
+										PRINTFORML （いやまぁ、あたいのでもないけど……あたいだって%CALLNAME:MASTER%のこと好きだしっ）
+									ELSE
+										PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ　あたいのでもないけどっ」
+									ENDIF
+								ELSE
+									IF TALENT:(NO:30):恋慕
+										PRINTFORML 「それに、%CALLNAME:MASTER%は四季様の恋人じゃないでしょうっ」
+										PRINTFORML （いやまぁ、あたいのでもないけど）
+									ELSE
+										PRINTFORML 「今いいところだったんですからねっ」
+									ENDIF
+								ENDIF
+							ENDIF
+						ENDIF
+						IF TEQUIP:Ｖセックス || TEQUIP:Ａセックス
+							PRINTFORML 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、今動いちゃイヤぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　外で上司に見られながらイッちゃうよォ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ELSEIF TEQUIP:アナルバイブ || TEQUIP:バイブ
+							PRINTFORML 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、今動かしちゃイヤぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　外で上司に見られながらおもちゃでイッちゃうよォ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ELSE
+							PRINTFORM 「あっ、怒らないで四季様っ、ああんっ、%CALLNAME:MASTER%、
+							SELECTCASE RAND:3
+							CASE 0
+								PRINTFORML 胸を揉むんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							CASE 1
+								PRINTFORML あそこを弄るんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							CASEELSE
+								PRINTFORML イタズラするんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							ENDSELECT
+							PRINTW 
+						ENDIF
+					;屋内汎用
+					ELSE
+						;映姫様の恋人に何しとんねん
+						;恋人は恋慕なしでも可なので半分は生き残るはず。生き残れ生き残れ……
+						IF TALENT:(NO:30):恋人
+							IF TALENT:恋慕
+								PRINTFORML 「えっ、%CALLNAME:MASTER%って四季様の恋人でしたっけ？　き、聞いてましたっけ？　え、えへへ」
+							ELSE
+								PRINTFORML 「あっ、恋人をお借りしたことは謝りますけど……えへへ」
+							ENDIF
+						ELSE
+							IF TALENT:恋人
+								IF TALENT:(NO:30):恋慕
+									PRINTFORML 「別に、恋人同士がどこでいちゃついていようが、四季様には関係ないでしょうっ」
+									PRINTFORML （四季様が%CALLNAME:MASTER%のこと好きなのは知ってるけどさ……）
+								ELSE
+									PRINTFORML 「別に、恋人同士がどこでいちゃついていようが、四季様には関係ないでしょうっ」
+								ENDIF
+							ELSE
+								IF TALENT:恋慕
+									IF TALENT:(NO:30):恋慕
+										PRINTFORML 「別に、好きあってる同士がどこでいちゃついていようがいいでしょうっ」
+										PRINTFORML （いやまぁ、四季様もそうなんだろうけどさ……）
+									ELSE
+										PRINTFORML 「別に、好きあってる同士がどこでいちゃついていようがいいでしょうっ」
+									ENDIF
+								ELSE
+									IF TALENT:(NO:30):恋慕
+										PRINTFORML 「別に、あたいが誰といちゃついてても勝手でしょうっ」
+										PRINTFORML （いやまぁ、四季様の恋の相手ってのは分かってるけど……）
+									ELSE
+										PRINTFORML 「今いいところだったんですからねっ　邪魔しないでくださ……あいたっ！」
+									ENDIF
+								ENDIF
+							ENDIF
+						ENDIF
+						IF TEQUIP:Ｖセックス || TEQUIP:Ａセックス
+							PRINTFORML 「あっ、その顔怖いです四季様っ、ああんっ、%CALLNAME:MASTER%、今動いちゃイヤぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　上司の部屋で上司に見られながらイッちゃうよォ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ELSEIF TEQUIP:アナルバイブ || TEQUIP:バイブ
+							PRINTFORML 「あっ、その顔怖いです四季様っ、ああんっ、%CALLNAME:MASTER%、今動かしちゃイヤぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「ごっ、ごめんなさはぁンっ%UNICODE(0x2665) *1%　だって%CALLNAME:MASTER%がァっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「イくイくイッちゃうぅ%UNICODE(0x2665) *1%　上司の部屋で上司に見られながらおもちゃでイッちゃうよォ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ELSE
+							PRINTFORM 「あっ、その顔怖いです四季様っ、ああんっ、%CALLNAME:MASTER%、
+							SELECTCASE RAND:3
+							CASE 0
+								PRINTFORML 胸を揉むんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							CASE 1
+								PRINTFORML あそこを弄るんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							CASEELSE
+								PRINTFORML イタズラするんじゃないよっ！　あぁン%UNICODE(0x2665) *1%」
+							ENDSELECT
+							PRINTW 
+						ENDIF
+					ENDIF
+				ENDIF
+			ENDIF
+		;映姫様じゃない人に見られた
+		ELSE
+			PRINTFORML 「あちゃー、他の人に見られちゃったねぇ……あはは」
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;目撃者が負けじと参加（目撃者の馴れ合い度:高）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;目撃者が立ち去る
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 3
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;目撃した情事を問い詰める（現在無し
+;==================================================
+@M_KOJO_EVENT_K76_8(ARG,ARG:1)
+RETURN 1
+
+;==================================================
+;パンツ没収された
+;==================================================
+@M_KOJO_EVENT_K76_9(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;押し倒した
+;==================================================
+@M_KOJO_EVENT_K76_10(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;うふふ==2（開始時）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		;-------------------------------------------------
+		;MASTERを押し倒した（開始時）
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && !ARG:1
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;MASTERに抱きついた（開始時）
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;なだめられた（終了時）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		;-------------------------------------------------
+		;抜け出した
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && !ARG:1
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;抱き着きモード満足終了
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;抱き着きモード強制終了
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 2
+			PRINTFORML
+			RETURN 1
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;抜け出す失敗
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		;-------------------------------------------------
+		;好きにして状態から抜け出せなかった
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;欲求不満が高くて抜け出せなかった
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 2
+			PRINTFORML
+			RETURN 1
+		ENDIF
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;浴場で遭遇
+;==================================================
+@M_KOJO_EVENT_K76_11(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;追い出された
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;目が合った（追い出されない）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;寝床に忍び込み
+;==================================================
+@M_KOJO_EVENT_K76_12(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;追い出される（怒り）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;寝床に侵入
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;寝床に侵入（相手が恋慕）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;寝床に侵入（相手が恋慕・衰弱）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 3
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;追い出される
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 4
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;追い出される（衰弱）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 5
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;お仕事中
+;==================================================
+@M_KOJO_EVENT_K76_13(ARG,ARG:1)
+;口上主はTARGET
+;ARG:1に残っている仕事量
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;仕事開始（職場へ移動する）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;業務中
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;仕事終了
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;食事系
+;==================================================
+@M_KOJO_EVENT_K76_14(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;持っていた食物を食べられた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == -1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;MASTERが押し倒した
+;==================================================
+@M_KOJO_EVENT_K76_15(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;未実装（押し倒しコマンドに統合？
+	;MASTERが押し倒した（ウフフ開始時）
+	;記入チェック（=0, 非表示、1, 表示）
+	;LOCAL:1 = 0
+	;-------------------------------------------------
+	;IF LOCAL:1 && ARG == 1
+		;PRINTFORML
+		;RETURN 1
+	;ENDIF
+	;-------------------------------------------------
+	;逢瀬終了（ウフフ終了時）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+	;-------------------------------------------------
+	;事後描写
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		;-------------------------------------------------
+		;精液が垂れてきた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;愛液が垂れてきた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 2
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;事後のムード
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 3
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;服を着る
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 4
+			PRINTFORML
+			RETURN 1
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;添い寝する
+;==================================================
+@M_KOJO_EVENT_K76_16(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;添い寝を始めた（開始時）(存在せず
+	;記入チェック
+	;LOCAL:1 = 0
+	;-------------------------------------------------
+	;IF LOCAL:1 && ARG == 1
+		;PRINTFORML
+		;RETURN 1
+	;ENDIF
+	;-------------------------------------------------
+	;添い寝を終了した（終了時）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+;==================================================
+;時止め終了時
+;==================================================
+@M_KOJO_EVENT_K76_17(ARG,ARG:1)
+;口上主はTARGET
+;排他と明記されていないモノは状況によっては連続で表示されるので注意
+;ARGに射精状況
+;ARG:1に射精状態
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;ARG=1～3は排他
+	;謎の快感
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;絶頂
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;パンツ紛失
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;【無自覚口内射精】
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		;精液中毒低精飲
+		IF ARG:1 == 1
+		;精液中毒低吐き出し
+		ELSEIF ARG:1 == 2
+		;精液中毒低手で覆う
+		ELSEIF ARG:1 == 3
+		;精液中毒高精飲
+		ELSEIF ARG:1 == 4
+		;濃厚精液＆精液中毒低吐き出し
+		ELSEIF ARG:1 == 5
+		;濃厚精液＆精液中毒高精飲
+		ELSEIF ARG:1 == 6
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;【無自覚顔面射精】
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		;無知持ち＆精液経験100未満
+		IF ARG:1 == 1
+		;通常ぬぐい取り
+		ELSEIF ARG:1 == 2
+		;顔射精液舐めとり
+		ELSEIF ARG:1 == 3
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;【無自覚手淫射精】
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		;ぬぐい取り
+		IF ARG:1 == 1
+		;舐めとり
+		ELSEIF ARG:1 == 2
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;【無自覚アナル射精】
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		;Ａ感覚2以下
+		IF ARG:1 == 1
+		;ソレ以外
+		ELSEIF ARG:1 == 2
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;【無自覚処女喪失】
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 8
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;【無自覚膣内射精】
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 9
+		;非処女膣内射精ピルなし
+		IF ARG:1 == 1
+			;危険日
+			IF CFLAG:生理周期 == 7
+				IF EXP:膣射経験 >= 500
+				ELSE
+				ENDIF
+			ELSE
+			ENDIF
+		;非処女膣内射精ピルあり
+		ELSEIF ARG:1 == 2
+			PRINTFORML 
+		;処女膣内射精
+		ELSEIF ARG:1 == 3
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;時間停止解除共通
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 0
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;ナマでやらせろ時
+;==================================================
+@M_KOJO_EVENT_K76_18(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;避妊要求台詞
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML 「%CALLNAME:MASTER%、ひょっとして、ナマでヤりたいのかい？」
+		SELECTCASE CFLAG:生理周期
+		;安全日
+		CASE 0,1
+			PRINTFORML 「いや、一応今日は大丈夫な日だけどさ……」
+		;危険日前日
+		CASE 6
+			PRINTFORML 「あのさ、そろそろ危ない日なんだよね……」
+		;危険日
+		CASE 7
+			PRINTFORML 「ほら、今日はデきちゃう日だからさ……」
+		;排卵日
+		CASE 8
+			PRINTFORML 「ほら、今日、排卵日だからさ……」
+		;それ以外
+		CASEELSE
+			PRINTFORML 「危険日じゃないけど、デきちゃうかもしれないからさ……」
+		ENDSELECT
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;断った
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		IF TALENT:恋人
+			IF ABL:膣射中毒 >= 1
+				PRINTFORML 「あたいも、ナマでするの好きだよ。気持ちいいもんね」
+				PRINTFORML 「付けないでするのって形が分かるし、ナカで出される感覚、結構クセになっちゃったしね……%UNICODE(0x2665) *1%」
+				PRINTFORML 「%CALLNAME:MASTER%も避妊具つけないほうが楽だろうしね」
+				PRINTW 
+				PRINTFORML 「でもさ、もし子供ができたら、今みたいにはできなくなると思うし」
+				PRINTFORML 「子育ては手が掛かるっていうからね」
+				PRINTFORML 「何より、産まれてくる子には、皆から祝福されてほしいからさ」
+				PRINTFORML 「ちゃんと避妊具を付けるか、どうしてもっていうなら薬をおくれよ」
+				PRINTW 
+			ELSE
+				PRINTFORML 「あたいも、ナマでするの好きだよ」
+				PRINTFORML 「付けないでするのって興奮するし、%CALLNAME:MASTER%も気持ちよさが違うだろうしね」
+				PRINTW 
+				PRINTFORML 「でも、あたいが妊娠してもいいかはまた別の話だよ」
+				PRINTFORML 「ちゃんと避妊具を付けるか、どうしてもっていうなら薬をおくれよ」
+				PRINTW 
+			ENDIF
+				PRINTFORML 「それに、さ。あたいはまだ%CALLNAME:MASTER%と二人の時間を楽しみたいかな～って」
+				IF TALENT:MASTER:年齢 == 2
+					PRINTFORML 「あ、ひょっとして寿命気にしてる？　まあ、%CALLNAME:MASTER%、人間としてはいい歳だもんねぇ」
+					PRINTFORML 「ズルしちゃいけないんだろうけど……まあ、お前さん、当面は大丈夫だと思うよ？」
+					PRINTFORML 「だから、もっとたくさんあたいのこと愛しておくれよ……%UNICODE(0x2665) *1%」
+					PRINTW 
+				ELSE
+				ENDIF
+		ELSEIF TALENT:恋慕
+			IF ABL:膣射中毒 >= 1
+				PRINTFORML 「あたいも……あたいもね、ナマでするの……好きだよ」
+				PRINTFORML 「お前さんのアレの形がよく分かるし、ナカで出してるときの%CALLNAME:MASTER%の顔、かわいいし……」
+				PRINTFORML 「お前さんも、すごく気持ちよさそうにしてるしさ……」
+				PRINTW 
+				PRINTFORML 「でもね、子どもができるかもしれないからら、そこはちゃんとしなきゃ」
+				PRINTFORML 「避妊具付けるのがどうしても嫌なら、せめて薬を飲ませておくれ」
+				PRINTW 
+			ELSE
+				PRINTFORML 「男の人は、ナマでしたほうが気持ちいいっていうもんね」
+				PRINTFORML 「気持ちは分かるけどさ……でも、子どもができるかもしれないから、そこはちゃんとしなきゃ」
+				PRINTFORML 「避妊具付けるのがどうしても嫌なら、せめて薬を飲ませておくれ」
+				PRINTW 
+			ENDIF
+		ELSE
+			IF ABL:膣射中毒 >= 1
+				PRINTFORML 「あー……前付けないでナカで出させてあげたから、クセになっちゃったんだねぇ」
+				PRINTFORML 「ちゃんと付けるようお願いしなかったあたいがいけなかったんだけどさ……」
+				PRINTW 
+				PRINTFORML 「前許したからって、今日もいいってわけじゃないよ」
+				PRINTFORML 「避妊具つけるか、せめて薬を飲ませておくれ」
+			ELSE
+				PRINTFORML 「ナマのほうが気持ちいいっていうのは分からないでもないけどさ」
+				PRINTFORML 「やっぱり、駄目なものは駄目だよ」
+				PRINTW 
+				PRINTFORML 「避妊具つけるか、せめて薬を飲ませておくれ」
+				PRINTW 
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;断ったのに粘られて切れた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		IF TALENT:恋人
+			PRINTFORML 「駄目だよ」
+			PRINTFORML 普段何事も寛容な小町にしては珍しく、ぴしゃりと言い放った
+			PRINTW 
+			PRINTFORML 「あたいは仕事柄、子どもの霊もたくさん見てきたんだ」
+			PRINTFORML 「不幸な事故で先立ってしまった子とか、親に虐待されて亡くなってしまった子、それに……」
+			PRINTFORML 「堕胎や旦那の暴力による水子とかね」
+			PRINTW 
+			PRINTFORML 「%CALLNAME:MASTER%は親になる覚悟はあるかい？」
+			PRINTFORML 「……ないのなら、あたいはこれ以上はごめんだね」
+			PRINTFORML 「気分が醒めちゃったよ。もうやめよう」
+			PRINTW 
+			PRINTFORML 小町は一度も怒鳴りつけたりしなかった
+			PRINTFORML だが、それだけに、有無を言わせぬ迫力が、彼女の逆鱗に触れたことを%CALLNAME:MASTER%に理解させた
+			PRINTW 
+		ELSEIF TALENT:恋慕
+			PRINTFORML 「駄目だよ」
+			PRINTFORML 普段何事も寛容な小町にしては珍しく、ぴしゃりと言い放った
+			PRINTW 
+			PRINTFORML 「あたいは仕事柄、子どもの霊もたくさん見てきたんだ」
+			PRINTFORML 「不幸な事故で先立ってしまった子とか、親に虐待されて亡くなってしまった子、それに……」
+			PRINTFORML 「堕胎や旦那の暴力による水子とかね」
+			PRINTW 
+			PRINTFORML 「%CALLNAME:MASTER%は親になる覚悟はあるかい？」
+			PRINTFORML 「……ないのなら、あたいはこれ以上はごめんだね」
+			PRINTFORML 「お前さんのことは好きだけどさ、こういうことで嫌いになりたくないよ……」
+			PRINTFORML 「気分が醒めちゃったよ。もうやめよう」
+			PRINTW 
+			PRINTFORML 小町は一度も怒鳴りつけたりしなかった
+			PRINTFORML だが、それだけに、有無を言わせぬ迫力が、彼女の逆鱗に触れたことを%CALLNAME:MASTER%に理解させた
+			PRINTW 
+		ELSE
+			PRINTFORML 「駄目だよ」
+			PRINTFORML 普段何事も寛容な小町にしては珍しく、ぴしゃりと言い放った
+			PRINTW 
+			PRINTFORML 「あたいは仕事柄、子どもの霊もたくさん見てきたんだ」
+			PRINTFORML 「不幸な事故で先立ってしまった子とか、親に虐待されて亡くなってしまった子、それに……」
+			PRINTFORML 「堕胎や旦那の暴力による水子とかね」
+			PRINTW 
+			PRINTFORML 「%CALLNAME:MASTER%は親になる覚悟はあるかい？」
+			PRINTFORML 「……ないのなら、あたいはこれ以上はごめんだね」
+			PRINTFORML 「気分が醒めちゃったよ。もうやめよう」
+			PRINTW 
+			PRINTFORML 小町は一度も怒鳴りつけたりしなかった
+			PRINTFORML だが、それだけに、有無を言わせぬ迫力が、彼女の逆鱗に触れたことを%CALLNAME:MASTER%に理解させた
+			PRINTW 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;危険日以外許可
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		IF TALENT:恋人
+		ELSEIF TALENT:恋慕
+		ELSE
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;危険日許可
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		IF TALENT:恋人
+			PRINTFORML 「うん、いいよ……子ども、つくろう」
+			PRINTFORML 「あたいがしっかり孕むよう、たくさんナカに注いでおくれ」
+			PRINTFORML 「愛してるよ、%CALLNAME:MASTER%」
+			PRINTW 
+		ELSEIF TALENT:恋慕
+		ELSE
+			PRINTFORML 「いいよ、ナカで出しても」
+			PRINTFORML 「でも、子どもはしっかり産むからね。お前さんも覚悟しなよ」
+			PRINTFORML 「まあ、その前に死神のあたいとお前さんとの間で子どもができるかどうかが問題だけどさ」
+			PRINTW 
+		ENDIF
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;神社暮らしを承認して貰う
+;==================================================
+@M_KOJO_EVENT_K76_19(ARG,ARG:1)
+;口上主はARG
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;認められる
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;認められない
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;帰宅時
+;==================================================
+@M_KOJO_EVENT_K76_20(ARG,ARG:1)
+;口上主はLOCALS or RESULT
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;通常帰宅
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;デート中帰宅
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;玄関先でお見送り
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;陥落素質取得時
+;==================================================
+@M_KOJO_EVENT_K76_21(ARG,ARG:1)
+;口上主はARG
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;恋慕取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;思慕取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;愛欲取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;愛人取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;セフレ取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		PRINTFORML
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;調教終了時に自慰
+;==================================================
+@M_KOJO_EVENT_K76_22(ARG,ARG:1)
+;口上主はARG
+;ARG:0に自慰状況
+;ARG:1に自慰種類
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;通常自慰
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML  
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;同室時自慰
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML  
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;中だし精液自慰
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML  
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;無知持ち（自慰経験(調教自慰経験は差し引き)による分岐あり
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		LOCAL:2 = EXP:自慰経験 - EXP:調教自慰経験
+		;無知消去イベントあり（表示は一度だけ
+		IF LOCAL:1 >= 25
+		;地の文分岐。書きたい場合は[SKIPSTART][SKIPEND]を削除してください
+		[SKIPSTART]
+		ELSEIF LOCAL:1 >= 20
+		ELSEIF LOCAL:1 >= 15
+		ELSEIF LOCAL:1 >= 10
+		ELSEIF LOCAL:1 >= 5
+		[SKIPEND]
+		ELSE
+		ENDIF
+		PRINTFORML  
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;陥落素質あり自慰中毒高め
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		;-------------------------------------------------
+		;Ｃ敏感orＣ感覚10以上
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;Ｖ敏感orＶ感覚10以上
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 2
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;Ａ敏感orＡ感覚10以上
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 3
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;Ｂ敏感orＢ感覚10以上
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 4
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;部位指定無し
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 5
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;その他
+		;上の分岐を一切書かずに、ここに書くことで陥落素質あり自慰中毒高め自慰の共通口上を表示することが出来ます
+		PRINTFORML  
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;自慰中毒高め
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		;-------------------------------------------------
+		;尻穴膣腔同時
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;膣腔のみ
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 2
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;その他
+		;上の分岐を一切書かずに、ここに書くことで自慰中毒高め自慰の共通口上を表示することが出来ます
+		PRINTFORML  
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;我慢
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		PRINTFORML 
+		RETURN 1
+	ENDIF
+	;その他
+	;上の分岐を一切書かずに、ここに書くことで自慰の共通口上を表示することが出来ます
+	PRINTFORML  
+	RETURN 1
+ENDIF
+RETURN 1
+;==================================================
+;浴場連れだし
+;==================================================
+@M_KOJO_EVENT_K76_23(ARG,ARG:1)
+;口上主はLOCAL
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;断られた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;一緒に入ってくれた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+;==================================================
+;懐妊
+;==================================================
+@M_KOJO_EVENT_K76_24(ARG,ARG:1)
+;口上主はLOCAL
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;恋慕
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;思慕
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;陥落素質無し
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;無自覚
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+;==================================================
+;出産
+;==================================================
+@M_KOJO_EVENT_K76_25(ARG,ARG:1)
+;口上主はLOCAL
+;ARG:1	何人目の子供か
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;恋慕
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;思慕
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;陥落素質無し
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;無自覚
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+;==================================================
+;オナバレ
+;==================================================
+@M_KOJO_EVENT_K76_26(ARG,ARG:1)
+
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	SELECTCASE ARG
+		;-------------------------------------------------
+		CASE 0
+		;見られた瞬間
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 1
+		;何もしない
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 2
+		;そのまま続行
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 3
+		;追い出し
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 4
+		;やっちゃう
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 5
+		;事後
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 6
+		;事後お泊り
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+	ENDSELECT
+ENDIF
+
+;==================================================
+;相手からデートのお誘い
+;情事発覚の項目
+;IF CHARA_HOLIDAY(ARG) && TALENT:ARG:恋慕 && !RAND:5 && !CFLAG:ARG:宴会参加
+;恋慕かつ対象が休日
+;1= 早朝(4～6) 2=正午前(6～12) 3=昼(12～15) 4=昼下がり(15～18) 5=夕(18～20) 6=夜(20～23) 7=深夜(23～4)
+;小町の起床時間は7時（420～）
+;仕事時間は月水金の10～16時（600～960）、ただし2分の1でサボる/IF YOUBI_MATCH(DAY, "月水金")
+;お盆期間は強制労働/SIF GET_MONTH() == "夏の月" && INRANGE(DAY:3, 1, 15)
+;帰宅時間は18時（1080～）
+;映姫の起床時間は6時
+;映姫の仕事時間は毎日10～18時？（600～1080)/仕事内容に記述がないので実際はない？
+;映姫の帰宅時間は20時（1200）
+;時間帯の記述はIF INRANGE(TIME, CLOCK_TO_TIME(XX, YY), CLOCK_TO_TIME(XX, YY))で合ってるのかしら……
+;TIME:0 >= XXX（分刻み？60で1時間？）でも他の口上見てる限りでは何ら問題なさそう
+;==================================================
+@M_KOJO_EVENT_K76_27(ARG,ARG:1)
+;口上主はLOCAL
+;ARG:1は目的地
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	SELECTCASE ARG
+		;-------------------------------------------------
+		CASE 0
+		;誘い文句
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			IF GET_TARGETNUM() > 0
+				;映姫様がいる
+				;映姫口上作者様の記述を参考にさせていただきました
+				;周囲の特定のキャラが恋慕や恋人持ちかの判定の仕方は分かったけど、不特定多数の中から、というのが分からない……
+				IF K76_FIND_AROUND() == 30
+					;こまっちゃんと恋人
+					IF TALENT:恋人
+						PRINTFORML 「%CALLNAME:MASTER%、遊びにいこーよ……げっ、四季様！」
+						PRINTFORML %CALLNAME:MASTER%に腕を絡めて寄り掛かった小町は、傍らにいる上司の姿を見つけ、
+						;小町さん！　仕事ですよ！
+						IF YOUBI_MATCH(DAY, "月水金")
+							PRINTFORML 露骨に「しまった」という顔をした
+							PRINTW 
+							;映姫様が恋慕持ち
+							;[恋慕]がついたら白黒はっきりついてちゅっちゅらびゅらびゅに振り切れるって作者様のりどみにあったので、
+							;たぶんこれくらいのことはしてくるはず。むしろしてほしい
+							;「TWにはエンゲージリングなんてないので横恋慕は白！　白です！　くらい言いきってくれると男汁が二回も出る
+							;映姫様口上の記述によっては微妙に表現変えるかもです
+							IF TALENT:(NO:30):恋慕
+								;時間外なので白です
+								IF TIME:0 > 960 && TIME:0 < 600
+									PRINTFORML 「って、よく考えたら仕事の時間じゃなかったんだ……」
+									PRINTFORML 「なので、私が恋人とどこかに出かけても全然問題ないですよね？」
+									PRINTFORML 「恋人」の部分をことさら強調し、小町は%CALLNAME:MASTER%をグイッと引き寄せた
+									PRINTW 
+									PRINTFORML （ううー、絶対四季様も%CALLNAME:MASTER%のこと好きだよね）
+									PRINTFORML （無意識かどうか知らないけど、反対側の腕に絡みついてるし）
+									PRINTW 
+									PRINTFORML （あたい、れっきとした恋人なんだけどなぁ）
+									PRINTFORML （上司といえども譲る気はさらさらないけど、なんともやりにくいよ、はぁ）
+									PRINTW 
+								;まだ仕事中ですよ。黒です
+								ELSE
+									PRINTFORML 「いやー、ほらー、ね？　以前も幻想郷に幽霊が溢れかえる異変とかあったでしょう？」
+									PRINTFORML 「そういったことが起きてないか、この人と一緒に調査しに行こうかなー、とか、あは、あはは」
+									PRINTFORML 「いえ、いえ、いいえ、断じてデート……もとい、サボりじゃあありませんとも」
+									PRINTW 
+									PRINTFORML （ううー、絶対四季様も%CALLNAME:MASTER%のこと好きだよね）
+									PRINTFORML （無意識かどうか知らないけど、反対側の腕に絡みついてるし）
+									PRINTW 
+									PRINTFORML （あたい、れっきとした恋人なんだけどなぁ。でも仕事サボってるから
+									PRINTFORML 　余計なこと言ったらヤブヘビになりそうだしなぁ……）
+									PRINTW 
+								ENDIF
+							ELSE
+								PRINTFORML 「いやー、ほらー、ね？　以前も幻想郷に幽霊が溢れかえる異変とかあったでしょう？」
+								PRINTFORML 「そういったことが起きてないか、この人と一緒に調査しに行こうかなー、とか、あは、あはは」
+								PRINTFORML 「いえ、いえ、いいえ、断じてデート……もとい、サボりじゃあありませんとも」
+								PRINTW 
+								PRINTFORML （ううー、早いとこ%CALLNAME:MASTER%と二人きりになりたいんだけどなぁ）
+								PRINTFORML （間が悪いときに四季様に会っちゃったよ、トホホ……）
+								PRINTW 
+							ENDIF
+						;今日は非番
+						ELSE
+							PRINTFORML 「なんでこのタイミングで会うんだ」「なぜ%CALLNAME:MASTER%と一緒にいるんだ」
+							PRINTFORML といった感情が入り混じった複雑な表情を浮かべた
+							PRINTW 
+							IF TALENT:(NO:30):恋慕
+								PRINTFORML 「一応言っておきますけど、私は今日非番ですからね？」
+								PRINTFORML 「なので恋人と会おうがどこに行こうが勝手です」
+								PRINTFORML 「というわけでこの人は連れていきますからねっ」
+								PRINTW 
+								PRINTFORML （ううー、絶対四季様も%CALLNAME:MASTER%のこと好きだよね）
+								PRINTFORML （無意識かどうか知らないけど、反対側の腕に絡みついてるし）
+								PRINTW 
+								PRINTFORML （あたい、れっきとした恋人なんだけどなぁ）
+								PRINTFORML （上司といえども譲る気はさらさらないけど、なんともやりにくいよ、はぁ）
+								PRINTW 
+							ELSE
+								PRINTFORML 「一応言っておきますけど、私は今日非番ですからね？」
+								PRINTFORML 「なので恋人と会おうがどこに行こうが勝手です」
+								PRINTFORML 「というわけでこの人は連れていきますからねっ」
+								PRINTW 
+								PRINTFORML （ううー、早いとこ%CALLNAME:MASTER%と二人きりになりたいんだけどなぁ）
+								PRINTFORML （間が悪いときに四季様に会っちゃったよ、トホホ……）
+								PRINTW 
+							ENDIF
+						ENDIF
+					;映姫様と恋人
+					ELSEIF TALENT:(NO:30):恋人
+						PRINTFORML 「%CALLNAME:MASTER%、遊びにいこーよ……げっ、四季様！」
+						PRINTFORML %CALLNAME:MASTER%に腕を絡めて寄り掛かった小町は、傍らにいる上司の姿を見つけ、
+						;小町さん！　仕事ですよ！
+						IF YOUBI_MATCH(DAY, "月水金")
+							PRINTFORML 露骨に「しまった」という顔をした
+							PRINTW 
+							;映姫様が恋慕持ち
+							;[恋慕]がついたら白黒はっきりついてちゅっちゅらびゅらびゅに振り切れるって作者様のりどみにあったので、
+							;たぶんこれくらいのことはしてくるはず。むしろしてほしい
+							;「TWにはエンゲージリングなんてないので横恋慕は白！　白です！　くらい言いきってくれると男汁が二回も出る
+							;映姫様口上の記述によっては微妙に表現変えるかもです
+							;小町！　横恋慕は黒！　黒です！　この人は私のものです！
+							IF TALENT:(NO:30):恋慕
+								;こまっちゃんも恋慕持ち
+								IF TALENT:恋慕
+									;時間外なので白ですが彼氏に手を出してるので黒です
+									IF TIME:0 > 960 && TIME:0 < 600
+										PRINTFORML 「って、よく考えたら仕事の時間じゃなかったんだ……」
+										PRINTFORML 「なので、ちょっとこの人借りていっても問題ないですよね？」
+										PRINTFORML 小町は%CALLNAME:MASTER%をグイッと引き寄せた
+										PRINTW 
+										PRINTFORML （ううー、%CALLNAME:MASTER%と四季様が恋仲で好き同士ってのは知ってるけど）
+										PRINTFORML （というか%CALLNAME:MASTER%にべったりしながらむくれてるし）
+										PRINTFORML （むくれた顔はちょっとかわいいけど
+										PRINTW 
+										PRINTFORML （あたい、誰かに夢中になってるのって、%CALLNAME:MASTER%が初めてなんだよねぇ）
+										PRINTFORML （よくないって分かってるけど、やっぱり譲りたくないよ）
+										PRINTW 
+									;まだ仕事中ですよ。黒です。真っ黒です
+									ELSE
+										PRINTFORML 「いやー、ほらー、ね？　以前も幻想郷に幽霊が溢れかえる異変とかあったでしょう？」
+										PRINTFORML 「そういったことが起きてないか、この人と一緒に調査しに行こうかなー、とか、あは、あはは」
+										PRINTFORML 「いえ、いえ、いいえ、断じてデート……もとい、サボりじゃあありませんとも」
+										PRINTW 
+										PRINTFORML （ううー、四季様の顔が正視できない……）
+										PRINTFORML （部下のサボリ現場抑えた上に恋人との逢瀬邪魔されちゃったからなぁ……）
+										PRINTFORML （もうね、顔見なくてもどんな表情してるか分かる
+										PRINTW 
+										PRINTFORML （あたいも難儀な相手を好きになっちゃったなぁ）
+										PRINTFORML （でも、諦めるのは……嫌だな）
+										PRINTW 
+									ENDIF
+								;恋慕も持ってない死神が……舐めてると潰すぞ（商材ブログ並感）
+								ELSE
+								ENDIF
+							;映姫様とは節度あるお付き合いのレベル
+							ELSE
+								PRINTFORML 「いやー、ほらー、ね？　以前も幻想郷に幽霊が溢れかえる異変とかあったでしょう？」
+								PRINTFORML 「そういったことが起きてないか、この人と一緒に調査しに行こうかなー、とか、あは、あはは」
+								PRINTFORML 「いえ、いえ、いいえ、断じてデート……もとい、サボりじゃあありませんとも」
+								PRINTW 
+								PRINTFORML （ううー、早いとこ%CALLNAME:MASTER%と二人きりになりたいんだけどなぁ）
+								PRINTFORML （間が悪いときに四季様に会っちゃったよ、トホホ……）
+								PRINTW 
+							ENDIF
+						;今日は非番
+						ELSE
+							PRINT 「なんでこのタイミングで会うんだ」
+							IF TALENT:恋慕
+								PRINTFORML 「なぜ%CALLNAME:MASTER%と一緒にいるんだ」
+								PRINTFORML といった感情が入り混じった複雑な表情を浮かべた
+							ELSE
+								PRINTFORML と微妙な表情を浮かべた
+							ENDIF
+								PRINTW 
+							IF TALENT:(NO:30):恋慕
+								PRINTFORML 「一応言っておきますけど、私は今日非番ですからね？」
+								PRINTFORML 「なので誰と会おうがどこに行こうが勝手です」
+								PRINTFORML 「というわけでこの人は連れていきますからねっ」
+								PRINTW 
+								PRINTFORML （ううー、四季様の顔が正視できない……）
+								PRINTFORML （部下のサボリ現場抑えた上に恋人との逢瀬邪魔されちゃったからなぁ……）
+								PRINTFORML （もうね、顔見なくてもどんな表情してるか分かる
+								PRINTW 
+								PRINTFORML （あたいも難儀な相手を好きになっちゃったなぁ）
+								PRINTFORML （でも、諦めるのは……嫌だな）
+								PRINTW 
+							ELSE
+								PRINTFORML 「一応言っておきますけど、私は今日非番ですからね？」
+								PRINTFORML 「なので誰と会おうがどこに行こうが勝手です」
+								PRINTFORML 「というわけでこの人は連れていきますからねっ」
+								PRINTW 
+								PRINTFORML （ううー、早いとこ%CALLNAME:MASTER%と二人きりになりたいんだけどなぁ）
+								PRINTFORML （間が悪いときに四季様に会っちゃったよ、トホホ……）
+								PRINTW 
+							ENDIF
+						ENDIF
+					;いずれも恋人じゃない（２人以外が恋人の場合は面倒なのでパス）
+					ELSE
+						;小町さん！　仕事ですよ！
+						;JOB_仕事内容より
+						IF YOUBI_MATCH(DAY, "月水金")
+							PRINTFORML 露骨に「しまった」という顔をした
+							PRINTW 
+							;映姫様が恋慕持ち
+							;[恋慕]がついたら白黒はっきりついてちゅっちゅらびゅらびゅに振り切れるって作者様のりどみにあったので、
+							;たぶんこれくらいのことはしてくるはず。むしろしてほしい
+							;「TWにはエンゲージリングなんてないので横恋慕は白！　白です！　くらい言いきってくれると男汁が二回も出る
+							;映姫様口上の記述によっては微妙に表現変えるかもです
+							;小町！　横恋慕は黒！　黒です！　この人は私のものです！
+							IF TALENT:(NO:30):恋慕
+								;こまっちゃんも恋慕持ち
+								IF TALENT:恋慕
+									;時間外なので白ですが私のダーリンに手を出してるので黒です
+									IF TIME:0 > 960 && TIME:0 < 600
+										PRINTFORML 「って、よく考えたら仕事の時間じゃなかったんだ……」
+										PRINTFORML 「なので、ちょっとこの人借りていっても問題ないですよね？」
+										PRINTFORML 小町は%CALLNAME:MASTER%をグイッと引き寄せた
+										PRINTW 
+										PRINTFORML （ううー、絶対四季様も%CALLNAME:MASTER%のこと好きだよね）
+										PRINTFORML （無意識かどうか知らないけど、反対側の腕に絡みついてるし）
+										PRINTW 
+										PRINTFORML （あたい、誰かに夢中になってるのって、%CALLNAME:MASTER%が初めてなんだよねぇ）
+										PRINTFORML （尊敬する上司といえど、譲りたくないよ）
+										PRINTW 
+									;まだ仕事中ですよ。黒です。真っ黒です
+									ELSE
+										PRINTFORML 「いやー、ほらー、ね？　以前も幻想郷に幽霊が溢れかえる異変とかあったでしょう？」
+										PRINTFORML 「そういったことが起きてないか、この人と一緒に調査しに行こうかなー、とか、あは、あはは」
+										PRINTFORML 「いえ、いえ、いいえ、断じてデート……もとい、サボりじゃあありませんとも」
+										PRINTW 
+										PRINTFORML （ううー、四季様の顔が正視できない……）
+										PRINTFORML （部下のサボリ現場抑えた上に恋する相手との逢瀬邪魔されちゃったからなぁ……）
+										PRINTFORML （もうね、顔見なくてもどんな表情してるか分かる
+										PRINTW 
+										PRINTFORML （あたいも難儀な相手を好きになっちゃったなぁ）
+										PRINTFORML （でも、諦めるのは……嫌だな）
+										PRINTW 
+									ENDIF
+								;こまっちゃんより映姫様が先にらぶらぶ
+								ELSE
+								ENDIF
+							;映姫様とあなたは節度あるお付き合いのレベル
+							ELSE
+								PRINTFORML 「いやー、ほらー、ね？　以前も幻想郷に幽霊が溢れかえる異変とかあったでしょう？」
+								PRINTFORML 「そういったことが起きてないか、この人と一緒に調査しに行こうかなー、とか、あは、あはは」
+								PRINTFORML 「いえ、いえ、いいえ、断じてデート……もとい、サボりじゃあありませんとも」
+								PRINTW 
+								PRINTFORML （ううー、早いとこ%CALLNAME:MASTER%と二人きりになりたいんだけどなぁ）
+								PRINTFORML （間が悪いときに四季様に会っちゃったよ、トホホ……）
+								PRINTW 
+							ENDIF
+						;今日は非番
+						ELSE
+							PRINT 「なんでこのタイミングで会うんだ」
+							IF TALENT:恋慕
+								PRINTFORML 「なぜ%CALLNAME:MASTER%と一緒にいるんだ」
+								PRINTFORML といった感情が入り混じった複雑な表情を浮かべた
+							ELSE
+								PRINTFORML と微妙な表情を浮かべた
+							ENDIF
+								PRINTW 
+							IF TALENT:(NO:30):恋慕
+								PRINTFORML 「一応言っておきますけど、私は今日非番ですからね？」
+								PRINTFORML 「なので誰と会おうがどこに行こうが勝手です」
+								PRINTFORML 「というわけでこの人は連れていきますからねっ」
+								PRINTW 
+								PRINTFORML （ううー、四季様の顔が正視できない……）
+								PRINTFORML （恋する相手との逢瀬邪魔されちゃったからなぁ……）
+								PRINTFORML （もうね、顔見なくてもどんな表情してるか分かる
+								PRINTW 
+								PRINTFORML （あたいも難儀な相手を好きになっちゃったなぁ）
+								PRINTFORML （でも、諦めるのは……嫌だな）
+								PRINTW 
+							ELSE
+								PRINTFORML 「一応言っておきますけど、私は今日非番ですからね？」
+								PRINTFORML 「なので誰と会おうがどこに行こうが勝手です」
+								PRINTFORML 「というわけでこの人は連れていきますからねっ」
+								PRINTW 
+								PRINTFORML （ううー、早いとこ%CALLNAME:MASTER%と二人きりになりたいんだけどなぁ）
+								PRINTFORML （間が悪いときに四季様に会っちゃったよ、トホホ……）
+								PRINTW 
+							ENDIF
+						ENDIF
+					ENDIF
+				;映姫様が同一マップにいない
+				ELSE
+					IF TALENT:恋人
+						PRINTFORML 「%CALLNAME:MASTER%、遊びにいこーよう♪」
+						PRINTFORML 小町は「よっ」と片手を挙げ、%CALLNAME:MASTER%を誘いに来た
+						PRINTFORML %CALLNAME:MASTER%の傍に来た小町は腕を絡め、少しだけもたれかかってみせる
+						PRINTW 
+						IF YOUBI_MATCH(DAY, "月水金")
+							IF TIME:0 > 600 && TIME:0 < 960
+								PRINTFORML でも、思い返してみれば、今日は確か小町は仕事の日だったような……
+								PRINTFORML 「あー、仕事、仕事ね？　大丈夫ダイジョーブ……多分？」
+								PRINTFORML 人差し指を立て、明後日の方向を見やりながら小町は答える
+								PRINTFORML たぶんこれは大丈夫ではないやつだ
+								PRINTW 
+							ELSEIF TIME:0 > 960 && TIME:0 < 600
+								PRINTFORML でも、思い返してみれば、今日は確か小町は仕事の日だったような……
+								PRINTFORML 「あー、仕事ならもう終了時刻をすぎてるからね。大丈夫大丈夫」
+								PRINTFORML ちょっと心配ではあるが、小町の言うことを信じることにした
+								PRINTW 
+							ENDIF
+						ELSE
+							PRINTFORML 「今日は仕事がないから思いっきり遊ぶよ！　休日万歳！」
+							PRINTFORML 何も後ろめたさがないためか、今日の小町はテンションが高い
+							PRINTFORML もっとも、仕事をサボっているときですら後ろめたさを感じているかは謎だが
+							PRINTW 
+						ENDIF
+					ELSEIF TALENT:恋慕
+						PRINTFORML 「よっ、奇遇だねぇ♪」
+						PRINTFORML 小町はニカっと笑うと、元気よく片手を挙げた
+						PRINTFORML 「今暇かい？　だったら、あたいに付き合っておくれよ♪」
+						PRINTW 
+						IF YOUBI_MATCH(DAY, "月水金")
+							IF TIME:0 > 600 && TIME:0 < 960
+								PRINTFORML しかし、今日は確か小町は仕事の日だったような……
+								PRINTFORML 「あー、仕事、仕事ね？　大丈夫ダイジョーブ……多分？」
+								PRINTFORML 人差し指を立て、明後日の方向を見やりながら小町は答える
+								PRINTFORML これは後で映姫にバレたら叱られるに違いない
+							ELSEIF TIME:0 > 960 && TIME:0 < 600
+								PRINTFORML しかし、今日は確か小町は仕事の日だったような……
+								PRINTFORML 「あー、仕事ならもう終了時刻をすぎてるからね。大丈夫大丈夫」
+								PRINTFORML ちょっと心配ではあるが、小町の言うことを信じることにした
+								PRINTW 
+							ENDIF
+						ELSE
+							PRINTFORML 「今日は仕事がないから思いっきり遊ぶよ！　休日万歳！」
+							PRINTFORML 何も後ろめたさがないためか、今日の小町はテンションが高い
+							PRINTFORML もっとも、仕事をサボっているときですら後ろめたさを感じているかは謎だが
+						ENDIF
+					ELSEIF TALENT:思慕
+						PRINTFORML 「やっ、お前さんじゃないか。奇遇だねぇ」
+						PRINTFORML 小町は屈託のない笑みを浮かべ、片手を挙げて挨拶してきた
+						PRINTFORML 「あたい、ちょうど暇なんだ。せっかくだからどこかに行かない？」
+					;陥落素質付く前って誘ってきたっけ？
+					ELSE
+						PRINTFORML 「あれ、お前さん……そうそう、%CALLNAME:MASTER%だ。よっ」
+						PRINTFORML 顔を思い出してくれたのか、小町は朗らかに笑うと片手を挙げて挨拶してきた
+						PRINTFORML 「お前さん、暇？　ここで会ったのも縁だ。あたいに付き合いなよ」
+					ENDIF
+				ENDIF
+			;２人きり
+			ELSE
+				IF TALENT:恋人
+					PRINTFORML 「%CALLNAME:MASTER%、遊びにいこーよう♪」
+					PRINTFORML 小町は「よっ」と片手を挙げ、%CALLNAME:MASTER%を誘いに来た
+					PRINTFORML %CALLNAME:MASTER%の傍に来た小町は腕を絡め、少しだけもたれかかってみせる
+					PRINTW 
+					IF YOUBI_MATCH(DAY, "月水金")
+						IF TIME:0 > 600 && TIME:0 < 960
+							PRINTFORML でも、思い返してみれば、今日は確か小町は仕事の日だったような……
+							PRINTFORML 「あー、仕事、仕事ね？　大丈夫ダイジョーブ……多分？」
+							PRINTFORML 人差し指を立て、明後日の方向を見やりながら小町は答える
+							PRINTFORML たぶんこれは大丈夫ではないやつだ
+							PRINTW 
+						ELSEIF TIME:0 > 960 && TIME:0 < 600
+							PRINTFORML でも、思い返してみれば、今日は確か小町は仕事の日だったような……
+							PRINTFORML 「あー、仕事ならもう終了時刻をすぎてるからね。大丈夫大丈夫」
+							PRINTFORML ちょっと心配ではあるが、小町の言うことを信じることにした
+							PRINTW 
+						ENDIF
+					ELSE
+						PRINTFORML 「今日は仕事がないから思いっきり遊ぶよ！　休日万歳！」
+						PRINTFORML 何も後ろめたさがないためか、今日の小町はテンションが高い
+						PRINTFORML もっとも、仕事をサボっているときですら後ろめたさを感じているかは謎だが
+					ENDIF
+				ELSEIF TALENT:恋慕
+					PRINTFORML 「よっ、奇遇だねぇ♪」
+					PRINTFORML 小町はニカっと笑うと、元気よく片手を挙げた
+					PRINTFORML 「今暇かい？　だったら、あたいに付き合っておくれよ♪」
+					PRINTW 
+					IF YOUBI_MATCH(DAY, "月水金")
+						IF TIME:0 > 600 && TIME:0 < 960
+							PRINTFORML しかし、今日は確か小町は仕事の日だったような……
+							PRINTFORML 「あー、仕事、仕事ね？　大丈夫ダイジョーブ……多分？」
+							PRINTFORML 人差し指を立て、明後日の方向を見やりながら小町は答える
+							PRINTFORML これは後で映姫にバレたら叱られるに違いない
+						ELSEIF TIME:0 > 960 && TIME:0 < 600
+							PRINTFORML しかし、今日は確か小町は仕事の日だったような……
+							PRINTFORML 「あー、仕事ならもう終了時刻をすぎてるからね。大丈夫大丈夫」
+							PRINTFORML ちょっと心配ではあるが、小町の言うことを信じることにした
+							PRINTW 
+						ENDIF
+					ELSE
+						PRINTFORML 「今日は仕事がないから思いっきり遊ぶよ！　休日万歳！」
+						PRINTFORML 何も後ろめたさがないためか、今日の小町はテンションが高い
+						PRINTFORML もっとも、仕事をサボっているときですら後ろめたさを感じているかは謎だが
+					ENDIF
+				ELSEIF TALENT:思慕
+					PRINTFORML 「やっ、お前さんじゃないか。奇遇だねぇ」
+					PRINTFORML 小町は屈託のない笑みを浮かべ、片手を挙げて挨拶してきた
+					PRINTFORML 「あたい、ちょうど暇なんだ。せっかくだからどこかに行かない？」
+				ELSE
+					PRINTFORML 「あれ、お前さん……そうそう、%CALLNAME:MASTER%だ。よっ」
+					PRINTFORML 顔を思い出してくれたのか、小町は朗らかに笑うと片手を挙げて挨拶してきた
+					PRINTFORML 「お前さん、暇？　ここで会ったのも縁だ。あたいに付き合いなよ」
+				ENDIF
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 1
+		;受けた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			IF K76_FIND_AROUND() == 30
+				;仕事日
+				IF YOUBI_MATCH(DAY, "月水金")
+					IF TIME:0 > 600 && TIME:0 < 960
+						IF TALENT:恋人
+							;こまっちゃんに恋のお相手を連れていかれるしサボり現場を見つけるしで怒りが有頂天
+							IF TALENT:(NO:30):恋慕
+								PRINTFORML 「あー、んじゃ、%CALLNAME:MASTER%お借りしていきますんで……えへ、えへへ……」
+								PRINTFORML 小町は引きつった笑みを浮かべ、恐る恐るといった感じで、%CALLNAME:MASTER%の手を引いた
+								PRINTW 
+								PRINTFORMW その場を立ち去る前に、%CALLNAME:MASTER%はちらりと映姫を見やった
+								PRINTFORML 何か、色々な感情が混じった表情でこちらをじっと見つめている
+								PRINTFORML ……後で最低でも長時間の説教は覚悟しておこう
+								PRINTW 
+							;デートはいいがちゃんと仕事しろよ
+							ELSE
+								PRINTFORML 「ほ、ほらっ行くよ%CALLNAME:MASTER%！」
+								PRINTFORML 説教を始めた映姫を後にして、小町と%CALLNAME:MASTER%はその場から一目散に逃げだした
+								PRINTW 
+							ENDIF
+						ELSEIF TALENT:恋慕
+							;自分の彼氏を連れていかれるしサボり現場を見つけるしで怒りが有頂天
+							IF TALENT:(NO:30):恋人
+								PRINTFORML 「あー、んじゃ、%CALLNAME:MASTER%お借りしていきますんで……えへ、えへへ……」
+								PRINTFORML 小町は引きつった笑みを浮かべ、恐る恐るといった感じで、%CALLNAME:MASTER%の手を引いた
+								PRINTW 
+								PRINTFORMW その場を立ち去る前に、%CALLNAME:MASTER%はちらりと映姫を見やった
+								PRINTFORML が、光の速さで顔を背けた
+								PRINTFORML ……後で最低でも長時間の説教は覚悟しておこう
+								PRINTW 
+							;切ない映姫様
+							ELSEIF TALENT:(NO:30):恋慕
+								PRINTFORML 「ほ、ほらっ行くよ%CALLNAME:MASTER%」
+								PRINTFORML 小町に付き合うことを決めたが、見送る映姫の表情は怒っているというより寂しそうだった
+								PRINTW 
+							ELSE
+							PRINTFORML 「話が分かるねぇ♪　それじゃ、しゅっぱーつ♪」
+							PRINTFORML 後で自分も一緒に閻魔様に叱られるのは間違いないが、嬉しそうな小町の顔を見て付き合うことにしt
+							PRINTW 
+							ENDIF
+						ENDIF
+					;時間外
+					ELSE
+						PRINTFORML 「やだなぁ四季様。もう終了時刻は過ぎてますよ？」
+						PRINTW 
+						IF TALENT:恋人
+							IF TALENT:(NO:30):恋慕
+								PRINTFORML 「それじゃ、私たちは失礼しますね。%CALLNAME:MASTER%、行くよっ」
+								PRINTFORML 映姫は微笑んで手を振り見送ってくれたが、その表情は寂しそうに見えた
+								PRINTW 
+							ELSE
+								PRINTFORML 「それじゃ、私たちは失礼しますね。%CALLNAME:MASTER%、行くよっ」
+								PRINTFORML 笑顔で手を振り見送ってくれる映姫に別れの挨拶をすると、%CALLNAME:MASTER%は小町に引っ張られていった
+								PRINTW 
+							ENDIF
+						ELSEIF TALENT:恋慕
+							IF TALENT:(NO:30):恋人
+								PRINTFORML 「ほ、ほらっ行くよ%CALLNAME:MASTER%」
+								PRINTFORML 小町に付き合うことを決めたが、見送る映姫の顔をまともに見ることができなかった
+								PRINTFORML 長時間の愚痴は覚悟せねばなるまい
+								PRINTW 
+							ELSEIF TALENT:(NO:30):恋慕
+								PRINTFORML 「ほらっ、行くよ%CALLNAME:MASTER%」
+								PRINTFORML 小町に手を引っ張られ、%CALLNAME:MASTER%は映姫に別れの挨拶をした
+								PRINTFORML 映姫は微笑んで手を振り返してくれたが、その表情は少し寂しげだった
+								PRINTW 
+							ELSE
+							PRINTFORML 「話が分かるねぇ♪　それじゃ、しゅっぱーつ♪」
+							PRINTFORML 困ったような笑みを浮かべる映姫に見送られ、%CALLNAME:MASTER%と小町はその場を後にした
+							PRINTW 
+							ENDIF
+						ENDIF
+					ENDIF
+				;非番
+				ELSE
+					IF TALENT:恋人
+						IF TALENT:(NO:30):恋慕
+							PRINTFORML 「それじゃ、私たちは失礼しますね。%CALLNAME:MASTER%、行くよっ」
+							PRINTFORML 映姫は微笑んで手を振り見送ってくれたが、その表情は寂しそうに見えた
+							PRINTW 
+						ELSE
+							PRINTFORML 「それじゃ、私たちは失礼しますね。%CALLNAME:MASTER%、行くよっ」
+							PRINTFORML 笑顔で手を振り見送ってくれる映姫に別れの挨拶をすると、%CALLNAME:MASTER%は小町に引っ張られていった
+							PRINTW 
+						ENDIF
+					ELSEIF TALENT:恋慕
+						IF TALENT:(NO:30):恋人
+							PRINTFORML 「ほ、ほらっ行くよ%CALLNAME:MASTER%」
+							PRINTFORML 小町に付き合うことを決めたが、見送る映姫の顔をまともに見ることができなかった
+							PRINTFORML 長時間の愚痴は覚悟せねばなるまい
+							PRINTW 
+						ELSEIF TALENT:(NO:30):恋慕
+							PRINTFORML 「ほらっ、行くよ%CALLNAME:MASTER%」
+							PRINTFORML 小町に手を引っ張られ、%CALLNAME:MASTER%は映姫に別れの挨拶をした
+							PRINTFORML 映姫は微笑んで手を振り返してくれたが、その表情は少し寂しげだった
+							PRINTW 
+						ELSE
+						PRINTFORML 「話が分かるねぇ♪　それじゃ、しゅっぱーつ♪」
+						PRINTFORML 困ったような笑みを浮かべる映姫に見送られ、%CALLNAME:MASTER%と小町はその場を後にした
+						PRINTW 
+						ENDIF
+					ENDIF
+				ENDIF
+			;近くに映姫はいない
+			ELSE
+				IF TALENT:恋慕 || TALENT:恋人
+					PRINTFORML 「それじゃ、しゅっぱーつ♪」
+					PRINTFORML 「……ねぇ、%CALLNAME:MASTER%。こうやっておくれよ」
+					PRINTFORML 小町に促されるまま、%CALLNAME:MASTER%は片手を腰に当てる格好をとった
+					PRINTW 
+					PRINTFORML 小町は嬉しそうに笑うと、隙間に自分の腕を絡ませ、%CALLNAME:MASTER%に少しだけ寄り掛かった
+					PRINTFORML 「えへへー、それじゃ、改めてしゅっぱーつ♪」
+					PRINTW 
+				ELSE
+					PRINTFORML 「さーて、何しようかねぇ。%CALLNAME:MASTER%は何かしたいことあるかい？　あたいはねぇ……」
+				ENDIF
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 2
+		;断った
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			IF K76_FIND_AROUND() == 30
+				;仕事日
+				IF YOUBI_MATCH(DAY, "月水金")
+					IF TIME:0 > 600 && TIME:0 < 960
+						IF TALENT:恋人
+							IF TALENT:(NO:30):恋慕
+								PRINTFORML 「えぇ～～、そんなぁ……」
+								PRINTFORML そもそも映姫の前で堂々とサボり宣言をする方が間違いである
+								PRINTFORML 映姫が心なしかホッとしている表情を浮かべていたのは気のせいだろうか
+								PRINTW 
+							ELSE
+								PRINTFORML 「そ、そんなぁ……」
+								PRINTFORML がっかりしている小町と対照的に、映姫は当然だと言わんばかりにうんうんと頷いている
+								PRINTW 
+							ENDIF
+						ELSEIF TALENT:恋慕
+							IF TALENT:(NO:30):恋人
+								PRINTFORML 「あー、やっぱり、そうだよね～……お邪魔しました」
+								PRINTFORML 小町は愛想笑いを浮かべているものの、ややぎこちない表情だった
+								PRINTW 
+								PRINTFORML 一方の映姫は勝ち誇った表情を浮かべたりはしないが、恋人を連れていかれずに済みほっとしているようだ
+								PRINTFORML さすがに恋人の目の前で他の女の誘いに乗るのはまずかろう。ましてや部下である
+								PRINTW 
+							ELSEIF TALENT:(NO:30):恋慕
+								PRINTFORML 「四季様が見てるし、ちゃんと仕事しといたほうがいい？　あはは、やっぱりそうだよね～……しょんぼり」
+								PRINTFORML 仕事をサボって%CALLNAME:MASTER%を出かけるあてが外れ、小町は露骨にがっかりしている
+								PRINTW 
+								PRINTFORML 一方、映姫はというと露骨に安堵した表情で大きくため息をついている
+								PRINTFORML 目の前で部下がサボタージュを敢行するのを防げてホッとしているのだろうか
+								PRINTW 
+							ELSE
+							PRINTFORML 「今日は仕事日だろうって？　いや、そうなんだけどさぁ……」
+							PRINTFORML 「うう、お前さんまで四季様みたいなこと言わないでおくれよう」
+							PRINTFORML 小町は、サボる口実が消えてしまったこと、説教する人間が増えたことに渋面を浮かべている
+							PRINTW 
+							PRINTFORML 一方、上司の映姫はというと、「ほら見なさい」という顔をしていた
+							PRINTW 
+							ENDIF
+						ENDIF
+					;就業時間外
+					ELSE
+						IF TALENT:恋人
+							IF TALENT:(NO:30):恋慕
+								PRINTFORML 「えぇ～～、そんなぁ……仕事終わってるのにぃ～～」
+								PRINTFORML がっくりと肩を落とす小町
+								PRINTFORML 映姫が心なしかホッとしている表情を浮かべていたのは気のせいだろうか
+								PRINTW 
+							ELSE
+								PRINTFORML 「そ、そんなぁ……」
+								PRINTFORML がっかりしている小町を映姫は優しく慰めている
+								PRINTW 
+							ENDIF
+						ELSEIF TALENT:恋慕
+							IF TALENT:(NO:30):恋人
+								PRINTFORML 「あー、やっぱり、そうだよね～……お邪魔しました」
+								PRINTFORML 小町は愛想笑いを浮かべているものの、ややぎこちない表情だった
+								PRINTW 
+								PRINTFORML 一方の映姫は勝ち誇った表情を浮かべたりはしないが、恋人を連れていかれずに済みほっとしているようだ
+								PRINTFORML さすがに恋人の目の前で他の女の誘いに乗るのはまずかろう。ましてや部下である
+								PRINTW 
+							ELSEIF TALENT:(NO:30):恋慕
+								PRINTFORML 「えぇ～～、付き合ってくれないのかい～～？　しょんぼり……」
+								PRINTFORML 仕事をやっと終わらせたのに%CALLNAME:MASTER%と出かけるあてが外れ、小町は露骨にがっかりしている
+								PRINTW 
+								PRINTFORML 一方、映姫はというと露骨に安堵した表情で大きくため息をついている
+								PRINTW 
+							ELSE
+							PRINTFORML 「今日は仕事日だろうって？　いや、もう終わったんだけど……」
+							PRINTFORML 「あたいまじめに頑張ったんだから付き合っておくれよう」
+							PRINTFORML 小町は、頑張って仕事を終わらせてきたにも関わらず袖にされ、渋面を浮かべている
+							PRINTW 
+							PRINTFORML 一方、上司の映姫はというと、「何か可哀そうだなぁ」という顔をしていた
+							PRINTW 
+							ENDIF
+						ENDIF
+					ENDIF
+				;非番
+				ELSE
+					IF TALENT:恋人
+						IF TALENT:(NO:30):恋慕
+							PRINTFORML 「えええ～～、今日は休みの日なのにぃ～～……駄目なのかい？」
+							PRINTFORML あからさまにがっかりする小町を見て、映姫は気の毒そうな、微かに安堵したような表情を浮かべている
+							PRINTW 
+						ELSE
+							PRINTFORML 「えええ～～、今日は休みの日なのにぃ～～……駄目なのかい？」
+							PRINTFORML あからさまにがっかりする小町を見て、映姫は気の毒そうな表情を浮かべている
+							PRINTW 
+						ENDIF
+					ELSEIF TALENT:恋慕
+						IF TALENT:(NO:30):恋人
+							PRINTFORML 「えええ～～、今日は休みの日なのにぃ～～……いやまぁ、やっぱり駄目だよね」
+							PRINTFORML がっかりする小町を見て、映姫は少しの申し訳なさと大きな安堵が入り混じったような表情を浮かべている
+							PRINTW 
+						ELSEIF TALENT:(NO:30):恋慕
+							PRINTFORML 「えええ～～、今日は休みの日なのにぃ～～行こうよぉ」
+							PRINTFORML %CALLNAME:MASTER%の腕を引き、必死に食い下がっている
+							PRINTFORML 映姫はなんともいえない微妙な表情を浮かべ、二人のやり取りを眺めている
+							PRINTW 
+						ELSE
+						PRINTFORML 「それじゃ、しゅっぱーつ……してくれないのかい？　そんなぁ」
+						PRINTFORML %CALLNAME:MASTER%の腕を引き、必死に食い下がっている
+						PRINTFORML 映姫は気の毒そうな表情を浮かべ、二人のやり取りを眺めている
+						PRINTW 
+						ENDIF
+					ENDIF
+				ENDIF
+			;近くに映姫はいない
+			ELSE
+				IF TALENT:恋慕 || TALENT:恋人
+					PRINTFORML 「えっ、行かない？　そんなぁ」
+					PRINTFORML まさか断られると思っていなかったのか、小町はあからさまにガッカリしている
+					PRINTFORML 「行こうよぉ～旦那ぁ～お願いですだぁ～」
+					PRINTFORML えらく時代がかった言葉を使い、小町は%CALLNAME:MASTER%にヨヨヨとすがりついた
+					PRINTW 
+				ELSE
+					PRINTFORML 「そっかぁ、用事があるところ声を掛けちゃって済まなかったねぇ」
+					PRINTFORML 「また時間のある時にでも相手しておくれよ」
+				ENDIF
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 3
+		;部屋に誘われた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			IF TALENT:恋人
+				PRINTFORML 「%CALLNAME:MASTER%、あたいの部屋に行こうよ」
+				PRINTFORML 「なんだったら、今日は泊まってくかい？」
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「%CALLNAME:MASTER%、よかったらあたいの部屋にこない？」
+				PRINTFORML 「立ち話もなんだしさ、座ってゆっくり話そうよ」
+			ELSE
+				PRINTFORML 「%CALLNAME:MASTER%、暇だったらあたいの部屋に来るかい？」
+				PRINTFORML 「見せたいものもあるしさぁ、おいでよぉ」
+			ENDIF
+			PRINTW 
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 4
+		;部屋に誘われたのを受けた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			IF TALENT:恋人
+				PRINTFORML 「それじゃ、いこっか」
+				PRINTFORML 「今夜は寝かさないからね、あ・な・た%UNICODE(0x2665) *1%　なーんて、ね」
+				PRINTFORML 「あ、あれっ、本当に寝かさないつもりかい？　……ばか%UNICODE(0x2665) *1%」
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「それじゃ、いこっか」
+				IF YOUBI_MATCH(DAY, "月水金")
+					PRINTFORML 「明日は非番だからねぇ。朝まで飲みながら語りあかすよ！」
+				ELSE
+					PRINTFORML 「明日は仕事……だけど朝まで飲みながら語りあかすよ！」
+					PRINTFORML 駄目な大人がここにいる！
+				ENDIF
+			ELSE
+				PRINTFORML 「それじゃ、いこっか」
+			ENDIF
+			PRINTW 
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 5
+		;部屋に誘われたのを断った
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			IF TALENT:恋人
+				PRINTFORML 「えぇ～、あたいをほっぽらかしてどこに行くつもりさぁ」
+				PRINTFORML 「なんて、深い詮索はしないけどさ、涙で枕を濡らしちゃいそうだよ、ヨヨヨ……」
+				PRINTFORML 「寝るころには布団に入ってきてくれてると嬉しいかなぁ……なんて♪」
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「残念だねぇ。部屋で色々したいことがあったってのに」
+				PRINTFORML 「色々って何かって？　そりゃあ、色々だよ。色々」
+			ELSE
+				PRINTFORML 「ありゃ、そうかい。いい女からの部屋のお招きを断るなんて、お前さん罪だねぇ」
+				PRINTFORML 「女性の誘いを断るなど黒、黒です！　似てた？　全然似てない？　ざーんねん」
+			ENDIF
+			PRINTW 
+			RETURN 1
+		ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+
+;==================================================
+;脱衣口上
+;==================================================
+@M_KOJO_EVENT_K76_28(ARG,ARG:1)
+;口上主はTARGET
+;ARGに脱がし方選択
+;ARG:1（ARG=3の場合のみあり）地の文の反応
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	SELECTCASE ARG
+		;-------------------------------------------------
+		CASE 0
+		;全裸にする
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			;時間停止時
+			IF FLAG:70
+			;通常
+			ELSEIF TALENT:恋慕 || TALENT:恋人
+				IF RAND:2 == 0
+					PRINTFORML 「あっ……そんなにまじまじ見ないどくれ」
+					PRINTFORML 「あたいだって、好いた相手に裸を見られるのは恥ずかしいんだよ……%UNICODE(0x2665) *1%」
+					PRINTFORML 「こんな気持ちになるのは、お前さんだけなんだよ……%UNICODE(0x2665) *1%」
+					PRINTFORML 「裸にした責任と、ドキドキさせた責任、とっておくれ……%UNICODE(0x2665) *1%」
+				ELSE
+					PRINTFORML 「あたいの裸……綺麗？」
+					PRINTFORML 「ふふ、そんなこと言われたの、生まれて初めてだよ」
+					PRINTFORML 「締まりのない顔？　しょうがないじゃないかぁ。嬉しすぎて、どうしても頬が緩んじゃうんだよぉ%UNICODE(0x2665) *1%」
+					PRINTFORML 「いっぱい見て、いっぱい触っておくれ。あたいの体全部、お前さんのものだよ……%UNICODE(0x2665) *1%」
+				ENDIF
+			ELSE
+				PRINTFORML 「あたいの体、欲しくなっちゃったかい？」
+				PRINTFORML 「あんまりジロジロみないでおくれよ。あたいだって、女だからさ」
+				PRINTFORML 「まじまじ見られたら恥ずかしいところだってあるってことだよ……♪」
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 1
+		;下着姿にする
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			;時間停止時
+			IF FLAG:70
+			;通常
+			ELSEIF TALENT:恋慕 || TALENT:恋人
+				IF RAND:2 == 0
+					PRINTFORML 「えへへ、全部脱がされるよりドキドキしちゃうねぇ……%UNICODE(0x2665) *1%」
+					PRINTFORML 「もちろん、これもお前さんが脱がしてくれるんだろう？」
+					PRINTFORML 「それとも、あたいに脱がせたいのかい？」
+				ELSE
+					PRINTFORML 「あたいの下着、あんまり可愛くないだろう？」
+					PRINTFORML 「こんなことなら、もっとちゃんとした下着集めとけばよかったかな～なんて、えへへ」
+					PRINTFORML 「あたいが付けてればどんな下着でもいいものだ？　ぷっ、なんだいそりゃ、誉め言葉のつもりかい……%UNICODE(0x2665) *1%」
+				ENDIF
+			ELSE
+				PRINTFORML 「お前さん、下着姿の方が興奮するってクチかい？」
+				PRINTFORML 「なんだか、素っ裸になるよりドキドキしちゃうね、これ」
+			ENDIF
+			PRINTW 
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 2
+		;半脱ぎ
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			;時間停止時
+			IF FLAG:70
+			;通常
+			ELSEIF TALENT:恋慕 || TALENT:恋人
+				IF RAND:2 == 0
+					PRINTFORML 「あっ……おっぱい零れ出ちゃったよ」
+				ELSE
+					PRINTFORML 「%CALLNAME:MASTER%、全部は脱がさないのかい？」
+					PRINTFORML 「%CALLNAME:MASTER%がこっちがいいってのなら文句はないけど」
+					PRINTFORML 「裸になって抱き合うのも、あたいは好きかなぁ……%UNICODE(0x2665) *1%」
+				ENDIF
+			ELSE
+				PRINTFORML 「あっちこっちまさぐるから、服が乱れちゃったじゃないか」
+				PRINTFORML 「もっと、乱してみたいって思わないかい？　あたいは、いいよ……♪」
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 3
+		;パンツちょうだい
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			SELECTCASE ARG:1
+				;-------------------------------------------------
+				CASE 0
+				;交換です
+				;記入チェック（=0, 非表示、1, 表示）
+				LOCAL:1 = 1
+				;-------------------------------------------------
+				IF LOCAL:1
+					PRINTFORML 「別にいいけどさぁ、あたいからもお願いしていい？」
+					PRINTFORML 「お前さんのそれと、交換しておくれよ♪」
+					PRINTFORML 「何に使うのかって？　そりゃあ……」
+					IF ABL:自慰中毒 > 2 && ABL:欲望 > 4
+						PRINTFORML 「自分で慰めるときに使うに決まってるじゃないか……%UNICODE(0x2665) *1%」
+					ELSE
+						PRINTFORML 「内緒。悪いようには使わないから安心おしよ♪」
+					ENDIF
+					PRINTW 
+					RETURN 1
+				ENDIF
+				;-------------------------------------------------
+				CASE 1
+				;OK（嬉々
+				;記入チェック（=0, 非表示、1, 表示）
+				LOCAL:1 = 1
+				;-------------------------------------------------
+				IF LOCAL:1
+					SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「別にいいけど、何か使い道があるのかい？」
+						PRINTFORML 「！　ああ、『ナニ』に使うんだね……♪　なるほどなるほど♪」
+					CASE 1
+						PRINTFORML 「何に使うかは分かんないけど、お前さんの好きに使いな」
+						PRINTFORML 「でも、使用済みなんかでいいのかい？　そっちのがいい？　ふぅん」
+					CASEELSE
+						PRINTFORML 「ほら、脱ぎたてのあたいの下着……%UNICODE(0x2665) *1%」
+						PRINTFORML 「好きに使っておくれよ%UNICODE(0x2665) *1%　ズリネタでもなんでもさ……♪」
+					ENDSELECT
+					RETURN 1
+				ENDIF
+				;-------------------------------------------------
+				CASE 2
+				;OK（渋々
+				;記入チェック（=0, 非表示、1, 表示）
+				LOCAL:1 = 1
+				;-------------------------------------------------
+				IF LOCAL:1
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「いいけどさ、何に使うつもりだい？」
+						PRINTFORML 「さすがに売りに出すのはやめておくれよ。新品ならともかく、使い古しとか」
+						PRINTFORML 「いや、新品もそれはそれで困るねぇ」
+						PRINTW 
+					CASE 1
+						PRINTFORML 「いいけどさ、変なことに使うのはやめておくれよ？」
+						PRINTFORML 「じゃあ何だったらいいのかって？　そ、そりゃあ……」
+						PRINTFORML 「じ、自分で考えなっ、あたいに聞くんじゃないのっ」
+						PRINTW 
+					ENDSELECT
+					RETURN 1
+				ENDIF
+				;-------------------------------------------------
+				CASE 3
+				;嫌です
+				;記入チェック（=0, 非表示、1, 表示）
+				LOCAL:1 = 1
+				;-------------------------------------------------
+				IF LOCAL:1
+					PRINTFORML 「何に使うのか知らないけど、さすがにお断りするよ」
+					PRINTFORML 「というか、健全な使い方がまったく思い浮かばないんだけど……」
+					PRINTFORML 「健全な使い方されたら、それはそれでアレだけど……」
+					PRINTW 
+					RETURN 1
+				ENDIF
+				RETURN 1
+			ENDSELECT
+		ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+
+;==================================================
+;怒り口上
+;==================================================
+@M_KOJO_EVENT_K76_29(ARG,ARG:1)
+;口上主はTARGET
+;ARGはTARGETの度胸で分岐
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;怒らせてしまった
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;泣かせてしまった　[臆病]持ち
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;相手が押し倒しを解除
+;==================================================
+@M_KOJO_EVENT_K76_30(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+	;疲れた
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+	;満足して解放
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+	;満足したところを押し倒された
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+	;壊れるまでしてあげる
+		PRINTFORML
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+
+;==================================================
+;一日の終了時(AFTERTRAニーの前)、面識がなければ呼び出されない
+;==================================================
+@M_KOJO_EVENT_K76_31(ARG,ARG:1)
+;口上主はTARGET
+;ARGは会ってない日数
+;何日以上会ってなかったら愚痴を言うとかできます
+;CFLAG:オナバレで分岐入れてもよさそう
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;今日会っていない
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;今日会っている
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 0
+		;野外でSEX経験済み
+		;IF CFLAG:1010 > 49
+		;ELSE
+		;PRINTFORML 「………………」
+		;PRINTFORML 「外でするの、気持ちよかったな……」
+		;PRINTFORML 「また、シたいなぁ……って、これじゃ、あたいただの変態だよ」
+		;PRINTW 
+		;PRINTFORML 「………………」
+		;PRINTFORML 「でもやっぱり、したいなぁ……」
+		;PRINTW 
+		;ELSE
+			IF TALENT:恋人
+				IF CFLAG:MASTER:初期位置 == CFLAG:76:初期位置 && CFLAG:MASTER:現在位置 == CFLAG:76:現在位置
+				ELSE
+					PRINTFORML 「今日会えて嬉しかったなぁ」
+					IF YOUBI_MATCH(DAY, "月水金")
+						PRINTFORML 「明日は休みだし、会いに行ってみようかな」
+						PRINTFORML 「えへへ、%CALLNAME:MASTER%、好きだよ……%UNICODE(0x2665) *1%」
+						PRINTW 
+					ELSE
+						PRINTFORML 「明日は仕事だけど、また会えるといいなぁ」
+						PRINTFORML 「えへへ、%CALLNAME:MASTER%、好きだよ……%UNICODE(0x2665) *1%」
+						PRINTW 
+					ENDIF
+				ENDIF
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「今日会えてよかったなぁ」
+				PRINTFORML 「あたいの話、色々聞いてくれたし」
+				PRINTW 
+				PRINTFORML 「明日も、会えるといいな」
+				PRINTW 
+			ELSEIF TALENT:思慕
+				PRINTFORML 「最近、%CALLNAME:MASTER%とよく会うなぁ」
+				PRINTFORML 「まあ、なんだかんだいって%CALLNAME:MASTER%、面白いやつだし」
+				PRINTFORML 「明日会ったら、今度はどんな話を聞かせてやろうかねぇ」
+				PRINTW 
+			ELSE
+				PRINTFORML 「%CALLNAME:MASTER%、か」
+				PRINTFORML 「なんか最近、ちょくちょく見かけるんだよね」
+			ENDIF
+		;ENDIF
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+[SKIPSTART]
+;-------------------------------------------------
+;オナバレ遭遇時の地の文をデフォルトのものから変更したい場合用。
+;その場合は上下のSKIPSTART~SKIPENDを外してください。
+;CFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります。
+;-------------------------------------------------
+@M_KOJO_EVENT_K76_ONABARE_1(ARG)
+;-------------------------------------------------
+:口上色を付けるならコメントアウトを外しXをキャラ番号に
+;CALL M_KOJO_COLOR_K76
+
+IF ARG
+	PRINTFORML A弄ってる場合
+ELSE
+	PRINTFORML V弄ってる場合
+ENDIF
+;-------------------------------------------------
+[SKIPEND]
+
+
+[SKIPSTART]
+;-------------------------------------------------
+;オナバレでそのまま続けてもらう場合の地の文をデフォルトのものから変更したい場合用。
+;その場合は上下のSKIPSTART~SKIPENDを外してください。
+;CFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります。
+;-------------------------------------------------
+@M_KOJO_EVENT_K76_ONABARE_2(ARG)
+;-------------------------------------------------
+:口上色を付けるならコメントアウトを外しXをキャラ番号に
+;CALL M_KOJO_COLOR_K76
+
+IF ARG
+	PRINTFORML A弄ってる場合
+ELSE
+	PRINTFORML V弄ってる場合
+ENDIF
+;-------------------------------------------------
+[SKIPEND]
+
+
+[SKIPSTART]
+;-------------------------------------------------
+;オナバレなし崩しックスの地の文をデフォルトのものから変更したい場合用。
+;その場合は上下のSKIPSTART~SKIPENDを外してください。
+;CFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります。
+;-------------------------------------------------
+@M_KOJO_EVENT_K76_ONABARE_3(前戯１,本番はどっちか,回数,注入量)
+;-------------------------------------------------
+#DIM 前戯１
+;1=C 2=B 3=M
+#DIM 本番はどっちか
+;0でＶ、1でＡ
+#DIM 注入量
+#DIM 回数
+
+:口上色を付けるならコメントアウトを外しXをキャラ番号に
+;CALL M_KOJO_COLOR_K76
+
+SELECTCASE 前戯１
+	CASE 1
+		PRINTFORML Ｃ責め
+	CASE 2
+		PRINTFORML Ｂ責め
+	CASE 3
+		PRINTFORML Ｍ責め
+ENDSELECT
+
+IF 本番はどっちか
+	PRINTFORML Aで本番
+ELSE
+	PRINTFORML Vで本番
+ENDIF
+;-------------------------------------------------
+[SKIPEND]
+
+
+;-------------------------------------------------
+;処女・無自覚非処女に挿入する直前の口上
+;RETURN 1するとコマンドをキャンセルします
+;RETURN 0なら通します
+;CFLAG:破瓜キャンセル口上有がオンになってないと読み込まれないので注意
+;-------------------------------------------------
+@M_KOJO_EVENT_K76_LOST_VIRGIN_STOP
+;-------------------------------------------------
+PRINTFORML 
+RETURN 1
+
+;-------------------------------------------------
+;CFLAG:口上内抱き寄せ判定_初回がオンになっている場合のみ有効。
+;初めて押し倒した時、ここでRETURN -1すると押し倒しを強制的にキャンセルします。
+;RETURN 0なら通常の判定を行い、RETURN 1すると無条件に成功させます。
+;特定のイベント（デート帰りキスなど）を見るまでうふふできないようにしたいときなどにどうぞ。
+;-------------------------------------------------
+@M_KOJO_EVENT_K76_PERMISSION_1
+;-------------------------------------------------
+PRINTFORML 
+;RETURN -1
+RETURN 0
+;RETURN 1
+;-------------------------------------------------
+
+
+;-------------------------------------------------
+;CFLAG:口上内抱き寄せ判定_通常がオンになっている場合のみ有効。
+;合意付きで押し倒した時、ここでRETURN -1すると押し倒しを強制的にキャンセルします。
+;RETURN 0なら通常通り成功させます。
+;合意があっても何らかの理由でうふふできないようにしたいときなどにどうぞ。
+;-------------------------------------------------
+@M_KOJO_EVENT_K76_PERMISSION_2
+;-------------------------------------------------
+PRINTFORML 
+RETURN 0
+;RETURN -1
+;-------------------------------------------------

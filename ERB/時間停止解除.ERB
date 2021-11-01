@@ -1,0 +1,306 @@
+﻿@時間停止解除
+#DIM 追い出し
+#DIM 合計絶頂強度
+#DIM 絶頂人数
+#DIM 逸脱追加
+VARSET LOCAL
+FLAG:70 = 0
+絶頂人数 = 0
+TFLAG:運搬 = 0
+FOR LOCAL,0,CHARANUM
+	IF 睡眠時間(LOCAL)
+		;パジャマセット
+		CALL CTRL_CLOTHES_SET(LOCAL, "現在衣装の変更_パジャマ")
+		CFLAG:LOCAL:パジャマ = 1
+	ELSEIF TCVAR:LOCAL:アナザー普段着
+		;いつもと違う服
+		CALL CTRL_CLOTHES_SET(LOCAL, "現在衣装の変更_衣装セット", SPECIAL_OUTFIT(LOCAL))
+		CFLAG:LOCAL:パジャマ = 0
+	ELSE
+		;普段着セット
+		CALL CTRL_CLOTHES_SET(LOCAL, "現在衣装の変更_普段着")
+		CFLAG:LOCAL:パジャマ = 0
+	ENDIF
+	CALL CLOTHES_SETTING_TRAIN(LOCAL)
+NEXT
+
+PRINTFORMW %CALLNAME:MASTER%は時間停止を解除した
+追い出し = 0
+
+CALL FISHER_YATES_SHAFFLE(CHARANUM - 1)
+
+FOR LOCAL:10 , 0 , CHARANUM - 1
+	LOCAL = SHAFFLE_ARRAY:(LOCAL:10) + 1
+	IF CFLAG:LOCAL:現在位置 == CFLAG:MASTER:現在位置 && !CFLAG:LOCAL:睡眠
+		合計絶頂強度 = EX:LOCAL:無自覚Ｃ絶頂 + EX:LOCAL:無自覚Ｖ絶頂 + EX:LOCAL:無自覚Ａ絶頂 + EX:LOCAL:無自覚Ｂ絶頂 + EX:LOCAL:無自覚Ｍ絶頂
+		IF 合計絶頂強度 > 30
+		;IF EX:LOCAL:Ｃ絶頂 + EX:LOCAL:Ｖ絶頂 + EX:LOCAL:Ａ絶頂 + EX:LOCAL:Ｂ絶頂 + EX:LOCAL:Ｍ絶頂 > 30
+			SETCOLOR 255,100,255
+			PRINTL 【強烈な快感】
+			RESETCOLOR
+			PRINTFORMW 突然激しい絶頂に襲われた%CALLNAME:LOCAL%は、甘い嬌声をあげてその場にへたり込んでしまった
+			IF CFLAG:LOCAL:時間停止バレ == 1
+				IF TALENT:LOCAL:恋慕
+					PRINTFORMW %CALLNAME:LOCAL%は快感に震える体を抱きしめて、小さく何度も%CALLNAME:MASTER%の名を呟いていた
+					SOURCE:LOCAL:欲情 += 500 + (CFLAG:2 - 1000) / 5
+					SOURCE:LOCAL:情愛 += 500 + (CFLAG:2 - 1000) / 5
+				ELSEIF TALENT:LOCAL:思慕
+					PRINTFORMW %CALLNAME:LOCAL%は快感を享受しながらも、不満げに%CALLNAME:MASTER%を見つめている
+					SOURCE:LOCAL:欲情 += 300 + (CFLAG:2 - 1000) / 5
+					SOURCE:LOCAL:反感 += 300
+				ELSEIF TALENT:LOCAL:セフレ == 2
+					PRINTFORMW %CALLNAME:LOCAL%は息を荒くし、媚びるような目で続きをねだってきた
+					SOURCE:LOCAL:欲情 += 1000 + (CFLAG:2 - 1000) / 5
+				ELSEIF TALENT:LOCAL:セフレ == 1
+					PRINTFORMW %CALLNAME:LOCAL%は快感に甘い息を吐きながらも、合意なき行為に対して嫌悪の目を向けてきた
+					SOURCE:LOCAL:欲情 += 500 + (CFLAG:2 - 1000) / 5
+					SOURCE:LOCAL:反感 += 300
+				ELSEIF TALENT:LOCAL:愛欲
+					PRINTFORMW %CALLNAME:LOCAL%は喜悦の表情を浮かべ、%CALLNAME:MASTER%から与えられた快感に震えた
+					SOURCE:LOCAL:欲情 += 1000 + (CFLAG:2 - 1000) / 5
+				ELSE
+					PRINTFORMW %CALLNAME:LOCAL%は快感に震えながら、怒りに満ちた目で%CALLNAME:MASTER%を睨みつけてきた
+					SOURCE:LOCAL:反感 += 10000
+				ENDIF
+			ENDIF
+			CFLAG:LOCAL:ディレイ += 20
+			絶頂人数 += 1
+			;恥情ボーナス
+			CALL JUEL_UP_SPECIAL(LOCAL,"恥情","露出癖",2,1)
+			
+			;逸脱追加 = MAX(1000 - ABL:LOCAL:露出癖 * 200, 0)
+			;SOURCE:LOCAL:逸脱 += 逸脱追加
+			CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,2,0)
+		ELSEIF 合計絶頂強度 > 0
+		;ELSEIF EX:LOCAL:Ｃ絶頂 + EX:LOCAL:Ｖ絶頂 + EX:LOCAL:Ａ絶頂 + EX:LOCAL:Ｂ絶頂 + EX:LOCAL:Ｍ絶頂 > 0
+			SETCOLOR 255,100,255
+			PRINTL 【謎の快感】
+			RESETCOLOR
+			PRINTFORMW %CALLNAME:LOCAL%は、謎の快感にびくりと身を強張らせた
+			IF CFLAG:LOCAL:時間停止バレ == 1
+				IF TALENT:LOCAL:恋慕
+					PRINTFORMW %CALLNAME:LOCAL%はふらつく振りをして%CALLNAME:MASTER%の胸に倒れこむと、小さな声で続きをねだった...
+					SOURCE:LOCAL:欲情 += 500 + (CFLAG:2 - 1000) / 5
+					SOURCE:LOCAL:情愛 += 500 + (CFLAG:2 - 1000) / 5
+				ELSEIF TALENT:LOCAL:思慕
+					PRINTFORMW %CALLNAME:LOCAL%は%CALLNAME:MASTER%の顔を見ると顔を赤らめた
+					SOURCE:LOCAL:欲情 += 300 + (CFLAG:2 - 1000) / 5
+					SOURCE:LOCAL:反感 += 300
+				ELSEIF TALENT:LOCAL:セフレ == 2
+					PRINTFORMW 快感が足りないのか、%CALLNAME:LOCAL%は少し不満げに%CALLNAME:MASTER%を見つめてきた
+					SOURCE:LOCAL:欲情 += 1000 + (CFLAG:2 - 1000) / 5
+				ELSEIF TALENT:LOCAL:セフレ == 1
+					PRINTFORMW 
+					SOURCE:LOCAL:欲情 += 500 + (CFLAG:2 - 1000) / 5
+					SOURCE:LOCAL:反感 += 300
+				ELSEIF TALENT:LOCAL:愛欲
+					PRINTFORMW %CALLNAME:LOCAL%は%CALLNAME:MASTER%の手を取ると、続きをねだって息を荒くした
+					SOURCE:LOCAL:欲情 += 1000 + (CFLAG:2 - 1000) / 5
+				ELSE
+					PRINTFORMW %CALLNAME:LOCAL%は%CALLNAME:MASTER%に疑いのまなざしを向けている
+					SOURCE:LOCAL:反感 += 1000
+				ENDIF
+			ENDIF
+			絶頂人数 += 1
+			CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,1,0)
+		ELSEIF CFLAG:LOCAL:291 == 1
+			SETCOLOR 150,150,250
+			PRINTL 【ただならぬ開放感】
+			RESETCOLOR
+			PRINTFORMW 知らぬ間にパンツを脱がされた%CALLNAME:LOCAL%は落ち着かなさそうだ
+			;本来ならCFLAG:295は作らずCFLAG:LOCAL:291 == 3とかで対応したほうが良い
+			IF CFLAG:LOCAL:時間停止バレ == 1 && CFLAG:LOCAL:295 == 0
+				IF TALENT:LOCAL:恋慕
+					PRINTFORMW 
+					SOURCE:LOCAL:欲情 += 500 + (CFLAG:2 - 1000) / 5
+					SOURCE:LOCAL:情愛 += 500 + (CFLAG:2 - 1000) / 5
+				ELSEIF TALENT:LOCAL:思慕
+					PRINTFORMW 
+					SOURCE:LOCAL:欲情 += 300 + (CFLAG:2 - 1000) / 5
+					SOURCE:LOCAL:反感 += 300
+				ELSEIF TALENT:LOCAL:セフレ == 2
+					PRINTFORMW 
+					SOURCE:LOCAL:欲情 += 1000 + (CFLAG:2 - 1000) / 5
+				ELSEIF TALENT:LOCAL:セフレ == 1
+					PRINTFORMW 
+					SOURCE:LOCAL:欲情 += 500 + (CFLAG:2 - 1000) / 5
+					SOURCE:LOCAL:反感 += 300
+				ELSEIF TALENT:LOCAL:愛欲
+					PRINTFORMW 
+					SOURCE:LOCAL:欲情 += 1000 + (CFLAG:2 - 1000) / 5
+				ELSE
+					PRINTFORMW 
+					SOURCE:LOCAL:反感 += 10000
+				ENDIF
+				CFLAG:LOCAL:295 = 1
+			ENDIF
+			CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,3,0)
+		ENDIF
+		;無自覚絶頂カウントをリセットしておく
+		FOR LOCAL:1,0,5
+			IF EX:LOCAL:(LOCAL:1)
+				EX:LOCAL:(LOCAL:1 + 20) = 0
+				EX:LOCAL:(LOCAL:1 + 50) = 0
+			ENDIF
+		NEXT
+		IF BATHCHECK(CFLAG:MASTER:現在位置) && AT_HOME(MASTER) && LOCAL != MASTER
+			SIF 風呂追い出し条件(LOCAL) && CFLAG:LOCAL:現在位置 == CFLAG:MASTER:現在位置
+				CALL 風呂から追い出し(LOCAL)
+			SIF RESULT
+				追い出し ++
+		ELSE
+			IF CFLAG:LOCAL:287 == 2
+				SETCOLOR 255,100,255
+				PRINTL 【無自覚アナル射精】
+				RESETCOLOR
+				;感度も10超えがあるわけだし、地の文だけでもバリエーションを足してみた
+				SELECTCASE ABL:LOCAL:2
+					CASE 0 TO 2
+						PRINTFORMW %CALLNAME:LOCAL%は突然アナルに走った痛みに小さく悲鳴を上げた
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,7,1)
+					CASE 3 TO 5
+						PRINTFORMW %CALLNAME:LOCAL%は直腸内の精液に強い異和感を感じたのか
+						PRINTFORMW ひぃっ、と小さく悲鳴を上げた
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,7,2)
+					CASE IS >= 6
+						PRINTFORMW もう一つの性器となりつつある排泄器官に、突然注がれた熱い精液の感触に我慢できなかったのか、
+						PRINTFORMW %CALLNAME:LOCAL%は小さく熱い吐息をもらした。
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,7,2)
+					;現在ロック中。はたしてこの反応は有りか否か？
+					CASEELSE
+						PRINTFORMW 急にお尻にもたらされる熱い感覚すら
+						PRINTFORMW %CALLNAME:LOCAL%にとっては快楽のスパイスでしかないのだろう
+						PRINTFORMW 蕩けた顔を隠すことなく甘い吐息を吐き出した。
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,7,2)
+				ENDSELECT
+				CFLAG:LOCAL:アナル射精 = 0
+			ENDIF
+			IF EX:LOCAL:処女喪失チェック
+				SETCOLOR 250,100,100
+				IF EX:LOCAL:処女喪失チェック == 1
+					PRINTL 【無自覚処女喪失】
+				ELSE
+					PRINTL 【無自覚再生処女喪失】
+				ENDIF
+				RESETCOLOR
+				PRINTFORMW %CALLNAME:LOCAL%は股間の鈍痛に顔をしかめている…
+				CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,8,0)
+			ENDIF
+			IF CFLAG:LOCAL:286 == 2
+				SETCOLOR 255,100,255
+				PRINTL 【無自覚膣内射精】
+				RESETCOLOR
+				IF EX:LOCAL:処女喪失チェック != 1 && TALENT:LOCAL:処女 != -1
+					IF TALENT:LOCAL:無知 && EXP:LOCAL:精液経験 < 100
+						PRINTFORML %CALLNAME:LOCAL%は膣内に感じる精液の異和感に気付いたようだが
+						PRINTFORMW 何の感触なのか分からずにそわそわしている……
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,9,3)
+					ELSEIF !TCVAR:LOCAL:ピル
+						PRINTFORMW %CALLNAME:LOCAL%は下腹部に感じる異和感で膣内射精されたことに気付いたようだ
+						PRINTFORMW 顔面蒼白になりながらも何とか誤魔化そうとそわそわしている……
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,9,1)
+					ELSEIF EX:LOCAL:処女喪失チェック == 0 && TCVAR:LOCAL:ピル == 1
+						PRINTFORMW %CALLNAME:LOCAL%は下腹部に感じる異和感で膣内射精されたことに気付いたようだ
+						PRINTFORMW ピルを使っているためか、戸惑いつつも慌ててはいない様子だ……
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,9,2)
+					ENDIF
+				ELSE
+					PRINTFORML %CALLNAME:LOCAL%は膣内に感じる精液の異和感に気付いたようだが
+					PRINTFORMW 何の感触なのか分からずにそわそわしている……
+					CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,9,3)
+				ENDIF
+				CFLAG:LOCAL:286 = 0
+			ENDIF
+			;無自覚膣内射精の処理の後で無自覚処女喪失のフラグを折る
+				EX:LOCAL:処女喪失チェック = 0
+			IF CFLAG:LOCAL:288 == 2
+				SETCOLOR 255,100,255
+				PRINTL 【無自覚口内射精】
+				RESETCOLOR
+				IF TALENT:MASTER:濃厚精液
+					PRINTFORM %CALLNAME:LOCAL%は突如口内に現れた%SAMEN_DESCRIPTION(PLAYER)%に
+					IF ABL:LOCAL:精液中毒 < 3
+						PRINTFORML 激しくむせ込んだ
+						PRINTFORML 口腔と食道にへばりつく精液は容易には吐き出せず、%CALLNAME:LOCAL%は涙を浮かべながら何度も嘔吐（えず）いた
+						PRINTFORMW ……流石に悪いことをした気がする
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,4,5)
+					ELSE
+						PRINTFORML 驚きながらも、何事もなかった風を装って口を閉じた
+						PRINTFORMW そして少しずつ舌を動かし、粘つく欲望のゼリーをじっくりと味わった…
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,4,6)
+					ENDIF
+				ELSEIF ABL:LOCAL:精液中毒 < 3
+					PRINTFORM %CALLNAME:LOCAL%は口の中に注がれた精液でむせ
+					IF !RAND:3
+						PRINTFORMW て、思わず飲み込んでしまった
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,4,1)
+					ELSEIF !RAND:2
+						PRINTFORMW たが、何とか隙を見つけて吐き出した
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,4,2)
+					ELSE
+						PRINTFORMW ながら、急いで口元を覆った
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,4,3)
+					ENDIF
+					PRINTFORMW 突然の出来事に涙を浮かべながら咳き込んでいる…
+				ELSE
+					PRINTFORMW %CALLNAME:LOCAL%は口の中に注がれた精液に驚きつつも、何事もなかった風を装って飲み込んだ
+					PRINTFORMW %CALLNAME:LOCAL%は奇妙な高揚を感じている…
+					CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,4,4)
+				ENDIF
+				CFLAG:LOCAL:288 = 0
+			ENDIF
+			IF CFLAG:LOCAL:289 == 2
+				SETCOLOR 255,100,255
+				PRINTL 【無自覚顔面射精】
+				RESETCOLOR
+				IF ABL:LOCAL:精液中毒 < 3
+					IF TALENT:LOCAL:無知 && EXP:LOCAL:精液経験 < 100
+						PRINTFORMW %CALLNAME:LOCAL%は顔にべっとりと張り付く精液を不快そうに拭い取った
+						PRINTFORMW どうやら%CALLNAME:LOCAL%は顔に付いた精液の正体に気付いていないようだ
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,5,1)
+					ELSE
+						PRINTFORMW %CALLNAME:LOCAL%は顔にべっとりと張り付く精液に気付き、慌てて拭い取った
+						PRINTFORMW 何も起こらなかった風を装っているが、僅かに表情が強張っている
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,5,2)
+					ENDIF
+				ELSE
+					PRINTFORMW 顔にべっとりと張り付く精液を拭き取っていた%CALLNAME:LOCAL%は、密かに一部を指で掬い取り口元へと運んだ
+					PRINTFORMW %CALLNAME:LOCAL%は奇妙な高揚を感じている…
+					CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,5,3)
+				ENDIF
+				CFLAG:LOCAL:288 = 0
+			ENDIF
+			IF CFLAG:LOCAL:290 == 2
+				SETCOLOR 255,100,255
+				PRINTL 【無自覚手淫射精】
+				RESETCOLOR
+				IF ABL:LOCAL:精液中毒 < 3
+					PRINTFORMW %CALLNAME:LOCAL%は手の平にへばりつく精液に気付き、不快そうに拭い取った
+					CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,6,1)
+				ELSE
+					PRINTFORMW %CALLNAME:LOCAL%は手の平にへばりつく精液を密かに舐め取ってから拭い取った
+					PRINTFORMW %CALLNAME:LOCAL%は奇妙な高揚を感じている…
+						CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,6,2)
+				ENDIF
+				CFLAG:LOCAL:290 = 0
+			ENDIF
+			CALL KOJO_MESSAGE_SEND("EVENT",17,LOCAL,0,0)
+		ENDIF
+
+	ENDIF
+	CFLAG:LOCAL:288 = 0
+	CFLAG:LOCAL:289 = 0
+	CFLAG:LOCAL:290 = 0
+	CFLAG:LOCAL:344 = 0
+NEXT
+IF 絶頂人数 >= 1 && !追い出し
+	PRINTFORM %CALLNAME:MASTER%は少女
+	SIF 絶頂人数 >= 2
+		PRINT 達
+	PRINTW を気遣ってみせた
+ENDIF
+FOR LOCAL,1,CHARANUM
+	CALL 寝室から追い出し(LOCAL)
+NEXT
+RESETBGCOLOR
+

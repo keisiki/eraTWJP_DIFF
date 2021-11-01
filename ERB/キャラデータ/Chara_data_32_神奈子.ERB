@@ -1,0 +1,128 @@
+﻿@CHARAMOVE_DATA_32(ARG,ARG:2)
+LOCAL = 32
+SELECTCASE ARG
+	;移動対象メンバーチェック
+	CASE 1
+	;移動確率
+	CASE 2
+	;起床時間帯
+	CASE 3
+		RETURN 睡眠時間(LOCAL)
+	;移動傾向
+	CASE 4
+		SELECTCASE ARG:2
+			;ひとんちの風呂とかトイレにはいかない
+			CASE 12, 13, 14, 18, 30, 35, 39, 40, 43, 44, 51, 52
+				RETURN -100
+			;私室には入らない
+			CASE 15, 17, 19, 53, 55
+				SIF FLAG:15 != LOCAL
+					RETURN -100
+			;守矢神社分社によくいる
+			CASE 21
+				RETURN 10
+		ENDSELECT
+	;仕事時間帯
+	CASE 5
+	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
+	CASE 6
+		SELECTCASE ARG:2
+			CASE 2, 7, 8
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+	;出現場所
+	CASE 7
+		SELECTCASE ARG:2
+			CASE 21,22,23, 71,72,73,76, 81,82,83,84,85
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+ENDSELECT
+
+@EXIST_キャラデータ32
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+@キャラデータ32(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+SELECTCASE O_DATA
+CASE "呼び名"
+	CALLF MAKE_STR(V_NAME, "神奈子")
+;こっから衣装設定
+CASE "今日のパジャマ"
+	CALLF MAKE_STR(V_NAME, "パジャマ（襦袢）セット")
+
+CASE "普段着：帽子"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("帽子", "髪飾り"))
+CASE "普段着：靴"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴", "靴"))
+CASE "普段着：靴下"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴下", "靴下"))
+CASE "普段着：スカート"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("スカート", "ロングスカート"))
+CASE "普段着：上半身上着２"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("上半身上着２", "ブラウス"))
+CASE "普段着：上半身上着１"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("上半身上着１", "上着"))
+CASE "普段着：その他１"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("その他１", "注連縄"))
+
+CASE "固有下着形容詞"
+	CALLF MAKE_STR(V_NAME, "神に捧げられた")
+CASE "固有下半身下着名"
+	CALLF MAKE_STR(V_NAME, "和妙の下穿き")
+CASE "固有上半身下着"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有上半身下着名"
+	CALLF MAKE_STR(V_NAME, "サラシ")
+CASE "固有下着着用条件"
+	SIF !RAND:3
+		CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(前)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(後)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着生地厚さ"
+	CALLF MAKE_INT(V_NAME, 3)
+
+;料理関連
+CASE "料理：好きな味"
+	CALLF MAKE_STR(V_NAME, "カエル/うまい魚/鳥肉/和食/麺類/辛い/ガッツリ/豪華/野趣/豪快/サクサク/" + "しょっぱい/" * 3)
+CASE "料理：嫌いな味"
+	CALLF MAKE_STR(V_NAME, "あっさり/質素/甘い/甘い/妖力/妖力/虫肉/虫肉/虫肉/謎料理/謎料理/謎料理/謎料理/謎料理/")
+CASE "料理：助手効果"
+	CALLF MAKE_STR(V_NAME, "加護/")
+;贈り物関連
+CASE "感性：好き"
+	CALLF MAKE_STR(V_NAME, "赤/秩序/美しい/レトロ/パワフル/威厳/" + "風/巫術/" * 3 + "神さびた/注連縄の/ヘビの/風神の/山の/" * 5)
+CASE "感性：嫌い"
+	CALLF MAKE_STR(V_NAME, "ポップ/洋風/繊細/ロリータ/" + "土/" * 3 + "カエルの/博霊の/" * 10)
+
+;農民関連
+;神奈子さま高付加価値農業とか好きそう
+CASE "農民：説明"
+	CALLF MAKE_STR(V_NAME, "メロン農家")
+CASE "農民：作物"
+	CALLF MAKE_STR(V_NAME, "メロン")
+CASE "農民：畑の種類"
+	CALLF MAKE_STR(V_NAME, "温室")
+CASE "農民：畑のマップ"
+	CALLF MAKE_STR(V_NAME, "守谷神社")
+
+CASE "農民：マップID"
+	CALLF MAKE_INT(V_NAME, 8)
+CASE "農民：場所ID"
+	CALLF MAKE_INT(V_NAME, 814)
+CASE "農民：報酬"
+	CALLF MAKE_INT(V_NAME, 700)
+CASE "農民：金利"
+	CALLF MAKE_INT(V_NAME, 18)
+ENDSELECT
+

@@ -1,0 +1,195 @@
+﻿;==================================================
+;弾幕勝負
+;==================================================
+;
+@M_KOJO_MESSAGE_COM_K105_DANMAKU(ARGS, 相手残機)
+#DIM 相手残機
+;全体の流れ
+;①【戦闘前】→②ダイスロールとプレイヤー選択肢、ハンデをつけた場合は【ハンデ口上】→③対応スキルが発動した場合【スキル口上】→④被弾判定、キャラが被弾したなら【被弾口上】→
+;どちらかの残機が0になっていなければ②に戻る→⑤【戦闘後口上】
+
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+SIF FLAG:口上色
+	TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;戦闘前
+	HANDICAP_FIXED = 0
+	HANDICAP_RAND = 0
+	;ハンデをつけることができ、数値が大きいほどあなたが不利になる　数値が負ならあなたが有利に
+	;キャラの能力に関わらずクッソ強くしたり弱くしたりできる
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘前"
+		IF ABL:戦闘能力 >= ABL:MASTER:戦闘能力
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「勝負……%CALLNAME:MASTER%と？」
+				PRINTFORMW 「やるんなら、本気出すけど……良いよね？」
+			ELSE
+				PRINTFORMW 「勝負……構わないわ」
+				SIF TALENT:思慕
+					PRINTFORMW （ふん、本気出すまでもないかな……？）
+			ENDIF
+		ELSE
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「うーん、正直勝てる気しないんだけど……%CALLNAME:MASTER%、変に強いし」
+				PRINTFORML 「まぁ、でも……やるからには、タダで負ける気もないわ」
+				PRINTFORMW 「本気で来てね」
+			ELSE
+				PRINTFORMW 「勝負……構わないわ」
+				SIF TALENT:思慕
+					PRINTFORMW （普通にやったら負けそう……さて、どうしようかな）
+			ENDIF
+		ENDIF
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;ハンデ
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "ハンデ"
+		;ハンデつけなかったら表示されないので無記入でよい
+		PRINTFORML 
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中TARGET被弾時口上
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "被弾" 
+		;別に一律で「やられたー」だけでもいいよ
+		SELECTCASE 相手残機
+			;残り残機3が表示されるのは【洽覧深識】持ちのみ
+			CASE 3
+				PRINTFORML
+			CASE 2
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「やるじゃん、%CALLNAME:MASTER%」
+					PRINTFORMW 「でも、この程度で勝ったとは思わないでよ」
+				ELSE
+					PRINTFORMW 「……くっ……」
+					SIF TALENT:思慕
+						PRINTFORMW （……やるじゃん、%CALLNAME:MASTER%）
+				ENDIF
+			CASE 1
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「なんなのよ、その強さは……」
+					PRINTFORMW 「……まだ、終わりじゃないわ！」
+				ELSE
+					PRINTFORMW 「っ……今度こそ……」
+					SIF TALENT:思慕
+						PRINTFORMW （こいつ、何者なのよ……）
+				ENDIF
+			CASE 0
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「うう、本気でやったのに……」
+					PRINTFORMW 「めちゃくやし～！」
+				ELSE
+					PRINTFORMW 「強すぎるわ……」
+					SIF TALENT:思慕
+						PRINTFORMW （こんな奴に負けた……）
+				ENDIF
+		ENDSELECT
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【残忍酷薄】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "残忍酷薄"
+		IF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「ボムが足りない？　さぁ、何のこと？」
+			PRINTFORMW 「気合で避ければ、何とかなるでしょ……ほら、いくよ！」
+		ELSE
+			PRINTFORML 「ん……どうかしたの？」
+			PRINTFORMW 「……%UNICODE(0x2665) *1%」
+			SIF TALENT:思慕
+				PRINTFORMW （ふふ……これは没収ね）
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【乾坤一擲】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "乾坤一擲"
+		
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【怪力乱神】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "怪力乱神"
+		
+	ENDIF
+	
+	;-------------------------------------------------
+	;戦闘後
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘後" 
+		PRINTFORML 
+		;残り残機4が表示されうるのは【洽覧深識】持ちのみ
+		;残機が1以上ならあなたの負け、0の場合はあなたの勝利
+		SELECTCASE 相手残機
+			CASE 4
+				PRINTFORML 
+			CASE 3
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「大体、予想通りの強さね……まだまだってとこ」
+					PRINTFORMW 「訓練とかするなら、付き合ってあげるけど」
+				ELSE
+					PRINTFORMW 「こんなものね……」
+					SIF TALENT:思慕
+						PRINTFORMW （まあ、予想通りってとこかな）
+				ENDIF
+			CASE 2
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「まあまあ面白かったよ%UNICODE(0x2665) *1%」
+					PRINTFORMW 「そうだね……例えば、さっきの攻撃は――」
+				ELSE
+					PRINTFORMW 「まあまあ、かな……」
+					SIF TALENT:思慕
+						PRINTFORMW （完勝、とはいかなかったか……むむ）
+				ENDIF
+			CASE 1
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「っ……わたしも、少し練習しないとまずいかも」
+					PRINTFORMW 「一緒にやらない？」
+				ELSE
+					PRINTFORMW 「ふぅっ……危ないかも……」
+					SIF TALENT:思慕
+						PRINTFORMW （これは、ちょっと対策しないと……）
+				ENDIF
+			CASE 0
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「はぁ……%CALLNAME:MASTER%、何者なのよ」
+					PRINTFORMW 「ねぇ、わたしのダメだったとこ、一通り教えてよ……今度こそ倒すから」
+				ELSE
+					PRINTFORML 「……はぁ」
+					SIF TALENT:思慕
+						PRINTFORML （薄々気づいてたけど……%CALLNAME:MASTER%の周りだと、わたし……結構弱いほうみたい……）
+					PRINTFORMDW マイは落ち込んでいるようだ……
+				ENDIF
+		ENDSELECT
+	ENDIF
+RESETCOLOR
+ENDIF
+RETURN 1
+

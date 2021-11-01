@@ -1,0 +1,91 @@
+﻿;食事
+@EXIST_FreeAct2
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+;オブジェクト本体
+@FreeAct2(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+#DIM 経過時間
+経過時間 = Activity_Duration:TARGET
+SELECTCASE O_DATA
+CASE "名称"
+	CALLF MAKE_STR(V_NAME, "一緒に食事する")
+CASE "CHAIN"
+;他キャラに連鎖する場合コメントアウト外すこと
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "経過時間"
+;自由行動に付き合うコマンドでの経過時間
+;未入力だと最大30分
+	CALLF MAKE_INT(V_NAME, 経過時間)
+ENDSELECT
+
+@自由行動内容_2(CHARA, ARGS, 時間係数, CHAIN)
+#DIM CHARA
+#DIM CHAIN
+#DIM 現在地
+#DIM メッセージ表示
+#DIM 時間係数
+#DIM 経過時間
+現在地 = CFLAG:CHARA:現在位置
+メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
+SELECTCASE ARGS
+	CASE "発生"
+		SIF !憩いスペース(現在地) && 現在地 != CFLAG:CHARA:神社在住
+			RETURN 0
+		SIF TIME_PROGRESS(TCVAR:CHARA:空腹時刻) <= 0
+			RETURN 0
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は\@ CHAIN ? %CALLNAME:CHAIN%と一緒に食事を始めた。# 食事を用意した。\@
+		;行動が始まった段階で空腹は満たされる,以降も行動が終わるまで一定の満腹を得る,この時点では満腹だけ
+		TCVAR:CHARA:空腹時刻 = 1440 * DAY + TIME + 120
+		RETURN 60 + RAND:30
+	CASE "行動中"
+		CALL 自由行動食事(CHARA)
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は食事を摂っている。
+	CASE "完了"
+		CALL 自由行動食事(CHARA)
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は食事を終えたようだ。
+	CASE "中断"
+		CALL 自由行動食事(CHARA)
+	CASE "付き合う"
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%と一緒に食事をした
+		IF TFLAG:193 < 0
+			PRINTFORML それほどお腹は空いていなかった…
+		ELSE
+			PRINTFORML 何気ない団らんの一時を過ごした…
+		ENDIF
+	CASE "ソース"
+		CALL FreeActMeal(TARGET, 時間係数)
+ENDSELECT
+
+@FreeActMeal(ARG, 時間係数)
+#DIM 時間係数
+#DIM 経過時間
+経過時間 = Activity_Duration:ARG
+IF TIME_PROGRESS(TCVAR:MASTER:空腹時刻) <= 0
+	;空腹でなかったら効果減少
+	TFLAG:193 = -1
+	SOURCE:ARG:歓楽 = (50 + ((ABL:ARG:親密 + 好感度係数(ARG)) * 25)) * 時間係数
+	SOURCE:ARG:受動 = (30 + ((ABL:ARG:従順 + 好感度係数(ARG)) * 15)) * 時間係数
+	SOURCE:ARG:征服 = (30 + (ABL:ARG:サドっ気 * 10)) * 時間係数
+	TCVAR:MASTER:空腹時刻 = MAX(1440 * DAY + TIME + 120, TCVAR:MASTER:空腹時刻)
+	CALL RECOVER(MASTER, 1 * 経過時間, "体力", "食事による回復")
+	CALL RECOVER(MASTER, 1 * 経過時間, "気力", "食事による回復")
+	TFLAG:98 = 1
+ELSE
+	SOURCE:ARG:歓楽 = (100 + ((ABL:ARG:親密 + 好感度係数(ARG)) * 50)) * 時間係数
+	SOURCE:ARG:受動 = (60 + ((ABL:ARG:従順 + 好感度係数(ARG)) * 30)) * 時間係数
+	SOURCE:ARG:征服 = (60 + (ABL:ARG:サドっ気 * 10)) * 時間係数
+	;TARGETは自由行動処理で食事する
+	TCVAR:MASTER:空腹時刻 = 1440 * DAY + TIME + 120
+	CALL RECOVER(MASTER, 3 * 経過時間, "体力", "食事による回復")
+	CALL RECOVER(MASTER, 3 * 経過時間, "気力", "食事による回復")
+	TFLAG:98 = 2
+ENDIF

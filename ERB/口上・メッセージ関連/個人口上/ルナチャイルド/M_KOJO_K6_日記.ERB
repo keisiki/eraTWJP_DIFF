@@ -1,0 +1,784 @@
+;日記口上
+
+;一日の終了時の流れ
+;@DIARY_TEXT_K6（日記本文）→@DIARY_AFTER_CHECK_K6（フラグの処理）
+
+
+;◆日記の仕様◆
+;※１@DIARY_BEFORE_CHECK_K6で日記のフラグが立つ。
+;→未読フラグ(2)が立っていると一日の終わりにデイリーイベントとして日記が読まれる（既読になる）。
+;→※２未読フラグ(3)が立っていると[日記を読む]で読む事ができる。読むと既読(1)になる。
+;※１各所イベント口上やコマンド口上でフラグを立たせても良いです。
+;※２基本的には未読(2)推奨です。既読(1)、未読(3)はワンステップ必要。
+
+;[日記を読む]には、持ち主が[恋慕]なら自由に読むことができ、
+;そうでない場合は恋慕でない人物がその場に居ない時、もしくは時間停止することで盗み読みできる。
+;拠点住民でないキャラは恋慕であれば自宅（お招き部屋）で読むことができる。
+
+;MAX_DIARY_PAGE:XX:0　キャラ番号XXの日記の最大ページ数　限度は101（1～100）
+;DIARY:XX:YY　　　　　キャラ番号XXの日記番号YYの情報
+;　　 3=未読　　　　　デイリーイベントで読まれない。[日記を読む]で読むと既読になる。
+;　　 2=未読　　　　　デイリーイベントで読まれる。読まれるまでは[日記を読む]では読めない。読まれると既読になる。
+;　　 1=既読　　　　　デイリーイベントで読まれない。[日記を読む]で読める。
+;　　 0=読めない　　　未解禁。
+;PAGESET:XX:YY　　　　キャラ番号XXの実際に書かれたYYページ目の日記番号。
+;=============================
+@DIARY_K6_EXIST
+;存在判定
+;0だと日記は書かれません。
+;=============================
+RETURN 1
+
+;=============================
+@DIARY_AFTER_CHECK_K6
+;デイリーイベントで日記が読まれた際の後処理。
+;フラグの管理等自由に扱って良い。
+
+;条件フラグのリセットや判定追加もここに 
+;たとえば：今日構ったフラグ
+;今日構った日記が表示した後、構ったフラグをリセット。
+; CFLAG:XX:今日構ったフラグ = 0
+;あるいは何かの状態が続くことがフラグの場合
+;例：好感度がほぼ変わらない日が続くと
+;「あなた」の態度が冷たいな～みたいな日記を書く
+; SIF CFLAG:XX:好感度 <= LAST_LP+3
+;   NOTOUCH_DAY ++
+;=============================
+
+
+;=============================
+@DIARY_BEFORE_CHECK_K6
+
+;常時チェックされる日記の状態情報。
+;ここでDIARY:XX:YYの更新を行う。
+;※DIARY:XX:0番は使えません。
+
+;ここで汎用発生条件を記入する
+;コマンド別の発生条件はM_KOJOの各ファイル中で追加してください。
+
+;基本的に発生条件には"DIARY:XX:YY == 0"を入れること。
+;そうしないと同じ日記が書かれたりしてしまう。
+
+;DIARY:XX:YY　　　　キャラ番号XXの日記番号YYの情報
+;　　 3=未読　　　　デイリーイベントで読まれない。[日記を読む]で読むと既読になる。
+;　　 2=未読　　　　デイリーイベントで読まれる。読まれるまでは[日記を読む]では読めない。読まれると既読になる。
+;　　 1=既読　　　　デイリーイベントで読まれない。[日記を読む]で読める。
+;　　 0=読めない　　未解禁。
+
+;○未読(2)にする場合（基本）
+;未読(2)にするとデイリーイベントとして発生し、一日の終わりに１つだけ読まれる。
+;複数のページが未読(2)になっている場合は番号が小さいものが読まれ、それ以外はリセット(0)される。
+;その為、複数同時に発生すると、発生したのに読まれずリセットされる場合もある。
+;未読(2)にするには単純にフラグに2を入れるだけで良い。
+
+;例１)初対面
+;SIF DIARY:XX:YY == 0 && CFLAG:XX:面識
+;	DIARY:XX:YY = 2
+
+;○未読(3)にする場合（応用）
+;未読(3)にするとデイリーイベントとして読まれず、書かれた時点で[日記を読む]によって読めるようになる。
+;プレイヤーが自主的に読まない限り読まれず、一日に複数ページ加筆される場合もある。
+;未読(3)にするにはフラグに3を入れた上で、CALL CHARA_DIARY_PAGESETTING(XX, YY)をする必要がある。
+
+;例２）好感度100以上
+;IF DIARY:XX:YY == 0 && CFLAG:XX:好感度 >= 100
+;	DIARY:XX:YY = 3
+;	CALL CHARA_DIARY_PAGESETTING(XX, YY)
+;ENDIF
+
+;例３）例２の日記が読まれた上で好感度1000以上
+;これをするとYYを読んだ直後にZZが書き込まれることも起こる。
+;IF DIARY:XX:ZZ == 0 && DIARY:XX:YY == 1 && CFLAG:XX:好感度 >= 1000
+;	DIARY:XX:ZZ = 3
+;	CALL CHARA_DIARY_PAGESETTING(XX, ZZ)
+;ENDIF
+
+;▽おせっかいな注釈
+;ファーストキスは基本的に全員[キス未経験]を所持しているので、"!TALENT:XX:キス未経験"で判定できます。
+;デート帰りのキスで分岐したいならデート帰りのキス口上でフラグを立てます。
+;その場合、通常のファーストキス喪失と重複しないように気をつけましょう。
+;処女喪失は初期設定で処女喪失している場合もあるので、処女喪失口上の方でフラグを立てた方が良いです。
+;その他告白・陥落等のイベントは各種イベント口上でフラグを立てます。初対面はそっちでも大丈夫です。
+;日付を正確に測るには別途フラグが必要です。例えば初めて会った日とか。
+
+;=============================
+;初対面その１
+IF DIARY:6:1 == 0 && CFLAG:6:面識
+	DIARY:6:1 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,1)
+ENDIF
+
+;好感度500以上
+IF DIARY:6:2 == 0 && CFLAG:6:好感度 > 500
+	DIARY:6:2 = 3
+		SELECTCASE CFLAG:MASTER:初期位置
+		;CFLAG:6:1002に初期位置の場所を格納しています。
+			CASE 35
+			;三妖精の家
+				CFLAG:6:1002 = 35
+			CASE 51
+			;博麗神社
+				CFLAG:6:1002 = 51
+			CASE 53
+			;夢幻遺跡
+				CFLAG:6:1002 = 53
+			CASE 119
+			;命蓮時
+				CFLAG:6:1002 = 119
+			CASE 134
+			;神霊廟
+				CFLAG:6:1002 = 134
+			CASE 230
+			;人間の里
+				CFLAG:6:1002 = 230
+			CASE 304
+			;紅魔館
+				CFLAG:6:1002 = 304
+			CASE 412 TO 428
+			;永遠亭
+				CFLAG:6:1002 = 412
+			CASE 442		
+			;迷いの竹林
+				CFLAG:6:1002 = 442
+			CASE 460
+			;夢幻館(幽香の家)
+				CFLAG:6:1002 = 460
+			CASE 515 TO 536
+			;魔法の森
+				CFLAG:6:1002 = 515
+			CASE 634
+			;八雲亭
+				CFLAG:6:1002 = 634
+			CASE 618
+			;曲直庁(地獄)
+				CFLAG:6:1002 = 618
+			CASE 625
+			;白玉楼
+				CFLAG:6:1002 = 625
+			CASE 719 TO 823
+			;妖怪の山
+				CFLAG:6:1002 = 719
+			CASE 842
+			;天界
+				CFLAG:6:1002 = 842
+			CASE 916 TO 943
+			;チテイ
+				CFLAG:6:1002 = 916
+			CASE 1007
+			;月
+				CFLAG:6:1002 = 1007
+			CASEELSE
+			;その他
+		ENDSELECT
+	CALL CHARA_DIARY_PAGESETTING(6,2)
+ENDIF
+
+;思慕獲得
+IF DIARY:6:3 == 0 && TALENT:思慕
+	DIARY:6:3 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,3)
+ENDIF
+
+;恋慕獲得
+IF DIARY:6:4 == 0 && TALENT:恋慕
+	DIARY:6:4 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,4)
+ENDIF
+
+;恋人獲得
+IF DIARY:6:5 == 0 && TALENT:恋人
+	DIARY:6:5 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,5)
+ENDIF
+
+;ファーストキス獲得(親密が高い)
+IF DIARY:6:6 == 0 && ABL:6:親密 > 5 && !TALENT:6:キス未経験
+	DIARY:6:6 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,6)
+ENDIF
+
+;ファーストキス獲得(親密が低い)
+IF DIARY:6:7 == 0 && ABL:6:親密 < 5 && !TALENT:6:キス未経験
+	DIARY:6:7 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,7)
+ENDIF
+
+;処女喪失した。
+IF !TALENT:6:処女 && DIARY:6:9 == 0 && DIARY:6:11 == 0 && DIARY:6:12 == 0
+	;恋慕
+	IF TALENT:恋慕
+		DIARY:6:9 = 3
+		CALL CHARA_DIARY_PAGESETTING(6,9)
+	;反発刻印3で処女喪失した。
+	ELSEIF MARK:6:反発刻印 == 3
+		DIARY:6:11 = 3
+		CALL CHARA_DIARY_PAGESETTING(6,11)
+	;その他
+	ELSE
+		DIARY:6:12 = 3
+		CALL CHARA_DIARY_PAGESETTING(6,12)
+	ENDIF
+ENDIF
+
+;サニーが恋慕獲得
+IF DIARY:6:13 == 0 && TALENT:6:恋慕 && TALENT:5:恋慕
+	DIARY:6:13 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,13)
+ENDIF
+
+;スターが恋慕獲得
+IF DIARY:6:14 == 0 && TALENT:6:恋慕 && TALENT:7:恋慕
+	DIARY:6:14 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,14)
+ENDIF
+
+;サニーが恋人獲得
+IF DIARY:6:15 == 0 && TALENT:6:恋慕 && TALENT:5:恋人
+	DIARY:6:15 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,15)
+ENDIF
+
+;スターが恋人獲得
+IF DIARY:6:16 == 0 && TALENT:6:恋慕 && TALENT:7:恋人
+	DIARY:6:16 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,16)
+ENDIF
+
+;人間の里へデートに行った。
+IF DIARY:6:17 == 0 && FLAG:デート相手 == 6 && CFLAG:6:デート中 == 2
+	DIARY:6:17 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,17)
+ENDIF
+
+;魔法の森へデートに行った。
+IF DIARY:6:18 == 0 && FLAG:デート相手 == 6 && CFLAG:6:デート中 == 5
+	DIARY:6:18 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,18)
+ENDIF
+
+;竹林へデートに行った。
+IF DIARY:6:19 == 0 && FLAG:デート相手 == 6 && CFLAG:6:デート中 == 4
+	DIARY:6:19 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,19)
+ENDIF
+
+;チテイへデートに行った。
+IF DIARY:6:20 == 0 && FLAG:デート相手 == 6 && CFLAG:6:デート中 == 9
+	DIARY:6:20 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,20)
+ENDIF
+
+
+;良い贈り物
+IF DIARY:6:21 == 0 && GET_GIFTDATA(TCVAR:6:今日の贈り物, "得点") >= 700
+	DIARY:6:21 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,21)
+ENDIF
+
+;普通の贈り物
+IF DIARY:6:22 == 0 && GET_GIFTDATA(TCVAR:6:今日の贈り物, "得点") >= 400
+	DIARY:6:22 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,22)
+ENDIF
+
+;悪い贈り物
+IF DIARY:6:23 == 0 && GET_GIFTDATA(TCVAR:6:今日の贈り物, "得点") < 400
+	DIARY:6:23 = 3
+	CALL CHARA_DIARY_PAGESETTING(6,23)
+ENDIF
+
+;普通の日記
+SELECTCASE DAY:0
+	CASE 5
+		SIF DIARY:6:24 == 0
+			CALL CHARA_DIARY_PAGESETTING(6,24)
+			DIARY:6:24 = 3
+	CASE 10
+		SIF DIARY:6:25 == 0
+			CALL CHARA_DIARY_PAGESETTING(6,25)
+			DIARY:6:25 = 3
+	CASE 20
+		SIF DIARY:6:26 == 0
+			CALL CHARA_DIARY_PAGESETTING(6,26)
+			DIARY:6:26 = 3
+	CASE 25
+		SIF DIARY:6:27 == 0
+			CALL CHARA_DIARY_PAGESETTING(6,27)
+			DIARY:6:27 = 38
+	CASE 30
+		SIF DIARY:6:28 == 0
+			CALL CHARA_DIARY_PAGESETTING(6,28)
+			DIARY:6:28 = 3
+	CASE 35
+		SIF DIARY:6:29 == 0
+			CALL CHARA_DIARY_PAGESETTING(6,29)
+			DIARY:6:29 = 3
+	CASE 40
+		SIF DIARY:6:30 == 0
+			CALL CHARA_DIARY_PAGESETTING(6,30)
+			DIARY:6:30 = 3
+	CASE 45
+		SIF DIARY:6:31 == 0
+			CALL CHARA_DIARY_PAGESETTING(6,31)
+			DIARY:6:31 = 3
+	CASE 50
+		SIF DIARY:6:32 == 0
+			CALL CHARA_DIARY_PAGESETTING(6,32)
+			DIARY:6:32 = 3
+	CASE 55
+		SIF DIARY:6:33 == 0
+			CALL CHARA_DIARY_PAGESETTING(6,33)
+			DIARY:6:33 = 3
+	CASEELSE
+	
+ENDSELECT
+;=============================
+;MAXPAGEはここで記入する
+MAX_DIARY_PAGE:6:0 = 34
+
+;=============================
+@DIARY_TEXT_K6, PAGENUM, MODE, PAGECOUNT
+;日記の内容
+;PAGENUM   = 日記番号（日記のパターン）
+;MODE      = "デイリー":一日終了時のデイリーイベントでの読み上げ
+;          = "コマンド":[日記を読む]コマンドでの読み上げ
+;PAGECOUNT = 何ページ目に書かれているか
+;=============================
+#DIM PAGENUM
+#DIMS MODE
+#DIM PAGECOUNT
+
+;口上色指定あるならコメントアウトを外す
+CALL M_KOJO_COLOR_K6
+SETCOLOR C_CREAM
+;グループマッチに日記のIDを入れて、表示させたい顔絵を表示する
+;表情・服装・特殊画像をオプション指定で表示（省略可）
+;書式は\resources\顔.CSVと下の例を参照
+
+;以下はサンプル
+IF MODE == "デイリー"
+	IF GROUPMATCH(PAGENUM, 1) 
+		CALL PRINT_FACE, 6, "発情", "裸", "_1"
+	ELSEIF GROUPMATCH(PAGENUM, 2)
+		CALL PRINT_FACE, 6, "笑顔", "服1"
+	ELSEIF GROUPMATCH(PAGENUM, 3)
+		CALL PRINT_FACE, 6, "怒り"
+	ELSE
+		CALL PRINT_FACE, 6
+	ENDIF
+ENDIF
+
+PRINTFORMDL - %CALLNAME:6%の日記　PAGE.{PAGECOUNT} --------------------------------------------------------------------------------------
+PRINTL
+
+;※PAGENUM:0は使えません
+IF TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行 || CFLAG:6:1001 == 1
+;あなたがショタの場合のみ表示
+	SELECTCASE PAGENUM
+		CASE 1
+		;初対面その１
+			IF CFLAG:MASTER:初期位置  == 35
+				PRINTFORML サニーが人間の子どもを拾ってきた。
+				PRINTFORML めずらしくサニーが夜のさんぽに行ったと思ったら人間の子どもを見つけるとは思わなかった…。
+				PRINTFORML 「この子を育ててめしつかいにするわよ！」とか言ってるサニーの頭を叩いた私はわるくない。
+				PRINTFORML ちょうどキゼツしてるみたいだし、地下のへやにねかせておく。
+				PRINTFORML でも、あのままほっとくわけにはいかない。もし里の子どもだったら、私たちは人さらいと思われるかも。
+				PRINTFORML レイムさんにタイジされるか、マリサさんにけしとばされるか……。
+				PRINTFORML どっちもヤダ。早くなんとかしなきゃ…。
+			ELSE
+				PRINTFORML 今日はヘンな人間の子どもに出会った。
+				PRINTFORML 一人でいたからイタズラしようと思ったら、ぶつかってその子の前でころんでしまった。ちょっと恥ずかしい。
+				PRINTFORML そのまま近づいてくるから、イジメてくると思って少し怖かっけど、その子は私を助け起こしてくれた。
+				PRINTFORML 人間の子どもは私を見つけたらいじめるか、にげるかのどっちかなのに。変わった子も世の中にはいるみたい。
+				PRINTFORML そのことを話したらサニーに「ルナがドジだったからお情けで助けたんじゃない？」と言われた。
+				PRINTFORML …サニーだけ夕食のおかずを半分にしておく。
+				PRINTFORML 
+				PRINTFORML そういえばあんな風に男の子と話すのは初めてかもしれない。
+				PRINTFORML また会えたら話しかけてみようと思う。
+			ENDIF
+		CASE 2
+		;好感度500以上
+			PRINTFORML このごろ、前に会った%CALLNAME:MASTER%とよく会う。
+			PRINTFORM %CALLNAME:MASTER%の話を聞くと
+				SELECTCASE CFLAG:6:1002
+					CASE 35
+					;三妖精の家
+						PRINTFORML %CALLNAME:MASTER%は外来人なのかもしれない。しばらくここでお世話してても大丈夫そう。
+					CASE 51
+					;博麗神社
+						PRINTFORML レイムさんといっしょにくらしているらしい。…ごはんはちゃんと食べさせてもらってるみたい。
+					CASE 53
+					;夢幻遺跡
+						PRINTFORML 神社の近くにとつぜん現れたイセキに住んでいるようだ。…もしかしてウチュー人？
+					CASE 119
+					;命蓮時
+						PRINTFORML 妖怪のいる寺に住まわせてもらっていると言っていた。お坊さんにでもなるのかな？
+					CASE 134
+					;神霊廟
+						PRINTFORML 皿のわれる音がする道場に住まわせてもらっていると言っていた。仙人になるつもりなのかも。
+					CASE 230
+					;人間の里
+						PRINTFORML 人間の里でくらしている。なかよくなれば人間の里に入れるようになるかもしれない。
+					CASE 304
+					;紅魔館
+						PRINTFORML 紅魔館に住んでいるらしいけど…。あの吸血鬼のゴハンかもしれない。いつまで会えるだろうか。
+					CASE 412
+					;永遠亭
+						PRINTFORML 迷いの竹林のおくにある大きなおやしきに住んでいると言っていたけど
+						PRINTFORML あんなところにお屋敷なんてあったかな？
+					CASE 442		
+					;迷いの竹林
+						PRINTFORML なんと迷いの竹林でくらしているそうだ。見た目より%CALLNAME:MASTER%はずっと強いのかも。
+					CASE 460
+					;夢幻館(幽香の家)
+						PRINTFORML 話すのもこわい花の妖怪の家に住まわせてもらってると言っていた。こわい妖怪の家でよく平気でいられると思う。
+					CASE 515
+					;魔法の森
+						PRINTFORML 魔法の森でくらしてるらしい。マリサさんの家もあそこだし、人間でもがんばれば生きていけるようだ。
+					CASE 634
+					;八雲亭
+						PRINTFORML マヨヒガに住んでいると言っていた。…私が%CALLNAME:MASTER%を持ち帰ったら幸せになれるのかも。
+					CASE 618
+					;曲直庁(地獄)
+						PRINTFORML じごくでくらしてると言っていた。%CALLNAME:MASTER%はどんなわるいことをしたんだろ。
+					CASE 625
+					;白玉楼
+						PRINTFORML めいかいでくらしていると言っていた。お化けだと思って少しチビちゃったのはバレなくて本当に良かった。
+					CASE 719
+					;妖怪の山
+						PRINTFORML 妖怪の山でくらしてるらしい。テングやカッパにかこまれても平気な%CALLNAME:MASTER%はたくましい。				
+					CASE 842
+					;天界
+						PRINTFORML 天界でくらしてるらしい。次は天界のモモを持ってきてとおねがいしておいた。
+					CASE 916
+					;チテイ
+						PRINTFORML チテイでくらしていると言っていた。%CALLNAME:MASTER%はひょっとしてモグラ？
+					CASE 1007
+					;月
+						PRINTFORML 月からやってきたと言っていた。ウソなのかホントなのかわからない。
+					CASEELSE
+					;その他
+						PRINTFORML 変なところに住んでるらしい。変わった子だ。
+			ENDSELECT
+			PRINTFORML ただ、幻想郷になれてないようで見ていてちょっと危なっかしい。(私が言えたことじゃないけど…）
+			PRINTFORML この前も妖怪に平気で話しかけていたのを見てとてもヒヤヒヤいた。
+			PRINTFORML 男の子はムテッポウなところがあるらしいけどあれじゃ命がいくつあっても足りない。
+			PRINTFORML だから、少しだけ%CALLNAME:MASTER%に幻想郷のことをおしえてあげようと思う。
+			PRINTFORML 人間の子どもと仲良くなれば人間の里にも忍び込みやすいもの。
+		CASE 3
+		;思慕
+			PRINTFORML 今日も%CALLNAME:MASTER%とあそんだ。毎日いっしょでもぜんぜんあきない。
+			PRINTFORML 一番楽しいのは%CALLNAME:MASTER%と幻想郷をたんけんすること。
+			PRINTFORML 私が行ったことある場所なら、%CALLNAME:MASTER%と行くと気づかなかったことがわかったりする。
+			PRINTFORML 私が行ったことない場所でも、%CALLNAME:MASTER%と手をつなぎながらタンケンすればこわくないから安心できた。
+			PRINTFORML もし%CALLNAME:MASTER%も妖精だったら、光の三妖精じゃなくて光の四妖精になってたかも。
+			PRINTFORML それぐらい私と%CALLNAME:MASTER%はなかよくなった。
+			PRINTFORML 明日は何をしてあそぼうか、ユメの中で考えておこう。
+		CASE 4
+		;恋慕
+			PRINTFORML %CALLNAME:MASTER%と目を合わせられない。
+			PRINTFORML おしゃべりしようとしても恥ずかしくて口がうまく動かない。
+			PRINTFORML つなごうとした手がふるえて%CALLNAME:MASTER%の手をつかめない。
+			PRINTFORML ムネのおくがドクドクなって苦しくて、顔から火がでるみたいにあつくなる。
+			PRINTFORML でも、キライじゃない。好き。
+			PRINTFORML
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML ………%CALLNAME:MASTER%も私と同じ気持ちなのかな。
+		CASE 5
+		;恋人
+			PRINTFORML %CALLNAME:MASTER%と恋人になった。
+			PRINTFORML そっけなく受けたつもりだけど、今日一日笑顔がくっついてとれない。
+			PRINTFORML サニーやスターにしんぱいされたけど笑顔でおしとおした。
+			PRINTFORML ムネの中のコーヒーカップがうれしいでいっぱいであふれてしまいそう。
+			PRINTFORML もうなんて書いたらわからない。それぐらい今の私は幸せでいっぱいになってる。
+			PRINTFORML きっと明日から楽しいことばかりになると思う。
+			PRINTFORML 
+		CASE 6
+		;ファーストキス獲得(親密が高い)
+			PRINTFORML 日記に書こうとなやんだけど、思い切って書いてしまおう。
+			PRINTFORML ついに%CALLNAME:MASTER%とキスをした。
+			PRINTFORML はじめてのキスは、%CALLNAME:MASTER%の味がした。 …甘いとかすっぱいとかじゃない、%CALLNAME:MASTER%の味。
+			PRINTFORML 口から聞こえる小さな水音がイケないことをしてるみたいだった。
+			PRINTFORML ホワッて気持ちよくなって、思い出すと今でもムネがドキドキする。
+			PRINTFORML 大人たちから見ればおあそびみたいなキスだと思われるけど、私はあのキスが忘れられない。
+			PRINTFORML …また%CALLNAME:MASTER%とキスしてみようかな。
+		CASE 7
+		;ファーストキス獲得(親密が低い)
+			PRINTFORML 私はこのうらみを忘れないため日記に書いておく。
+			PRINTFORML %CALLNAME:MASTER%にムリやりキスをされた。
+			PRINTFORML 今思い出しても吐き気がする。あんな奴だと思わなかった。
+			PRINTFORML ぜったいにゆうさない。
+		CASE 8
+		;恋慕で処女喪失し、Ｖ絶頂した。
+		;これは表示されません。式が組めませんでした。
+			PRINTFORML 今日、私は%CALLNAME:MASTER%と一つになった。
+			PRINTFORML %CALLNAME:MASTER%は好きな人同士がすることって言っていた。
+			PRINTFORML 大きくなったおちんちんがお腹に入ってくるのはイタかったけど、私はとても幸せだった。
+			PRINTFORML 身体が羽根の先までうれしいでいっぱいになって、ずっと続けばいいと思ったぐらい。
+			PRINTFORML 私と%CALLNAME:MASTER%は一生懸命カラダをくっつけあってキモチいいのを感じあってた。
+			PRINTFORML 思い出すとキュンとカラダがくすぐったくなる。
+			PRINTFORML また明日も%CALLNAME:MASTER%と……。
+		CASE 9
+		;恋慕で処女喪失した。
+			PRINTFORML 今日、私は%CALLNAME:MASTER%と一つになった。
+			PRINTFORML %CALLNAME:MASTER%は好きな人どうしがすることって言っていた。
+			PRINTFORML 大きくなったおちんちんがお腹に入ってくるのはいたかったけど、私はとても幸せだった。
+			PRINTFORML %CALLNAME:MASTER%が切なそうな顔を見てると、私は愛されてるんだ…わかったから。
+			PRINTFORML まだちょっとカラダがいたいけど、このいたみは私の大切な思い出になると思う。
+		CASE 10
+		;処女喪失し、Ｖ絶頂した。
+		;これは表示されません。式が組めませんでした。
+			PRINTFORML 今日、私は%CALLNAME:MASTER%とエッチなあそびをした。
+			PRINTFORML 私も大人がかくれてするのを見たことあるから、興味がないわけじゃなかった。
+			PRINTFORML ハジメテはイタかった。でも私と%CALLNAME:MASTER%はイケないことをしてるんだと思うとゾクゾクしてくる。
+			PRINTFORML それからおちんちんが私の中を擦ってると、うっとりしてきてキモチいいがこみあげてきた。
+			PRINTFORML 途中から私も夢中で腰を動かしてキモチいいを欲しがってた。少し恥ずかしい…。
+			PRINTFORML これはサニーやスターにも教えられない。私と%CALLNAME:MASTER%のヒミツ。
+			PRINTFORML 帰るとき、%CALLNAME:MASTER%とこのあそびをする約束をした。こんどはどこでしようかな。
+		CASE 11
+		;反発刻印3で処女喪失した。
+			PRINTFORML ゆるさない
+			PRINTFORML 
+			PRINTFORML ぜったいにゆるさない。
+			PRINTFORML 
+			PRINTFORML あいつは私をキズつける。
+			PRINTFORML 
+			PRINTFORML やめてとさけんでもあいつは私をイジめてくる・
+			PRINTFORML 
+			PRINTFORML わすれてやるもんか。
+			PRINTFORML 
+			PRINTFORML いつかあいつを……。
+		CASE 12
+		;処女喪失した。
+			PRINTFORML 今日、私は%CALLNAME:MASTER%とエッチなあそびをした。
+			PRINTFORML 私も大人がかくれてするのを見たことあるから、こわいけどきょうみがないわけじゃなかった。
+			PRINTFORML でも全然楽しくない。いたいことばかり。今も何かおなかにはいってるみたいでズキズキする。
+			PRINTFORML %CALLNAME:MASTER%はキモチよさそうにおちんちんを私の中に出し入れするたび
+			PRINTFORML 私はあそこがさけそうでいたみをぐっとガマンしてた。……ふこうへいだ。
+			PRINTFORML 何回かくりかえせばキモチいいらしいけど、…ひょっとして私だまされてない？
+			PRINTFORML 
+		CASE 13
+		;サニーが恋慕
+			PRINTFORML さいきん%CALLNAME:MASTER%とサニーが二人でいるのをよく見る。
+			PRINTFORML %CALLNAME:MASTER%はサニーのイタズラにまきこまれている。
+			PRINTFORML でも、%CALLNAME:MASTER%も楽しそうに笑ってるんだ。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML 私じゃなくてサニーに%CALLNAME:MASTER%はあの笑顔を向けている。
+			PRINTFORML そう思いながら二人を見ていると、一人ぼっちになったみたいでムネのおくが切なくなった。
+		CASE 14
+		;スターが恋慕
+			PRINTFORML さいきんのスターは%CALLNAME:MASTER%につきまとっている。
+			PRINTFORML からかいながらも%CALLNAME:MASTER%といっしょにいるスター。
+			PRINTFORML スターがあんなに楽しそうにわらうの、あまり見たことない。
+			PRINTFORML %CALLNAME:MASTER%もまんざらじゃないような顔でスターとおしゃべりをしている。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML いつもみたいにあの中にまじる気になれない。
+			PRINTFORML そんなことしたら私は二人に怒ったり泣いたりしてしまいそうだから。
+		CASE 15
+		;サニーが恋人
+			PRINTFORML サニーが%CALLNAME:MASTER%の恋人になった。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML %CALLNAME:MASTER%が好きだったのは、私じゃなかった。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML よく考えてみれば、当たり前だった。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML 私はサニーとなかよくなるためのふみだいだったんだ。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML 私がかってに%CALLNAME:MASTER%を好きになって、かってにフラれただけだ。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML 今日ほど音をけす能力があってよかったと思う。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML だれにも気づかれないで、私はいっぱい泣くことができるから。
+			PRINTFORML 
+		CASE 16
+		;スターが恋人
+			PRINTFORML スターが%CALLNAME:MASTER%の恋人になった。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML スターばかり、ずるい。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML 私だって%CALLNAME:MASTER%のことが好きなのに。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML でも、スターはきらいになれない。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML スターだって、%CALLNAME:MASTER%がホントに好きだってこと私もわかってたから。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML …気持ちがおちこんでグチャグチャにからまった毛糸玉みたい。
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML いっそこのままどこかへおちてしまえば気が楽になれるかもしれない。
+
+		CASE 17
+		;デート先が人間の里
+			PRINTFORML 今日は%CALLNAME:MASTER%と人間の里へあそびに行った。
+			PRINTFORML 私がここに来るのはピースの事を聞きにコソコソしのびこんだぐらいでこうしてフツウに入るのは、はじめてだ。
+			PRINTFORML さいしょは少しこわくて%CALLNAME:MASTER%にギュッとしがみつきながら歩いてた。
+			PRINTFORML でも%CALLNAME:MASTER%といっしょに花屋に入ったり、貸本屋で本を回しよみしてたらそんな気分はどこかへいってしまった。
+			PRINTFORML コソコソと見回るより、%CALLNAME:MASTER%とはしゃぎながら里を歩く方がとても楽しい。
+			PRINTFORML その日は%CALLNAME:MASTER%といっしょにあきるまで里を見回って、とってもおもしろい一日だった。
+			PRINTFORML また、いっしょに行けたらいいな。
+		CASE 18
+		;デート先が魔法の森
+			PRINTFORML 今日は%CALLNAME:MASTER%とまほうの森へあそびに行った。
+			PRINTFORML 森の空気は人間のカラダにわるいから%CALLNAME:MASTER%が心配だったけど本人は平気なカオですすんでいく。がんじょうな子だ。
+			PRINTFORML ここは私もサニーやスターとタンケンしに行くからよく知っている。だから%CALLNAME:MASTER%を森をあんないしてあげた。
+			PRINTFORML すると%CALLNAME:MASTER%も楽しそうに私の話を聞いてくれる。思わずドヤ顔になりそう。
+			PRINTFORML とちゅう、知り合いの妖精に%CALLNAME:MASTER%といるところを見られて「かれし？」とからかわれた。
+			PRINTFORML でも私がちがうというより先に、カオが赤くなった%CALLNAME:MASTER%があわててチガウと言った。
+			PRINTFORML ……ゴカイはとれたけど、なんだかスッキリとしない。あんな必死なカオしなくてもいいじゃない…。
+			PRINTFORML ちょっとだけモヤモヤした気分になりながら、今日のデートはおわった。
+			PRINTFORML 
+		CASE 19
+		;デート先が迷いの竹林
+			PRINTFORML 今日は%CALLNAME:MASTER%と迷いの竹林へあそびに行った。
+			PRINTFORML ウサギが多いのでウサギ狩りすることにした。%CALLNAME:MASTER%は初めてらしいのでこれなら私はかならず勝てる！…と思ってた。
+			PRINTFORML しょうぶはボロ負け。私が音を消しながらやっと１羽つかまえる前に、%CALLNAME:MASTER%は５、６羽もウサギをつかまえていた。
+			PRINTFORML ちょっとくやしい。…やっぱりとってもくやしい。
+			PRINTFORML くやしがる私を見かねてか%CALLNAME:MASTER%が１羽私にくれたけど、そういうモンダイじゃない！
+			PRINTFORML いつか%CALLNAME:MASTER%の能力をあばいて見せる！そう心にちかった。
+		CASE 20
+		;デート先がチテイ
+			PRINTFORML 今日は%CALLNAME:MASTER%とチテイにタンケンしに行った。
+			PRINTFORML チテイは地上よりもこわい妖怪や鬼が住む所って話は聞いてたから、本当はあまり行きたくなかった…。
+			PRINTFORML ミドリ色の目の妖怪がハンニャのような顔で私たちをにらんできたし、
+			PRINTFORML 子どもがめずらしいのか鬼や怨霊がたまにちかづいてくる。私はもうこわくてこわくてしょうがなかった。
+			PRINTFORML でもそのたびに%CALLNAME:MASTER%がおいはらってくれた。
+			PRINTFORML %CALLNAME:MASTER%もこわかったと思う、だけど私がいたからがんばってかばってくれたみたい。
+			PRINTFORML そんな%CALLNAME:MASTER%が助けてくれたうれしさと、チテイの鬼たちが怖いのがまざって少し泣いてしまった。
+			PRINTFORML チテイはとてもおそろしい所だけど、%CALLNAME:MASTER%といっしょならもっと深くまで行けるかもしれない。
+			PRINTFORML 
+
+		CASE 21
+		;良い贈り物をもらった
+			PRINTFORML %CALLNAME:MASTER%からプレゼントをもらった。
+			PRINTFORML おどろいたのは私が前から欲しかったものをおくってくれたことだ。
+			PRINTFORML お金がないから買えなくて、似たものを拾ってはコレじゃないとタメ息をついてたのはおぼえている。
+			PRINTFORML 私は平気な顔でうけとったつもりだけど
+			PRINTFORML %CALLNAME:MASTER%は私の顔をのぞき込んでうれしそうにしてたからバレバレたったかも…。
+			PRINTFORML 今も日記を書きながらプレゼントもながめてる。うれしくておどってしまいそう。
+			PRINTFORML 今夜はとても良いユメが見れそうと思った…。
+		CASE 22
+		;贈り物をもらった
+			PRINTFORML %CALLNAME:MASTER%からプレゼントをもらった。
+			PRINTFORML あの子にしてみれば私を思ってえらんでくれたと思う。
+			PRINTFORML せっかく%CALLNAME:MASTER%がくれたものだ。無くさないよう大事にとっておくことにした。
+		CASE 23
+		;悪い贈り物をもらった
+		;もしかしたら表示されないかもしれません。
+			PRINTFORML %CALLNAME:MASTER%からプレゼントをもらった。もらったんだけど…。
+			PRINTFORML 多分%CALLNAME:MASTER%としては、本人が好ましいものをおくってくれたつもりなんだろう。でもこれはない…。
+			PRINTFORML サニーからは「うわっ、センスわるっ！」と言われ…
+			PRINTFORML スターからは「まぁすばらしいしゅみね！」と言われ…
+			PRINTFORML 泣きそう。
+			PRINTFORML %CALLNAME:MASTER%にはわるいけど、これはちょっと捨てちゃおう…。
+		;普通の日記その1
+		CASE 24
+			PRINTFORML おいしいふうきみその作り方
+			PRINTFORML 
+			PRINTFORML 
+			PRINTFORML ふきのとう…８こぐらい
+			PRINTFORML みそ…………大さじ４
+			PRINTFORML さとう………小さじ１
+			PRINTFORML みりん………大さじ２
+			PRINTFORML ……このページは料理のメモ書きだ。
+		;普通の日記その2
+		CASE 25
+			PRINTFORML 今日のイタズラもにげおくれた。だから私はだいじょうぶ？と言ったのに…。
+			PRINTFORML ころんだところをレイムさんの札が当たってそのままつかまる。ホーミングお札はズルいと思う。
+			PRINTFORML 「何回やったら気がすむのよ…」ってレイムさんに呆れられながらおせっきょうされた。これでもう何回目なのかな？
+		;普通の日記その3
+		CASE 26
+			PRINTFORML また今日もレイムさんにつかまった。あと１まいでタタミをぜんぶひっくり返せたのに…。
+			PRINTFORML レイムさんの話は短いようで長いから足がしびれて辛い…。あたまにささった針もいたい。
+			PRINTFORML 明日こそはにげきってやると思いながら、おせっきょうを聞くフリをした。
+		;普通の日記その4
+		CASE 27
+			PRINTFORML あくる日もレイムさんにタイジされた。おフロ用のマキをぜんぶビショヌレにしたのはマズかったかも。
+			PRINTFORML 百叩きされたおしりがいたい…。おせっきょうよりも辛かった。
+			PRINTFORML でも私のおしりを叩いていたレイムさんが楽しそうに笑ってたのはちょっとこわかった…。
+		;普通の日記その5
+		CASE 28
+			PRINTFORML レイムさんにこらしめられた。音を消してたのに押し入れにしまったネズミに気づいたレイムさんはすごいと思う。
+			PRINTFORML 「ウソをつくと舌をこうやってエンマに抜かれるのよ！」って舌をひっぱられた。しばらくアツいコーヒーが飲めない…。
+			PRINTFORML こんど抜かれてもいいように、マリサさんに舌を二枚にする方法を教えてもらおうと思った。
+		;普通の日記その6
+		CASE 29
+			PRINTFORML いつものようにレイムさんにしかられた。「⑨」と書いた紙をせなかに貼る相手はチルノ以外にはムリみたい。
+			PRINTFORML バツとして境内をそうじをさせられた。今日にかぎって落ち葉やゴミが多い…。
+			PRINTFORML なんとかおわらせたらレイムさんにお茶とおまんじゅうをもらった。こうゆうのを「たなからボタモチ」と言ったはず。
+			PRINTFORML でたのはおまんじゅうだけど。
+		;普通の日記その7
+		CASE 30
+			PRINTFORML 博麗神社でまた何か見世物を開いているらしい。レイムさんもよくあきないと思う。
+			PRINTFORML さっそく3人でその見世物をぬすもうとしたらあっという間にしばかれた。
+			PRINTFORML こうゆう時のレイムさんはいつもよりつよいから、いつもみたいにカンコドリがなくまで待つことにする。
+		;普通の日記その8
+		CASE 31
+			PRINTFORML 今日の夜、サンポしてたらやけにうすい本がおちていた。外の本かもしれない。
+			PRINTFORML 中をよんでみると、男と女の人がハダカでだき合ってる絵がかいてあったからあわてて閉じてしまった。
+			PRINTFORML その本はこっそり持ち帰ってベッドの下にかくしてある。読んでみたいけど、今もはずかしくて読めずじまい。
+		;普通の日記その9
+		CASE 32
+			PRINTFORML 朝起きたらスターが大きくなった。そうとしか言えなかった。
+			PRINTFORML 私たちより背がのびたけど、いつもと同じ黒いまえがみパッツンでいつものニコニコ笑顔はたしかにスターだ。
+			PRINTFORML ちがうと言ったら大変なことになる。ダカラアレハスター。ここにいないスターに心の中であやまりながら、おおきくなったスターと一日をすごした。
+		;普通の日記その10
+		CASE 33
+			PRINTFORML サニーがキリンを見たとさわいでた。なんでも人里の近くで見たらしい。
+			PRINTFORML 「首がこーんなに長いどうぶつはキリンしかないでしょ！」とか言うけど色は赤かったらしいからちがうと思う。
+			PRINTFORML 「首が長くて赤いならフラミンゴじゃない？」と、スターが借りてきた外の世界のドウブツずかんを見せてくれた。多分これだ。
+			PRINTFORML そのあと里の近くでつかまえようと話し合ったら赤いかみのお姉さんににらまれたからあわてて逃げた。もしかしたらフラミンゴのかいぬしだったのかも…。
+			
+	ENDSELECT
+ENDIF
+
+
+
+
+;=============================
+@M_KOJO_MESSAGE_COM_K6_406
+;=============================
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K6_406_1
+RETURN RESULT
+
+;=============================
+@M_KOJO_MESSAGE_COM_K6_406_1
+;コマンド口上
+;TFLAG:194（誰の日記を読んでいるか）
+;TFLAG:194がXXでない場合は他人の日記なので注意。
+;PAGEは書かれてあるページ数。
+;SHIRAHU(XX)はキャラXXの状態が正常かどうか。
+;=============================
+#DIM PAGE
+
+;以下はサンプル
+PAGE = 0
+FOR LOCAL, 0, MAX_DIARY_PAGE:(TFLAG:194):0
+	IF GROUPMATCH(DIARY:(TFLAG:194):LOCAL, 1, 3)
+		PAGE ++
+	ENDIF
+NEXT
+
+IF SHIRAHU(6) && TFLAG:194 == 6
+;日記を読み終わった後の反応
+	IF PAGE > 2
+		CALL SPTALK, 6,"通常",0,@"「な、ななな何勝手に読んでるのよ！！」//%CALLNAME:6%は慌てて%CALLNAME:MASTER%の手から日記をひったくった。"
+		;画像つきトークは最大６行まで。
+	ELSE
+		PRINTFORML 
+	ENDIF
+ENDIF

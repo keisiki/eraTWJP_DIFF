@@ -1,0 +1,82 @@
+﻿@EXIST_FreeAct11
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+;オブジェクト本体
+@FreeAct11(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+#DIM 経過時間
+経過時間 = Activity_Duration:TARGET
+SELECTCASE O_DATA
+;自由行動に付き合うコマンドの名称
+CASE "名称"
+	CALLF MAKE_STR(V_NAME, "実験を手伝う")
+CASE "CHAIN"
+;他キャラに連鎖しない場合コメントアウトすること
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "経過時間"
+;自由行動に付き合うコマンドでの経過時間
+;0だと30分か残り時間すべての小さい方
+	CALLF MAKE_INT(V_NAME, 0)
+ENDSELECT
+
+@自由行動内容_11(CHARA, ARGS, 時間係数, CHAIN)
+#DIM CHARA
+#DIM CHAIN
+#DIM 現在地
+#DIM メッセージ表示
+#DIM 時間係数
+#DIM 経過時間
+現在地 = CFLAG:CHARA:現在位置
+メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
+SELECTCASE ARGS
+	CASE "発生"
+		;調合技能1以上のキャラが調合できる場所（あなた私室以外）または自室にいる時
+		SIF ABL:CHARA:調合技能 < 1
+			RETURN 0
+		SIF BASE:CHARA:気力 <= 500
+			RETURN 0
+		;連鎖時はスキップ
+		IF !CHAIN
+			SIF PHARMACY_SPOT(現在地) != 2 && 現在地 != CFLAG:CHARA:神社在住
+				RETURN 0
+		ENDIF
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は\@ CHAIN ? %CALLNAME:CHAIN%を手伝い始めた。# 実験の準備を始めた。\@
+		RETURN 60 + RAND:30
+	CASE "行動中"
+		IF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は%TEXTR("実験器具を調節している/実験道具を並べている/実験の記録を付けている/怪しい実験をしている")%。
+		ENDIF
+	CASE "完了"
+		EXP:CHARA:調合経験 += 1
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は実験を終えたようだ。
+	CASE "中断"
+		EXP:CHARA:調合経験 += 1
+	CASE "付き合う"
+		;自由行動に付き合ったとき用メッセージ
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の実験を手伝った
+		SELECTCASE RAND:3
+		CASE 1
+			PRINTFORML %CALLNAME:TARGET%がなにをしたいのかはよく分からない…
+		CASE 2
+			PRINTFORML 危険物を取り扱ったため神経がすり減った…
+		CASEELSE
+			PRINTFORML %CALLNAME:TARGET%は満足した表情を浮かべている… 
+		ENDSELECT
+	CASE "ソース"
+		;付き合うコマンド選択時の入手ソース、時間係数は付き合った時間の1/10
+		DOWNBASE:MASTER:体力 += 20 * 時間係数
+		DOWNBASE:MASTER:気力 += 40 * 時間係数
+		DOWNBASE:TARGET:体力 += 10 * 時間係数
+		DOWNBASE:TARGET:気力 += 20 * 時間係数
+		SOURCE:歓楽 = (150 + ((ABL:親密 + ABL:MASTER:調合技能) * 50)) * 時間係数
+		SOURCE:受動 = (100 + ((ABL:従順 + ABL:MASTER:調合技能) * 50)) * 時間係数
+		TFLAG:98 = 1
+		EXP:MASTER:調合経験 ++
+ENDSELECT

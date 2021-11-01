@@ -1,0 +1,230 @@
+﻿@EVENT_COUNTER_PUNISHMENT(ARG,ARG:1)
+VARSET LOCAL
+LOCAL = 1
+WHILE LOCAL
+LOCAL:1 = RAND:8
+RESULT = 1
+TRYCALLFORM PUNISHMENT_{LOCAL:1}(ARG,ARG:1)
+SIF CFLAG:ARG:弱み握り <= 0
+	CFLAG:ARG:弱み握り = 0
+LOCAL = RESULT
+WEND
+SIF !CFLAG:ARG:弱み握り
+	PRINTFORML  これで%CALLNAME:ARG%は許してくれたようだ…
+DRAWLINE
+WAIT
+;パンツを脱がせる
+@PUNISHMENT_0(ARG,ARG:1)
+SIF !CFLAG:PLAYER:206
+	RETURN 1
+CFLAG:PLAYER:206 = 0
+
+PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%の下着を奪って
+PRINTFORML 今日一日ノーパンで過ごすように命令し着衣の乱れを整えさせた…
+CFLAG:ARG:弱み握り -= 1
+EXP:ARG:嗜虐快楽経験 += 1
+RETURN 0
+
+;ローター挿入
+@PUNISHMENT_1(ARG,ARG:1)
+SIF !(TALENT:PLAYER:性別 & 1)
+	RETURN 1
+CFLAG:PLAYER:ローター挿入 = 240
+PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%の秘所にローターを挿入して固定すると
+PRINTFORML しばらくそのままで居るように命令して着衣の乱れを整えさせた…
+CFLAG:ARG:弱み握り -= 2
+EXP:ARG:嗜虐快楽経験 += 10
+
+RETURN 0
+
+;ローターA挿入
+@PUNISHMENT_2(ARG,ARG:1)
+;応急処置としてコメントアウトしておきます
+;SIF CFLAG:PLAYER:ローターA挿入
+;	RETURN 1
+SIF TFLAG:パール期限
+	RETURN 1
+CFLAG:PLAYER:ローターA挿入 = 240
+PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%のアヌスにローターを挿入して固定し
+PRINTFORML しばらくそのままで居るように命令して着衣の乱れを整えさせた…
+CFLAG:ARG:弱み握り -= 2
+EXP:ARG:嗜虐快楽経験 += 10
+
+RETURN 0
+
+;キスマーク
+@PUNISHMENT_3(ARG,ARG:1)
+SIF TFLAG:キスマーク
+	RETURN 1
+SIF !TALENT:ARG:恋慕
+	RETURN 1
+PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%に抱き付くと、首筋を強く吸いたててキスマークをつけた…
+PRINTFORML 消えるまでは他の女の子の前には出ない方が良さそうだ…
+TFLAG:キスマーク = ARG
+CFLAG:ARG:弱み握り -= 1
+EXP:ARG:嗜虐快楽経験 += 2
+RETURN 0
+
+;ほほを抓る
+@PUNISHMENT_4(ARG,ARG:1)
+PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%の頬をちからいっぱい抓ってきた
+PRINTFORML いたひ…
+CFLAG:ARG:弱み握り -= 1
+EXP:ARG:嗜虐快楽経験 += 2
+BASE:MASTER:気力 -= 50
+RETURN 0
+
+;足を踏む
+@PUNISHMENT_5(ARG,ARG:1)
+PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%の足をぐりっと踏みつけた
+PRINTFORML アイタタタ
+CFLAG:ARG:弱み握り -= 1
+EXP:ARG:嗜虐快楽経験 += 2
+BASE:MASTER:体力 -= 50
+RETURN 0
+
+;3回回ってワンと鳴け
+@PUNISHMENT_6(ARG,ARG:1)
+PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%に犬のまねを求めてきた
+PRINTFORML ぐる
+PRINTFORML ぐる
+PRINTFORML ぐる
+PRINTFORML ワン！
+PRINTFORML %CALLNAME:ARG%は口元だけ笑った
+CFLAG:ARG:弱み握り -= 1
+EXP:ARG:嗜虐快楽経験 += 5
+BASE:MASTER:気力 -= 200
+RETURN 0
+
+;アナルパール装着
+@PUNISHMENT_7(ARG,ARG:1)
+SIF EXP:PLAYER:Ａ経験 < 10
+	RETURN 1
+SIF ABL:ARG:サドっ気 < 2
+	RETURN 1
+SIF TFLAG:パール期限
+	RETURN 1
+LOCAL = 4 + RAND:4
+CALL PEARL_INSERT(ARG, LOCAL)
+
+PRINTFORML %CALLNAME:ARG%は%CALLNAME:PLAYER%のアヌスにアナルパールを挿入すると
+PRINTFORML あと{TFLAG:パール期限 - TIME}分そのままで居るように命令して着衣の乱れを整えさせた…
+CFLAG:ARG:弱み握り -= 3
+EXP:ARG:嗜虐快楽経験 += 15
+
+[SKIPSTART]
+@PUNISHMENT_7(ARG,ARG:1)
+PRINTFORMW %CALLNAME:ARG%は%CALLNAME:PLAYER%に、今この場でオナニーするように命じた……
+$LOOP
+CALL ASK_M("嫌々やる",1,"見せつけるようにやる",ABL:MASTER:露出癖 >= 3,"好きだと言いながらやる",ABL:MASTER:露出癖 >= 5)
+SELECTCASE RESULT
+	CASE 1
+		PRINTFORMW %CALLNAME:MASTER%はオナニーを始めようとしたが、見られているせいで\@ TALENT:MASTER:性別 == 1? まったく昂らない# イチモツは力なく萎んでしまった\@……
+		IF ABL:ARG:欲望 < 5
+			IF ABL:ARG:サドっ気 >= 3 && (TALENT:MASTER:性別 & 2)
+				PRINTFORML %CALLNAME:ARG%は無様な%CALLNAME:MASTER%を罵倒した
+				PRINTFORMW %CALLNAME:MASTER%の心は深く傷ついた
+				BASE:MASTER:気力 -= 1000
+				BASE:MASTER:勃起 = 0
+				SOURCE:ARG:強要 += 300
+				SOURCE:ARG:辱め += 300
+				SOURCE:ARG:加虐 += 500
+				CFLAG:ARG:弱み握り -= 2
+				TIME += 3
+			ELSEIF (TALENT:ARG:思慕 || TALENT:ARG:恋慕)
+				PRINTFORML %CALLNAME:ARG%はこんな時もある、と慰めた
+				PRINTFORMW %CALLNAME:MASTER%の心は傷ついた
+				BASE:MASTER:気力 -= 300
+				BASE:MASTER:勃起 = 0
+				SOURCE:ARG:強要 += 200
+				SOURCE:ARG:辱め += 200
+				SOURCE:ARG:加虐 += 100
+				SOURCE:ARG:情愛 += 50
+				CFLAG:ARG:弱み握り -= 2
+				TIME += 3
+			ELSE
+				PRINTFORML %CALLNAME:ARG%はつまらなさそうに、もういいと言った
+				PRINTFORMW %CALLNAME:MASTER%の心は傷ついた
+				BASE:MASTER:気力 -= 500
+				BASE:MASTER:勃起 = 0
+				SOURCE:ARG:強要 += 200
+				SOURCE:ARG:辱め += 200
+				SOURCE:ARG:加虐 += 300
+				CFLAG:ARG:弱み握り -= 1
+				TIME += 3
+			ENDIF
+		ELSEIF ABL:ARG:サドっ気 >= 3
+			PRINTFORML %CALLNAME:ARG%は手伝ってやると言って、%CALLNAME:MASTER%の股間を足でいたぶり始めた……
+			PRINTFORML すると現金にも、%CALLNAME:MASTER%の\@ TALENT:MASTER:性別 == 1? 秘所はたちまち潤み始めた# イチモツはたちまち堅さを取り戻した\@
+			PRINTFORML その様に嗜虐心を煽られた%CALLNAME:ARG%は、さらに言葉と足の責めを激しくしていく
+			PRINTFORML やがて%CALLNAME:MASTER%は情けない声をあげて絶頂に達した
+			IF TALENT:MASTER:性別 & 2
+				BASE:MASTER:勃起 = 500
+				BASE:MASTER:精力 = MAX(BASE:MASTER:精力 - 100,0)
+				EXP:MASTER:射精経験 ++
+			ENDIF
+			BASE:MASTER:気力 = MAX(BASE:MASTER:気力 - 300,0)
+			TIME += 10
+			EXP:MASTER:絶頂経験 ++
+			EXP:MASTER:自慰経験 ++
+			SOURCE:ARG:強要 += 500
+			SOURCE:ARG:辱め += 500
+			SOURCE:ARG:加虐 += 700
+			SOURCE:ARG:征服 += 700
+			SOURCE:ARG:達成 += 300
+			CFLAG:ARG:弱み握り -= 5
+		ELSE
+			PRINTFORML %CALLNAME:ARG%は%SHOW_BOTTOM(ARG,1)%をたくし上げ、%UNDER_SKIRT_DESCRIPTION(ARG)%を見せつけてきた…
+			PRINTFORML すると現金にも、%CALLNAME:MASTER%の\@ TALENT:MASTER:性別 == 1? 秘所はたちまち潤み始めた# イチモツはたちまち堅さを取り戻した\@
+			PRINTFORML 再開するように命じられ、%CALLNAME:MASTER%は一応の絶頂に達するまでオナニーを続けさせられた
+			IF TALENT:MASTER:性別 & 2
+				BASE:MASTER:勃起 = 500
+				EXP:MASTER:射精経験 ++
+				BASE:MASTER:精力 = MAX(BASE:MASTER:精力 - 50,0)
+			ENDIF
+			BASE:MASTER:気力 = MAX(BASE:MASTER:気力 - 300,0)
+			TIME += 10
+			EXP:MASTER:絶頂経験 ++
+			EXP:MASTER:自慰経験 ++
+			SOURCE:ARG:強要 += 300
+			SOURCE:ARG:辱め += 300
+			SOURCE:ARG:挑発 += 300
+			SOURCE:ARG:征服 += 200
+			SOURCE:ARG:誘惑 += 100
+			CFLAG:ARG:弱み握り -= 3
+			TIME += 10 
+		ENDIF
+	CASE 2
+		PRINTFORMW まだ未実装なんだぜ
+		GOTO LOOP
+	CASE 3
+		PRINTFORMW まだ未実装なんだぜ
+		GOTO LOOP
+ENDSELECT
+RETURN 0
+PRINTFORML %CALLNAME:ARG%は%CALLNAME:MASTER%を憐みのこもった視線で見た
+PRINTFORML %CALLNAME:MASTER%の心は傷ついた
+
+
+;[SKIPSTART]
+PRINTFORML %CALLNAME:MASTER%は%CALLNAME:ARG%大好き、%CALLNAME:ARG%大好きと連呼しながらオナニーを始めた
+IF ABL:ARG:親密 < 5
+	PRINTFORML %CALLNAME:ARG%は慌てて中断するよう命じた
+	BASE:MASTER:気力 -= 100
+	SOURCE:ARG:強要 += 100
+	SOURCE:ARG:辱め += 150
+	SOURCE:ARG:情愛 += 50
+	CFLAG:ARG:弱み握り -= 2
+ELSE
+	PRINTFORML %CALLNAME:ARG%は少し驚いたようだが、悪い気はしていないようだ
+	SIF ABL:ARG:サドっ気 >= 3
+		PRINTFORML %CALLNAME:ARG%は臆面もなく快楽に耽り始めた%CALLNAME:MASTER%を罵った……
+	IF ABL:MASTER:露出癖 >= 3 || ABL:MASTER:マゾっ気 >= 3
+		PRINTFORML %CALLNAME:ARG%に見られていることに興奮した%CALLNAME:MASTER%のオナニーは激しさを増していく……
+		CFLAG:ARG:溜まってる度 += 150
+	ENDIF
+	IF ABL:ARG:欲望 > 5 && CFLAG:ARG:溜まってる度 > 500
+		PRINTFORML %CALLNAME:MASTER%の姿に当てられたのか、%CALLNAME:ARG%も自らの秘所に手を伸ばした……
+		
+ENDIF
+[SKIPEND]

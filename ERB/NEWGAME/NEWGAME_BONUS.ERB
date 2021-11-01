@@ -1,0 +1,104 @@
+﻿;-----------------------------------------------------------
+;【ニューゲーム特典】
+;-----------------------------------------------------------
+@NEWGAME_BONUS_SELECT
+#DIMS buttonText, 10
+SETCOLOR 103,228,126
+PRINTFORML 【ニューゲーム特典】
+RESETCOLOR
+PRINTFORML お好きなものを選んでください
+buttonText:0 '= "￥50000"
+buttonText:1 '= "初期好感度・信頼度アップ"
+buttonText:2 '= "初期能力アップ"
+buttonText:3 '= "愛欲を独占するミラダの石ミレニアム"
+CALL ASK_BUTTONS(buttonText)
+SELECTCASE RESULT
+	CASE 0
+		ニューゲーム特典 '= "￥50000"
+	CASE 1
+		CALL NEWGAME_BONUS_CHARA
+		IF !RESULT
+			RESTART
+		ENDIF
+	CASE 2
+		ニューゲーム特典 '= "初期能力アップ"
+	CASE 3
+		ニューゲーム特典 '= "スケベセット"
+ENDSELECT
+PRINTFORMW %ニューゲーム特典%を選択します
+RETURN
+
+;-----------------------------------------------------------
+;初期好感度
+;-----------------------------------------------------------
+@NEWGAME_BONUS_CHARA
+PRINTFORML キャラ一人の初期好感度を500、信頼度を50にします
+PRINTFORML 対象を選んでください
+CALL ASK_CALLNAME
+IF RESULT == 999
+	RETURN 0
+ELSE
+	ニューゲーム特典 '= TOSTR(RESULT)
+	RETURN 1
+ENDIF
+
+;-----------------------------------------------------------
+;特典適用
+;未指定の場合は所持金
+;-----------------------------------------------------------
+@NEWGAME_BONUS_APPLY
+#DIM C_ID
+C_ID = TOINT(ニューゲーム特典)
+SELECTCASE ニューゲーム特典
+	CASE "なし"
+	CASE ""
+		MONEY += 50000
+	CASE "￥50000"
+		MONEY += 50000
+	CASE "初期能力アップ"
+		ABL:MASTER:清掃技能 = 1
+		ABL:MASTER:教養 = 1
+		ABL:MASTER:料理技能 = 1
+		ABL:MASTER:技巧 = 2
+		ABL:MASTER:話術技能 = 3
+	CASE "スケベセット"
+		ITEM:ミラダの石 += 1
+		ITEM:ローター += 1
+		ITEM:媚薬 += 5
+		MAXBASE:MASTER:TSP = 500
+		BASE:MASTER:TSP = MAXBASE:MASTER:TSP
+		MONEY:1 = 1800
+		ABL:MASTER:技巧 = 2
+	CASEELSE
+		CFLAG:C_ID:好感度 = 500
+		CFLAG:C_ID:信頼度 = 100
+		IF CHECK_CHARA(C_ID, "神霊")
+			TALENT:MASTER:神霊孕ませ = 1
+		ELSEIF CHECK_CHARA(C_ID, "付喪神")
+			TALENT:MASTER:付喪神孕ませ = 1
+		ELSEIF CHECK_CHARA(C_ID, "蓬莱人")
+			TALENT:MASTER:蓬莱孕ませ = 1
+		ELSEIF CHECK_CHARA(C_ID, "幽霊")
+			TALENT:MASTER:幽霊孕ませ = 1
+		ELSEIF CHECK_CHARA(C_ID, "人形")
+			TALENT:MASTER:人形孕ませ = 1
+		ENDIF
+ENDSELECT
+
+;-----------------------------------------------------------
+;設定表示用テキスト化
+;-----------------------------------------------------------
+@NEWGAMEBONUS_TEXT
+#FUNCTIONS
+SELECTCASE ニューゲーム特典
+	CASE ""
+		RETURNF "<font color='#67e47e'>" + "ニューゲーム特典を選択できます" + "</font>"
+	CASE "￥50000"
+		RETURNF "\\50000持って開始します"
+	CASE "日常能力アップ"
+		RETURNF "一部能力の上昇で早い段階から家事などが楽になります"
+	CASE "スケベセット"
+		RETURNF "一部能力の上昇と特殊なアイテムで早い段階からエッチなことがしやすくなります"
+	CASEELSE
+		RETURNF @"%CALLNAME:TOINT(ニューゲーム特典)%の好感度と信頼度が上がった状態で開始します 妊娠しづらい種族の場合、確率向上能力も追加で取得します"
+ENDSELECT

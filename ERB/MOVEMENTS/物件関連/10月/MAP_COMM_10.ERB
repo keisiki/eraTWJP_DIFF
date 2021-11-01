@@ -1,0 +1,154 @@
+﻿;--------------------------------------------------
+;	マップ内移動処理拡張パッチ付属
+;	命蓮寺MAP用関数
+;--------------------------------------------------
+@MAP_PLACENAME_10(ARG)
+#FUNCTIONS
+
+IF GET_MAPID(ARG) == MAIN_MAP
+	SELECTCASE ARG
+		CASE 1033, 1063
+			IF CFLAG:MASTER:初期位置 == ARG
+				RETURNF "あなた私室"
+			ELSE
+				RETURNF "空き部屋"
+			ENDIF
+		CASE 1007
+			IF CFLAG:MASTER:初期位置 == ARG
+				RETURNF "あなたの家"
+			ELSE
+				RETURNF "空き家"
+			ENDIF
+		CASE 1 TO (MAXROOM - 1)
+			RETURNF STR:(ARG + 8000)
+		CASE 1098
+			RETURNF OMANEKI_PLACE()
+		CASE 1099
+			RETURNF "スキマ空間"
+		CASE MAXROOM
+			RETURNF "夢の向こう"
+		CASEELSE
+			RETURNF "不明"
+	ENDSELECT
+ELSE
+	RETURNF "不明"
+ENDIF
+
+@MAP_VIEWING_10(AA,COLOR)
+#DIMS REF AA, 0
+#DIMS REF COLOR, 0
+IF !TFLAG:マップ切り替え
+	SELECTCASE CFLAG:MASTER:現在位置
+		CASE 1020 TO 1049
+			TFLAG:マップ切り替え = 2
+		CASE 1050 TO 1059
+			TFLAG:マップ切り替え = 3
+		CASE 1060 TO 1072
+			TFLAG:マップ切り替え = 4
+		CASEELSE
+			TFLAG:マップ切り替え = 1
+	ENDSELECT
+ENDIF
+CALL DRAW_INFORMATIONLINE(@"%MAPNAME:(TFLAG:マップ切り替え)%")
+PRINTFORML 
+IF RECOLOREDMAPS
+TRYCCALLFORM COLOREDMAP_TUKI_{TFLAG:マップ切り替え}(AA,COLOR)
+CATCH
+RECOLOREDMAPS = 0
+CALL DRAW_MAP
+RECOLOREDMAPS = 1
+RETURN
+ENDCATCH
+ELSE
+TRYCALLFORM MAP_TUKI_{TFLAG:マップ切り替え}(AA)
+ENDIF
+
+@MAP_CAN_MOVE_10(ARG, ARG:1)
+#FUNCTION
+SELECTCASE ARG
+	;サグメ宅,ワンルームの設定そのまま
+	CASE 1005, 1006
+		;除外
+		SIF GROUPMATCH(ARG:1, [[依姫]], [[豊姫]], [[サグメ]], [[永琳]])
+			RETURNF 1
+		;中からは動ける
+		SIF INRANGE(CFLAG:(ARG:1):現在位置, 1005, 1006)
+			RETURNF 1
+		;あなた
+		IF ARG:1 == MASTER
+			;同行か恋慕なら入れる（家主睡眠中も可
+			IF CFLAG:[[サグメ]]:同行 || TALENT:[[サグメ]]:恋慕
+				RETURNF 1
+			;家主がいて起きてる
+			ELSEIF INRANGE(CFLAG:[[サグメ]]:現在位置, 1005, 1006)
+				SIF !CFLAG:[[サグメ]]:睡眠 && !CFLAG:[[サグメ]]:添い寝中 && !TCVAR:[[サグメ]]:泥酔 && !CFLAG:[[サグメ]]:衰弱
+					RETURNF 1
+			;家主以外の誰かがいる,この人物は寝てたりしても良い
+			ELSEIF IN_ROOM_NUMBER(1005) || IN_ROOM_NUMBER(1006)
+				RETURNF 1
+			ELSE
+				TFLAG:移動不能メッセージ = 999
+				RETURNF 0
+			ENDIF
+		;部下
+		ELSEIF GROUPMATCH(ARG:1, [[レイセン]], [[清蘭]], [[鈴瑚]], [[鈴仙]])
+			;誰かがいる,この人物は寝てたりしても良い
+			IF IN_ROOM_NUMBER(1005) || IN_ROOM_NUMBER(1006)
+				RETURNF 1
+			ELSE
+				RETURNF 0
+			ENDIF
+		;それ以外
+		ELSE
+			RETURNF 0
+		ENDIF
+	;ドレミー宅,入り口から近いせいであまりにも人が来るので入室制限をする
+	CASE 1050
+		;除外
+		SIF GROUPMATCH(ARG:1, [[ドレミー]], [[菫子]], [[サグメ]])
+			RETURNF 1
+		;中からは動ける
+		SIF INRANGE(CFLAG:(ARG:1):現在位置, 1050, 1059)
+			RETURNF 1
+		;あなたは関係なし
+		SIF ARG:1 == MASTER
+			RETURNF 1
+		;家主がいて起きてる
+		IF INRANGE(CFLAG:[[ドレミー]]:現在位置, 1050, 1059)
+			SIF !CFLAG:[[ドレミー]]:睡眠 && !CFLAG:[[ドレミー]]:添い寝中 && !TCVAR:[[ドレミー]]:泥酔 && !CFLAG:[[ドレミー]]:衰弱
+				RETURNF 1
+		ENDIF
+		RETURNF 0
+	;宝物庫
+	CASE 1031
+		;除外
+		SIF GROUPMATCH(ARG:1, [[依姫]], [[豊姫]], [[サグメ]], [[永琳]], [[青娥]])
+			RETURNF 1
+		;あなた
+		IF ARG:1 == MASTER
+			;信頼度1000以上
+			IF CFLAG:[[依姫]]:信頼度 >= 1000 || CFLAG:[[豊姫]]:信頼度 >= 1000
+				RETURNF 1
+			ELSE
+				TFLAG:移動不能メッセージ = 999
+				RETURNF 0
+			ENDIF
+		;それ以外
+		ELSE
+			RETURNF 0
+		ENDIF
+ENDSELECT
+RETURNF 1
+
+
+@MAP_CANNOT_WORD_10(ARG)
+SELECTCASE TFLAG:移動不能メッセージ
+ENDSELECT
+
+@マップ紹介_10
+;とりあえず5行
+PRINTFORML 槐安通路～月の都、綿月亭、ドレミー宅、純狐邸の四つのMAPで構成されている
+PRINTFORML 月の都には住宅街と商家街があり、月都郊外～月面は菜園や訓練など屋外作業が可能
+PRINTFORML 三つの住宅MAPはドレミー宅、純狐邸、綿月亭の順に大規模になり、掃除も比例して大変になる
+PRINTFORML 生活に必要な設備は何処も揃っているので好きな拠点に住もう。ただしどの私室候補も要求信頼度は高め
+PRINTFORML 余談だがドレミー宅の形状はバクの頭部を参考にしている

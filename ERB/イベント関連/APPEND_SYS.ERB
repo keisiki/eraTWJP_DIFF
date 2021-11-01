@@ -1,0 +1,118 @@
+﻿;FileName_APPEND_SYS.ERB --------------------------- Rev1.00
+;era命蓮寺_システム変更系イベント統括
+;CALL		USER
+;ARG		VOID
+;RETURN		VOID
+;COMMENT	
+;-----------------------------------------------------------
+;EVENT_NO_LIST ============================== FLAG:1
+;FLAG:1=1 霊廟メンバー出現イベント
+;FLAG:1=2 マミゾウ来訪イベント
+;FLAG:1=3 命蓮寺メンバー追加イベント
+;FLAG:1=4 
+;FLAG:1=5 
+
+@SYS_EVENT
+;--- イベント自己定義ブロック ---
+
+;--- イベント実行ブロック ---
+
+;	;自宅にSUMIKOMI_ROOMが設定されている
+	IF FLAG:住み込みキャラ== 0 && !FLAG:住み込みイベント && SUMIKOMI_ROOM && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
+		CALL NEWMEMBER_ADD
+	ENDIF
+;ENDIF
+
+
+
+;以下、各イベント関数 ===============================
+
+;住み込みEXキャラ決定イベント
+@NEWMEMBER_ADD
+#DIM 人数
+#DIM ROOM_N
+#DIM C_ID
+VARSET LOCAL
+人数 = 0
+FOR LOCAL,1,CHARANUM
+	;既に住んでいるメンバーは除く
+	SIF CFLAG:LOCAL:神社在住 > 0
+		CONTINUE
+	SIF TALENT:LOCAL:行きずり
+		CONTINUE
+	IF TALENT:LOCAL:恋慕 && EXP:LOCAL:愛情経験 >= 200 
+		人数 ++
+		LOCAL:LOCAL = 1
+		LOCALS = %CALLNAME:LOCAL%
+	ENDIF
+NEXT
+SIF !人数 || (DAY:3 != 1)
+	RETURN
+PRINTL
+DRAWLINE
+PRINTFORML 朝、目覚めた%CALLNAME:MASTER%のもとに来訪者が現れた
+
+PRINTFORML %LOCALS%\@ 人数 > 1 ? 達 # \@は%CALLNAME:MASTER%に%GET_MAPNAME(MAIN_MAP)%で暮らしたいと告げた
+PRINTL
+IF MAIN_MAP == 2
+	PRINTFORML 長屋に空き部屋があるので、引っ越すことは簡単に出来るだろう
+	IF TALENT:NameToID(LOCALS):人間
+		PRINTFORMW %CALLNAME:拠点_大家%にも特に断る理由はなさそうだ
+	ELSE
+		PRINTFORMW %CALLNAME:拠点_大家%には正体を隠せば良いと%LOCALS%は言っている
+	ENDIF
+ELSE
+	PRINTFORML %NAME_FROM_PLACE(SUMIKOMI_ROOM)%を改装すれば、一人くらい暮らすことは出来るだろう
+	PRINTFORMW %CALLNAME:拠点_大家%たちはしっかりと説明すれば歓迎してくれそうだ
+ENDIF
+PRINTFORML %CALLNAME:MASTER%は…
+C_ID = 1
+FOR LOCAL,1,CHARANUM
+	;既に住んでいるメンバーは除く
+	SIF CFLAG:LOCAL:神社在住 > 0
+		CONTINUE
+	IF TALENT:LOCAL:恋慕 && EXP:LOCAL:愛情経験 >= 200
+		C_ID = LOCAL
+		PRINTFORML [{LOCAL}] - %CALLNAME:LOCAL%の引っ越しを認める
+	ENDIF
+NEXT
+PRINTFORML [999] - 認めない
+$INPUT_LOOP
+INPUT
+IF RESULT == 999
+	PRINTFORMW %CALLNAME:MASTER%が首を振ると%LOCALS%\@ 人数 > 1 ? 達 # \@は残念そうにうつむき%CALLNAME:MASTER%の部屋を後にした…
+	;このやり方だと一人しか口上を呼べないんだが良い方法はないものか
+	;とりあえず多数の場合にそれぞれのキャラの口上を呼び出せるようにしてみる、ただし実際に出来るかどうかはテスト出来てないので自信は無い
+	IF 人数 > 1
+		FOR LOCAL,1,CHARANUM
+			;既に住んでいるメンバーは除く
+			SIF CFLAG:LOCAL:神社在住 > 0
+				CONTINUE
+			IF TALENT:LOCAL:恋慕 && EXP:LOCAL:愛情経験 >= 200
+				CALL KOJO_MESSAGE_SEND("EVENT",19,LOCAL,2,0)
+				PRINTL 
+			ENDIF
+		NEXT
+	ELSE
+		CALL KOJO_MESSAGE_SEND("EVENT",19,C_ID,2,0)
+	ENDIF
+	RETURN 0
+ELSEIF RESULT >= CHARANUM
+	CLEARLINE 1
+	GOTO INPUT_LOOP
+ELSEIF !LOCAL:RESULT
+	CLEARLINE 1
+	GOTO INPUT_LOOP
+ENDIF
+PRINTFORML %CALLNAME:RESULT%の手を取り、%CALLNAME:拠点_大家%に頼んでみる事を告げると%CALLNAME:RESULT%は嬉しそうに微笑んでいる
+PRINTFORMW その足で%CALLNAME:拠点_大家%の元へ頼み込みに行くと快く承諾してくれた…
+PRINTL
+PRINTFORMW - %CALLNAME:RESULT%が新たに%GET_MAPNAME(MAIN_MAP)%の仲間として加わりました -
+PRINTL
+FLAG:住み込みキャラ= RESULT
+CFLAG:(FLAG:住み込みキャラ):311 = SUMIKOMI_ROOM
+CFLAG:(FLAG:住み込みキャラ):神社在住 = SUMIKOMI_ROOM
+
+CALL KOJO_MESSAGE_SEND("EVENT",19,RESULT,1,0)
+
+CALL ROOMSETTING

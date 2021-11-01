@@ -1,0 +1,151 @@
+﻿@CHARAMOVE_DATA_72(ARG,ARG:2)
+LOCAL = 72
+SELECTCASE ARG
+	;移動対象メンバーチェック
+	CASE 1
+	;移動確率
+	CASE 2
+	;起床時間帯
+	CASE 3
+		RETURN 睡眠時間(LOCAL)
+	;移動傾向
+	CASE 4
+		SELECTCASE ARG:2
+			;ひとんちの風呂とかトイレにはいかない
+			CASE 12, 13, 14, 18, 30, 35, 39, 40, 43, 44, 51, 52
+				RETURN -100
+			;私室には入らない
+			CASE 15, 17, 19, 53, 55
+				SIF FLAG:15 != LOCAL
+					RETURN -100
+			;夢幻館には行かない
+			CASE 450
+				RETURN -10
+			CASE 450 TO 466
+				RETURN -100
+			;他人の家には入らない
+			CASE 432, 437, 439, 440, 442, 443, 445
+				RETURN -100
+			;来客用トイレ,てゐ私室,鈴仙私室,裏庭,物置,倉庫,地下室はあんまり行かない
+			CASE 406, 410, 411, 422, 424, 427, 430
+				RETURN -5
+			;診察室,調剤室,縁側,居間によく居る
+			CASE 404, 405, 409, 416
+				RETURN 5
+			;純狐邸には行かない
+			CASE 1061 TO 1072
+				RETURN -100
+			;出るとき用
+			CASE 1060
+				RETURN -10
+			;ドレミー宅には行かない
+			CASE 1050 TO 1059
+				RETURN -100
+		ENDSELECT
+	;仕事時間帯
+	CASE 5
+	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
+	CASE 6
+		SELECTCASE ARG:2
+			CASE 2, 4
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+	;出現場所
+	CASE 7
+		SELECTCASE ARG:2
+			CASE 21,22,23,27, 41,42,43,45,46,48
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+ENDSELECT
+
+@EXIST_キャラデータ72
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+@キャラデータ72(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+SELECTCASE O_DATA
+CASE "呼び名"
+	CALLF MAKE_STR(V_NAME, "永琳")
+;こっから衣装設定
+CASE "今日のパジャマ"
+	CALLF MAKE_STR(V_NAME, "パジャマ（襦袢）セット")
+
+CASE "普段着：帽子"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("帽子", "帽子"))
+CASE "普段着：靴"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴", "靴"))
+CASE "普段着：靴下"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴下", "靴下"))
+CASE "普段着：スカート"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("スカート", "ロングスカート"))
+CASE "普段着：上半身上着２"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("上半身上着２", "ブラウス"))
+CASE "普段着：その他１"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("その他１", "リボン"))
+
+CASE "固有下着形容詞"
+	CALLF MAKE_STR(V_NAME, "深い神秘の気配がする")
+CASE "固有下半身下着名"
+	CALLF MAKE_STR(V_NAME, "倭文布のショーツ")
+CASE "固有上半身下着"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有上半身下着名"
+	CALLF MAKE_STR(V_NAME, "倭文布のブラ")
+CASE "固有下着着用条件"
+	SIF !RAND:3
+		CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(前)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(後)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着生地厚さ"
+	CALLF MAKE_INT(V_NAME, 2)
+
+CASE "固有コマンド"
+	CALLF MAKE_STR(V_NAME, "生薬を売る")
+CASE "固有コマンド実行可能"
+	CALLF MAKE_INT(V_NAME, 1)
+
+;料理関連
+CASE "料理：好きな味"
+	CALLF MAKE_STR(V_NAME, "米/キノコ/中華/汁物/あっさり/ヘルシー/淡白/質素/機能的/上品/ぷるぷる/月都風/科学的/月見/しょっぱい/しょっぱい/すっぱい/すっぱい/")
+CASE "料理：嫌いな味"
+	CALLF MAKE_STR(V_NAME, "洋食/ガッツリ/ジャンキー/甘い/甘い/スパイス/スパイス/スパイス/謎料理/謎料理/謎料理/謎料理/謎料理/")
+CASE "料理：助手効果"
+	CALLF MAKE_STR(V_NAME, "月都風/薬効/")
+;贈り物関連
+CASE "感性：好き"
+	CALLF MAKE_STR(V_NAME, "銀/秩序/美しい/レトロ/知的/" + "毒/道具/" * 3 + "千年の/神代の/賢者の/薬瓶/" * 5)
+CASE "感性：嫌い"
+	CALLF MAKE_STR(V_NAME, "混沌/ポップ/ロリータ/マニアック/" + "小手/" * 3)
+
+;農民関連
+;ホントに薬？
+CASE "農民：説明"
+	CALLF MAKE_STR(V_NAME, "薬草農家")
+CASE "農民：作物"
+	CALLF MAKE_STR(V_NAME, "薬草")
+CASE "農民：畑の種類"
+	CALLF MAKE_STR(V_NAME, "薬草畑")
+CASE "農民：畑のマップ"
+	CALLF MAKE_STR(V_NAME, "迷いの竹林")
+
+CASE "農民：マップID"
+	CALLF MAKE_INT(V_NAME, 4)
+CASE "農民：場所ID"
+	CALLF MAKE_INT(V_NAME, 436)
+CASE "農民：報酬"
+	CALLF MAKE_INT(V_NAME, 600)
+CASE "農民：金利"
+	CALLF MAKE_INT(V_NAME, 14)
+ENDSELECT
+

@@ -1,0 +1,71 @@
+﻿;一緒に運動する
+@EXIST_FreeAct5
+#LOCALSIZE 1
+#LOCALSSIZE 1
+;オブジェクト本体
+@FreeAct5(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+#DIM 経過時間
+経過時間 = Activity_Duration:TARGET
+SELECTCASE O_DATA
+CASE "名称"
+	CALLF MAKE_STR(V_NAME, "一緒に運動する")
+CASE "CHAIN"
+;他キャラに連鎖する場合コメントアウト外すこと
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "経過時間"
+;自由行動に付き合うコマンドでの経過時間
+;未入力だと最大30分
+	;CALLF MAKE_INT(V_NAME, 経過時間)
+ENDSELECT
+
+@自由行動内容_5(CHARA, ARGS, 時間係数, CHAIN)
+#DIM CHARA
+#DIM CHAIN
+#DIM 現在地
+#DIM メッセージ表示
+#DIM 時間係数
+#DIM 経過時間
+現在地 = CFLAG:CHARA:現在位置
+メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
+SELECTCASE ARGS
+	CASE "発生"
+		;戦闘能力1以上のキャラが訓練できる場所にいる時,ただし演奏優先
+		SIF ABL:CHARA:戦闘能力 < 1
+			RETURN 0
+		SIF BASE:CHARA:気力 <= MAXBASE:CHARA:気力 / 2
+			RETURN 0
+		SIF TALENT:CHARA:音楽知識
+			RETURN 0
+		SIF !戦闘訓練可(現在地)
+			RETURN 0
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は\@ CHAIN ? %CALLNAME:CHAIN%に付き合い始めた。# 一呼吸入れて運動を始めた。\@
+		RETURN 60 + RAND:60
+	CASE "行動中"
+		IF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は%TEXTR("弾幕ごっこの練習をしている/息を切らしている/呼吸を整えている/張り切って運動している")%。
+		ENDIF
+	CASE "完了"
+		EXP:CHARA:戦闘経験 += 1
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は運動を終えて一息ついた。
+	CASE "中断"
+		EXP:CHARA:戦闘経験 += 1
+	CASE "付き合う"
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%%TEXTR("と一緒に筋トレに励んだ/の組手に付き合った/とお互いに手伝い合ってストレッチをした")%
+	CASE "ソース"
+		DOWNBASE:MASTER:体力 += 40 * 時間係数
+		DOWNBASE:MASTER:気力 += 40 * 時間係数
+		DOWNBASE:TARGET:体力 += 20 * 時間係数
+		DOWNBASE:TARGET:気力 += 20 * 時間係数
+		SOURCE:歓楽 = (150 + ((ABL:親密 + ABL:MASTER:戦闘能力) * 50)) * 時間係数
+		SOURCE:受動 = (100 + ((ABL:従順 + ABL:MASTER:戦闘能力) * 50)) * 時間係数
+		SOURCE:征服 = (100 + ((ABL:サドっ気 + ABL:戦闘能力) * 100)) * 時間係数
+		TFLAG:98 = 2
+		EXP:MASTER:戦闘経験 ++
+ENDSELECT

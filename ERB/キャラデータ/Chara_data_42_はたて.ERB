@@ -1,0 +1,118 @@
+﻿@CHARAMOVE_DATA_42(ARG,ARG:2)
+LOCAL = 42
+SELECTCASE ARG
+	;移動対象メンバーチェック
+	CASE 1
+	;移動確率
+	CASE 2
+	;起床時間帯
+	CASE 3
+		RETURN 睡眠時間(LOCAL)
+	;移動傾向
+	CASE 4
+		SELECTCASE ARG:2
+			;ひとんちの風呂とかトイレにはいかない
+			CASE 12, 13, 14, 18, 30, 35, 39, 40, 43, 44, 51, 52
+				RETURN -100
+			;私室には入らない
+			CASE 15, 17, 19, 53, 55
+				SIF FLAG:15 != LOCAL
+					RETURN -100
+		ENDSELECT
+	;仕事時間帯
+	CASE 5
+	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
+	CASE 6
+		SELECTCASE ARG:2
+			CASE 2, 3, 7, 8
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+	;出現場所
+	CASE 7
+		SELECTCASE ARG:2
+			CASE 21,22,23, 34,35,36,37, 71,72,73, 81,82,83,84
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+ENDSELECT
+
+@EXIST_キャラデータ42
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+@キャラデータ42(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+SELECTCASE O_DATA
+CASE "呼び名"
+	CALLF MAKE_STR(V_NAME, "はたて")
+
+;こっから衣装設定
+CASE "今日のパジャマ"
+	CALLF MAKE_STR(V_NAME, "パジャマ（ズボン）セット")
+
+CASE "普段着：帽子"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("帽子", "兜巾"))
+CASE "普段着：靴"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴", "下駄"))
+CASE "普段着：靴下"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴下", "靴下"))
+CASE "普段着：スカート"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("スカート", "スカート"))
+CASE "普段着：上半身上着２"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("上半身上着２", "ブラウス"))
+CASE "普段着：その他１"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("その他１", "ネクタイ"))
+
+CASE "固有下着形容詞"
+	CALLF MAKE_STR(V_NAME, "今時の少女らしい")
+CASE "固有下半身下着名"
+	CALLF MAKE_STR(V_NAME, "フリルスキャンティ")
+CASE "固有上半身下着"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有上半身下着名"
+	CALLF MAKE_STR(V_NAME, "フリルブラ")
+CASE "固有下着着用条件"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(前)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(後)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着生地厚さ"
+	CALLF MAKE_INT(V_NAME, 2)
+
+;料理関連
+CASE "料理：好きな味"
+	CALLF MAKE_STR(V_NAME, "魚料理/獣肉/虫肉/葉物/ガッツリ/濃厚/豪華/機能的/鮮やか/ふわふわ/天狗流/外界風/甘い/甘い/しょっぱい/しょっぱい/")
+CASE "料理：嫌いな味"
+	CALLF MAKE_STR(V_NAME, "あっさり/辛い/辛い/卵/卵/卵/地底風/地底風/地底風/鳥肉/鳥肉/鳥肉/鳥肉/鳥肉/")
+CASE "料理：助手効果"
+	CALLF MAKE_STR(V_NAME, "濃い味/")
+;贈り物関連
+CASE "感性：好き"
+	CALLF MAKE_STR(V_NAME, "紫/かわいい/オシャレ/ポップ/不思議/" + "風/鳥/文具/風の/コイン/" * 3 + "カラスの/天狗の/疾風の/ストラップ/キーホルダー/ネクタイ/" * 5)
+CASE "感性：嫌い"
+	CALLF MAKE_STR(V_NAME, "シンプル/レトロ/シック/" + "刃物/弾/小手/" * 3 + "カメの/河童の/鬼の/" * 10)
+;ENDSELECT
+;ここは依頼IDが関連しない情報
+;依頼発生率スカ2/一般3/固有5
+CASE "依頼なし発生率"
+	CALLF MAKE_INT(V_NAME, 0)
+CASE "一般依頼発生率"
+	CALLF MAKE_INT(V_NAME, 2)
+CASE "固有依頼発生率"
+	CALLF MAKE_INT(V_NAME, 8)
+CASE "固有依頼最終要素"
+	CALLF MAKE_INT(V_NAME, 101)
+CASEELSE
+	;固有依頼関連のデータにバトンタッチ
+	SIF STRCOUNT(O_DATA, "依頼")
+		CALLF 固有依頼42(ARG, O_DATA, V_NAME)
+ENDSELECT
+

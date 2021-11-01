@@ -1,0 +1,89 @@
+﻿;遊ぶ
+@EXIST_FreeAct1
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+;オブジェクト本体
+@FreeAct1(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+#DIM 経過時間
+
+SELECTCASE O_DATA
+CASE "名称"
+	CALLF MAKE_STR(V_NAME, "一緒に遊ぶ")
+CASE "CHAIN"
+;他キャラに連鎖する場合コメントアウト外すこと
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "経過時間"
+;自由行動に付き合うコマンドでの経過時間
+;未入力だと最大30分
+;	CALLF MAKE_INT(V_NAME, 経過時間)
+ENDSELECT
+
+@自由行動内容_1(CHARA, ARGS, 時間係数, CHAIN)
+#DIM CHARA
+#DIM CHAIN
+#DIM 現在地
+#DIM メッセージ表示
+#DIM 時間係数
+#DIM 経過時間
+現在地 = CFLAG:CHARA:現在位置
+メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
+SELECTCASE ARGS
+	CASE "発生"
+		;［幼稚］持ちが屋外にいる時
+		SIF !TALENT:CHARA:幼稚
+			RETURN 0
+		SIF !OUTROOF(現在地) && !戦闘訓練可(現在地)
+			RETURN 0
+		SIF BASE:CHARA:気力 <= 500
+			RETURN 0
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は\@ CHAIN ? %CALLNAME:CHAIN%と一緒に遊び始めた。 # %NAME_FROM_PLACE(現在地)%で遊び始めた。\@
+		RETURN 60 + RAND:60
+	CASE "行動中"
+		IF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は%TEXTR(@"走り回っている/はしゃいでいる/元気に遊んでいる/%CALLNAME:MASTER%にちょっかいを出そうとしている")%。
+		ENDIF
+	CASE "完了"
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は遊び疲れたようだ。
+	CASE "中断"
+		;中断メッセージはうふふ突入時等でも表示されてしまうので表示しない
+	CASE "付き合う"
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の遊びに加わった
+		IF TFLAG:193 > 0
+			PRINTFORML 大いに盛り上がった…
+		ELSEIF TFLAG:193 < 0
+			PRINTFORML あまり盛り上がらなかった…
+		ENDIF
+	CASE "ソース"
+		DOWNBASE:MASTER:体力 += 40 * 時間係数
+		DOWNBASE:MASTER:気力 += 40 * 時間係数
+		DOWNBASE:TARGET:体力 += 20 * 時間係数
+		DOWNBASE:TARGET:気力 += 20 * 時間係数
+		SELECTCASE RAND:10
+		CASE 1
+			;10%で大成功
+			TFLAG:193 = 1
+			SOURCE:歓楽 = (200 + ((ABL:親密 + 好感度係数(TARGET)) * 80)) * 時間係数
+			SOURCE:受動 = (120 + ((ABL:従順 + 好感度係数(TARGET)) * 80)) * 時間係数
+			SOURCE:征服 = (120 + (ABL:サドっ気 * 120)) * 時間係数
+			TFLAG:98 = 2
+		CASE 2
+			;10%で失敗
+			TFLAG:193 = -1
+			SOURCE:歓楽 = (100 + ((ABL:親密 + 好感度係数(TARGET)) * 30)) * 時間係数
+			SOURCE:受動 = (50 + ((ABL:従順 + 好感度係数(TARGET)) * 20)) * 時間係数
+			SOURCE:征服 = (50 + (ABL:サドっ気 * 50)) * 時間係数
+		CASEELSE
+			SOURCE:歓楽 = (150 + ((ABL:親密 + 好感度係数(TARGET)) * 50)) * 時間係数
+			SOURCE:受動 = (100 + ((ABL:従順 + 好感度係数(TARGET)) * 50)) * 時間係数
+			SOURCE:征服 = (100 + (ABL:サドっ気 * 100)) * 時間係数
+			TFLAG:98 = 1
+		ENDSELECT
+ENDSELECT

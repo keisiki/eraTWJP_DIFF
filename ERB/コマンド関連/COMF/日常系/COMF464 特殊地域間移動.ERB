@@ -1,0 +1,263 @@
+﻿;-------------------------------------------------
+;守矢神社へ移動
+;日常系コマンド、レベル1
+;-------------------------------------------------
+@COM464
+#DIM FEE
+VARSET LOCAL
+FEE = 0
+FOR LOCAL,1,CHARANUM
+	IF CFLAG:(LOCAL):同行
+		LOCAL:1 ++
+		SIF CFLAG:LOCAL:衰弱 || BASE:LOCAL:気力 == 0
+			LOCAL:2 ++
+		SIF !CHARA_HOLIDAY(LOCAL) && BASE:LOCAL:仕事量
+			LOCAL:3 ++
+	ENDIF
+NEXT
+IF NEMUKE() >= 720
+	PRINTL 眠気があるので、出掛けない方が良いでしょう
+	RETURN -1
+ELSEIF LOCAL:1 > 1
+	PRINTL 二人以上連れて出掛けることは出来ません
+	RETURN -1
+ELSEIF LOCAL:2 || BASE:MASTER:気力 == 0
+	PRINTFORML 体調不良のため出掛けることは出来ません\@ BASE:MASTER:気力 == 0 ? （気力ゼロ） # （同行者が体調不良）\@
+	RETURN -1
+ELSEIF LOCAL:3 && FESTIVAL() == ""
+	PRINTL 同行者が仕事日のため出掛けることは出来ません
+	RETURN -1
+ELSEIF TIME:5 == 9 || TIME:5 == 5
+	PRINTL 悪天候のため出掛けることは出来ません
+	RETURN -1
+ELSEIF TALENT:MASTER:100 < -4 
+	PRINTL この身体で出掛けるのは危険だ
+	RETURN -1
+ENDIF
+SELECTCASE CFLAG:MASTER:現在位置
+	CASE 205, 210, 803, 820
+		IF !INRANGE(TIME, 540, 1020)
+			PRINTFORML 営業時間外だ
+			RETURN -1
+		ENDIF
+		;守矢キャラたちと同行時は敷設者割引運賃
+		IF CFLAG:31:同行 || CFLAG:32:同行 || CFLAG:33:同行
+			FEE = 1
+		ELSEIF CFLAG:MASTER:同行
+			FEE = 10
+		ELSE
+			FEE = 5
+		ENDIF
+		;相手が鬼か天狗だと愛想笑い／敷設者にも敬意を払う
+		IF GROUPMATCH(TARGET, 10, 29, 31, 32, 33, 42, 64, 65)
+			;ガワを山の河童(16)or里の人間(12)に決める
+			LOCAL = 12 + ((CFLAG:MASTER:現在位置 / 100 == 8) * 4)
+			CALL SPTALK, 0, "笑顔", LOCAL, @"「これはこれは%CALLNAME:TARGET%さん、ご利用ですか？」",1
+			PRINTFORM %CALLNAME:TARGET%の姿を認めた
+			;人里側に河童が常駐してるのもアレかなと
+			IF CFLAG:MASTER:現在位置 / 100 == 2
+				PRINTFORM 受付担当
+			ELSE
+				PRINTFORM 受付河童
+			ENDIF
+			PRINTFORML は愛想笑いを浮かべた
+		ELSE
+			;人里側では一応丁寧対応に
+			IF CFLAG:MASTER:現在位置 / 100 == 2
+				CALL SPTALK, 0, "通常", 12, @"「索道のご利用ですか？」/「運賃は\\{FEE * 200}です。{FEE}カリスマでもいいですよ」",1
+			ELSE
+				CALL SPTALK, 0, "通常", 16, @"「……何？索道乗りたいの？」/「{FEE}カリスマ。\\{FEE * 200}でもいいよ」",1
+			ENDIF
+		ENDIF
+		CALL PAY_YEN_OR_CM(FEE * 200, FEE)
+		SELECTCASE RESULT
+			CASE 0
+				RETURN -1
+			CASE 1
+				IF CFLAG:31:同行 || CFLAG:32:同行 || CFLAG:33:同行
+					PRINTFORML 「お安くしときますよ～」
+				ELSE
+					PRINTFORML 「まいど」
+				ENDIF
+			CASE 2
+				IF CFLAG:MASTER:現在位置 / 100 == 2
+					PRINTFORML 「カリスマ払いですね…はい、どうも」
+				ELSE
+					PRINTFORML 「へー、お客さん人間なのにカリスマ持ってるんだ？凄いね」
+				ENDIF
+		ENDSELECT
+ENDSELECT
+;住み込み先からの特殊移動 or 住み込み先でない場所への特殊移動はデート扱い
+IF AT_HOME(MASTER) || MAIN_MAP != SPECIAL_AREAMOVE() / 100
+	LOCAL:2 = 0
+	LOCALS = %STR:(6000 + SPECIAL_AREAMOVE() / 10)%
+	FOR LOCAL,1,CHARANUM
+		IF CFLAG:(LOCAL):同行
+			CFLAG:LOCAL:デート中 = SPECIAL_AREAMOVE() / 100
+			CFLAG:LOCAL:現在位置 = SPECIAL_AREAMOVE()
+			LOCAL:2 = LOCAL
+			FLAG:デート相手 = LOCAL
+		ENDIF
+	NEXT
+	CFLAG:MASTER:デート中 = SPECIAL_AREAMOVE() / 100
+	CFLAG:MASTER:現在位置 = SPECIAL_AREAMOVE()
+
+	IF CFLAG:MASTER:デート中 == 2
+		CALL EX_COSTUME(FLAG:デート相手, "人里デート")
+		SIF RESULT
+			PRINTFORMW %CALLNAME:(FLAG:デート相手)%は人里向きの服に着替えました
+	ENDIF
+	PRINTFORML %LOCALS%へ出かけます
+	TIME += SPECIAL_AREAMOVE_TIME()
+
+;住み込み先でないところから住み込み先への移動はデート終了扱い
+ELSEIF !AT_HOME(MASTER) && MAIN_MAP == SPECIAL_AREAMOVE() / 100
+	IF CFLAG:負け犬 && TALENT:行きずり == 1
+		PRINTFORML %CALLNAME:TARGET%をお持ち帰りしました
+	ELSE
+		PRINTFORMW \@ CFLAG:MASTER:デート中 != CFLAG:TARGET:デート中 || TARGET == MASTER ? 外出 # デート \@から帰って来ました
+	ENDIF
+	CFLAG:MASTER:現在位置 = SPECIAL_AREAMOVE()
+
+	CALL 守矢くじデート相手のリセット()
+	FOR LOCAL,1,CHARANUM
+		IF CHK_DATENOW(CFLAG:LOCAL:デート中)
+			CALL DATE_EVENT(LOCAL)
+			CFLAG:LOCAL:現在位置 = SPECIAL_AREAMOVE()
+			CALL SET_DATE(99,LOCAL)
+		ENDIF
+	NEXT
+	SIF CHK_DATENOW(CFLAG:MASTER:デート中)
+		CALL SET_DATE(99,MASTER)
+
+	TIME += SPECIAL_AREAMOVE_TIME()
+ENDIF
+
+;-------------------------------------------------
+;実行判定
+;-------------------------------------------------
+@COM_ABLE464
+;停止中は不可
+SIF FLAG:70
+	RETURN 0
+SIF !TFLAG:100
+	RETURN 0
+SIF HALFWAY()
+	RETURN 0
+;一括管理
+SIF GLOBAL_COMABLE(464)
+	RETURN RESULT
+;睡眠中
+SIF CFLAG:睡眠
+	RETURN 0
+;添い寝中
+SIF CFLAG:添い寝中
+	RETURN 0
+SIF !SPECIAL_AREAMOVE()
+	RETURN 0
+SIF CFLAG:うふふ
+	RETURN 0
+RETURN 1
+
+;-------------------------------------------------
+@SPECIAL_AREAMOVE()
+#FUNCTION
+SELECTCASE CFLAG:MASTER:現在位置
+;博麗神社守矢分社
+	CASE 21
+	;守矢キャラと同行中
+		SIF CFLAG:31:同行 || CFLAG:32:同行 || CFLAG:33:同行
+			RETURNF 840
+;人里北通り
+	CASE 205
+		RETURNF 820
+;広場
+	CASE 210
+		IF MAIN_MAP == 8
+			RETURNF 803
+		ELSE
+			RETURNF 820
+		ENDIF
+;無縁塚（魔法の森がメインマップ）
+	CASE 506
+		RETURNF 610
+;無縁塚（外出先から）
+	CASE 570
+		;メインマップが三途の川～冥界のときは中有の道へ
+		SIF MAIN_MAP == 6
+			RETURNF 601
+		;今後のことを考えて弾いておく 中有の道(外出)へ
+		SIF MAIN_MAP != 5
+			RETURNF 610
+;間欠泉地下センター(7がメインマップ)
+	CASE 712
+		RETURNF 970
+;間欠泉地下センター(外出先から)
+	CASE 760
+		;メインマップが地底のときは灼熱地獄跡へ
+		SIF MAIN_MAP == 9
+			RETURNF 928
+		;今後のことを考えて弾いておく 灼熱地獄跡(外出)へ
+		SIF MAIN_MAP != 7
+			RETURNF 970
+;山頂への道
+	CASE 732
+		RETURNF 810
+;索道駅
+	CASE 803
+		RETURNF 210
+;絶景の丘
+	CASE 820
+		;メインマップが人里のときは人里北通りへ
+		SIF MAIN_MAP == 2
+			RETURNF 205
+		;守矢神社・早苗私室(820)を弾き広場へ
+		SIF MAIN_MAP != 8
+			RETURNF 210
+;灼熱地獄跡（9がメインマップ）
+	CASE 928
+		RETURNF 760
+;灼熱地獄跡（外出先から）
+	CASE 970
+		;メインマップが妖怪の山（山麓）のときは間欠泉地下センターへ
+		SIF MAIN_MAP == 7
+			RETURNF 712
+		;今後のことを考えて弾いておく 灼熱地獄跡(外出)へ
+		SIF MAIN_MAP != 9
+			RETURNF 760
+ENDSELECT
+RETURNF 0
+;-------------------------------------------------
+@SPECIAL_AREAMOVE_TIME()
+#FUNCTION
+SELECTCASE CFLAG:MASTER:現在位置
+;博麗神社守矢分社
+	CASE 21
+		RETURNF 1
+;人里北通り
+	CASE 205
+		RETURNF 15
+;広場
+	CASE 210
+		RETURNF 15
+;無縁塚
+	CASE 506, 570
+		SIF SHORTCUT(3)
+			RETURNF 3
+		RETURNF 5
+;間欠泉地下センター
+	CASE 712, 760
+		RETURNF 10
+;山頂への道
+	CASE 732
+		RETURNF 5
+;索道駅
+	CASE 803
+		RETURNF 15
+;絶景の丘
+	CASE 820
+		RETURNF 15
+;灼熱地獄跡
+	CASE 928, 970
+		RETURNF 5
+ENDSELECT

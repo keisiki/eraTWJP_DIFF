@@ -1,0 +1,762 @@
+﻿;-------------------------------------------
+;調教後のテキスト
+;-------------------------------------------
+@PALAM_MESSAGE_C
+;処女喪失
+FOR LOCAL,0,CHARANUM
+	;IF TCVAR:LOCAL:破瓜 == 1 || TCVAR:LOCAL:破瓜 == 2
+	;	PRINTFORML %CALLNAME:LOCAL%の秘唇から、処女の証である赤い血が垂れ落ちていった……
+	;ELSEIF TCVAR:LOCAL:破瓜 == -1
+	;	PRINTFORML 不思議なことに%CALLNAME:LOCAL%の秘唇からは、血の一滴も出てはこなかった……
+	;ENDIF
+	SIF TCVAR:LOCAL:破瓜 == 1 || TCVAR:LOCAL:破瓜 == 2
+		PRINTFORMW %CALLNAME:LOCAL%の秘唇から、処女の証である赤い血が垂れ落ちていった……
+NEXT
+;Ａ処女喪失
+FOR LOCAL,0,CHARANUM
+	IF FLAG:70 && TCVAR:LOCAL:Ａ破瓜
+		PRINTFORMW %CALLNAME:LOCAL%の、固い尻穴を強引にこじ開けた
+	ELSE
+		IF TCVAR:LOCAL:Ａ破瓜 == 1 
+			PRINTFORM %CALLNAME:LOCAL%は、尻穴の違和感に
+			IF TARGET == 57 && !TALENT:恋慕
+				PRINTFORMW 猿と獅子口の面を浮かべている
+			ELSE
+				PRINTFORMW 顔をしかめている
+			ENDIF
+		ELSEIF TCVAR:LOCAL:Ａ破瓜 == -1 && !CFLAG:LOCAL:Ａ破瓜違和感確認
+			PRINTFORMW %CALLNAME:LOCAL%は、アヌスが易々と受け入れられたことに違和感を感じている
+			CFLAG:LOCAL:Ａ破瓜違和感確認 = 1
+		ENDIF
+	ENDIF
+NEXT
+;恋人取得
+IF SELECTCOM == 352
+	IF TFLAG:193
+		PRINTFORM %CALLNAME:TARGET%は
+		IF TARGET == 57 && !TALENT:恋慕
+			PRINTFORM 翁の面を浮かべて
+		ELSE
+			PRINTFORM 顔を赤らめながら
+		ENDIF
+		PRINTFORML %CALLNAME:MASTER%の告白を受け入れた……
+		PRINTL  
+		PRINTFORM %CALLNAME:TARGET%と
+		SETCOLOR C_PINK
+		PRINT 恋人
+		RESETCOLOR
+		PRINTW になりました
+		PRINTL  
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%は怪訝な様子だ……
+		PRINTL  
+	ENDIF
+ENDIF
+;何もしない
+IF SELECTCOM == 21
+	IF FLAG:70 == 1
+	ELSE
+	SIF PALAM:欲情 >= PALAMLV:4
+		PRINTFORM %CALLNAME:TARGET%は息を荒げ
+	IF PALAM:欲情 >= PALAMLV:6
+		IF TARGET == 57 && !TALENT:恋慕
+			PRINTFORM 無表情なのに
+		ENDIF
+		PRINT 熱っぽい瞳でこちらを見つめ
+	ENDIF
+	SIF PALAM:欲情 >= PALAMLV:4 && TCVAR:媚薬
+		PRINT 、ガクガクと震える身体を抱きしめ
+	SIF PALAM:欲情 >= PALAMLV:6
+		PRINT ながら、しきりに太腿を擦りあわせ
+	SIF PALAM:欲情 >= PALAMLV:4
+		PRINTL ている……
+	ENDIF
+ENDIF
+;フェラで射精後
+;IF TFLAG:8 && NOWEX:PLAYER:11 && !FLAG:70
+IF (TCVAR:MASTER:112 == 1 || TCVAR:MASTER:112 == 2) && SELECTCOM == 81 && !FLAG:70 && !CFLAG:イタズラ
+	;LOCAL = MASTER_POSE(SET_M,SET_P,1)
+	;PRINT その後、
+	;IF SELECTCOM == 511
+		;PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%と%CALLNAME:ASSI%のペニスを交互に咥え、汚れを舐め取っていった……
+	;ELSE
+		;IF LOCAL && LOCAL != TARGET
+			;PRINTFORM %CALLNAME:LOCAL%と%CALLNAME:TARGET%は
+		;ELSEIF LOCAL && LOCAL == TARGET
+			;PRINTFORM %CALLNAME:LOCAL%は
+		;ELSEIF !LOCAL
+			PRINTFORM %CALLNAME:TARGET%は
+		;ENDIF
+		SIF NOWEX:PLAYER:射精
+			 PRINT 残った精液を吸い取りながら、
+		PRINTL ペニスの汚れを綺麗に舐めとっていった……
+	;ENDIF
+	;SIF TFLAG:8 == 3 && NOWEX:MASTER:11
+		;PRINTL 二人はそれだけでは足りないかのように互いの口に溜まった精液を舐めあっている……
+ENDIF
+IF CFLAG:TARGET:口上セレクタ
+	TRYCALLFORM M_KOJO_K{NO:TARGET}_{CFLAG:TARGET:口上セレクタ}
+ELSE
+	TRYCALLFORM M_KOJO_K{NO:TARGET}
+ENDIF
+;TARGET口上出力
+SIF FLAG:口上色
+	TRYCALLFORM M_KOJO%RESULTS%_COLOR_K{NO:TARGET}
+;-------------------------------------------
+;パラメータ変化時テキスト　作成中
+;-------------------------------------------
+@PALAM_MESSAGE_D
+;欲情がLV2になったとき　などなど
+;-------------------------------------------------
+;関数名:OPPAI_DESCRIPTION
+;概　要:言葉でなく心で理解しろ
+;引　数:ARG…キャラ登録番号
+;戻り値:夢
+;備　考:文中関数
+;使用例:%OPPAI_DESCRIPTION(TARGET)%
+;例文:胸
+;ARG:1を1にすると状態に応じた形容詞がつく
+;使用例:%OPPAI_DESCRIPTION(TARGET,1)%
+;例文:はちきれんばかりの乳塊
+;条件文に TEQUIP:50 == PLAYER || TEQUIP:51 == PLAYER
+;を指定しているのは合体中の描写
+;-------------------------------------------------
+@OPPAI_DESCRIPTION(ARG,ARG:1)
+#FUNCTIONS
+VARSET LOCALS
+IF ARG:1
+	IF FLAG:Look表示用乳房
+		;爆乳
+		IF TALENT:ARG:バストサイズ == 2
+			LOCALS += "はち切れんばかりの"
+		;巨乳
+		ELSEIF TALENT:ARG:バストサイズ == 1
+			LOCALS += "豊満な"
+		;並乳
+		ELSEIF TALENT:ARG:バストサイズ == 0
+			LOCALS += "形のいい"
+		;貧乳
+		ELSEIF TALENT:ARG:バストサイズ == -1
+			LOCALS += "小振りな"
+		;絶壁
+		ELSEIF TALENT:ARG:バストサイズ == -2
+			LOCALS += "可愛らしい"
+		ELSE
+			LOCALS += "エラー報告、想定外の数値を示しています――以上"
+		ENDIF
+	ELSE
+		;爆乳
+		IF TALENT:ARG:バストサイズ == 2
+			IF TEQUIP:50 == PLAYER || TEQUIP:51 == PLAYER
+				SELECTCASE RAND:4
+					CASE 0
+						LOCALS += "縦横に暴れまわる"
+					CASE 1
+						LOCALS += "ぶるんぶるんと暴れ狂う"
+					CASE 2
+						LOCALS += "ばるんばるんと揺れ踊る"
+					CASE 3
+						LOCALS += "たぷんたぷんと揺れる"
+				ENDSELECT
+			ENDIF
+			IF TALENT:PLAYER:バストサイズ == -2 && RAND:5 == 0
+				LOCALS += "目を見張るほど大きく実った"
+			ELSEIF RAND:4 == 0
+				LOCALS += "牝牛のような"
+			ELSEIF RAND:3 == 0
+				LOCALS += "はちきれんばかりの"
+			ELSE
+				LOCALS += "手に余るほどの"
+			ENDIF
+		;巨乳
+		ELSEIF TALENT:ARG:バストサイズ == 1
+			IF RAND:3 == 0
+				IF TEQUIP:50 == PLAYER || TEQUIP:51 == PLAYER
+					LOCALS += "ぶるぶると暴れて掌に収まらない"
+				ELSE
+					LOCALS += "とても手で包みきれない"
+				ENDIF
+			ELSEIF RAND:2 == 0
+				IF TEQUIP:50 == PLAYER || TEQUIP:51 == PLAYER
+					LOCALS += "たゆんたゆんと大迫力で揺れる"
+				ELSE
+					LOCALS += "たわわに実った"
+				ENDIF
+			ELSE
+				IF TEQUIP:50 == PLAYER || TEQUIP:51 == PLAYER
+					LOCALS += "たぷたぷと揺れる手から溢れそうな"
+				ELSE
+					LOCALS += "手から溢れそうな"
+				ENDIF
+			ENDIF
+		;並乳
+		ELSEIF TALENT:ARG:バストサイズ == 0
+			IF TEQUIP:ARG:50 == PLAYER || TEQUIP:ARG:51 == PLAYER
+				IF !RAND:4
+					LOCALS += "ぷるぷると震える"
+				ELSEIF !RAND:3
+					LOCALS += "小気味よく揺れる"
+				ELSE
+					LOCALS += "ふよふよと震える"
+				ENDIF
+			ENDIF
+			IF TALENT:ARG:体型 < 0
+				IF !RAND:2
+					LOCALS += "体格の割に発育のいい"
+				ELSE
+					LOCALS += "やや大ぶりな"
+				ENDIF
+			ELSEIF RAND:4 == 0
+					LOCALS += "瑞々しく発育した"
+			ELSEIF RAND:3 == 0
+					LOCALS += "掌に収まるサイズの"
+			ELSEIF RAND:2 == 0
+					LOCALS += "左右均整の取れた二つの"
+			ELSE
+				LOCALS += "形のいい"
+			ENDIF
+		;絶壁
+		ELSEIF TALENT:ARG:バストサイズ == -2
+			IF RAND:4 == 0
+				LOCALS += "うっすらとした"
+			ELSEIF RAND:2 == 0
+				LOCALS += "ほとんど膨らみのない"
+			ELSE
+				LOCALS += "僅かに膨らみが感じられる程度の"
+			ENDIF
+		;貧乳
+		ELSEIF TALENT:ARG:バストサイズ == -1
+			IF TALENT:ARG:体型 < 0
+				LOCALS += "見た目相応の"
+			ELSEIF RAND:2 == 0
+				LOCALS += "なだらかな"
+			ELSE
+				LOCALS += "可愛らしい"
+			ENDIF
+		;想定外
+		ELSE
+			LOCALS += "エラー報告、想定外の数値を示しています――以上"
+		ENDIF
+	ENDIF
+ENDIF
+CALLF 上半身下着チェック(ARG)
+IF FLAG:Look表示用乳房
+	;絶壁
+	IF TALENT:バストサイズ == -2
+		LOCALS += "乳首"
+	;貧乳~爆乳
+	ELSEIF TALENT:バストサイズ >= -1 && TALENT:バストサイズ <= 2
+		LOCALS += "胸"
+	ELSE
+		LOCALS += "エラー報告、想定外の数値を示しています――以上"
+	ENDIF
+ELSE
+	;爆乳
+	IF TALENT:ARG:バストサイズ == 2 && TALENT:ARG:母乳体質 && TALENT:ARG:淫乳 && TALENT:ARG:マゾ && RAND:27 == 0
+		LOCALS += "堕乳"
+	ELSEIF TALENT:ARG:バストサイズ == 2 && TALENT:ARG:母乳体質 && RAND:26 == 0
+		LOCALS += "ミルクタンク"
+	ELSEIF TALENT:ARG:バストサイズ == 2 && (TALENT:ARG:半白澤 || TALENT:ARG:母乳体質) && RAND:25 == 0
+		LOCALS += "牝牛乳"
+	ELSEIF TALENT:ARG:バストサイズ == 2 && TALENT:ARG:淫乳 && RAND:24 == 0
+		LOCALS += "淫爆乳"
+	ELSEIF TALENT:ARG:バストサイズ == 2 && TALENT:ARG:体型 == 1 && RAND:23 == 0
+		LOCALS += "超乳"
+	ELSEIF TALENT:ARG:バストサイズ == 2 && RAND:22 == 0
+		LOCALS += "デカ乳"
+	ELSEIF TALENT:ARG:バストサイズ == 2 && RAND:20 == 0
+		LOCALS += "爆乳"
+	ELSEIF TALENT:ARG:バストサイズ == 2 && RAND:19 == 0
+		LOCALS += "乳肉"
+	;巨乳
+	ELSEIF TALENT:ARG:バストサイズ == 1 && RAND:18 == 0
+		LOCALS += "豊乳"
+	ELSEIF TALENT:ARG:バストサイズ == 1 && RAND:17 == 0
+		LOCALS += "巨乳"
+	ELSEIF TALENT:ARG:バストサイズ == 1 && RAND:16 == 0
+		LOCALS += "豊満な胸"
+	ELSEIF TALENT:ARG:バストサイズ == 1 && RAND:15 == 0
+		LOCALS += "柔肉"
+	ELSEIF TALENT:ARG:バストサイズ >= 1 && RAND:14 == 0
+		LOCALS += "柔乳"
+	;絶壁
+	ELSEIF TALENT:ARG:バストサイズ == -2 && TALENT:ARG:性別 != 2 && RAND:13 == 0
+		LOCALS += "絶壁"
+	ELSEIF TALENT:ARG:バストサイズ == -2 && TALENT:ARG:性別 != 2 && RAND:12 == 0
+		LOCALS += "まな板"
+	ELSEIF TALENT:ARG:バストサイズ == -2 && TALENT:ARG:性別 != 2 && RAND:11 == 0
+		LOCALS += "平坦な胸"
+	;貧乳
+	ELSEIF TALENT:ARG:バストサイズ == -1 && RAND:10 == 0
+		LOCALS += "貧乳"
+	ELSEIF TALENT:ARG:バストサイズ == -1 && RAND:9 == 0
+		LOCALS += "ちっぱい"
+	ELSEIF TALENT:ARG:バストサイズ == -1 && RAND:8 == 0
+		LOCALS += "小振りな胸"
+	ELSEIF TALENT:ARG:バストサイズ == -1 && RAND:7 == 0
+		LOCALS += "薄い胸"
+	ELSEIF TALENT:ARG:バストサイズ == -1 && RAND:6 == 0
+		LOCALS += "小さめの胸"
+	;乳
+	ELSEIF TALENT:ARG:バストサイズ == 0 && RAND:5 == 0
+		LOCALS += "美乳"
+	ELSEIF TALENT:ARG:バストサイズ == 0 && RAND:4 == 0
+		LOCALS += "おっぱい"
+	ELSEIF TALENT:ARG:バストサイズ >= 0 && RAND:3 == 0
+		LOCALS += "乳"
+	ELSEIF TALENT:ARG:バストサイズ >= 0 && RAND:2 == 0
+		LOCALS += "乳房"
+	ELSE
+		;念のため男の乳書いとく
+		IF TALENT:ARG:バストサイズ == -2 && TALENT:ARG:性別 == 2
+			IF ABL:ARG:戦闘能力 >= 6
+				LOCALS += "大胸筋峡谷"
+			ELSEIF ABL:ARG:戦闘能力 >= 4
+				LOCALS += "厚い胸板"
+			ELSEIF ABL:ARG:戦闘能力 <= 1
+				LOCALS += "薄い胸板"
+			ELSE
+				LOCALS += "胸板"
+			ENDIF
+		ELSEIF TALENT:ARG:バストサイズ >= 0 && TALENT:ARG:バストサイズ <= 2
+			LOCALS += "乳"
+		ELSEIF TALENT:ARG:バストサイズ < 0 && TALENT:ARG:バストサイズ >= -2
+			LOCALS += "小ぶりな乳房"
+		ELSE
+			LOCALS += "エラー報告、想定外の数値を示しています――以上"
+		ENDIF
+	ENDIF
+ENDIF
+RETURNF LOCALS
+
+;-------------------------------------------------
+;関数名:NIPPLE_DESCRIPTION
+;引　数:ARG…キャラ登録番号
+;使用例:%NIPPLE_DESCRIPTION(TARGET)%
+;例文:乳首
+;備　考:文中関数
+;ARG:1を1にすると状態に応じた形容詞がつく
+;使用例:%NIPPLE_DESCRIPTION(TARGET,1)%
+;例文:ビンビンになっている乳首
+;-------------------------------------------------
+@NIPPLE_DESCRIPTION(ARG,ARG:1)
+#FUNCTIONS
+VARSET LOCALS
+
+IF ARG:1
+	IF EX:ARG:Ｂ絶頂 * 10000 + PALAM:ARG:快Ｂ + PALAM:ARG:欲情 >= 30000
+	;ELSEIF PALAM:欲情 >= PALAMLV:5
+		IF RAND:4 == 0
+			LOCALS += "ビンビンになっている"
+		ELSEIF RAND:3 == 0
+			LOCALS += "乳輪からこんもりと膨らんだ"
+		ELSEIF RAND:2 == 0
+			LOCALS += "乳輪ごとぷっくりと盛り上がった"
+		ELSE
+			LOCALS += "快感で厭らしくふくれた"
+		ENDIF
+	ELSEIF EX:ARG:Ｂ絶頂 * 10000 + PALAM:ARG:快Ｂ + PALAM:ARG:欲情 >= 10000
+	;ELSEIF PALAM:欲情 >= PALAMLV:4
+		IF RAND:4 == 0
+			LOCALS += "蕾のように上向いた"
+		ELSEIF RAND:3 == 0
+			LOCALS += "ツンと尖った"
+		ELSEIF RAND:2 == 0
+			LOCALS += "すっかり硬くなった"
+		ELSE
+			LOCALS += "勃起した"
+		ENDIF
+	ELSEIF EX:Ｂ絶頂 * 10000 + PALAM:快Ｂ + PALAM:欲情 >= 3000
+	;ELSEIF PALAM:欲情 >= PALAMLV:3
+		IF RAND:4 == 0
+			LOCALS += "硬くしこった"
+		ELSEIF RAND:3 == 0
+			LOCALS += "硬さを帯び始めた"
+		ELSEIF RAND:2 == 0
+			LOCALS += "勃起しかけの"
+		ELSE
+			LOCALS += "充血しつつある"
+		ENDIF
+	ELSE
+		IF TALENT:体型 <= -1
+			LOCALS += "小さな"
+		ELSE
+			LOCALS += "まだ柔らかい"
+		ENDIF
+	ENDIF
+ENDIF
+IF FLAG:Look表示用乳首
+	LOCALS += "乳首"
+ELSE
+	IF RAND:4 == 0
+		LOCALS += "乳首"
+	ELSEIF RAND:3 == 0
+		LOCALS += "突起"
+	ELSEIF RAND:2 == 0
+		LOCALS += "先端"
+	ELSE
+		LOCALS += "乳頭"
+	ENDIF
+ENDIF
+RETURNF LOCALS
+;-------------------------------------------------
+;関数名:PrintMilkedNipple
+;引　数:ARG…キャラ登録番号
+;母乳体質乳首の記述が何度も出てきたから関数化
+;-------------------------------------------------
+@PrintMilkedNipple(ARG,ARGS)
+IF ARGS == "衣服描写つき"
+	IF TEQUIP:ARG:1 == 0
+		PRINT 
+	ELSE
+		FOR LOCAL,17,6,-1
+			IF GROUPMATCH(LOCAL, 15, 12, 11)
+				CONTINUE
+			ENDIF
+			IF EQUIP:ARG:LOCAL
+				IF !TEQUIP:ARG:上半身はだけ状態
+					PRINTFORM %CLOTHNAME(LOCAL,EQUIP:ARG:LOCAL)%の上から
+					BREAK
+				ELSEIF TEQUIP:ARG:上半身はだけ状態
+					PRINTFORM はだけた%CLOTHNAME(LOCAL,EQUIP:ARG:LOCAL)%の間からのぞく
+					BREAK
+				ENDIF
+			ENDIF
+		NEXT
+	ENDIF
+ENDIF
+IF TALENT:ARG:母乳体質 && RAND:3 == 0
+	PRINTFORM %TEXTR("雌乳/母乳/ミルク")%を滲ませる
+ENDIF
+PRINTFORM %OPPAI_DESCRIPTION(ARG)%の%TEXTR("先の、/頂に在る、/")%%NIPPLE_DESCRIPTION(ARG,1)%
+
+
+;-------------------------------------------------
+;関数名:SAMEN_DESCRIPTION
+;引　数:ARG…キャラ登録番号
+;備　考:文中関数
+;ARG:1を1にすると素質に応じた形容詞がつく
+;-------------------------------------------------
+@SAMEN_DESCRIPTION(ARG,ARG:1)
+#FUNCTIONS
+VARSET LOCALS
+
+IF TALENT:ARG:濃厚精液 && ARG:1
+;LOCALS += @"%CALLNAME:TARGET%を孕ませるための"
+	SELECTCASE RAND:5
+		CASE 0
+			LOCALS += "とびきり濃厚な"
+		CASE 1
+			LOCALS += "半固形の"
+		CASE 2
+			LOCALS += "夥しい数の精子を含んだ"
+		CASE 3
+			LOCALS += "糊のような"
+		CASE 4
+			LOCALS += "数日がかりで熟成させた"
+	ENDSELECT
+ENDIF
+
+SELECTCASE RAND:7
+	CASE 0
+		LOCALS += "子種汁"
+	CASE 1
+		LOCALS += "白濁"
+	CASE 2
+		LOCALS += "ザーメン"
+	CASE 3
+		LOCALS += "孕み汁"
+	CASE 4
+		LOCALS += "ちんぽみるく"
+	CASEELSE
+		LOCALS += "精液"
+ENDSELECT
+
+RETURNF LOCALS
+
+;-------------------------------------------------
+;関数名:HIP
+;概　要:三番煎じ上等
+;引　数:ARG…キャラ登録番号
+;戻り値:
+;備　考:文中関数
+;使用例:%HIP(TARGET)%
+;-------------------------------------------------
+@HIP(ARG)
+#FUNCTIONS
+VARSET LOCALS
+IF PALAM:ARG:欲情 >= PALAMLV:4 && !RAND:4
+	IF EQUIP:ARG:レオタード || EQUIP:ARG:ボディースーツ
+		LOCALS = 汗で%SHOW_下半身下着(ARG,3)%を貼り付かせた
+	ELSEIF EQUIP:ARG:下半身下着１
+		LOCALS = 汗で\@ GET_INT(ARG, "下半身下着_ずらし不可", EQUIP:ARG:下半身下着１, "透ける(後)") ? 透けた # \@%PANTSNAME(EQUIP:ARG:下半身下着１, ARG)%を貼り付かせた
+	ELSEIF EQUIP:ARG:下半身下着２
+		LOCALS = 汗で\@ GET_INT(ARG, "下半身下着_ずらし可能", EQUIP:ARG:下半身下着２, "透ける(後)") ? 透けた # \@%PANTSNAME(EQUIP:ARG:下半身下着２, ARG)%を貼り付かせた
+	ELSE
+		LOCALS = 珠のような汗を浮かべた
+	ENDIF
+ELSEIF !RAND:5 && EXP:ARG:出産経験 && TALENT:ARG:バストサイズ <= 0
+	LOCALS = "とても{EXP:ARG:出産経験}人産んだとは思えない"
+ELSEIF !RAND:5 && TALENT:ARG:バストサイズ > 0
+	LOCALS = 元気な子を産んでくれそうな
+ENDIF
+IF TALENT:ARG:体型 == -2
+	SELECTCASE RAND:2
+	CASE 0
+		LOCALS += "小さなすべすべのお尻"
+	CASE 1
+		LOCALS += "可愛らしい尻"
+	ENDSELECT
+ELSEIF TALENT:ARG:バストサイズ < 0
+	SELECTCASE RAND:3
+	CASE 0
+		LOCALS += "肉付きの薄い尻"
+	CASE 1
+		LOCALS += "スラリとした尻"
+	CASE 2
+		LOCALS += "小ぶりの尻"
+	ENDSELECT
+ELSEIF TALENT:ARG:バストサイズ - CFLAG:ARG:乳ランクアップ > 0
+	SELECTCASE RAND:5
+	CASE 0
+		LOCALS += "安産型の尻"
+	CASE 1
+		LOCALS += "肉付きのよい尻"
+	CASE 2
+		LOCALS += "たっぷりとした尻"
+	CASE 3
+		LOCALS += "むっちりとした尻"
+	CASE 4
+		LOCALS += "豊満な尻"
+	ENDSELECT
+ELSE
+	SELECTCASE RAND:5
+	CASE 0
+		IF CFLAG:ARG:乳ランクアップ
+			LOCALS += "妊娠して丸みを増した尻"
+		ELSE
+			LOCALS += "美しく引き締まった尻"
+		ENDIF
+	CASE 1
+		LOCALS += "剥きたての卵のような尻"
+	CASE 2
+		LOCALS += "ハリのある尻"
+	CASE 3
+		LOCALS += "吸いつくような手触りの尻"
+	CASE 4
+		LOCALS += "瑞々しい尻"
+	ENDSELECT
+ENDIF
+RETURNF LOCALS
+
+;-------------------------------------------------
+;関数名:THIGHS
+;概　要:太ももは英語でTHIGHSと言うらしい、HIPのパクリ
+;引　数:ARG…キャラ登録番号
+;戻り値:
+;備　考:文中関数
+;使用例:%THIGHS(TARGET)%
+;-------------------------------------------------
+@THIGHS(ARG)
+#FUNCTIONS
+VARSET LOCALS
+
+IF TALENT:ARG:体型 == -2
+	SELECTCASE RAND:2
+	CASE 0
+		LOCALS = 細くてすべすべの太もも
+	CASE 1
+		LOCALS = ほっそりとした太もも
+	ENDSELECT
+ELSEIF TALENT:ARG:バストサイズ < 0
+	SELECTCASE RAND:3
+	CASE 0
+		LOCALS = 肉付きの薄い太もも
+	CASE 1
+		LOCALS = スラリとした太もも
+	CASE 2
+		LOCALS = 触り心地の良い太もも
+	ENDSELECT
+ELSEIF TALENT:ARG:バストサイズ > 0
+	SELECTCASE RAND:3
+	CASE 0
+		LOCALS = 肉付きのよい太もも
+	CASE 1
+		LOCALS = ムチムチの太もも
+	CASE 2
+		LOCALS = むっちりとした太もも
+	ENDSELECT
+ELSE
+	SELECTCASE RAND:3
+	CASE 0
+		LOCALS = 美しく引き締まった太もも
+	CASE 1
+		LOCALS = シミ一つない太もも
+	CASE 2
+		LOCALS = やわらかな太もも
+	ENDSELECT
+ENDIF
+RETURNF LOCALS
+
+;-------------------------------------------------
+;関数名:UNDER_SKIRT_DESCRIPTION
+;概　要:スカートの中の描写
+;引　数:ARG…キャラ登録番号
+;戻り値:
+;備　考:文中関数
+;使用例:%UNDER_SKIRT_DESCRIPTION(TARGET)%
+;-------------------------------------------------
+@UNDER_SKIRT_DESCRIPTION(ARG)
+#FUNCTIONS
+VARSET LOCALS
+;ふたなり以外は有り得ない
+IF GETBIT(TALENT:ARG:性別,1)
+	LOCALS += TINKO(ARG) + "と"
+ENDIF
+LOCALS += SLIT(ARG, 1)
+
+IF CFLAG:ARG:ノーパン == 0
+	IF EQUIP:ARG:レオタード || EQUIP:ARG:ボディースーツ
+		 ;LOCALS:1 = %CALLNAME:ARG%の下に何も穿いていないせいで、%SHOW_下半身下着(ARG,3)%の上からでもくっきりと形が浮かび上がる%LOCALS%
+		 LOCALS:1 = %SHOW_下半身下着(ARG,3)%の上からでもくっきりと形が浮かび上がる%LOCALS%
+	ELSEIF EQUIP:ARG:下半身下着１ || EQUIP:ARG:下半身下着２
+		LOCALS:1 = はいている\@ EQUIP:ARG:下半身下着２ ? %PANTS_DESCRIPTION(EQUIP:ARG:下半身下着２, ARG)%%PANTSNAME(EQUIP:ARG:下半身下着２, ARG)% # %PANTSNAME(EQUIP:ARG:下半身下着１, ARG)%\@
+	ELSE
+		LOCALS:1 = 下着をはいていない%CALLNAME:ARG%の%LOCALS%
+	ENDIF
+ELSE
+	IF EQUIP:ARG:レオタード ||  EQUIP:ARG:ボディースーツ
+		LOCALS:1 = %SHOW_BOTTOM(ARG,1)%の下に隠れていた%SHOW_下半身下着(ARG,3)%
+	ELSE
+		LOCALS:1 = 下着をはいていなかった%CALLNAME:ARG%の%LOCALS%
+	ENDIF
+ENDIF
+RETURNF LOCALS:1
+
+;-------------------------------------------------
+;関数名:SLIT
+;概　要:秘裂の地の文
+;-------------------------------------------------
+@SLIT(ARG,修飾語あり)
+#FUNCTIONS
+#DIM 修飾語あり
+
+VARSET LOCALS
+SIF !ARG
+	ARG = TARGET
+CALLF 下半身下着チェック(TARGET)
+IF 修飾語あり
+	IF TALENT:ARG:処女 == 1
+		LOCALS += "男を知らない"
+		SIF PALAM:潤滑 > PALAMLV:1
+			LOCALS += "にもかかわらず、"
+	ELSEIF EX:ARG:処女喪失チェック
+		LOCALS += "処女を失ったばかりの"
+	ELSEIF TCVAR:ARG:発情
+		LOCALS += "濃厚な雌の匂いを放"
+		IF PALAM:潤滑 > PALAMLV:1
+			LOCALS += "ちながら、"
+		ELSE
+			LOCALS += "つ"
+		ENDIF
+	ENDIF
+	;潤滑LV4以上
+	IF PALAM:潤滑 > PALAMLV:4
+		LOCALS += "太ももまで愛蜜をこぼす"
+	ELSEIF PALAM:潤滑 > PALAMLV:3
+		LOCALS += "ぐしょぐしょに濡れた"
+	ELSEIF PALAM:潤滑 > PALAMLV:2
+		LOCALS += "ぬるりとした愛液に濡れた"
+	ELSEIF PALAM:潤滑 > PALAMLV:1
+		LOCALS += "ほんのりと湿った"
+	ENDIF
+	;小柄体型の有無で分岐
+	IF TALENT:ARG:体型 == -1
+			LOCALS += "小さな"
+	ELSEIF TALENT:ARG:体型 == -2
+		LOCALS += TEXTR("つるつるの/幼い/無毛の/未成熟な/小さな/いたいけな")
+	ENDIF
+ENDIF
+IF TALENT:ARG:処女 == 1 && !RAND:3
+	LOCALS += "処女膣"
+ELSE
+	SELECTCASE RAND:8
+		CASE 0
+			LOCALS += "割れ目"
+		CASE 1
+			LOCALS += "オマンコ"
+		CASE 2
+			LOCALS += "膣穴"
+		CASE 3
+			LOCALS += "雌穴"
+		CASE 4
+			LOCALS += "肉壺"
+		CASE 5
+			LOCALS += "蜜壺"
+		CASE 6
+			LOCALS += "クレヴァス"
+		CASEELSE
+			LOCALS += "秘裂"
+	ENDSELECT
+ENDIF
+RETURNF LOCALS
+;-------------------------------------------------
+;関数名:寝起き着替え
+;概　要:寝起き着替え地の文
+;引　数:ARG=TARGET
+;戻り値:
+;備　考:
+;-------------------------------------------------
+@寝起き着替え(ARG)
+IF 睡眠時間(ARG) && !CFLAG:ARG:眠姦発覚
+	IF ARG && TALENT:ARG:恋慕 && !GETBIT(CFLAG:ARG:着替え実行, 1) && CFLAG:MASTER:現在位置 == CFLAG:ARG:現在位置 && MAIN_MAP == GET_MAPID(CFLAG:MASTER:現在位置)
+		PRINTFORM %CALLNAME:ARG%は、
+		IF TALENT:ARG:恋人
+			PRINTFORM 見せつけるようにゆっくりと
+		;気弱系
+		ELSEIF CFLAG:ARG:性格傾向 == 1
+			PRINTFORM こちらの目を気にしながら
+		;強気系
+		ELSEIF CFLAG:ARG:性格傾向 == 2
+			PRINTFORM ため息をついて堂々と
+		;素直系
+		ELSEIF CFLAG:ARG:性格傾向 == 3
+			PRINTFORM 苦笑を浮かべながら
+		;真面目系
+		ELSEIF CFLAG:ARG:性格傾向 == 4
+			PRINTFORM こちらに背中を向けさせ
+		;その他
+		ELSEIF CFLAG:ARG:性格傾向 == 5
+			PRINTFORM 呆れた表情を浮かべ
+		ENDIF
+		PRINTFORML 寝間着へと着替え、寝床に潜った
+	ENDIF
+	SETBIT CFLAG:ARG:着替え実行, 1
+	CLEARBIT CFLAG:ARG:着替え実行, 0
+ELSE
+	IF ARG && TALENT:ARG:恋慕 && !GETBIT(CFLAG:ARG:着替え実行, 0) && CFLAG:MASTER:現在位置 == CFLAG:ARG:現在位置 && MAIN_MAP == GET_MAPID(CFLAG:MASTER:現在位置)
+		PRINTFORM %CALLNAME:ARG%は、
+		IF TALENT:ARG:恋人
+			PRINTFORM 見せつけるようにゆっくりと
+		;気弱系
+		ELSEIF CFLAG:ARG:性格傾向 == 1
+			PRINTFORM こちらの目を気にしながら
+		;強気系
+		ELSEIF CFLAG:ARG:性格傾向 == 2
+			PRINTFORM ため息をついて堂々と
+		;素直系
+		ELSEIF CFLAG:ARG:性格傾向 == 3
+			PRINTFORM 苦笑を浮かべながら
+		;真面目系
+		ELSEIF CFLAG:ARG:性格傾向 == 4
+			PRINTFORM こちらに背中を向けさせ
+		;その他
+		ELSEIF CFLAG:ARG:性格傾向 == 5
+			PRINTFORM 呆れた表情を浮かべ
+		ENDIF
+		PRINTFORML 普段着へと着替えた
+	ENDIF
+	SETBIT CFLAG:ARG:着替え実行, 0
+	CLEARBIT CFLAG:ARG:着替え実行, 1
+ENDIF
+RETURN ARG

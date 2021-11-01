@@ -1,0 +1,636 @@
+;日記口上
+
+;一日の終了時の流れ
+;@DIARY_TEXT_K83（日記本文）→@DIARY_AFTER_CHECK_K83（フラグの処理）
+
+
+;◆日記の仕様◆
+;※１@DIARY_BEFORE_CHECK_K83で日記のフラグが立つ。
+;→未読フラグ(2)が立っていると一日の終わりにデイリーイベントとして日記が読まれる（既読になる）。
+;→※２未読フラグ(3)が立っていると[日記を読む]で読む事ができる。読むと既読(1)になる。
+;※１各所イベント口上やコマンド口上でフラグを立たせても良いです。
+;※２基本的には未読(2)推奨です。既読(1)、未読(3)はワンステップ必要。
+
+;[日記を読む]には、持ち主が[恋慕]なら自由に読むことができ、
+;そうでない場合は恋慕でない人物がその場に居ない時、もしくは時間停止することで盗み読みできる。
+;拠点住民でないキャラは恋慕であれば自宅（お招き部屋）で読むことができる。
+
+;MAX_DIARY_PAGE:XX:0　キャラ番号XXの日記の最大ページ数　限度は101（1～100）
+;DIARY:XX:YY　　　　　キャラ番号XXの日記番号YYの情報
+;　　 3=未読　　　　　デイリーイベントで読まれない。[日記を読む]で読むと既読になる。
+;　　 2=未読　　　　　デイリーイベントで読まれる。読まれるまでは[日記を読む]では読めない。読まれると既読になる。
+;　　 1=既読　　　　　デイリーイベントで読まれない。[日記を読む]で読める。
+;　　 0=読めない　　　未解禁。
+;PAGESET:XX:YY　　　　キャラ番号XXの実際に書かれたYYページ目の日記番号。
+;=============================
+@DIARY_K83_EXIST
+;存在判定
+;0だと日記は書かれません。
+;=============================
+RETURN 1
+
+;=============================
+@DIARY_AFTER_CHECK_K83
+;デイリーイベントで日記が読まれた際の後処理。
+;フラグの管理等自由に扱って良い。
+
+;条件フラグのリセットや判定追加もここに 
+;たとえば：今日構ったフラグ
+;今日構った日記が表示した後、構ったフラグをリセット。
+; CFLAG:XX:今日構ったフラグ = 0
+;あるいは何かの状態が続くことがフラグの場合
+;例：好感度がほぼ変わらない日が続くと
+;「あなた」の態度が冷たいな～みたいな日記を書く
+; SIF CFLAG:XX:好感度 <= LAST_LP+3
+;   NOTOUCH_DAY ++
+;=============================
+
+
+;=============================
+@DIARY_BEFORE_CHECK_K83
+;常時チェックされる日記の状態情報。
+;ここでDIARY:XX:YYの更新を行う。
+;※DIARY:XX:0番は使えません。
+
+;ここで汎用発生条件を記入する
+;コマンド別の発生条件はM_KOJOの各ファイル中で追加してください。
+
+;基本的に発生条件には"DIARY:XX:YY == 0"を入れること。
+;そうしないと同じ日記が書かれたりしてしまう。
+
+;DIARY:XX:YY　　　　キャラ番号XXの日記番号YYの情報
+;　　 3=未読　　　　デイリーイベントで読まれない。[日記を読む]で読むと既読になる。
+;　　 2=未読　　　　デイリーイベントで読まれる。読まれるまでは[日記を読む]では読めない。読まれると既読になる。
+;　　 1=既読　　　　デイリーイベントで読まれない。[日記を読む]で読める。
+;　　 0=読めない　　未解禁。
+
+;○未読(2)にする場合（基本）
+;未読(2)にするとデイリーイベントとして発生し、一日の終わりに１つだけ読まれる。
+;複数のページが未読(2)になっている場合は番号が小さいものが読まれ、それ以外はリセット(0)される。
+;その為、複数同時に発生すると、発生したのに読まれずリセットされる場合もある。
+;未読(2)にするには単純にフラグに2を入れるだけで良い。
+
+;例１)初対面
+;SIF DIARY:XX:YY == 0 && CFLAG:XX:面識
+;	DIARY:XX:YY = 2
+
+;○未読(3)にする場合（応用）
+;未読(3)にするとデイリーイベントとして読まれず、書かれた時点で[日記を読む]によって読めるようになる。
+;プレイヤーが自主的に読まない限り読まれず、一日に複数ページ加筆される場合もある。
+;未読(3)にするにはフラグに3を入れた上で、CALL CHARA_DIARY_PAGESETTING(XX, YY)をする必要がある。
+
+;例２）好感度100以上
+;IF DIARY:XX:YY == 0 && CFLAG:XX:好感度 >= 100
+;	DIARY:XX:YY = 3
+;	CALL CHARA_DIARY_PAGESETTING(XX, YY)
+;ENDIF
+
+;例３）例２の日記が読まれた上で好感度1000以上
+;これをするとYYを読んだ直後にZZが書き込まれることも起こる。
+;IF DIARY:XX:ZZ == 0 && DIARY:XX:YY == 1 && CFLAG:XX:好感度 >= 1000
+;	DIARY:XX:ZZ = 3
+;	CALL CHARA_DIARY_PAGESETTING(XX, ZZ)
+;ENDIF
+
+;▽おせっかいな注釈
+;ファーストキスは基本的に全員[キス未経験]を所持しているので、"!TALENT:XX:キス未経験"で判定できます。
+;デート帰りのキスで分岐したいならデート帰りのキス口上でフラグを立てます。
+;その場合、通常のファーストキス喪失と重複しないように気をつけましょう。
+;処女喪失は初期設定で処女喪失している場合もあるので、処女喪失口上の方でフラグを立てた方が良いです。
+;その他告白・陥落等のイベントは各種イベント口上でフラグを立てます。初対面はそっちでも大丈夫です。
+;日付を正確に測るには別途フラグが必要です。例えば初めて会った日とか。
+;=============================
+SIF CHARANUM <= [[キスメ]] + 1
+	RETURN
+;MAXPAGEはここで記入する
+MAX_DIARY_PAGE:[[キスメ]]:0 = 100
+
+;以下、勝手な設定
+;キスメは単純作業とか好きだから日記をよく書くけど、ちょっと書いて満足する。
+;キスや告白はショックだけど、エッチに関しては自然と思っているので特別視していない。
+
+;初期設定
+CALL M_KOJO_DIARYSETTING_K83(1)
+CALL M_KOJO_DIARYSETTING_K83(2)
+CALL M_KOJO_DIARYSETTING_K83(3)
+CALL M_KOJO_DIARYSETTING_K83(4)
+CALL M_KOJO_DIARYSETTING_K83(5)
+CALL M_KOJO_DIARYSETTING_K83(6)
+CALL M_KOJO_DIARYSETTING_K83(7)
+CALL M_KOJO_DIARYSETTING_K83(8)
+CALL M_KOJO_DIARYSETTING_K83(9)
+CALL M_KOJO_DIARYSETTING_K83(10)
+CALL M_KOJO_DIARYSETTING_K83(11)
+CALL M_KOJO_DIARYSETTING_K83(12)
+CALL M_KOJO_DIARYSETTING_K83(13)
+CALL M_KOJO_DIARYSETTING_K83(14)
+CALL M_KOJO_DIARYSETTING_K83(15)
+CALL M_KOJO_DIARYSETTING_K83(16)
+
+;汎用
+SIF ABL:[[キスメ]]:親密 >= 1 && ABL:[[ヤマメ]]:親密 >= 1
+	CALL M_KOJO_DIARYSETTING_K83(17)
+SIF ABL:[[キスメ]]:親密 >= 4 && ABL:[[ヤマメ]]:親密 >= 4
+	CALL M_KOJO_DIARYSETTING_K83(18)
+SIF ABL:[[キスメ]]:親密 >= 6 && ABL:[[ヤマメ]]:親密 >= 6
+	CALL M_KOJO_DIARYSETTING_K83(19)
+SIF ABL:[[キスメ]]:親密 >= 10 && ABL:[[ヤマメ]]:親密 >= 10
+	CALL M_KOJO_DIARYSETTING_K83(20)
+SIF ABL:[[キスメ]]:親密 >= 3 && ABL:[[パルスィ]]:親密 >= 1
+	CALL M_KOJO_DIARYSETTING_K83(21)
+SIF ABL:[[キスメ]]:親密 >= 6 && ABL:[[パルスィ]]:親密 >= 4
+	CALL M_KOJO_DIARYSETTING_K83(22)
+SIF ABL:[[キスメ]]:親密 >= 10 && ABL:[[パルスィ]]:親密 >= 8
+	CALL M_KOJO_DIARYSETTING_K83(23)
+SIF ABL:[[キスメ]]:親密 >= 1 && ABL:[[勇儀]]:親密 >= 4
+	CALL M_KOJO_DIARYSETTING_K83(24)
+SIF ABL:[[キスメ]]:親密 >= 4 && ABL:[[勇儀]]:親密 >= 8
+	CALL M_KOJO_DIARYSETTING_K83(25)
+SIF ABL:[[キスメ]]:親密 >= 3 && ABL:[[お燐]]:親密 >= 5
+	CALL M_KOJO_DIARYSETTING_K83(26)
+SIF ABL:[[キスメ]]:親密 >= 3 && ABL:[[お空]]:親密 >= 5
+	CALL M_KOJO_DIARYSETTING_K83(27)
+SIF ABL:[[キスメ]]:親密 >= 5 && ABL:[[こいし]]:親密 >= 5
+	CALL M_KOJO_DIARYSETTING_K83(28)
+SIF ABL:[[キスメ]]:親密 >= 9 && ABL:[[こいし]]:親密 >= 9
+	CALL M_KOJO_DIARYSETTING_K83(29)
+SIF ABL:[[キスメ]]:親密 >= 3 && ABL:[[さとり]]:親密 >= 5
+	CALL M_KOJO_DIARYSETTING_K83(30)
+SIF ABL:[[キスメ]]:親密 >= 3 && TALENT:[[さとり]]:恋慕 && MAIN_MAP != 9
+	CALL M_KOJO_DIARYSETTING_K83(31)
+SIF TALENT:[[キスメ]]:恋慕 && TALENT:[[こいし]]:恋慕
+	CALL M_KOJO_DIARYSETTING_K83(32)
+SIF ABL:[[キスメ]]:親密 >= 5 && DAY >= 30
+	CALL M_KOJO_DIARYSETTING_K83(33)
+SIF ABL:[[キスメ]]:親密 >= 8 && DAY >= 60
+	CALL M_KOJO_DIARYSETTING_K83(34)
+SIF ABL:[[キスメ]]:親密 >= 10 && DAY >= 90
+	CALL M_KOJO_DIARYSETTING_K83(35)
+
+;イベント系
+;36:＠初対面（地底）
+;37:＠初対面（地上０）
+;38:＠初対面（地上１）
+SIF TALENT:[[キスメ]]:思慕
+	CALL M_KOJO_DIARYSETTING_K83(39)
+SIF TALENT:[[キスメ]]:恋慕
+	CALL M_KOJO_DIARYSETTING_K83(40)
+;41:＠デートに出掛ける（拠点から出掛ける時じゃないと駄目）
+;42:＠キスキャンセル
+;43:＠デート帰りのファーストキス
+SIF !FIRSTTIME("ファーストキス", 1, [[キスメ]])
+	CALL M_KOJO_DIARYSETTING_K83(44)
+;45:＠告白失敗
+;46:＠告白オッケー（恋慕）
+;=============================
+@DIARY_TEXT_K83, PAGENUM, MODE, PAGECOUNT
+;日記の内容
+;PAGENUM   = 日記番号（日記のパターン）
+;MODE      = "デイリー":一日終了時のデイリーイベントでの読み上げ
+;          = "コマンド":[日記を読む]コマンドでの読み上げ
+;PAGECOUNT = 何ページ目に書かれているか
+;=============================
+#DIM PAGENUM
+#DIMS MODE
+#DIM PAGECOUNT
+
+;口上色指定あるならコメントアウトを外す
+CALL M_KOJO_COLOR_K83
+
+;グループマッチに日記のIDを入れて、表示させたい顔絵を表示する
+;表情・服装・特殊画像をオプション指定で表示（省略可）
+;書式は\resources\顔.CSVと下の例を参照
+
+;以下はサンプル
+IF MODE == "デイリー"
+;	IF GROUPMATCH(PAGENUM, 1) 
+;		CALL PRINT_FACE, XX, "発情", "裸", "_1"
+;	ELSEIF GROUPMATCH(PAGENUM, 2)
+;		CALL PRINT_FACE, XX, "笑顔", "服1"
+;	ELSEIF GROUPMATCH(PAGENUM, 3)
+;		CALL PRINT_FACE, XX, "怒り"
+;	ELSE
+;		CALL PRINT_FACE, XX
+;	ENDIF
+ENDIF
+
+PRINTFORMDL - キスメの日記　頁.%M_KOJO_K83_漢数字変換(PAGECOUNT)% --------------------------------------------------------------------------------------
+CALL M_KOJO_K83_適当日付設定(PAGECOUNT)
+PRINTL 
+
+;※PAGENUM:0は使えません
+SELECTCASE PAGENUM
+	CASE 1
+		PRINTFORML 新品のノートを拾った。
+		PRINTFORML 日記をつけてみよう。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 2
+		PRINTFORML ヤマメちゃんと遊んだ。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 3
+		PRINTFORML 釣りをした。
+		PRINTFORML 釣果無し。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 4
+		PRINTFORML ヤマメちゃんから弾幕ごっこを教えてもらった。
+		PRINTFORML 一回も勝てなかった。
+		PRINTFORML 難しい。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 5
+		PRINTFORML パルスィと弾幕ごっこした。
+		PRINTFORML 負けた。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 6
+		PRINTFORML 勇儀さんと弾幕ごっこした。
+		PRINTFORML 負けた。
+		PRINTFORML もうやらない。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 7
+		PRINTFORML 燐ちゃんが来た。
+		PRINTFORML 神様を見ていないか聞かれた。
+		PRINTFORML ？
+		PRINTFORML 
+		PRINTFORML 
+	CASE 8
+		PRINTFORML ヤマメちゃんも聞かれたらしい。
+		PRINTFORML 何のことだろう。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 9
+		PRINTFORML 昨日からはぐれ怨霊が増えた。
+		PRINTFORML 地霊殿で何かあったのかも。
+		PRINTFORML ちょっと気になる。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 10
+		PRINTFORML 地上から人間が来てコテンパンにされた。
+		PRINTFORML ヤマメちゃんも負けた。
+		PRINTFORML パルスィも負けた。
+		PRINTFORML 地霊殿の騒ぎを治めに来たんだろう。
+		PRINTFORML ブツブツと独り言を言っていて怖かった。
+		PRINTFORML あれは妖怪退治の為に人間を捨てた専門家だ。
+	CASE 11
+		PRINTFORML 先日の騒動は地上から来た神様が原因だったらしい。
+		PRINTFORML 地上との取引が始まったせいで、度々地上民が来るようになった。
+		PRINTFORML あんまり落ち着かない。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 12
+		PRINTFORML 地底民の何人かが地上へ逃げたらしい。
+		PRINTFORML そんな事をして良いんだろうか。
+		PRINTFORML 日々の平穏が崩れていく。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 13
+		PRINTFORML ヤマメちゃんと地上へ出掛けた。
+		PRINTFORML 妖怪寺を物見に行ったら、地底の妖怪はお断りされた。
+		PRINTFORML 帰りに人間を襲った。
+		PRINTFORML 気分が良い。
+		PRINTFORML 
+	CASE 14
+		PRINTFORML 天狗がやってきて射影機で攻撃された。
+		PRINTFORML 必死に抵抗したけど、撮られてしまったかもしれない。
+		PRINTFORML 写真をばら撒かれたらどうしよう。
+		PRINTFORML 不安で眠れない。
+		PRINTFORML 
+	CASE 15
+		PRINTFORML ヤマメちゃんに天狗の新聞を見せてもらった。
+		PRINTFORML やっぱり撮られてた。本当に恥ずかしい。
+		PRINTFORML 弾幕で顔が隠れていたのは不幸中の幸い。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 16
+		PRINTFORML 最近、地上民を頻繁に見るようになったし、私達もよく地上へ出掛けるようになった。
+		PRINTFORML 変わらない日々も良かったけど、変わる日々も良い。
+		PRINTFORML そして人間を驚かすのは本当に楽しい。
+		PRINTFORML 
+		PRINTFORML 
+	
+	CASE 17
+		PRINTFORML ヤマメちゃんと遊んだ。
+		PRINTFORML ヤマメちゃんがヤマメを釣った。
+		PRINTFORML 面白い。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 18
+		PRINTFORML ヤマメちゃんのお仕事を手伝った。
+		PRINTFORML 疲れた。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 19
+		PRINTFORML ヤマメちゃんと遊んだ。
+		PRINTFORML 人間を驚かした。
+		PRINTFORML 楽しかった。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 20
+		PRINTFORML ヤマメちゃんがご飯を作ってくれた。
+		PRINTFORML なんというか、家庭的な感じがした。
+		PRINTFORML ヤマメちゃんは家庭的が似合う。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 21
+		PRINTFORML パルスィに妬まれた。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 22
+		PRINTFORML パルスィにすごく妬まれた。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 23
+		PRINTFORML パルスィにものすごく妬まれた。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 24
+		PRINTFORML 勇儀さんとお酒を呑んだ。
+		PRINTFORML 気持ち悪い。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 25
+		PRINTFORML 勇儀さんとお酒を呑んだ。
+		PRINTFORML お酒を飲むフリをして水を飲んだ。
+		PRINTFORML バレなかった。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 26
+		PRINTFORML 地上を散歩していたら、燐ちゃんと出会った。
+		PRINTFORML 死体を探して出回ってるらしい。
+		PRINTFORML 私も骨を探した。
+		PRINTFORML 良い骨は見つからなかった。
+		PRINTFORML 
+	CASE 27
+		PRINTFORML 空ちゃんに仕事を誘われた。
+		PRINTFORML 私の鬼火では無理。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 28
+		PRINTFORML こいしちゃんを見た。
+		PRINTFORML 人間に悪戯をしていた。
+		PRINTFORML どうして私には見えたんだろう。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 29
+		PRINTFORML 家に帰ったらこいしちゃんが居て吃驚した。
+		PRINTFORML 一緒にご飯を食べた。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 30
+		PRINTFORML さとりさんが外を歩いてた。
+		PRINTFORML 最近よく見かける気がする。
+		PRINTFORML 地上にも出ているのかも。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 31
+		PRINTFORML 最近さとりさんが地上へ行く様子をよく見かける。
+		PRINTFORML 何をしに行ってるんだろう。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 32
+		PRINTFORML こいしちゃんが%CALLNAME:MASTER%と遊んでいた。
+		PRINTFORML 私なんかと居るより楽しそうだった。
+		PRINTFORML 明日はパルスィと遊ぼう。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 33
+		PRINTFORML 地上の墓地に良い感じの骨があったので拾ってきた。
+		PRINTFORML あそこはお寺の裏だから気をつけないと咎められる。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 34
+		PRINTFORML 骨のトーテムを作った。
+		PRINTFORML 良い出来。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 35
+		PRINTFORML 最近は里外れの枯井戸がお気に入り。
+		PRINTFORML 誰か来ないかな。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 36
+		PRINTFORML 今日、地底で人間と出会った。
+		PRINTFORML 地底で暮らすらしい。
+		PRINTFORML 迷い込んだ人間ならいくらでも襲えるけど、住むと言われたらそういう訳には行かない。
+		PRINTFORML 野垂れ死んでない所を見ると、生存能力は高そう。
+		PRINTFORML 
+	CASE 37
+		PRINTFORML 地上で散歩していたら人間に驚かされた。屈辱的だ。
+		PRINTFORML 気配も臭いも感じなかった。只者ではない。
+		PRINTFORML 私を妖怪だと判っていながら気さくに話しかけてくるし。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 38
+		PRINTFORML 地上で人間を襲ったら、護符に護られていて痛い思いをした。
+		PRINTFORML 最近の人間は侮れない。世知辛い幻想郷だ。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 39
+		PRINTFORML 最近%CALLNAME:MASTER%が仲良くしてくれる。
+		PRINTFORML 人間のくせに妖怪だろうが何だろうがお構いなしの、変な人間だ。
+		PRINTFORML でも、そういうところがちょっと好きかもしれない。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 40
+		FONTSTYLE 4
+		PRINTFORML %CALLNAME:MASTER%
+		PRINTFORML 私
+		PRINTFORML 私が
+		PRINTFORML これが
+		PRINTFORML 最近、
+		PRINTFORML 初めて
+		FONTREGULAR
+		PRINTFORML %CALLNAME:MASTER%が好き。
+	CASE 41
+		PRINTFORML %CALLNAME:MASTER%と遊んだ。
+		IF TALENT:MASTER:性別 == 2
+			PRINTFORML 人間の、それに男と遊ぶ日が来るなんて。
+		ELSE
+			PRINTFORML 人間と遊ぶ日が来るなんて。
+		ENDIF
+		PRINTFORML これってデートなのかな。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 42
+		PRINTFORML %CALLNAME:MASTER%と遊んだ。
+		PRINTFORML 帰りに驚かそうと思って、迫ろうとしたところで恥ずかしくなってしまった。
+		PRINTFORML こんなだから私は低級妖怪なんだ。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 43
+		PRINTFORML %CALLNAME:MASTER%と遊んだ。
+		PRINTFORML 帰りに驚かそうと思い切って、接吻を交わした。
+		PRINTFORML 終わってみればなんて事無かったけど、すごく恥ずかしかった。
+		PRINTFORML こんな事出来るのも%CALLNAME:MASTER%だからだ。
+		PRINTFORML %CALLNAME:MASTER%は私に力をくれる。特別な存在。
+	CASE 44
+		PRINTFORML %CALLNAME:MASTER%とキスした。
+		PRINTFORML 私の初めて。
+		PRINTFORML 変な感じ。
+		PRINTFORML 
+		PRINTFORML 
+	CASE 45
+		PRINTFORML %CALLNAME:MASTER%は私の事好きじゃなかった。
+		PRINTFORML 馬鹿みたい。
+		PRINTFORML 
+		PRINTFORML 
+		PRINTFORML 
+	CASE 46
+		PRINTFORML 恋人ができた。
+		PRINTFORML %CALLNAME:MASTER%。
+		PRINTFORML 頭がふわふわしてる。
+		PRINTFORML 誰かと想いが通じ合うというのは、こんなにも心地良いものなんだ。
+		PRINTFORML %CALLNAME:MASTER%の腕の中で眠りたい。
+ENDSELECT
+
+RESETCOLOR
+
+;=============================
+@M_KOJO_MESSAGE_COM_K83_406
+;=============================
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K83_406_1
+RETURN RESULT
+
+;=============================
+@M_KOJO_MESSAGE_COM_K83_406_1
+;コマンド口上
+;TFLAG:194（誰の日記を読んでいるか）
+;TFLAG:194がXXでない場合は他人の日記なので注意。
+;PAGEは書かれてあるページ数。
+;SHIRAHU(XX)はキャラXXの状態が正常かどうか。
+;=============================
+
+CALL M_KOJO_COLOR_K83
+IF SHIRAHU([[キスメ]]) && TFLAG:194 == [[キスメ]]
+	PRINTFORMW 「あんまり見ないで……\/\/\/」
+ENDIF
+
+;=============================
+@M_KOJO_DIARYSETTING_K83(ARG)
+;日記発生処理の一括管理関数
+;=============================
+SIF DIARY:[[キスメ]]:ARG != 0
+	RETURN
+SELECTCASE ARG
+	;43,44,排他
+	CASE 43, 44
+		SIF CFLAG:[[キスメ]]:1051
+			RETURN
+		CFLAG:[[キスメ]]:1051 = DAY
+	CASEELSE
+ENDSELECT
+DIARY:[[キスメ]]:ARG = 3
+CALL CHARA_DIARY_PAGESETTING([[キスメ]], ARG)
+
+;=============================
+@M_KOJO_K83_漢数字変換(ARG)
+#FUNCTIONS
+;日記用に作った漢数字文字列にして返す関数
+;1～99まで
+;=============================
+LOCALS = 
+SELECTCASE ARG / 10
+CASE 1
+	LOCALS += "十"
+CASE 2
+	LOCALS += "二十"
+CASE 3
+	LOCALS += "三十"
+CASE 4
+	LOCALS += "四十"
+CASE 5
+	LOCALS += "五十"
+CASE 6
+	LOCALS += "六十"
+CASE 7
+	LOCALS += "七十"
+CASE 8
+	LOCALS += "八十"
+CASE 9
+	LOCALS += "九十"
+ENDSELECT
+SELECTCASE ARG % 10
+CASE 1
+	LOCALS += "一"
+CASE 2
+	LOCALS += "二"
+CASE 3
+	LOCALS += "三"
+CASE 4
+	LOCALS += "四"
+CASE 5
+	LOCALS += "五"
+CASE 6
+	LOCALS += "六"
+CASE 7
+	LOCALS += "七"
+CASE 8
+	LOCALS += "八"
+CASE 9
+	LOCALS += "九"
+ENDSELECT
+RETURNF LOCALS
+
+;=============================
+@M_KOJO_K83_適当日付設定(ARG)
+;日記用に作った適当に日付を付ける関数
+;=============================
+SELECTCASE ARG % 12
+CASE 1, 2, 3
+	PRINT ○月
+CASE 4, 5, 6
+	PRINT □月
+CASE 7, 8, 9
+	PRINT △月
+CASEELSE
+	PRINT ☆月
+ENDSELECT
+SELECTCASE ARG % 10
+CASE 1
+	PRINT ×日
+CASE 2
+	PRINT ■日
+CASE 3
+	PRINT ●日
+CASE 4
+	PRINT ▲日
+CASE 5
+	PRINT ★日
+CASE 6
+	PRINT ◆日
+CASE 7
+	PRINT ☆日
+CASE 8
+	PRINT □日
+CASE 9
+	PRINT △日
+CASE 0
+	PRINT ○日
+ENDSELECT

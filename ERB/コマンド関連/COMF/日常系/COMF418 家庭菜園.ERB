@@ -1,0 +1,323 @@
+﻿;-------------------------------------------------
+;家庭菜園
+;日常系コマンド、レベル1
+;-------------------------------------------------
+@COM418
+LOCAL:1 = 1 + FLAG:畑拡張
+FOR LOCAL,0, LOCAL:1
+	CALL SHOW_PLANT(LOCAL)
+NEXT
+PRINTL [999] やめる
+$INPUT_LOOP
+INPUT
+;現状時間停止中は表示のみ
+IF INRANGE(RESULT / 100, 0, LOCAL:1) && FLAG:70 == 0
+	CALL FARMING(RESULT / 100, RESULT % 100)
+	IF RESULT == 0
+		RETURN -1
+	ELSEIF FLAG:70 == 0
+		TIME += RESULT
+	ELSE
+		BASE:MASTER:TSP -= RESULT * 3
+	ENDIF
+	RETURN 0
+ELSE
+	;TIME += 5
+	RETURN -1
+ENDIF
+
+
+@FARMING(ARG, 行動番号)
+#DIM 行動番号
+#DIM 行動コスト
+行動コスト = 0
+LOCALS = %HATAKE_NAME:ARG%
+IF 行動番号 == 0
+	IF PLANT_TYPE:ARG > 0
+		PRINTFORML 既に%LOCALS%が植わっている
+		;行動コスト += 5
+	ELSE
+		PRINTL どれを植えますか？ (苗/作物数)
+		CALL INPLANT(ARG)
+		IF RESULT
+			行動コスト += 10
+		ENDIF
+	ENDIF
+ELSEIF 行動番号 == 1
+	IF !PLANT_DRY:ARG
+		PRINTL 今日はもういいだろう
+	ELSEIF !TFLAG:水汲み
+		PRINTL 水を汲んでこなくては
+	ELSE
+		PLANT_DRY:ARG = 0
+		PRINTFORML %LOCALS%に水をやった
+		SIF ITEM:三粒の天滴
+			FLAG:天滴坤神 = 1
+		行動コスト += 5
+	ENDIF
+ELSEIF 行動番号 == 2
+	;八百屋で購入できるようになったため収穫条件の厳格化
+	IF 収穫可能(ARG) == 0
+		PRINTL 収穫できる状態ではない
+		RETURN 0
+	ENDIF
+	SIF PLANT_DAYS:ARG > 9
+		PLANT_GROW:ARG += 2
+	SIF PLANT_FOOD:ARG
+		PLANT_GROW:ARG ++
+	SIF FLAG:天滴坤神 && RAND:2 == 1
+		PLANT_GROW:ARG += 2
+	;大豊作…天滴とこやし補正でないと到達不能
+	IF PLANT_GROW:ARG > 12
+		PRINTL 大豊作だ！
+		IF PLANT_FOOD:ARG
+			LOCAL = 20 + RAND:6 + RAND:4
+		ELSE
+			LOCAL = 20
+		ENDIF
+	ELSEIF PLANT_GROW:ARG > 10
+		PRINTL 豊作だ！
+		IF PLANT_FOOD:ARG
+			LOCAL = 14 + RAND:4 + RAND:3
+		ELSE
+			LOCAL = 14
+		ENDIF
+	ELSEIF PLANT_GROW:ARG > 7
+		IF PLANT_FOOD:ARG
+			LOCAL = 7 + RAND:3 + RAND:2
+		ELSE
+			LOCAL = 7
+		ENDIF
+	ELSE
+		LOCAL = 5
+	ENDIF
+	;ローター一強を崩すため収穫量ダウン
+	IF 苗対応作物番号取得(PLANT_TYPE:ARG) == 0
+		LOCAL /= 2
+	ENDIF
+	
+	PRINTFORML {LOCAL}個の%LOCALS%を収穫した
+	ITEM:(苗対応作物番号取得(PLANT_TYPE:ARG)) += LOCAL
+	PLANT_TYPE:ARG = 0
+	PLANT_DAYS:ARG = 0
+	PLANT_GROW:ARG = 0
+	PLANT_DRY:ARG = 0
+	HATAKE_NAME:ARG =
+	PLANT_FOOD:ARG = 0
+	行動コスト += 20
+ELSEIF 行動番号 == 3
+	IF PLANT_DRY:ARG <= 4 && PLANT_GROW:ARG <= 10
+		PRINTFORML %LOCALS%を引っこ抜きますか？
+		CALL ASK_YN
+		IF RESULT
+			;行動コスト += 5
+			RETURN 0
+		ENDIF
+	ENDIF
+	PLANT_TYPE:ARG = 0
+	PLANT_DAYS:ARG = 0
+	PLANT_GROW:ARG = 0
+	PLANT_DRY:ARG = 0
+	HATAKE_NAME:ARG =
+	PLANT_FOOD:ARG = 0
+	PRINTFORML %LOCALS%を引っこ抜いた
+	行動コスト += 10
+;畑が拡張されたら全体にします
+ELSEIF 行動番号 == 4 && ITEM:簡易プール && GETBIT (FLAG:プール, 2)
+	IF !PLANT_DRY:ARG
+		PRINTL 今日はもういいだろう
+	ELSE
+		PLANT_DRY:ARG = 0
+		PRINTFORML %LOCALS%に水をやった
+		SIF ITEM:三粒の天滴
+			FLAG:天滴坤神 = 1
+		行動コスト += 5
+	ENDIF
+ELSEIF 行動番号 == 5 && ITEM:こやし
+	IF PLANT_FOOD:ARG
+		PRINTL 肥料のやりすぎもよくない
+	ELSE
+		PLANT_FOOD:ARG = 1
+		PRINTFORML %LOCALS%に肥料をやった
+		行動コスト += 20
+		ITEM:こやし --
+	ENDIF
+ELSE
+	;行動コスト += 5
+	RETURN 0
+ENDIF
+RETURN 行動コスト
+
+@INPLANT(ARG)
+FOR LOCAL, 0, 1000
+	IF STRCOUNT(ITEMNAME:LOCAL, "の苗")
+		;苗以外を除外
+		SIF ITEM:LOCAL
+			PRINTFORML [{LOCAL}]%ITEMNAME:(LOCAL), 14, LEFT%({ITEM:(LOCAL), 2, RIGHT}/{ITEM:(苗対応作物番号取得(LOCAL)), 2, RIGHT})
+	ENDIF
+NEXT
+PRINTL [999] やめる
+$INPUT_LOOP
+INPUT
+IF ITEM:RESULT && STRCOUNT(ITEMNAME:RESULT, "の苗")
+	PRINTFORML 畑{ARG}に%ITEMNAME:(RESULT)%を植えた
+	ITEM:RESULT -= 1
+	PLANT_TYPE:ARG = RESULT
+	PLANT_DRY:ARG = 1
+	;三粒の天滴を持っている場合、植えてすぐに施肥、水撒き完了状態に
+	IF ITEM:三粒の天滴
+		PLANT_DRY:ARG = 0
+		PLANT_FOOD:ARG = 1
+		FLAG:天滴坤神 = 1
+	ENDIF
+	HATAKE_NAME:ARG = %ITEMNAME:(苗対応作物番号取得(PLANT_TYPE:ARG))%
+	RETURN 1
+ELSE
+	RETURN 0
+ENDIF
+
+@SHOW_PLANT(ARG)
+PRINTFORM 畑{ARG}：
+;正常なアイテムかチェック
+IF ITEMNAME:苗対応作物番号取得(PLANT_TYPE:ARG) == ""
+	PLANT_TYPE:ARG = 0
+	PLANT_DAYS:ARG = 0
+	PLANT_GROW:ARG = 0
+	PLANT_DRY:ARG = 0
+	HATAKE_NAME:ARG =
+	PLANT_FOOD:ARG = 0
+ENDIF
+IF PLANT_TYPE:ARG > 0
+	SETCOLOR 0x00FF00
+	PRINTFORM %HATAKE_NAME:ARG + "栽培中", 16, LEFT%
+	IF PLANT_DRY:ARG > 4 || PLANT_GROW:ARG > 10
+		SETCOLOR 0x994C00
+		PRINT （枯）
+	ELSE
+		SELECTCASE PLANT_GROW:ARG
+			CASE 10
+				SETCOLOR 0xFF0000
+				PRINT （熟）
+			CASE 8,9
+				SETCOLOR 0xFF8000
+				PRINT （実）
+			CASE 6,7
+				SETCOLOR 0xFFFF00
+				PRINT （花）
+			CASE 4,5
+				PRINT （葉）
+			CASEELSE
+				PRINT （苗）
+		ENDSELECT 
+	ENDIF
+	IF !PLANT_DRY:ARG
+		SETCOLOR C_AQUA
+		PRINT 　水撒き済み
+	ENDIF
+	IF PLANT_FOOD:ARG
+		SETCOLOR C_CREAM
+		IF ITEM:三粒の天滴
+			PRINT 　坤神の恵みを享けている
+		ELSE
+			PRINT 　施肥済み
+		ENDIF
+	ENDIF
+	RESETCOLOR
+	PRINTL
+	;時間停止中は菜園の状態を見るだけ
+	SIF FLAG:70 == 1
+		RETURN
+	;水撒き
+	IF PLANT_DRY:ARG
+		LOCAL = ARG * 100 + 1
+		LOCALS = [%TOSTR(LOCAL, "000")%] - 水を撒く
+		PRINTBUTTONLC LOCALS, LOCAL
+	ELSE
+		PRINTLC 　
+	ENDIF
+	;収穫
+	IF 収穫可能(ARG)
+		LOCAL = ARG * 100 + 2
+		LOCALS = [%TOSTR(LOCAL, "000")%] - 収穫する
+		SIF PLANT_GROW:ARG == 10
+			SETCOLOR 0xFF0000
+		PRINTBUTTONLC LOCALS, LOCAL
+		RESETCOLOR
+	ELSE
+		PRINTLC 　
+	ENDIF
+	;整地
+	LOCAL = ARG * 100 + 3
+	LOCALS = [%TOSTR(LOCAL, "000")%] - 引っこ抜く
+	PRINTBUTTONLC LOCALS, ARG * 100 + 03
+	;スプリンクラー
+	IF ITEM:簡易プール && GETBIT (FLAG:プール, 2) && PLANT_DRY:ARG
+		LOCAL = ARG * 100 + 4
+		LOCALS = [%TOSTR(LOCAL, "000")%] - スプリンクラー
+		PRINTBUTTONLC LOCALS, LOCAL
+	ELSE
+		PRINTLC 　
+	ENDIF
+	;肥料を撒く
+	IF ITEM:こやし && PLANT_FOOD:ARG == 0
+		LOCAL = ARG * 100 + 5
+		LOCALS = [%TOSTR(LOCAL, "000")%] - 肥料を撒く
+		PRINTBUTTONLC LOCALS, LOCAL
+	ELSE
+		PRINTLC 　
+	ENDIF
+ELSE
+	PRINTL 空き
+	;時間停止中は菜園の状態を見るだけ
+	SIF FLAG:70 == 1
+		RETURN
+	;苗植え
+	LOCAL = ARG * 100 + 0
+	LOCALS = [%TOSTR(LOCAL, "000")%] - 苗を植える
+	PRINTBUTTONLC LOCALS, LOCAL
+ENDIF
+PRINTL
+
+@苗対応作物番号取得(ARG)
+#FUNCTION
+IF STRCOUNT(ITEMNAME:ARG, "の苗")
+	IF ARG == GETNUM(ITEM, "ローターの苗")
+		LOCAL = GETNUM(ITEM, "ローター")
+	ELSE
+		LOCAL = ARG + 200
+	ENDIF
+ELSE
+	LOCAL = ARG
+ENDIF
+RETURNF LOCAL
+
+@収穫可能(ARG)
+#FUNCTION
+RETURNF PLANT_GROW:ARG > 7 && !(PLANT_DRY:ARG > 4 || PLANT_GROW:ARG > 10)
+
+;-------------------------------------------------
+;実行判定
+;-------------------------------------------------
+@COM_ABLE418
+;停止中は不可
+;SIF FLAG:70 == 1
+;	RETURN 0
+;掃除実行判定
+SIF !TFLAG:100
+	RETURN 0
+;一括管理
+SIF GLOBAL_COMABLE(418)
+	RETURN RESULT
+;庭
+SIF !家庭菜園可(CFLAG:MASTER:現在位置)
+	RETURN 0
+;家庭菜園セット
+SIF !ITEM:150
+	RETURN 0
+;気力0
+SIF BASE:MASTER:気力 <= 0
+	RETURN 0
+SIF CFLAG:うふふ == 2
+	RETURN 0
+RETURN 1
+

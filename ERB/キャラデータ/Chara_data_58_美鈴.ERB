@@ -1,0 +1,106 @@
+﻿@CHARAMOVE_DATA_58(ARG,ARG:2)
+LOCAL = 58
+SELECTCASE ARG
+	;移動対象メンバーチェック
+	CASE 1
+	;移動確率
+	CASE 2
+	;起床時間帯
+	CASE 3
+		RETURN 睡眠時間(LOCAL)
+	;移動傾向
+	CASE 4
+		SELECTCASE ARG:2
+			;ひとんちの風呂とかトイレにはいかない
+			CASE 12, 13, 14, 18, 30, 35, 39, 40, 43, 44, 51, 52
+				RETURN -100
+			;私室には入らない
+			CASE 15, 17, 19, 53, 55
+				SIF FLAG:15 != LOCAL
+					RETURN -100
+			;納屋と屋敷外には出ないし、空き部屋にも行かない
+			CASE 304, 305, 321, 329, 330, 334 TO 348
+ 				RETURN -100
+		ENDSELECT
+	;仕事時間帯
+	CASE 5
+	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
+	CASE 6
+		SELECTCASE ARG:2
+			CASE 3
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+	;出現場所
+	CASE 7
+		SELECTCASE ARG:2
+			CASE 31, 34 TO 38
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+ENDSELECT
+;こあ
+@EXIST_キャラデータ58
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+@キャラデータ58(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+SELECTCASE O_DATA
+CASE "呼び名"
+	CALLF MAKE_STR(V_NAME, "美鈴")
+;こっから衣装設定
+CASE "今日のパジャマ"
+	CALLF MAKE_STR(V_NAME, "パジャマ（ズボン）セット")
+CASE "特殊衣装着用"
+	SIF (TALENT:58:恋慕 || TALENT:58:セフレ) && CFLAG:58:溜まってる度 >= 700
+		CALLF MAKE_INT(V_NAME, 73)
+CASE "普段着：帽子"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("帽子", "帽子"))
+CASE "普段着：靴"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴", "靴"))
+CASE "普段着：靴下"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("靴下", "靴下"))
+CASE "普段着：ズボン"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("ズボン", "ズボン"))
+CASE "普段着：ワンピース"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("ワンピース", "チャイナドレス"))
+
+CASE "固有下着形容詞"
+	CALLF MAKE_STR(V_NAME, "ラインが響かない")
+CASE "固有下半身下着名"
+	CALLF MAKE_STR(V_NAME, "ハイレグTバック")
+CASE "固有上半身下着"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有上半身下着名"
+	CALLF MAKE_STR(V_NAME, "スポーツブラ")
+CASE "固有下着着用条件"
+	SIF !RAND:(1 + (2 * 勝負下着判定([[美鈴]])))
+		CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(前)"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(後)"
+	CALLF MAKE_INT(V_NAME, 0)
+CASE "固有下着生地厚さ"
+	CALLF MAKE_INT(V_NAME, 2)
+
+;料理関連
+CASE "料理：好きな味"
+	CALLF MAKE_STR(V_NAME, "肉料理/スパイス/揚げ物/ガッツリ/濃厚/芸術的/野趣/鮮やか/もちもち/メイド流/中華/中華/" + "辛い/" * 3)
+CASE "料理：嫌いな味"
+	CALLF MAKE_STR(V_NAME, "すっぱい/すっぱい/淡白/淡白/淡白/謎料理/謎料理/謎料理/")
+CASE "料理：助手効果"
+	CALLF MAKE_STR(V_NAME, "得意料理＊中華＊/")
+;贈り物関連
+CASE "感性：好き"
+	CALLF MAKE_STR(V_NAME, "赤/虹/秩序/美しい/大陸風/パワフル/" + "七色の/極彩の/龍の/" * 5)
+CASE "感性：嫌い"
+	CALLF MAKE_STR(V_NAME, "知的/洋風/" + "刃物/弾/" * 3 + "ナイフ/" * 10)
+ENDSELECT
+

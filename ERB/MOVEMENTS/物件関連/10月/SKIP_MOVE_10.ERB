@@ -1,0 +1,332 @@
+﻿@SKIP_MOVE_10(ARG,ARG:1)
+#DIM 現在の位置
+#DIM CONST SPT槐安通路 = 1001
+#DIM CONST SPT月の都 = 1002
+#DIM CONST SPT玉兎街 = 1003
+#DIM CONST SPT広場 = 1004
+#DIM CONST SPTサグメ宅居間 = 1005
+#DIM CONST SPTサグメ宅寝室 = 1006
+#DIM CONST SPT空き家 = 1007
+#DIM CONST SPT鈴瑚宅 = 1008
+#DIM CONST SPT清蘭宅 = 1009
+#DIM CONST SPT食事処 = 1010
+#DIM CONST SPT甘味処 = 1011
+#DIM CONST SPT酒屋 = 1012
+#DIM CONST SPT八百屋 = 1013
+#DIM CONST SPT桃林 = 1014
+#DIM CONST SPT砂浜 = 1015
+#DIM CONST SPT入り江 = 1016
+
+#DIM CONST SPT綿月亭門 = 1020
+#DIM CONST SPT綿月亭玄関 = 1021
+#DIM CONST SPT一階回廊 = 1022
+#DIM CONST SPT門番詰め所 = 1023
+#DIM CONST SPT玉兎食堂 = 1024
+#DIM CONST SPT玉兎詰め所 = 1025
+#DIM CONST SPT食堂 = 1026
+#DIM CONST SPT厨房 = 1027
+#DIM CONST SPT食料庫 = 1028
+#DIM CONST SPT綿月亭脱衣所 = 1029
+#DIM CONST SPT綿月亭風呂 = 1030
+#DIM CONST SPT宝物庫 = 1031
+#DIM CONST SPTレイセン私室 = 1032
+#DIM CONST SPT綿月亭空き部屋 = 1033
+#DIM CONST SPT中庭 = 1035
+#DIM CONST SPT四阿 = 1036
+
+#DIM CONST SPT二階回廊 = 1040
+#DIM CONST SPT豊姫私室 = 1041
+#DIM CONST SPT依姫私室 = 1042
+#DIM CONST SPT書斎 = 1043
+#DIM CONST SPT応接間 = 1044
+
+#DIM CONST SPTドレミー宅居間 = 1050
+#DIM CONST SPTドレミー宅寝室 = 1051
+#DIM CONST SPTドレミー宅倉庫 = 1052
+#DIM CONST SPTドレミー宅洗面所 = 1053
+#DIM CONST SPTドレミー宅風呂 = 1054
+#DIM CONST SPTドレミー宅トイレ = 1055
+
+#DIM CONST SPT純狐邸玄関 = 1060
+#DIM CONST SPT居間 = 1061
+#DIM CONST SPT台所 = 1062
+#DIM CONST SPT純狐邸空き部屋 = 1063
+#DIM CONST SPTクラウンピース私室 = 1064
+#DIM CONST SPT物置 = 1065
+#DIM CONST SPT純狐邸脱衣所 = 1066
+#DIM CONST SPT純狐邸風呂 = 1067
+#DIM CONST SPT純狐邸中庭 = 1068
+#DIM CONST SPT屋上 = 1070
+#DIM CONST SPT純狐私室 = 1071
+#DIM CONST SPTヘカーティア私室 = 1072
+
+#DIM CONST SPT夢の向こう = 1073
+
+;現在位置取得
+現在の位置 = CFLAG:MASTER:現在位置
+SIF ARG:1
+	現在の位置 = ARG:1
+
+;暫定目的地に直接移動できる場合
+IF CAN_MOVE(現在の位置, ARG) & 1
+	;そこに移動
+	RETURN ARG
+ENDIF
+
+;袋小路から行ける場所は固定なので、そこを目指す
+SELECTCASE 現在の位置
+	CASE SPTサグメ宅寝室
+		RETURN SPTサグメ宅居間
+	CASE SPT空き家
+		RETURN SPT月の都
+	CASE SPT鈴瑚宅, SPT清蘭宅
+		RETURN SPT玉兎街
+	CASE SPT酒屋, SPT八百屋
+		RETURN SPT広場
+	CASE SPT門番詰め所
+		RETURN SPT綿月亭門
+	CASE SPT玉兎詰め所
+		RETURN SPT玉兎食堂
+	CASE SPT綿月亭風呂
+		RETURN SPT綿月亭脱衣所
+	CASE SPT宝物庫, SPTレイセン私室, SPT綿月亭空き部屋
+		RETURN SPT一階回廊
+	CASE SPT四阿
+		RETURN SPT中庭
+	CASE SPT豊姫私室, SPT依姫私室, SPT書斎, SPT応接間
+		RETURN SPT二階回廊
+	CASE SPTドレミー宅寝室, SPTドレミー宅倉庫
+		RETURN SPTドレミー宅居間
+	CASE SPTドレミー宅風呂, SPTドレミー宅トイレ
+		RETURN SPTドレミー宅洗面所
+	CASE SPT台所, SPT純狐邸空き部屋, SPTクラウンピース私室, SPT物置, SPT純狐邸中庭
+		RETURN SPT居間
+	CASE SPT純狐邸風呂
+		RETURN SPT純狐邸脱衣所
+	CASE SPT純狐私室, SPTヘカーティア私室
+		RETURN SPT屋上
+ENDSELECT
+
+;直接移動できない場合、1つ近い位置を暫定目的地に設定し直してループ
+;地点追加時要フォロー（全ケース修正すること）
+SELECTCASE ARG
+	CASE SPT槐安通路
+		SELECTCASE 現在の位置
+		;ドレミー宅からはドレミー宅 玄関を目指す
+		CASE SPTドレミー宅寝室 TO SPTドレミー宅トイレ
+			RETURN SPTドレミー宅居間
+		;それ以外は月の都を目指す
+		CASEELSE
+			RETURN SPT月の都
+		ENDSELECT
+	CASE SPT月の都
+		SELECTCASE 現在の位置
+		;サグメ宅寝室からはサグメ宅居間を目指す
+		CASE SPTサグメ宅寝室
+			RETURN SPTサグメ宅居間
+		;綿月亭からは綿月亭 門を目指す
+		CASE SPT綿月亭玄関 TO SPT応接間
+			RETURN SPT綿月亭門
+		;ドレミー宅からは槐安通路を目指す
+		CASE SPTドレミー宅居間 TO SPTドレミー宅トイレ
+			RETURN SPT槐安通路
+		;それ以外は7玉兎街を目指す
+		CASEELSE
+			RETURN SPT玉兎街
+		ENDSELECT
+	CASE SPT玉兎街
+		SELECTCASE 現在の位置
+		;酒屋と八百屋は広場を目指す
+		CASE SPT酒屋, SPT八百屋
+			RETURN SPT広場
+		;砂浜～純狐邸からは桃林を目指す
+		CASE SPT砂浜, SPT入り江, SPT純狐邸玄関 TO SPTヘカーティア私室
+			RETURN SPT桃林
+		;それ以外は月の都を目指す
+		CASEELSE
+			RETURN SPT月の都
+		ENDSELECT
+	CASE SPT広場
+		RETURN SPT玉兎街
+	CASE SPTサグメ宅居間, SPT空き家
+		RETURN SPT月の都
+	CASE SPTサグメ宅寝室
+		RETURN SPTサグメ宅居間
+	CASE SPT鈴瑚宅, SPT清蘭宅
+		RETURN SPT玉兎街
+	CASE SPT食事処, SPT甘味処
+		SELECTCASE 現在の位置
+		;酒屋と八百屋は広場を目指す
+		CASE SPT酒屋, SPT八百屋
+			RETURN SPT広場
+		;それ以外は玉兎街を目指す
+		CASEELSE
+			RETURN SPT玉兎街
+		ENDSELECT
+	CASE SPT酒屋, SPT八百屋
+		RETURN SPT広場
+	CASE SPT桃林
+		SELECTCASE 現在の位置
+		;静かの海、純狐邸からは砂浜を目指す
+		CASE SPT入り江, SPT純狐邸玄関 TO SPTヘカーティア私室
+			RETURN SPT砂浜
+		;それ以外は玉兎街をを目指す
+		CASEELSE
+			RETURN SPT玉兎街
+		ENDSELECT
+	CASE SPT砂浜
+		SELECTCASE 現在の位置
+		;純狐邸からは入り江を目指す
+		CASE SPT純狐邸玄関 TO SPTヘカーティア私室
+			RETURN SPT入り江
+		CASEELSE
+			RETURN SPT桃林
+		ENDSELECT
+	CASE SPT入り江
+		SELECTCASE 現在の位置
+		;純狐邸内部からは純狐邸 玄関を目指す
+		CASE SPT純狐邸玄関 TO SPTヘカーティア私室
+			RETURN SPT純狐邸玄関
+		;それ以外は砂浜を目指す
+		CASEELSE
+			RETURN SPT砂浜
+		ENDSELECT
+
+	CASE SPT綿月亭門
+		SELECTCASE 現在の位置
+		;玉兎詰め所からは玉兎食堂を目指す
+		CASE SPT玉兎詰め所
+			RETURN SPT玉兎食堂
+		;それ以外の綿月亭内部からは綿月亭 玄関を目指す
+		CASE SPT綿月亭玄関 TO SPT応接間
+			RETURN SPT綿月亭玄関
+		;それ以外は月の都を目指す
+		CASEELSE
+			RETURN SPT月の都
+		ENDSELECT
+	CASE SPT綿月亭玄関
+		SELECTCASE 現在の位置
+		;玉兎詰め所からは玉兎食堂を目指す
+		CASE SPT玉兎詰め所
+			RETURN SPT玉兎食堂
+		;厨房からは食料庫を目指す
+		CASE SPT厨房
+			RETURN SPT食料庫
+		;それ以外の綿月亭内部からは一階回廊を目指す
+		CASE SPT綿月亭玄関 TO SPT応接間
+			RETURN SPT一階回廊
+		;それ以外は綿月亭 門を目指す
+		CASEELSE
+			RETURN SPT綿月亭門
+		ENDSELECT
+	CASE SPT一階回廊
+		SELECTCASE 現在の位置
+		;厨房からは食堂を目指す
+		CASE SPT厨房
+			RETURN SPT食堂
+		;四阿からは中庭を目指す
+		CASE SPT四阿
+			RETURN SPT中庭
+		;風呂からは脱衣所を目指す
+		CASE SPT綿月亭風呂
+			RETURN SPT綿月亭脱衣所
+		;二階からは二階回廊を目指す
+		CASE SPT豊姫私室 TO SPT応接間
+			RETURN SPT二階回廊
+		;それ以外は綿月亭玄関を目指す
+		CASEELSE
+			RETURN SPT綿月亭玄関
+		ENDSELECT
+	CASE SPT門番詰め所
+		RETURN SPT綿月亭門
+	CASE SPT玉兎食堂
+		SELECTCASE 現在の位置
+		;綿月亭内部からは綿月亭 玄関を目指す
+		CASE SPT一階回廊, SPT食堂 TO SPT応接間
+			RETURN SPT綿月亭玄関
+		;それ以外は綿月亭門を目指す
+		CASEELSE
+			RETURN SPT綿月亭門
+		ENDSELECT
+	CASE SPT玉兎詰め所
+		RETURN SPT玉兎食堂
+	CASE SPT食堂
+		SELECTCASE 現在の位置
+		;食料庫からは厨房を目指す
+		CASE SPT食料庫
+			RETURN SPT厨房
+		;それ以外は一階回廊を目指す
+		CASEELSE
+			RETURN SPT一階回廊
+		ENDSELECT
+	CASE SPT厨房
+		SELECTCASE 現在の位置
+		;綿月亭内部からは食堂を目指す
+		CASE SPT一階回廊, SPT綿月亭脱衣所 TO SPT応接間
+			RETURN SPT食堂
+		;それ以外は食料庫を目指す
+		CASEELSE
+			RETURN SPT食料庫
+		ENDSELECT
+	CASE SPT食料庫
+		SELECTCASE 現在の位置
+		;食堂からは厨房を目指す
+		CASE SPT食堂
+			RETURN SPT厨房
+		;それ以外は綿月亭玄関を目指す
+		CASEELSE
+			RETURN SPT綿月亭玄関
+		ENDSELECT
+	CASE SPT綿月亭脱衣所, SPT宝物庫, SPTレイセン私室, SPT綿月亭空き部屋, SPT中庭, SPT二階回廊
+		RETURN SPT一階回廊
+	CASE SPT綿月亭風呂
+		RETURN SPT綿月亭脱衣所
+	CASE SPT四阿
+		RETURN SPT中庭
+	CASE SPT豊姫私室, SPT依姫私室, SPT書斎, SPT応接間
+		RETURN SPT二階回廊
+
+	CASE SPTドレミー宅居間
+		SELECTCASE 現在の位置
+		;風呂、トイレは洗面所を目指す
+		CASE SPTドレミー宅風呂, SPTドレミー宅トイレ
+			RETURN SPTドレミー宅洗面所
+		;それ以外は1槐安通路を目指す
+		CASEELSE
+			RETURN SPT槐安通路
+		ENDSELECT
+	CASE SPTドレミー宅寝室, SPTドレミー宅倉庫, SPTドレミー宅洗面所
+		RETURN SPTドレミー宅居間
+	CASE SPTドレミー宅風呂, SPTドレミー宅トイレ
+		RETURN SPTドレミー宅洗面所
+
+	CASE SPT純狐邸玄関
+		SELECTCASE 現在の位置
+		;純狐邸内部からは純狐邸 居間を目指す
+		CASE SPT純狐邸玄関 TO SPTヘカーティア私室
+			RETURN SPT居間
+		;それ以外は入り江を目指す
+		CASEELSE
+			RETURN SPT入り江
+		ENDSELECT
+	CASE SPT居間
+		SELECTCASE 現在の位置
+		;純狐邸 風呂は純狐邸 脱衣所を目指す
+		CASE SPT純狐邸風呂
+			RETURN SPT純狐邸脱衣所
+		;純狐邸二階からは屋上を目指す
+		CASE SPT純狐私室 TO SPTヘカーティア私室
+			RETURN SPT屋上
+		;それ以外は純狐邸 玄関を目指す
+		CASEELSE
+			RETURN SPT純狐邸玄関
+		ENDSELECT
+	CASE SPT台所, SPT純狐邸空き部屋, SPTクラウンピース私室, SPT物置, SPT純狐邸脱衣所, SPT純狐邸中庭, SPT屋上
+		RETURN SPT居間
+	CASE SPT純狐邸風呂
+		RETURN SPT純狐邸脱衣所
+	CASE SPT純狐私室, SPTヘカーティア私室
+		RETURN SPT屋上
+	CASEELSE
+		RETURN SPT槐安通路
+ENDSELECT

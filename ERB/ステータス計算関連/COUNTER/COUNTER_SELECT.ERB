@@ -1,0 +1,146 @@
+﻿@カウンター呼び出し処理
+#DIM NUM_TARGET
+NUM_TARGET = GET_TARGETNUM()
+;--------------------------------------------------------------------
+;TCVAR:相手:20　コマンド番号　内容の大筋 
+;TCVAR:相手:21　派生　内容の詳細
+;--------------------------------------------------------------------
+IF ( TFLAG:102 == 3 || TFLAG:102 == 2 ) && !CFLAG:TARGET:添い寝中
+;IF !CFLAG:TARGET:添い寝中
+	;カウンター履歴作成
+	ARRAYCOPY "SELECTCCOM", "PREVCCOM"
+	VARSET SELECTCCOM
+	;カウンター
+	FOR LOCAL, 1, NUM_TARGET + 1
+		SIF TARGET:LOCAL <= 0
+			CONTINUE
+		CALL EVENT_COUNTER(TARGET:LOCAL,LOCAL)
+		;CALL EVENT_COUNTER_COMBINATION
+	NEXT
+	FOR LOCAL, 1, NUM_TARGET + 1
+		SIF TARGET:LOCAL <= 0
+			CONTINUE
+		IF TCVAR:(TARGET:LOCAL):20
+			CALL KOJO_MESSAGE_SEND("COUNTER",1,TARGET:LOCAL,0,0)
+		ENDIF
+	NEXT
+ENDIF
+
+@EVENT_COUNTER(ARG,ARG:1)
+#DIM 候補, CCOM_MAXNUM
+#DIM 実行中コマンド,510
+#DIM 基本値
+VARSET LOCAL
+VARSET 候補
+;----------------------------------------------------
+;キャンセル
+;----------------------------------------------------
+;ARG 対象キャラ
+;ARG:1 行動順
+SIF GROUPMATCH(SELECTCOM, 350, 355, 400, 402, 404, 405, 420, 604, 699)
+	RETURN 0
+SIF ARG <= 0
+	RETURN 0
+SIF !SHIRAHU(ARG)
+	RETURN 0
+SIF FLAG:70 == 1 && CFLAG:ARG:344 == 0
+	RETURN 0
+SIF CFLAG:ARG:行動 == 5
+	RETURN 0
+SIF TCVAR:ARG:馴れ合い < 1
+	RETURN 0
+SIF TEQUIP:ARG:シックスナイン == 1
+	CALL EVENT_COUNTER_POSE_69(ARG,0)
+TCVAR:ARG:30 ++
+SIF TCVAR:ARG:30 > 1
+	RETURN 0
+
+;----------------------------------------------------
+;特殊な処理
+;----------------------------------------------------
+;うふふ中
+IF CFLAG:ARG:うふふ == 1
+	DEBUGPRINT カウンターリアクション
+	CALL EVENT_COUNTER_REACTION(ARG,ARG:1)
+	CALL EVENT_COUNTER_SOURCE(ARG,ARG:1)
+	RETURN 0
+ENDIF
+;弱味
+;要調整 ENDUREとRANDで茶を濁す
+IF ARG:1 == 1 && CFLAG:ARG:うふふ == 2 && CFLAG:ARG:弱み握り && (ENDURE(ARG) < (400 + RAND:400) && !RAND:3) && !TCVAR:ARG:好きにして
+	SIF CFLAG:ARG:弱み握り > 0
+		CALL EVENT_COUNTER_PUNISHMENT(ARG,ARG:1)
+	FOR LOCAL,0, CHARANUM
+		CFLAG:LOCAL:うふふ = 0
+		TFLAG:MASTERのＰ挿入中 = 0
+		;ウフフ時系装備リセット
+		FOR LOCAL:1, 10, 150
+			TEQUIP:LOCAL:(LOCAL:1) = 0
+		NEXT
+		TEQUIP:LOCAL:50 = -1
+		TEQUIP:LOCAL:51 = -1
+		;射精関係リセット
+		IF TFLAG:102 < 2
+			BASE:LOCAL:射精 = 0
+			TCVAR:LOCAL:イきそう = 0
+		ENDIF
+		IF LOCK:(CFLAG:LOCAL:初期位置) && AT_HOME(LOCAL)
+			CALL CTRL_CLOTHES_SET(LOCAL, "現在衣装の変更_パジャマ")
+			CFLAG:LOCAL:パジャマ = 1
+		ELSE
+			CALL CTRL_CLOTHES_SET(LOCAL, "現在衣装の変更_普段着")
+			CFLAG:LOCAL:パジャマ = 0
+		ENDIF
+		CALL CLOTHES_SETTING_TRAIN(LOCAL)
+	NEXT
+	TFLAG:102 = 1
+	RETURN 0
+ENDIF
+
+;----------------------------------------------------
+;通常
+;----------------------------------------------------
+; 低いほどキャラ能力が顕著に反映される。高くすればするほどただの均等ランダムに近付く。デフォは10
+基本値 = 10
+
+;------------------------------------------
+;2019/08/09 新規判定実装
+;各番号帯に於ける処理を、現行のコマンド処理に沿うようにカウンターコマンドとして分離。
+;詳細については各コマンド(CCOM)ファイル内に集約。
+;------------------------------------------
+FOR LOCAL, 1, CCOM_MAXNUM
+	;各コマンドの実行可否を確認
+	TRYCALLFORM CCOM_ABLE{LOCAL}(ARG)
+	IF RESULT
+		;各コマンドの実行判定値を算出
+		TRYCALLFORM CCOM_ORDER{LOCAL}(LOCAL, ARG, 基本値)
+		SIF RESULT
+			候補:LOCAL = RESULT
+	ENDIF
+	RESULT = 0
+NEXT
+;------------------------------------------
+;実行判定・登録
+;------------------------------------------
+LOCAL:4 = ARRAY_HIT(候補, CCOM_MAXNUM)
+IF TCVAR:ARG:次回カウンター && 候補:(TCVAR:ARG:次回カウンター) > 0
+	LOCAL:4 = TCVAR:ARG:次回カウンター
+ENDIF
+TCVAR:ARG:次回カウンター = 0
+; 決定
+IF LOCAL:4 > 0
+	TCVAR:ARG:カウンター行動 = LOCAL:4
+	;実行中コマンドとして登録
+	FOR LOCAL:2, 0, 最大押し倒され人数 - 1
+		IF SELECTCCOM:(LOCAL:2):0 == 0
+			SELECTCCOM:(LOCAL:2):0 = ARG
+			SELECTCCOM:(LOCAL:2):1 = (TCVAR:ARG:カウンター行動)
+			BREAK
+		ENDIF
+	NEXT
+	;コマンドを実行
+	DEBUGPRINTFORML カウンター：{ARG}-{TCVAR:ARG:カウンター行動}
+	TRYCALLFORM CCOMF{TCVAR:ARG:カウンター行動}(ARG)
+	SIF !RESULT
+		DEBUGPRINTFORML CCOMF{TCVAR:ARG:カウンター行動}({ARG})の呼び出しに失敗しました。
+ENDIF

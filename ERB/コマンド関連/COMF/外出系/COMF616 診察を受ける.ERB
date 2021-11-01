@@ -1,0 +1,241 @@
+﻿@COM616
+#DIM 買うもの
+PRINTL 「今日はどうしたのかしら？」
+$LOOP
+DRAWLINE
+PRINTL [0] 疲れが取れなくて…
+PRINTL [1] なんだか気疲れして…
+;SIF MAXBASE:MASTER:精力 - BASE:MASTER:精力 > 500
+;	PRINTL [2] 彼女が激しくて…
+PRINTL [3] 最近彼女とマンネリ気味で…
+SIF TALENT:MASTER:清掃中毒
+	PRINTL [4] 掃除が楽しすぎてやめられないんです
+;PRINTL [5] 先生の事を考えるとおちんちんがおっきくなっちゃうんです
+;PRINTL [5] 先生の事を考えるとお股がムズムズするんです
+;SIF GETBIT(TALENT:MASTER:性別 & 1)
+;PRINTL [10] おちんちんの悩み
+DRAWLINE
+PRINTL [100] やめる
+INPUT
+IF RESULT == 0
+	CALL REMEDY(RAND:3)
+	PRINTL 治療費として\3000請求されました
+	IF MONEY < 3000
+		DOWNBASE:MASTER:体力 -= 100
+		DOWNBASE:MASTER:気力 -= 200
+		TIME += 180
+		TFLAG:193 = 1
+	ELSE
+		MONEY -= 3000
+	ENDIF
+ELSEIF RESULT == 1
+	;永琳の思慕恋慕で良化
+	CALL REMEDY(RAND:2 + 3 + TALENT:(NO:72):3 * 2 + TALENT:(NO:72):8)
+	PRINTL 治療費として\3000請求されました
+	IF MONEY < 3000
+		DOWNBASE:MASTER:体力 -= 100
+		DOWNBASE:MASTER:気力 -= 200
+		TIME += 180
+		TFLAG:193 = 1
+	ELSE
+		MONEY -= 3000
+	ENDIF
+ELSEIF RESULT == 3
+	$SELL
+	;購入条件設定
+	FOR LOCAL, 0, 1000
+		CALL ITEMDATA(LOCAL, "SHOP:診察")
+		IF RESULT
+			CALL ITEMDATA(LOCAL, "SALES")
+			ITEMSALES:LOCAL = RESULT
+		ENDIF
+	NEXT
+	DRAWLINE
+	PRINTL 「こういうのはどうかしら」
+	PRINTFORML 購入するアイテムを選んでください（所持金:\\%TOSTR(MONEY,"#,###")%）
+	DRAWLINE
+	CALL SHOW_SHOPPING("診察", "調教")
+	DRAWLINE
+	PRINTL [999] - 戻る
+	INPUT
+	IF RESULT == 999
+		RETURN 0
+	ELSE
+		買うもの = RESULT
+		CALL ITEMDATA(買うもの, "SHOP:診察")
+		IF RESULT && ITEMSALES:買うもの >= 0 && ITEM:買うもの < 所持数制限
+			CALL ITEMDATA(買うもの, "購入")
+			SIF RESULT
+				GOTO SELL
+		ELSE
+			GOTO SELL
+		ENDIF
+	ENDIF
+ELSEIF RESULT == 4 && TALENT:MASTER:清掃中毒
+	IF FLAG:850 == 0
+		PRINTL 「家事が好きなの？いいことじゃない」
+		PRINTL 「そういうのじゃないって？」
+		PRINTW 「他の事が手につかないの？それは困るわね」
+		PRINTW …
+		PRINTW 「うーん、流石にちょっと異常ね」
+		PRINTW ……
+		PRINTW 「性的に興奮！？」
+		PRINTW …………
+		PRINTL 「一体何をしたらこんなことになるんだか」
+		PRINTL 「珍しい症例を見せてもらったから今回はタダでいいわ」
+		PRINTL 「今後はもう変な掃除はしないように」
+		PRINTFORMW %CALLNAME:MASTER%の[清掃中毒]が治った
+		TALENT:MASTER:清掃中毒 = 0
+		FLAG:850 ++
+	ELSE
+		PRINTL 「またアレを再発させたって？」
+		PRINTFORML 「まったく… 今回は￥{FLAG:850 * 10000}貰うわよ」
+		IF MONEY < FLAG:850 * 10000
+			PRINTL 「治療費が足りないみたいね」
+			PRINTL 「お金が貯まったらまた来なさい」
+		ELSE
+			PRINTW …
+			PRINTW ……
+			PRINTW …………
+			PRINTL 「はい、おしまい」
+			PRINTL 「また再発させるようなことがあったらもっと払って貰いますからね」
+			PRINTFORMW %CALLNAME:MASTER%の[清掃中毒]が治った
+			TALENT:MASTER:清掃中毒 = 0
+			MONEY -= FLAG:850 * 10000
+			FLAG:850 ++
+		ENDIF
+	ENDIF
+ELSEIF RESULT == 6
+	IF GETBIT(CFLAG:72:既成事実,1) && EXP:72:口淫経験 > 10 && !TALENT:72:キス未経験
+		IF TALENT:72:機嫌 == -1
+			PRINTFORMDW %CALLNAME:72%はため息をつくと%CALLNAME:MASTER%を奥に案内した
+			PRINTFORMDW %CALLNAME:72%は不機嫌そうに横髪をかきあげながら%CALLNAME:MASTER%の陰茎を咥え込んだ
+			PRINTFORMDW %CALLNAME:72%は精液を口内に受け止めた後うがいをし手を洗い診察に戻った
+			EXP:MASTER:射精経験 ++
+			BASE:MASTER:精力 = MAX(BASE:MASTER:精力 - 200, 0)
+			EXP:72:口淫経験 ++
+			EXP:72:精液経験 ++
+			IF TALENT:MASTER:濃厚精液
+				PRINTFORMW %CALLNAME:MASTER%の[濃厚精液]が治った
+				TALENT:MASTER:濃厚精液 = 0
+			ENDIF
+			PRINTL 治療費として\10000請求されました
+			MONEY -= 10000
+		ELSE
+			PRINTFORMDW 永琳に忙しいから後でと軽くあしらわれてしまった…
+			TALENT:72:機嫌 --
+		ENDIF
+	ELSE
+		PRINTFORMDW %CALLNAME:72%は感謝の言葉を口にすると%CALLNAME:MASTER%を奥に案内した
+		PRINTW …
+		PRINTW ……
+		PRINTW ………
+		PRINTFORMDW %CALLNAME:MASTER%は献血に協力することになった…
+		BASE:MASTER:体力 = MIN(MAXBASE:MASTER:体力,BASE:MASTER:体力 - 400)
+		TALENT:72:機嫌 = 1
+	ENDIF
+;ELSEIF RESULT == 10
+;	CALL PENIS_CHANGE
+ELSEIF RESULT == 100
+	RETURN -1
+ELSE
+	GOTO LOOP
+ENDIF
+SETBIT TFLAG:一日一回,3
+TIME += 30
+RETURN 1
+
+@REMEDY(ARG)
+SELECTCASE ARG
+CASE 0
+	LOCALS = おいしいご飯
+	BASE:MASTER:体力 = MIN(MAXBASE:MASTER:体力,BASE:MASTER:体力 + 500)
+CASE 1
+	LOCALS = 栄養の注射
+	BASE:MASTER:体力 = MIN(MAXBASE:MASTER:体力,BASE:MASTER:体力 + 750)
+CASE 2
+	LOCALS = ギンギンＺ
+	BASE:MASTER:体力 = MAXBASE:MASTER:体力
+CASE 3
+	LOCALS = 季節ぱわー
+	BASE:MASTER:気力 = MIN(MAXBASE:MASTER:気力,BASE:MASTER:気力 + 500)
+CASE 4
+	LOCALS = 鎮静の注射
+	BASE:MASTER:気力 = MIN(MAXBASE:MASTER:気力,BASE:MASTER:気力 + 750)
+CASE 5
+	LOCALS = おでこで検温
+	BASE:MASTER:気力 = MIN(MAXBASE:MASTER:気力,BASE:MASTER:気力 + 900)
+CASE 6
+	LOCALS = だきしめる
+	BASE:MASTER:気力 = MIN(MAXBASE:MASTER:気力,BASE:MASTER:気力 + 1000)
+ENDSELECT
+
+PRINTFORMW 永琳は%LOCALS%による治療を行った
+SIF ARG == 2
+	PRINTL ふぁいといっぱつ、まんたーん！
+SIF ARG >= 0 && ARG <= 2
+	PRINTW 体力が回復した
+SIF ARG >= 3 && ARG <= 6
+	PRINTW 気力が回復した
+[SKIPSTART]
+@PENIS_CHANGE
+$TINKO_LOOP
+PRINTL [1] 童心に帰りたいので子供みたいなおちんちんにしてください
+PRINTL [2] 放蕩に耽らないようにデチューンしてください
+PRINTL [3] 普通のおちんちんにしてください
+PRINTL [4] 夜道を歩くとき怖いんで光るようにしてください
+PRINTL [5] 女の子をひーひー言わせたいんで真珠入れてください
+PRINTL [6] 自信が持てるように大きくしてください
+;PRINTL [7] オークに憧れてるのでドリルみたいにしてください　そしてエルフを探しに行きます
+;PRINTL [8] 避妊とかめんどいんでパイプカットお願いします
+INPUT
+SIF TALENT:MASTER:形状 == RESULT
+	GOTO TINKO_LOOP
+	LOCAL = RESULT
+SELECTCASE RESULT
+	CASE 1
+		IF GETBIT(CFLAG:72:既成事実,1) && CFLAG:72:2 > 5000
+			PRINTFORMW 永琳はそういうのもアリかなと思ったようだ…
+		ELSE
+			PRINTFORMW 永琳は引きつった顔で本気か聞いてきた…
+	CASE 2
+		IF GETBIT(CFLAG:72:既成事実,1) && CFLAG:72:2 > 5000
+			PRINTFORMW 永琳は考え直すように行ってきた…
+		ELSE
+	CASE 3
+		PRINTFORMW 永琳は普通が一番だと快く引き受けてくれた
+	CASE 4
+		PRINTFORMW 永琳は異星人とコンタクトするかのような調子で、なにもそんなところを光らせなくてもいいんじゃないかと聞いてきた…
+	CASE 5
+		PRINTFORMW 永琳はそんなものは
+[SKIPEND]
+
+;-------------------------------------------------
+;実行可能判定
+;-------------------------------------------------
+;診察
+@COM_ABLE616
+;一括管理
+SIF GLOBAL_COMABLE(616)
+	RETURN RESULT
+;永琳が居ないとダメ
+SIF CFLAG:MASTER:現在位置 != CFLAG:72:現在位置
+	RETURN 0
+;デート中
+SIF CHK_DATENOW(CFLAG:TARGET:デート中) && TARGET > 0
+	RETURN 0
+;デート道中
+SIF (CFLAG:現在位置 % 100) % 10
+	RETURN 0
+SIF CFLAG:MASTER:現在位置 != 永遠亭
+	RETURN 0
+SIF GETBIT(TFLAG:一日一回, 3)
+	RETURN 0
+;睡眠中
+SIF CFLAG:MASTER:睡眠
+	RETURN 0
+;時間停止中
+SIF FLAG:70
+	RETURN 0
+RETURN 1
+

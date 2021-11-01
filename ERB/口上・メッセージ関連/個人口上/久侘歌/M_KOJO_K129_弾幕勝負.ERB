@@ -1,0 +1,205 @@
+﻿;==================================================
+;弾幕勝負
+;==================================================
+;
+@M_KOJO_MESSAGE_COM_K129_DANMAKU(ARGS, 相手残機)
+#DIM 相手残機
+;全体の流れ
+;①【戦闘前】→②ダイスロールとプレイヤー選択肢、ハンデをつけた場合は【ハンデ口上】→③対応スキルが発動した場合【スキル口上】→④被弾判定、キャラが被弾したなら【被弾口上】→
+;どちらかの残機が0になっていなければ②に戻る→⑤【戦闘後口上】
+
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+SIF FLAG:口上色
+	TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;戦闘前
+	HANDICAP_FIXED = 0
+	HANDICAP_RAND = 0
+	;ハンデをつけることができ、数値が大きいほどあなたが不利になる　数値が負ならあなたが有利に
+	;キャラの能力に関わらずクッソ強くしたり弱くしたりできる
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘前"
+		;怒り
+		IF CFLAG:318 == 1
+			PRINTFORMW 「貴様にも地獄を見せてやるで御座いますよ！！！」
+		ELSEIF RAND:4 == 0
+			PRINTFORMW 「私の試練を受けたいのですか？いいですよ！」
+		ELSEIF RAND:3 == 0
+			PRINTFORMW 「地獄に行く前に地獄を見せましょう！」
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「さあ！地獄をお楽しみくださいませ！」
+		ELSE
+			PRINTFORMW 「%CALLNAME:MASTER%さん！勝負です！」
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;ハンデ
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "ハンデ"
+		;ハンデつけなかったら表示されないので無記入でよい
+		PRINTFORML 
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中TARGET被弾時口上
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "被弾" 
+		;別に一律で「やられたー」だけでもいいよ
+		SELECTCASE 相手残機
+			;残り残機3が表示されるのは【洽覧深識】持ちのみ
+			CASE 3
+				PRINTFORML 
+			CASE 2
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「むぐぐ……やってくれますね！」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「痛いです！」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「……やりますね！」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「流石です！」
+				ELSE
+					PRINTFORMW 「実力は十分というところですね……」
+				ENDIF
+			CASE 1
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「……酷いです！」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「流石に強いですね」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「まだまだこれからです！」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「追い詰められたけれどまだ負けてません！」
+				ELSE
+					PRINTFORMW 「ちょっとぐらい手加減してくれても……」
+				ENDIF
+			CASE 0
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「……馬鹿ぁ！」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「神様なのにぃ……」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「お、お見事です……」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「うう、酷い……」
+				ELSE
+					PRINTFORMW 「やられましたー！」
+				ENDIF
+		ENDSELECT
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【残忍酷薄】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "残忍酷薄"
+		
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【乾坤一擲】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "乾坤一擲"
+		
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【怪力乱神】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "怪力乱神"
+		
+	ENDIF
+	
+	;-------------------------------------------------
+	;戦闘後
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘後" 
+		PRINTFORML 
+		;残り残機4が表示されうるのは【洽覧深識】持ちのみ
+		;残機が1以上ならあなたの負け、0の場合はあなたの勝利
+		SELECTCASE 相手残機
+			CASE 4
+				PRINTFORML 
+			CASE 3
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「……愚図ですね」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「調子が悪かったのでしょうか？」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「あまり無茶はしないでくださいね？」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「体は大丈夫ですか？」
+				ELSE
+					PRINTFORMW 「怪我とかしていませんか？」
+				ENDIF
+			CASE 2
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「大したことはありませんでしたね」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「貴方なら地獄に行っても瞬殺されることはないでしょう」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「結構なお手前で御座いますね」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「やりますね！%CALLNAME:MASTER%さん！」
+				ELSE
+					PRINTFORMW 「鍛錬が足りてないですよ～」
+				ENDIF
+			CASE 1
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「……手間取らせてくれやがりましたね！」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「全く、本当に人間なのですか？」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「流石に強いですね……」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「%CALLNAME:MASTER%さんなら地獄に行っても戦えるかもしれませんね」
+				ELSE
+					PRINTFORMW 「私の試練に耐えられないようでは駄目ですよ？」
+				ENDIF
+			CASE 0
+				;怒り
+				IF CFLAG:318 == 1
+					PRINTFORMW 「……悔しいです」
+				ELSEIF RAND:4 == 0
+					PRINTFORMW 「ま、参りました……」
+				ELSEIF RAND:3 == 0
+					PRINTFORMW 「それだけの腕前があれば、地獄の鬼にも渡り合えるかも知れませんね」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「いたた……強いですね……」
+				ELSE
+					PRINTFORMW 「……負けてしまいました」
+				ENDIF
+		ENDSELECT
+	ENDIF
+RESETCOLOR
+ENDIF
+RETURN 1
+

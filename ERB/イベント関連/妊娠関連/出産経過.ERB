@@ -1,0 +1,241 @@
+﻿@出産経過(ARG)
+#DIM CHILDNUM
+RESULTS =
+;口上存在判定
+IF CFLAG:TARGET:口上セレクタ
+	TRYCALLFORM M_KOJO_K{NO:TARGET}_{CFLAG:TARGET:口上セレクタ}
+ELSE
+	TRYCALLFORM M_KOJO_K{NO:TARGET}
+ENDIF
+
+
+SIF CFLAG:ARG:妊娠経過日数 > 100
+	CALL BIRTH(ARG)
+SIF CFLAG:ARG:妊娠経過日数 > 1
+	CALL PERCIEVE(ARG)
+SIF CFLAG:ARG:妊娠経過日数 > 0
+	CFLAG:ARG:妊娠経過日数 += 1
+SIF CFLAG:ARG:出産経過日 > 0
+	CFLAG:ARG:出産経過日 += 1
+
+CHILDNUM = TALENT:ARG:育児中
+
+;子離れ
+IF CFLAG:ARG:出産経過日 > CHILD_自立
+	DRAWLINE
+	;口上チェック
+	TRYCCALLFORM M_KOJO%RESULTS%_EVENT_K{ARG}_CHILD_RAISING_自立
+	CATCH
+		PRINTFORMW %CALLNAME:ARG%と%CALLNAME:MASTER%の子の%CHILDNAME:ARG:CHILDNUM%は無事に独り立ちの日を迎え、自立した。
+		PRINTFORML 
+		PRINTFORML たまには顔を見せにきてほしい
+		PRINTFORML %CALLNAME:MASTER%の願望が口にされることは無かった……。
+		PRINTFORMW 
+	ENDCATCH
+	
+	CFLAG:ARG:育児人数 -= 1
+	CFLAG:MASTER:育児人数 -= 1
+	;IF CFLAG:ARG:育児人数 >= 0
+	IF CFLAG:ARG:育児人数 > 0
+		;PRINTFORML 遠くなる子の背中を見ながらまだ小さい他の子供も無事に育てようと、
+		PRINTFORML 遠くなる子の背中を見届けながら、
+		PRINTFORML まだ小さい子も無事に育てきろうと、
+		;PRINTFORML %CALLNAME:ARG%は%CALLNAME:MASTER%と静かに誓った。
+		PRINTFORMW %CALLNAME:ARG%は%CALLNAME:MASTER%の手を握り、静かに誓った。
+	ELSE
+		;PRINTFORML 遠くなる子の背中を見ながら%CALLNAME:ARG%は%CALLNAME:MASTER%とこどもの無事を祈った。
+		PRINTFORMW 遠くなる我が子の背中を見ながら%CALLNAME:ARG%は%CALLNAME:MASTER%と子供の無事を祈った。
+	ENDIF
+	;PRINTFORML 別れ際、子供は%CALLNAME:MASTER%が%CALLNAME:ARG%を顧みず他の女の尻を追い回していたことを口汚く罵り、
+	;PRINTFORML 自分は絶対に%CALLNAME:MASTER%のようにはならないと吐き捨てて去っていった
+
+	IF CFLAG:ARG:育児人数 == 0
+		TALENT:ARG:育児中 = 0
+	ENDIF
+	CFLAG:ARG:出産経過日 = 0
+	;自立するときに再度設定する
+	CALL 自立先選定(ARG, CHILDNUM)
+ENDIF
+IF CFLAG:ARG:出産経過日 == CHILD_自立前
+	DRAWLINE
+	;口上チェック
+	TRYCCALLFORM M_KOJO%RESULTS%_EVENT_K{ARG}_CHILD_RAISING_自立前
+	CATCH
+		PRINTFORML %CHILDNAME:ARG:CHILDNUM%も随分と分別がついてきた。
+		PRINTFORML 背丈も伸びて、もう%CALLNAME:ARG%と大差ない。
+		PRINTFORMW この子も遠からず家を出てしまうだろう、残された時間を大事に過ごそう……。
+	ENDCATCH
+ELSEIF CFLAG:ARG:出産経過日 == CHILD_就学
+	DRAWLINE
+	;口上チェック
+	TRYCCALLFORM M_KOJO%RESULTS%_EVENT_K{ARG}_CHILD_RAISING_就学
+	CATCH
+		PRINTFORML %CALLNAME:ARG%の子の%CHILDNAME:ARG:CHILDNUM%は寺子屋に通い始めた。
+		PRINTFORML 子供の成長は早いものだ。
+		PRINTFORML 親離れの日もあっという間に来てしまうのだろうか……。
+		PRINTFORMW %CALLNAME:MASTER%はちょっと感傷的になった。
+	ENDCATCH
+ELSEIF CFLAG:ARG:出産経過日 == CHILD_しつけ
+	DRAWLINE
+	;口上チェック
+	TRYCCALLFORM M_KOJO%RESULTS%_EVENT_K{ARG}_CHILD_RAISING_しつけ
+	CATCH
+		PRINTFORML %CHILDNAME:ARG:CHILDNUM%もだいぶ知恵がついてきて、様々な行動をとるようになり、
+		PRINTFORML 同時に悪戯や我儘も増えてきた。
+		PRINTFORMW そろそろしつけについて真面目に考えなければ……。
+	ENDCATCH
+ELSEIF CFLAG:ARG:出産経過日 == CHILD_語彙
+	DRAWLINE
+	;口上チェック
+	TRYCCALLFORM M_KOJO%RESULTS%_EVENT_K{ARG}_CHILD_RAISING_語彙
+	CATCH
+		PRINTFORML %CHILDNAME:ARG:CHILDNUM%の語彙が増えてきた。
+		PRINTFORMW 喋る内容も、断片的に２つ３つ単語を口にするだけだったのが文が成立するようになってきている。
+	ENDCATCH
+ELSEIF CFLAG:ARG:出産経過日 == CHILD_喋る
+	DRAWLINE
+	;口上チェック
+	TRYCCALLFORM M_KOJO%RESULTS%_EVENT_K{ARG}_CHILD_RAISING_喋る
+	CATCH
+		PRINTFORML %CALLNAME:ARG%がすごい勢いで駆け込んできた。
+		PRINTFORML %CHILDNAME:ARG:CHILDNUM%が%CALLNAME:ARG%を呼んだというのだ。
+		PRINTFORML 急いで行ってみると、確かに%CALLNAME:ARG%の顔を見てはっきりと呼んでいる。
+		PRINTFORMW %CALLNAME:MASTER%は自分も呼んでもらえるよう、顔を近づけてお父さんと連呼した。
+	ENDCATCH
+ELSEIF INRANGE(CFLAG:ARG:出産経過日, CHILD_喋る - 3, CHILD_喋る - 1)
+	DRAWLINE
+	;口上チェック
+	TRYCCALLFORM M_KOJO%RESULTS%_EVENT_K{ARG}_CHILD_RAISING_会話寸前
+	CATCH
+		PRINTFORML 近頃%CHILDNAME:ARG:CHILDNUM%はよく喋ろうとするようになった。
+		PRINTFORML まだ意味のあることは話せないが、欲しいものを指さしてあうあう言ったりと、明らかに言葉を使おうとしている。
+		PRINTFORMW 遠からず話せるようになるだろう……。
+	ENDCATCH
+ELSEIF CFLAG:ARG:出産経過日 == CHILD_よちよち
+	DRAWLINE
+	;口上チェック
+	TRYCCALLFORM M_KOJO%RESULTS%_EVENT_K{ARG}_CHILD_RAISING_よちよち
+	CATCH
+		PRINTFORML まだ危なっかしいが、%CHILDNAME:ARG:CHILDNUM%は両足で立って歩き回るようになった。
+		PRINTFORML 視界と行動半径が広がったせいで色々なものに興味を示している。
+		PRINTFORMW %CALLNAME:MASTER%は危なそうなものを%CHILDNAME:ARG:CHILDNUM%の手の届かない場所へ移動させた。
+	ENDCATCH
+ELSEIF CFLAG:ARG:出産経過日 == CHILD_つかまり立ち
+	DRAWLINE
+	;口上チェック
+	TRYCCALLFORM M_KOJO%RESULTS%_EVENT_K{ARG}_CHILD_RAISING_つかまり立ち
+	CATCH
+		PRINTFORML %CALLNAME:MASTER%はしゃがんで%CHILDNAME:ARG:CHILDNUM%に指を握らせている。
+		PRINTFORMW そしてゆっくりと指を持ち上げ、つかまり立ちの練習をさせた。
+	ENDCATCH
+ELSEIF CFLAG:ARG:出産経過日 == CHILD_玩具
+	;口上チェック
+	TRYCCALLFORM M_KOJO%RESULTS%_EVENT_K{ARG}_CHILD_RAISING_玩具
+	CATCH
+		PRINTFORML %CHILDNAME:ARG:CHILDNUM%のために%CALLNAME:MASTER%は木を削って簡単な玩具を作っている。
+		PRINTFORML どうせ投げたりかじったりするだろうから単純で丈夫な作りがいいだろう。
+		PRINTFORMW 怪我をさせないように、%CALLNAME:MASTER%は念入りに断面を磨いた。
+	ENDCATCH
+ELSEIF CFLAG:ARG:出産経過日 == CHILD_離乳
+	DRAWLINE
+	;口上チェック
+	TRYCCALLFORM M_KOJO%RESULTS%_EVENT_K{ARG}_CHILD_RAISING_離乳
+	CATCH
+		PRINTFORMW 満面の笑顔で離乳食をほおばる幼子の姿に%CALLNAME:MASTER%の口元が緩む。
+	ENDCATCH
+	PRINTFORML %CALLNAME:ARG%は授乳期間を終えた。
+	IF TALENT:ARG:母乳体質 == 1 && EXP:ARG:噴乳経験 > 500 && EXP:ARG:出産経験 > 1
+		PRINTFORML しかし授乳の域を超えた量の母乳を出し続けてきた%CALLNAME:ARG%の乳房は、未だに滋味豊かな乳を作り続けている……
+		PRINTFORML %CALLNAME:ARG%は【母乳体質】を得た
+		TALENT:ARG:母乳体質 = 2
+	ELSE
+		PRINTFORMW 役目を終えた%CALLNAME:ARG%の胸は小さくなり、母乳もとまりました。
+		SIF TALENT:ARG:母乳体質 == 1
+			TALENT:ARG:母乳体質 = 0
+	ENDIF
+	;乳ランクアップフラグたってて、今絶壁じゃないなら小さくなる。通常出産以外の妊娠終了なんかも考慮するとCALLで呼び出す方が良いのだろうが…
+	IF CFLAG:ARG:乳ランクアップ == 1 && TALENT:ARG:バストサイズ > -2
+		TALENT:ARG:バストサイズ -= 1
+		CFLAG:ARG:乳ランクアップ = 0
+	ENDIF
+ELSEIF CFLAG:ARG:出産経過日 == 20 && CFLAG:ARG:回復速度ダウン
+	DRAWLINE
+	PRINTFORMW 無事に産後の肥立ちを終え、%CALLNAME:ARG%はすっかり元気になった。
+	;口上チェック
+	TRYCCALLFORM M_KOJO%RESULTS%_EVENT_K{ARG}_CHILD_RAISING_回復
+	CATCH
+		;体質変化があるので省略しない
+	ENDCATCH
+	MAXBASE:ARG:体力 += 500
+	MAXBASE:ARG:気力 += 500
+	SIF MAXBASE:ARG:体力 / 10 * 11 <= CSVBASE(ARG, GETNUM(BASE, "体力")) * 2
+		MAXBASE:ARG:体力 = MAXBASE:ARG:体力 / 10 * 11
+	SIF MAXBASE:ARG:気力 / 10 * 11 <= CSVBASE(ARG, GETNUM(BASE, "気力")) * 2
+		MAXBASE:ARG:気力 = MAXBASE:ARG:気力 / 10 * 11
+	TALENT:ARG:回復速度 = CFLAG:ARG:回復速度ダウン - 2
+	CFLAG:ARG:回復速度ダウン = 0
+ENDIF
+
+
+;子供が通学するか
+@GO_SCHOOL(ARG)
+#FUNCTION
+SIF !INRANGE(DAY % 7, 1, 5) 
+	RETURNF 0
+SIF FESTIVAL() != ""
+	RETURNF 0
+SIF !TALENT:ARG:育児中
+	RETURNF 0
+;大雨と吹雪
+SIF TIME:5 == 5
+	RETURNF 0
+SIF TIME:5 == 9
+	RETURNF 0
+SIF CFLAG:ARG:出産経過日 >= CHILD_就学
+	RETURNF 1
+
+;現在育児中の子供の名前を表示
+@SHOW_CHILDNAME(ARG)
+#FUNCTIONS
+RETURNF CHILDNAME:ARG:(TALENT:ARG:育児中)
+
+;成長した子供と親をランダムで拾ってくる関数
+@PickRandGrownChild
+#DIM YOME
+#DIM CHILDNUM
+SIF !CFLAG:MASTER:子供人数
+	RETURN -1
+YOME = 0
+CALL FISHER_YATES_SHAFFLE(CHARANUM - 1)
+FOR LOCAL:10, 0, CHARANUM - 1
+	LOCAL = SHAFFLE_ARRAY:(LOCAL:10) + 1
+	IF CFLAG:LOCAL:子供人数 - CFLAG:LOCAL:育児人数 > 0
+		YOME = LOCAL
+		CHILDNUM = RAND:(CFLAG:LOCAL:子供人数 - CFLAG:LOCAL:育児人数) + 1
+		BREAK
+	ENDIF
+NEXT
+RETURN YOME, CHILDNUM
+
+;-----------------------------------------------------
+;自立した子供の自立先を決める関数
+;-----------------------------------------------------
+@自立先選定(CHARA, CHILDNUM)
+#DIM CHARA
+#DIM CHILDNUM
+WHILE 1
+	LOCAL = RAND:110
+	;拠点は除く
+	SIF LOCAL / 10 == MAIN_MAP
+		CONTINUE
+	;自立先にできる場所を羅列
+	SELECTCASE LOCAL * 10
+	CASE 20, 30, 60, 命蓮寺境内, 命蓮寺本堂, 聖徳道場, 広場, 商家町, 呑屋小道, 広間, 食堂, 大図書館
+	CASE 斜角の竹林, 永遠亭, 夢幻館, 香霖堂, 中有の道, 三途の川, 彼岸, 白玉楼庭, 畜生界, 玄武の沢, 間欠泉地下センター
+	CASE 九天の滝, 守矢神社境内, 守矢神社本殿, 旧地獄街道, 地霊殿, 灼熱地獄跡, 月の都, 玉兎の街
+	CASEELSE
+		CONTINUE
+	ENDSELECT
+	CHILD_AREA:CHARA:CHILDNUM = LOCAL * 10
+	BREAK
+WEND

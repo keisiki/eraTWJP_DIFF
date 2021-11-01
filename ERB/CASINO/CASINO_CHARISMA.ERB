@@ -1,0 +1,494 @@
+﻿
+
+;C/Yはカリスマ・￥
+@CASINO_TRADE
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIM LCOUNT
+#DIM C_RATE
+#DIM C_MAX
+#DIM C_PRICE
+#DIM Y_RATE
+#DIM Y_MAX
+#DIM Y_PRICE
+C_RATE = CHARISMA_NOW()
+;Y_RATEはC_RATEの1/100だが精度の関係で使わない
+;Y_RATE = FUNC_CASINO("TRADE") / 100
+;C購入取引に使うカリスマ入力の上限
+C_MAX = MIN(CM_LIMIT - MONEY:2, MONEY / C_RATE)
+
+PRINTFORML メイド妖精
+PRINTFORML 　いらっしゃいませ
+PRINTFORML 　こちらでは￥とカリスマの交換を承っております
+IF C_RATE < 100
+	PRINTFORML 　申し訳ございません
+	PRINTFORML 　ただいま、カリスマの購入はご利用いただけません。
+ENDIF
+PRINTFORML あなたの保有￥　　　　　　%金額表示(MONEY), 13, RIGHT%
+PRINTFORML あなたの保有カリスマ　　　%三桁区切(MONEY:2), 13, RIGHT% / %三桁区切(CM_LIMIT)%
+PRINTFORMW 現在の￥/カリスマレート 　%金額表示(C_RATE), 13, RIGHT%
+DRAWLINE
+CALL ASK_M(@"カリスマ購入",C_RATE > 100 && C_MAX > 0, @"カリスマ売却",FLAG:会員ランク,"やめる",1)
+SELECTCASE RESULT
+	CASE 0
+		IF CM_LIMIT <= MONEY:2
+			PRINTFORML 申し訳ありませんが、お客様のカリスマは保有上限に達しているため、これ以上は購入いただけません
+			PRINTFORML 会員ランクを上げるか、大負けしてからまたお越しください
+			RETURN
+		ENDIF
+		PRINTFORML メイド妖精
+		PRINTFORML 　カリスマの購入額をご入力下さい（上限%三桁区切(C_MAX)%）
+		FOR LCOUNT, 0, LOG10(C_MAX) + 1
+			LOCAL = POWER(10, LCOUNT)
+			PRINTFORML [{LOCAL, LOG10(C_MAX) + 1}] - {LOCAL}カリスマを購入
+		NEXT
+		SIF C_MAX >= 4
+			PRINTFORML [{C_MAX / 2, LOG10(C_MAX) + 1}] - 最大値の半分を購入
+		PRINTFORML [{C_MAX, LOG10(C_MAX) + 1}] - 最大値を購入
+		PRINTFORML [{0, LOG10(C_MAX) + 1}] - やめる
+		INPUT
+		IF INRANGE(RESULT, 1, C_MAX)
+			C_PRICE = RESULT
+			Y_PRICE = C_PRICE * C_RATE
+			CALL CASINO_MONEY("￥", -Y_PRICE)
+			CALL CASINO_MONEY("カリスマ", C_PRICE)
+			PRINTFORML メイド妖精
+			PRINTFORML 　ご利用ありがとうございます
+			PRINTFORMW 　%三桁区切(C_PRICE)%カリスマのご購入で、料金は%金額表示(Y_PRICE)%となります
+		ENDIF
+	CASE 1
+		CALL CM_BALANCE
+	CASE 2
+		RETURN
+ENDSELECT
+
+;為替相場の変動
+@MOENY_HENDOU
+#LOCALSIZE 1
+#LOCALSSIZE 1
+IF FLAG:カリスマ変動累積 >= 10
+	FLAG:カリスマ変動状況 = RAND(1, 10)
+	SELECTCASE FLAG:カリスマ変動状況
+		CASE 9
+			PRINTFORML レミリア自機化の噂が流れています！
+			PRINTFORMW これを受けてカリスマ価格が高騰しています！
+		CASE 1
+			CALL SHOW_CHARISMA_GUARD
+	ENDSELECT
+	FLAG:カリスマ変動累積 = 0
+ENDIF
+
+;極端な状況の補正
+IF FLAG:カリスマ人気 >= 300
+	SIF RAND:(FLAG:カリスマ人気 / 50)
+		FLAG:カリスマ変動状況 = MAX(1, FLAG:カリスマ変動状況 - 2)
+ELSEIF FLAG:カリスマ人気 <= 50 && INRANGE(FLAG:カリスマ変動状況, 1, 4)
+	SIF RAND:(6 - FLAG:カリスマ変動状況)
+		FLAG:カリスマ変動状況 += 2
+ENDIF
+
+SELECTCASE FLAG:カリスマ変動状況
+CASE 1
+	LOCAL = 60 + RAND:10
+CASE 2
+	LOCAL = 70 + RAND:10
+CASE 3
+	LOCAL = 80 + RAND:10
+CASE 4
+	LOCAL = 95 + RAND:5
+CASE 5
+	IF FLAG:カリスマ人気 <= 85
+		FLAG:カリスマ人気 += RAND(1, 10)
+	ELSEIF FLAG:カリスマ人気 >= 150
+		FLAG:カリスマ人気 -= RAND(1, 10)
+	ELSEIF RAND:2
+		FLAG:カリスマ人気 += RAND(1, 10)
+	ELSE
+		FLAG:カリスマ人気 -= RAND(1, 10)
+	ENDIF
+CASE 6
+	LOCAL = 105 + RAND:5
+CASE 7
+	LOCAL = 125 + RAND:10
+CASE 8
+	LOCAL = 150 + RAND:50
+CASE 9
+	LOCAL = 200 + RAND:100
+ENDSELECT
+
+IF FLAG:カリスマ変動状況 == 5
+	FLAG:カリスマ変動累積 += 5
+ELSE
+	FLAG:カリスマ人気 = FLAG:カリスマ人気 * LOCAL / 100
+	FLAG:カリスマ変動累積 += ABS(5 - FLAG:カリスマ変動状況) + RAND:2
+ENDIF
+
+FLAG:カリスマ人気 = MAX(10, FLAG:カリスマ人気)
+TIMES FLAG:カリスマ流通, 0.98
+
+
+
+;￥、やってることはカリスマと同様
+IF FLAG:￥変動累積 >= 10
+	FLAG:￥変動状況 = RAND(1, 10)
+	FLAG:￥変動累積 = 0
+ENDIF
+
+;極端な状況の補正
+IF FLAG:￥人気 >= 300
+	SIF RAND:(FLAG:￥人気 / 50)
+		FLAG:￥変動状況 = MAX(1, FLAG:￥変動状況 - 2)
+ELSEIF FLAG:￥人気 <= 30 && INRANGE(FLAG:￥変動状況, 1, 4)
+	SIF RAND:(6 - FLAG:￥変動状況)
+		FLAG:￥変動状況 += 2
+ENDIF
+
+SELECTCASE FLAG:￥変動状況
+CASE 1
+	LOCAL = 60 + RAND:10
+CASE 2
+	LOCAL = 70 + RAND:10
+CASE 3
+	LOCAL = 80 + RAND:10
+CASE 4
+	LOCAL = 95 + RAND:5
+CASE 5
+	IF FLAG:￥人気 <= 85
+		FLAG:￥人気 += RAND(1, 10)
+	ELSEIF FLAG:￥人気 >= 150
+		FLAG:￥人気 -= RAND(1, 10)
+	ELSEIF RAND:2
+		FLAG:￥人気 += RAND(1, 10)
+	ELSE
+		FLAG:￥人気 -= RAND(1, 10)
+	ENDIF
+CASE 6
+	LOCAL = 105 + RAND:5
+CASE 7
+	LOCAL = 125 + RAND:10
+CASE 8
+	LOCAL = 150 + RAND:50
+CASE 9
+	LOCAL = 200 + RAND:100
+ENDSELECT
+
+IF FLAG:￥変動状況 == 5
+	FLAG:￥変動累積 += 5
+ELSE
+	FLAG:￥人気 = FLAG:￥人気 * LOCAL / 100
+	FLAG:￥変動累積 += ABS(5 - FLAG:￥変動状況) + RAND:2
+ENDIF
+
+FLAG:￥人気 = MAX(10, FLAG:￥人気)
+TIMES FLAG:￥流通, 0.98
+
+
+@TODAYS_CHARISMA
+#DIM 年月
+
+GETTIME
+DEBUGPRINTFORML {RESULT / 10000000000000}年 {(RESULT / 100000000000) % 100}月 {(RESULT / 1000000000) % 100}日 {(RESULT / 10000000) % 100}時だよ
+
+年月 = RESULT / 100000000000
+
+IF 年月 != FLAG:前回カリスマ設定月
+	DUMPRAND
+	PRINTFORMW {RESULT / 10000000000000}年 {(RESULT / 100000000000) % 100}月のカリスマ相場を設定します。
+	FLAG:前回カリスマ設定月 = 年月
+	RANDOMIZE 年月
+	CALL SET_THISMONTHCHARISMA
+	INITRAND
+ENDIF
+CALL SHOW_CHARISMA
+
+[SKIPSTART]
+
+#LOCALSIZE 1
+#LOCALSSIZE 1
+PRINTFORML 
+PRINTFORML ～きょうのかりすま～
+PRINTFORML 　1カリスマ＝\\{FUNC_CASINO("TRADE")}
+PRINTFORML 　＜カリスマ＞
+PRINTFORML 　　傾向{FLAG:カリスマ変動状況}　累積{FLAG:カリスマ変動累積, 2}　人気{FLAG:カリスマ人気}％
+PRINTFORML 　＜￥＞
+PRINTFORML 　　傾向{FLAG:￥変動状況}　累積{FLAG:￥変動累積, 2}　人気{FLAG:￥人気}％
+PRINTFORMW 
+
+[SKIPEND]
+
+
+;紅魔カジノ用初期設定
+@SET_CHARISMA(TYPE)
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS TYPE
+#DIM LCOUNT
+SELECTCASE TYPE
+;まだカリスマを設定していないデータ用
+CASE "NEW"
+	FLAG:カリスマ人気 = 100
+	FLAG:カリスマ変動状況 = 5
+	FLAG:￥人気 = 100
+	FLAG:￥変動状況 = 5
+;すでにカリスマを設定している周回用
+;要するに紅魔カジノの初期化コマンドだがカモられ指数は初期化しない
+CASE "RESET"
+	FLAG:カリスマ流通 = 0
+	FLAG:カリスマ人気 = 100
+	FLAG:カリスマ変動状況 = 5
+	FLAG:カリスマ変動累積 = 0
+
+	FLAG:￥流通 = 0
+	FLAG:￥人気 = 100
+	FLAG:￥変動状況 = 5
+	FLAG:￥変動累積 = 0
+ENDSELECT
+
+@SET_THISMONTHCHARISMA
+#DIM カリスマ変動累積
+#DIM 変動幅
+
+カリスマ変動累積 = 0
+
+;初日は150~250
+CHARISMA_RATE:0 = 150 + RAND:100
+CHARISMA_TENDENCY:0 = 5
+FOR LOCAL,1,32
+	IF カリスマ変動累積 >= 10
+		;適正レートだと安定しやすい
+		IF INRANGE(CHARISMA_TENDENCY:(LOCAL - 1),150,250) && !RAND:2
+			CHARISMA_TENDENCY:LOCAL = 5
+		ELSEIF CHARISMA_TENDENCY:(LOCAL - 1) == 5
+			;安定からは極端な変動をしない
+			CHARISMA_TENDENCY:LOCAL = RAND(3,8)
+		ELSEIF CHARISMA_RATE:(LOCAL -1) > 250
+			CHARISMA_TENDENCY:LOCAL = RAND(2, 8)
+		ELSEIF CHARISMA_RATE:(LOCAL -1) < 150
+			CHARISMA_TENDENCY:LOCAL = RAND(3, 9)
+		ELSE
+			CHARISMA_TENDENCY:LOCAL = RAND(2, 9)
+		ENDIF
+		カリスマ変動累積 = 0
+	ELSE
+		;変動しないなら前期と同じ
+		CHARISMA_TENDENCY:LOCAL = CHARISMA_TENDENCY:(LOCAL -1)
+	ENDIF
+	;前期カリスマ価格に応じて補正
+	SELECTCASE CHARISMA_RATE:(LOCAL -1)
+		CASE IS < 50
+			IF !RAND:4
+				CHARISMA_TENDENCY:LOCAL = 9
+				カリスマ変動累積 = 0
+			ENDIF
+		CASE 50 TO 100
+			IF !RAND:5
+				CHARISMA_TENDENCY:LOCAL = 8
+				カリスマ変動累積 = 0
+			ENDIF
+		CASE 250 TO 300
+			IF !RAND:5
+				CHARISMA_TENDENCY:LOCAL = 2
+				カリスマ変動累積 = 0
+			ENDIF
+		CASE IS > 300
+			IF !RAND:4
+				CHARISMA_TENDENCY:LOCAL = 1
+				カリスマ変動累積 = 0
+			ENDIF
+	ENDSELECT
+
+	SELECTCASE CHARISMA_TENDENCY:LOCAL
+		CASE 1
+			変動幅 = - RAND:30 - 100
+			カリスマ変動累積 += 3 + RAND:2 + RAND:3
+		CASE 2
+			変動幅 = RAND:20 - 50
+			カリスマ変動累積 += 2 + RAND:2 + RAND:2
+		CASE 3
+			変動幅 = RAND:10 - 30
+			カリスマ変動累積 += 1 + RAND:3 + RAND:2
+		CASE 4
+			変動幅 = -RAND:5 - 5
+			カリスマ変動累積 += 1 + RAND:3 + RAND:2
+		CASE 5
+			変動幅 = RAND:10 - 5
+			カリスマ変動累積 += 1 + RAND:3
+		CASE 6
+			変動幅 = RAND:5 + 5
+			カリスマ変動累積 += 1 + RAND:3 + RAND:2
+		CASE 7
+			変動幅 = 30 - RAND:10
+			カリスマ変動累積 += 1 + RAND:3 + RAND:3
+		CASE 8
+			変動幅 = RAND:20 + 50
+			カリスマ変動累積 += 2 + RAND:2 + RAND:2
+		CASE 9
+			変動幅 = RAND:30 + 100
+			カリスマ変動累積 += 3 + RAND:2 + RAND:3
+	ENDSELECT
+
+	CHARISMA_RATE:LOCAL = CHARISMA_RATE:(LOCAL -1) + 変動幅
+	CHARISMA_RATE:LOCAL = LIMIT(CHARISMA_RATE:LOCAL,1,400)
+	SIF CHARISMA_RATE:LOCAL == 1 || CHARISMA_RATE:LOCAL == 400
+		カリスマ変動累積 = 10
+NEXT
+
+@SHOW_CHARISMA
+#DIM 前期カリスマ傾向
+IF NOW_PERIOD()
+	前期カリスマ傾向 = CHARISMA_TENDENCY:(NOW_PERIOD() -1)
+	LOCAL = CHARISMA_TENDENCY:(NOW_PERIOD()-1)
+	IF CHARISMA_TENDENCY:NOW_PERIOD() != 前期カリスマ傾向 && NOW_PERIOD() > 1
+	SETCOLOR C_YELLOW
+		SELECTCASE CHARISMA_TENDENCY:NOW_PERIOD()
+			CASE 9
+				PRINTFORML レミリア自機化の噂が流れています！
+				PRINTFORML これを受けてカリスマ価格が高騰しています！
+			CASE 5
+				SIF GROUPMATCH(前期カリスマ傾向,1,2,8,9)
+					PRINTFORML %SHOW_TENDENCY(前期カリスマ傾向)%していたカリスマ値動きは落ち着いたようです。
+			CASE 1
+				CALL SHOW_CHARISMA_GUARD
+		ENDSELECT
+	RESETCOLOR
+	PRINTFORMW 
+	ENDIF
+ENDIF
+PRINTL
+PRINTFORML ◇今月{NOW_PERIOD()}日のカリスマ相場は、１カリスマ＝\\{CHARISMA_NOW()}
+PRINTFORMW 変動状況は%SHOW_TENDENCY(CHARISMA_TENDENCY:NOW_PERIOD())%です
+
+IF FLAG:新聞購読
+	PRINTFORML 
+	PRINTFORML 直近のカリスマ値動き
+	FOR LOCAL,1,40
+		SIF !INRANGE(LOCAL,NOW_PERIOD()-9,NOW_PERIOD())
+			CONTINUE
+		CALL PRINT_COLORBAR, CHARISMA_RATE:LOCAL, 400, 40, UNICODE(0x2585), UNICODE(0x2585), BARCOLORSET("水色"),
+		PRINTFORML 　{LOCAL}期\\{CHARISMA_RATE:LOCAL}　%SHOW_TENDENCY(CHARISMA_TENDENCY:LOCAL)%
+	NEXT
+ENDIF
+
+@SHOW_TENDENCY(ARG)
+#FUNCTIONS
+SELECTCASE ARG
+	CASE 1
+		LOCALS = 暴落
+	CASE 2
+		LOCALS = 下落
+	CASE 3
+		LOCALS = 下降
+	CASE 4
+		LOCALS = 微減
+	CASE 5
+		LOCALS = 安定
+	CASE 6
+		LOCALS = 堅調
+	CASE 7
+		LOCALS = 上昇
+	CASE 8
+		LOCALS = 高騰
+	CASE 9
+		LOCALS = 暴騰
+ENDSELECT
+RETURNF LOCALS
+
+@NOW_PERIOD()
+#FUNCTION
+GETTIME
+;カリスマ変動は一日一度に変更
+LOCAL = (RESULT / 1000000000) % 100
+;LOCAL = ((RESULT / 1000000000) % 100 - 1) * 6 + ((RESULT / 10000000) % 100) / 4
+RETURNF LOCAL
+
+@NOW_MONTH()
+#FUNCTION
+GETTIME
+LOCAL = RESULT / 100000000000
+RETURNF LOCAL
+
+@CHARISMA_NOW()
+#FUNCTION
+RETURNF CHARISMA_RATE:NOW_PERIOD()
+
+@CM_BALANCE(ARG)
+#DIM 売却カリスマ
+#DIM 売却額
+#DIM 手数料
+#DIM 精算額
+#DIM レート
+
+レート = CHARISMA_NOW()
+
+IF FLAG:新聞購読
+	PRINTFORML 
+	PRINTFORML 直近のカリスマ値動き
+	FOR LOCAL,1,40
+		SIF !INRANGE(LOCAL,NOW_PERIOD()-9,NOW_PERIOD())
+			CONTINUE
+		CALL PRINT_COLORBAR, CHARISMA_RATE:LOCAL, 400, 40, UNICODE(0x2585), UNICODE(0x2585), BARCOLORSET("水色"),
+		PRINTFORML 　{LOCAL}期\\{CHARISMA_RATE:LOCAL}　%SHOW_TENDENCY(CHARISMA_TENDENCY:LOCAL)%
+	NEXT
+ENDIF
+PRINTFORML 売却するカリスマ量を入力してください
+PRINTFORML 手数料は{CM_COMMISSION}％です
+PRINTFORML [{MONEY:2}] - すべて売却
+PRINTFORML [0] - やめる
+INPUT
+IF !INRANGE(RESULT,0,MONEY:2)
+	PRINTFORMW 無効な数値です
+	RETURN
+ELSEIF !RESULT
+	RETURN
+ENDIF
+売却カリスマ = RESULT
+売却額 = 売却カリスマ * レート
+手数料 = 売却額 * CM_COMMISSION / 100
+
+精算額 = 売却額 - 手数料
+PRINTFORML 売却レート：%金額表示(CHARISMA_NOW())% × 売却額：{売却カリスマ} ＝ %金額表示(売却額)%
+PRINTFORML 手数料：%金額表示(手数料), 13%
+PRINTFORML 精算額　%金額表示(精算額), 13%
+
+PRINTFORML よろしいですか？
+CALL ASK_YN
+SIF RESULT
+	RETURN
+
+MONEY += 精算額
+MONEY:2 -= 売却カリスマ
+
+@SHOW_CHARISMA_GUARD
+IF FLAG:新聞購読
+	RESETCOLOR
+	PRINTFORML ────────────────────────
+	FONTBOLD
+	PRINTDATAL
+		DATAFORM 　　　　紅魔館当主　その実態に迫る！
+		DATAFORM 　　　これが鉄壁のカリスマガードだッ！
+		DATAFORM 　　　　　突然のカリスマブレイク！
+	ENDDATA
+	FONTREGULAR
+	PRINTFORML ────────────────────────
+	SETFONT "ＭＳ Ｐゴシック"
+	PRINTL 　　　　　　　　　　　　　 　 　,. -‐'''''"￣￣｀"''ヽ. 　 〉､
+	PRINTL 　　　　　　　 ,.-ｧ　　　　r'/´　　　　　　　　　　　｀Y/ヽヽ.
+	PRINTL 　　　　　　／::〈　　　r‐､iY　　　　　　　　　　　　　 ', 　 ｀ヽ.
+	PRINTL 　　　　　//ヽ:::::' , 　 i:::|:::ヽ>,r'^ｰ､､,___________,r'ヽ,イ　　　　',
+	PRINTL 　　　　 //　　｀ヽ:ヽ〈::〈::::::::7 　 r'´､r-､__,. ->i 　iカ.　　　　 !
+	PRINTL 　　　　,','　　　　　｀'ｰ|_!._::::,' 　 ﾊ_!_,.ｨ　ﾊ　i､ ﾊ　|_「　　__　　|
+	PRINTL 　　 　 |'　　　　　 　　　レ7　　|./--'､ﾚ'　V,ﾆ.! 　|/ ./´　｀ヽ|
+	PRINTL 　　 　 |　　　　　　　　〈,rﾍﾊﾍr|ﾊ"　　____ 　 ,ﾊﾝヽ./　っ
+	PRINTL 　　 　 |　　,.-‐､／´￣｀ヽ!｀￣ > !ヽr´--'＜'ﾊ〉　　っ　
+	PRINTL 　　　　ﾚ'´　　　　 　 く￣ﾍ´　イ＞''"´￣｀'ヽr-ｧ
+	PRINTL 　　　　　　　　　　　　 ヽ:::::ヽr ´ ／　　/　　　ヽ!
+	PRINTL 　　　　　　　　　　　　 く:::::＞!イ　　　/　 i　　　ﾊ
+	PRINTL 　　　　　　　　　　　　　｀7:::く /__r､__ﾄ､　i__r! _,rﾍ>
+	PRINTL 　　　　　　　　　　　　 　 レ'｀ﾄ!.二Y　 ￣Y'ｰ'ｲ￣
+	SETFONT
+	PRINTFORMW ────────────────────────
+	SETCOLOR C_YELLOW
+ENDIF
+PRINTFORML 文々。新聞の一面にレミリアの下段ガード姿が掲載されました！
+PRINTFORML その影響でカリスマが大暴落しています！
+RESETCOLOR

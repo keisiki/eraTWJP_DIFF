@@ -1,0 +1,254 @@
+﻿;-------------------------------------------------
+;関数名:FESTIVAL
+;概　要:行事を表す文字列を取得する関数
+;引　数:なし
+;-------------------------------------------------
+@FESTIVAL
+#FUNCTIONS
+IF DAY:2 == 1
+	SELECTCASE DAY:3
+		CASE 1
+			RETURNF "元日"
+		CASE 3
+			RETURNF "雛祭り"
+		CASE 11
+			RETURNF "母の日"
+		CASE 14
+			RETURNF "ホワイトデー"
+		CASE 25
+			RETURNF "例大祭"
+	ENDSELECT
+ELSEIF DAY:2 == 2
+	SELECTCASE DAY:3
+		CASE 7
+			RETURNF "七夕"
+		CASE 14
+			RETURNF "お盆"
+	ENDSELECT
+ELSEIF DAY:2 == 3
+	SELECTCASE DAY:3
+		CASE 1
+			RETURNF "風神「二百十日」"
+		CASE 15
+			RETURNF "十五夜"
+		CASE 27
+			RETURNF "収穫祭"
+		CASE 30
+			RETURNF "ハロウィン"
+	ENDSELECT
+ELSEIF DAY:2 == 4
+	SELECTCASE DAY:3
+		CASE 3
+			RETURNF "節分"
+		CASE 14
+			RETURNF "バレンタインデー"
+		CASE 24
+			RETURNF "クリスマスイヴ"
+		CASE 25
+			RETURNF "クリスマス"
+		CASE 31
+			RETURNF "大晦日"
+	ENDSELECT
+ENDIF
+
+;特定の祭日の起床時メッセージ
+@SEASONAL_MORNING
+#DIM 生活時間補正, 5
+SELECTCASE FESTIVAL()
+	CASE "元日"
+		FOR LOCAL,1,CHARANUM
+			CFLAG:LOCAL:起床時間 = CSVCFLAG (LOCAL, GETNUM(CFLAG, "起床時間"))
+			CFLAG:LOCAL:来訪時間 = CSVCFLAG (LOCAL, GETNUM(CFLAG, "来訪時間"))
+			CFLAG:LOCAL:帰宅時間 = CSVCFLAG (LOCAL, GETNUM(CFLAG, "帰宅時間"))
+			CFLAG:LOCAL:就寝時間 = CSVCFLAG (LOCAL, GETNUM(CFLAG, "就寝時間"))
+		NEXT
+		SIF DAY != 1
+			CALL NEWYEAR
+	CASE "バレンタインデー"
+		PRINTL チョコレートは貰えるだろうか…
+	CASE "ホワイトデー"
+		FOR LOCAL,1,CHARANUM
+			SELECTCASE CFLAG:LOCAL:バレンタイン
+				CASE 1
+					PRINTFORML %CALLNAME:LOCAL%はブラックサンダーをくれたな……
+					PRINTFORMW お礼は適当でもいいか
+				CASE 2
+					PRINTFORML %CALLNAME:LOCAL%は普通のチョコをくれたな……
+					PRINTFORMW それなりのお礼をしよう
+				CASE 3
+					PRINTFORML %CALLNAME:LOCAL%は高そうなチョコをくれたな……
+					PRINTFORMW ちゃんとしたお礼をしよう
+				CASE 4
+					PRINTFORML %CALLNAME:LOCAL%は手作りのチョコをくれたな……
+					PRINTFORMW 心のこもったお礼をしよう
+			ENDSELECT
+		NEXT
+	CASE "大晦日"
+		PRINTL 今日はどのキャラも夜ふかししてくれます
+		FOR LOCAL,1,CHARANUM
+			IF INRANGE(CFLAG:LOCAL:帰宅時間, 900 , 1440) || INRANGE(CFLAG:LOCAL:帰宅時間, 0 , 59) || INRANGE(CFLAG:LOCAL:就寝時間, 900 , 1440) || INRANGE(CFLAG:LOCAL:就寝時間, 0 , 119)
+				生活時間補正:1 = 1500 - CFLAG:LOCAL:帰宅時間
+				生活時間補正:2 = 1560 - CFLAG:LOCAL:就寝時間
+				CFLAG:LOCAL:帰宅時間 = TIMECIRCLE(CFLAG:LOCAL:帰宅時間 + 生活時間補正:1)
+				CFLAG:LOCAL:就寝時間 = TIMECIRCLE(CFLAG:LOCAL:就寝時間 + 生活時間補正:2)
+			ENDIF
+		NEXT
+ENDSELECT
+
+@TIMECIRCLE(ARG)
+#FUNCTION
+WHILE ARG > 1440
+	ARG -= 1440
+WEND
+RETURNF ARG
+
+@SEASONAL(ARG)
+VARSET LOCAL
+;出会ったとき
+SELECTCASE FESTIVAL()
+	CASE "元日"
+		PRINTL
+		PRINTFORML ●%CALLNAME:MASTER%は%CALLNAME:ARG%に新年の挨拶をした
+		CALL OTOSHIDAMA(ARG)
+	CASE "バレンタインデー"
+		SELECTCASE CFLAG:ARG:好感度
+			CASE 1000 TO 3000
+				PRINTFORMW %CALLNAME:ARG%からチョコレートを貰った
+				PRINTW ……ブラックサンダーだ
+				ITEM:120 ++
+				CFLAG:ARG:バレンタイン = 1
+			CASE 3001 TO 5000
+				PRINTFORMW %CALLNAME:ARG%からチョコレートを貰った
+				ITEM:121 ++
+				CFLAG:ARG:バレンタイン = 2
+			CASE IS > 5000
+				IF EXP:ARG:愛情経験 < 100
+					PRINTFORMW %CALLNAME:ARG%から高そうなチョコレートを貰った
+					ITEM:122 ++
+					CFLAG:ARG:バレンタイン = 3
+				ELSE
+					PRINTFORML %CALLNAME:ARG%からチョコレートを貰った
+					PRINTW 手作りだ！うれしい！
+					ITEM:123 ++
+					CFLAG:ARG:バレンタイン = 4
+				ENDIF
+		ENDSELECT
+ENDSELECT
+
+@FESTIVAL_MENU()
+#FUNCTIONS
+SELECTCASE DAY:2
+	;春
+	CASE 1
+		SELECTCASE DAY:3
+			CASE 1,2
+				RETURNF "おせち料理"
+		ENDSELECT
+	;夏
+	CASE 2
+	;秋
+	CASE 3
+	;冬
+	CASE 4
+		SELECTCASE DAY:3
+			CASE 3
+				RETURNF "恵方巻"
+			CASE 31
+				RETURNF "年越し蕎麦"
+		ENDSELECT
+ENDSELECT
+
+@NEWYEAR
+#DIM YOME
+#DIM ChildCount
+#DIM CardCount
+PRINTW 新年あけましておめでとう！
+CardCount = 0
+FOR LOCAL,1,CHARANUM
+	IF ABL:YOME:親密 >= 5 && !CFLAG:YOME:神社在住
+		PRINTFORML %CALLNAME:YOME%から年賀状が届いた
+		CardCount ++ 
+	ENDIF
+	SIF CFLAG:YOME:子供人数 - CFLAG:YOME:育児人数 <= 0
+		CONTINUE
+	FOR ChildCount,1,11
+		IF DAY - CHILD_BIRTHDAY:YOME:ChildCount < 120
+			PRINTFORML %CALLNAME:YOME%の\@ CHILD_SEX:YOME:ChildCount == 1 ? 娘 # 息子 \@の%CHILDNAME:YOME:ChildCount%から年賀状が届いた
+			CardCount ++ 
+		ENDIF
+	NEXT
+NEXT
+IF CardCount > 0
+	PRINTFORMW 総計{CardCount}枚！
+ENDIF
+PRINTFORML さて、%CALLNAME:MASTER%の今年の抱負は…
+PRINTL
+PRINTLC [1] オナニー奨励
+PRINTLC [2] 同性愛推進
+PRINTLC [3] 牝穴開拓
+PRINTL
+PRINTL
+PRINTLC [4] 尻穴開発
+PRINTLC [5] 乳挟振興
+PRINTLC [6] 子孫繁栄
+$LOOP
+INPUT
+SELECTCASE RESULT
+	CASE 1
+		LOCALS = オナニー
+	CASE 2
+		LOCALS = 同性愛
+	CASE 3
+		LOCALS = セックス
+	CASE 4
+		LOCALS = アナルセックス
+	CASE 5
+		LOCALS = パイズリ
+	CASE 6
+		LOCALS = 子作り
+	CASEELSE
+		GOTO LOOP
+ENDSELECT
+
+PRINTFORML %CALLNAME:MASTER%は今年は%LOCALS%に専念しようと堅く心に誓った
+FLAG:抱負 = RESULT
+
+;通年フラグをリセット
+FOR LOCAL,0,CHARANUM
+	CFLAG:LOCAL:通年 = 0
+NEXT
+
+@OTOSHIDAMA(ARG)
+SIF DAY <= 1
+	RETURN
+SIF !TALENT:ARG:幼稚 && !TALENT:ARG:育児中
+	RETURN
+IF TALENT:ARG:幼稚
+	PRINTFORMW %CALLNAME:ARG%にお年玉をせびられた
+ELSE
+	PRINTFORMW %CALLNAME:ARG%に%SHOW_CHILDNAME(ARG)%へのお年玉を要求された
+ENDIF
+
+SELECTCASE MONEY
+	CASE IS > 500000
+		LOCAL = 10000
+	CASE IS > 100000
+		LOCAL = 5000
+	CASE IS > 30000
+		LOCAL = 3000
+	CASE IS > 3000
+		LOCAL = 1000
+	CASEELSE
+		LOCAL = 0
+ENDSELECT
+IF !LOCAL
+	PRINTFORML %CALLNAME:MASTER%が財布の中身を見せると、%CALLNAME:ARG%は\@ TALENT:ARG:幼稚? 憐憫のこもった眼差しを向けた# 露骨に失望した顔をした\@
+	PRINTFORMW %CALLNAME:MASTER%の心は傷ついた
+ELSE
+	PRINTFORML %CALLNAME:ARG%に\\{LOCAL}取られた…
+	PRINTFORML %CALLNAME:ARG%はご機嫌だ
+	MONEY -= LOCAL
+	TALENT:ARG:機嫌 = 1
+	CFLAG:ARG:好感度 += LOCAL/200
+	CFLAG:ARG:信頼度 += LOCAL/200
+ENDIF
