@@ -183,7 +183,7 @@ RETURN RESULT
 #DIM 射出, 2
 VARSET 射出
 ;お掃除フェラ用＠地の文からコピペ
-;TCVAR:112 MASTERが直前のターンに射精した箇所フラグ 1=膣内 2=アナル
+;LOCAL:2 = TCVAR:112 MASTERが直前のターンに射精した箇所フラグ 1=膣内 2=アナル
 ;射出:0 = 前ターン中出しされたTARGET_ID
 ;射出:1 = 前ターンＶorA挿入されていたTARGET_ID
 IF TCVAR:MASTER:112 == 1
@@ -431,7 +431,7 @@ IF LOCAL
 					PRINTFORMW 「あむっ、んっ…じゅぷっ…んっ、ずずっ」
 				CASE 2
 					PRINTFORML 「出そうなの？　うん、大丈夫よ……\@ ABL:精液中毒 > 4 ? 早く飲ませてほしいんです # ちゃんと飲みますから \@……」
-					PRINTFORMW 「だから、遠慮しないで、いっぱい出しでね…」
+					PRINTFORMW 「だから、遠慮しないで、いっぱい出してね…」
 			ENDSELECT
 		ENDIF
 	;何度も射精した
@@ -533,10 +533,6 @@ IF LOCAL
 	IF FLAG:70
 		PRINTFORMW 
 		RETURN 1
-	;マグロスイッチオン
-	ELSEIF CFLAG:1501 || TCVAR:30:無理矢理 || TCVAR:30:泥酔
-		CALL K30_GASPING_MAGURO
-		RETURN 1
 	ELSEIF LOCAL:1 && FIRSTTIME(SELECTCOM)
 		PRINTFORMW 「ぱいずり………」
 		PRINTFORMW 「私に『胸で』挟めと言うんですね…」
@@ -545,7 +541,10 @@ IF LOCAL
 		PRINTFORMW 「………………」
 		PRINTFORMW 「………」
 		PRINTFORMDW 鬱屈 + 5
-		SOURCE:鬱屈 += 5
+		RETURN 1
+	;マグロスイッチオン
+	ELSEIF CFLAG:1501 || TCVAR:30:無理矢理 || TCVAR:30:泥酔
+		CALL K30_GASPING_MAGURO
 		RETURN 1
 	;これでMASTERが射精する
 	ELSEIF NOWEX:MASTER:11
@@ -625,6 +624,11 @@ IF LOCAL
 	ENDIF
 ENDIF
 RETURN 1
+@M_KOJO_EXTRASOURCE_COM_K30_82
+SIF STRCOUNT(CSTR:30:0, "82/")
+	RETURN
+SOURCE:鬱屈 += 5
+RETURN
 
 ;==================================================
 ;83,素股
@@ -926,9 +930,16 @@ RETURN 1
 ;85,足扱き
 ;良さがわからないので否定的になってしまう。好きな人にはごめんなさい
 ;構文読んでたら切り替え方法わかったので、映姫様が隙あらばしゃぶりつくようにしてみる
+;→EXTRASOURCEを使いコマンドごと書き換えてしゃぶりつくように
 ;==================================================
 @M_KOJO_MESSAGE_COM_K30_85
-IF TCVAR:MASTER:112 && !(FLAG:70 || TCVAR:30:泥酔 || CFLAG:MASTER:イタズラ == 2)
+IF TFLAG:193 == 99
+	CALL K30_D_LINE
+	PRINTFORMDL 映姫は%CALLNAME:MASTER%の%TINKO(MASTER)%を足裏で擦りあげ…
+	PRINTFORMDL ……かけたが途中でやめてしまった
+	PRINTFORMDL いきり勃ったペニスを映姫は物言いたげに目で見つめている…
+	PRINTFORMW 
+ELSEIF TCVAR:MASTER:112 && !(FLAG:70 || TCVAR:30:泥酔 || CFLAG:MASTER:イタズラ == 2)
 	CALL K30_D_LINE
 	PRINTFORMDL %CALLNAME:PLAYER%は%\@ TCVAR:MASTER:112 == 1 ? たっぷり膣内出しした # 射精 \@%後のペニスを%CALLNAME:TARGET%の足裏で擦らせた
 	PRINTFORMDL %CALLNAME:TARGET%はなんだかやりづらそうだ…
@@ -973,7 +984,30 @@ IF LOCAL
 	Ｆ可否 = (RESULT && 交代可 && ABL:TARGET:舌 >= 3 && ABL:精液中毒 >= 5 && BASE:体力 > 600 && BASE:気力 > 100)
 	;これでMASTERが射精する
 	IF NOWEX:MASTER:11
-		IF ABL:精液中毒 > 2 && RAND:2
+		;フラグ立ってたらコマンドも無視してしゃぶりつく
+		IF	TFLAG:193 == 99
+			PRINTDATAL
+				DATAFORM 「…今したい事と違うわ。これじゃないの」
+				DATAFORM 「…それ…今はしたくありません」
+				DATAFORM 「%K30_C_NAME(MASTER)%、これだと…私が満足できませんよ」
+			ENDDATA
+			PRINTDATAL
+				DATAFORM 「そう、私がしたいのはこっち…こうしてあげたいの…」
+				DATAFORM 「おあずけされているようで、イヤ。我慢したくないの…」
+				DATALIST
+					DATAFORM 「私だってたまにはワガママ言ってもいいですよね」
+					DATAFORM 「いっぱい舐めてあげたいの、お口に、欲しいんです…」
+				ENDLIST
+			ENDDATA
+			PRINTFORMW 「ごめんなさい、%K30_C_NAME(MASTER)%。代わりに気持ちよくしてあげますから……ぁむっ♥」
+			PRINTFORML 「ちゅっ、じゅる…じゅるる！　ずずずず～～っ♥♥」
+			PRINTFORMDL なんと映姫は%CALLNAME:MASTER%の意向を無視して勝手にフェラチオを始めだした
+			PRINTFORMDW 雁首を舐りまわし裏筋を舐め上げる濃密な奉仕に、%CALLNAME:MASTER%はあっという間に追い詰められていく……
+			PRINTFORML 「じゅぷっ、じゅぷっ……ぐぽっ♥　ぐぽっ♥　じゅるるっ♥」
+			PRINTFORMDL 溢れ出る先走りから射精の予兆を感じ取ると、映姫の口淫はますます濃厚になっていく
+			PRINTFORMDW %CALLNAME:MASTER%は全て吸いつくされるような快感を味わいながら、映姫の望む場所へ精をぶちまけた…
+			RETURN 1
+		ELSEIF ABL:精液中毒 > 2 && RAND:2
 			IF RAND:2 == 1
 				PRINTFORML 「んっ……出そう、なの？」
 				PRINTFORMW 「その、もったいないなって、思いません…？」
@@ -1006,10 +1040,10 @@ IF LOCAL
 		PRINTFORMDL 映姫は四つん這いになって%CALLNAME:MASTER%の股座へ顔をにじり寄せてくる…
 		PRINTFORMW 「\@ LOCAL ? だからね、 # \@私はこうしてあげたいの………はぁむっ♥」
 		PRINTFORMDL ペニスを付け根まで一気に頬張ると、映姫は卑猥な音を立てながらフェラチオを始めた
-		PRINTFORML 「じゅぷっ、じゅぷっ……じゅるるっ♥　んむっ…ん、んっ、んんっ～～♥♥」
+		PRINTFORML 「じゅぷっ、じゅぷっ……じゅるるっ♥　んむっ…んっ、んんっ～～♥♥」
 		PRINTFORML 「あふっ……こうしたかったの♥　お口に、欲しかったの……ねえ、いいですよね…♥」
 		PRINTFORMW 
-		PRINTFORMDL 映姫は%CALLNAME:MASTER%からすっかり主導権を奪い肉棒にしゃぶりついてくる
+		PRINTFORMDL 映姫は%CALLNAME:MASTER%からすっかり主導権を奪い肉棒にしゃぶりついている
 		PRINTFORMDL どうやらきちんと口に出すまで離れる気配は無さそうだ……
 		PRINTFORMW 
 		;ステータスを押し倒されフェラに移行
@@ -1041,9 +1075,8 @@ IF LOCAL
 				PRINTFORML 「おちんちん…汚れたのをキレイにしてあげて」
 				PRINTFORMW 「最後に残った分、ちゅーってしてあげるの…好きなんです…♥」
 		ENDSELECT
-		PRINTFORMDL 映姫は足の代わりに口を%CALLNAME:MASTER%の股座へ近づけて
-		PRINTFORML 「まずは、こっち……れろっ、ちゅっ……ちゅぷ、ちゅっ♥」
-		PRINTFORMDL %TEXTR("腿/玉袋/")%に跳ねた精液を丁寧に舐め取っていく
+		PRINTFORML 「まずは、こっちね……れろっ、ちゅっ……ちゅぷ、ちゅっ♥」
+		PRINTFORMDL 映姫は足の代わりに口を%CALLNAME:MASTER%の股座へ近づけて%TEXTR("腿/玉袋/")%に跳ねた精液を丁寧に舐め取っていく
 		PRINTFORMW 
 		PRINTFORML 「んっ…きれいになったわ♥」
 		PRINTFORML 「じゃあ、おちんちんもキレイキレイにしてあげてますね…あむっ♥」
@@ -1055,7 +1088,7 @@ IF LOCAL
 			CASEELSE
 				PRINTFORMD 先走りと精液でべっとりと汚れた
 		ENDSELECT
-		PRINTFORMDL ペニスを映姫は%TEXTR("何の躊躇もなく/愛しげに/嬉しそうに")%咥えた…
+		PRINTFORMDL ペニスを映姫は%TEXTR("何の躊躇もなく/愛しげに/嬉しそうに")%咥え、舐め始めた…
 		PRINTFORMW 
 		PRINTFORMDL すっかり映姫にペースを握られてしまい、%CALLNAME:MASTER%はそのまま受け身に回ることになった
 		PRINTFORMW 
@@ -1116,6 +1149,46 @@ IF LOCAL
 	ENDIF
 ENDIF
 RETURN 1
+
+;足コキを断固拒否して咥えたがる映姫様のEXTRASOURCE関数
+@M_KOJO_EXTRASOURCE_COM_K30_85
+;色々条件の精査
+;SIF TCVAR:MASTER:イきそう
+;	GOTO TEST
+SIF !TCVAR:MASTER:イきそう || CFLAG:溜まってる度 < 300 || GET_TARGETNUM() != 1
+	RETURN
+SIF FLAG:99 || !SHIRAHU(30) || EXP:口淫経験 < 100
+	RETURN
+CALL COM_ABLE81
+SIF !(RESULT && ABL:TARGET:舌 >= 3 && ABL:精液中毒 >= 5)
+	RETURN
+;溜まってる度/精愛味覚に応じて10～60%ぐらいの適当判定
+SIF (CFLAG:溜まってる度 / 100) + (TALENT:精愛味覚 * 3) < RAND:20
+	RETURN
+;ここまで抜けたら実行。フェラのソース/経験等の加算と修正
+;$TEST
+;継続行動はリセット
+CALL TOUCH_SET(0,0,0,1)
+CALL TOUCH_SET(SET_FROM_M, SET_P, 30)
+CSTR:PLAYER:10 = /
+CALL COM81
+;映姫様の快感を2倍、大体イくようにする
+SOURCE:快Ｍ *= 2
+DOWNBASE:体力 -= 10
+DOWNBASE:気力 -= 150
+SOURCE:加虐 = 0
+SOURCE:征服 = 0
+SIF TALENT:自己愛 < 0 || TALENT:抵抗
+	SOURCE:鬱屈 -= 600
+IF HETEROSEX(TARGET,PLAYER)
+	EXP:(50 + HETEROSEX(TARGET,PLAYER)) -= 4
+	EXP:PLAYER:(50 + HETEROSEX(TARGET,PLAYER)) -= 4
+ENDIF
+SIF TALENT:サド || ABL:サドっ気
+	EXP:嗜虐快楽経験 --
+;口上側に渡すフラグ
+TFLAG:193 = 99
+RETURN
 ;==================================================
 ;88,バキュームフェラ
 ;==================================================

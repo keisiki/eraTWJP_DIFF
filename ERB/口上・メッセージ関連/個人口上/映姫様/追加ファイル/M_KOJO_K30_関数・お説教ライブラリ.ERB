@@ -150,8 +150,7 @@ SIF TYPE == 3
 IF TYPE && (ARG == RANDOM_CHARANUM || ARG == 0)
 	SIF TYPE == 1
 		RETURNF "だれか"
-	SIF TYPE == 2
-		RETURNF "他の人"
+	RETURNF "他の人"
 ENDIF
 SELECTCASE ARG
 	;MASTERの呼び名
@@ -1532,4 +1531,116 @@ ELSE
 	SOURCE:歓楽 += ABL:30:親密 * 50
 	SOURCE:情愛 += 1500
 ENDIF
+RETURN 1
+
+;==================================================
+;キャラ紹介文関数。早苗口上を参考にしてます
+;--------------------------------------------------
+@CHARA_INFO_KOJO_K30
+;紹介文前半は花映塚キャラ紹介テキストとか参考に
+PRINTFORML %CSVCSTR(30, 10)%
+PRINTFORML 
+PRINTFORML 地獄に住む死者を裁く神様。日々の大半を死者の裁判と地獄の管理業務に費やしている。
+PRINTFORML 性格は真面目そのもの。だが、仕事の影響もあって少し説教くさい。
+PRINTFORML 例えば目の前に罪を負った人間（でも妖怪でもとにかく誰でも）がいたら、閻魔様は絶対に見過ごさない
+FONTSTYLE 4
+PRINTFORM 趣味の
+FONTSTYLE 0
+PRINTFORM 貴重な時間を使って
+FONTSTYLE 4
+PRINTFORM 口うるさい
+FONTSTYLE 0
+PRINTFORML 有難いお話と教えをたっぷり説いてくれることだろう。
+SIF !CFLAG:30:面識
+	RETURN 1
+PRINTFORML 
+;恋慕取得前
+IF !TALENT:30:恋慕
+	IF TALENT:30:セフレ || TALENT:30:ヤリマン || TALENT:30:愛欲
+		PRINTFORML 閻魔にあるまじき自身の淫らな行動に深く罪の意識を抱いている…
+	ELSEIF TALENT:30:思慕
+		PRINTFORML 目下の悩みは何者にも影響されず迷うことがないはずの自分が、とある人物にすっかり惑わされていることだ。
+	ELSEIF STRCOUNT(CSTR:30:0, "変Ｔお披露目")
+		PRINTFORM 目下の悩みは、最近導入された閻魔の制服があまりにも
+		FONTSTYLE 4
+		PRINTFORM 変
+		FONTSTYLE 0
+		PRINTFORML 特徴的でうまく着こなせないことらしい…
+	ELSE
+		PRINTFORML 最近知り合った浄玻璃の鏡で見通せない人物を気にかけている。
+	ENDIF
+	PRINTFORML 
+	RETURN 1
+ENDIF
+;恋慕取得後
+PRINTFORML 他人に影響され変化していく自分を受け入れ、%\@ TALENT:30:恋人 ? 恋人 # 想い人 \@%と過ごす時間を大切にしたいと考えるようになった。
+
+;押し倒され実行後、独自イベントっぽいのを匂わせる。文章の加減が難しいねこれ
+IF CFLAG:30:1801 && STRCOUNT(CSTR:30:0, "押し倒し")
+	PRINTFORML 併せて自分から一線を超えたことで、今まで抑えつけていた欲望も全て%\@ TALENT:30:恋人 ? 恋人 # 想い人 \@%に受け入れてほしいと考えている…
+	IF GETBIT(CFLAG:30:1910, 7)
+		PRINTFORML 　・%CALLNAME:MASTER%専用に作り変えられたお尻をもっと愛してもらいたいらしい…
+	ELSE
+		PRINTFORML 　・%CALLNAME:MASTER%にお尻をたっぷり愛してもらいたいらしい…
+	ENDIF
+	SIF ABL:30:露出癖 > 4 && CFLAG:30:1607 > 10
+		PRINTFORML 　・%CALLNAME:MASTER%にお尻を攻められて潮を吹くことがとても気持ちが良くて、もう癖になっているらしい…
+	SIF !STRCOUNT(CSTR:30:0, "朝から") && ABL:30:精液中毒 > 2
+		PRINTFORML 　・\@ CFLAG:MASTER:初期位置 == CFLAG:30:初期位置 ? 気分が昂ぶれば%CALLNAME:MASTER%に『特別』な朝の # %CALLNAME:MASTER%と同棲できたら、朝は『特別』な \@起こし方をしてあげたいらしい…
+	SIF CFLAG:30:信頼度 >= 2000 && !STRCOUNT(CSTR:30:0, "キメセク") && CFLAG:30:生解禁 == 2
+		PRINTFORML 　・身も心も溶かすくらいに%CALLNAME:MASTER%と交わりたくて、怪しげなお茶でも騙されたフリして飲んでもいいらしい…
+	SIF TALENT:MASTER:恋人 != 76 && TALENT:76:恋慕 && GET_UWAKI_HISTORY(30, 76) == 2 && ABL:30:精液中毒 > 3 && ABL:76:精液中毒 > 3
+		PRINTFORML 　・%CALLNAME:MASTER%には自分と同じぐらいに小町を可愛がってもらい、二人まとめて愛されたり奉仕を受けてもらいたいらしい…
+	SIF TALENT:30:母乳体質 && !CFLAG:30:1802 && !STRCOUNT(CSTR:30:0, "授乳プレイ")
+		PRINTFORML 　・%CALLNAME:MASTER%に乳を含ませながら、ダダ甘に甘やかしたいと密かに思っているらしい…
+	;足コキコマンド拒否してフェラするよの文章。くどすぎるので一旦保留
+;	SIF ABL:30:舌 >= 3 && ABL:30:精液中毒 >= 5 && EXP:30:口淫経験 >= 100
+;		PRINTFORML 　・咥えたりしゃぶったりすることが何よりの悦びだと自覚して、意に染まない奉仕は無視してでもしたいらしい…
+ENDIF
+PRINTFORML 
+;妊娠願望。恋慕後でも時姦妊娠とか鬼畜あなたを考慮したら見づらい分岐に
+;願望再取得時
+IF GETBIT(CFLAG:30:1502, 4)
+	PRINTFORML %CALLNAME:MASTER%との子供を再び授かるのを望んでいる。
+	PRINTFORML 
+	RETURN 1
+ELSEIF TALENT:30:妊娠願望
+	PRINTFORML %CALLNAME:MASTER%との子供を授かる日を夢見ている。
+	PRINTFORML 
+	RETURN 1
+;妊娠願望再取得可
+ELSEIF GETBIT(CFLAG:30:1502, 3) && !TALENT:30:育児中 && !TALENT:30:妊娠
+	PRINTFORML また[願掛け]をすれば子供を授かるのではないかと期待をしている。
+	PRINTFORML 
+	RETURN 1
+ENDIF
+SIF !INRANGE(CFLAG:30:1502, 1, 7) || TALENT:30:育児中 || TALENT:30:妊娠
+	RETURN 1
+;bit演算を整数で捉えてCASE分け
+SELECTCASE CFLAG:30:1502
+	CASE 1
+		PRINTFORML %CALLNAME:MASTER%に身体は許しているが母親になる自信は無い。
+		PRINTFORML 　・もっと%CALLNAME:MASTER%を[信頼]出来たらと考えている…
+		PRINTFORML 　・閻魔が子供を授かるなど[願掛け]をしても難しいのではと考えている…
+	CASE 2
+		PRINTFORML %CALLNAME:MASTER%に子供が欲しいと打ち明けられて動揺している。
+		PRINTFORML 　・まだ最後まで身体も許してないのに気が早すぎると考えている…
+		PRINTFORML 　・もっと%CALLNAME:MASTER%を[信頼]出来たらと考えている…
+	CASE 3
+		PRINTFORML %CALLNAME:MASTER%の子供が本当に欲しいのか迷っている。
+		PRINTFORML 　・もっと%CALLNAME:MASTER%を[信頼]出来たらと考えている…
+	CASE 4
+		PRINTFORML %CALLNAME:MASTER%との子供についてぼんやりと意識し始めている。
+		PRINTFORML 　・まだ最後まで身体を許してないのに気が早すぎると考えている…
+		PRINTFORML 　・閻魔が子供を授かるなど[願掛け]をしても難しいのではと考えている…
+	CASE 5
+		PRINTFORML %CALLNAME:MASTER%との子供についてはっきりと意識している。
+		PRINTFORML 　・閻魔が子供を授かるなど[願掛け]をしても難しいのではと考えている…
+	CASE 6
+		PRINTFORML %CALLNAME:MASTER%と子作りをする覚悟が出来ないでいる。
+		PRINTFORML 　・まだ最後まで身体を許せないくらいに迷っている…
+	CASE 7
+		PRINTFORML 迷いも晴れてついに%CALLNAME:MASTER%と子作りをする決心ができた。
+ENDSELECT
+PRINTFORML 
 RETURN 1

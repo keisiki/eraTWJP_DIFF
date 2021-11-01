@@ -230,3 +230,145 @@ IF KOIBIT % 124 == 0 && KOIBIT
 	PRINTW 
 ENDIF
 RETURN 0
+;==================================================
+;個人情報の「キャラ紹介」の文章を書き換える関数
+;==================================================
+;@CHARA_INFO_KOJO_K42()
+;個人情報の「キャラ紹介」の文章を書き換える
+;これがあれば「CSTR」の20番以降(20～39)に文字列を書き込むだけで書き換わるはず
+;早苗口上、諏訪子口上より引用、改変
+;-----------------------------------------------------------------------------------------------
+@CHARA_INFO_KOJO_K42()
+;===============================================================================================
+;記述例
+;このコメントアウトを外すと「CSTR」の20番以降に文字列を書き込むだけで書き換わるようになる
+;FOR LOCAL,20,40
+;	SIF CSTR:42:(LOCAL) != ""
+;		PRINTFORML %CSTR:31:(LOCAL)%
+;NEXT
+;RETURN 1
+;…とまあ、こんな感じでCSTR20番以降を使えばいいはず
+;===============================================================================================
+;本口上は、書き換わる文章が多いのでCSTRへの保存をせずに直接書き込む
+;現時点で下の2行が書き込まれている
+;PRINTL □ キャラ紹介 □---------------------------------------------------------------------
+;PRINTL 
+
+;##################################################################################
+;①「～今どきの念写記者～　●種族：鴉天狗　●能力：念写をする程度の能力」をプリント
+;##################################################################################
+CALL M_KOJO_COLOR_K42
+PRINTFORML %CSVCSTR(42, 10)%
+RESETCOLOR
+PRINTL 
+
+;##################################################################################
+;②キャラ紹介文を書き込み
+;##################################################################################
+;結婚イベント
+IF CFLAG:K42C_結婚 >= 1
+	PRINTFORML %CALLNAME:MASTER%と種族の垣根を越えて結ばれた
+	PRINTFORML 左手の薬指には結婚指輪がはめられている
+	PRINTFORML %CALLNAME:MASTER%への愛は疑うべくもない
+	PRINTL 
+ELSE
+	IF TALENT:42:恋慕 && TALENT:42:恋人
+		PRINTFORML 今どきの烏天狗は好きになったら全力だ
+		PRINTFORML %CALLNAME:MASTER%と夫婦になることを内心望んでいるようだが…？
+		PRINTL 
+		IF EXP:42:愛情経験 >= 200
+			PRINTFORML %CALLNAME:MASTER%との愛情は十分に満たされている
+		ELSE
+			PRINTFORML まだまだ%CALLNAME:MASTER%と愛を深めたいと思っているようだ
+		ENDIF
+		
+		IF EXP:42:デート経験 >= 100
+			PRINTFORML デートを何度も重ね、思い出をたくさんつくった
+		ELSE
+			PRINTFORML まだまだ%CALLNAME:MASTER%とデートで思い出づくりをしたいようだ
+		ENDIF
+		
+		IF CFLAG:42:好感度 >= 5000
+			PRINTFORML %CALLNAME:MASTER%が好きなことを公言して憚らない
+		ELSE
+			PRINTFORML もっと%CALLNAME:MASTER%のことを好きになりたいようだ
+		ENDIF
+	ENDIF
+ENDIF
+
+;妊娠願望イベント
+{
+	IF DAY:2 == 4 && GROUPMATCH(DAY:3, 4, 14, 24) && ESTRUS_CYCLE(TARGET) >= 70 && !TALENT:妊娠願望 && (TALENT:恋慕 || TALENT:恋人)
+	 && (TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3) && CFLAG:好感度 >= 10000 && EXP:愛情経験 >= 500 && !TALENT:妊娠 && !TALENT:育児中
+ }
+		PRINTFORML %CALLNAME:MASTER%との子供がほしいという気持ちが、これまでにないほど強くなっているようだ
+	ELSE
+	ENDIF
+
+;時姦バレイベント
+IF CFLAG:42:1413 == 1
+	PRINTL 
+	PRINTFORML 凍り付いた時の中で犯され続けた肢体は、完全に%CALLNAME:MASTER%に屈してしまった
+	IF CFLAG:K42C_結婚 >= 1
+		PRINTFORML それでも、愛する夫からの行為ならばと、すべてを受け入れているようだ
+	ELSEIF TALENT:恋慕 || TALENT:恋人
+		PRINTFORML それでも、愛する人からの行為と分かり、戸惑いながらも受け入れているようだ
+	ELSEIF TALENT:愛欲 || TALENT:セフレ
+		PRINTFORML 新たな刺激になると、むしろ歓迎しているようだ
+	ELSE
+		PRINTFORML 勝手に身体を嬲られる嫌悪感と快感で、複雑な心境のようだ
+	ENDIF
+	PRINTL 
+ELSEIF CFLAG:42:1414 == 1
+	PRINTL 
+	PRINTFORML 気付かぬ間に絶頂させられる不可解な現象…
+	PRINTFORML その時、必ず%CALLNAME:MASTER%が目の前にいた
+	PRINTFORML %CALLNAME:MASTER%が何か関与しているのか？
+	PRINTFORML はたては他に同じ被害者がいないか、取材を始めることにした
+	PRINTL 
+	
+	IF EXP:42:無自覚絶頂経験 >= 500
+		PRINTFORML 自分をいいように嬲っていることで、犯人は完全に油断していると信じているようだ
+		PRINTFORML 一方で、取り返しのつかないところまで身体が調教されきっていることに気付いていない
+	ELSEIF EXP:42:無自覚絶頂経験 >= 250
+		PRINTFORML 犯人はうまく食らいついたと思っている。もう少し油断させねばと思っているようだ
+		PRINTFORML 一方で、身体は屈服しそうになっていることに目をそらしている
+	ELSE
+		PRINTFORML 油断しているフリをすれば、自分を餌に犯人と接触できると思っているようだ
+		PRINTFORML 決して快楽のためではないと自分に言い聞かせている
+	ENDIF
+	
+	IF CFLAG:42:1015 >= 50
+		PRINTFORML 度重なる下着被害は%CALLNAME:MASTER%の仕業だと信じて疑っていないようだ
+	ELSEIF CFLAG:42:1015 >= 25
+		PRINTFORML 度重なる下着被害は%CALLNAME:MASTER%の仕業ではないかと疑念を深めている
+	ELSE
+		PRINTFORML 下着被害は%CALLNAME:MASTER%によるものか、自信がないようだ
+	ENDIF
+	
+	IF CFLAG:42:1011 >= 100
+		PRINTFORML 被害にあった少女たちから、数々の証言を得た
+		PRINTFORML 取材はもう十分と感じているようだ
+	ELSEIF CFLAG:42:1011 >= 50
+		PRINTFORML 少女たちの被害は思ったより深刻なようだ
+		PRINTFORML 取材も正念場だと考えている
+	ELSEIF CFLAG:42:1011 >= 1
+		PRINTFORML 被害者は他にもいた
+		PRINTFORML まだ確信を得るまでには至っていない。もっと取材を続けなければと考えている
+	ELSE
+		PRINTFORML 取材はまったく進んでいないようだ…
+	ENDIF
+ENDIF
+
+;裏花果子念報イベント
+	IF TALENT:セフレ || TALENT:愛欲
+		IF CFLAG:42:1008 >= 100
+			PRINTFORML 取材を通して、新聞の方向性が定まった。幻想郷初の風俗紙を刊行することにした
+		ELSEIF CFLAG:42:1008 >= 50
+			PRINTFORML 取材を通して、自分の書きたい新聞が何か、おぼろげなイメージがつかめてきたようだ
+		ELSE
+			PRINTFORML 新しい新聞の形を模索しているようだが、イメージがわかないようだ
+		ENDIF
+	ENDIF
+PRINTL 
+RETURN 1

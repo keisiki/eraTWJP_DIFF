@@ -392,37 +392,160 @@ RETURN 1
 @M_KOJO_MESSAGE_SCOM_K30_6_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	;-------------------------------------------------
-	;小分岐
-	;-------------------------------------------------
-	;初めて
-	;記入チェック
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
 	;基本セット
 	;時姦中
 	IF FLAG:70
 		PRINTFORMW 
 		RETURN 1
-	;恋慕
-	ELSEIF TALENT:恋慕
-		PRINTFORMW 
+	;マグロスイッチオン
+	ELSEIF CFLAG:1501 || TCVAR:30:無理矢理 || TCVAR:30:泥酔
 		RETURN 1
-	;屈服3
-	ELSEIF MARK:不埒刻印 == 3
-		PRINTFORMW 
-		RETURN 1
-	;それ以外
+	ELSEIF ABL:Ｖ感覚 < 2
+		PRINTDATAL
+			DATAFORM 「んっ？　何か、むずむず…する…」
+			DATAFORM 「んんっ…なんだか、変な…感じ…？」
+			DATALIST
+				DATAFORM 「先から同じところばっかり…」
+				DATAFORM 「ここに…なにかあるの？」
+			ENDLIST
+		ENDDATA
+		IF NOWEX:Ｖ絶頂
+			PRINTFORMW 「あっ…でも、何か…のぼって…」
+		ELSE
+			PRINTFORMDW Ｇスポットで感じるにはまだ開発が足りないようだ…
+		ENDIF
+		RETURN
+	ELSEIF ABL:Ｖ感覚 < 5
+		PRINTDATAL
+			DATAFORM 「なに、これ…中から、ぞくぞく…きてる…♥」
+			DATAFORM 「やだっ、これ…すごい、すごいの…♥」
+			DATAFORM 「んんっ…♥　なんで…こんなに、気もちいいの…」
+		ENDDATA
+		IF NOWEX:Ｖ絶頂
+			PRINTDATAW
+				DATAFORM 「あっ…だめっ♥　こんなのっ…覚えちゃ、だめっ」
+				DATAFORM 「ああっ！　だめっ、だめぇ♥　これ、だめぇ」
+			ENDDATA
+		ELSE
+			PRINTDATADW
+				DATAFORM ザラザラの壁を擦られるたび、映姫はびくびくと身体を痙攣させた
+				DATAFORM もともと濡れやすい映姫の%SLIT()%から愛蜜がさらに溢れ出してきた
+			ENDDATA
+		ENDIF
 	ELSE
-		PRINTFORMW 
-		RETURN 1
+		PRINTFORM 「%TEXTR("はひっ！　やぁあん/ああっ♥　だめっ/あっ♥　あぁんっ/")%♥　
+		PRINTDATAL 
+			DATAFORM とんじゃう！　わたしっ、とんじゃうぅ♥♥」
+			DATAFORM これっ♥　だめっ！　こんなの、だめえぇ♥♥」
+			DATAFORM ゆるしてぇ♥　わたし、こわれちゃうぅ♥♥」
+		ENDDATA
+		PRINTFORML 「%TEXTR("まって！　まってぇ♥　じゅぽじゅぽするの、まってぇ/だめっ…だめぇ♥　くにくにしちゃ、だめぇ/あぁん♥　やだぁ♥　ぐりぐりしちゃ、やだぁ/")%♥♥」
+		SELECTCASE TEQUIP:体位２
+			CASE 1
+				IF (!BEDROOM(CFLAG:PLAYER:現在位置) && !(BATHROOM() && ITEM:20))
+					PRINTFORMDW 映姫は既に脚に力も入らないが突き込まれる%CALLNAME:MASTER%のペニスで無理やり立たされているようだ…
+				ELSE
+					PRINTFORMDW %CALLNAME:MASTER%の反り返ったペニスでザラザラの天井を擦られる度、映姫から悲鳴のような嬌声が紡ぎ出された…
+				ENDIF
+			CASE 2
+				IF (!INROOM(CFLAG:PLAYER:現在位置) && !(BATHROOM() && ITEM:20))
+					PRINTFORMDW %CALLNAME:MASTER%に羽交い締めにされザラザラの天井を抉られて、映姫は泣き叫ぶように喘いでいる…
+				ELSE
+					PRINTFORMDW %CALLNAME:MASTER%に何度も何度も突き入れられ、映姫は突っ伏し喘ぐことしか出来ないでいる…
+				ENDIF
+			CASE 3
+				PRINTFORMDW %CALLNAME:MASTER%の突き上げるピストンに、映姫は急所をなぶられて喘ぐ肉人形に成り果てている…
+			CASE 4
+				PRINTFORMDW %CALLNAME:MASTER%が更に上体を反らせてペニスを擦り付けると、膣内の天井を押し潰された映姫は激しく身悶えた…
+			CASE 5
+				PRINTFORMDW 映姫は快楽からなんとか逃れようと身を捩るが、それも叶わず突き上げられるペニスで悶絶を繰り返している…
+		ENDSELECT
+	ENDIF
+	;地の文と同じ条件で潮吹き描写
+	IF SUMARRAY(NOWEX:30:0, 0, 5) >= 5
+		LOCAL = ABL:露出癖 > 4 && K30_FIND_AROUND() == 0 ? 0 # 1
+		PRINTFORML 
+		PRINTFORMD しばらく執拗なＧスポ責めに喘いでいた映姫だが、
+		IF !LOCAL
+			PRINTDATADL 
+				DATAFORM 急にくたっと身体の力を抜いてしまった
+				DATAFORM 突然ぶるっと身体を震わせた
+				DATAFORM 不意に膣口がペニスを締め付けてきた
+			ENDDATA
+		ELSE
+			PRINTDATADL 
+				DATAFORM はっと息を呑み身体を硬直させた
+				DATAFORM びくっと大きく身体を跳ねさせた
+				DATAFORM 急に目を見開き激しく首を振り始めた
+			ENDDATA
+		ENDIF
+		PRINTFORMD 同時に%SLIT(30)%から%TEXTR("熱い/大量の/透明な/")%%TEXTR("潮/液体/")%が%TEXTR("勢い良くほとばしり/いっぺんに噴き出して/激しい勢いで飛び散り/")%、
+		SELECTCASE TEQUIP:体位２
+			CASE 1
+				IF (!BEDROOM(CFLAG:PLAYER:現在位置) && !(BATHROOM() && ITEM:20))
+					PRINTFORMDW %CALLNAME:MASTER%をビショビショにしてしまった…
+				ELSE
+					PRINTFORMDW 互いのお腹をびっしょりと濡らした…
+				ENDIF
+			CASE 2
+				IF (!INROOM(CFLAG:PLAYER:現在位置) && !(BATHROOM() && ITEM:20))
+					PRINTFORMDW 映姫の脚と\@ BATHROOM() ? 床 # 地面 \@をびしょびしょに濡らした…
+				ELSE
+					PRINTFORMD びっしょりと
+					IF BEDROOM(CFLAG:MASTER:現在位置)
+						PRINTFORMD 布団
+					ELSEIF INROOM(CFLAG:MASTER:現在位置)
+						PRINTFORMD \@ INROOM(CFLAG:MASTER:現在位置) == 1 ? 畳 # 床 \@
+					ELSE
+						PRINTFORMD 地面
+					ENDIF
+					PRINTFORMDW を濡らした…
+				ENDIF
+			CASE 3
+				IF TCVAR:30:397 == 1
+					PRINTFORMDW 真正面にきれいな弧を描いた…… 
+				ELSE
+					PRINTDATADW
+						DATAFORM %CALLNAME:MASTER%の顔にまでしっかりかかってしまった…
+						DATAFORM %CALLNAME:MASTER%の胸から顔までビショビショにした…
+						DATAFORM 下にいた%CALLNAME:MASTER%はもろに浴びてしまった…
+						DATAFORM 下にいた%CALLNAME:MASTER%をべたべたにしてしまった…
+					ENDDATA
+				ENDIF
+			CASE 4
+				PRINTFORMDW 互いのお腹をビショビショにした…
+			CASE 5
+				PRINTFORMDW 真正面にきれいな弧を描いた…… 
+		ENDSELECT
+		IF !LOCAL
+			PRINTDATAL
+				DATAFORM 「あぁ…あったかい…♥」
+				DATAFORM 「あっ…でちゃったぁ…♥」
+				DATAFORM 「いっぱい…でてる…♥」
+			ENDDATA
+			PRINTDATAW
+				DATAFORM 「あはっ…もう、すきにしてぇ…♥」
+				DATAFORM 「あははっ…気もちよければ、それでいいかも…♥」
+				DATAFORM 「あはっ、出すのって…気もちいい…♥」
+			ENDDATA
+		ELSEIF K30_FIND_AROUND()
+			LOCAL = K30_FIND_AROUND()
+			PRINTDATAW 
+				DATAFORM 「見ないでっ！　%K30_C_NAME(LOCAL)%っ、お願いっ！　見ないでぇ…」
+				DATAFORM 「あああっ！　%K30_C_NAME(LOCAL)%が…%K30_C_NAME(LOCAL)%がっ、見てるのにぃ…」
+				DATAFORM 「やだっ、やだあぁ……%K30_C_NAME(LOCAL)%…これっ、違う、違うのぉ…」
+			ENDDATA
+		ELSE
+			LOCAL = 1
+			PRINTDATAW
+				DATAFORM 「これっ、違うのっ！　ちがうからぁ♥」
+				DATAFORM 「見ないでっ、%K30_C_NAME(MASTER)%！　みないでぇ♥」
+				DATAFORM 「だめっ！　これ、だめっ…だめぇ♥」
+			ENDDATA
+		ENDIF
 	ENDIF
 ENDIF
 ;未記入
@@ -439,38 +562,140 @@ RETURN 1
 @M_KOJO_MESSAGE_SCOM_K30_7_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
-	;初めて
-	;記入チェック
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-	;基本セット
-	;時姦中
 	IF FLAG:70
 		PRINTFORMW 
 		RETURN 1
-	;恋慕
-	ELSEIF TALENT:恋慕
-		PRINTFORMW 
-		RETURN 1
-	;屈服3
-	ELSEIF MARK:不埒刻印 == 3
-		PRINTFORMW 
-		RETURN 1
-	;それ以外
-	ELSE
-		PRINTFORMW 
+	;マグロスイッチオン
+	ELSEIF CFLAG:1501 || TCVAR:30:無理矢理 || TCVAR:30:泥酔
 		RETURN 1
 	ENDIF
+	SELECTCASE EXP:子宮口開発経験
+		;痛い
+		CASE IS < 25
+			TFLAG:194 = -99
+			IF !NOWEX:MASTER:射精 && SUMARRAY(NOWEX:30:0, 0, 5) && EXP:子宮口開発経験 < 10
+				PRINTFORML 「%TEXTR("うっ、ううぅ/あ、ぐぐっ/うくっ、かはっ/")%……%TEXTR("おねがい、やさしく、して/おなか、おされ、て…る/くる、しい…苦しい、の/")%…」
+				PRINTFORML 「%TEXTR("こんなの…続けないと、ダメ…かしら？/やさしく、愛して…ほしいの…に…/")%」
+				PRINTFORMDW 内蔵を直接抉られるような感覚に、映姫の顔には苦痛の色が浮かんでいる…
+			ELSE
+				PRINTDATAL
+					DATAFORM 「こんな、こんな奥まで…届くの…？」
+					DATAFORM 「うっ、ううっ……ちょっと、苦しいわ…」
+					DATAFORM 「こんなの…慣れるのかしら…」
+				ENDDATA
+				PRINTFORMDW …ポルチオで性感を覚える\@ EXP:子宮口開発経験 < 15 ? にはまだほど遠い # のももう少しの \@ようだ。焦らず慣らしていくしかないだろう
+			ENDIF
+		;むずむず
+		CASE 25 TO 49
+			PRINTFORML 「%TEXTR("ひぃいん/ああぁっん/あひっ/")%♥　……！？」
+			PRINTFORML 「%TEXTR("い、今の、なに/えっ、なに…これ/い、今…すごいのが/")%…%TEXTR("こんなの、知らない/なんだか…怖い/")%…」
+			PRINTFORML 「あっ！　あああっ♥　だめっ！　%TEXTR("わたし、こんなの、知らないっ/すごいの、来そうで、こわいのっ/")%」
+			IF NOWEX:MASTER:射精
+				PRINTFORMDW 射精寸前のペニスで子宮口を小突くと映姫は未知の感覚に慄き\@ GROUPMATCH(TEQUIP:体位, 1, 4) ? %CALLNAME:MASTER%へ縋り付いてきた # 手を堅く握りしめた \@
+			ELSEIF GROUPMATCH(TEQUIP:体位２, 1, 4)
+				PRINTDATADL
+					DATAFORM 未知の快感に怯えた映姫は%CALLNAME:MASTER%に力いっぱい抱きついてきた
+					DATAFORM 映姫は%CALLNAME:MASTER%の背中に爪が立つくらいに縋り付いてきた
+				ENDDATA
+				PRINTFORMDW ちょっと痛い…
+			ELSEIF GROUPMATCH(TEQUIP:体位２, 2, 5)
+				PRINTFORMDW 映姫の背中には鳥肌が立ち首筋には珠のような汗をうかべている
+			ELSE
+				PRINTFORMDW 映姫は身体に力も入らないようで、%CALLNAME:MASTER%が腰を支えないと今にも崩れ落ちそうだ
+			ENDIF
+		;気持ち良い
+		CASEELSE
+			;妊娠願望時種付け
+			IF NOWEX:MASTER:射精 && (TALENT:妊娠願望 || GETBIT(CFLAG:1502, 4)) && !TCVAR:ピル && !TEQUIP:PLAYER:コンドーム
+				PRINTFORML 「%TEXTR("あはっ/うふふっ/よかった/")%…♥　%TEXTR("待ちきれなかったの/やっと、もらえる/くれるんですね/")%♥」
+				PRINTFORMDL 映姫は待ちわびてた種付けの時を迎え至福の笑みを浮かべている
+				SELECTCASE TEQUIP:体位２
+					CASE 1, 4
+						IF TEQUIP:体位２ == 1 && (!BEDROOM(CFLAG:PLAYER:現在位置) && !(BATHROOM() && ITEM:20))
+							PRINTFORMDW 甘えるように%CALLNAME:MASTER%の首に抱きつき、子種をこぼさないよう身体を擦り付けてきた
+						ELSE
+							PRINTFORMDW 両脚は%CALLNAME:MASTER%の腰にがっちり絡みつき、子種を迎え入れる準備は万端のようだ
+						ENDIF
+					CASE 2
+						PRINTFORMDW 尻だけを高く掲げ、子種を全て奥に流し込むための準備は万端のようだ
+					CASE 3, 5
+						PRINTFORMDW 自分から%CALLNAME:MASTER%に体重をずっしりかけ、奥に注がれる準備は万端のようだ
+				ENDSELECT
+				PRINTDATAL
+					DATAFORM 「くださいっ♥　わたしの、いちばん、奥にっ♥　くださいっ♥」
+					DATAFORM 「出してっ♥　赤ちゃんのへや、いっぱい、だしてっ♥」
+					DATAFORM 「ここにっ、欲しいの♥　赤ちゃん、ほしいのっ♥」
+				ENDDATA
+				PRINTFORMW 「わたし%TEXTR("にっ♥ぜんぶっ、だしてぇ/をっ♥、おかあさんにっ、してぇ/をっ♥　はらませてぇ/")%♥♥」
+				RETURN 1
+			ENDIF
+			;その他
+			PRINTFORML 「%TEXTR("はひっ♥　ひいぃん/ひゃああぁん/あっ♥　あっ♥　ああぁんっ/")%♥♥　%TEXTR("おく、きたぁ/あたってるぅ/とどいたぁ")%…♥」
+			PRINTDATAW
+				DATAFORM 「突いてっ♥　もっと、ふかく、突いてぇ♥」
+				DATAFORM 「もっと…こんこんしてっ♥　おくっ、こんこんしてぇ♥」
+				DATALIST
+					DATAFORM 「きて…♥　もっと、おくっ、わたしの、おくっ…きてぇ♥」
+					DATAFORM 「もっと、おくでっ、あなたを、かんじさせてぇ♥」
+				ENDLIST
+				DATALIST
+					DATAFORM 「赤ちゃんのへや、%TEXTR("こりこり/くにゅくにゅ/むにゅむにゅ/")%されて…気もち、いい…♥」
+					DATAFORM 「ぜんぶ、ぜんぶ…気もちいぃ…♥」
+				ENDLIST
+			ENDDATA
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL 映姫は軽くイきっぱなしになっているが、同時に%CALLNAME:MASTER%を全て受け入れた喜びと多幸感に包まれている
+					PRINTFORMDL コリコリの子宮口に擦りつけるペニスは激しく突かなくても気持ち良く
+					PRINTFORMDL %CALLNAME:MASTER%は\@ NOWEX:MASTER:射精 ? 最高の快感を愉しみながら発射先に狙いを定めた # 緩やかなストロークで映姫の最奥を愉しんだ \@…
+				CASE 1
+					PRINTFORMDL 突き入れたペニスを小刻みに動かし子宮口へ擦り付けると
+					PRINTFORMDL 開発されきった映姫の膣奥は歓喜の涙を流しながら口を開き迎え入れる…
+					SIF NOWEX:MASTER:射精
+						PRINTFORMDL 一番奥まで届いたところで%CALLNAME:MASTER%も限界を感じ取り、子宮にたっぷりとマーキングをする準備に入った…
+				CASE 2
+					PRINTFORMDL お堅い閻魔様も%CALLNAME:MASTER%に子宮まで征服されて、だらしなく緩んだ顔で快楽に喘いでいる
+					IF NOWEX:MASTER:射精
+						PRINTFORMDL さらに亀頭で奥を小突くと、映姫の子宮口はたやすく開きペニスを嬉しそうに舐めしゃぶってきた…
+						PRINTFORMDL この辺は上の口と全く同じらしい…%CALLNAME:MASTER%はそんなことを考えながら映姫に最後の一突きをくれてやった
+					ELSE
+						PRINTFORMDL 映姫からさらに淫らな表情を引き出すため、%CALLNAME:MASTER%は膣奥を何度も何度もノックした…
+					ENDIF
+			ENDSELECT
+			PRINTFORMW 
+			IF NOWEX:MASTER:射精
+				PRINTDATAL
+					DATAFORM 「やっ、ああっ…♥　おちんちん…なかで、ぷくーって♥」
+					DATAFORM 「んんっ♥　%K30_C_NAME(MASTER)%…出してっ！　ねぇ、出してっ♥」
+					DATAFORM 「あはっ…♥　いいのっ！　待ってたのっ♥」
+				ENDDATA
+				IF NOWEX:Ｖ絶頂
+					IF RAND:2 == 1
+						PRINTFORMW 「ここに、だしてっ♥　いっぱい、だしてっ♥」
+						PRINTFORMW 「ふたりで、ふたりでっ♥　イきましょ♥」
+					ELSE
+						PRINTFORML 「イきそっ♥　わたしも…イきそっ♥」
+						PRINTFORMW 「…あはっ♥　すごいのっ、きてるっ♥　きてるぅ♥」
+					ENDIF
+				ELSE
+					PRINTFORMW 「がまんしないで、このまま、出してっ♥」
+				ENDIF
+			ELSEIF NOWEX:Ｖ絶頂
+				PRINTFORM 「%TEXTR("んっ…あっ♥　やだっ♥/あふっ♥　んんっ…♥/あっ♥　あああっ♥/")%　
+				PRINTDATAL
+					DATAFORM すごいっ、すごいの、きてるっ♥　こんなのっ、知らないっ♥」
+					DATAFORM おくで、イっちゃう♥　こりこりされてっ、イっちゃう♥」
+					DATAFORM なかっ、なかがっ♥　悦んでるぅ♥」
+				ENDDATA
+				PRINTFORMW 「イくっ♥　赤ちゃんのへやで、イっちゃうぅう♥」
+			ENDIF
+	ENDSELECT
 ENDIF
 ;未記入
 ;CALLFORM M_KOJO_MESSAGE_COM_K30_{SELECTCOM}_1
@@ -750,15 +975,15 @@ IF LOCAL
 						PRINTFORMDW 小町が美味しそうにしゃぶりつく横で、舌先で突くことしか出来ない映姫は少々不満げだ
 						PRINTFORML 
 						PRINTFORML 「…それならしかたありません。せっかくですから、私も貴方を手伝ってあげますよ」
-						PRINTFORMDW ふと映姫は、普段なら絶対見せない暗い笑みを浮かべる
+						PRINTFORMDW 映姫は普段なら絶対見せない昏い笑みを浮かべる
 						PRINTFORMDL そのまま小町の頭をしっかり持つと、喉奥までペニスが届くように掴んだ頭を揺すり始めた…
 						CALL COLORMESSAGE("「んぐっ！？　んふーっ……んふっ！　んぐぐっ……」", 0xFF003C, 1, 0)
 						PRINTFORMDW 小町は突然のことに驚くが抵抗もできず、目に涙を浮かべながらペニスをしゃぶっている
 						PRINTFORML 
 						CALL COLORMESSAGE("「んむっ………んふっ、んふーっ…………んふっ♥」", 0xFF003C, 1, 0)
 						CALL COLORMESSAGE("「あむっ♥　んむっ…ぐぷっ♥　かぽっ、かぽっ…ぢゅるるっ♥」", 0xFF003C, 1, 0)
-						PRINTFORMDW ……だがしばらくすると慣れてきたようで、むしろ強制される奉仕を楽しんでいるようだ…
-						PRINTFORML 「えっ！？　小町…これで貴方も、気持ち良いの…？
+						PRINTFORMDW だがしばらくすると慣れてきたようで、むしろ強制される奉仕を楽しんでいるようだ…
+						PRINTFORML 「えっ！？　小町…これで貴方も、気持ち良いの…？」
 						PRINTFORML 「そ、そうなのね…じゃあ、このまま続けましょうか…」
 						PRINTFORMW （本当に気持ち良さそう…今度私もこうしてもらおうかしら…）
 						PRINTFORML 
@@ -870,7 +1095,7 @@ IF LOCAL
 							PRINTFORML 「良かったですね、%K30_C_NAME(MASTER)%」
 							PRINTFORMW 「二人でいっぱい、気持ちよくしてあげますよ…♥」
 						ELSE
-							PRINTFORML 「んっ…%K30_C_NAME(LOCAL)%はお口でしてあげるの、苦手なんですか……？」
+							PRINTFORML 「んっ…%K30_C_NAME(LOCAL)%はお口でしてあげるの、苦手かしら……？」
 							PRINTFORMW 「でも、ほら…%K30_C_NAME(MASTER)%のここ、こんなふうに舐めてあげると……」
 							PRINTFORMDL 映姫は%CALLNAME:LOCAL%へレクチャーするように舌でペニスをなぞっていく
 							PRINTFORMW 「……あんなに気持ちよさそうにしてくれるの。楽しくありません？」
@@ -1176,7 +1401,7 @@ IF LOCAL
 	PRINTFORMDL 映姫の熱心な\@ SELECTCOM == 81 ? パイズリ # フェラチオ \@で気持ち良くなった%CALLNAME:MASTER%は
 	PRINTFORMDL いっしょに\@ SELECTCOM == 81 ? フェラチオ # パイズリ \@もして欲しいとお願いした
 	PRINTFORMW 
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+	IF LOCAL:1 && FIRSTTIME("パイズリフェラ")
 		IF TALENT:MASTER:形状 <= 5
 			PRINTFORML 「%K30_C_NAME(MASTER)%に喜んでもらいたくて、私もこういうことにずいぶん慣れたと思いますが…」
 			PRINTFORMW 「流石にそれは難しくないですか？」
@@ -1672,12 +1897,13 @@ IF LOCAL
 		RETURN 1
 	ENDIF
 	IF LOCAL:1 && FIRSTTIME(TFLAG:50 + 500)
-		IF TALENT:母乳体質
+		LOCAL = (TALENT:母乳体質 && STRCOUNT(CSTR:30:0, "噴乳"))
+		IF LOCAL
 			PRINTFORML 「おっぱいが欲しいまではまだわかりますが」
 		ELSE
 			PRINTFORML 「貴方に甘えてもらえるのはいいんですけど」
 		ENDIF
-		PRINTFORMW 「なんでこんな\@ TALENT:母乳体質 ? 飲み # おっぱいの吸い \@方するのかしら…？」
+		PRINTFORMW 「なんでこんな\@ LOCAL ? 飲み # おっぱいの吸い \@方するのかしら…？」
 		PRINTFORML 
 		PRINTFORML 「ええっと、授乳…手コキ…？　私が%K30_C_NAME(MASTER)%のお母さん代わりに…」
 		PRINTFORMW 「……………」
@@ -1747,7 +1973,7 @@ IF LOCAL
 			SELECTCASE LOCAL 
 				CASE 0 TO 3
 					IF !PLAY
-						PRINTDATAL
+						PRINTDATAW
 							DATAFORM 「んっ…♥　%K30_C_NAME(MASTER)%…いっぱい飲んでね…♥」
 							DATAFORM 「んふっ♥　%K30_C_NAME(MASTER)%、はいどうぞ…♥」
 						ENDDATA
@@ -1790,7 +2016,7 @@ IF LOCAL
 			PRINTFORML 
 			PRINTFORML 「ふふっ…♥　おっぱいじょうずにのめて、%MASTERNAME:30%ちゃんは、えらい♥　えらい♥」
 			PRINTFORML 「おっぱいのんだら、しーしーのおじかんですよ♥」
-			PRINTFORMDL ……気丈な閻魔様が口にする言葉のギャップに%CALLNAME:MASTER%は頭がクラクラしてくる
+			PRINTFORMDL ……堅物の閻魔様が口にする言葉のギャップに%CALLNAME:MASTER%は頭がクラクラしてくる
 			PRINTFORMDW 映姫の方はすっかりプレイに夢中のようで、手扱きのスピードもだんだんと上がっていく
 			PRINTFORML 
 			SELECTCASE RAND:3

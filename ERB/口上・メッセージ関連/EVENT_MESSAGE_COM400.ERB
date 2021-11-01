@@ -642,6 +642,12 @@ ELSEIF TFLAG:194 == 1
 	IF CFLAG:TARGET:添い寝中
 		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:PLAYER%の隣で安らかな寝息を立てている…
 	ELSE
+		;合意未取得の場合は5に入らないように
+		SIF TFLAG:193 == 5 && !(CFLAG:TARGET:既成事実 & 合意_うふふ)
+			TFLAG:193 = 2
+		;キス未経験時は2に入らないように
+		SIF TFLAG:193 == 2 && TALENT:TARGET:キス未経験
+			TFLAG:193 = 3
 		SELECTCASE TFLAG:193
 			CASE 0
 				PRINTFORML なんだか体が重たい……
@@ -657,26 +663,72 @@ ELSEIF TFLAG:194 == 1
 				PRINTFORML 目を覚ました%CALLNAME:PLAYER%は太ももに重みを感じた
 				PRINTFORML %CALLNAME:TARGET%が%CALLNAME:PLAYER%の体を枕代わりに眠っていた
 				PRINTFORML %CALLNAME:PLAYER%が頭の下から体を引き抜くと
-				PRINTFORML 枕の使い主は不満の声を漏らして目を覚ました
+				SELECTCASE CFLAG:TARGET:性格傾向
+					CASE 1, 4;弱気、真面目
+						PRINTFORML %CALLNAME:TARGET%はすこぶるびっくりしたように、身体を跳ね起こした
+					CASE 2, 3;強気、素直
+						PRINTFORML %CALLNAME:TARGET%は%TEXTR("不満/うーん、と伸び")%の声を漏らして目を覚ました
+					CASEELSE
+						PRINTFORML %CALLNAME:TARGET%は唐突な目覚めに目をぱちくりさせていた
+				ENDSELECT
 			CASE 2
 				PRINTFORML 目を覚ますと隣に%CALLNAME:TARGET%が座っていた
 				PRINTFORM 何故か口元を押さえ
 				IF TARGET == 57 && !TALENT:恋慕
 					PRINTFORML 猿の面で顔を隠した
 				ELSE
-					PRINTFORML 顔を赤らめている
+					SELECTCASE CFLAG:TARGET:性格傾向
+						CASE 2;強気
+							IF TALENT:TARGET:恋慕 || TALENT:TARGET:愛欲
+								PRINTFORML 細めた目でこちらを見下ろしている…顔がほのかに赤い
+							ELSE
+								PRINTFORML そっぽを向いている…顔がほのかに赤い
+							ENDIF
+						CASE 1, 4;弱気、真面目
+							PRINTFORM 顔を赤らめ
+							IF TALENT:TARGET:恋慕 || TALENT:TARGET:愛欲
+								PRINTFORML ながら、こちらをちらちら見やっている
+							ELSE
+								PRINTFORML ている
+							ENDIF
+						CASEELSE
+							PRINTFORML 少し恥ずかしげな表情を浮かべている
+					ENDSELECT
 				ENDIF
-				PRINTFORML %CALLNAME:PLAYER%が挨拶すると%CALLNAME:TARGET%はぎこちなく返事した
+				PRINTFORM %CALLNAME:PLAYER%が挨拶すると%CALLNAME:TARGET%は
+				SELECTCASE CFLAG:TARGET:性格傾向
+					CASE 1, 4;弱気、真面目
+						PRINTFORML ぎこちなく返事した
+					CASE 2;強気
+						PRINTFORML なんでもないように返事をした……が、ちょっとどもっていた
+					CASEELSE
+						PRINTFORML ちょっと言葉に詰まってから、返事をした
+				ENDSELECT
+				EXP:TARGET:キス経験 ++
+				;EXP:MASTER:キス経験 ++
 			CASE 3
 				PRINTFORML %CALLNAME:PLAYER%が目を覚ますと目の前には%CALLNAME:TARGET%の顔がある
-				PRINTFORML 顔を覗き込まれていたのだと気づくのと%CALLNAME:TARGET%が飛びのくは同時だった
-				PRINTFORM %CALLNAME:TARGET%は何事もなかったように振舞おうとしていたが
-				IF TARGET == 57 && !TALENT:恋慕
-					PRINTFORML 猿と獅子口の面が乱舞している
+				IF TALENT:TARGET:恋慕 || TALENT:TARGET:愛欲
+					PRINTFORM %CALLNAME:TARGET%は
+					SELECTCASE CFLAG:TARGET:性格傾向
+						CASE 1, 4;弱気、真面目
+							PRINTFORML どこか満足げな、穏やかな表情を浮かべている
+						CASE 2;強気
+							PRINTFORML どこか愉しげな表情でこちらを見つめていた
+						CASEELSE
+							PRINTFORML ふわり、と柔らかな笑みをこぼした
+					ENDSELECT
+					PRINTFORML どうやら、寝顔をばっちり見られていたらしい…
 				ELSE
-					PRINTFORML 耳が真っ赤だ
+					PRINTFORML 顔を覗き込まれていたのだと気づくのと%CALLNAME:TARGET%が飛びのくは同時だった
+					PRINTFORM %CALLNAME:TARGET%は何事もなかったように振舞おうとしていたが
+					IF TARGET == 57 && !TALENT:恋慕
+						PRINTFORML 猿と獅子口の面が乱舞している
+					ELSE
+						PRINTFORML 耳が真っ赤だ
+					ENDIF
+					PRINTFORML %CALLNAME:PLAYER%は思わずにやけてしまった
 				ENDIF
-				PRINTFORML %CALLNAME:PLAYER%は思わずにやけてしまった
 			CASE 4
 				PRINTFORML 目を覚ました%CALLNAME:PLAYER%は%CALLNAME:TARGET%に膝枕されていることに気がついた
 				PRINTFORML 目覚めた%CALLNAME:PLAYER%に気づいた%CALLNAME:TARGET%は微笑み %CALLNAME:PLAYER%の頭を撫でた

@@ -1,0 +1,97 @@
+﻿@CHARAMOVE_DATA_135(ARG,ARG:2)
+LOCAL = 135
+SELECTCASE ARG
+	;移動対象メンバーチェック
+	CASE 1
+	;移動確率
+	CASE 2
+	;起床時間帯
+	CASE 3
+		RETURN 睡眠時間(LOCAL)
+	;移動傾向
+	CASE 4
+		SELECTCASE ARG:2
+			;保留
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+	;仕事時間帯
+	CASE 5
+	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
+	CASE 6
+		SELECTCASE ARG:2
+			CASE 0, 1, 2, 5, 7, 8
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+	;出現場所
+	CASE 7
+		SELECTCASE ARG:2
+			CASE 1, 2, 3, 4, 11, 12, 13, 16, 21, 22, 23, 51, 52, 53, 54, 56, 57, 71, 72, 73, 81, 82, 83, 84
+				RETURN 1
+			CASEELSE
+				RETURN 0
+		ENDSELECT
+ENDSELECT
+
+@EXIST_キャラデータ135
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+@キャラデータ135(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+SELECTCASE O_DATA
+CASE "呼び名"
+	CALLF MAKE_STR(V_NAME, "ミケ")
+;こっから衣装設定
+CASE "今日のパジャマ"
+	CALLF MAKE_STR(V_NAME, "パジャマ（ワンピース）セット")
+
+CASE "普段着：上半身上着２"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("上半身上着２", "半袖ブラウス"))
+CASE "普段着：スカート"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("スカート", "ミニスカート"))
+CASE "普段着：腕部装束"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("腕部装束", "腕輪"))
+CASE "普段着：その他１"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("その他１", "首輪"))
+CASE "普段着：その他２"
+	CALLF MAKE_INT(V_NAME, CLOTHES_ID("その他２", "小判"))
+
+CASE "固有下着形容詞"
+	CALLF MAKE_STR(V_NAME, "鈴の付いた")
+CASE "固有下半身下着名"
+	CALLF MAKE_STR(V_NAME, "招客パンツ")
+CASE "固有上半身下着"
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "固有上半身下着名"
+	CALLF MAKE_STR(V_NAME, "三毛柄ブラ")
+CASE "固有下着着用条件"
+	SIF !RAND:(3 - (2 * 勝負下着判定([[ミケ]])))
+		CALLF MAKE_INT(V_NAME, 1)
+CASE "固有下着透ける(前)"
+	CALLF MAKE_INT(V_NAME, 0)
+CASE "固有下着透ける(後)"
+	CALLF MAKE_INT(V_NAME, 0)
+CASE "固有下着生地厚さ"
+	CALLF MAKE_INT(V_NAME, 3)
+
+;料理関連
+CASE "料理：好きな味"
+	CALLF MAKE_STR(V_NAME, "魚料理/魚料理/魚料理/肉料理/肉料理/肉料理/揚げ物/甘い/甘い/しょっぱい/しょっぱい/濃厚/豪華/野趣/鮮やか/")
+CASE "料理：嫌いな味"
+	CALLF MAKE_STR(V_NAME, "野菜/野菜/野菜/スパイス/スパイス/スパイス/すっぱい/すっぱい/淡白/謎料理/謎料理/謎料理/")
+CASE "料理：助手効果"
+	CALLF MAKE_STR(V_NAME, "幸運/")
+;贈り物関連
+CASE "感性：好き"
+	CALLF MAKE_STR(V_NAME, "高級/金/宝石/かわいい/オシャレ/ポップ/" + "黄金の/" * 3 + "ネコの/幸運の/" * 5)
+CASE "感性：嫌い"
+	CALLF MAKE_STR(V_NAME, "奇妙/" + "安物/水/" * 3 + "イヌの/オオカミの/" * 10)
+ENDSELECT
+

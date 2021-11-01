@@ -13,7 +13,6 @@
 ;
 ;個人的に時姦が好きなので少しづつ増やして行きたいと思っています。
 ;
-;
 ;参考にした口上
 ;	隠岐奈口上、諏訪子口上、紫口上などなど
 
@@ -88,7 +87,7 @@ RETURN 1
 ;輝夜口上を参考に作りました
 IF !CFLAG:117:1001
 	PRINTFORML 口上との齟齬を押さえるため幻月の能力を変更することができます。
-	PRINTFORML （変更前　戦闘能力A→S 料理技能C→E）
+	PRINTFORML （戦闘能力A→S 料理技能C→E）
 	PRINTFORML この変更はこのタイミングしかできません。ご注意ください。
 	PRINTFORML	
 	CALL ASK_M("する",1 , "しない" ,1)
@@ -96,6 +95,7 @@ IF !CFLAG:117:1001
 		CASE 0
 			ABL:117:料理技能 = 0
 			ABL:117:戦闘能力 = 5
+			EXP:117:料理経験 = 0
 			PRINTFORMW 幻月の能力を変更しました。
 		CASE 1
 			PRINTFORMW 幻月の能力を変更しませんでした。
@@ -344,7 +344,9 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
 	;増やしたいかも
-		IF TALENT:恋慕 || TALENT:思慕
+		IF (DAY:2 == 1 && DAY:3 == 1) || (DAY:2 == 2 && DAY:3 == 7) || (DAY:2 == 4 && DAY:3 == 14) 
+			CALL SPECIALDAY_EVENT_K117
+		ELSEIF TALENT:恋慕 || TALENT:思慕
 			PRINTFORML 「あら、%CALLNAME:MASTER%。私に会いに来てくれたの？」
 		ELSE
 			PRINTFORML 「私に何か用かしら？」
@@ -358,7 +360,9 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 	;増やしたいかも
-		IF TALENT:恋慕 || TALENT:思慕
+		IF (DAY:2 == 1 && DAY:3 == 1) || (DAY:2 == 2 && DAY:3 == 7) || (DAY:2 == 4 && DAY:3 == 14) 
+			CALL SPECIALDAY_EVENT_K117
+		ELSEIF TALENT:恋慕 || TALENT:思慕
 			PRINTFORML 「あら、%CALLNAME:MASTER%。会えてうれしいわ」
 		ELSE
 			PRINTFORML 「こんにちわ、%CALLNAME:MASTER%」
@@ -404,7 +408,11 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 6
-		PRINTFORMW 「こんにちわ、%CALLNAME:MASTER%」
+		IF (DAY:2 == 1 && DAY:3 == 1) || (DAY:2 == 2 && DAY:3 == 7) || (DAY:2 == 4 && DAY:3 == 14) 
+			CALL SPECIALDAY_EVENT_K117
+		ELSE
+			PRINTFORMW 「こんにちわ、%CALLNAME:MASTER%」
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -460,57 +468,84 @@ RETURN 1
 ;==================================================
 @SPECIALDAY_EVENT_K117
 ;--------------------------------------------------
-;謹賀新年
-IF DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1
-	PRINTFORML 「あけましておめでとう、%CALLNAME:MASTER%」
-	PRINTFORMW 「今年も一年よろしくね」
-;バレンタイン
-ELSEIF DAY:2 == 4 && DAY:3 == 14
-	;ブラックサンダー以外は地の文追加
-	IF CFLAG:好感度 > 3000
-		PRINTFORMW 少しそわそわした様子の幻月が%CALLNAME:MASTER%の前に一歩踏み出した来た……。
-		PRINTFORML
-	ENDIF
-	SELECTCASE CFLAG:好感度
-		;ブラックサンダー
-		CASE 1000 TO 3000
-			IF TALENT:思慕 || TALENT:恋慕 || TALENT:愛欲
-				PRINTFORML 「%CALLNAME:MASTER%、これあげるわ」
-				PRINTFORMW 無造作に幻月は%CALLNAME:MASTER%にブラックサンダーを渡してきた。
-				PRINTFORMW これだけ？　と視線で問いかけてみる。
-				PRINTFORMW 「来年はもっといいものが貰えるよう頑張りなさい」
-			ELSE
-				PRINTFORML 「はい%CALLNAME:MASTER%、キャッチして」
-				PRINTFORML 無造作に投げられたものを両手で包むように受け止める。
-				PRINTFORMW ……何を渡されたのだろう？
-				PRINTFORMW そっと手を開くとそこにはザクザクととした食感と手ごろな価格で約束された満足感を与えてくれる黒き稲妻の姿が……
-				PRINTFORML 「ほら、今日バレンタインデーじゃない？　だから日頃の感謝にと思ってね」
-				PRINTFORMW ……もらえないよりましと思うことにした。
-			ENDIF
-
-		;チョコレート
-		CASE 3001 TO 5000
-			PRINTFORML 「%CALLNAME:MASTER%、これあげるわ」
-			PRINTFORML 少し頬を赤らめながら幻月はチョコレートを%CALLNAME:MASTER%に手渡してきた。
-			PRINTFORML 「外の食べ物を取り寄せるのも簡単じゃないわね」
-			PRINTFORMW いろいろ苦労があったようだ。
-
-		CASE IS > 5000
-			IF EXP:愛情経験 >= 100
-			;手作り
-				PRINTFORML 「%CALLNAME:MASTER%、これあげるわ」
-				PRINTFORMW 幻月は少し緊張したような面持ちでチョコレートを手渡してきた。
-				PRINTFORML 「その、これ手作り、なのよ」
-				PRINTFORML 「一応味見してるから大丈夫だとは思うけど……」
-				PRINTFORMW しっかり味わって食べよう。
-			ELSE
-			;高級チョコ
-				PRINTFORML 「%CALLNAME:MASTER%、これあげるわ」
-				PRINTFORML 少し頬を赤らめながら幻月は丁寧に包装されたチョコレートを手渡してきた。
-				PRINTFORML 「割と高かったから味わって食べてね」
-				PRINTFORMW そう言われると少し緊張する。
-			ENDIF
+IF DAY:2 == 1
+	;謹賀新年
+	SELECTCASE DAY:3
+		CASE 1
+			PRINTFORML 「あけましておめでとう、%CALLNAME:MASTER%」
+			PRINTFORMW 「今年も一年よろしくね」
 	ENDSELECT
+ELSEIF DAY:2 == 2
+	;七夕
+	SELECTCASE DAY:3
+		CASE 7
+    		PRINTFORML 「今日は織姫と彦星が年に一度だけ会える日だそうね」
+			SELECTCASE CFLAG:好感度
+				CASE 0 TO 1000
+					PRINTFORML 「ロマンティックでいいと思うわ」
+    				PRINTFORMW 幻月はあまり興味がなさそうだ。
+				CASE 1000 TO 2000
+				    PRINTFORMW 「人を愛するのは悪いことではないけど、仕事をさぼるのは、ねぇ」
+				CASE IS > 2000
+					PRINTFORML 「そういえば、%CALLNAME:MASTER%はもう短冊にお願い事は書いたかしら？」
+					IF RAND:2 == 0
+    					PRINTFORMW 「私？　世界平和を願っておいたわ」
+					ELSE
+						PRINTFORML 「え？　もうそうな年じゃない？　私から見たらまだまだ子供よ」
+    					PRINTFORMW 思わぬところで人と悪魔の価値観の違いを感じてしまった。
+					ENDIF
+			ENDSELECT
+	ENDSELECT
+ELSEIF DAY:2 == 4
+	;バレンタイン
+	SELECTCASE DAY:3
+		CASE 14
+			;ブラックサンダー以外は地の文追加
+			IF CFLAG:好感度 > 3000
+				PRINTFORMW 少しそわそわした様子の幻月が%CALLNAME:MASTER%の前に一歩踏み出して来た……。
+				PRINTFORML
+			ENDIF
+			SELECTCASE CFLAG:好感度
+				;ブラックサンダー
+				CASE 1000 TO 3000
+					IF TALENT:思慕 || TALENT:恋慕 || TALENT:愛欲
+						PRINTFORML 「%CALLNAME:MASTER%、これあげるわ」
+						PRINTFORMW 無造作に幻月は%CALLNAME:MASTER%にブラックサンダーを渡してきた。
+						PRINTFORMW これだけ？　と視線で問いかけてみる。
+						PRINTFORMW 「来年はもっといいものが貰えるよう頑張りなさい」
+					ELSE
+						PRINTFORML 「はい%CALLNAME:MASTER%、キャッチして」
+						PRINTFORML 無造作に投げられたものを両手で包むように受け止める。
+						PRINTFORMW ……何を渡されたのだろう？
+						PRINTFORMW そっと手を開くとそこにはザクザクととした食感と手ごろな価格で約束された満足感を与えてくれる黒き稲妻の姿が……
+						PRINTFORML 「ほら、今日バレンタインデーじゃない？　だから日頃の感謝にと思ってね」
+						PRINTFORMW ……もらえないよりましと思うことにした。
+					ENDIF
+
+				;チョコレート
+				CASE 3001 TO 5000
+					PRINTFORML 「%CALLNAME:MASTER%、これあげるわ」
+					PRINTFORML 少し頬を赤らめながら幻月はチョコレートを%CALLNAME:MASTER%に手渡してきた。
+					PRINTFORML 「外の食べ物を取り寄せるのも簡単じゃないわね」
+					PRINTFORMW いろいろ苦労があったようだ。
+
+				CASE IS > 5000
+					IF EXP:愛情経験 >= 100
+					;手作り
+						PRINTFORML 「%CALLNAME:MASTER%、これあげるわ」
+						PRINTFORMW 幻月は少し緊張したような面持ちでチョコレートを手渡してきた。
+						PRINTFORML 「その、これ手作り、なのよ」
+						PRINTFORML 「一応味見してるから大丈夫だとは思うけど……」
+						PRINTFORMW しっかり味わって食べよう。
+					ELSE
+					;高級チョコ
+						PRINTFORML 「%CALLNAME:MASTER%、これあげるわ」
+						PRINTFORML 少し頬を赤らめながら幻月は丁寧に包装されたチョコレートを手渡してきた。
+						PRINTFORML 「割と高かったから味わって食べてね」
+						PRINTFORMW そう言われると少し緊張する。
+					ENDIF
+			ENDSELECT
+	ENDSELECT	
 ENDIF
 
 
@@ -873,8 +908,13 @@ IF LOCAL
 	;そのうちキャラごとのもいくつか……
 	IF ARG == 116
 	;夢月
-		PRINTFORML 「あら、夢月じゃない。なにか用かしら？」
-     	PRINTFORML 「……特にない？　もう少し空気読みなさいよ……」
+		IF TALENT:恋慕 || TALENT:思慕
+			PRINTFORML 「あら、夢月じゃない。なにか用かしら？」
+    	 	PRINTFORMW 「……特にない？　もう少し空気読みなさいよ……」
+		ELSE
+			PRINTFORML 「あら夢月。どうしたの？」
+			PRINTFORMW 幻月はそっと%CALLNAME:MASTER%から離れた。
+		ENDIF
 		RETURN 1
 	ENDIF
 	;その他（キャラ指定なし
@@ -918,6 +958,7 @@ IF LOCAL
 			PRINTFORML 「わ、私も……」
 			PRINTFORMW 「……やっぱりなんでもないわ！」
 		ELSEIF TALENT:愛欲
+			PRINTFORML 「あら、お楽しみ中だったみたいね」
 			PRINTFORMW 「今度はわたしも頼むわね」
 		ELSE
 			PRINTFORML 「ふーん」

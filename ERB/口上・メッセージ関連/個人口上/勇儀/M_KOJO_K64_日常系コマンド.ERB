@@ -1,0 +1,3590 @@
+﻿;※※※※※※※※※※※※※※※※※※※※※※※※※
+;日常系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;300,会話
+;TFLAG:193(1=大成功 0=成功 -1=失敗 -2=大失敗（TARGETがMASTERより教養が4以上高い)
+;TCVAR:302(0=会話可能 1>=非恋慕時会話不能)
+;MARK:反発刻印(3以上=会話不能)(4以上はバグ
+;TCVAR:泥酔(1=通常成功or大失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_300
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_300
+;コマンド共通メッセージ(TRAIN_MESSAGE) 
+;削除すると「～話をした。」とかが消えます。また、削除した場合は自動で口上色が付きません。
+CALL TRAIN_MESSAGE
+;口上メイン呼出
+CALL M_KOJO_MESSAGE_COM_K64_300_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_300_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;怒り
+	IF CFLAG:318 == 1
+		PRINTFORML 「今の私は機嫌が悪くてねぇ」
+		PRINTFORML 「自分でも何をしでかすか分からない」
+		PRINTFORML 「ここまで言やぁ分かるだろう？」
+		PRINTFORMDW そっとしておいた方が良さそうだ……
+	;会話不能
+	ELSEIF TCVAR:302
+		PRINTFORML 「%TEXTR("へえ/ふぅん/ほー/")%………」
+		IF !TALENT:妊娠 && !TALENT:育児中
+			PRINTFORMDW 勇儀は%CALLNAME:MASTER%の話を聞き流しながら酒を呑んでいる
+			BASE:酒気 += 30
+		ELSE
+			PRINTFORMDW 勇儀は%CALLNAME:MASTER%の話にさして興味が無いようだ
+		ENDIF
+	ELSEIF TALENT:恋慕
+		SELECTCASE RAND:10
+			CASE 0
+				PRINTFORML 「私は一度人間を見限った」
+				PRINTFORML 「その判断は間違ってないと思うし、今更どうのこうのは言いたくないんだが……」
+				PRINTFORML 「もしあの時、あの時代に%MASTERNAME:64%がいたとしたら、私は……」
+				PRINTFORMW 「……なんて、たらればを語るのは私らしくないか」
+			CASE 1
+				PRINTFORML 「鬼も角折る……とはよく言ったもんだ」
+				PRINTFORML 「…ん？ どういうことかって？ ふふ、大したことじゃないよ」
+				PRINTFORML 「私が%MASTERNAME:64%に退治されちまったってだけのコトさ」
+				PRINTFORMDW 愉快そうに笑う勇儀に、%CALLNAME:MASTER%は首を傾げるしかなかった
+			CASE 2
+				PRINTFORML 「酒と肴と%MASTERNAME:64%がいれば、他は何もいらないよ」
+				PRINTFORML 「……ん？ なにかおかしいこと言ったか？」
+				PRINTFORMW 「私の嘘偽りの無い本心なんだ、恥ずかしいことなんかあるもんか」
+			CASE 3
+				PRINTFORML 「この前、萃香と呑んでる時に聞かれたんだ」
+				PRINTFORML 「%MASTERNAME:64%のことをどう思ってるのかって」
+				PRINTFORML 「私は言ってやったよ、あいつの為ならこの命すら懸ける覚悟があるってね！」
+				PRINTFORMDL まさか誰かに聞かれる度にこう答えているのだろうか……
+				PRINTFORMDW %CALLNAME:MASTER%はかなり恥ずかしくなった
+			CASE 4
+				PRINTFORML 「はっはっは！ そいつは傑作だ！」
+				PRINTFORML 「他にもあるんだろう？ もっと聞かせておくれよ！」
+				PRINTFORMDW 勇儀は心から楽しそうに%CALLNAME:MASTER%の話を聞いている
+			CASE 5
+				PRINTFORML 「いつか%MASTERNAME:64%が往生したら、しゃれこうべを貰ってもいいかい？」
+				PRINTFORML 「それを盃に酒でも呑みながら、過去を偲ぶってのも……え、ダメ？」
+				PRINTFORMW 「まあ、%MASTERNAME:64%がそう言うなら我慢しとくよ」
+			CASE 6
+				;華扇
+				PRINTFORML 「ふぅ……」
+				PRINTFORMDL 雑談も終わり、心地良い静寂の中で身を寄せ合う
+				PRINTFORML 「こうやって静かに過ごすってのも、偶には悪くない」
+				PRINTFORMW 「……あいつの気持ちが分かった気がするよ」
+			CASE 7
+				PRINTFORML 「どうしたんだい？ そんなに見つめて」
+				PRINTFORMDL %CALLNAME:MASTER%は上機嫌に話す勇儀にいつの間にか見とれてしまっていた
+				PRINTFORML 「何か言いたいことがあるってなら、私に話してみなよ」
+				PRINTFORMDW まさか見とれていたなどとは言えず、%CALLNAME:MASTER%は口ごもるしかなかった
+			CASE 8
+				PRINTFORML 「ここだけの話、私は萃香が羨ましかったんだ」
+				PRINTFORML 「あいつみたいに自由気ままに過ごせたらどれだけ良いか……って」
+				PRINTFORML 「だから私も、立場だなんだ、んなもん全部かなぐり捨てて%MASTERNAME:64%と……」
+				PRINTFORML 「……………」
+				PRINTFORML 「ふふふ、派手に大暴れできたら、きっと楽しいと思うんだけどねぇ」
+				PRINTFORMDW 勇儀は口から出かかった言葉を飲み込むと、そう言い笑った
+			CASE 9
+				PRINTFORML 「前に%MASTERNAME:64%のことを私の情夫か何かだと勘違いしてるヤツがいて……」
+				PRINTFORML 「まあそいつは私が殴って修正したんだけど、まったく失礼なヤツだと思わないか？」
+				PRINTFORMW 「私と%MASTERNAME:64%はそういうんじゃないってのに、なぁ？」
+		ENDSELECT
+	ELSEIF TALENT:思慕
+		SELECTCASE RAND:10
+			CASE 0
+				PRINTFORML 「私の好みの男だって？」
+				PRINTFORML 「はっはっは！ 突然なにを言いだすかと思えば！」
+				PRINTFORML 「でも、そうだねぇ……しいて言うなら」
+				PRINTFORMW 「あんたみたいに真正面からぶつかってくるような男…かねぇ」
+			CASE 1
+				PRINTFORML 「あんたみたいな酔狂者は私が地上に居た頃もそうはいなかった」
+				PRINTFORML 「どういうことかって？ ふふ、褒めてるんだよ」
+				PRINTFORMW 「まあ、鬼ってのは忌み嫌われた妖怪だからねぇ…色々あったのさ」
+			CASE 2
+				PRINTFORML 「%MASTERNAME:64%なら地底の奴らとも上手くやっていけるだろうね」
+				PRINTFORML 「根拠？ 上手くやっていけない奴はこうして私と話せてないよ」
+				PRINTFORMW 「鬼である私が言うんだ、間違いない」
+			CASE 3
+				PRINTFORML 「優しい嘘だろうがなんだろうが、私は嘘ってやつが嫌いだ」
+				PRINTFORML 「仮にそれで傷付くとしても、それは私の責任だからね」
+				PRINTFORMW 「だからあんたも、私に嘘なんて付くんじゃないよ？」
+			CASE 4
+				PRINTFORML 「旧地獄の温泉街に行ったことはあるかい？」
+				PRINTFORML 「私はそこの元締めをやっててね」
+				PRINTFORMW 「自慢じゃないが最高の温泉街だ。なんなら今度案内するよ」
+			CASE 5
+				PRINTFORML 「はぁ～…偶には本気でやりあってみたいねぇ」
+				PRINTFORML 「どうだい？ 私と一勝負」
+				PRINTFORML 「勝ったら？ 無論、私の首を差し出そう」
+				PRINTFORMDW 別に勇儀の首はいらないので%MASTERNAME:64%は申し出を拒否した
+			CASE 6
+				;でも勇儀も人里で呑んでるしお互い様
+				PRINTFORML 「それより、地上の妖怪は地底に不可侵だって約束はどうなったんだろうね？」
+				PRINTFORML 「最近は当たり前みたいに地上の妖怪が観光に来ててさ」
+				PRINTFORML 「そいつら相手に土産物を売ってるやつもいるからお互い様なんだが……」
+				PRINTFORMDW 勇儀はなんだか釈然としない表情をしている
+			CASE 7
+				PRINTFORML 「人間は勘違いしてるが、我々鬼は全力で競い合うことができればそれで十分なのさ」
+				PRINTFORML 「囲碁や将棋みたいなのでもいいし……ああ、どっちが先に酔い潰れるか呑み比べなんてのもいい」
+				PRINTFORML 「無論、命懸けの喧嘩ができるならそれに越したことはないけどね」
+				PRINTFORMW 「だから%MASTERNAME:64%も遠慮せず私に挑んできなよ！ 逃げも隠れもしないからさ！」
+			CASE 8
+				PRINTFORML 「へえ、そいつは面白い」
+				PRINTFORML 「その話、もっと詳しく聞かせとくれよ」
+				PRINTFORMDW 勇儀は身を乗り出し%CALLNAME:MASTER%の話を聞いている
+			CASE 9
+				PRINTFORML 「旧地獄の温泉街に湯治に来るなら、私の名前を出すといい」
+				PRINTFORML 「どんなサービスをしてくれるのかって？ いやいや、そういうんじゃないよ」
+				PRINTFORML 「あんたが来たって分かれば、一緒に酒を呑めるだろ？」
+				PRINTFORMDW 美人の鬼と一緒に呑めるのなら、これ以上ないサービスだと%CALLNAME:MASTER%は思った
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:10
+			CASE 0
+				PRINTFORML 「あん？ 私の弱点？」
+				PRINTFORML 「煎った豆だけど、それがどうかしたのかい？」
+				PRINTFORMDW 勇儀はあっさりと弱点を教えてくれた
+			CASE 1
+				PRINTFORML 「話がしたいって？」
+				PRINTFORML 「それもいいが、私としては……」
+				PRINTFORMW 「拳で語り合うってのも悪くないと思うけどね？」
+			CASE 2
+				PRINTFORML 「地上にまた戻りたいか？」
+				PRINTFORML 「まさか、今更未練なんて無いよ」
+				PRINTFORMW 「住めば都ってやつさ」
+			CASE 3
+				PRINTFORML 「暇なのかい？ それなら、いっちょ付き合ってもらおうか」
+				PRINTFORML 「おいおい、そんな身構えなくても体を動かすだけだよ。まあ多少怪我はするだろうが……」
+				PRINTFORML 「旧地獄には最高の温泉街がある、そこならどんな怪我だって一瞬で治るはずさ」
+				PRINTFORMDW 身の危険を感じた%CALLNAME:MASTER%は勇儀の申し出を丁重にお断りした
+			CASE 4
+				PRINTFORML 「ん？ この盃が気になるのかい？」
+				PRINTFORML 「これは注がれた酒の格を上げる名品でね」
+				PRINTFORMW 「つまり、私にピッタリの代物ってことだ」
+			CASE 5
+				PRINTFORML 「そういえば萃香から聞いたんだが、酒虫で酒を造ってるんだって？」
+				PRINTFORMW 「羨ましい話じゃないか。今度呑ませとくれよ」
+			CASE 6
+				;るろうに剣心の一コマ
+				PRINTFORML 「春は夜桜、夏には星、秋に満月、冬には雪」
+				PRINTFORML 「つまみがなくても、それさえありゃ十分酒は旨い」
+				PRINTFORMW 「地底じゃ見られないだろって？ ふふふ、地底にも雪は降るんだよ」
+			CASE 7
+				;想像にお任せします
+				PRINTFORML 「あっはっは！ 鬼に対してよくそんなことが言えたもんだ！」
+				PRINTFORMDL 勇儀は%CALLNAME:MASTER%の何気ない質問に心底可笑しそうに笑っている
+				PRINTFORML 「ああいや、気分を害したわけじゃあない」
+				PRINTFORML 「あんたはそのままでいい。いや、いろ！」
+				PRINTFORMDW %CALLNAME:MASTER%は何故か勇儀に気に入られた
+			CASE 8
+				PRINTFORML 「なるほどねぇ……」
+				PRINTFORML 「私が知っている頃の地上とはだいぶ様変わりしてるみたいだ」
+				PRINTFORMDW 勇儀に請われ、%CALLNAME:MASTER%は自分の目で見た幻想郷の話をした
+			CASE 9
+				PRINTFORML 「はははッ！私の首を取る為じゃなくて親睦を深める為に近付いてくるなんてね」
+				PRINTFORML 「そんな人間、あんたが初めてだよ！」
+				PRINTFORMDW どうやら勇儀にとって%CALLNAME:MASTER%という人間は相当にイレギュラーであるようだ
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;301,お茶を淹れる
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_301
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_301
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_301_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_301_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TALENT:恋慕
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				;ウィスキーボンボン
+				PRINTFORML 「それなら、こいつを茶請けの代わりとしよう」
+				PRINTFORMDL 勇儀が取り出した包みを開くと、中からチョコレートが出てきた
+				PRINTFORML 「酒をちょこれいとで包んだ変わった菓子でね、これがまた旨いんだ」
+				PRINTFORMDW 一つ摘んで口に入れると、大人の味が口一杯に広がった
+			;成功
+			CASE 0
+				PRINTFORML 「ずずっ……ふぅ……」
+				PRINTFORMDL 勇儀は%CALLNAME:MASTER%が淹れたお茶を美味しそうに啜っている
+				PRINTFORMW 「うん、いつ飲んでも%MASTERNAME:64%の淹れた茶は旨い」
+			;失敗
+			CASE -1
+				PRINTFORML 「……ん、茶葉変えたのかい？」
+				PRINTFORML 「変えてない？ ……ふぅん」
+				PRINTFORML （%MASTERNAME:64%が淹れるのを失敗するなんて珍しい）
+				PRINTFORMW （……そういうこともあるか）
+		ENDSELECT
+	ELSEIF TALENT:思慕
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORML 「お、茶柱」
+				PRINTFORML 「こりゃ縁起が良い、今夜あたり賭場にでも顔でも出してみようかねぇ」
+				PRINTFORMDW 勇儀は客より壺振りの方が似合いそうだ
+			;成功
+			CASE 0
+				PRINTFORML 「気が利くじゃないか、有難く頂くよ」
+				PRINTFORMDL 勇儀は湯呑を傾けながらゆっくりとお茶を味わっている
+				PRINTFORMW 「酒じゃ酔えても喉の渇きは潤せないからねぇ……」
+			;失敗
+			CASE -1
+				PRINTFORML 「渋い、湯の温度が高すぎだ」
+				PRINTFORML 「せっかくの良い茶葉が泣いてるよ」
+				PRINTFORMDL どうやら淹れ方を間違えてしまったらしい……
+				PRINTFORMDL %CALLNAME:MASTER%が淹れ直そうとすると、勇儀はお茶を一気に飲み干した
+				PRINTFORMW 「ごくっ……ま、私はこれくらい熱いほうが好みだけどね」
+		ENDSELECT
+	ELSE
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORML 「あんたなら立派なお茶汲みになれそうだ」
+				PRINTFORML 「というわけで、熱々のをもう一杯頼むよ」
+				PRINTFORMDW どうやら気に入ってもらえたようだ
+			;成功
+			CASE 0
+				PRINTFORML 「ちょうど喉が渇いてたんだ」
+				PRINTFORMDW 少し熱めに淹れたお茶を、勇儀は水でも飲むように一気に飲み干した
+			;失敗
+			CASE -1
+				PRINTFORML 「ん、こりゃ出涸らしじゃないか」
+				PRINTFORML 「酒も茶も、薄すぎれば不味くなるってもんだよ」
+				PRINTFORMDW 勇儀はそう言いつつもお茶を飲み干した
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;302,スキンシップ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_302
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_302
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_302_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_302_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;お風呂
+	IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+		SELECTCASE RAND:4
+			CASE 0
+				PRINTFORML 「よし、私が背中を流してやろうか」
+				PRINTFORML 「自分でやるって？ おいおい、遠慮すんな！」
+				PRINTFORMDL 背中ごと削ぎ落されやしないだろうか……
+				PRINTFORMDW そう考えていた%CALLNAME:MASTER%は無意識に勇儀から距離を取っていた
+			CASE 1
+				PRINTFORML 「前は自分で洗え？ 面倒だねぇ」
+				PRINTFORML 「乗り掛かった舟なんだ、最後までやり切っとくれよ」
+				PRINTFORMDL どうやら拒否権など初めから無いらしい
+				PRINTFORMDL 結局、%CALLNAME:MASTER%は勇儀の体を隅々まで洗う羽目になった
+				PRINTFORMW 「～♪」
+			CASE 2
+				PRINTFORML 「熱い湯に浸かり、酒を呑み、朋友と背中を流し合う」
+				PRINTFORML 「これぞ風呂の醍醐味。%MASTERNAME:64%もそう思うだろ？」
+				PRINTFORMDW 勇儀と洗いっこをしながら色々なことを語り合った
+		ENDSELECT
+	;通常
+	ELSE
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「おい、ちょ、くッ、はははははッ！」
+					PRINTFORMDL %CALLNAME:MASTER%は勇儀の脇をこちょこちょとくすぐっている
+					PRINTFORML 「分かった！私の負けだ！だから…ッ」
+					PRINTFORMW 「いひっ、そ、そこはッ！ あっはははっはッ！」
+				CASE 1
+					PRINTFORML 「ふふ、そんなトコばかり触って……」
+					PRINTFORML 「%MASTERNAME:64%が触りたいのは、ココだろう？」
+					PRINTFORMDW 導かれるまま、%CALLNAME:MASTER%は勇儀の色々な所を撫で回した……
+				CASE 2
+					PRINTFORML 「なあ、手を握っとくれよ」
+					PRINTFORMDL %CALLNAME:MASTER%が求めに応じて手を握ると、勇儀は優しく指を絡ませてきた
+					PRINTFORMW 「ふふ、%MASTERNAME:64%の手は温かいな」
+			ENDSELECT
+		ELSEIF TALENT:思慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「こら、じゃれつくなって」
+					PRINTFORML 「これじゃあ酒が呑めないだろ」
+					PRINTFORMDW そう言いつつも勇儀は楽しそうだ
+				CASE 1
+					PRINTFORMDL %CALLNAME:MASTER%は勇儀の手をさりげなく握ってみた
+					PRINTFORML 「お、腕相撲か？ おらッ！」
+					PRINTFORMDL そして、気が付けば空を見上げていた……
+					PRINTFORML 「なんだなんだ、その程度か？」
+					PRINTFORMW 「張り合いが無いったらありゃしない」
+				CASE 2
+					PRINTFORML 「肩を揉みたいだ？」
+					PRINTFORML 「そいつは有難い、最近肩こりが酷くてなあ」
+					PRINTFORMDL %CALLNAME:MASTER%は勇儀の背後に回ると、真心を込めて肩を揉んであげた
+					PRINTFORMW 「おっ、いい塩梅だ。その調子で頼むよ」
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL 勇儀の名前を呼びながらさりげなく肩に手を置いてみた
+					PRINTFORMW 「んー？」
+				CASE 1
+					PRINTFORMDL %CALLNAME:MASTER%は勇儀の力こぶを触らせてもらった
+					PRINTFORML 「腕っぷしには自信がある」
+					PRINTFORMW 「なんなら、今ここで試してみるかい？」
+				CASE 2
+					PRINTFORML 「ここまで気安く触れてくるのはあんたくらいだよ」
+					PRINTFORMDW 無遠慮に触ってくる%CALLNAME:MASTER%に勇儀は呆れた表情を浮かべている
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;303,謝る
+;TFLAG:193(2=菓子折成功 1=大成功 0=成功 -1=失敗 -2=菓子折失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_303
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_303
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_303_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_303_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;判定
+	SELECTCASE TFLAG:193 
+		;許してくれた
+		CASE 0,1,2
+			PRINTFORML 「……そこまで謝られて許さないのは却って惨めか」
+			PRINTFORML 「分かった、その誠意に免じて今回のことは水に流すよ」
+			PRINTFORML 「ただし、今回だけだ。次は無いと思いな」
+			PRINTFORMDW 
+		;許してくれなかった
+		CASEELSE
+			PRINTFORMDL %CALLNAME:MASTER%が謝ろうと口を開いた瞬間……
+			PRINTFORMDL 真横の壁に、勇儀の拳がめり込んだ
+			PRINTFORML 「…っと、すまないね。羽虫が鬱陶しくてさ」
+			PRINTFORMDL 拳を引き抜いた勇儀が、冷たい視線を%CALLNAME:MASTER%に向ける
+			PRINTFORML 「……それで、何か言いかけてただろ？」
+			PRINTFORML 「用があるんじゃないのかい？」
+			PRINTFORMDW ……どうやらまだ許して貰える雰囲気ではないようだ……
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;304,仕事を手伝う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;CFLAG:350(仕事内容(JOB_仕事内容.ERB参照のこと
+;TCVAR:手伝えない(=2 手伝っても早くは終わらない、時間停止中不可 永琳の診察等)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_304
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_304
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_304_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_304_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+	;通常
+	ELSE
+	ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;305,膝枕してもらう
+;TFLAG:193(-5=MASTERがTARGETよりも巨体の場合(TALENT:MASTER:体型 > TALENT:体型 + 2) 1=大成功 0=成功 -1=失敗)(-5以外は地の文分岐無し)
+;ABL:親密(6以上=顔をのぞき込みながら頭を撫でてくれる 3以上=ただ頭を撫でてくれる 2以下=縮こまっている)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_305
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_305
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_305_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_305_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;妊娠※一日一回
+	IF TALENT:妊娠 && TALENT:恋慕 && TCVAR:64:351 == 0
+		TCVAR:64:351 = 1
+		IF CFLAG:TARGET:妊娠経過日数 >= 71
+			PRINTFORMDL お腹に耳を当ててみると、我が子の胎動がハッキリと分かった
+			PRINTFORML 「その内、腹を破って出てくるんじゃないか？」
+			PRINTFORMW 「私の子なら、それくらい豪快なことはやってくれそうな気がするよ」
+		ELSEIF CFLAG:TARGET:妊娠経過日数 >= 40
+			PRINTFORMW 「お、今動いたような」
+			PRINTFORMDL 耳を澄ましてみると、微かに我が子の動く音が聞こえた気がした
+		ELSE
+			PRINTFORMDL %CALLNAME:MASTER%はお腹に耳を当ててみたが、まだ何も聞こえなかった
+			PRINTFORML 「さすがにまだ早いんじゃないか？」
+			PRINTFORMW 「待ち遠しいのは私も同じだけどね」
+		ENDIF
+	;通常
+	ELSE
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「うん？ 眠いのかい？」
+					PRINTFORML 「つらいなら、軽く寝ときな」
+					PRINTFORMDL 耐え切れなくなった%CALLNAME:MASTER%が目を瞑ると、勇儀が優しく頭を撫でてきた
+					PRINTFORMW 「おやすみ、%MASTERNAME:64%」
+				CASE 1
+					PRINTFORML 「疲れた？ それならほら」
+					PRINTFORMDL 勇儀が%CALLNAME:MASTER%に膝を差し出してくる
+					PRINTFORML 「寝心地は保証しないけど、無いよりはマシだろう？」
+					PRINTFORMDW %CALLNAME:MASTER%は礼を言うと、お言葉に甘えて横にならせてもらった
+				CASE 2
+					PRINTFORML 「膝枕？ はいよ」
+					PRINTFORMDL %CALLNAME:MASTER%が膝枕を要求すると、勇儀は二つ返事で膝を貸してくれた
+					PRINTFORMW 「どうぞごゆっくり、なんなら耳かきもしてやろうか？」
+			ENDSELECT
+		ELSEIF TALENT:思慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL %CALLNAME:MASTER%は勇儀に膝枕してもらいながらまどろんでいる
+					PRINTFORML 「後で交代しとくれよ」
+					PRINTFORMW 「なんだか私まで眠くなってきた」
+				CASE 1
+					PRINTFORML 「酔った萃香に膝を貸してやったことを思い出すねぇ……」
+					PRINTFORMDL 鬼が酔い潰れるとは、いったいどれほど酒を呑んだのだろうか……
+					PRINTFORML 「思い出を語ってたら吞みたくなってきた、今からどうだい？」
+					PRINTFORMDW クイッと酒を呑むジェスチャーをする勇儀に、%CALLNAME:MASTER%は思わず苦笑いを浮かべた
+				CASE 2
+					PRINTFORML 「…ん？ おい、おーい？」
+					PRINTFORMDL %CALLNAME:MASTER%は目を瞑ったまま、静かに寝息を立てている
+					PRINTFORMW 「……まあいいか」
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「動くんじゃない、酒が零れちまうだろ」
+					PRINTFORMDL 横になった%CALLNAME:MASTER%はなぜか勇儀にテーブル代わりにされている
+					PRINTFORMW 「膝を貸してやってるんだ、それくらい我慢しな」
+				CASE 1
+					PRINTFORML 「そんな無防備で良いのかい？ 寝首を掻かれてもしらないよ？」
+					PRINTFORMDL 力の勇儀ともあろう鬼が寝首を掻くような卑怯な真似はしないだろう
+					PRINTFORMW 「ははッ、よく分かってるじゃないか」
+				CASE 2
+					PRINTFORML 「鬼の膝枕なんて寝心地の良いもんでもなかろうに」
+					PRINTFORML 「甘えたいならもっと然るべき相手がいると思うけどねぇ」
+					PRINTFORMDW なんだかんだ言いつつも勇儀は膝を貸してくれた
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;306,お腹を撫でる
+;TFLAG:193(1=ABL:親密6以上かつ妊娠時 0=成功 -1=ABL:親密5以下)
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_306
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_306_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_306_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+		PRINTFORML 
+		RETURN 1
+	;妊娠※一日一回
+	ELSEIF TALENT:妊娠 && TALENT:恋慕 && TCVAR:64:352 == 0
+		TCVAR:64:352 = 1
+		IF CFLAG:TARGET:妊娠経過日数 >= 71
+			PRINTFORML 「おー、蹴ってる蹴ってる」
+			PRINTFORMDW 勇儀のお腹の中では我が子が元気に暴れまわっているようだ
+		ELSEIF CFLAG:TARGET:妊娠経過日数 >= 40
+			PRINTFORML 「この子はきっと将来大物になる」
+			PRINTFORMW 「%MASTERNAME:64%と私の子なんだ、間違いない」
+		ELSE
+			PRINTFORML 「どんな名前を付けてやろうかねえ……」
+			PRINTFORMDW 勇儀のお腹を撫でながら、生まれてくる子の名前を考えた
+		ENDIF
+	;通常
+	ELSE
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「あ、くッ！ ふ、ははッ！」
+					PRINTFORML 「く、くすぐったいからやめとくれよッ」
+					PRINTFORMDW %CALLNAME:MASTER%は勇儀のお腹を撫でたり脇腹をくすぐったりして遊んだ
+				CASE 1
+					PRINTFORML 「ん、ん……？」
+					PRINTFORMDL ゆっくりとお腹を撫でながら、少しずつ手を下にずらしていく
+					PRINTFORMDL ちょうど子宮の上辺りに到達したところで、そこをグイッと押し込んだ
+					PRINTFORML 「ッあ……い、今なにをしたんだ？」
+					PRINTFORMDW 『ただの按摩だ』%CALLNAME:MASTER%は正直にそう言うと、勇儀の反応を楽しみながらポルチオマッサージを施した
+				CASE 2
+					PRINTFORMDL 勇儀のお腹を撫でていると、グウと音が鳴った
+					PRINTFORML 「腹が空いてきたねぇ……何か適当につまめるもん持ってないかい？」
+					PRINTFORMW 「ああ、煎った豆以外で頼むよ」
+			ENDSELECT
+		ELSEIF TALENT:思慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「なあ%MASTERNAME:64%、腹を撫でることに何の意味があるんだ？」
+					PRINTFORMDL 意味なんてない、撫でたいから撫でているだけだ
+					PRINTFORMDL %CALLNAME:MASTER%は勇儀にそう断言した
+					PRINTFORMW 「そ、そうか……そこまで言うなら私も止めはしないけどさ」
+				CASE 1
+					PRINTFORML 「そんなに腹を撫でたいなら、自分の腹でも撫でてりゃいいじゃないか」
+					PRINTFORML 「わざわざ私の腹なんて撫でなくたって……」
+					PRINTFORMDW そう言っている間も、%CALLNAME:MASTER%は執拗に勇儀の腹を撫で続けた
+				CASE 2
+					PRINTFORML 「私の腹なんて撫でて楽しいのかい？」
+					PRINTFORML 「…楽しい？ けったいなヤツだねえ」
+					PRINTFORMDW %CALLNAME:MASTER%は困惑する勇儀をよそに、その引き締まったお腹を撫で回した
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「腹を撫でるのは構わないけど、一声くらい掛けとくれよ」
+					PRINTFORMW 「不意打ちされるのは好きじゃないんだ」
+				CASE 1
+					PRINTFORML 「あー、お楽しみのトコ悪いんだけど」
+					PRINTFORML 「くすぐったいから、そろそろ止めてくれないか？」
+					PRINTFORMDW お腹を撫でていた手を勇儀に引き剥がされてしまった
+				CASE 2
+					PRINTFORML 「あん？ どうしたんだいきなり」
+					PRINTFORMDW 勇儀は%CALLNAME:MASTER%の奇行にもさして動じていないようだ
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;307,頬をつまむ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐無し
+	;以下は先に書いた条件が優先される
+	;TALENT:恋慕(受け入れつつ笑顔でやり返す
+	;ABL:親密(6以上=おずおずとやり返す
+	;ABL:従順(5以上=されるがまま
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_307
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗(注、抱きつきモード中は自動成功)、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_307
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_307_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_307_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+		PRINTFORML
+		RETURN 1
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		PRINTFORMDL 勇儀が起きているか確かめる為に%CALLNAME:MASTER%は彼女の頬を摘んだ
+		PRINTFORML 「%TEXTR("……うーん……/……ぐぅ……/……ん、ぁ……/")%」
+		PRINTFORMDW ……どうやらぐっすり眠っているようだ
+	;通常
+	ELSE
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「プッハハッ！ 変な顔だ！」
+					PRINTFORMDL %CALLNAME:MASTER%は勇儀に遊ばれている
+					PRINTFORML 「はぁー……ク、ブフッ、ヤバイ、またツボに入ったッ」
+					PRINTFORMDW ………
+				CASE 1
+					PRINTFORML 「%MASTERNAME:64%にばかりってのも癪だねぇ……」
+					PRINTFORML 「そら、私からもお返しだ！」
+					PRINTFORMDW 勇儀と頬を摘み合ってじゃれた
+				CASE 2
+					PRINTFORML 「面白い、私にもやらせとくれよ」
+					PRINTFORMDW 勇儀がおもむろに%CALLNAME:MASTER%の頬を摘む
+					SETCOLOR C_RED
+					FONTBOLD
+					PRINTFORML 
+					PRINTFORML グィイイイ～～～ッッ
+					PRINTFORMW 
+					FONTREGULAR
+					RESETCOLOR
+					CALL M_KOJO_COLOR_K64
+					PRINTFORMDL 痛い痛い痛い痛いッ！！！
+					PRINTFORML 「もう降参かい？ まだまだこれからだってのに」
+					PRINTFORMDW ただのスキンシップのつもりが、いつの間にか痛みに耐える勝負になっていた
+					RESETCOLOR
+			ENDSELECT
+		ELSEIF TALENT:思慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「うん？ どうした？」
+					PRINTFORML 「…なんとなく？ ああ、お前はそういうヤツだったな」
+					PRINTFORMDW %CALLNAME:MASTER%の奇行にも勇儀はすっかり慣れてしまったようだ
+				CASE 1
+					PRINTFORML 「人間ってヤツは大抵脆いから加減が難しい」
+					PRINTFORML 「うっかり引きちぎっちまったらごめんよ」
+					PRINTFORMDW 勇儀が言うと洒落にならない気がする……
+				CASE 2
+					PRINTFORML 「ふうん、こんなのが楽しいってねぇ……」
+					PRINTFORMDL 勇儀は%CALLNAME:MASTER%の頬をぐにぐにと引っ張っている
+					PRINTFORMW 「うーん、よく分からん」
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「そんなに頬を摘まれてちゃ酒が呑めないだろ」
+					PRINTFORMDW 勇儀は鬱陶しそうに%CALLNAME:MASTER%の手を振り払った
+				CASE 1
+					PRINTFORML 「随分な真似をしてくれるじゃないか」
+					PRINTFORML 「売られた喧嘩は買うのが私の性分でね！」
+					PRINTFORMDW 二人は暫く互いの頬を引っ張り合った
+				CASE 2
+					PRINTFORML 「さっきから何してんのさ？」
+					PRINTFORMDL %CALLNAME:MASTER%は先程から無言で勇儀の頬を摘んでいる
+					PRINTFORMDW 触ってみると意外と柔らかく、つい夢中になってしまった
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;308,頬をつつく
+;添い寝中or睡眠中限定
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_308
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗(注、抱きつきモード中は自動成功)、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_308
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_308_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_308_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;睡眠中
+	IF CFLAG:睡眠
+		PRINTFORMDL 勇儀が起きているか確かめる為に%CALLNAME:MASTER%は彼女の頬をつついた
+		PRINTFORML 「%TEXTR("……む、ぅ……/……ううーん……/……んん……/")%」
+		PRINTFORMDW ……どうやらぐっすり眠っているようだ
+	;通常
+	ELSE
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORML 「このやろッ！ 私にも触らせろ！」
+				PRINTFORMDW 勇儀と互いの頬をつついてじゃれあった
+			;成功
+			CASE 0
+				PRINTFORML 「…ふふ、気は済んだかい？」
+				PRINTFORMDW 勇儀は添い寝する%CALLNAME:MASTER%を優しく見つめている
+			;失敗
+			CASE -1
+				PRINTFORML 「おいこら、眠れないだろ」
+				PRINTFORMDW しつこ過ぎたのか勇儀に怒られてしまった
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;309,頭を撫でる
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;ABL:親密(6以上=通常成功時分岐
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_309
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗(注、抱きつきモード中は自動成功)、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_309
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_309_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_309_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+		PRINTFORML
+		RETURN 1
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		PRINTFORML 「%TEXTR("……zzz/……んー……/……ぐぅ……/")%」
+		PRINTFORMDW 良い夢でも見ているのだろうか、勇儀の頬が少しだけ緩んだ
+	;通常
+	ELSE
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「撫でてもいいかって？ はは、何を今更」
+					PRINTFORML 「%MASTERNAME:64%がしたいってなら、好きにすりゃいいよ」
+					PRINTFORMW 「それに、私も割と気に入ってるしね。%MASTERNAME:64%に撫でてもらうのさ」
+				CASE 1
+					PRINTFORML 「%MASTERNAME:64%が頭ばかり撫でるもんだから、すっかり癖になっちまったよ」
+					PRINTFORML 「……だから、もう少しだけ撫でてくれないか？」
+					PRINTFORMDW %CALLNAME:MASTER%がもう一度頭を撫でてやると、勇儀は気持ち良さそうに目を細めた
+				CASE 2
+					PRINTFORML 「綺麗な髪だ？ そりゃどう…も」
+					PRINTFORMDL %CALLNAME:MASTER%は勇儀の髪に顔を埋めた
+					PRINTFORML 「おま、ちょッ…小っ恥ずかしいからやめろって…」
+					PRINTFORMDW 勇儀は珍しく顔を赤らめて取り乱している……
+			ENDSELECT
+		ELSEIF TALENT:思慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「はいはい、好きにしなよ。もう」
+					PRINTFORMDW 勇儀は諦めて%CALLNAME:MASTER%に頭を撫でられている
+				CASE 1
+					PRINTFORML 「撫でられるの嫌じゃないか、ねぇ……」
+					PRINTFORML 「%MASTERNAME:64%は嫌がらせでこんなことやってるのかい？」
+					PRINTFORMW 「そうじゃないってなら、堂々と撫でりゃいいさ。私も気にしない」
+				CASE 2
+					PRINTFORML 「よーしよしよしよしッ！」
+					PRINTFORMDL 勇儀に頭を撫で回され髪をグチャグチャにされてしまった
+					PRINTFORMW 「好き勝手してくれたんだ、私も好きにやらせてもらったよ」
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「おいおい、撫でる相手を間違えてるんじゃないか？」
+					PRINTFORML 「こういうのは、チビ相手にするもんだろうに」
+					PRINTFORMDW 下に見られていると思ったのか、勇儀は不機嫌そうに%CALLNAME:MASTER%の手を払った
+				CASE 1
+					PRINTFORML 「なんだか馬鹿にされてるみたいであまり良い気はしないねぇ……」
+					PRINTFORMDW 勇儀は頭を撫でられることに慣れていないようだ
+				CASE 2
+					PRINTFORML 「気に食わないな、いっそ手が届かなくなるまで高さを変えてやろうか」
+					PRINTFORMDL %CALLNAME:MASTER%の頭に置かれた勇儀の手にググッと力が込められていく
+					PRINTFORMW 「…はっはっはっ！ 冗談だよ冗談！」
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;331,お茶を淹れる（薬入り）
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_331
+;成否判定
+;TFLAG:192(-2=強制失敗(注、非コマンド終了）、-1＝強制失敗、0=COM依存、1=強制成功or大成功(注、睡眠薬アイスティーは眠気を感じていると飲まない)
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_331
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_331_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_331_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		;失敗
+		CASE -1
+			;一服盛られることに関してトラウマを抱えてそう
+			PRINTFORMW 「この私に一服盛ろうとするとは良い度胸してるじゃないか」
+			PRINTFORMW 「なんのことだって？ すっとぼけても無駄だよ」
+			PRINTFORMW 「……歯ァ食いしばれッ！！！」
+			PRINTFORMDW %CALLNAME:MASTER%の顔面をぶん殴る勇儀は、少しだけ悲しそうな顔をしていた
+			BASE:MASTER:体力 -= 5000
+			CFLAG:不機嫌 = 3
+			CFLAG:ブチギレ = 1
+			TALENT:機嫌 = -1
+		;成功
+		CASEELSE
+			;媚薬
+			IF TCVAR:媚薬 == 210
+				PRINTFORML 「はぁ……はぁ……」
+				PRINTFORMDL 無警戒に媚薬入りのお茶を飲んだ勇儀は、どこか落ち着かない様子で体を揺すっている
+				PRINTFORML （ああクソッ……ムラムラする……）
+				PRINTFORML （いっそ%MASTERNAME:64%を押し倒して……）
+				PRINTFORMDW 勇儀は発情した雌の匂いを漂わせながら、鋭く%CALLNAME:MASTER%を睨み付けている……
+				TCVAR:発情 = 1
+			;利尿剤
+			ELSEIF TCVAR:利尿剤 == 210
+				PRINTFORML 「あんまり旨いもんで飲み過ぎた」
+				PRINTFORMW 「ちょっくら花を摘みに行ってくるよ」
+				PRINTFORMDL ここまでは計画通り
+				PRINTFORMDW %CALLNAME:MASTER%は勇儀の跡を付けると、こっそりと厠の中を覗き見た
+				PRINTFORMW 「ふぅ……」
+				PRINTFORMDL まさか見られているとも知らず、安心し切った表情で勇儀が用を足している
+				PRINTFORMDL ジョボジョボと勢いよく排泄される尿が濃厚なアンモニア臭を放ち、厠内に立ち込める……
+				PRINTFORMDW %CALLNAME:MASTER%はスーッと深呼吸して臭気を肺の中に収めると、一物を取り出し激しく手で扱き立てた……
+				PRINTFORMDW ………
+				PRINTFORMDL 暫くして、勇儀がスッキリとした表情でお花摘みから戻って来た
+				PRINTFORMDW お互いにスッキリできて、とても有意義な時間だった
+				BASE:MASTER:精力 -= 100
+				TCVAR:利尿剤 = 0
+			;惚れ薬
+			ELSEIF TCVAR:惚れ薬 == 210
+				PRINTFORML 「見惚れるってのは、こういうことをいうんだろうねぇ……」
+				PRINTFORML 「……こっちの話だよ、軽く流しな」
+				PRINTFORMDW これも惚れ薬が言わせているのかと思うと、少し残念な気持ちになった
+			;睡眠薬
+			ELSEIF TCVAR:睡眠薬強度 == 2
+				PRINTFORML 「ふわぁあ～……ちと眠くなってきた……」
+				PRINTFORML 「こんなことなら、とびきり強い酒を持っておくんだったかな……」
+				PRINTFORMDW 気付け薬が酒とは、らしいと言えばらしいと%CALLNAME:MASTER%は思った
+			;それ以外
+			ELSE
+				CALL M_KOJO_MESSAGE_COM_K64_301_1
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;332,お酒をふるまう
+;TFLAG:193(0=下戸飲み成功 -1=下戸飲み失敗 -2=下戸飲み大失敗 -5=下戸飲みあきらめ)
+;TFLAG:194(51=どぶろく 52=清酒 53=鬼殺し)
+;ALCOHOL_TASTE(TFLAG:194)(15以上=気に入る 9以下=口に合わない)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_332
+;成否判定
+;TFLAG:192(-1＝強制失敗、0=COM依存
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_332
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_332_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_332_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:194
+		;清酒
+		CASE 52
+			PRINTFORML 「酒は命の水ってね」
+			PRINTFORML 「こいつを呑まないと生きた心地がしないよ」
+			PRINTFORMDW 勇儀と酒を酌み交わしながら雑談に花を咲かせた
+		;鬼殺し
+		CASE 53
+			PRINTFORML 「んぐっ、んぐっ、んぐっ………」
+			PRINTFORML 「くはぁ～ッ！ やっぱり酒はこうでなくちゃあな」
+			PRINTFORMDL 結構強い酒だった筈だが、勇儀は水でも飲むように一気に飲み干してしまった
+			PRINTFORML 「あん？ おいおい、全然減ってないじゃないか」
+			PRINTFORML 「そんなチビチビ呑んでたら酒が不味くなっちまうだろ。ほら、いっき！いっき！」
+			PRINTFORMDW ……酒を呑ませたのは失敗だったかもしれない……
+		;それ以外
+		CASEELSE
+			;なにいっクズだとっ！？
+			PRINTFORML 「こんなものを酒といって鬼に出すなんてねぇ……」
+			PRINTFORML 「こりゃ酒じゃない、ただのクズだよ」
+			PRINTFORMDW そう言いつつも、勇儀は酒を捨てることなく全て飲み干した
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;333,愚痴を聞く
+;TFLAG:193(6=大成功(酔い) 5=成功(酔い) 4=失敗(酔い) 3=大成功 2=成功 1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_333
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_333
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_333_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_333_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		;成功＆大成功（酔い）
+		CASE 5,6
+			PRINTFORML 「お～い？ きいてるかぁ？ きいてないだろぉ？」
+			PRINTFORML 「まあ～わたしもなにいったかおぼえてないからおあいこかぁ」
+			PRINTFORMW 「あっはっはっはっはッ！！！」
+		;失敗（酔い）
+		CASE 4
+			;鬼声「壊滅の咆哮」
+			PRINTFORML 「あーん？ なんだってぇ？」
+			PRINTFORML 「もっと腹から声出せぇッ！ こういう風にさッ！」
+			PRINTFORMDW 耳元で勇儀の大声を聞かされ、%CALLNAME:MASTER%はショック死するところだった
+			BASE:MASTER:体力 -= 500
+		;成功＆大成功
+		CASE 2,3
+			PRINTFORML 「……はぁ、みっともないトコ見せちまったね」
+			PRINTFORMW 「付き合わせて悪かった、お陰でスッキリしたよ」
+		;失敗
+		CASE 1
+			PRINTFORML 「うんうんうんうん適当に聞き流して……」
+			PRINTFORML 「聞く気が無いってならハッキリそう言ったらどうだい？」
+			PRINTFORMW 「どっちつかずなそういう態度が私は一番嫌いなんだよ」
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;334,杯を交わす
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;CFLAG:妊娠自覚状態(1=食事)
+;TALENT:酒耐性(-2=食事)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_334
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_334
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_334_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_334_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		CASE 1
+		;大成功
+		CASE 0
+		;成功
+		CASE -1
+		;失敗
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;335,介抱する
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_335
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_335
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_335_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_335_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		CASE 1
+		;大成功
+		CASE 0
+		;成功
+		CASE -1
+		;失敗
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;336,膝枕する
+;ABL:親密(4以下=居心地悪げ 9以下=恥ずかしげ それ以上=幸せそう
+;TIME_PROGRESS(TFLAG:膝枕した)(44以下=失敗
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_336
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_336
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_336_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_336_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;寝ちゃった
+	IF TFLAG:193 > 0
+		PRINTFORML 「……ｚｚｚ」
+		PRINTFORMDW %CALLNAME:MASTER%は勇儀の寝顔を眺めながら穏やかな時間を過ごした
+	;通常
+	ELSE
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「足が痺れた？ ははは、そうかそうか」
+					PRINTFORML 「なら、力づくで退かせてみな！」
+					PRINTFORMDW 勇儀は退いてくれなかった
+				CASE 1
+					PRINTFORML 「こうやって人間に膝を借りて一眠りーなんて」
+					PRINTFORML 「昔の私に言ったら絶対に信じなかったろうねぇ……」
+					PRINTFORMDW 勇儀は目を閉じながら嬉しそうに微笑んだ
+				CASE 2
+					PRINTFORML 「最近は%MASTERNAME:64%の膝枕じゃないと据わりが悪くてねえ」
+					PRINTFORML 「もういっそのこと私専用の枕として働いてみないかい？」
+					PRINTFORML 「私が寝る時に毎回膝枕するっていう簡単な仕事だよ。もちろん、給金は出す」
+					PRINTFORMDW 膝が大変なことになりそうなので%CALLNAME:MASTER%は勇儀の申し出を拒否した
+			ENDSELECT
+		ELSEIF TALENT:思慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「寝心地？ まあまあ悪くない」
+					PRINTFORML 「少し気恥ずかしいのが難点だけどね」
+					PRINTFORMDW 勇儀は目を閉じ、リラックスしている
+				CASE 1
+					PRINTFORML 「偶に朝起きたら角に枕が刺さってることがあってだな……」
+					PRINTFORML 「だから何ってわけじゃあないんだが、一応気を付けとくれよ？」
+					PRINTFORMDW その言葉を聞いた%CALLNAME:MASTER%は、勇儀が寝返りを打たないようガッチリ頭を固定した
+				CASE 2
+					PRINTFORML 「借りっぱなしってのは私の流儀じゃない」
+					PRINTFORML 「ほら、次は私がしてやるから」
+					PRINTFORMDW 勇儀は起き上がると、ポンポンと自らの膝を叩いた
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「少し休め？ 別に疲れちゃいないよ？」
+					PRINTFORMDL 『いいから』%CALLNAME:MASTER%はそう言い勇儀を無理矢理膝枕した
+					PRINTFORMW 「おっと、強情な奴だ……ま、そういうの嫌いじゃないけどね」
+				CASE 1
+					PRINTFORML 「膝枕してもらったのなんて酔いつぶれた時以来だよ」
+					PRINTFORMDW もしかして結構最近の話なのでは……
+				CASE 2
+					PRINTFORML 「気遣いは有難いよ？ 有難いけどさ……」
+					PRINTFORML 「さすがにこれは無いんじゃないか？」
+					PRINTFORMDW 残念ながら勇儀はリラックスできなかったようだ
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;350,押し倒す（時姦時イタズラする
+;TFLAG:194 (0=成功 1=人目がある　2=野外は嫌でござりまする　3=多人数プレイは勘弁　4=合意があってもムードが足りぬ　100=合意はあるが口上内特殊判定によって失敗）
+;TCVAR:抱き寄せ初回　1=普通に合意ゲット　2=先にキスぐらいしろよ　3=媚薬or発情には勝てなかったよお…　4=悔しい…刻印さえなければﾋﾞｸﾋﾞｸﾝ
+;5=強引に迫られると断れぬ(素質臆病持ち専用) 6=まんざらでもない　7=駄目　8=論外 98=口上内特殊判定による失敗 99=口上内特殊判定による成功
+;口上内特殊判定は該当するCFLAGが0だと無効
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_350
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_350_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_350_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	;押し倒し失敗
+	IF TFLAG:194
+		;判定
+		SELECTCASE TFLAG:194
+			;人目がある
+			CASE 1
+				PRINTFORML 「おいおい、私をなんだと思ってるんだ？」
+				PRINTFORML 「鬼にだって恥じらいくらいはあるんだぞ？」
+				PRINTFORMDW そうだったのか……
+			;野外は嫌でござりまする
+			CASE 2
+				PRINTFORML 「ここじゃ人が来ちまうじゃないか」
+				PRINTFORML 「もう少しだけ我慢しな…帰ったらシてやるから」
+				PRINTFORMDW 耳元でそう囁かれ、%CALLNAME:MASTER%はゴクリと生唾を飲み込んだ……
+			;多人数プレイは勘弁
+			CASE 3
+				PRINTFORML 「乱交ってのも偶には悪かないけど……」
+				PRINTFORML 「生憎と、今日はそういう気分じゃなくてね」
+				PRINTFORMDW 勇儀は人気の無い場所へ行きたそうにしている
+			;合意があってもムードが足りぬ
+			CASE 4
+				PRINTFORML 「ヤリたいって？ ああ、もうちょい待ちな」
+				PRINTFORML 「もう少し酒を呑んでからでも遅くはないだろ？」
+				PRINTFORMDW もう少しムードを高める必要がありそうだ
+		ENDSELECT
+	;抱き寄せ初回
+	ELSEIF TCVAR:抱き寄せ初回
+		;判定
+		SELECTCASE TCVAR:抱き寄せ初回
+			;まんざらでもない
+			CASE 6
+				PRINTFORML 「抱かせろって？ 私を？ はははッ！」
+				PRINTFORML 「私を取って喰いたきゃ、力づくでヤッてみせな！」
+				PRINTFORMDW 冗談だと思われたのか、勇儀に笑われてしまった
+			;駄目
+			CASE 7
+				PRINTFORML 「酒呑みの相手が欲しいってなら、いつでも歓迎するよ」
+				PRINTFORML 「ヤりたいだけなら他を当たりな。見ての通り、私は忙しいんだ」
+				PRINTFORMDW 勇儀は%CALLNAME:MASTER%に背を向けると、酒呑みを再開してしまった
+			;論外
+			CASE 8
+				PRINTFORML 「ヤりたいってなら、そこらへんの綺麗所でも捕まえてきな」
+				PRINTFORML 「私？ なんで私が%MASTERNAME:64%とヤらなきゃいけないんだ？」
+				PRINTFORMDW 勇儀をセックスに誘ったが、まったくその気はないようだ……
+			;成功
+			CASEELSE
+				;通常押し倒しと共通
+				GOTO YUGI_SEXSTART
+		ENDSELECT
+	;妊娠中
+	ELSEIF TALENT:妊娠
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORML 「腹に子がいるから、駄目になるまでってわけにはいかないけど……」
+			CALL HPH_PRINT,@"「おい、%MASTERNAME:64%？ ちょっと、待ちなって……HPH」","L"
+			PRINTFORMDW 聞こえない。%CALLNAME:MASTER%は勇儀を抱き寄せると、彼女の体をまさぐった……
+		;それ以外
+		ELSE
+			PRINTFORML 「腹に子もいるんだ、激しいのはダメだからな？」
+			PRINTFORMDL 勇儀はお腹の子を気遣っているようだ
+			PRINTFORMDW %CALLNAME:MASTER%は『善処する』と言い、勇儀を優しく抱き寄せた……
+		ENDIF
+	;通常
+	ELSE
+		$YUGI_SEXSTART
+		;恋慕
+		IF TALENT:恋慕
+			;危険日かつ危険日生Ｈ解禁済
+			IF CFLAG:900 == 7 && CFLAG:生解禁 >= 2
+				PRINTFORML 「こら、待ちなって……今用意するから」
+				PRINTFORMDL %CALLNAME:MASTER%は勇儀の首筋にキスをしながら、彼女の体をまさぐっている
+				PRINTFORML 「それより%MASTERNAME:64%、今日は『あの日』だから……」
+				CALL HPH_PRINT,@"「……ここまで言やあ分かるだろう？HPH」","L"
+				PRINTFORMDW %CALLNAME:MASTER%の子を孕むことを想像しているのか、勇儀はいつも以上に積極的だ
+			;それ以外
+			ELSE
+				PRINTFORML 「ふふ、ビンビンにおっ立てて……そんなに待ちきれないのかい？」
+				PRINTFORMDL %CALLNAME:MASTER%が頷くと、勇儀は艶っぽく微笑んだ
+				CALL HPH_PRINT,@"「それなら、お互い駄目になるまで激しくまぐわおうかHPH」","W"
+			ENDIF
+		;それ以外
+		ELSE
+			;恋慕無しかつ危険日に親密20未満だと避妊薬飲んじゃう
+			IF CFLAG:900 == 7 && ABL:親密 < 20
+				PRINTFORML 「っと、ヤる前に……んくッ」
+				PRINTFORMDL 勇儀は錠剤のようなものを取り出すと、ゴクンと飲み込んだ
+				PRINTFORML 「ふぅ……ああこれかい？ 避妊薬だよ」
+				PRINTFORML 「デキたら面倒だろ？ お互いに」
+				PRINTFORMDW もっと親しくなれば子作りも許して貰えるだろうか……
+				TCVAR:ピル = 1
+			;危険日かつ危険日生Ｈ解禁済
+			ELSEIF CFLAG:900 == 7 && CFLAG:生解禁 >= 2
+				PRINTFORML 「%MASTERNAME:64%、分かってるよな？」
+				PRINTFORMDL 『妊娠したら責任は取る』勇儀との約束だ
+				PRINTFORML 「なら良し。それじゃ、ヤるとしようか」
+				PRINTFORMW 「……子作りってやつをさ♪」
+			;それ以外
+			ELSE
+				PRINTFORML 「私としちゃ酒を呑んでる方が楽しいんだけどね」
+				PRINTFORMW 「……ま、ヤると決めたからには楽しませてもらうよ」
+			ENDIF
+		ENDIF
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;351,連れ出す
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_351
+;連れ出しにはTRAIN_MESSAGEが無い
+CALL M_KOJO_MESSAGE_COM_K64_351_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_351_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;TARGET連れ出し
+	IF CFLAG:同行 == 60
+		IF TALENT:恋慕
+			PRINTFORML 「お、%MASTERNAME:64%。どこ行くんだい？」
+			PRINTFORML 「私も連れてっとくれよ！」
+			PRINTFORMDW %CALLNAME:MASTER%が声を掛けるまでもなく、勇儀は後に続いてきた
+		ELSEIF TALENT:思慕
+			PRINTFORML 「ちょうど暇してたんだ」
+			PRINTFORML 「%MASTERNAME:64%についていくよ」
+			PRINTFORMDW 勇儀は面白い事になりそうだといった表情を浮かべ、%CALLNAME:MASTER%の後に続いた
+		ELSE
+			PRINTFORML 「それで、用ってのは？」
+			PRINTFORMW 「…内緒？ なんだよ、教えてくれてもいいじゃないか！」
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;352,告白する
+;FLAG:甲斐性無(1=失敗)
+;TFLAG:193 (1=成功 0=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_352
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+
+;書き分けが面倒なので恋慕が無い場合は強制失敗するように
+IF !TALENT:恋慕
+	TFLAG:192 =-1
+;恋慕がある場合はCOM依存
+ELSE
+	TFLAG:192 =0
+ENDIF
+
+@M_KOJO_MESSAGE_COM_K64_352
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_352_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_352_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	;成功
+	IF TFLAG:193 == 1
+		PRINTFORMW 「………あっはっはっはっはッ！！！」
+		PRINTFORMDW 勇儀は%CALLNAME:MASTER%の告白に一瞬ポカンとした表情を浮かべた後、大きな笑い声を上げた
+		PRINTFORMW 「まさか、先を越されちまうなんてねぇ」
+		PRINTFORMW 「こんなことなら、もっと早く言っておくんだった！」
+		PRINTFORMDW ということは………
+		PRINTFORMW 「私も%MASTERNAME:64%のことが好きだ」
+		PRINTFORMW 「朋友としてではなく、一人の女として」
+		PRINTFORMW 「先に言われたのがちょっと悔しいけど、これが私の偽らざる想いさ」
+		PRINTFORMW 「だから……うん、その……ああ、急に小っ恥ずかしくなってきた」
+		PRINTFORMW 「まあ…あれだ！ これからもよろしく頼むよ、%MASTERNAME:64%！」
+		PRINTFORMDL 恥ずかしさに頬を染めながら勇儀が二カッと笑う
+		PRINTFORMDW その笑顔がとても嬉しそうで……%CALLNAME:MASTER%も釣られて笑ってしまった
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;353,イタズラする
+;FLAG:甲斐性無(1=失敗)
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_353
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_353_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_353_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;354,添い寝する（相手は起きて布団に招く感じ）
+;CFLAG:衰弱(1以上=起きない
+;CFLAG:お招き(0以外=起きない
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_354
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_354_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_354_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;355,時止め（地の文の改変程度に留めるべき
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_355
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_355_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_355_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;356,物陰に誘う
+;ABL:露出癖 + TALENT:羞恥心で判定
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_356
+;成否判定
+;TFLAG:192(-1＝強制失敗、0=COM依存、1=強制成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_356
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_356_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_356_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	PRINTFORML 「こんなトコで盛ったら誰か来ちまうよ？」
+	PRINTFORMDL %CALLNAME:MASTER%は勇儀の言葉に耳を貸さず、その豊満な体をまさぐっていく
+	CALL HPH_PRINT,@"「んッHPH しょうがないヤツだなあ……HPH」","W"
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;360,身を任せる
+;TCVAR:20(27=谷間を見せる 32=前から抱きつく 35=スカートの中を見せる 53=パイズリ 73=ぱふぱふ 77=乳を吸わせる 85=Ｖ挿入する 86=だいしゅきホールド 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_360
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_360_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_360_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;361,抵抗する
+;TCVAR:20(27=谷間を見せる 32=前から抱きつく 35=スカートの中を見せる 53=パイズリ 73=ぱふぱふ 77=乳を吸わせる 85=Ｖ挿入する 86=だいしゅきホールド 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_361
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_361_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_361_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;363,読み聞かせ（[幼稚]持ち専用）
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐無し
+;CFLAG:添い寝中(1=布団orベッドの中で本を読む
+;MASTERがTARGETより大柄の場合、膝の上にTARGETを乗せる
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_363
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_363
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_363_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_363_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;364,豆まき(萃香、勇儀、スカーレット姉妹用
+;TFLAG:193(豆まきに参加してる人数
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_364
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_364_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_364_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;勇儀姐さんは豆を投げ付けられても笑って受け流しそう
+	;でもTWで投げ付けるとめっちゃ反発付くので口上もそういう感じに
+	;その日の初回
+	IF TCVAR:64:354 == 0
+		PRINTFORMDL 節分といえば豆まき、そして目の前には鬼が居る
+		PRINTFORMDL これはもう投げてくださいと言っているようなものだろう
+		PRINTFORMDW %CALLNAME:MASTER%は懐から豆を取り出すと、勇儀の顔面に思い切り投げ付けた
+		PRINTFORML 「ぐあぁッ！？」
+		CALL COLORMESSAGE(@"鬼はー外！ 福はー内！",C_YELLOW,2,1)
+		PRINTFORML 「おま、いきなりッ、おぶッ！？」
+		CALL COLORMESSAGE(@"鬼はー外！ 福はー内！",C_YELLOW,2,1)
+		PRINTFORMW 「て、めッ！ いい加減にしろッッ！！！」
+		PRINTFORMDW %CALLNAME:MASTER%は勇儀にめちゃくちゃ怒られてしまった
+		TCVAR:64:354 = 1
+	;二回目以降
+	ELSE
+		PRINTFORMW 「覚悟完了！よし来い！」
+		PRINTFORMDL 勇儀は仁王立ちのまま、全力で豆を当ててこいと言っている
+		PRINTFORMDW さすがに可哀相になってきたので、%CALLNAME:MASTER%は控えめに豆を投げ付けた
+		PRINTFORML 「なんだそのへなちょこはッッ！！！ナメてんのかッッ！！！」
+		PRINTFORMW 「豆を投げるのなら……私の首を取るつもりで来なッッ！！！」
+		PRINTFORMDW %CALLNAME:MASTER%はまた勇儀に怒られてしまった
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;365,守矢神社へ移動(早苗、神奈子、諏訪子用
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_365
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_365_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_365_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;402,就寝
+;TFLAG:193(0=通常 1=子供と一緒に川の字で寝る)
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_402
+;就寝にTRAIN_MESSAGEは無い
+CALL M_KOJO_MESSAGE_COM_K64_402_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_402_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	;睡眠中
+	IF CFLAG:睡眠
+		PRINTFORML 「ぐぅ……すぅ……」
+		PRINTFORMDW %CALLNAME:MASTER%はぐっすりと眠る勇儀の隣に添い寝すると、目を閉じた……
+	;一緒に寝る
+	ELSEIF CFLAG:MASTER:初期位置 == CFLAG:初期位置 || CFLAG:MASTER:現在位置 == CFLAG:初期位置
+		;子供と一緒に川の字で寝る
+		IF TFLAG:193 == 1
+			PRINTFORML 「チビは……もう寝たか」
+			PRINTFORML 「それじゃ、私達も寝るとしよう」
+			PRINTFORMDL 我が子を真ん中にして、川の字になって床に就く
+		;それ以外
+		ELSEIF !CFLAG:添い寝中
+			PRINTFORML 「そうだな、そろそろ寝るとしよう」
+			PRINTFORMDL 勇儀が布団を敷き、%CALLNAME:MASTER%もそれを手伝う
+			PRINTFORMDL 一つの布団に二つの枕。今ではすっかり当たり前になった光景だ
+			PRINTFORML 「それじゃ、明かり消すぞー」
+			PRINTFORMDL 薄暗く部屋を照らしていた行灯が消え、勇儀が布団に潜り込んでくる
+		ENDIF
+		PRINTFORMW 「……おやすみ、%MASTERNAME:64%」
+		PRINTFORMDL ………
+		PRINTFORMDL ……
+		PRINTFORMDW …
+	;通常
+	ELSE
+		IF TALENT:恋慕 && !TALENT:妊娠
+			PRINTFORML 「なんだ、もう寝ちまうのか？」
+			PRINTFORML 「まだまだこれからだってのに」
+			PRINTFORMDW 勇儀は%CALLNAME:MASTER%との晩酌を楽しみにしていたようだ
+			CALL ASK_M("一杯だけ付き合う", 1, "寝る", 1,)
+			SELECTCASE RESULT
+				CASE 0
+					PRINTFORML 「ふふふ、話が分かるじゃないか」
+					PRINTFORMW 「ほれ、そこ座んな！ 酌してやっから！」
+					PRINTFORMDW ………
+					PRINTFORMDW 勇儀との酒呑みは、空が白むまで続いた……
+					CFLAG:MASTER:徹夜 = 1
+					CALL CHANGE_CFLAG(2, 64, 300)
+				CASE 1
+					PRINTFORML 「はぁ……けっこう楽しみにしてたんだけどねえ……」
+					PRINTFORMDW %CALLNAME:MASTER%が寝てしまうと、勇儀は残念そうに部屋から出ていった
+			ENDSELECT
+		ELSE
+			PRINTFORMW 「おう、おやすみ！」
+			IF CFLAG:MASTER:現在位置 != OMANEKIBEYA() && !TALENT:妊娠 && !RAND:3
+				PRINTFORMW 
+				PRINTFORMDL %CALLNAME:MASTER%が目を瞑ると、キュポンと栓を開ける音がした
+				PRINTFORMDW まさか、居座るつもりなのだろうか……
+				PRINTFORML 「どうした、眠れないのか？」
+				PRINTFORMW 「ほれ、これ呑みな。寝酒に丁度良い」
+				PRINTFORMDL ありがたい……ありがたいが……
+				PRINTFORMDW 勇儀が帰ってくれるのが一番ありがたい……
+			ENDIF
+		ENDIF
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;403,休憩
+;CFLAG:TARGET:睡眠(1=TARGETが寝てる隣で休憩
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_403
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_403_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_403_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:睡眠
+		PRINTFORML 
+		RETURN 1
+	;通常
+	ELSE
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「何もしないなんて退屈だって思ってたけど」
+					PRINTFORML 「今はそれも悪くない。%MASTERNAME:64%と一緒ならね」
+					PRINTFORMDW 勇儀は%CALLNAME:MASTER%の隣に座ると二カッと笑みを浮かべた
+				CASE 1
+					PRINTFORML 「なんだか眠くなってきた……ちょいと肩を借りるよ」
+					PRINTFORMDL %CALLNAME:MASTER%の隣に寄り添った勇儀が頭を預けてくる
+					PRINTFORMDW 二人は暫く無言のまま互いの体温を感じ合った
+				CASE 2
+					PRINTFORML 「疲れたのかい？」
+					PRINTFORML 「それならほら、私の膝を使いな」
+					PRINTFORMDW %CALLNAME:MASTER%は勇儀の好意に甘え、彼女の膝枕で一休みした
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「何か面白いことでもないかねえ……」
+					PRINTFORMDW 勇儀は退屈そうに辺りを見回している
+				CASE 1
+					PRINTFORML 「ただ何もしないってのは鬼の性分に合わない」
+					PRINTFORML 「どうせなら、何か勝負でもしないか？」
+					PRINTFORMDL それならばと%CALLNAME:MASTER%は勇儀に%TEXTR("じゃんけん/指相撲/しりとり/")%を持ちかける
+					PRINTFORMDW ……意外と白熱した
+				CASE 2
+					PRINTFORML 「こういう時はのんびり酒でも呑むに限る」
+					PRINTFORML 「%MASTERNAME:64%もやるかい？」
+					PRINTFORMDW 勇儀がなみなみと酒の注がれた盃を差し出してくる。%CALLNAME:MASTER%は丁重にお断りした
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;405,出掛ける(同行時デート
+;条件が厄介なので、COMF405 出掛ける.ERBを参照のこと
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_405
+;出掛けるにTRAIN_MESSAGEは無い
+CALL M_KOJO_MESSAGE_COM_K64_405_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_405_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	IF CFLAG:睡眠
+		PRINTFORML 
+		RETURN 1
+	;通常
+	ELSE
+		;TARGETとデート
+		IF CFLAG:同行
+			IF TALENT:恋慕
+				PRINTFORML 「どこか行きたいとこあるかって？」
+				PRINTFORMDL 勇儀は微笑みながら、%CALLNAME:MASTER%の手を優しく握ってきた
+				PRINTFORMW 「私は%MASTERNAME:64%と出掛けられるだけで十分だよ」
+			ELSEIF TALENT:思慕
+				PRINTFORML 「それで、どこに呑みに行くって？」
+				PRINTFORMDL 呑みに行くとは一言も言っていない筈だが……
+				PRINTFORMW 「冗談だって、半分くらいは！それじゃ、行くとしようか」
+			ELSE
+				PRINTFORML 「いいよ。私も退屈してたとこだ」
+				PRINTFORMDW %CALLNAME:MASTER%がデートに誘うと、勇儀はあっさりと応じてくれた
+			ENDIF
+		;お出掛けお見送り
+		ELSEIF !CFLAG:MASTER:同行
+			IF TALENT:恋慕
+				PRINTFORML 「%MASTERNAME:64%の為にとっておきの酒を用意しておくからさ」
+				PRINTFORML 「だから、早めに帰ってくるんだよ？」
+				PRINTFORMDW 勇儀は少しだけ名残惜しそうに%CALLNAME:MASTER%を見送った
+			ELSEIF TALENT:思慕
+				PRINTFORML 「ん、一人で出かけるのかい？」
+				PRINTFORML 「……ああ、なるほど。コレか」
+				PRINTFORMDW ピンと小指を立てる勇儀をスルーして%CALLNAME:MASTER%は出掛けた
+			ELSE
+				PRINTFORML 「そういや、酒の蓄えが少なくなってきたな……」
+				PRINTFORML 「なあ%MASTERNAME:64%、出掛けるならついでに酒屋に寄ってきてくれないか？金渡しとくから」
+				PRINTFORMDW 都合よく使われるつもりはない。%CALLNAME:MASTER%は丁重にお断りしてから出掛けていった
+			ENDIF
+		ENDIF
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;410,掃除
+;FLAG:70(1=時間停止中
+;TFLAG:193(0=見てるだけ 1=一緒に掃除)
+;TFLAG:194(3=汚れ高 2=汚れ中 1=汚れ低 0=汚れ最小
+;OUTROOF(CFLAG:現在位置)(野外掃除（冬は雪かき
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_410
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_410_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_410_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:睡眠
+		PRINTFORML 
+		RETURN 1
+	ELSEIF FLAG:時間停止
+		PRINTFORML 
+		RETURN 1
+	;通常
+	ELSE
+		SELECTCASE TFLAG:193
+			;見てるだけ
+			CASE 0
+				;汚れ高
+				IF TFLAG:194 >= 3
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORMDL 片付けても片付けてもゴミが減っている気がしない……
+							PRINTFORML 「泣き言言っても始まらない」
+							PRINTFORML 「やると決めたなら、腹括りな」
+							PRINTFORMDW そう言う勇儀は、高みの見物を決め込んでいる……
+						CASE 1
+							PRINTFORML 「そんなに汚れてるとは思わないけどね」
+							PRINTFORML 「ほら、まだ足の踏み場がある」
+							PRINTFORMDW 長い地底暮らしは勇儀の感覚を麻痺させてしまったようだ
+						CASE 2
+							PRINTFORML 「お、こいつはまだ使えそうだ」
+							PRINTFORML 「どうせ捨てるんだ、私が貰っておこう」
+							PRINTFORMDW 勇儀は宝探しをしている。暇なら手伝って欲しい……
+					ENDSELECT
+				;汚れ中以下
+				ELSE
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「すぐ汚れるんだから放っときゃいいのに」
+							PRINTFORMDL そうもいかない、%CALLNAME:MASTER%は黙々とゴミを片付けていった
+							PRINTFORMW 「ま、頑張っとくれよ」
+						CASE 1
+							PRINTFORML 「そんなもん止めて、こっちで一緒に酒でも呑まないかい？」
+							PRINTFORMDL それじゃあ余計にゴミが増えるだけだ……
+							PRINTFORMDW %CALLNAME:MASTER%は勇儀の申し出を断った
+						CASE 2
+							PRINTFORML 「この程度のゴミ、放っておいても誰も何も言やしないよ」
+							PRINTFORMDW 塵も積もれば山となる、%CALLNAME:MASTER%は何もしない勇儀を尻目に掃除を頑張った
+					ENDSELECT
+				ENDIF
+			;一緒に掃除
+			CASE 1
+				;汚れ高
+				IF TFLAG:194 >= 3
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「おーい、そっち片付いたかー？」
+							PRINTFORMDL ゴミ山の向こうから勇儀の声が聞こえる
+							PRINTFORMW 「私の方はもうすぐ終わりそうだ、応援が必要なら呼びなー」
+						CASE 1
+							PRINTFORML 「よっと、これ片しておくよ」
+							PRINTFORMDL 大量のゴミの詰まった袋を勇儀が軽々持ち上げる
+							PRINTFORMDW 力持ちがいると掃除が捗ってありがたい……
+						CASE 2
+							PRINTFORML 「よし、いっちょ派手にぶちかましてやろう！」
+							PRINTFORMDL 『掃除だからね？』%CALLNAME:MASTER%がそう言うと勇儀はきょとんと首を傾げた
+							PRINTFORMW 「なに言ってんのさ、当たり前じゃないか」
+					ENDSELECT
+				;汚れ中以下
+				ELSE
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「掃除ってやつはどうも苦手でねぇ……」
+							PRINTFORMDL 勇儀は不器用に箒を掃いている
+							PRINTFORMW 「ダメな所があったら遠慮なく言っとくれよ？」
+						CASE 1
+							PRINTFORML 「やっぱり%MASTERNAME:64%は手際が良いなあ」
+							PRINTFORML 「私も見習いたいものだよ」
+							PRINTFORMDW ぜひ見習ってほしいところだ
+						CASE 2
+							PRINTFORML 「なるほど、そうやれば手際よく終わると」
+							PRINTFORML 「それが分かればこっちのもんだ、山の四天王の本気ってやつを見せてやろう！」
+							PRINTFORMDW 何事も真剣に取り組むのは勇儀の美点かもしれない
+					ENDSELECT
+				ENDIF
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;411,戦闘訓練
+;TFLAG:194(3=夏の昼間 2=ヤバい天気 1=悪天候 0=屋内or通常天気
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_411
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K64_411_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_411_1
+
+#DIM 正解
+#DIM 経験値
+#DIM 制限時間
+#DIM 倍率
+#DIM FEINT
+#DIM イカサマ
+VARSET LOCAL
+イカサマ = 0
+制限時間 = 2000 - (ABL:64:戦闘能力 - ABL:MASTER:戦闘能力) * 100
+
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;本気の戦闘訓練は一日一回だけ
+	IF TCVAR:64:353 == 0
+		TCVAR:64:353 = 1
+		;特訓デイリーからお借りしました
+		CALL M_KOJO_COLOR_K64
+		PRINTFORML 「強くなる為の努力を惜しまない、その心意気や良し！」
+		PRINTFORML 「山の四天王が一人、力の勇儀が全力を持って手助けしようじゃないか！」
+		PRINTFORMDW 勇儀が拳を打ち鳴らし、臨戦態勢をとる
+		PRINTFORMW 「さあ、準備ができたらかかってきな！」
+		RESETCOLOR
+		PRINTFORML 
+		CALL ASK_YN("訓練開始","やっぱり止める")
+		IF RESULT
+			CALL M_KOJO_COLOR_K64
+			PRINTFORML 「どうした、強くなりたいってのは嘘だったのかい？」
+			PRINTFORMW 「……はぁ、まあいいけどね」
+			RESETCOLOR
+		ELSE
+			正解 = RAND:4
+			経験値 = MAX(ABL:64:戦闘能力 * 5, 5)
+			SELECTCASE RAND:20
+				CASE IS <= 11
+				;普通に
+					LOCALS:0 = 上
+					LOCALS:1 = 右
+					LOCALS:2 = 左
+					LOCALS:3 = 下
+					倍率 = 100
+				CASE 12 TO 15
+				;ローマ字
+					LOCALS:0 = UE
+					LOCALS:1 = MIGI
+					LOCALS:2 = HIDARI
+					LOCALS:3 = SHITA
+					倍率 = 160
+				;英語
+				CASE 16,17,18
+					LOCALS:0 = UP
+					LOCALS:1 = RIGHT
+					LOCALS:2 = LEFT
+					LOCALS:3 = DOWN
+					倍率 = 120
+				;スペイン語
+				CASE 19
+					LOCALS:0 = encima de
+					LOCALS:1 = a la derecha
+					LOCALS:2 = a la izquierda
+					LOCALS:3 = abajo de
+					倍率 = 300
+			ENDSELECT
+			;あなたの戦闘能力が高いとフェイントかけてくる
+			IF ABL:MASTER:戦闘能力 >= 5 && !RAND:5
+				FEINT = 1
+				制限時間 += 400
+				倍率 += 80
+			ELSE
+				FEINT = 0
+			ENDIF
+			CALL FISHER_YATES_SHAFFLE(4)
+			PRINTFORMW %CALLNAME:TARGET%の攻撃を避けよう（クリックで開始）
+			PRINTFORM %CALLNAME:TARGET%の
+			SETCOLOR C_YELLOW
+			IF FEINT
+				PRINTFORM %LOCALS:(RAND:4)%
+				RESETCOLOR
+				PRINTFORM と見せかけて%LOCALS:(3 - 正解)%
+			ELSE
+				PRINTFORM %LOCALS:(3 - 正解)%
+				RESETCOLOR
+			ENDIF
+			PRINTFORML からの攻撃！
+			$LOOP_IKASAMA
+			FOR LOCAL:10,0,4
+				LOCAL = SHAFFLE_ARRAY:(LOCAL:10)
+				PRINTFORML [{LOCAL}] - %LOCALS:LOCAL%に避ける
+			NEXT
+			SIF !イカサマ && BASE:MASTER:TSP > 500
+				PRINTFORML [{4}] - 時間停止
+			TINPUT 制限時間, -1, 1
+			IF RESULT == 正解
+				PRINTFORML %CALLNAME:MASTER%は攻撃を回避した！
+				IF !イカサマ
+					CALL M_KOJO_COLOR_K64
+					PRINTFORMDL 攻撃を躱された勇儀の瞳が驚愕に見開かれる
+					PRINTFORMDW %CALLNAME:MASTER%はその一瞬の隙を見逃さす、渾身の力でもって勇儀の顎を打ち据えた
+					PRINTFORML 「ぐ……ッ」
+					PRINTFORML 「…ッは、ははッ……こりゃ、一本取られたねえ」
+					PRINTFORMW 「私の本気の一撃を躱すとは、大したもんだよ」
+					PRINTFORMDL 勇儀が首をゴキゴキと鳴らしながら%CALLNAME:MASTER%を賞賛する
+					PRINTFORMDW %CALLNAME:MASTER%も勇儀に訓練に付き合ってくれた礼と、労りの言葉をかけた
+					PRINTFORML 「何か掴めたようだね、その目を見りゃ分かる」
+					PRINTFORMW 「次は訓練なんて言わず、本気の勝負を期待してるよ」
+					RESETCOLOR
+				ELSE
+					IF CFLAG:64:1100== 1
+						CALL M_KOJO_COLOR_K64
+						PRINTFORMDW %CALLNAME:MASTER%が時間停止を解除した瞬間、それを読んでいたかのように勇儀の裏拳が顔面にクリーンヒットした
+						PRINTFORML 「雰囲気が随分と余裕だったから、もしやと思ったが」
+						PRINTFORMW 「どうやら大当たりだったみたいだね」
+						PRINTFORMDW どうやら完全に見切られていたらしい……%CALLNAME:MASTER%は痛む顔を擦りながらなんとか立ち上がった
+						RESETCOLOR
+						BASE:MASTER:体力 -= 1000
+						SETCOLOR C_RED
+						FONTBOLD
+						PRINTFORMW 手痛い反撃を受け%CALLNAME:MASTER%の体力が大きく減った
+						RESETCOLOR
+					ELSE
+						CALL M_KOJO_COLOR_K64
+						PRINTFORMDL %CALLNAME:MASTER%は時間を止めて勇儀の背後に回ると、彼女の背中をポンポンと叩いた
+						PRINTFORML 「……なるほどねえ、それがお前の能力ってことか」
+						PRINTFORMW 「なら、次からはそう弁えた上で立ち回らせてもらうとするよ」
+						RESETCOLOR
+						CFLAG:64:1100 = 1
+					ENDIF
+				ENDIF
+				経験値 = 経験値 * 倍率 / 100
+				EXP:MASTER:戦闘経験 += 経験値
+				EXP:64:戦闘経験 += 経験値 * 2
+				CFLAG:64:好感度 += 経験値 * 2
+				CFLAG:64:信頼度 += 経験値 * 2
+				PRINTFORML 戦闘経験 ＋{経験値}（%CALLNAME:MASTER%）
+				PRINTFORML 戦闘経験 ＋{経験値 * 2}（%CALLNAME:TARGET%）
+				PRINTFORML 好感度 ＋{経験値 * 2}（%CALLNAME:TARGET%）
+				PRINTFORML 信頼度 ＋{経験値 * 2}（%CALLNAME:TARGET%）
+			ELSEIF RESULT == 4 && !イカサマ && BASE:MASTER:TSP > 500
+				イカサマ = 1
+				倍率 /= 5
+				PRINTFORMW %CALLNAME:MASTER%は時点停止能力で攻撃を見極めた！
+				GOTO LOOP_IKASAMA
+			ELSE
+				CALL M_KOJO_COLOR_K64
+				PRINTFORMDL %CALLNAME:MASTER%が躱すよりも早く、勇儀の拳が鳩尾を打ち据える
+				PRINTFORMDW その一撃はあまりにも重く、%CALLNAME:MASTER%はもんどり打って地面に倒れ込んだ
+				PRINTFORML 「大丈夫かい？ ちょっとやりすぎたかな」
+				PRINTFORMW 「まあでも、良い経験になったんじゃないか？」
+				RESETCOLOR
+				BASE:MASTER:体力 -= 400 * (1 + ABL:64:戦闘能力)
+				PRINTFORML 戦闘経験 ＋{経験値}（%CALLNAME:TARGET%）
+				EXP:64:戦闘経験 += 経験値
+				CFLAG:64:好感度 += 経験値 / 2
+				CFLAG:64:信頼度 += 経験値 / 2
+				PRINTFORML 好感度 ＋{経験値}（%CALLNAME:TARGET%）
+				PRINTFORML 信頼度 ＋{経験値}（%CALLNAME:TARGET%）
+			ENDIF
+		ENDIF
+	ELSE
+		PRINTFORMDL あんな訓練を何度もしていては身が持たない
+		PRINTFORMDW %CALLNAME:MASTER%は勇儀を誘って軽く体を動かすにとどめた
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;412,勉強
+;ABL:教養(ABL:MASTER:教養より大=MASTERが教えてもらう ABL:MASTER:教養より小=TARGETが教えてもらう
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_412
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_412_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_412_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:睡眠
+		PRINTFORML 
+		RETURN 1
+	;通常
+	ELSE
+		IF ABL:教養 <= 2
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「さっきから%MASTERNAME:64%の言ってることが呪文にしか聞こえないよ」
+					PRINTFORML 「もっとこう……あるだろ！」
+					PRINTFORMDW %CALLNAME:MASTER%はなるべく内容を噛み砕いて勇儀に教えてあげた
+				CASE 1
+					PRINTFORML 「しちろくはしじゅーはち…だろ？」
+					PRINTFORMDL ７×６＝４２か、７×６＝４８か……
+					PRINTFORMDW 驚異的な初歩段階で互いの主張が対立……
+				CASE 2
+					PRINTFORML 「勉強っていってもねえ、私に必要だとは思えないけど」
+					PRINTFORML 「せっかく教えてくれるってんなら、やるだけやってみようかね」
+					PRINTFORMDW %CALLNAME:MASTER%は勇儀の隣に座り勉強を教えてあげた
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ああ、それなら私でも分かる」
+					PRINTFORML 「いつぞや教えてくれたやつの応用だろ？」
+					PRINTFORMDW %CALLNAME:MASTER%が出題すると、勇儀はスラスラと解いてしまった
+				CASE 1
+					PRINTFORML 「えーっと？ これがこれで、こうだから……こうか？」
+					PRINTFORMDL %CALLNAME:MASTER%は勇儀の答案を横から確認する。ちゃんと合っていた
+					PRINTFORML 「合ってる？ よしッ、次の問題を頼むよ！」
+					PRINTFORMDW 勇儀は楽しんで勉強をしている。良い傾向かもしれない
+				CASE 2
+					PRINTFORML 「こう頭を使うと酒が呑みたくなってくるねぇ……」
+					PRINTFORML 「ああ分かってるって。呑むのは勉強の後、だろ？」
+					PRINTFORMDW 勇儀は徳利を%CALLNAME:MASTER%へ預けると勉強に取り掛かった
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;413,料理
+;TFLAG:194(100以上=禁断のメニュー 3=デザート 2=主食 1=軽食
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_413
+;TFLAG:194が100以上の場合のみ
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_413_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_413_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:睡眠
+		PRINTFORML 
+		RETURN 1
+	;通常
+	ELSE
+		IF ABL:料理技能 <= 2
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「へえ、料理！ あんたが！」
+					PRINTFORML 「そりゃ楽しみだ、私にも手伝わせとくれよ」
+					PRINTFORML 「といっても、皿運びくらいしかできないけどね」
+					PRINTFORMDW %CALLNAME:MASTER%は勇儀に時々味見してもらいながら料理を作った
+				CASE 1
+					PRINTFORML 「やれ小さじだ大さじだ…まどろっこしい」
+					PRINTFORML 「こういうのは目分量で良いと相場が決まってるんだよ」
+					PRINTFORMDW 勇儀は鬼らしく豪快に料理をしている。手伝わせるのやめとけばよかった……
+				CASE 2
+					PRINTFORML 「お、これでもう完成なのかい？」
+					PRINTFORML 「思ったより簡単なんだね、これなら私一人でも作れそうだ」
+					PRINTFORMDW そう上手くいかないのが料理の恐ろしい所だ……
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「で、なに作んだい？」
+					PRINTFORMDL %CALLNAME:MASTER%は勇儀に%DISHNAME%を作ろうと思うと伝えた
+					PRINTFORML 「%DISHNAME%ね、よし！いっちょやるか！」
+					PRINTFORMDW 勇儀が手際よく進めてくれたお陰で、だいぶ料理が捗った
+				CASE 1
+					PRINTFORML 「飯なんて腹に収まっちまえば一緒だと思ってたけど……中々奥が深いんだねえ」
+					PRINTFORML 「それに気付かせてくれた%MASTERNAME:64%には感謝してるよ」
+					PRINTFORMDW 大袈裟すぎやしないだろうか……
+				CASE 2
+					PRINTFORML 「中々旨そうにできたんじゃないか？」
+					PRINTFORMDL %CALLNAME:MASTER%は完成した料理を皿に盛り付けていく
+					PRINTFORML 「さて、私は酒を取ってこようかねぇ……」
+					PRINTFORMW 「どうしてって？ そりゃお前、上等な料理とくれば上等な酒だろう？」
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;414,食事を取る
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;TFLAG:194(1=ノーパンしゃぶしゃぶ 2=禁断のメニュー 31=ドーピングコンソメスープ 30=モッツァレラチーズとトマトのサラダ 34=ギンギー料理
+;TCVAR:MASTER:308(bit0=濃い味 bit1=薄味 bit3=激辛 bit4=激甘 bit5=わさび bit6=激酸っぱ
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_414
+;成否判定
+;TFLAG:192(-2=コマンド終了(非TARGET時強制失敗)、-1＝強制失敗、0=COM依存(非TARGET時強制成功)、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_414
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_414_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_414_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:睡眠
+		PRINTFORML 
+		RETURN 1
+	;通常
+	ELSE
+		IF DISH_TYPE == "デザート"
+			SELECTCASE TFLAG:193
+				;大成功
+				CASE 1
+					PRINTFORML 「あむっ……っ！～～っ！」
+					PRINTFORMDL デザートを一口食べた瞬間、勇儀が表情を蕩けさせた
+					PRINTFORML 「うっ……まぃッ！ こいつぁ旨いぞ！」
+					PRINTFORML 「こんな旨い甘味があるなんて、どうして教えてくれなかったんだ！」
+					PRINTFORMDW 聞かれなかったから……
+				;成功
+				CASE 0
+					PRINTFORML 「旧都じゃこういうのは中々お目にかかれない。酒の肴しか欲しがらない連中ばかりだからね」
+					PRINTFORMDL 確かに、あそこにあるのは飲み屋ばかりで甘味処なんて一つもない……
+					PRINTFORML 「しかし……こう甘いもんを食べると、しょっぱいもんが欲しくなる」
+					PRINTFORML 「そいつも期待したいところだが……お、気が利くじゃないか♪」
+					PRINTFORMDW %CALLNAME:MASTER%が口直しに用意した煎餅を、勇儀は美味しそうに貪った
+				;失敗
+				CASE -1
+					PRINTFORML 「これは…ちょっと私には甘すぎるなぁ」
+					PRINTFORML 「うっ……なんだか胸のあたりがムカムカしてきたよ……」
+					PRINTFORMDW 勇儀は口の中を洗い流すようにお茶を一気に飲み干した
+			ENDSELECT
+		ELSE
+			SELECTCASE TFLAG:193
+				;大成功
+				CASE 1
+					PRINTFORML 「おお！これこれ！この味だよ！」
+					PRINTFORMW 「私好みの味付けとは、よく分かってるじゃないか！」
+					PRINTFORMDL 勇儀が物凄い速度で料理を腹の中に収めていく
+					PRINTFORMDW そして数分もしない内に全て平らげてしまった
+					PRINTFORML 「はぁ～…食った食った……」
+					PRINTFORML 「あまりに旨いもんで、つい酒を呑むのを忘れちまったよ」
+					PRINTFORMDW どうやら満足してもらえたようだ。%CALLNAME:MASTER%は食後酒の代わりにお茶を淹れて勇儀に差し出した……
+				;成功
+				CASE 0
+					PRINTFORML 「いいのかい？ それじゃ、遠慮なく頂くよ」
+					PRINTFORMDW 勇儀はパチンと手を合わせると、さっそく料理に手を付けた
+					PRINTFORML 「もぐっ、んぐっ……うん、こりゃ旨い！」
+					PRINTFORML 「味付けも良い塩梅で、酒のあてにも良さそうだ！」
+					PRINTFORMDW 何事も酒基準なのがじつに勇儀らしいと%CALLNAME:MASTER%は思った
+				;失敗
+				CASE -1
+					PRINTFORML 「いくらなんでも限度ってもんがあると思うけどねえ……」
+					PRINTFORML 「これじゃあ酒の肴にもなりゃしない」
+					PRINTFORMDL 残念ながら勇儀の口には合わなかったようだ……
+					PRINTFORMDW だが作って貰った手前もあるのか、勇儀はちゃんと料理を完食した
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;415,食事をふるまう
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;TCVAR:MASTER:308(bit0=濃い味 bit1=薄味 bit3=激辛 bit4=激甘 bit5=わさび bit6=激酸っぱ
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_415
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_415
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_415_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_415_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;食事を取ると共通
+	CALL M_KOJO_MESSAGE_COM_K64_414_1
+ENDIF
+RETURN 1
+;==================================================
+;416,演奏する
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;TFLAG:使用楽器(1=キーボード 2=ピアノ 3=ギター 4=トランペット 5=ヴァイオリン)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_416
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_416
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_416_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_416_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TALENT:恋慕
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORML 「我流でここまで演奏できるなんて、大したもんだよ」
+				PRINTFORML 「さすが、私が見込んだだけのことはある！」
+				PRINTFORMDW 勇儀は%CALLNAME:MASTER%の演奏が大層気に入ったようだ
+			;成功
+			CASE 0
+				PRINTFORML 「%MASTERNAME:64%の演奏を肴に酒を呑むのも良いかもねえ……」
+				PRINTFORML 「どうだい？ 今夜あたりにでも」
+				PRINTFORMDW 考えておこう
+			;失敗
+			CASE -1
+				PRINTFORML 「う゛ッ、この、ガンガン響く感じ……ッ」
+				PRINTFORML 「いつぞや、二日酔いで寝込んだ時と……ぐッ、全く、同じじゃないか……ッ」
+				PRINTFORMDW 勇儀は頭を抱えて苦しんでいる。%CALLNAME:MASTER%は少し傷付いた
+		ENDSELECT
+	ELSE
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORML 「これだけ楽器の才があるなら食いっぱぐれる心配は無さそうだ」
+				PRINTFORML 「そうだ、今度宴会があるんだが…そこで演奏してみるかい？」
+				PRINTFORMW 「小遣いくらいなら稼げるかもしれないよ」
+			;成功
+			CASE 0
+				PRINTFORML 「へえ、良い音色じゃないか」
+				PRINTFORML 「外の世界じゃ、こういうハイカラな楽器を演奏して客を楽しませる呑み屋があるんだろう？」
+				PRINTFORMDW ハイカラて……
+			;失敗
+			CASE -1
+				PRINTFORML 「騒がしいのは嫌いじゃないけど、程度ってもんがあるだろ」
+				PRINTFORML 「演奏するなら向こうでやりな。これじゃあ酒も呑めやしない」
+				PRINTFORMDW %CALLNAME:MASTER%の演奏は勇儀にとって耳障りだったようだ
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;417,昼寝をする
+;TFLAG:193(0=MASTERを抱き枕にして寝ている 1=MASTERの膝を枕にして寝ている 2=寝顔にキスされた 3=寝顔をのぞき込まれた 4=MASTERが膝枕されてる 5=秘処orペニス揉み
+;CFLAG:添い寝中(1=一緒に寝ている
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_417
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K64_417_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_417_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	;添い寝中
+	IF CFLAG:添い寝中
+		PRINTFORML %CALLNAME:TARGET%は%CALLNAME:PLAYER%の隣で安らかな寝息を立てている…
+	;通常
+	ELSE
+		;判定
+		SELECTCASE TFLAG:193
+			;MASTERを抱き枕にして寝ている
+			CASE 0
+				PRINTFORMDL 耳元でいびきが聞こえたので目を開けてみると
+				PRINTFORMDL 勇儀が%CALLNAME:MASTER%をギュッと抱きしめながら寝ていた
+				PRINTFORMDL このままでは身動きができないので苦笑いしながら%CALLNAME:TARGET%を揺り動かした
+				PRINTFORML 「ふごッ、ん、んぁ……？ もう朝か…？」
+				PRINTFORML 「……あー、そういや昼寝してたんだった」
+				PRINTFORML 「抱き枕ってのを試してみたが……こりゃ中々快適だねえ。疲れがポンと飛んでったよ」
+				PRINTFORMDW それは何よりだが、いい加減体を離して欲しい……
+			;MASTERの膝を枕にして寝ている
+			CASE 1
+				PRINTFORMDL 目を覚ました%CALLNAME:MASTER%は太ももに重みを感じた
+				PRINTFORMDL 勇儀が%CALLNAME:MASTER%の体を枕代わりに眠っていた
+				PRINTFORMDL %CALLNAME:MASTER%が頭の下から体を引き抜くと……
+				PRINTFORML 「………ｚｚｚ」
+				PRINTFORMDL なんと勇儀の頭は床に落ちず、そのままの姿勢を保っていた
+				PRINTFORMDW %CALLNAME:MASTER%はその光景に暫し呆気にとられた後、勇儀を揺り起こすのだった……
+			;寝顔にキスされた
+			CASE 2
+				PRINTFORMDL 目を覚ますと、ちょうど勇儀の顔が離れていくところだった
+				PRINTFORML 「……あ、起こしちまったかい？」
+				PRINTFORML 「そういうつもりは無かったんだけど……ちょっとした出来心でね」
+				PRINTFORMDL 勇儀は頬をポリポリと掻きながらはにかんでいる
+				PRINTFORMDW もしやと思い自分の唇に触れると、微かに勇儀の温もりが残っていた……
+			;寝顔をのぞき込まれた
+			CASE 3
+				PRINTFORMDL %CALLNAME:MASTER%が目を覚ますと目の前には勇儀の顔がある
+				PRINTFORMDL 目が合うと、勇儀は二カッと笑みを浮かべた
+				PRINTFORML 「おはようさん！ ん？まだ眠そうだね？」
+				PRINTFORML 「ほら、気付けの酒だ。グイッといきなグイッと」
+				PRINTFORMDL 勇儀が盃に酒を注いで渡してくる
+				PRINTFORMDW それを一気に呷ると、焼けるような熱さに%CALLNAME:MASTER%は一瞬で目が覚めた
+				BASE:MASTER:酒気 += 200
+			;MASTERが膝枕されてる
+			CASE 4
+				PRINTFORMDL 目を覚ました%CALLNAME:MASTER%は勇儀に膝枕されていることに気がついた
+				PRINTFORML 「おはようさん。…うん、どうした？そんな意外そうな顔して」
+				PRINTFORML 「昼寝するから膝貸してくれって言ったのは%MASTERNAME:64%だろう？」
+				PRINTFORMDL そういえばそんな事も言ったかもしれない
+				PRINTFORMDW %CALLNAME:MASTER%は勇儀に礼を言うと、ゆっくりと身を起こした
+			;秘処orペニス揉み
+			CASE 5
+				PRINTFORMDL %CALLNAME:MASTER%は股間をやわやわと揉まれる感触に目を開いた
+				PRINTFORMDL 目の前には勇儀の顔がある
+				PRINTFORML 「ん？ なんだ、もう起きたのか」
+				PRINTFORML 「何してるんだって……ふふ、スッキリさせてやろうと思ってね」
+				PRINTFORMDW %CALLNAME:MASTER%がジト目で睨んでも勇儀はそしらぬ顔で卑猥なマッサージを続けた
+		ENDSELECT
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;421,願掛けする
+;条件が複雑なので、COMF421 願掛け.ERBおよび、EVENT_MESSAGE_COM400.ERBの願掛けするの項を参照のこと
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_421
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_421_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_421_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;422～430は、特殊コマンドなのでテンプレでは対応しません
+;==================================================
+
+;==================================================
+;431,お風呂でくつろぐ
+;TFLAG:209(4=人里の銭湯で番台ちゃんを怒らせている 1=銭湯に入った
+;TFLAG:211(4=地底の温泉で番台妖怪を怒らせている 1=温泉に入った
+;TFLAG:194(1=連続入浴不可(表示しない可能性あり？
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_431
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_431_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_431_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TALENT:恋慕
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORMDL %CALLNAME:MASTER%はお湯に浮く勇儀の胸を下から持ち上げ、たぷたぷと揺らして遊んでいる
+				PRINTFORML 「%MASTERNAME:64%は本当に乳が好きなんだなあ」
+				CALL HPH_PRINT,@"「ほれ、吸うかい？……んッHPH こら、本当に吸うやつがあるか……HPH」","L"
+				PRINTFORMDW 赤子のように乳首を吸い上げる%CALLNAME:MASTER%の頭を、勇儀は優しく撫で続けた……
+			CASE 1
+				PRINTFORML 「そうだ、風呂を上がったら冷や酒で一杯やらないか？」
+				PRINTFORML 「火照った体にキンキンに冷えた酒をクッと流し込んでさ……」
+				PRINTFORML 「そりゃあもう……飛ぶぞ」
+				PRINTFORMDW そんなの旨いに決まってる。%CALLNAME:MASTER%は風呂上がりの楽しみが一つ増えた
+			CASE 2
+				PRINTFORML 「い～い～湯だなっと」
+				PRINTFORMDL 勇儀はお湯に浸かりながら呑気に歌を口ずさんでいる
+				PRINTFORMDW お世辞にも上手いとは言えないが、不思議と耳に残る歌詞だ……
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「ふぃ～……極楽極楽……」
+				PRINTFORML 「それじゃ、ちょいと一眠り……」
+				PRINTFORMDL 勇儀の体がお湯の中へと沈んでいく……
+				PRINTFORMDW 鼻まで浸かりそうになったところで、%CALLNAME:MASTER%は慌てて勇儀を叩き起こした
+			CASE 1
+				PRINTFORML 「よし、どっちが先に音を上げるか我慢比べだ！」
+				PRINTFORMDL 勇儀は肩まで湯に浸かると瞑想するかのように目を閉じた
+				PRINTFORMDW ……え？これ付き合う流れ……？
+			CASE 2
+				PRINTFORML 「んぐっ、んぐっ、んぐっ……ぷはぁ～ッ！」
+				PRINTFORML 「やっぱり風呂で呑む酒は格別に旨い！ ほら、もう一杯注いどくれよ！」
+				PRINTFORMDW 勇儀の素晴らしい呑みっぷりに、%CALLNAME:MASTER%は思わず感心してしまった
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;432,お風呂でくつろぐ
+;表示タイミングは入浴後なので、お風呂上がりでの
+;TFLAG:209(4=人里の銭湯で番台ちゃんを怒らせている 1=銭湯に入った
+;TFLAG:211(4=地底の温泉で番台妖怪を怒らせている 1=温泉に入った
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_432
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_432_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_432_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;人里の銭湯
+	IF TFLAG:209 == 1
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORML 「%MASTERNAME:64%、お待たせ」
+			PRINTFORMDL %CALLNAME:MASTER%から遅れること十数分、スッキリとした顔の勇儀が銭湯から出て来た
+			PRINTFORML 「なあ聞いとくれよ、湯に浸かりながら酒を呑もうとしたら番台がすっ飛んできてさぁ……」
+			PRINTFORML 「銭湯は居酒屋じゃないぞーって、じゃあどこで呑みゃいいんだって話だよなあ？」
+			PRINTFORMDW 家か呑み屋で呑めばいいんじゃないでしょうか……
+		;それ以外
+		ELSE
+			PRINTFORML 「人間の使う銭湯も中々悪くない」
+			PRINTFORMW 「でも、私はもうちょっと熱いほうが好みかな」
+		ENDIF
+	;地底の温泉
+	ELSEIF TFLAG:211 == 1
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORML 「ああ%MASTERNAME:64%、はいこれ」
+			PRINTFORMDL 二人で温泉から出た後、勇儀に入浴料を返された
+			PRINTFORML 「いつぞや言ったかもしれないけど、私はこの温泉街の元締めなんだ」
+			PRINTFORML 「だから%MASTERNAME:64%の料金はタダでもいいんだけど、それをすると五月蠅い連中がいてね」
+			PRINTFORML 「形だけでも…ってやつさ。ほら、私の顔を立てると思って受け取っとくれよ」
+			PRINTFORMDW そう言われては断るのは失礼だろう、%CALLNAME:MASTER%は素直にお金を受け取った
+			MONEY += 1000
+		;それ以外
+		ELSE
+			PRINTFORML 「どうだった、地底でも最高の温泉は」
+			PRINTFORMDL 少し熱かったが、とても楽しめた
+			PRINTFORMDL %CALLNAME:MASTER%は勇儀に素直な感想を伝えた
+			PRINTFORML 「ふふふ、満喫できたようで何より」
+			PRINTFORMW 「旧地獄温泉街の元締めとしての面目が立ったよ」
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;436,読書
+;TFLAG:193(選択肢文学(1=忍殺(文学？) 2=失敗 3=文学),選択肢実用書(4=失敗 5=実用書),選択肢エッチな本(6=薄い高い本 7=保健体育 8=カーマスートラ))
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_436
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_436_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_436_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		;忍殺
+		CASE 1
+			IF TALENT:恋慕
+				PRINTFORML 「何事も暴力で解決するのが一番……」
+				PRINTFORML 「外の世界にもまだこんな奴が残ってたんだねえ……」
+				PRINTFORMDW そんな人はいません
+			ELSE
+				PRINTFORML 「忍者ってのはコソコソとした卑怯者の集団とばかり思ってたけど」
+				PRINTFORML 「こいつを見る限り、どうやらそうでもないらしい」
+				PRINTFORMDW なぜその漫画が幻想郷にあるのだろうか……%CALLNAME:MASTER%は訝しんだ
+			ENDIF
+		;文学
+		CASE 3
+			IF TALENT:恋慕
+				PRINTFORML 「こんな文字ばっかりのが面白いってねえ」
+				PRINTFORML 「まあでも、%MASTERNAME:64%がそう言うならもう少し読んでみようかな」
+				PRINTFORMDW 勇儀は%CALLNAME:MASTER%の隣にドカッと座ると、ページを捲りはじめた
+			ELSE
+				PRINTFORML 「こういう小難しい内容は私には向いてないなぁ……」
+				PRINTFORML 「それより、こっちの方が面白そうだ」
+				PRINTFORMDW 勇儀は本を棚に戻すと、違う棚から外の世界の漫画雑誌を取り出した
+			ENDIF
+		;実用書
+		CASE 5
+			IF TALENT:恋慕
+				PRINTFORML 「このらいふはっく？ってやつ、確かにやってることは感心するけど……」
+				PRINTFORML 「実際にやるかってーと、どうかねえ……？」
+				PRINTFORMDW 覚えておくと役に立つ時が来るかもしれない
+			ELSE
+				PRINTFORML 「なるほど、こういう呑み方も」
+				PRINTFORMDL 勇儀は酒に関する本を読んでいるようだ
+				PRINTFORMW 「この本を書いた奴は『分かってる』一度酒を酌み交わしてみたいよ」
+			ENDIF
+		;薄い高い本
+		CASE 6
+			IF TALENT:恋慕
+				PRINTFORML 「なにかと思ったら春画じゃないか」
+				PRINTFORML 「どれ、私にも見せてみなよ！」
+				PRINTFORMDW 中々にハードな内容だったので、%CALLNAME:MASTER%は覗き込んでくる勇儀を必死で阻止した
+			ELSE
+				PRINTFORML 「なんだこの本、随分と薄っぺらいんだね？」
+				PRINTFORMDL この薄い本の中に、先人たちの叡智が詰まっているのだ
+				PRINTFORMW 「ふうん？ よく分からんけど、とにかく凄い本だってことは分かったよ」
+			ENDIF
+		;保健体育
+		CASE 7
+			IF TALENT:恋慕
+				PRINTFORML 「女の体に興味があるってなら、私が一肌脱ごうじゃないか！」
+				PRINTFORMDL 勇儀が本当に服を脱ごうとしたので、%CALLNAME:MASTER%は慌ててそれを止めた
+				PRINTFORML 「なんだ？ 私じゃ力不足だってのか？」
+				PRINTFORMDW そういうわけじゃないですけど……
+			ELSE
+				PRINTFORML 「体の構造？ そんなもん学んで医者にでもなるつもりかい？」
+				PRINTFORMDW たしかに、お医者さんごっこは良いかもしれない……
+			ENDIF
+		;カーマスートラ
+		CASE 8
+			IF TALENT:恋慕
+				PRINTFORML 「ほほぉ、春画にしては珍しい描き方だ」
+				PRINTFORMDL いつのまにか勇儀に覗き見られていたようだ……
+				PRINTFORML 「覗くなって？ はっはっ、悪いね！」
+				PRINTFORMW 「うっかり目に入っちまったから、つい」
+			ELSE
+				;さとりは勇儀の思考を読んでたけどあえて答えなかったという感じ
+				PRINTFORML 「前に地霊殿に用があって行った時に、そこの主が似たような本を読んでたような」
+				PRINTFORML 「その時は興味も無かったらから聞かなかったけど、どんな本なんだ？」
+				PRINTFORMDW なんと答えるべきだろうか……
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;440,待つ
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_440
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_440_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_440_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;休憩から流用
+	CALL M_KOJO_MESSAGE_COM_K64_403_1
+ENDIF
+RETURN 1
+;==================================================
+;441,授業を受ける(慧音専用
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_441
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_441_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_441_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;442,伐採する（未実装
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_442
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_442_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_442_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;442以降のコマンドは、実行しても口上はおそらく表示されないのでテンプレでもスルー
+;==================================================
+
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;デート系コマンド
+;デート系口上は文字通り外出先で発生
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+[SKIPSTART]
+;現状未実装
+;==================================================
+;600,デート会話
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_600
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_600_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_600_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;601,デートスキンシップ
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_601
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_601_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_601_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;602,デートキス
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_602
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_602_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_602_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+[SKIPEND]
+;==================================================
+;603,手を繋ぐ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(失敗でもふりほどかれたりはしません
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_603
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_603
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_603_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_603_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TALENT:恋慕
+		PRINTFORML 「いいけど、向こうに着くまでだぞ？」
+		PRINTFORML 「なんでって……誰かに見られたら恥ずかしいじゃないか」
+		PRINTFORMDW 勇儀にもそういう感情があったんだ……思わず口に出そうになった言葉を%CALLNAME:MASTER%はグッと飲み込んだ
+	ELSEIF TALENT:思慕
+		PRINTFORMDL %CALLNAME:MASTER%が握った勇儀の手は、じっとりと汗ばんでいた
+		PRINTFORML 「汗ばんでるって？ はははッ！そりゃあんたも同じだよ！」
+		PRINTFORMDW 緊張しているのはお互い様……ということだろうか？
+	ELSE
+		PRINTFORML 「なんだか無性に腕相撲がしたくなってきた」
+		PRINTFORML 「ほら、あそこに丁度良い切株もあるし」
+		PRINTFORMDW だからどうしたというのだろうか……
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;604,散策する
+;デート中の場合、CFLAG:現在位置に移動先の場所が既に入ってる
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_604
+;散策するにはTRAIN_MESSAGEが無い
+CALL M_KOJO_MESSAGE_COM_K64_604_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_604_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;605,寄り道する
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文無し
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_605
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_605
+;寄り道するにはTRAIN_MESSAGEが無い
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K64_605_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_605_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	SELECTCASE TIME:5
+		;晴れ
+		CASE 0,1
+			IF TALENT:恋慕
+				PRINTFORML 「寄り道？ ああ、構わないよ」
+				PRINTFORML 「良い天気だし、散歩には丁度良い」
+				PRINTFORMDW %CALLNAME:MASTER%は勇儀と一緒に風景を楽しんだ
+			ELSE
+				PRINTFORML 「あん？ 行先はこっち……あー、なるほど」
+				PRINTFORML 「見張っとくから、ちゃっちゃと済ませとくれよ」
+				PRINTFORMDW どうやら勇儀は%CALLNAME:MASTER%が催したと勘違いしているようだ……
+			ENDIF
+		;曇り
+		CASE 2,3
+			IF TALENT:恋慕
+				PRINTFORML 「降り出したら厄介だ」
+				PRINTFORML 「念のため傘の用意はしておくんだよ？」
+				PRINTFORMDW そうそう天気は変わらないだろう。%CALLNAME:MASTER%は気にせず寄り道をすることにした
+			ELSE
+				PRINTFORML 「こういう中途半端な天気が一番面倒だねえ」
+				PRINTFORML 「雨が降り出す前にさっさと……って、おーいッ！」
+				PRINTFORMDL %CALLNAME:MASTER%がハッとして前を向くと、勇儀との距離が随分と離れていた
+				PRINTFORMDW 気になるものを見つける度に足を止めていたせいで、いつの間にか置いて行かれていたようだ……
+			ENDIF
+		;それ以外
+		CASEELSE
+			IF TALENT:恋慕 && !RAND:4
+				PRINTFORML 「雨見酒に雪見酒……悪天を肴に一杯ってのも偶には悪くない」
+				PRINTFORML 「あそこに都合よく屋台もあることだし、少し休んでいくとしよう」
+				PRINTFORMDW 足も痛くなってきたところだ。%CALLNAME:MASTER%は勇儀と屋台で休憩することにした
+				BASE:MASTER:体力 += 100
+				BASE:MASTER:気力 += 150
+				TIME += 60
+			ELSE
+				PRINTFORML 「こんな天気じゃなけりゃねえ……」
+				PRINTFORMDW 生憎の空模様なので、景色を楽しむことはできなかった
+			ENDIF
+	ENDSELECT
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;610,食事に誘う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_610
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_610
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_610_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_610_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;人間の里
+	IF CFLAG:MASTER:現在位置 / 100 == 2
+		IF TALENT:恋慕
+			;心綺楼人里ステージ背景の店で呑んでるイメージ
+			PRINTFORML 「前に地上で武闘会をやってた時は、ここから観戦してたっけなあ」
+			PRINTFORMDL 勇儀はその時のことを懐かしむように酒を呑んでいる
+			PRINTFORML 「……思い出したらウズウズしてきた、私も異変ってやつを起こしてみようかね」
+			PRINTFORMDW やめてください……
+		ELSE
+			PRINTFORMDL 適当な居酒屋で食事を取ることにした
+			PRINTFORML 「おう、ここで一番強い酒は？」
+			PRINTFORML 「鬼殺し？じゃあそれ、あるだけ全部持ってこい」
+			PRINTFORMDL 勇儀の注文に、給仕は目を丸くして固まっている
+			PRINTFORML 「どうした、聞こえなかったのか？難しい注文をしたつもりはないんだが」
+			PRINTFORMDW 少しだけ圧の込められた声に給仕は我を取り戻すと、慌ただしく走り出した……
+		ENDIF
+	;迷いの竹林
+	ELSEIF CFLAG:MASTER:現在位置 / 100 == 4
+		IF TALENT:恋慕
+			PRINTFORML 「なあ、地底で店持たないか？」
+			PRINTFORML 「諸々面倒なのは私が何とかするからさ。な、頼むよ！」
+			PRINTFORMDW 余程この屋台が気に入ったのか、勇儀は女将にアプローチを仕掛けている
+		ELSE
+			PRINTFORML 「おーい！ 串追加！あと酒！」
+			PRINTFORMDL %CALLNAME:MASTER%は忙しそうにしている女将を尻目に勇儀と屋台で呑んでいる
+			PRINTFORMW 「いやあ、酒が進む進む。地上の妖怪が足繁くのも頷けるよ」
+		ENDIF
+	;三途の川～冥界
+	ELSEIF CFLAG:MASTER:現在位置 / 100 == 6
+		IF TALENT:恋慕
+			PRINTFORML 「おお！祭りだ！%MASTERNAME:64%！祭りだよ！」
+			PRINTFORML 「祭りとくりゃ私の出番！ ほら、いくぞ！」
+			PRINTFORMDW テンション高めの勇儀に引っ張られ、%CALLNAME:MASTER%は屋台巡りを満喫した
+		ELSE
+			PRINTFORML 「いいねえ、この感じ」
+			PRINTFORML 「お祭り騒ぎには人間も妖怪も、幽霊だって関係ない」
+			PRINTFORMW 「そういうのが私は大好きだ」
+		ENDIF
+	;地底
+	ELSEIF CFLAG:MASTER:現在位置 / 100 == 9
+		IF TALENT:恋慕
+			PRINTFORML 「ここだよ、私の行きつけ」
+			PRINTFORML 「静かに呑みたい時はよく来てるんだ、萃香にも教えてない店さ」
+			PRINTFORMDL 扉を開け、出てきた店員に勇儀が一言二言話すと、すぐに奥の個室へと通された
+			PRINTFORML 「%MASTERNAME:64%には特別。他言無用だぞ？」
+			PRINTFORMDW 地底の店にしては珍しく落ち着いた雰囲気の中、勇儀と食事を楽しんだ
+		ELSE
+			PRINTFORML 「おう、お前ら！呑んでるか！」
+			PRINTFORMDL 居酒屋に入ると、鬼達の賑やかな声が出迎えてきた
+			PRINTFORML 「あー悪い、今日は先客が居るんだ。また今度呑み明かそう」
+			PRINTFORMDL ブーブー言う鬼達の間を通り抜け、空いた席へと座る
+			PRINTFORMW 「それじゃ、適当に頼んじまうよ。おーいッ！」
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;613,お金稼ぎする（オミットされました
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_613
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_613
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_613_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_613_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;614,食材の買い出し
+;TFLAG:193(1=購入＆デート経験アップ 0=購入 -1=非購入)
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_614
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_614_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_614_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;615,お弁当を食べる
+;実行可能場所　お地蔵通り,枝垂れ柳の下,霧の湖,玄武の沢,大蝦蟇の池,絶景の丘,山の湖,天界
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;ABL:料理技能(2未満=微妙な出来 4未満=そこそこ美味しい 4以上=絶品)
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_615
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K64_615_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_615_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	IF ABL:料理技能 <= 2
+		IF TALENT:恋慕
+			PRINTFORMDL 勇儀が作ってきてくれたお弁当を頂くことにした
+			PRINTFORML 「料理なんて滅多にしないからさ、苦労したよ」
+			PRINTFORMDL 勇儀が用意した弁当は……なんというか茶色の割合が多い
+			PRINTFORMDL これじゃあ弁当というより、まるでおつまみセットだ……
+			PRINTFORML 「よし、それじゃあ呑むとしようか！」
+			PRINTFORMDW やっぱりおつまみだったのか……
+		ELSE
+			PRINTFORMDL 勇儀が持ってきてくれたお弁当を頂くことにした
+			PRINTFORML 「行きつけの呑み屋に作らせたやつだ、味の方は保障するよ」
+			PRINTFORMDL 確かに美味しい……美味しいが……
+			PRINTFORMDW 勇儀の手作り弁当じゃなかったのが%CALLNAME:MASTER%は少しだけ残念だった
+		ENDIF
+	ELSE
+		IF TALENT:恋慕
+			PRINTFORML 「ほら%MASTERNAME:64%、これ好きだろ？」
+			PRINTFORMDL %CALLNAME:MASTER%は勇儀に甲斐甲斐しく世話されながら料理に舌鼓を打っている
+			PRINTFORML 「どうだ？ 少し味付けを変えてみたんだが……」
+			PRINTFORMDL 勇儀の料理はとても美味しい。%CALLNAME:MASTER%は素直な感想を伝えた
+			PRINTFORMW 「ふふ、そうか♪ 早起きして作った甲斐があったってもんだよ」
+		ELSE
+			PRINTFORML 「せっかく%MASTERNAME:64%に料理を教えてもらったわけだし、鈍らせるわけにはいかないからね」
+			PRINTFORML 「今回は腕によりをかけて作ってみたよ。さ、たんと食べな！」
+			PRINTFORMDL 修行の成果もあって勇儀はとても料理上手になった
+			PRINTFORMDW その勇儀が作ったお弁当は、とても美味しかった
+		ENDIF
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;617,甘味処に誘う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐は大成功のみ追加
+;==================================================
+@M_KOJO_SUCCESS_COM_K64_617
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K64_617
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_617_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_617_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE DAY:2
+		;春
+		CASE 1
+			IF TALENT:恋慕
+				PRINTFORML 「みたらし団子は酒とよく合うんだよ」
+				PRINTFORML 「本当だって！ ほれ、やってみな」
+				PRINTFORMDL 勇儀に勧められるがまま団子を肴に一杯やってみる
+				PRINTFORMDW 確かに、甘辛い醤油だれが日本酒とよく合った
+			ELSE
+				PRINTFORML 「甘いもんばっか食べたから、しょっぱいもんが欲しくなってきた」
+				PRINTFORML 「おーい、なにかつまみになるもん持って来とくれよ」
+				PRINTFORMDW 店員を困らせるんじゃありません
+			ENDIF
+		;夏
+		CASE 2
+			IF TALENT:恋慕
+				PRINTFORML 「%MASTERNAME:64%の冷やしぜんざいも旨そうだ」
+				PRINTFORML 「なあ、一口だけでいいからさ」
+				PRINTFORMDL 勇儀が物欲しそうにしていたので、%CALLNAME:MASTER%は少し分けてあげた
+				PRINTFORMW 「あむッ……んんッ！うまいッ！」
+			ELSE
+				PRINTFORMDL 勇儀と一緒にかき氷を食べることにした
+				PRINTFORML 「地底はムシムシと熱いから、こういった氷菓子は中々食べられない」
+				PRINTFORMW 「だから地上に居る内に味わっておかないと……くぅ～ッ、冷ッ！」
+			ENDIF
+		;秋
+		CASE 3
+			IF TALENT:恋慕
+				PRINTFORML 「ほら、熱いから気を付けな」
+				PRINTFORMDL %CALLNAME:MASTER%は勇儀と焼き芋を半分こして食べている
+				PRINTFORMW 「うん、やっぱり焼き芋は旨い。もっと買ってくるよ」
+			ELSE
+				PRINTFORML 「もみじ饅頭……もみじねえ」
+				PRINTFORML 「そんな名前の哨戒天狗が山に居たような気がするな」
+				PRINTFORML 「ま、どうでもいいことか」
+				PRINTFORMDW 勇儀は饅頭をつまむと、ひょいっと口の中に放り込んだ
+			ENDIF
+		;冬
+		CASE 4
+			IF TALENT:恋慕
+				PRINTFORML 「たい焼きっていうけど、本物の鯛を使ってるわけじゃないんだね」
+				PRINTFORML 「最後に鯛を食べたのはいつだったか……あれを肴に呑む酒はまた格別で……」
+				PRINTFORML 「……今度外の世界に出入りできるヤツに頼んでみるか」
+				PRINTFORMDW たい焼きだって十分美味しいのに……
+			ELSE
+				PRINTFORMDL 勇儀と甘味処で休憩することにした
+				PRINTFORML 「ふぅ、こう寒いと熱々のぜんざいが身に染みる」
+				PRINTFORMW 「旧都は冬でも暖かいからなあ……」
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;618,花屋（口上は表示されない模様？
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_618
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_618_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_618_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;620,鈴奈庵
+;TFLAG:193(1=貸し出しOK 0=貸し出し不可
+;ITEM:10X (X=1戦術指南書 X=2調理指南書 X=3字引 X=4御伽草子
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_620
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_620_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_620_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	SELECTCASE RAND:3
+		CASE 0
+			PRINTFORML 「目当てのもんはあったかい？」
+			PRINTFORML 「そいつは良かった、私も面白そうなもんを見つけたよ」
+			PRINTFORMDW 勇儀が本に興味を持つとは……%CALLNAME:MASTER%は少し意外に思った
+		CASE 1
+			PRINTFORML 「おーい、これ借りてくよ」
+			PRINTFORMDW 勇儀が手に持つ本の表紙には世界の名酒１００選と書かれている
+		CASE 2
+			PRINTFORML 「なぜだかここに来ると無性に火を付けたくなるんだよなぁ……」
+			PRINTFORML 「でっかい炎を肴に呑む酒はさぞ旨いことだろうねえ」
+			PRINTFORMDW 勇儀は一体何の話をしているのだろうか
+	ENDSELECT
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;621,釣りをする
+;TFLAG:193(0=釣れない 1～4=魚 11～15=うまい魚 610=木材 131=守矢の守札 21=ローター 609=氷の鱗 606=龍の爪)
+;TFLAG:194(1000以上ならTARGETが釣った)
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_621
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K64_621_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_621_1
+
+#DIM CHARA
+
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+;地の文をカットしてるのでMESSAGE処理を内蔵する
+IF LOCAL
+	CALL M_KOJO_COLOR_K64
+	SELECTCASE TFLAG:193
+		;釣れない
+		CASE 0
+			PRINTFORMDW 何も釣れなかった……
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ま、これも釣りの醍醐味ってね」
+					PRINTFORMDW 微動だにしないウキを勇儀と眺めた
+				CASE 1
+					PRINTFORML 「いっそ私が水に入って取った方が早いんじゃないか？」
+					PRINTFORMDW そんな熊じゃあるまいし……
+				CASE 2
+					PRINTFORML 「餌取られてるんじゃないか？ ちょっと上げてみなよ」
+					PRINTFORMDL 竿を上げてみると、針から餌が無くなっていた
+					PRINTFORMW 「はっはッ、向こうのが上手だったみたいだね」
+			ENDSELECT
+			RETURN 1
+		;木片
+		CASE 610
+			IF TFLAG:194 > 1000
+				PRINTFORMW 「こりゃ根掛かりだな……よっと」
+				PRINTL 
+				PRINTFORMDL %CALLNAME:TARGET%が木片を釣った…
+				PRINTW
+			ELSE
+				PRINTFORMDL 木片が釣れた……
+				PRINTW
+			ENDIF
+			PRINTFORMDL 立派な流木だ。一部のマニアには高く売れるだろう
+			PRINTFORMW 「ほお、それなら吞み代の足しくらいにはなるかねえ」
+			RETURN 1
+		;紙切れ
+		CASE 131
+			IF TFLAG:194 > 1000
+				PRINTFORML 「あん？ 何か引っ掛かってる」
+			ELSE
+				PRINTFORMDL 紙切れが釣れた
+			ENDIF
+			PRINTDW 
+			PRINTDL ┌─────────────┐
+			PRINTDL ｜　　　　　　　　　　　　　｜
+			PRINTDL ｜　　守矢の守札　　　　　　｜
+			PRINTDL ｜　　　　　　　　　　　　　｜
+			PRINTDL ｜　　五枚揃えると　　　　　｜
+			PRINTDL ｜　　　くじを一回引けます　｜
+			PRINTDL ｜　　　　　　　　　　　　　｜
+			PRINTDL ｜　ご利益は保証しかねます　｜
+			PRINTDL ｜　　　　　　　　　　　　　｜
+			PRINTDL ｜　　　　　　　　守矢神社　｜
+			PRINTDL └─────────────┘
+			PRINTW 
+			PRINTFORML 「守矢……守矢……ああ、山の神社のか」
+			PRINTFORMW 「こうやって捨てられてるってことは、あそこの信仰も大したことないのかな？」
+			RETURN 1
+		CASE 1 TO 20, 22 TO 60
+			LOCALS = %FISH_NAME(TFLAG:193)%
+		CASE 21
+			LOCALS = ローター
+		CASEELSE
+			LOCALS = %ITEMNAME:(TFLAG:193)%
+	ENDSELECT
+	;勇儀が釣った
+	IF TFLAG:194 > 1000
+		PRINTFORMW 「おッ！きたきたッ……」
+		PRINTL 
+		PRINTFORMDL %CALLNAME:TARGET%が%LOCALS%を釣った！
+		RESETCOLOR
+		;説明を流す
+		SELECTCASE TFLAG:193
+			CASE 1 TO 20, 22 TO 60
+				DRAWLINE
+				PRINTFORML %LOCALS%
+				CALL FISHING_EXPLANATION(TFLAG:193)
+			CASE IS > 61
+				DRAWLINE
+				PRINTFORML %LOCALS%
+				PRINTFORML 　　%ITEM_EXPLANATION(TFLAG:193)%
+		ENDSELECT
+		PRINTW 
+		CALL M_KOJO_COLOR_K64
+		SELECTCASE LOCALS
+			CASE "ローター"
+				PRINTFORML 「こりゃ……こりゃ何だ？」
+				PRINTFORMW 「%MASTERNAME:64%は何か知ってるかい？」
+			CASE "カエル"
+				PRINTFORML 「カエルか……食えないことはないけど」
+				PRINTFORMW 「せっかく釣れたし、これでポカン釣りでもしてみるかい？」
+			CASE "氷の鱗", "龍の爪", "龍涎香"
+				PRINTFORML 「はぁ……こりゃ食えそうにないねえ」
+				PRINTFORMDW 勇儀が捨てようとしたので%CALLNAME:MASTER%は慌てて阻止した
+			CASE "アマゴ", "ヤマメ", "イワナ", "ニジマス", "アユ", "ヒメマス", "クニマス"
+				PRINTFORML 「よしッ！ 今夜の肴はこいつで決まりだな」
+				PRINTFORML 「シンプルに塩焼きにするか……いや、天ぷらや甘露煮にするってのも……」
+				PRINTFORMDW ……なんだかお腹が減ってきた
+			CASE "ガーパイク", "サケ", "カムルチー", "チョウザメ", "シーラカンス", "イトウ", "ピラルクー", "タキタロウ", "アオウオ"
+				PRINTFORML 「おおッ！こいつは大物だ！」
+				PRINTFORML 「丸々と太って、食い出がありそうだよ！」
+				PRINTFORMDW ……魚を捕らえた熊……
+			CASE "ヤツメウナギ"
+				PRINTFORML 「おっしゃッ！ウナギ……じゃ、ない？なんだこりゃ」
+				PRINTFORMDL この特徴的な顔はヤツメウナギだろう
+				PRINTFORML 「へえ、こいつが！ 言われてみれば確かに精の付きそうな顔してるよ！」
+				PRINTFORMDW どういう顔だ
+			CASEELSE
+				PRINTFORML 「どうだ、私も中々やるだろ？」
+				PRINTFORMDW 勇儀は魚が釣れて嬉しそうにしている
+		ENDSELECT
+	;MASTERが釣った
+	ELSE
+		RESETCOLOR
+		PRINTFORMDL %LOCALS%が釣れた！
+		;ローター以降を弾いてサイズと漁獲数の処理
+		IF INRANGE(TFLAG:193, 1, 60) && TFLAG:193 != 21
+			;サイズの出力
+			LOCAL:1 = FISHING_SIZE(TFLAG:193)
+			PRINTFORML 　サイズ：{LOCAL:1}cm
+			;ここまでの最高サイズと比較して大きければ記録
+			IF LOCAL:1 > FISHSIZE_RECORD:(TFLAG:193)
+				SETCOLOR C_YELLOW
+				SIF FISH_EXP:(TFLAG:193)
+					PRINTFORML 　今まで釣った%LOCALS%の中でも最大サイズだ！
+				RESETCOLOR
+				FISHSIZE_RECORD:(TFLAG:193) = LOCAL:1
+			ENDIF
+			;漁獲数の加算
+			FISH_EXP:(TFLAG:193) ++
+		ENDIF
+		;説明を流す
+		SELECTCASE TFLAG:193
+			CASE 1 TO 20, 22 TO 60
+				DRAWLINE
+				PRINTFORML %LOCALS%
+				CALL FISHING_EXPLANATION(TFLAG:193)
+			CASE IS > 61
+				DRAWLINE
+				PRINTFORML %LOCALS%
+				PRINTFORML 　　%ITEM_EXPLANATION(TFLAG:193)%
+		ENDSELECT
+		PRINTW 
+		CALL M_KOJO_COLOR_K64
+		SELECTCASE LOCALS
+			CASE "ローター"
+				PRINTFORML 「こりゃ……こりゃ何だ？」
+				PRINTFORMW 「%MASTERNAME:64%は何か知ってるかい？」
+			CASE "カエル"
+				PRINTFORML 「カエルか……食えないことはないけど」
+				PRINTFORMW 「せっかく釣れたし、これでポカン釣りでもしてみるかい？」
+			CASE "氷の鱗", "龍の爪", "龍涎香"
+				PRINTFORML 「はぁ……こりゃ食えそうにないねえ」
+				PRINTFORMDW 勇儀が捨てようとしたので%CALLNAME:MASTER%は慌てて阻止した
+			CASE "アマゴ", "ヤマメ", "イワナ", "ニジマス", "アユ", "ヒメマス", "クニマス"
+				PRINTFORML 「よしッ！ 今夜の肴はこいつで決まりだな」
+				PRINTFORML 「シンプルに塩焼きにするか……いや、天ぷらや甘露煮にするってのも……」
+				PRINTFORMDW ……なんだかお腹が減ってきた
+			CASE "ガーパイク", "サケ", "カムルチー", "チョウザメ", "シーラカンス", "イトウ", "ピラルクー", "タキタロウ", "アオウオ"
+				PRINTFORML 「おおッ！こいつは大物だ！」
+				PRINTFORML 「丸々と太って、食い出がありそうだよ！」
+				PRINTFORMDW ……魚を捕らえた熊……
+			CASE "ヤツメウナギ"
+				PRINTFORML 「おっしゃッ！ウナギ……じゃ、ない？なんだこりゃ」
+				PRINTFORMDL この特徴的な顔はヤツメウナギだろう
+				PRINTFORML 「へえ、こいつが！ 言われてみれば確かに精の付きそうな顔してるよ！」
+				PRINTFORMDW どういう顔だ
+			CASEELSE
+				PRINTFORML 「おっ、やるじゃないか」
+				PRINTFORMW 「私も負けてられないな」
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;660,読書
+;TFLAG:193(選択肢文学(1=忍殺(文学？) 2=失敗 3=文学),選択肢実用書(4=失敗 5=実用書),選択肢エッチな本(6=薄い高い本 7=保健体育 8=カーマスートラ))
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_660
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_660_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_660_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	CALL M_KOJO_MESSAGE_COM_K64_436_1
+ENDIF
+RETURN 1
+;==================================================
+;698,部屋に入る
+;TARGETの部屋に入る場合のみ表示
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_698
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_698_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_698_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	;その日二回目以降部屋を訪ねた時
+	IF TCVAR:64:355 == 1
+		PRINTFORML 「どうした？呑み直したくなったか？」
+		PRINTFORMW 「それなら大歓迎だ！ほら、さっさと上がりなよ！」
+		TCVAR:64:356 = 1
+	;通常
+	ELSE
+		PRINTFORMDL 勇儀の家に入ると、予想通りというか大量の酒瓶が転がっていた
+		PRINTFORML 「なにかつまめるもん用意してくるから適当に座ってな」
+		PRINTFORMDL ……そう言われても座る場所が見当たらない
+		PRINTFORMDW 仕方ないので、%CALLNAME:MASTER%は勇儀が戻ってくるまでの間に部屋を片付けることにした
+		TCVAR:64:355 = 1
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;699,外に出る
+;==================================================
+@M_KOJO_MESSAGE_COM_K64_699
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K64_699_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K64_699_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	IF CFLAG:睡眠
+		PRINTFORMDL 勇儀はぐっすりと眠っている
+		PRINTFORMDW %CALLNAME:MASTER%は彼女を起こさないよう、そっと戸を開けた
+	;その日二回目以降部屋から出るとき
+	ELSEIF TCVAR:64:356 == 1
+		PRINTFORML 「今日は楽しめたよ。また今度一杯やろう」
+		PRINTFORMDW 満足気な表情の勇儀に見送られ、%CALLNAME:MASTER%は外へ出た
+	;通常
+	ELSE
+		PRINTFORML 「ん？もう帰んのかい？ なんだか呑み足りないねえ……」
+		PRINTFORML 「そうだ、今から呑みに行かないか？ 良い店があるんだよ！」
+		PRINTFORMDW 勇儀は%CALLNAME:MASTER%と呑みたがっている。どうしようか……
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;派生コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;60,耳かき
+;前ターン膝枕後スキンシップコマンド
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(失敗するのはTARGET
+;==================================================
+@M_KOJO_SUCCESS_SCOM_K64_60
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_SCOM_K64_60
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_SCOM_K64_60_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K64_60_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TALENT:恋慕
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORML 「ふーッ……ほら、終わったよ」
+				PRINTFORMDL 耳に息を吹き掛けられ、ビクッとして目が覚める
+				PRINTFORMDW 勇儀の耳かきが気持ち良すぎて、いつの間にか眠ってしまっていたらしい……
+			;成功
+			CASE 0
+				PRINTFORML 「よし、綺麗になったぞ」
+				PRINTFORML 「またして欲しくなったらいつでも言いな」
+				PRINTFORMDW 勇儀にしてもらう耳かきはとても気持ち良かった
+			;失敗
+			CASE -1
+				PRINTFORML 「あッ、やべッ！」
+				PRINTFORML 「……まあいいか」
+				PRINTFORMDW 全然よくない
+		ENDSELECT
+	ELSE
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORML 「よし、綺麗なもんだ」
+				PRINTFORML 「溜め込む前に自分でも掃除するんだよ？」
+				PRINTFORMDW ゴリゴリやられるかと思ったが、勇儀はとても優しく丁寧にやってくれた
+			;成功
+			CASE 0
+				PRINTFORML 「昔、萃香に頼まれて耳掃除をしてやったことがあってな」
+				PRINTFORML 「その時うっかり手を滑らせて、あいつの鼓膜を破いちまったんだ」
+				PRINTFORML 「それからすぐに萃香は地上に出て行って……いや、悪いことしたねぇ」
+				PRINTFORMDW その話今する必要ある……？
+			;失敗
+			CASE -1
+				PRINTFORML 「悪い悪い、手が滑った」
+				PRINTFORMDL 痙攣する%CALLNAME:MASTER%の耳には、まるで某伝説の剣のように耳かきが突き刺さっている
+				PRINTFORMW 「こういうこと慣れてないんだ、大目に見とくれよ」
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;61,抱きまくら
+;(TARGET睡眠時間or衰弱)添い寝中、前ターン抱きつく後就寝コマンド
+;分岐無し
+;==================================================
+@M_KOJO_MESSAGE_SCOM_K64_61
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_SCOM_K64_61_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K64_61_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;62,デコちゅー
+;前ターン頭撫で後キスする
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐無し
+;ABL:欲望(5以上=物足りない
+;ABL:親密(5以上=照れる
+;==================================================
+@M_KOJO_SUCCESS_SCOM_K64_62
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_SCOM_K64_62
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_SCOM_K64_62_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K64_62_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	IF CFLAG:睡眠
+		PRINTFORMDL 額にお休みのキスをしようと思ったが、角が邪魔でできない……
+		PRINTFORMDL 仕方がないので、%CALLNAME:MASTER%は勇儀の頬にそっとキスをしてあげた
+		PRINTFORMW 「んん……ｚｚｚ……」
+	;通常
+	ELSE
+		PRINTFORMDL 勇儀の額にキスをしようとしたが、角が邪魔でできない……
+		PRINTFORMDL 仕方がないので、%CALLNAME:MASTER%はもう一度頭を撫でてあげることにした
+		;頭撫でから流用
+		CALL M_KOJO_MESSAGE_COM_K64_309_1
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;63,もっとキスする
+;前ターンキスする後キスする
+;分岐条件はEVENT_MESSAGE_COM500.ERB参照
+;==================================================
+@M_KOJO_SUCCESS_SCOM_K64_63
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_SCOM_K64_63
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_SCOM_K64_63_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K64_63_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+		PRINTFORML 
+		RETURN 1
+	;押し倒され
+	ELSEIF CFLAG:うふふ == 2
+		CALL AUTO_AEGI
+		RETURN 1
+	;通常
+	ELSE
+		;恋慕
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL %CALLNAME:MASTER%は勇儀と貪るようにキスをしながら、口内で舌を塗り付けあった
+					CALL HPH_PRINT,@"「%MASTERNAME:64%……HPH ちゅ……ぢゅる……んッHPH」","L"
+					CALL HPH_PRINT,@"「はぁ……はぁ……HPH もう一回、いいだろ……？HPH」","L"
+					PRINTFORMDW 勇儀は頬を上気させ、期待するように%CALLNAME:MASTER%を見つめている……
+				CASE 1
+					CALL HPH_PRINT,@"「ん……もっと？ しょうがないヤツだねえ……HPH」","L"
+					CALL HPH_PRINT,@"「ほら……HPH ん……ぢゅる……ッHPH」","L"
+					PRINTFORMDW %CALLNAME:MASTER%は勇儀と情熱的に口付けを交わした……
+				CASE 2
+					CALL HPH_PRINT,@"「ぢゅる……ぢゅるる……ッHPH ごく……ッHPH」","L"
+					PRINTFORMDL 二人は濃厚な口付けを交わしながら、互いの唾液を交換しあった……
+					CALL HPH_PRINT,@"「ん、ふぅ……HPH 満足したかい……？HPH」","W"
+			ENDSELECT
+		;それ以外
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ちゅ……ちゅぱ……ッ ふ、んん……ッ」
+					PRINTFORMDL %CALLNAME:MASTER%は勇儀をギュッと抱き締め、口内で舌を絡ませている
+					PRINTFORMW 「ッ、はぁ……はぁ……ッ お前、激しすぎやしないか……？」
+				CASE 1
+					PRINTFORML 「む、ぅ……ん……ッ」
+					PRINTFORML 「ぷはッ……不意打ちはやめろって……」
+					PRINTFORMDW 唇を拭う勇儀は顔を赤くしている
+				CASE 2
+					PRINTFORML 「ん、むッ……ふぅ……んん……ッ」
+					PRINTFORMDL 勇儀をしっかりと抱き竦めながら、何度も何度も口付けを交わす
+					PRINTFORMDW 彼女の荒い鼻息が顔をくすぐるのも意に介さず、満足するまで唇を求め続けた
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;80,手を引く
+;デート出発後目的地に着くまでの間
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_SCOM_K64_80
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_SCOM_K64_80
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_SCOM_K64_80_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K64_80_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K64
+	IF TALENT:恋慕
+		PRINTFORML 「%MASTERNAME:64%と手を繋いで、景色を見ながら散歩……」
+		PRINTFORML 「こういうの、小さな幸せっていうのかねえ……」
+		PRINTFORMDW %CALLNAME:MASTER%が恋人のように指を絡ませると、勇儀も同じように手を握ってきた
+	ELSEIF TALENT:思慕
+		PRINTFORML 「そんなに急がなくてもいいじゃないか」
+		PRINTFORML 「せっかくなんだ、のんびり行こう」
+		PRINTFORMDL 確かに、少し急ぎ過ぎたかもしれない……
+		PRINTFORMDW %CALLNAME:MASTER%は歩を緩め、勇儀と並んで歩いた
+	ELSE
+		PRINTFORMDL %CALLNAME:MASTER%は勇儀の手を引いて歩いている
+		PRINTFORML 「なあ、いいだろ一勝負！」
+		PRINTFORML 「ほら！切株が！」
+		PRINTFORMDW しつこいな……
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1

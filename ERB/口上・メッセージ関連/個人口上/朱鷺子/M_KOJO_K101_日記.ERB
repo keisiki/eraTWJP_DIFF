@@ -1,0 +1,499 @@
+﻿;日記口上
+;テンプレの日記口上と小鈴口上を参考にして頂きました。それに倣って設定とかを書きます
+
+
+;朱鷺子さんは読書好きだけど書くのはそんなに……ってタイプ
+;あと知識はともかく自頭は若干緩い印象があるのでたまに硬い文体が崩れる
+
+
+;一日の終了時の流れ
+;@DIARY_TEXT_K101（日記本文）→@DIARY_AFTER_CHECK_K101（フラグの処理）
+
+
+;◆日記の仕様◆
+;※１@DIARY_BEFORE_CHECK_KXで日記のフラグが立つ。
+;→未読フラグ(2)が立っていると一日の終わりにデイリーイベントとして日記が読まれる（既読になる）。
+;→※２未読フラグ(3)が立っていると[日記を読む]で読む事ができる。読むと既読(1)になる。
+;※１各所イベント口上やコマンド口上でフラグを立たせても良いです。
+;※２基本的には未読(2)推奨です。既読(1)、未読(3)はワンステップ必要。
+
+;[日記を読む]には、持ち主が[恋慕]なら自由に読むことができ、
+;そうでない場合は恋慕でない人物がその場に居ない時、もしくは時間停止することで盗み読みできる。
+;拠点住民でないキャラは恋慕であれば自宅（お招き部屋）で読むことができる。
+
+;MAX_DIARY_PAGE:XX:0　キャラ番号XXの日記の最大ページ数　限度は101（1～100）
+;DIARY:XX:YY　　　　　キャラ番号XXの日記番号YYの情報
+;　　 3=未読　　　　　デイリーイベントで読まれない。[日記を読む]で読むと既読になる。
+;　　 2=未読　　　　　デイリーイベントで読まれる。読まれるまでは[日記を読む]では読めない。読まれると既読になる。
+;　　 1=既読　　　　　デイリーイベントで読まれない。[日記を読む]で読める。
+;　　 0=読めない　　　未解禁。
+;PAGESET:XX:YY　　　　キャラ番号XXの実際に書かれたYYページ目の日記番号。
+;=============================
+@DIARY_K101_EXIST
+;存在判定
+;0だと日記は書かれません。
+;=============================
+RETURN 1
+
+;=============================
+@DIARY_AFTER_CHECK_K101
+;デイリーイベントで日記が読まれた際の後処理。
+;フラグの管理等自由に扱って良い。
+
+;条件フラグのリセットや判定追加もここに 
+;たとえば：今日構ったフラグ
+;今日構った日記が表示した後、構ったフラグをリセット。
+; CFLAG:XX:今日構ったフラグ = 0
+;あるいは何かの状態が続くことがフラグの場合
+;例：好感度がほぼ変わらない日が続くと
+;「あなた」の態度が冷たいな～みたいな日記を書く
+; SIF CFLAG:XX:好感度 <= LAST_LP+3
+;   NOTOUCH_DAY ++
+;=============================
+
+
+;=============================
+@DIARY_BEFORE_CHECK_K101
+;常時チェックされる日記の状態情報。
+;ここでDIARY:XX:YYの更新を行う。
+;※DIARY:XX:0番は使えません。
+
+;ここで汎用発生条件を記入する
+;コマンド別の発生条件はM_KOJOの各ファイル中で追加してください。
+
+;基本的に発生条件には"DIARY:XX:YY == 0"を入れること。
+;そうしないと同じ日記が書かれたりしてしまう。
+
+;DIARY:XX:YY　　　　キャラ番号XXの日記番号YYの情報
+;　　 3=未読　　　　デイリーイベントで読まれない。[日記を読む]で読むと既読になる。
+;　　 2=未読　　　　デイリーイベントで読まれる。読まれるまでは[日記を読む]では読めない。読まれると既読になる。
+;　　 1=既読　　　　デイリーイベントで読まれない。[日記を読む]で読める。
+;　　 0=読めない　　未解禁。
+
+;○未読(2)にする場合（基本）
+;未読(2)にするとデイリーイベントとして発生し、一日の終わりに１つだけ読まれる。
+;複数のページが未読(2)になっている場合は番号が小さいものが読まれ、それ以外はリセット(0)される。
+;その為、複数同時に発生すると、発生したのに読まれずリセットされる場合もある。
+;未読(2)にするには単純にフラグに2を入れるだけで良い。
+
+;例１)初対面
+;SIF DIARY:XX:YY == 0 && CFLAG:XX:面識
+;	DIARY:XX:YY = 2
+
+;○未読(3)にする場合（応用）
+;未読(3)にするとデイリーイベントとして読まれず、書かれた時点で[日記を読む]によって読めるようになる。
+;プレイヤーが自主的に読まない限り読まれず、一日に複数ページ加筆される場合もある。
+;未読(3)にするにはフラグに3を入れた上で、CALL CHARA_DIARY_PAGESETTING(XX, YY)をする必要がある。
+
+;例２）好感度100以上
+;IF DIARY:XX:YY == 0 && CFLAG:XX:好感度 >= 100
+;	DIARY:XX:YY = 3
+;	CALL CHARA_DIARY_PAGESETTING(XX, YY)
+;ENDIF
+
+;例３）例２の日記が読まれた上で好感度1000以上
+;これをするとYYを読んだ直後にZZが書き込まれることも起こる。
+;IF DIARY:XX:ZZ == 0 && DIARY:XX:YY == 1 && CFLAG:XX:好感度 >= 1000
+;	DIARY:XX:ZZ = 3
+;	CALL CHARA_DIARY_PAGESETTING(XX, ZZ)
+;ENDIF
+
+;▽おせっかいな注釈
+;ファーストキスは基本的に全員[キス未経験]を所持しているので、"!TALENT:XX:キス未経験"で判定できます。
+;デート帰りのキスで分岐したいならデート帰りのキス口上でフラグを立てます。
+;その場合、通常のファーストキス喪失と重複しないように気をつけましょう。
+;処女喪失は初期設定で処女喪失している場合もあるので、処女喪失口上の方でフラグを立てた方が良いです。
+;その他告白・陥落等のイベントは各種イベント口上でフラグを立てます。初対面はそっちでも大丈夫です。
+;日付を正確に測るには別途フラグが必要です。例えば初めて会った日とか。
+;=============================
+;MAXPAGEはここで記入する
+MAX_DIARY_PAGE:101:0 = 100
+
+;初対面
+SIF DIARY:101:1 == 0 && CFLAG:101:面識
+DIARY:101:1 = 3
+CALL CHARA_DIARY_PAGESETTING(101,1)
+
+
+;好感度100
+IF DIARY:101:2 == 0 && CFLAG:101:好感度 >= 100
+DIARY:101:2 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,2)
+ENDIF
+
+;好感度300
+IF DIARY:101:3 == 0 && CFLAG:101:好感度 >= 300
+DIARY:101:3 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,3)
+ENDIF
+
+;好感度600
+IF DIARY:101:4 == 0 && CFLAG:101:好感度 >= 600
+DIARY:101:4 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,4)
+ENDIF
+
+;好感度1000
+IF DIARY:101:5 == 0 && CFLAG:101:好感度 >= 1000
+DIARY:101:5 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,5)
+ENDIF
+
+;思慕
+IF DIARY:101:6 == 0 && TALENT:101:思慕
+DIARY:101:6 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,6)
+ENDIF
+
+;思慕+好感度2000
+IF DIARY:101:7 == 0 && TALENT:101:思慕 && CFLAG:101:好感度 >= 2000
+DIARY:101:7 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,7)
+ENDIF
+
+;思慕+好感度2500
+IF DIARY:101:8 == 0 && TALENT:101:思慕 && CFLAG:101:好感度 >= 2500
+DIARY:101:8 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,8)
+ENDIF
+
+;思慕+好感度2500+信頼度300
+IF DIARY:101:9 == 0 && TALENT:101:思慕 && CFLAG:101:好感度 >= 2500 && CFLAG:101:信頼度 >= 300
+DIARY:101:9 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,9)
+ENDIF
+
+;恋慕
+IF DIARY:101:10 == 0 && TALENT:101:恋慕
+DIARY:101:10 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,10)
+ENDIF
+
+;恋人
+IF DIARY:101:11 == 0 && TALENT:101:恋人
+DIARY:101:11 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,11)
+ENDIF
+
+;初期から存在
+CALL CHARA_DIARY_PAGESETTING(101,12)
+CALL CHARA_DIARY_PAGESETTING(101,13)
+CALL CHARA_DIARY_PAGESETTING(101,14)
+CALL CHARA_DIARY_PAGESETTING(101,15)
+CALL CHARA_DIARY_PAGESETTING(101,16)
+
+;汎用(10日以降)
+SIF DAY >= 10 
+CALL CHARA_DIARY_PAGESETTING(101,17)
+CALL CHARA_DIARY_PAGESETTING(101,18)
+CALL CHARA_DIARY_PAGESETTING(101,19)
+
+;汎用(30日以降)
+SIF DAY >= 30 
+CALL CHARA_DIARY_PAGESETTING(101,20)
+CALL CHARA_DIARY_PAGESETTING(101,21)
+CALL CHARA_DIARY_PAGESETTING(101,22)
+
+
+;汎用(60日以降)
+SIF DAY >= 60
+CALL CHARA_DIARY_PAGESETTING(101,23)
+CALL CHARA_DIARY_PAGESETTING(101,24)
+CALL CHARA_DIARY_PAGESETTING(101,25)
+
+;汎用(100日以降)
+SIF DAY >= 100 
+CALL CHARA_DIARY_PAGESETTING(101,26)
+CALL CHARA_DIARY_PAGESETTING(101,27)
+CALL CHARA_DIARY_PAGESETTING(101,28)
+
+;汎用(150日以降)
+SIF DAY >= 100 
+CALL CHARA_DIARY_PAGESETTING(101,29)
+CALL CHARA_DIARY_PAGESETTING(101,30)
+CALL CHARA_DIARY_PAGESETTING(101,31)
+
+;好感度5000
+IF DIARY:101:95 == 0 && CFLAG:101:好感度 >= 5000
+DIARY:101:95 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,95)
+ENDIF
+
+;好感度10000
+IF DIARY:101:96 == 0 && CFLAG:101:好感度 >= 10000
+DIARY:101:96 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,96)
+ENDIF
+
+;好感度20000
+IF DIARY:101:97 == 0 && CFLAG:101:好感度 >= 20000
+DIARY:101:97 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,97)
+ENDIF
+
+;好感度30000
+IF DIARY:101:98 == 0 && CFLAG:101:好感度 >= 30000
+DIARY:101:98 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,98)
+ENDIF
+
+;好感度40000
+IF DIARY:101:99 == 0 && CFLAG:101:好感度 >= 40000
+DIARY:101:99 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,99)
+ENDIF
+
+;好感度50000
+IF DIARY:101:100 == 0 && CFLAG:101:好感度 >= 50000
+DIARY:101:100 = 3
+	CALL CHARA_DIARY_PAGESETTING(101,100)
+ENDIF
+;=============================
+@DIARY_TEXT_K101, PAGENUM, MODE, PAGECOUNT
+;日記の内容
+;PAGENUM   = 日記番号（日記のパターン）
+;MODE      = "デイリー":一日終了時のデイリーイベントでの読み上げ
+;          = "コマンド":[日記を読む]コマンドでの読み上げ
+;PAGECOUNT = 何ページ目に書かれているか
+;=============================
+#DIM PAGENUM
+#DIMS MODE
+#DIM PAGECOUNT
+
+;口上色指定あるならコメントアウトを外す
+;CALL M_KOJO_COLOR_KX
+
+;グループマッチに日記のIDを入れて、表示させたい顔絵を表示する
+;表情・服装・特殊画像をオプション指定で表示（省略可）
+;書式は\resources\顔.CSVと下の例を参照
+
+;以下はサンプル
+;IF MODE == "デイリー"
+;	IF GROUPMATCH(PAGENUM, 1) 
+;		CALL PRINT_FACE, XX, "発情", "裸", "_1"
+;	ELSEIF GROUPMATCH(PAGENUM, 2)
+;		CALL PRINT_FACE, XX, "笑顔", "服1"
+;	ELSEIF GROUPMATCH(PAGENUM, 3)
+;		CALL PRINT_FACE, XX, "怒り"
+;	ELSE
+;		CALL PRINT_FACE, XX
+;	ENDIF
+;ENDIF
+
+PRINTFORMDL - 朱鷺子の日記　PAGE.{PAGECOUNT} --------------------------------------------------------------------------------------
+PRINTL
+
+;※PAGENUM:0は使えません
+SELECTCASE PAGENUM
+	CASE 1
+		PRINTFORML 今日見かけない人物と出会った。
+		PRINTFORML そして私の事を朱鷺子と呼んでも良いかと言ってきた。
+		PRINTFORML 変な奴だ。
+	CASE 2
+		PRINTFORML 最近、たまに会う人間と話した。
+		PRINTFORML 相変わらず私のことを朱鷺子と呼ぶ変な奴だけど、まぁ悪い気はしない。
+		PRINTFORML 名前で呼ばれるなんて変な気持ちだ。
+	CASE 3
+		PRINTFORML 今日もあの人間と話した。
+		PRINTFORML 何回も会っていると段々人柄も見えてくる。
+		PRINTFORML 悪い奴では無いと思うが、なんだか妙に余裕があるというか……不思議な奴だ。
+	CASE 4
+		PRINTFORML あの人間とは割と顔見知りになりつつある。
+		PRINTFORML それに朱鷺子って呼ばれるのもなんだか慣れてきた。
+		PRINTFORML 今度会う時は何の話をしようか。
+	CASE 5
+		PRINTFORML それにしても気が付けばあの人間と大分仲良くなった気がする。
+		PRINTFORML 始めは変な奴だと思ってたけど話せば意外とまともだった。
+		PRINTFORML そろそろ名前ぐらいちゃんと覚えないと……。
+	CASE 6
+		PRINTFORML あの人間の名前……そう%CALLNAME:MASTER%の名前はもうバッチリだ。
+		PRINTFORML それにしても%CALLNAME:MASTER%の事を考えると何だか不思議な気持ちになる。
+		PRINTFORML ………変な奴と仲良くなったせいで変になっちゃったのかな。
+		PRINTFORML でも何だかそれも悪い気は全然しない。
+	CASE 7
+		PRINTFORML 今日も%CALLNAME:MASTER%と会った。
+		PRINTFORML やっぱり%CALLNAME:MASTER%と話すと楽しい。
+		PRINTFORML 本を読むのと同じくらい、もしかしたらそれ以上に。
+	CASE 8
+		PRINTFORML 最近は何故だか%CALLNAME:MASTER%の事を考えることが増えたと思う。
+		PRINTFORML 考えると胸が熱くなるというか、何というか………。
+		PRINTFORML 取り敢えず寝る前に本を読んで気分を落ち着かせよう。
+	CASE 9
+		PRINTFORML ………本に集中できない。
+		PRINTFORML 何かに没頭しようとするとすぐに%CALLNAME:MASTER%の顔が浮かんでくる。
+		PRINTFORML どうしちゃったんだろう私………。
+	CASE 10
+		PRINTFORML 気付いてしまった。
+		PRINTFORML いや、もっと前から本当は気付いてたのかもしれない。
+		PRINTFORML でも自覚するのが怖くて考えないようにしていたのかもしれない。
+		PRINTFORML だけどもうこの気持ちから逃げる事は出来ない。
+		PRINTFORML 私は%CALLNAME:MASTER%に恋してしまった。
+		PRINTFORML どうしようも無く好き。
+		PRINTFORML 次回の日記は1枚飛ばして書こう。…………飛ばしたページは恋人になれた日に書こう。
+	CASE 11
+		PRINTFORML こんな日が来るなんて思っても居なかった。
+		PRINTFORML %CALLNAME:MASTER%と恋人になれるなんて。
+		PRINTFORML 日記を書く手は今でも震えている。
+		PRINTFORML 本当に本当なんだ……考えれば考える程喜びが溢れ出てくる。
+		PRINTFORML ありがとう、%CALLNAME:MASTER%。大好き、%CALLNAME:MASTER%。
+		PRINTFORML 今はそれだけしか考えられない。
+		PRINTFORML これから私は長く生きていくだろうけど、今日の事を忘れる事は無いと思う。
+	CASE 12
+		PRINTFORML 今日は人里の貸本屋で借りた本を読んだ。
+		PRINTFORML 推理小説は面白かったけど、恋愛小説の方は読んでるこっちが恥ずかしくなってきた。
+		PRINTFORML 今度は何を借りようかな。
+	CASE 13
+		PRINTFORML 部屋の掃除をしてたら失くしてた本を見つけた。
+		PRINTFORML ただ、埃まみれだったし何よりカビだらけでとても読めたもんじゃなかった。
+	CASE 14
+		PRINTFORML 散歩してたら丁度良い切り株を見つけた。
+		PRINTFORML 日が丁度当ってぽかぽかする。
+		PRINTFORML 今度は本を持って行こうかな。
+	CASE 15
+		PRINTFORML あても無く空を飛んでたら本を盗んだ巫女を見つけた。
+		PRINTFORML 改めて不意打ちで弾幕を仕掛けたら返り討ちにされた。
+		PRINTFORML 全身が痛い。
+	CASE 16
+		PRINTFORML 外から来た本で"ぷろぐらみんぐ"とやらについて書かれた本を読んだ。
+		PRINTFORML 内容は殆ど理解出来なかったけど式神みたいなものだろうか。
+		PRINTFORML どちらにせよ私には無縁のものだろう。
+	CASE 17
+		PRINTFORML 今日は竹林の屋台の女将と会った。
+		PRINTFORML 近々ライブをやるというので誘われた。
+		PRINTFORML その日の予定は無かったので行こうと思う。
+	CASE 18
+		PRINTFORML 借りていた本の返却日が明日だったことに気付いた。
+		PRINTFORML 危なかったけど思い出せて良かった。
+	CASE 19
+		PRINTFORML 人里に寄った帰りに居酒屋で食事を取った。
+		PRINTFORML 初めて行った所だったけど店の雰囲気も良くて良かったと思う。
+		PRINTFORML また行こうかな。
+	CASE 20
+		PRINTFORML 鳥獣伎楽のライブに行った。
+		PRINTFORML 普段ライブとかはあんまり行かないけど楽しかった。
+		PRINTFORML また誘われたら行きたい。
+	CASE 21
+		PRINTFORML 日記を書こうと思ったら筆が壊れてしまった。
+		PRINTFORML なので新しい筆を買い替えてみた。
+		PRINTFORML まだ書きなれないけどそのうち慣れてくるだろう。
+	CASE 22
+		PRINTFORML 面白い本を見つけた。
+		PRINTFORML 本当に面白い本は外で読まずに部屋に持って帰る。
+		PRINTFORML これは前に本を盗られた経験から得た教訓だ。
+	CASE 23
+		PRINTFORML 一度、部屋に溜まった本の整理をしてみた。
+		PRINTFORML けど面白い本を読んでたら時間が経ってあんまり進まなかった。
+		PRINTFORML 明日はちゃんと続きをしよう。
+	CASE 24
+		PRINTFORML 空で弾幕ごっこをしているのを見かけた。
+		PRINTFORML 私の弾幕は完全に初見殺しなので、無暗に出さないようにしている。
+		PRINTFORML ………そろそろ正面からの弾幕も考えないと。
+	CASE 25
+		PRINTFORML 今日の散歩で変な本を拾った。
+		PRINTFORML 恐らく妖魔本という奴だろう。
+		PRINTFORMW 厄介な事になる前に何処かに投げ捨てた。
+		PRINTFORML 
+		PRINTFORML 追記：人里の貸本屋の所の子が捨てた妖魔本に似てる本を持ってた気がする……。気のせいだと信じよう。
+	CASE 26
+		PRINTFORML 日記を書き始めて大分経った気がする。
+		PRINTFORML 自分でも良く続いてると思う。
+		PRINTFORML 飽きるまで続けよう。
+	CASE 27
+		PRINTFORML 弾幕の改良をした。
+		PRINTFORML 結構な自信作だったので魔法の森にいる白黒の魔法使いに挑んでみようと思う。
+		PRINTFORML 負けそうになったら逃げよう。
+	CASE 28
+		PRINTFORML 人里の帰りにまたあの居酒屋に行った。
+		PRINTFORML 美味しかった。
+		PRINTFORML また用事があれば行こう。
+	CASE 29
+		PRINTFORML 白黒の魔法使いに挑んだが返り討ちに遭った。
+		PRINTFORML 逃げようとしたら大人げなくスペルカードを使われた。
+		PRINTFORML また改良しないと……。
+	CASE 30
+		PRINTFORML 竹林の屋台に行った。
+		PRINTFORML 女将と談笑してたらいつしか酔っぱらっていたみたいだ。
+		PRINTFORML 頭が痛い。
+	CASE 31
+		PRINTFORML 今日は貸本屋で本を借りた。
+		PRINTFORML 何故か恋愛小説ばっかり借りてしまったが結構面白かった。
+		PRINTFORML 期限まで何回か読み返そうかな。
+	CASE 95
+		PRINTFORML 今日も%CALLNAME:MASTER%に会った。
+		PRINTFORML 恋愛感情抜きに私と相性が良いのかもしれない。
+		PRINTFORML とにかく話してて楽しい。それが好きってことなのかもしれないけど。
+	CASE 96
+		PRINTFORML %CALLNAME:MASTER%と出会ってどれくらい経つだろうか。
+		PRINTFORML …………まぁ過去の事を考えるよりもこれからの事を考えた方が良いか。
+		PRINTFORML %CALLNAME:MASTER%とずっと一緒に居れれば良いなぁ～。
+	CASE 97
+		PRINTFORML 私の%CALLNAME:MASTER%を思う気持ちが止まらない。
+		PRINTFORML 正直、ある程度の所で好きさ加減が収まると思ってた。
+		PRINTFORML すごい。今も止まらずどんどん好きになってく。
+		PRINTFORML どこまで好きになっちゃうんだろう。
+	CASE 98
+		PRINTFORML %CALLNAME:MASTER%のことを書いてるページもかなり増えたと思う。
+		PRINTFORML 今になって読み返すと『変な奴』だと書いてあって噴き出しそうになった。
+		PRINTFORML 今も昔も%CALLNAME:MASTER%は変な奴だ。
+		PRINTFORML 変わったのは私が%CALLNAME:MASTER%に対して抱いている気持ちだ。
+	CASE 99
+		PRINTFORML %CALLNAME:MASTER%と出会ってから毎日が充実している気がする。
+		PRINTFORML 嫌な事とかも勿論あったけど、すぐに忘れてしまう。
+		PRINTFORML いつまでもそんな日が続いて欲しい。
+		PRINTFORML ………そろそろ日記のページも減ってきた。そろそろ買い替えないと。
+	CASE 100
+		PRINTFORML 遂に最後のページだ。
+		PRINTFORML 特に何かを書くつもりとか決めていた訳じゃないから筆が止まってしまう。
+		PRINTFORMW だから誰かに見せるという訳じゃ無いけど%CALLNAME:MASTER%に感謝の気持ちを書いてこの日記を終わらせようと思う。
+		PRINTFORMW 
+		CALL PRINT_FACE, 101, "笑顔", "服"
+		PRINTFORML ありがとう、%CALLNAME:MASTER%。あなたに出会えてとってもとっても嬉しい。
+		PRINTFORML だからこれからもよろしくね！
+ENDSELECT
+
+RESETCOLOR
+
+;=============================
+@M_KOJO_MESSAGE_COM_K101_406
+;=============================
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K101_406_1
+RETURN RESULT
+
+;=============================
+@M_KOJO_MESSAGE_COM_K101_406_1
+;コマンド口上
+;TFLAG:194（誰の日記を読んでいるか）
+;TFLAG:194がXXでない場合は他人の日記なので注意。
+;PAGEは書かれてあるページ数。
+;SHIRAHU(XX)はキャラXXの状態が正常かどうか。
+;=============================
+#DIM PAGE
+
+;以下はサンプル
+PAGE = 0
+FOR LOCAL, 0, MAX_DIARY_PAGE:(TFLAG:194):0
+	IF GROUPMATCH(DIARY:(TFLAG:194):LOCAL, 1, 3)
+		PAGE ++
+	ENDIF
+NEXT
+
+;IF SHIRAHU(XX) && TFLAG:194 == XX
+;日記を読み終わった後の反応
+;	IF PAGE > 2
+;		CALL SPTALK, XX,"通常",0,@"「日記を見せるって…なんだか恥ずかしいな…」//%CALLNAME:XX%はまじまじとこちらを見つめている"
+;		;画像つきトークは最大６行まで。
+;	ELSE
+;		PRINTFORML 
+;	ENDIF
+;ENDIF
+
+;=============================
+@M_KOJO_PAGESETTING(ARG)
+;日記発生処理の一括管理関数
+;=============================
+SIF DIARY:[[朱鷺子]]:ARG != 0
+	RETURN
+
+	DIARY:[[朱鷺子]]:ARG = 3
+CALL CHARA_DIARY_PAGESETTING([[朱鷺子]], ARG)

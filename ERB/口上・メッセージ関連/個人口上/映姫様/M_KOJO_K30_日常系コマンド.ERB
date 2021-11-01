@@ -642,9 +642,18 @@ IF LOCAL
 						PRINTFORMW 「………………………………」
 						PRINTFORMW 「………………………………」
 					CASE 6, 9
-						IF TALENT:妊娠願望 || GETBIT(CFLAG:1502, 3)
+						IF TALENT:妊娠願望 || GETBIT(CFLAG:1502, 4)
 							PRINTFORML 「……私も\@ !EXP:出産経験 ? 早く逢いたいです # また欲しいですよ \@。%K30_C_NAME(MASTER)%との、赤ちゃん」
 							PRINTFORMW 「……頑張りましょうね♥」
+						ELSEIF TALENT:育児中 || TALENT:妊娠
+							PRINTFORML 「確かに\@ TALENT:育児中 ? %SHOW_CHILDNAME(30)% # この子 \@にも、弟や妹がいた方がいいんでしょうけど…」
+							PRINTFORMW 「\@ TALENT:育児中 ? 今は%SHOW_CHILDNAME(30)%だけで精いっぱいかも # 少し、気が早すぎます \@…」
+						ELSEIF GETBIT(CFLAG:1502, 3)
+							PRINTFORMW 「本気、なんですね……？」
+							PRINTFORMW 「貴方が望むように…私だって…同じです」
+							PRINTFORMW 「%K30_C_NAME(MASTER)%…また、いっしょに頑張ってくれますか？」
+							PRINTFORMDW 映姫は%CALLNAME:MASTER%との子どもを再び強く望むようになった
+							SETBIT CFLAG:1502, 4
 						ELSE
 							PRINTFORML 「……………本気、なんですね……」
 							PRINTFORMDW 映姫は俯いてしまい表情もよく読み取れない……
@@ -869,7 +878,7 @@ IF LOCAL
 						PRINTFORML 「収穫祭を前にして人里の皆がなんだかそわそわしています」
 						PRINTFORMW 「おかげでいつも以上に私の話が上の空で困ります…」
 					;ハロウィン前
-					ELSEIF INRANGE(DAY:3, 28, 29)
+					ELSEIF GROUPMATCH(DAY:3, 28, 29)
 						PRINTFORML 「ハロウィンを前にして里の子供たちがすっかり浮かれてしまって…」
 						PRINTFORML 「しかもなぜか妖怪たちまで一緒に浮かれています」
 						PRINTFORMW 「そんなにお菓子が欲しいのでしょうか…」
@@ -1039,7 +1048,7 @@ IF LOCAL
 				ENDIF
 			;三途の川
 			CASE 620
-				IF YOUBI_MATCH(DAY, "月水金") && INRANGE(TIME / 60, 10, 15) && ((CFLAG:[[小町]]:現在位置 == 三途の川 && MAIN_MAP != 6) || (CFLAG:[[小町]]:現在位置 == 602 && MAIN_MAP == 6)) && !CFLAG:76:産休中
+				IF YOUBI_MATCH(DAY, "月水金") && INRANGE(TIME / 60, 10, 15) && ((CFLAG:[[小町]]:現在位置 != 三途の川 && MAIN_MAP != 6) || (CFLAG:[[小町]]:現在位置 != 602 && MAIN_MAP == 6)) && !CFLAG:76:産休中
 					PRINTFORML 「……やっぱり小町の船はつなぎっぱなし。おかしなこともあったものです」
 					PRINTFORMW 「またあの子とはしっかりとお話をしなければいけません」
 				ELSEIF RAND:2 == 1
@@ -1355,7 +1364,8 @@ ELSEIF (TALENT:思慕 && !RAND:3 ==0) || TALENT:恋慕
 			PRINTFORMW 「何でも行く先々で掃除されてるとか。良い心掛けですね」
 	ENDSELECT
 ELSE
-	SELECTCASE RAND:19
+	;更新履歴に書いてないけど小言だけはちょくちょく増えてる
+	SELECTCASE RAND:23
 		CASE 0
 			PRINTFORML 「お説教ばかり？　私は正しい道の在り方を説くだけです」
 			PRINTFORMW 「罪を重ねる疚しさがあるからこそ、それが説教に聞こえるのですよ」
@@ -1417,7 +1427,7 @@ ELSE
 				PRINTFORMW 「いきなり現れた貴方を手元に置くほど信頼している仲なのですか…？」
 				PRINTFORMW 「まさか、弱味を握って脅迫…なんて、やってませんよね」
 			ELSEIF (CFLAG:1900 % 3 == 1 ) && RAND:2 == 1
-				PRINTFORML 「幻想郷に引っ越すまでは理解出来ますが、そこでまず彼岸を選ぶことがよくわかりません」
+				PRINTFORML 「幻想郷に引っ越すまではまだ理解出来ますが、そこでまず彼岸を選ぶことがよくわかりません」
 				PRINTFORMW 「普通ならそのまま死んでしまうのでは…とか、そういう心配をするはずですが…」
 			ELSE
 				PRINTFORML 「女性ばかりの場所に貴方のような方が住んでいると少し心配になります」
@@ -1489,13 +1499,56 @@ ELSE
 		CASE 19
 			IF ABL:MASTER:話術技能 > 3
 				PRINTFORML 「それにしても貴方はよく口の回る方ですね」
-				PRINTFORML 「いえ、別に悪いことではありません」
+				PRINTFORML 「いえ、別に悪いことではありませんが」
 				PRINTFORML 「しかし、立て板に水の弁舌も誠実さが無ければ空虚なもの」
 				PRINTFORMW 「そこは間違えないようにしてください」
 			ELSE
 				PRINTFORML 「私の話しを最初から全部理解しろとは言いません」
 				PRINTFORML 「ただ頭の片隅にでも置いて、毎日少しづつ引き出してほしいのです」
 				PRINTFORMW 「積み重ねてこその善行です。思いつきや気まぐれですることではありませんから」
+			ENDIF
+		CASE 20
+			;セフレ+愛人の人数を算出
+			LOCAL = (SUMCARRAY(TALENT:セフレ, 1) - CMATCH(TALENT:セフレ, 2, 1))
+			IF !LOCAL
+				PRINTFORML 「幻想郷に自分の意思で来る方も、稀ではありますが見かけます」
+				PRINTFORML 「わざわざ引っ越してきた貴方は間違いなく自分の意思で来たのでしょう」
+				PRINTFORML 「何が目的かは\@ TALENT:思慕 ? いまさら # あえて \@詮索はしません」
+				PRINTFORMW 「けれども、道を踏み外すようなことだけはしないでください」
+			ELSE
+				SELECTCASE LOCAL
+					CASE IS > 9
+						PRINTFORML 「貴方はこの幻想郷へ女性を漁りにきたのですか？」
+						PRINTFORMW 「小耳に挟む限りでも本当に酷い噂しか聞きません」
+						PRINTFORML 「今が楽しければどうでもいいというのならそれまでですが…」
+						PRINTFORMW 「断言しましょう。そんな生き方はきっと後悔しますよ」
+					CASE IS > 4
+						PRINTFORML 「噂で聞きましたが貴方はずいぶん爛れた女性関係をお持ちのようで…」
+						PRINTFORML 「本人の自由意思であれば私が押し留めるものでもありませんが」
+						PRINTFORMW 「あまりに女性を弄ぶようなことは控えるべきでしょう」
+						PRINTFORMW 「さもなければ、暗い夜道でいきなり誰かに…なんてことも充分ありえます」
+					CASE IS > 0
+						PRINTFORML 「貴方にはずいぶん親しい付き合いをされてる方が何人もいるそうですね」
+						PRINTFORML 「皆さん木石の類ではないので、そういう事になるのもまあ理解はできます」
+						PRINTFORMW 「ただ節度だけは守ってくださいね」
+				ENDSELECT
+			ENDIF
+		CASE 21
+			PRINTFORML 「小人閑居して不善をなす…」
+			PRINTFORML 「ええ、貴方のような方がプラプラしているを見ると、とても心配になります」
+			PRINTFORMW 「身近な人の仕事のお手伝いとか、ちゃんと探せばいくらでもやることはありますよ」
+		CASE 22
+			IF ABL:MASTER:教養 > 3
+				PRINTFORML 「それにしても貴方はずいぶん博識な方ですね」
+				PRINTFORMW 「……なるほど、こちらに来てからしっかり勉強をされたと」
+				PRINTFORML 「確かに幻想郷では外の世界には無い知識に触れる機会も多いでしょう」
+				PRINTFORML 「けど、気をつけてください。蓄えた知識は人のため自分のために生かしてこそです」
+				PRINTFORMW 「単に頭でっかちになるだけではいけませんよ」
+			ELSE
+				PRINTFORML 「外の世界では居ながらにして様々な知識や情報を手に入れられる道具があると聞きました」
+				PRINTFORML 「その力は私の持つ浄玻璃の鏡すらある意味では凌ぐとか」
+				PRINTFORML 「ただ、あまりに便利すぎる力や道具は何かしら弊害が出るものです」
+				PRINTFORMW 「その点、外の世界の方は大丈夫なのかと少し心配になります」
 			ENDIF
 	ENDSELECT
 ENDIF
@@ -1744,7 +1797,8 @@ IF LOCAL
 			ENDIF
 			RETURN 1
 		ELSEIF 仕事中チェック(30) && CFLAG:30:職種 == 43
-			;午後の仕事中。大成功・失敗・ブチギレ中・変Ｔは通常へ流す
+			;午後の仕事中
+			;大成功・失敗・ブチギレ中・変Ｔは通常へ流す
 			SIF TIME > 720 && (TFLAG:193 != 0 || CFLAG:318 == 1 || CFLAG:30:衣装一時変更 == 62)
 				GOTO OTHER
 			SIF TIME > 720
@@ -3405,7 +3459,7 @@ IF LOCAL
 				PRINTFORMW 
 				PRINTFORMW 「んっ、んふっ♥　くちゅ……んっ、くちゅ……ぷはっ♥」
 				PRINTFORMDL 口づけを終えた映姫の瞳は怪しい光を帯び、纏っている雰囲気までいつもと違っている
-				PRINTFORMDW 淫蕩な笑みを浮かべるその姿は、厳格な閻魔様とはまるで正反対の存在のように映った
+				PRINTFORMDW 蠱惑的な笑みを浮かべたその姿は厳格な閻魔様とはまるで正反対の存在\@ TCVAR:30:379 > 5 ? 、まさに[淫乱]そのものの # \@ように映った…
 				SELECTCASE  TCVAR:30:379
 					CASE 1, 6
 						PRINTFORML 「ちょっと飲むだけで、男の人にも良く効きますね……このお薬」
@@ -4712,6 +4766,7 @@ ELSEIF CFLAG:溜まってる度 < 500 || (ABL:露出癖 + TALENT:羞恥心 < 3)
 	PRINTFORML 「他の誰に見られるかわからないところでなんて」
 	PRINTFORML 「ごめんなさい、私には無理です…」
 	BASE:30:ムード = MIN(BASE:30:ムード,150)
+;ELSEIF !CFLAG:ノーパン && TALENT:恋人 && CFLAG:溜まってる度 >= 500 || ABL:露出癖 >= 7
 ELSEIF !(TCVAR:媚薬 || TCVAR:発情 || TCVAR:泥酔)
 	PRINTFORMDL %CALLNAME:MASTER%は映姫を物陰へ引き込もうとしたが震える手で抵抗された…
 	PRINTFORMW 
@@ -6383,7 +6438,6 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	;料理したフラグ
 	IF CFLAG:睡眠 || FLAG:70 || TCVAR:泥酔 || CFLAG:30:衣装一時変更 == 62
 	ELSEIF TALENT:恋慕
 		IF ABL:料理技能 < 2
@@ -6864,17 +6918,48 @@ IF LOCAL
 			PRINTFORMW 「長々とごめんなさい。でも、もう少しだけ考えさせてください…」
 			SETBIT CFLAG:1502, 1
 		;落とすのくっそ面倒な映姫様＋こんな口上に付き合ってくれたならこの程度のボーナスはいいよね
-		ELSEIF TALENT:妊娠願望 || GETBIT(CFLAG:1502, 3)
+		ELSEIF TALENT:妊娠願望 || GETBIT(CFLAG:1502, 4)
 			PRINTFORMDW …ふと気になって隣りにいる映姫の様子を伺ってみる
-			PRINTFORMDW \@ TALENT:妊娠願望 ? 見られていることも気づかないくらい、 # \@映姫も子宝を願い熱心に祈りを捧げていた…
-			PRINTFORML 
+			PRINTFORMDL \@ TALENT:妊娠願望 ? 見られていることも気づかないくらい、 # \@映姫も子宝を願い熱心に祈りを捧げていた…
+			PRINTFORMW 
 			PRINTFORMDW おぱんつ様の恩寵がさらに濃くなったようだ
 			CFLAG:30:子宝補正 ++
 			SIF TALENT:妊娠願望
 				CFLAG:30:子宝補正 ++
-		ELSE
+		;条件たりない
+		ELSEIF !GETBIT(CFLAG:1502, 3)
 			PRINTFORMDW …ふと気になって隣りにいる映姫の様子を伺ってみる
-			PRINTFORMDW 映姫は何か考えに沈んでいた。まだ迷いは晴れないようだ…
+			IF !EXP:出産経験
+				PRINTFORMDW 映姫は何か考えに沈んでいた。まだ迷いは晴れないようだ…
+			ELSE
+				PRINTFORMDW 俯いた映姫の表情を読むことは出来なかった
+			ENDIF
+		;育児終わってたら疑似[妊娠願望]付与
+		ELSE
+			PRINTFORMW 「ねえ、%K30_C_NAME(MASTER)%。何をお願いしたの…？」
+			PRINTFORMW 「えっ！？　もう一人…欲しい…？」
+			IF TALENT:育児中
+				IF CFLAG:出産経過日 < CHILD_しつけ
+					PRINTFORML 「もう…気が早すぎますよ」
+					PRINTFORML 「今の私は%SHOW_CHILDNAME(30)%で精いっぱいですから」
+					PRINTFORMDW さすがに急ぎすぎたか、ちょっと怒られてしまった
+				ELSEIF CFLAG:出産経過日 < CHILD_自立前
+					PRINTFORML 「そうね…%SHOW_CHILDNAME(30)%だって弟や妹が欲しいかも…」
+					PRINTFORML 「でも…今はあの子をきちんと見守りたいから」
+					PRINTFORMW 「まだ、待ってほしいの」
+				ELSE
+					PRINTFORML 「…私だっていっしょよ」
+					PRINTFORMW 「でも、%SHOW_CHILDNAME(30)%と過ごせる時間もあとちょっと」
+					PRINTFORML 「今はあの子が巣立つまでの生活を大切にするべきだと思うの」
+					PRINTFORMW 「だから…もうちょっとだけ待って、お父さん」
+				ENDIF
+				RETURN
+			ENDIF
+			PRINTFORML 「……そう、そうですね…私も、思っていました」
+			PRINTFORMW 「お母さんでいられることは、本当に幸せで…また欲しいなと思ってました」
+			PRINTFORML 「もう一度、いっしょに頑張ってくれますか…%K30_C_NAME(MASTER)%」
+			PRINTFORMDW 映姫は%CALLNAME:MASTER%との子どもを再び強く望むようになった
+			SETBIT CFLAG:1502, 4
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -6988,10 +7073,10 @@ LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 	IF BATHROOM(CFLAG:現在位置)
-		IF RAND:5 == 1 && DAY:2 == 4
+		IF RAND:3 == 1 && DAY:2 == 4
 			PRINTFORMW 「この季節、やっぱりお風呂が一番ですね……」
 			PRINTFORMDW 二人で仲良く湯船に浸かり、身体の芯まで温まった…
-		ELSEIF RAND:4 == 1 && DAY:2 == 2
+		ELSEIF RAND:3 == 1 && DAY:2 == 2
 			PRINTFORMW 「さっと汗を流したら、冷たいものでも頂きましょうか」
 			PRINTFORMDW たまには冷たい麦茶を淹れるのもいいかもしれない
 		ELSEIF TALENT:恋慕
@@ -7098,7 +7183,7 @@ IF LOCAL
 		PRINTFORMDW %CALLNAME:MASTER%と目があうと、映姫は視線をそらしてしまった
 	ELSE
 		PRINTFORML 「何もせずに過ごすなんて、何を言ってるんですか？」
-		PRINTFORMW 「いいですか、どのように過ごしても時間を等しく流れていきます」
+		PRINTFORMW 「いいですか、どのように過ごしても時間は等しく流れていきます」
 		PRINTFORML 「それを無為に過ごすなんて貴方は一体何を考えて………」
 		PRINTFORMDW 閻魔様とのんびり時間をつぶすのは難しそうだ…
 	ENDIF
@@ -7211,7 +7296,7 @@ IF LOCAL
 			;高級素材
 			CASE 3000 TO 9999
 				IF RAND:2 == 1
-					PRINTFORML 「あっさり見つけてますが、%LOCALS%ていったら結構貴重な品ですよ」
+					PRINTFORML 「%LOCALS%なんていったら結構貴重な品ですが、あっさり見つけてきますね…」
 					PRINTFORMW 「本当に%K30_C_NAME(MASTER)%の技量には感心します」
 				ELSE
 					PRINTFORML 「%LOCALS%を見つけるのに何かコツがあるんでしょうか？」
@@ -7219,7 +7304,7 @@ IF LOCAL
 					
 				ENDIF
 			;最高級素材
-			CASE IS <= 10000
+			CASE IS >= 10000
 				IF RAND:2 == 1
 					PRINTFORML 「うーん…何も見つからない…」
 					PRINTFORMW 「%K30_C_NAME(MASTER)%はなにか……えっ！？」
@@ -8272,7 +8357,7 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	IF RAND:4 == 1 && ONCE("耳かき")
+	IF ONCE("耳かき") && RAND:3 == 1
 		;隙あらば説教できる。閻魔様はスゴイ、俺は感動を覚えずにはいられなかった
 		PRINTFORML 「ちょっと…汚いですよ。きちんと自分でも耳掃除してますか？」
 		PRINTFORMDW まずい。耳かきしてもらってるこの体勢では映姫の説教から逃げられない…

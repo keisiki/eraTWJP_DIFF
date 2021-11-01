@@ -16,6 +16,7 @@
 #DIM 料理結果
 #DIM 従順係数
 #DIM 好感度係数
+#DIM 練習モード
 LCOUNT = 0
 VARSET RESULTS
 ;助手設定
@@ -47,25 +48,36 @@ SIF DISH_ASSI
 ;DISH_TYPEとメニューの範囲設定
 SELECTCASE DISH_TYPE_NUM
 CASE 1
+	練習モード = 0
 	DISH_TYPE = 軽食
 	MAXMENU = 100
 CASE 2
+	練習モード = 0
 	DISH_TYPE = 主食
 	MAXMENU = 100
 CASE 3
+	練習モード = 0
 	DISH_TYPE = デザート
 	MAXMENU = 50
 CASE 4
-	DISH_TYPE = 練習
+	練習モード = 1
 	MAXMENU = 2
+	;練習メニューは記憶しない
+	SIF SELECT_MENU - 400 != DISH_ASSI
+		SELECT_MENU = 0
 ENDSELECT
 
 ;メニュー表示
 DRAWLINEFORM ＝
-IF DISH_TYPE == "練習"
+IF 練習モード
 	;練習用メニュー
-	PRINTFORML ＜練習＞　★先生：%CALLNAME:DISH_ASSI%
-	PRINTFORML 固有料理を教えてもらえます　※現在未実装
+	PRINTFORML ＜教わる＞　★先生：%CALLNAME:DISH_ASSI%
+	PRINTFORML 固有料理を教えてもらえます
+	PRINTL 
+	PRINT 　　
+	CALL SHOW_DISH_MENU(400 + DISH_ASSI, "練習", SELECT_MENU, 0, 練習モード)
+	PRINTL 
+	LCOUNT += 3
 ELSE
 	;通常メニュー
 	MENUCOUNT = 0
@@ -106,7 +118,7 @@ ENDIF
 PRINTL 
 ;選択中の料理情報取得
 IF SELECT_MENU
-	CALL DISHDATA(SELECT_MENU, DISH_TYPE)
+	CALL DISHDATA(SELECT_MENU, DISH_TYPE, 練習モード)
 	料理結果 = RESULT
 	;材料選択中ならDISH_TASTEに加える,0番はローター
 	SIF SELECT_ING >= 0
@@ -126,7 +138,9 @@ FOR LOCAL, 1, 5
 	CASE 3
 		LOCALS = デザート
 	CASE 4
-		LOCALS = 練習
+		LOCALS = 教わる
+		SIF CFLAG:DISH_ASSI:固有料理 >= 100
+			LOCALS += "（済）"
 	ENDSELECT
 	IF LOCAL == 4 && 練習不可
 		SETCOLOR C_GRAY
@@ -249,7 +263,11 @@ IF SELECT_MENU
 		PRINTL 
 	ELSEIF 料理結果 < 10
 		IF 料理結果 == 1
-			CALL COLORMESSAGE(@"　　材料が足りない…", C_ORANGE, 1)
+			IF DISH_ING:1 < 0
+				CALL COLORMESSAGE(@"　　※この料理は作れません", C_ORANGE, 1)
+			ELSE
+				CALL COLORMESSAGE(@"　　材料が足りない…", C_ORANGE, 1)
+			ENDIF
 		ELSEIF 料理結果 == 2
 			CALL COLORMESSAGE(@"　　必要レベル {RESULT:1}（現在 {ABL:MASTER:料理技能}）", C_ORANGE, 1)
 		ELSE
@@ -261,7 +279,11 @@ IF SELECT_MENU
 ELSE
 	PRINTL 
 ENDIF
-PRINTFORML [ 7]おまかせ%DISH_TYPE% を作る
+IF !練習モード
+	PRINTFORML [ 7]おまかせ%DISH_TYPE% を作る
+ELSE
+	PRINTL 
+ENDIF
 PRINTFORML [ 0]やめる
 INPUT
 
@@ -278,7 +300,7 @@ ELSEIF RESULT == 4 && !練習不可
 ;料理選択
 ELSEIF INRANGE(RESULT, 101, 400 + CHARANUM)
 	SELECT_MENU = RESULT
-	CALL DISHDATA(RESULT, DISH_TYPE)
+	CALL DISHDATA(RESULT, DISH_TYPE, 練習モード)
 	;表示外なら選択リセット
 	IF !RESULT
 		SELECT_MENU = 0
@@ -330,11 +352,15 @@ ELSEIF INRANGE(RESULT, 31, 40)
 		SELECT_DRG_2 = GETNUM(ITEM, "栄養強化剤")
 	ENDIF
 ;おまかせ料理
-ELSEIF RESULT == 7
+ELSEIF RESULT == 7 && !練習モード
 	SELECT_MENU = 0
-	CALL FISHER_YATES_SHAFFLE(499)
-	FOR LOCAL, 1, 500
+	CALL FISHER_YATES_SHAFFLE(400 + CHARANUM)
+	FOR LOCAL, 1, 400 + CHARANUM + 1
 		CALL DISHDATA(SHAFFLE_ARRAY:LOCAL + 100, DISH_TYPE)
+		SIF STRCOUNT(DISH_TASTE, "季節外れ/")
+			CONTINUE
+		SIF STRCOUNT(DISH_TASTE, "謎料理/")
+			CONTINUE
 		IF RESULT == 10
 			SELECT_MENU = LOCAL
 			FOR LOCAL:1, 1, 11
@@ -365,7 +391,7 @@ ELSEIF RESULT == 9 && SELECT_MENU && 料理結果 == 10
 	DISHNAME = %DISH_NAME%
 	FLAG:料理 = SELECT_MENU
 	PRINTFORML 使用食材：%ITEMNAME:SELECT_ING%
-	CALL DISH_COOKING
+	CALL DISH_COOKING(練習モード)
 	ITEM:SELECT_ING --
 	SIF SELECT_DRG
 		ITEM:SELECT_DRG --
@@ -384,6 +410,8 @@ ELSEIF RESULT == 9 && SELECT_MENU && 料理結果 == 10
 	ENDSELECT
 	EXP:MASTER:料理経験 ++
 	SIF ITEM:調理指南書 && !RAND:2
+		EXP:MASTER:料理経験 ++
+	SIF 練習モード
 		EXP:MASTER:料理経験 ++
 	STAIN:MASTER:口 = 0
 	STAIN:MASTER:手 = 0
@@ -445,6 +473,11 @@ ELSEIF RESULT == 9 && SELECT_MENU && 料理結果 == 10
 		EXP:DISH_ASSI:料理経験 += MAX(1 + RAND:(MAX((DISH_BASEPOINT - 300) / 80, 1)) + TALENT:DISH_ASSI:習得速度, 1)
 		SIF ITEM:調理指南書 && !RAND:2
 			EXP:DISH_ASSI:料理経験 ++
+		IF ABL:MASTER:料理技能 <= ABL:DISH_ASSI:料理技能
+			EXP:MASTER:料理経験 ++
+		ELSEIF ABL:MASTER:料理技能 > ABL:DISH_ASSI:料理技能
+			EXP:DISH_ASSI:料理経験 ++
+		ENDIF
 		SIF CFLAG:DISH_ASSI:同行
 			CFLAG:DISH_ASSI:同行 += DISH_TIME
 		STAIN:DISH_ASSI:口 = 0
@@ -462,10 +495,11 @@ RESTART
 ;料理を生成する関数,といっても大半の情報はすでに設定済み
 ;ここでは調理部分の処理をする
 ;-------------------------------------------------
-@DISH_COOKING
+@DISH_COOKING(練習モード)
 #DIM 道具力
 #DIM ボーナス点
 #DIM 減点
+#DIM 練習モード
 ;念の為最終チェック
 SIF DISH_NAME == ""
 	THROW
@@ -493,11 +527,13 @@ ENDIF
 ;TASTE設定
 SIF FLAG:なりきり
 	CALL DISH_TASTE_FROM_CHARA(FLAG:なりきり)
-SIF DISH_ASSI
+SIF DISH_ASSI && !練習モード
 	CALL DISH_TASTE_FROM_CHARA(DISH_ASSI)
 DISH_TASTE += "できたて/"
 DISH_TASTE += DISH_NAME + "/"
 DISH_TASTE += DISH_TYPE + "/"
+SIF 練習モード
+	DISH_TASTE += "練習/"
 ;[練習]は季節外れを消す
 SIF STRCOUNT(DISH_TASTE, "練習/")
 	DISH_TASTE '= REPLACE(DISH_TASTE, "季節外れ\/", "")
@@ -514,8 +550,13 @@ DISH_LIMIT = DISH_MAXLIMIT + DISH_TIME
 
 ;表示用の料理名設定
 EX_DISH_NAME = 
-SIF DISH_ASSI
-	EX_DISH_NAME += CALLNAME:DISH_ASSI + "と作った"
+IF DISH_ASSI
+	IF 練習モード
+		EX_DISH_NAME += CALLNAME:DISH_ASSI + "に教えてもらった"
+	ELSE
+		EX_DISH_NAME += CALLNAME:DISH_ASSI + "と作った"
+	ENDIF
+ENDIF
 IF STRCOUNT(DISH_TASTE, "メイド流/")
 	EX_DISH_NAME += "メイド流"
 ELSEIF STRCOUNT(DISH_TASTE, "天狗流/")
@@ -641,6 +682,25 @@ ELSE
 ENDIF
 PRINTL 
 
+;練習結果,初期状態だと4～7回必要。料理技能が上がるにつれ習得速度が上昇していく。
+IF 練習モード
+	CFLAG:DISH_ASSI:固有料理 += 20 + (TALENT:MASTER:習得速度 * 5) + RAND:(ABL:MASTER:料理技能 * 25)
+	PRINTFORM 　習熟度：
+	FOR LOCAL, 1, 10
+		IF LOCAL <= CFLAG:DISH_ASSI:固有料理 / 10
+			SETCOLOR 0x64FFDC
+			PRINT ★
+		ELSE
+			RESETCOLOR
+			PRINT ☆
+		ENDIF
+	NEXT
+	RESETCOLOR
+	PRINTL 
+	SIF CFLAG:DISH_ASSI:固有料理 >= 100
+		CALL LEARNING_SP_DISH(DISH_ASSI, DISH_NAME)
+ENDIF
+
 IF STRCOUNT(DISH_TASTE, "ローター/")
 	TFLAG:194 = 100
 ELSEIF DISH_TYPE == "デザート"
@@ -652,6 +712,7 @@ ELSE
 ENDIF
 
 ;WAIT
+
 
 ;-------------------------------------------------
 ;実行判定
@@ -691,12 +752,13 @@ RETURN 1
 ;ARGS     DISH_TYPE
 ;RESULT   2=改行した,1=表示した,0=表示しない
 ;-------------------------------------------------
-@SHOW_DISH_MENU(DISH_NUM, ARGS, SELECT_MENU, MENUCOUNT)
+@SHOW_DISH_MENU(DISH_NUM, ARGS, SELECT_MENU, MENUCOUNT, 練習モード)
 #DIM DISH_NUM
 #DIM SELECT_MENU
 #DIM MENUCOUNT
+#DIM 練習モード
 ;料理データを呼ぶ
-CALL DISHDATA(DISH_NUM, ARGS)
+CALL DISHDATA(DISH_NUM, ARGS, 練習モード)
 ;作れなくてもグレーで表示する,選択中なら赤
 IF RESULT
 	IF RESULT < 10 && SELECT_MENU == DISH_NUM
@@ -986,6 +1048,8 @@ SIF STRCOUNT(DISH_TASTE, "切れ味/")
 	ボーナス点 += 1
 SIF STRCOUNT(DISH_TASTE, "おいしい水/")
 	ボーナス点 += 1
+SIF STRCOUNT(DISH_TASTE, "カレーの日/")
+	ボーナス点 += 1
 DISH_BASEPOINT = ABL:CHARA:料理技能 * 2 + DISH_RANK + ボーナス点
 DISH_BASEPOINT = MIN(300 + (DISH_BASEPOINT * 20), 700)
 
@@ -1010,3 +1074,14 @@ SIF 生成 != "料理生成" || !結果保存
 	CALL RESET_DISH
 VARSET RESULT
 RETURN 結果保存
+
+;-------------------------------------------------
+;固有料理のラーニング処理関数
+;一応料理外で覚えた場合（口上とか）も想定
+;CFLAG:固有料理には100+DAYが入るので、いつ習得したか判定できる
+;ARG      DISH_ASSI
+;ARGS     DISH_NAME
+;-------------------------------------------------
+@LEARNING_SP_DISH(ARG, ARGS)
+CFLAG:ARG:固有料理 = 100 + DAY
+CALL COLORMESSAGE(@"『%ARGS%』をラーニング！", C_YELLOW, 1)
