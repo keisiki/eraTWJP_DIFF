@@ -1,15 +1,18 @@
-﻿@ENEMY_ENCOUNT(ARG)
+﻿;21/09/01 口上/口上色対応,LOOTアイテム整理
+@ENEMY_ENCOUNT(ARG)
 #DIM ENEMY
 #DIMS ENEMY_RACE
 #DIM 勝敗
 #DIM LOOT
-#DIM LOOT_CANDIDATE, 21 = 47, 48, 49, 50, 51, 52, 53, 55, 56, 58, 59, 95, 120, 121, 122, 130, 131, 195, 212, 213, 251
-#DIM CONST CANDIDATE_N = 21
+#DIM LOOT_CANDIDATE, 17 = 51, 52, 53, 55, 56, 58, 59, 81, 82, 83, 84, 121, 131, 500, 501, 502, 510
+#DIM CONST CANDIDATE_N = 17
 #DIM REWARD
+#DIM 販売員遭遇
 
 ;デート中は発生しない
 SIF FLAG:デート相手
 	RETURN
+	
 ;その日物色済みだと無理
 SIF GETBIT(TFLAG:一日一回, 9)
 	RETURN
@@ -17,6 +20,13 @@ SIF GETBIT(TFLAG:一日一回, 9)
 ;とりあえず50%固定で
 SIF RAND:100 > 50
 	RETURN
+
+;まれにイベント
+IF 販売員遭遇 != DAY && !(FLAG:日替わりイベント % 8)
+	販売員遭遇 = DAY
+	CALL イナバの流し売り
+	RETURN
+ENDIF
 
 ;相手が変わるとかやりたい
 SELECTCASE ARG
@@ -50,6 +60,8 @@ HANDICAP_RAND = 0
 PRINTFORMW 道中、不意に%ENEMY_RACE%が襲い掛かってきた！
 SETBIT TFLAG:一日一回, 9
 CALL MAKE_YUKIZURI(RANDOM_CHARANUM, ENEMY_RACE, 1)
+
+CALL KOJO_MESSAGE_SEND("DANMAKU", 0, RANDOM_CHARANUM, 1, -1, "戦闘前")
 TEQUIP:RANDOM_CHARANUM:上半身着衣状況 = 1
 
 CALL CHARA_STATE(RANDOM_CHARANUM)
@@ -88,16 +100,18 @@ LOOT = LOOT_CANDIDATE:(RAND:CANDIDATE_N)
 TIME += 60
 CFLAG:ENEMY:面識 = 1
 PRINTFORMW 勝負開始！！
-CALL DANMAKU_BATTLE(TARGET)
+CALL DANMAKU_BATTLE(TARGET, 1)
 
 勝敗 = RESULT
 CALL RECOVER(MASTER, -500, "体力")
 CALL RECOVER(MASTER, -500, "気力")
+CALL KOJO_MESSAGE_SEND("DANMAKU", 勝敗, TARGET, 1, -1, "戦闘後")
 SIF 勝敗 < 3
 	EXP:MASTER:戦闘経験 += ABL:ENEMY:戦闘能力 * 3
 SIF 勝敗 < 1
 	EXP:MASTER:戦闘経験 += ABL:ENEMY:戦闘能力
 IF 勝敗 > 0
+	;CALL KOJO_MESSAGE_SEND("DANMAKU", 勝敗, TARGET, 1, -1, "逆レ開始")
 	SETCOLOR C_RED
 	IF TCVAR:ENEMY:発情 && HAS_PENIS(MASTER)
 		PRINTFORML %CALLNAME:ENEMY%は動けなくなった%CALLNAME:MASTER%を組み敷いた
@@ -201,3 +215,154 @@ BEGIN AFTERTRAIN
 ;	CALL COLORMESSAGE(@"満月の光が%CALLNAME:TARGET%の本能をかき立てる…！",C_YELLOW,1)
 ;	CALL COLORMESSAGE(@"%CALLNAME:TARGET%の戦闘力がアップ！",C_YELLOW,1)
 ;ENDIF
+
+;21/09/20 イベント販売員追加
+;固有コマンド:薬品販売とデイリー販売員イナバからの流用
+;デイリーイナバが愛されキャラなのでこっちは腹黒うざキャラで。販売価格もぼったくり
+@イナバの流し売り
+#DIM 取引
+#DIM 割引
+#DIM 値段
+#DIM 石販売中
+石販売中 = (GETBIT(FLAG_DAILY_EV23, 0) && !ITEM:(GETNUM(ITEM, "ミラダの石")))
+割引 = -50
+値段 = ITEMPRICE:(GETNUM(ITEM, "ミラダの石")) / 10
+SETCOLOR 0XFFFFFF
+PRINTFORMDW 道中、不意にイナバが襲い掛かってきた…！？
+PRINTFORML
+PRINTFORML 「あああ！！いけません！！お客さま！！！ああっ！困りますっ！！」
+PRINTFORMW 「あーっ！！お客さま！！私は弾幕勝負なんてやりませんから！！どうか待ってください！！！」
+PRINTFORML 「ああっ！いけません！！どうか落ち着いて！！話を聞いてくださいっ！！あーっ！！！」
+PRINTFORMDW 大きな荷物を抱えたイナバが一人で勝手に騒いでいる… 
+CALL PRINT_FACE, 0, "通常", "服", "18"
+PRINTFORML 「えー、お見苦しいところをすみません」
+PRINTFORMW 「私少々慌ててしまいまして…」
+PRINTFORML 「でも、ここで出会ったのもなにかのご縁」
+PRINTFORM 「お客さまはわたくしどもの
+CALL COLORMESSAGE("素晴らしい", C_YELLOW, 0, 1)
+PRINTFORMW 商品に興味はありませんか？」
+RESETCOLOR
+CALL ASK_M("無視して帰る", 1, "ちょっと見てみる", 1)
+SETCOLOR 0XFFFFFF
+IF !RESULT
+	PRINTFORMDL うさんくさいセールスはお断りだ
+	PRINTFORML 「そんなー、せめてお話だけでもー」
+	PRINTFORMDL なおも食い下がる販売員を無視して%CALLNAME:MASTER%は帰路についた
+	PRINTFORMW
+	RESETCOLOR
+	RETURN
+ENDIF
+CALL PRINT_FACE, 0, "笑顔", "服", "18"
+PRINTFORMW 「ありがとうございます！」
+PRINTFORM 「では、他所では見られない
+CALL COLORMESSAGE("秘蔵", C_AQUA, 0, 1)
+PRINTFORML の一品！」
+PRINTFORM 「多少
+CALL COLORMESSAGE("お値段", C_M_GREEN, 0, 1)
+PRINTFORM は張りますが、その効果は
+CALL COLORMESSAGE("折り紙", C_RED, 0, 1)
+PRINTFORMW 付き！！」
+PRINTFORM 「お客さまのような
+CALL COLORMESSAGE("特別", C_YELLOW, 0, 1)
+PRINTFORM な方にふさわしい
+CALL COLORMESSAGE("特別", C_YELLOW, 0, 1)
+PRINTFORML な商品の数々！！」
+PRINTFORMW 「さあこちらをご覧ください！！！」
+RESETCOLOR
+DRAWLINE
+$INPUT_LOOP
+RESETCOLOR
+CALL ITEM_SHOPPING(GETNUM(ITEM, "仙香玉兎"), "", 割引)
+CALL ITEM_SHOPPING(GETNUM(ITEM, "国士無双の薬"), "", 割引)
+CALL ITEM_SHOPPING(GETNUM(ITEM, "ガシングガーデン"), "", 割引)
+CALL ITEM_SHOPPING(GETNUM(ITEM, "ポイズンボディ"), "", 割引)
+IF 石販売中
+	PRINTFORM [{GETNUM(ITEM, "ミラダの石")}] 
+	CALL COLORMESSAGE("愛欲を独占するミラダの石ミレニアム", C_D_PINK, 1, 1)
+	CALL COLORMESSAGE("　　　特別価格90％OFF！", C_RED, 0, 1)
+	PRINTFORML %金額表示(値段), 13%
+ENDIF
+DRAWLINE
+SIF 石販売中
+	PRINTL [990] 「ミラダの石」って何だっけ？
+PRINTFORML [999] やっぱり買わない
+PRINTFORML 　　　現在の所持金:%金額表示(MONEY)%
+$INPUT_LOOP2
+INPUT
+取引 = RESULT
+SETCOLOR 0XFFFFFF
+SELECTCASE 取引
+	CASE GETNUM(ITEM, "仙香玉兎") TO GETNUM(ITEM, "ポイズンボディ"), GETNUM(ITEM, "ミラダの石")
+		IF 取引 == GETNUM(ITEM, "ミラダの石") && !石販売中
+			CLEARLINE 1
+			GOTO INPUT_LOOP2
+		ENDIF
+		LOCAL = 取引 == GETNUM(ITEM, "ミラダの石") ? 90 # 割引
+		CALL SHOP_ASK(RESULT, LOCAL)
+		IF RESULT
+			PRINTFORMW 「えー、では他の品物なんてどうでしょうか？」
+			CLEARLINE 12 + RESULT + (石販売中 * 3)
+			GOTO INPUT_LOOP
+		ENDIF
+		CALL GET_ITEM(ITEMNAME:取引, 1, 2)
+	;あのセリフたまに聞きたくなるので
+	CASE 990
+		IF !石販売中
+			CLEARLINE 1
+			GOTO INPUT_LOOP2
+		ENDIF
+		PRINTFORMW 「おや？　お客様さまはご存知かと思いましたが…」
+		PRINTFORML 「ああでも懐かしいですね」
+		PRINTFORML 「私も仕事を始めたての頃、あの商品説明を必死に覚えたものです…」
+		PRINTFORML 「では私の確認がてら、お客さまにも改めて聞いて頂きましょう」
+		PRINTFORMW 
+		CALL DAILY_EV23_SALESTALK(1)
+		FONTBOLD
+		PRINTFORMW 「なんと！」
+		PRINTFORM 「今回、お値段
+		CALL COLORMESSAGE(@"\\{値段}", C_RED, 0, 1)
+		PRINTFORMW でのご提供が実現いたしました！」
+		FONTREGULAR
+		PRINTFORML 「いつ手に入るかわからない希少な品！！」
+		PRINTFORM 「この
+		CALL COLORMESSAGE("特別価格", C_RED, 0, 1)
+		PRINTFORML で買わなければ…」
+		PRINTFORMW 「もう二度と手に入らないかもしれませんよ！？」
+		PRINTFORML 「さあ、お客さま！」
+		PRINTFORM 「充実した性生活を約束する
+		CALL COLORMESSAGE("愛欲を独占するミラダの石ミレニアム", C_D_PINK, 0, 1)
+		PRINTFORMW ！！！！」
+		PRINTFORML 「もちろんっ！　買いますよねッ！？」
+		FONTREGULAR
+		CALL ASK_M("買った！", MONEY >= 値段, "買わない", 1)
+		IF !RESULT
+			MONEY -= 値段
+			CALL GET_ITEM("ミラダの石", 1, 2)
+		ELSE
+			取引 = 999
+		ENDIF
+	CASE 999
+	CASEELSE
+		CLEARLINE 1
+		GOTO INPUT_LOOP2
+ENDSELECT
+IF 取引 < 999
+	CALL PRINT_FACE, 0, "笑顔", "服", "18"
+	CALL COLORMESSAGE("「お買い上げありがとうございます！」", 0XFFFFFF, 2, 1)
+	PRINTFORMW 「いや～お客さまはいいカモ…」
+	CLEARLINE 1
+	PRINTFORMW 「ぜひまたお買い上げ頂きたいですね！！」
+	PRINTFORML 「では今日はこの辺で失礼します！」
+ELSE
+	CALL PRINT_FACE, 0, "怒り", "服", "18"
+	CALL COLORMESSAGE("「なぁんだ、ただの貧乏人かあ…」", 0XFFFFFF, 1, 2)
+	CALL COLORMESSAGE("「やだやだ…時間を損しちゃったわー」", 0XFFFFFF, 1, 2)
+	PRINTFORMDW %CALLNAME:MASTER%が買わないとわかった途端、販売員の態度が悪くなった…
+	CALL COLORMESSAGE(@"「なーんにも買わないヤツ相手するほど%TEXTR("あたい/あたし/ボク/")%も暇じゃないんだよー」", 0XFFFFFF, 1, 2)
+	CALL COLORMESSAGE("「じゃあーねー」", 0XFFFFFF, 1, 2)
+ENDIF
+PRINTFORMDW ウサギの販売員は\@ 取引 < 999 ? # 捨て台詞を残して \@いなくなった
+RESETCOLOR
+PRINTFORML 
+RETURN
+	

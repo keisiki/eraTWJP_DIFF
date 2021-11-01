@@ -36,16 +36,20 @@ IF CFLAG:(ARG):現在位置 == CFLAG:MASTER:現在位置 && !CFLAG:MASTER:睡眠
 		PRINTFORMW %CALLNAME:ARG%は寝床につきました。
 	;デート中
 	ELSEIF CHK_DATENOW(CFLAG:(ARG):デート中)
-		PRINTFORMW %帰宅理由%%CALLNAME:ARG%とのデートはここまでだ。
+		;うふふ中は非表示
+		SIF !CFLAG:ARG:うふふ
+			PRINTFORMW %帰宅理由%%CALLNAME:ARG%とのデートはここまでだ。
 		;自宅にいる時,お招き部屋にいる時はうふふしていない時
-		IF (CFLAG:(ARG):現在位置 == CFLAG:(ARG):自宅位置 || (CFLAG:(ARG):現在位置 == OMANEKIBEYA() && !CFLAG:(ARG):うふふ))
-			CALL KOJO_MESSAGE_SEND("EVENT",20,ARG,3,0)
+		IF CFLAG:ARG:現在位置 == CFLAG:ARG:自宅位置 || (CFLAG:ARG:現在位置 == OMANEKIBEYA() && !CFLAG:ARG:うふふ)
+			;帰宅口上,3,玄関先で見送り
+			CALL KOJO_MESSAGE_SEND("EVENT", 20, ARG, 3)
 		;通常のデート中
 		ELSE
 			;お誘い
 			IF (TALENT:ARG:恋慕 || TALENT:ARG:セフレ == 2) && CFLAG:ARG:溜まってる度 >= (700 + TALENT:ARG:羞恥心 * 150) && !CFLAG:ARG:神社在住 && !TCVAR:ARG:連泊禁止 && CFLAG:(ARG):現在位置 != OMANEKIBEYA()
 				PRINTFORML %CALLNAME:ARG%から部屋に来ないかと誘われた
-				CALL KOJO_MESSAGE_SEND("EVENT",20,ARG,4,0)
+				;帰宅口上,4,部屋に来ないかと誘う
+				CALL KOJO_MESSAGE_SEND("EVENT", 20, ARG, 4)
 				CALL ASK_YN("行く","やめとく")
 				IF !RESULT
 					IF CFLAG:ARG:自宅位置
@@ -57,24 +61,28 @@ IF CFLAG:(ARG):現在位置 == CFLAG:MASTER:現在位置 && !CFLAG:MASTER:睡眠
 						PRINTFORMW +30分
 						TIME += 30
 					ENDIF
-					CALL KOJO_MESSAGE_SEND("EVENT",20,ARG,5,0)
+					;帰宅口上,5,誘われるまま行く
+					CALL KOJO_MESSAGE_SEND("EVENT", 20, ARG, 5, 0)
 					CALL OMANEKI_ENTER(ARG)
 					CALL TARGETSET_CHACK
 				ELSE
 					PRINTFORMW %CALLNAME:ARG%は心なしか寂しそうだ……
-					CALL KOJO_MESSAGE_SEND("EVENT",20,ARG,6,0)
+					;帰宅口上,6,誘いを断る
+					CALL KOJO_MESSAGE_SEND("EVENT", 20, ARG, 6)
 					SIF (CFLAG:MASTER:現在位置 % 100) % 10 && CHK_DATENOW(CFLAG:MASTER:デート中) && FLAG:デート相手 == ARG && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
 						CFLAG:MASTER:現在位置 = CFLAG:MASTER:デート中 * 100
 				ENDIF
 			ELSE
-				CALL KOJO_MESSAGE_SEND("EVENT",20,ARG,2,0)
+				;帰宅口上,2,デート中帰宅
+				CALL KOJO_MESSAGE_SEND("EVENT", 20, ARG, 2)
 				SIF (CFLAG:MASTER:現在位置 % 100) % 10 && CHK_DATENOW(CFLAG:MASTER:デート中) && FLAG:デート相手 == ARG && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
 					CFLAG:MASTER:現在位置 = CFLAG:MASTER:デート中 * 100
 			ENDIF
 		ENDIF
 	;神社内にいるか自宅でもお招き部屋でもない場所
 	ELSEIF AT_HOME(ARG) || (CFLAG:(ARG):現在位置 != CFLAG:(ARG):自宅位置 && CFLAG:(ARG):現在位置 != OMANEKIBEYA()) && CFLAG:ARG:行動 != 5
-		CALL KOJO_MESSAGE_SEND("EVENT",20,ARG,1,0)
+		;帰宅口上,1,通常帰宅
+		CALL KOJO_MESSAGE_SEND("EVENT", 20, ARG, 1)
 		PRINTFORMW %帰宅理由%%CALLNAME:ARG%は帰って行きました。
 		CALL SET_TOGETHER(0,ARG,1)
 		SIF (CFLAG:MASTER:現在位置 % 100) % 10 && CHK_DATENOW(CFLAG:MASTER:デート中) && FLAG:デート相手 == ARG && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
@@ -125,39 +133,24 @@ SIF !SHIRAHU(ARG)
 ;忍び込み中
 SIF CFLAG:ARG:隠密中
 	RETURN
-;それ以外
+SIF 寝室許可(ARG, 1)
+	RETURN
 
-SIF CFLAG:ARG:ブチギレ
-	GOTO OIDASHI
-;恋慕なら入室を許す
-IF (IS_LOVER(ARG) || TEQUIP:ARG:縄 || CFLAG:ARG:うふふ == 1 || EXP:ARG:睡眠姦経験 > 300 || CFLAG:ARG:イタズラ)
-ELSEIF FLAG:一時滞在 == ARG
-;願望 睡眠欲セット
-ELSEIF CFLAG:ARG:初期位置 == 15 && CAN_ENTRY_REIMUROOM()
-;ここは誰か一人でも恋慕ならおｋ
-;侵入成功なら入室
-ELSEIF GETBIT(CFLAG:ARG:42,8)
-;それ以外なら追い出し
-ELSE
-	$OIDASHI
-	CLEARLINE 1
-	;SIF !CFLAG:ARG:ブチギレ
-		PRINTFORMW 眠そうな%CALLNAME:ARG%に追い出された…
-	;忍び込みOFF
-	CALL SET_SNEAK(0,ARG,2)
-	;イタズラOFF
-	CALL SET_PRANK(0,ARG,2)
-	FOR LOCAL:1,0,CHARANUM
-		CALL ENDUFUFU(LOCAL:1)
-	NEXT
-	;侵入成功フラグクリア
-	CLEARBIT CFLAG:ARG:42,8
-	TFLAG:MASTERのＰ挿入中 = 0
-	;移動可能な場所へ移動
-	CALL GETOUT(MASTER)
-	;遠距離移動フラグOFF
-	TFLAG:遠距離移動 = 0
-ENDIF
+;なんのためのCLEARLINE？
+;CLEARLINE 1
+PRINTFORMW 眠そうな%CALLNAME:ARG%に追い出された…
+;おやすみ口上,7-1,部屋から追い出して寝た
+CALL KOJO_MESSAGE_SEND("EVENT", 3, ARG, 7, 1)
+;忍び込みOFF
+CALL SET_SNEAK(0,ARG,2)
+;イタズラOFF
+CALL SET_PRANK(0,ARG,2)
+;うふふリセット
+CALL ENDUFUFU_ALL
+;夜這い侵入成功フラグクリア
+CLEARBIT CFLAG:ARG:夜這い, 8
+;移動可能な場所へ移動
+CALL GETOUT(MASTER)
 
 
 @風呂から追い出し(ARG)
@@ -299,6 +292,8 @@ SIF ABL:ARG:欲望 < REQUIRED_DESIRE
 	RETURN
 
 PRINTFORML %CALLNAME:ARG%は今夜は帰りたくないと言い出した…
+;帰宅口上,7,今夜は帰りたくない
+CALL KOJO_MESSAGE_SEND("EVENT", 20, ARG, 7)
 CALL ASK_YN("泊める","泊めない")
 IF !RESULT
 	IF YANUSHI
@@ -310,9 +305,13 @@ IF !RESULT
 	CFLAG:ARG:初期位置 = CFLAG:MASTER:初期位置
 	CFLAG:ARG:神社在住 = CFLAG:ARG:初期位置
 	PRINTFORMW %CALLNAME:ARG%は%NAME_FROM_PLACE(CFLAG:MASTER:初期位置)%に泊まっていくことになりました
+	;帰宅口上,8,泊まっていくことになる
+	CALL KOJO_MESSAGE_SEND("EVENT", 20, ARG, 8)
 ELSE
 	$REFUSAL
 	PRINTFORMW %CALLNAME:MASTER%は丁重に断った
+	;帰宅口上,9,断った
+	CALL KOJO_MESSAGE_SEND("EVENT", 20, ARG, 9)
 ENDIF
 
 @SET_OneNightStay()

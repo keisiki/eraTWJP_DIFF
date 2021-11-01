@@ -594,3 +594,155 @@ ELSE
 ENDIF
 PRINTFORMW ――――――――――――――――――――――――――――――――
 
+
+;CONFIGからの農民再設定（試作）
+@RESTART_NOUMIN
+#DIM LOCAL_地主
+#DIM LOCAL_畑仕事の成果
+#DIM LOCAL_返済延滞回数
+#DIM LOCAL_収穫納入回数
+#DIM LOCAL_累積収穫評価
+#DIM LOCAL_前回収穫評価
+#DIM LOCAL_農民難易度
+#DIM LOCAL_畑拡張
+#DIM LOCAL_地主貸付金
+#DIM LOCAL_年始貸付金
+#DIMS LOCALS_元地主
+#DIMS LOCALS_新地主
+#DIMS LOCALS_元難易度
+#DIMS LOCALS_新難易度
+
+LOCAL_地主 = FLAG:地主
+LOCAL_畑仕事の成果 = FLAG:畑仕事の成果
+LOCAL_返済延滞回数 = FLAG:返済延滞回数
+LOCAL_収穫納入回数 = FLAG:収穫納入回数
+LOCAL_累積収穫評価 = FLAG:累積収穫評価
+LOCAL_前回収穫評価 = FLAG:前回収穫評価
+LOCAL_農民難易度 = FLAG:農民難易度
+LOCAL_畑拡張 = FLAG:畑拡張
+LOCAL_地主貸付金 = FLAG:地主貸付金
+LOCAL_年始貸付金 = FLAG:年始貸付金
+LOCALS_元地主 = %CALLNAME:(FLAG:地主)%
+
+IF FLAG:地主
+	PRINTFORML %CALLNAME:MASTER%は%LOCALS_元地主%の下で働く農民です
+	SIF FLAG:地主貸付金 > 0
+		PRINTFORML 残りの借金は\\{FLAG:地主貸付金}だ
+	SELECTCASE FLAG:農民難易度
+	CASE 1
+		LOCALS_元難易度 = ノーマル
+	CASE 2
+		LOCALS_元難易度 = ハードコア
+	CASE 3
+		LOCALS_元難易度 = エクストリーム
+	ENDSELECT
+ELSE
+	PRINTFORML %CALLNAME:MASTER%は身軽な自由人です
+ENDIF
+
+PRINTFORML 農家の設定を変更しますか？
+PRINTFORML [1] - はい
+PRINTFORML [0] - いいえ
+DO
+	INPUT
+	SELECTCASE RESULT
+	CASE 0
+		PRINTFORML 
+		RETURN
+	CASE 1
+	CASEELSE
+		REUSELASTLINE 無効な入力です
+		CONTINUE
+	ENDSELECT
+	BREAK
+LOOP 1
+
+DO
+	CALL RESET_NOUMIN
+	CALL SET_NOUMIN
+	PRINTFORML 
+
+	LOCALS_新地主 = %CALLNAME:(FLAG:地主)%
+	IF LOCAL_地主 && FLAG:地主 && LOCAL_地主 != FLAG:地主
+		PRINTFORML %CALLNAME:MASTER%は%LOCALS_元地主%の下を離れ、今後は%LOCALS_新地主%の下で働くことになります
+		IF LOCAL_地主貸付金 > 0
+			PRINTFORML %LOCALS_元地主%への借金\\{LOCAL_地主貸付金}は%LOCALS_新地主%が肩代わりするため
+			FLAG:地主貸付金 += LOCAL_地主貸付金
+		ENDIF
+		PRINTFORML %LOCALS_新地主%への借入金は合計\\{FLAG:地主貸付金}となります
+
+	ELSEIF LOCAL_地主 && FLAG:地主 && LOCAL_地主 == FLAG:地主
+		; 雇い主の変更がないので元に戻す
+		SETCOLOR C_YELLOW
+		PRINTFORML 雇い主に変更が無い為、上記の借入金は発生しません
+		SIF LOCAL_地主貸付金 > 0
+			PRINTFORML %LOCALS_新地主%への借入金は今のまま\\{LOCAL_地主貸付金}となります
+		RESETCOLOR
+		FLAG:畑仕事の成果 = LOCAL_畑仕事の成果
+		FLAG:返済延滞回数 = LOCAL_返済延滞回数
+		FLAG:収穫納入回数 = LOCAL_収穫納入回数
+		FLAG:累積収穫評価 = LOCAL_累積収穫評価
+		FLAG:前回収穫評価 = LOCAL_前回収穫評価
+		FLAG:地主貸付金 = LOCAL_地主貸付金
+		FLAG:年始貸付金 = LOCAL_年始貸付金
+
+		; 難易度が変更されたか
+		IF LOCAL_農民難易度 != FLAG:農民難易度
+			SELECTCASE FLAG:農民難易度
+			CASE 1
+				LOCALS_新難易度 = ノーマル
+			CASE 2
+				LOCALS_新難易度 = ハードコア
+			CASE 3
+				LOCALS_新難易度 = エクストリーム
+			ENDSELECT
+			PRINTFORML 難易度を[%LOCALS_元難易度%]から[%LOCALS_新難易度%]に変更します
+		ELSE
+			PRINTFORML 難易度の設定に変更ありません
+		ENDIF
+
+	ELSEIF !LOCAL_地主 && !FLAG:地主
+		PRINTFORML 設定に変わりはありません
+	ELSEIF LOCAL_地主 && !FLAG:地主
+		IF LOCAL_地主貸付金 > 0
+			PRINTFORML 借金が残っている間は農民を辞める事はできない
+			CONTINUE
+		ENDIF
+		PRINTFORML 農民を辞め自由人になります
+	ENDIF
+
+	PRINTFORML 
+	PRINTFORML 設定を変更しますか？
+	PRINTFORML [1] - はい
+	PRINTFORML [2] - もう一度決めなおす
+	PRINTFORML [0] - 変更しない
+	DO
+		INPUT
+		SELECTCASE RESULT
+		CASE 0
+			FLAG:地主 = LOCAL_地主
+			FLAG:畑仕事の成果 = LOCAL_畑仕事の成果
+			FLAG:返済延滞回数 = LOCAL_返済延滞回数
+			FLAG:収穫納入回数 = LOCAL_収穫納入回数
+			FLAG:累積収穫評価 = LOCAL_累積収穫評価
+			FLAG:前回収穫評価 = LOCAL_前回収穫評価
+			FLAG:農民難易度 = LOCAL_農民難易度
+			FLAG:畑拡張 = LOCAL_畑拡張
+			FLAG:地主貸付金 = LOCAL_地主貸付金
+			FLAG:年始貸付金 = LOCAL_年始貸付金
+			PRINTFORML 設定変更を中止しました
+			PRINTFORML 
+			RETURN
+		CASE 1
+			PRINTFORML 設定を変更しました
+			PRINTFORML 
+			RETURN
+		CASE 2
+		CASEELSE
+			REUSELASTLINE 無効な入力です
+			CONTINUE
+		ENDSELECT
+		BREAK
+	LOOP 1
+LOOP 1
+

@@ -1,6 +1,38 @@
 ﻿;罠を仕掛ける／罠の様子を見る
 ;キャラクターの技能や経験依存ではなく、プレイヤーの眼力で獲物がいそうかどうかを判定する感じのデザイン。
+;虫トラップと兼用
 @COM448
+;どっちも可能なら選択
+IF HUNTING_SPOT(CFLAG:MASTER:現在位置) && MUSHITORI_SPOT(CFLAG:MASTER:現在位置) && ITEM:昆虫採集セット && (!MUSHI_TRAP || GROUPMATCH(CFLAG:MASTER:現在位置, GET_MUSHIDATA(MUSHI_TRAP, "場所")))
+	IF GROUPMATCH(CFLAG:MASTER:現在位置, TRAP_POINT:1, TRAP_POINT:2, TRAP_POINT:3)
+		PRINTL 　[ 1] 狩猟罠の様子を見る
+	ELSE
+		PRINTL 　[ 1] 狩猟罠を仕掛ける
+	ENDIF
+	IF GROUPMATCH(CFLAG:MASTER:現在位置, GET_MUSHIDATA(MUSHI_TRAP, "場所"))
+		PRINTL 　[ 2] 虫トラップの様子を見る
+	ELSE
+		PRINTL 　[ 2] 虫トラップを仕掛ける
+	ENDIF
+	PRINTL 　[ 0] キャンセル
+	INPUT
+	IF RESULT == 1
+		CALL TRAP_HUNTING
+	ELSEIF RESULT == 2
+		CALL MUSHI_TRAP
+	ELSE
+		RETURN -1
+	ENDIF
+ELSEIF HUNTING_SPOT(CFLAG:MASTER:現在位置)
+	CALL TRAP_HUNTING
+ELSEIF MUSHITORI_SPOT(CFLAG:MASTER:現在位置)
+	CALL MUSHI_TRAP
+ELSE
+	RETURN -1
+ENDIF
+RETURN RESULT
+
+@TRAP_HUNTING
 #DIM CHARA
 #DIM Hunt_Power
 #DIM Serch
@@ -50,7 +82,7 @@ ENDSELECT
 ;参加者判定
 IF FLAG:デート相手 && !FLAG:70
 	CHARA = FLAG:デート相手
-ELSEIF TARGET && ABL:TARGET:親密 >= 5 && SHIRAHU(TARGET)
+ELSEIF TARGET && ABL:TARGET:親密 >= 5 && SHIRAHU(TARGET) && CFLAG:TARGET:行動 != 5
 	CHARA = TARGET
 ELSE
 	CHARA = 0
@@ -460,9 +492,17 @@ SIF GLOBAL_COMABLE(448)
 	RETURN RESULT
 SIF CFLAG:うふふ
 	RETURN 0
-;罠猟可能な場所でのみ
-SIF !HUNTING_SPOT(CFLAG:MASTER:現在位置)
+;罠猟可能な場所or昆虫採集可能な場所でのみ
+SIF !HUNTING_SPOT(CFLAG:MASTER:現在位置) && !MUSHITORI_SPOT(CFLAG:MASTER:現在位置)
 	RETURN 0
+IF MUSHITORI_SPOT(CFLAG:MASTER:現在位置) && !HUNTING_SPOT(CFLAG:MASTER:現在位置)
+	;虫トラップは昆虫採集セットがないとダメ
+	SIF !ITEM:昆虫採集セット
+		RETURN 0
+	;虫トラップを仕掛けてたら仕掛けた場所でしかダメ
+	SIF MUSHI_TRAP && CFLAG:MASTER:現在位置 != GET_MUSHIDATA(MUSHI_TRAP, "場所")
+		RETURN 0
+ENDIF
 ;デート中はデート相手とだけ
 SIF FLAG:デート相手 && TARGET != FLAG:デート相手
 	RETURN 0
@@ -1127,3 +1167,140 @@ FOR トラップ番号, 1, 4
 	ENDIF
 NEXT
 
+
+;-------------------------------------------------
+;虫トラップ
+;-------------------------------------------------
+@MUSHI_TRAP
+;虫トラップはMASTERの一人作業なのでデート経験やTARGETへのソースは無い
+;虫トラップの様子を見る
+IF GROUPMATCH(CFLAG:MASTER:現在位置, GET_MUSHIDATA(MUSHI_TRAP, "場所"))
+	IF !GET_MUSHIDATA(MUSHI_TRAP, "ムシ番号")
+		PRINTFORML 仕掛けたエサ：%ITEMNAME:(GET_MUSHIDATA(MUSHI_TRAP, "エサ番号"))%
+		PRINTFORML 　　エサの質：%"☆" * MUSHI_ESA_DATA(GET_MUSHIDATA(MUSHI_TRAP, "エサ番号"))%
+		PRINTFORML 　エサタイプ：%RESULTS:10%
+		DRAWLINE
+		PRINTFORML まだムシはかかっていないようだ
+		PRINTFORML 　[ 0]そのままにする
+		PRINTFORML 　[ 1]トラップを破棄する
+		INPUT
+		IF RESULT
+			MUSHI_TRAP = 0
+			TFLAG:193 = 11
+			IF FLAG:時間停止
+				BASE:MASTER:TSP -= 20
+			ELSE
+				TIME += 5
+			ENDIF
+		ELSE
+			RETURN -1
+		ENDIF
+	ELSE
+		PRINTL 
+		PRINTFORMW ………！
+		PRINTFORMW ムシがかかっていた！
+		PRINTL 
+		MUSHI_TRAP += DAY * 1000000000000 
+		CALL SHOW_MUSHI_DATA(MUSHI_TRAP)
+		DRAWLINE
+		PRINTFORML 虫トラップで%MUSHI_NAME%を捕まえた！
+		CALL MUSHI_CAPTURE(MUSHI_TRAP)
+		MUSHI_TRAP = 0
+		TFLAG:193 = 12
+		EXP:MASTER:採集経験 ++
+		IF FLAG:時間停止
+			BASE:MASTER:TSP -= 20
+		ELSE
+			TIME += 5
+		ENDIF
+	ENDIF
+;虫トラップを仕掛ける
+ELSE
+	PRINTL ◆虫トラップに使うエサを選んでください（消費します）
+	DRAWLINE
+	FOR LOCAL, 0, 800
+		SIF ITEMNAME:LOCAL == ""
+			CONTINUE
+		SIF !ITEM:LOCAL
+			CONTINUE
+		SIF MUSHI_ESA_DATA(LOCAL)
+			PRINTFORMC %ITEMNAME:LOCAL%({ITEM:LOCAL})[{LOCAL, 3}]
+	NEXT
+	PRINTL 
+	DRAWLINE
+	PRINTC やっぱりやめる[999]
+	INPUT
+	IF INRANGE(RESULT, 0, 800) && ITEM:RESULT
+		ITEM:RESULT --
+		MUSHI_TRAP = RESULT * 1000000000000 + CFLAG:MASTER:現在位置 * 100000000
+		TFLAG:193 = 10
+		IF FLAG:時間停止
+			BASE:MASTER:TSP -= 50
+		ELSE
+			DOWNBASE:MASTER:体力 = 50
+			DOWNBASE:MASTER:気力 = 50
+			TIME += 20
+		ENDIF
+	ELSE
+		RETURN -1
+	ENDIF
+ENDIF
+RETURN 1
+
+;-------------------------------------------------
+;虫トラップでムシを捕まえる関数
+;@MUSHITORIを参考に
+;-------------------------------------------------
+@MUSHI_TRAP_PROGRESS
+#DIM パワー
+#DIM 初期レアリティ指定
+#DIM レアリティ指定
+#DIM ランク
+#DIM Ｇ型
+#DIM Ｘ型
+#DIM MUSHI_ID
+#DIM 捕まえたムシ
+IF MUSHI_TRAP && !GET_MUSHIDATA(MUSHI_TRAP, "ムシ番号")
+	パワー = LIMIT(5 + MUSHI_ESA_DATA(GET_MUSHIDATA(MUSHI_TRAP, "エサ番号")), 1, 10)
+	;捕獲判定
+	SIF RAND:パワー < 2
+		RETURN
+	;特定好物と好物で2回回す
+	初期レアリティ指定 = 0
+	FOR LOCAL, 1, 3
+		SIF !初期レアリティ指定
+			初期レアリティ指定 = RAND:パワー
+		レアリティ指定 = 初期レアリティ指定
+		Ｇ型 = 0
+		Ｘ型 = 0
+		MUSHI_ID = 0
+		WHILE レアリティ指定 >= 0
+			;1回目は特定好物で優先的に拾う
+			IF LOCAL == 1
+				CALL DRAW_MUSHI("虫トラップ特定好物", GET_MUSHIDATA(MUSHI_TRAP, "場所"), レアリティ指定)
+			ELSE
+				CALL DRAW_MUSHI("虫トラップ", GET_MUSHIDATA(MUSHI_TRAP, "場所"), レアリティ指定)
+			ENDIF
+			IF RESULT
+				捕まえたムシ = RESULT
+				MUSHI_CAPTURE ++
+				;ランク判定
+				ランク = MIN(RAND:(20 * MUSHI_ESA_DATA(GET_MUSHIDATA(MUSHI_TRAP, "エサ番号"))), 99)
+				SIF RAND:100 < (パワー / 2)
+					Ｇ型 = 1
+				SIF RAND:100 < (パワー / 2)
+					Ｘ型 = 1
+				;ID設定,日付は実際に捕まえた時
+				MUSHI_ID = MUSHI_CAPTURE * 1000000000000 + GET_MUSHIDATA(MUSHI_TRAP, "場所") * 100000000 + ランク * 10000 + MUSHI_RARE * 1000 + 捕まえたムシ
+				SIF Ｇ型
+					MUSHI_ID += 1000000
+				SIF Ｘ型
+					MUSHI_ID += 10000000
+				MUSHI_TRAP = MUSHI_ID
+				RETURN
+			ELSE
+				レアリティ指定 --
+			ENDIF
+		WEND
+	NEXT
+ENDIF

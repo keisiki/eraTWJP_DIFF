@@ -1,10 +1,11 @@
-﻿@部屋に忍び込む(ARG,ARG:1)
-;ARG=行先　ARG:1 = 遠距離移動
+﻿@部屋に忍び込む(ARG, 直前位置)
+#DIM 直前位置
+;ARG=行先
 FOR LOCAL, 1, CHARANUM
 	IF CFLAG:LOCAL:311 == ARG
 		IF CFLAG:LOCAL:ブチギレ
 			IF FLAG:70 == 1
-				;時間停止中
+				;時間停止中,現状死に分岐
 				PRINTFORML 部屋に忍び込もうと戸を開けると%CALLNAME:LOCAL%が憤怒の形相で固まっている
 				PRINTFORMW 言い知れない迫力に%CALLNAME:MASTER%は忍び込むのを諦めた…
 			ELSE
@@ -21,7 +22,10 @@ FOR LOCAL, 1, CHARANUM
 					PRINTFORMW %CALLNAME:MASTER%は忍び込むのを諦めた…
 				;ENDIF
 			ENDIF
-			NEXTCOM = -1
+			;侵入成功フラグクリア
+			CLEARBIT CFLAG:LOCAL:42,8
+			LOCK:(CFLAG:LOCAL:現在位置) = 1
+			CFLAG:MASTER:現在位置 = 直前位置
 		ELSE
 			IF (!RAND:3 || !CFLAG:LOCAL:睡眠) && !FLAG:70 && !CFLAG:LOCAL:出禁 && !TCVAR:LOCAL:睡眠薬強度 && EXP:LOCAL:睡眠姦経験 < 300
 				;PRINT 物音に気づいた
@@ -54,26 +58,21 @@ FOR LOCAL, 1, CHARANUM
 						;侵入成功フラグクリア
 						CLEARBIT CFLAG:LOCAL:42,8
 						LOCK:(CFLAG:LOCAL:現在位置) = 1
+						CFLAG:MASTER:現在位置 = 直前位置
 					ENDIF
 				ENDIF
-				;遠距離移動フラグ消去
-				SIF ARG:1
-					NEXTCOM = -1
 			ELSE
 				PRINTFORML 眠っている%CALLNAME:LOCAL%の部屋に忍び込んだ
 				CALL KOJO_MESSAGE_SEND("EVENT",12,LOCAL,1,1)
 				;移動成立
 				CFLAG:MASTER:現在位置 = ARG
-				;遠距離移動フラグ消去
-				SIF ARG:1
-					NEXTCOM = -1
 				;侵入成功フラグセット
 				SETBIT CFLAG:LOCAL:42,8
 			ENDIF
 		ENDIF
 	ENDIF
 NEXT
-SIF CFLAG:MASTER:現在位置 != ARG && !ARG:1
+SIF CFLAG:MASTER:現在位置 != ARG
 	RETURN -1
 
 @トイレ侵入(ARG,ARG:1)

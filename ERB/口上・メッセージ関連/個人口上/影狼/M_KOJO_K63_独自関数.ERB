@@ -7,6 +7,8 @@ SIF CFLAG:1001
 	RETURN RAND:10
 PRINTL [0]手を握る [1]頬を撫でる [2]頭の耳に触る [3]顎を擽る [4]髪に触る [98]ランダム
 PRINTL [5]肩を揉む [6]背を撫でる [7]脇腹をつつく [8]鼻を擽る [9]ぺたぺた [99]毎回ランダム
+DRAWLINE
+PRINTFORML [999] 影狼さんの秘密
 INPUT
 SELECTCASE RESULT
 CASE 0 TO 9
@@ -18,6 +20,8 @@ CASE 99
 	PRINTW （戻したいときは私と一緒に願掛けするのよ）
 	PRINTL 
 	RETURN RAND:10
+CASE 999
+	CALL K63_SECRET
 ;手入力で人狼ゲームを呼び出せます
 CASE 100
 	RETURN 100
@@ -423,15 +427,24 @@ SIF CFLAG:[[わかさぎ姫]]:最後に会った日 == DAY && CFLAG:[[蛮奇]]:�
 	RETURN 1
 IF CFLAG:[[わかさぎ姫]]:最後に会った日 == DAY
 	会話相手 = 蛮奇
+	LOCAL = [[蛮奇]]
 ELSEIF CFLAG:[[蛮奇]]:最後に会った日 == DAY
 	会話相手 = 姫
+	LOCAL = [[わかさぎ姫]]
 ELSEIF !RAND:2
 	会話相手 = 姫
+	LOCAL = [[わかさぎ姫]]
 ELSE
 	会話相手 = 蛮奇
+	LOCAL = [[蛮奇]]
 ENDIF
 
+
 PRINTFORMW 影狼は草の根の仲間と雑談している
+
+CALL 画像セット(@"顔絵_服_通常_{[[影狼]]}", 0, 0, 100, 0, 0, "", "デフォルト顔絵")
+CALL 画像セット(@"顔絵_服_通常_{LOCAL}", 0, 0, 100, 0, 0, "", "デフォルト顔絵")
+CALL 画像一斉表示("左", 0, 1)
 PRINTFORML 
 IF TALENT:恋慕 && !RAND:2
 	IF TALENT:育児中
@@ -1740,6 +1753,7 @@ RETURN 1
 ;デイリーイベントの発生
 ;━━━━━━━━━━━━━━━━━━━━━━━━━
 @K63_職場見学
+TCVAR:354 = 1
 ;通い狼発生済み
 SIF !GETBIT(FLAG_DAILY_EV28, 0)
 	RETURN
@@ -1750,7 +1764,7 @@ SIF MARK:[[影狼]]:反発刻印
 	RETURN
 SIF ABL:[[わかさぎ姫]]:親密 < 2 || ABL:[[蛮奇]]:親密 < 2
 	RETURN
-TCVAR:354 = 1
+
 ;初回
 IF !GETBIT(FLAG_DAILY_EV29, 0)
 	PRINTFORML 「蛮奇は人里の料理屋で人間のふりして働いてるらしいのよね」
@@ -1816,3 +1830,38 @@ ENDIF
 CALL RECOVER_PERMIL(MASTER, -100, "体力", 0, "食事を分けた")
 CALL RECOVER_PERMIL([[影狼]], 100, "体力", 0, "食事を貰った")
 CFLAG:1004 += 1
+
+@K63_SECRET
+IF !TALENT:[[影狼]]:思慕 && !TALENT:[[影狼]]:恋慕
+	PRINTFORMW 思慕以上で解禁されます
+	RETURN
+ENDIF
+CALL COLORMESSAGE(@"【イベント】",C_GREEN,1)
+PRINTFORML 他のキャラと同じ部屋で寝ていない場合、たまにお土産を持って夜訪ねてきます。義理堅いので食事をあげたりすると発生率が上がります
+PRINTFORML 人里の長屋に住んでいる場合特殊分岐あり
+PRINTFORML 現在の発生確率補正値{CFLAG:[[影狼]]:1004}
+PRINTFORML 
+PRINTFORML わかさぎ姫、赤蛮奇の親密が２以上で特殊イベント発生
+PRINTFORML 
+
+CALL COLORMESSAGE(@"【コマンド】",C_GREEN,1)
+PRINTFORML 薬入りのお茶は飲まない
+PRINTFORML 発情時、一部の日常コマンドが失敗するが欲求不満と潤滑が上がる
+PRINTFORML 採集時、低確率で追加でアイテムを獲得することがある
+PRINTFORML 一部地域で採集に補正がかかる
+
+PRINTFORML 
+CALL COLORMESSAGE(@"【うふふ】",C_GREEN,1)
+IF !TALENT:[[影狼]]:恋慕
+	PRINTFORML 恋慕取得後に開示されます
+ELSE
+PRINTFORML 反発があるとき、怒っているときは押し倒せない
+PRINTFORML 【習得遅い】だが、一部経験が伸びやすくなっているのでＶと舌技能の成長は早い
+SIF TALENT:[[影狼]]:Ｂ感度 < 0
+PRINTFORML Ｂ強絶頂で【Ｂ鈍感】消去可能
+SIF TALENT:[[影狼]]:自己愛 < 0
+PRINTFORML 奉仕系コマンドを使っていくと【抑圧】消去可能
+SIF TALENT:[[影狼]]:自己愛 == 0
+PRINTFORML 親密と愛情経験が高いとうふふ終了時【解放】を取得可能
+ENDIF
+PRINTFORMW 

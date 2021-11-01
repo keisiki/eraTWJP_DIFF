@@ -388,37 +388,38 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K104_108_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	;-------------------------------------------------
-	;小分岐
-	;-------------------------------------------------
-	;初めて
-	;記入チェック
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
+	;特殊状況
+	IF FLAG:70 ;時姦
 		PRINTFORMW 
 		RETURN 1
-	ENDIF
-	;基本セット
-	;時姦中
-	IF FLAG:70
+	ELSEIF CFLAG:MASTER:イタズラ == 2
 		PRINTFORMW 
 		RETURN 1
-	;恋慕
-	ELSEIF TALENT:恋慕
+	ELSEIF TCVAR:泥酔 == 1
 		PRINTFORMW 
 		RETURN 1
-	;屈服3
-	ELSEIF MARK:不埒刻印 == 3
-		PRINTFORMW 
-		RETURN 1
-	;それ以外
+	;通常
 	ELSE
-		PRINTFORMW 
-		RETURN 1
+		IF ABL:マゾっ気 < 2
+			IF TALENT:恋慕 || TALENT:愛欲
+				PRINTFORML 「いたっ！　待っ、%CALLNAME:MASTER%！？」
+				PRINTFORMW 「ん～、%CALLNAME:MASTER%の趣味なら、良いけど……あんまり強くしないでね？」
+			ELSE
+				PRINTFORML 「いったーい！」
+				PRINTFORMW 「そういう趣味は無いんだけど！　かんべんしてよ～」
+			ENDIF
+		ELSE
+			IF TALENT:恋慕 || TALENT:愛欲
+				PRINTFORML 「あはぁ%UNICODE(0x2665) *1%　いったぁ……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「……もっと、強くしても良いよぉ%UNICODE(0x2665) *1%」
+			ELSE
+				PRINTFORML 「んん%UNICODE(0x2665) *1%　こらっ、何叩いてんの！」
+				PRINTFORMW 「まぁ……ちょっと気持ちいいし、べつに良いけどさ～」
+			ENDIF
+		ENDIF
 	ENDIF
 ENDIF
 RETURN 1

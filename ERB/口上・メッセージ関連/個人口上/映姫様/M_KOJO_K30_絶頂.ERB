@@ -643,7 +643,8 @@ ENDIF
 ;口上薄いところはシステムメッセージ
 SIF !GROUPMATCH(SELECTCOM, 21, 81, 352)
 	CALL PALAM_MESSAGE_C
-;非うふふ時はフラグ掃除
+;非うふふ時のフラグ掃除
+CFLAG:1802 = (INRANGE(CFLAG:出産経過日, 1, 24) || CFLAG:妊娠経過日数 >= 90 )
 IF !CFLAG:うふふ
 	TCVAR:30:362 = 0
 	RETURN
@@ -656,7 +657,6 @@ SIF TCVAR:30:376 == 0
 TCVAR:30:376 = CFLAG:うふふ == 1 ? 1 # 2
 SIF (!TALENT:恋慕 && CFLAG:30:1801) || !SHIRAHU(30)
 	RETURN
-	
 ;ここから恋慕かつシラフの挙動
 ;口上で攻守交代したのを元に戻す
 IF TCVAR:30:362 > 1 && TCVAR:30:361 != TIME
@@ -751,8 +751,11 @@ IF LOCAL
 			PRINTDATAW 
 				DATAFORM 「ねえ…何でおあずけなの？」
 				DATAFORM 「いじわる……」
-				DATAFORM 「…次はつけなくていいのよ。私に、いっぱいちょうだい……」
 				DATAFORM 「おしりに、欲しいのに……」
+				DATALIST
+					DATAFORM 「…次はつけなくていいのよ」
+					DATAFORM 「私に、いっぱい…ちょうだい」
+				ENDLIST
 			ENDDATA
 		ELSEIF ABL:肛射中毒 > 0
 			PRINTFORMW 「…ここなら、出してもよかったのよ？」
@@ -778,7 +781,7 @@ IF LOCAL
 			ELSE
 				PRINTDATAW 
 					DATAFORM 「ん…いっぱい出てるね…」
-					DATAFORM 「気持ちよかったのね？　…それなら私もうれしいな…」
+					DATAFORM 「気持ちよかったのね？　それなら私もうれしいな…」
 				ENDDATA
 			ENDIF
 		;避妊推奨時
@@ -1547,6 +1550,7 @@ IF LOCAL
 					PRINTDATAW
 						DATAFORM 「今日は…期待できる日、ですから……♥」
 						DATAFORM 「今日で…出来たら、うれしいな…♥」
+						DATAFORM 「今日は…溢れるまで、注いでね…♥」
 					ENDDATA
 				ENDIF
 			ELSE

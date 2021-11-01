@@ -64,18 +64,6 @@ FOR C_ID, 1, CHARANUM
 		BREAK
 	ENDIF
 NEXT
-
-PRINTFORML 子供人数と育児人数を再計算します
-CFLAG:MASTER:子供人数 = 0
-CFLAG:MASTER:育児人数 = 0
-FOR C_ID, 1, CHARANUM
-	SIF TALENT:C_ID:行きずり
-		CONTINUE
-	CFLAG:MASTER:子供人数 += CFLAG:C_ID:子供人数
-	CFLAG:MASTER:育児人数 += CFLAG:C_ID:育児人数
-NEXT
-PRINTFORML 子供人数:{CFLAG:MASTER:子供人数}/育児人数:{CFLAG:MASTER:育児人数}
-
 SIF !CM_LIMIT
 	CM_LIMIT = 100
 YOGORE:348 = 0
@@ -694,6 +682,14 @@ CALL ASK_YN
 SIF !RESULT
 	CALL IRAI_RESET
 
+;虫トラップ破棄
+IF MUSHI_TRAP
+	PRINTFORML 虫トラップを破棄しますか？
+	CALL ASK_YN
+	SIF !RESULT
+		MUSHI_TRAP = 0
+ENDIF
+
 ;アイテム類の在庫管理
 FOR LOCAL, 0, 1000
 	CALL ITEMDATA(LOCAL, "SHOP:食料品店")
@@ -770,6 +766,17 @@ IF リセット画面
 ENDIF
 
 $UPDATE_END
+
+PRINTFORML 子供人数と育児人数を再計算します
+CFLAG:MASTER:子供人数 = 0
+CFLAG:MASTER:育児人数 = 0
+FOR C_ID, 1, CHARANUM
+	SIF TALENT:C_ID:行きずり
+		CONTINUE
+	CFLAG:MASTER:子供人数 += CFLAG:C_ID:子供人数
+	CFLAG:MASTER:育児人数 += CFLAG:C_ID:育児人数
+NEXT
+PRINTFORML 子供人数:{CFLAG:MASTER:子供人数}/育児人数:{CFLAG:MASTER:育児人数}
 
 PRINTW 更新完了しました
 
@@ -901,6 +908,15 @@ MARK:ARG:不埒刻印 = 0
 CSTR:ARG:処女喪失履歴 =
 CSTR:ARG:アナル処女喪失履歴 =
 CSTR:ARG:ファーストキス喪失履歴 =
+
+;経験
+EX:ARG:噴乳 = 0
+EX:ARG:射精 = 0
+EX:ARG:放尿 = 0
+EX:ARG:射精量 = 0
+EX:ARG:膣内精液 = 0
+EX:ARG:アナル内精液 = 0
+EX:ARG:子宮内精液 = 0
 
 UWAKI_KNOWN:ARG:0 =
 UWAKI_ACCEPTED:ARG:0 =

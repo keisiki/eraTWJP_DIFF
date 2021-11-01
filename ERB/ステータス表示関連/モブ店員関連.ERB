@@ -8,11 +8,18 @@
 ;15		守谷くじ
 ;16		索道守谷側
 ;17		紅魔カジノ
+;18		エンカウント販売員
+;19		販売員（未使用）
 ;20		モブ男（CSVで割当)
 ;-----------------------------------------------------------
 ;モブ子作成の改変
 @モブ店員画像作成(店員番号)
-#DIMS 種族 = "赤巫女", "尼", "人妻", "メイド妖精", "イナバ", "妖精", "ゾンビフェアリー", "スク水河童", "白狼天狗", "鬼", "玉兎", "人妻", "人妻", "店番", "番台ちゃん", "緑巫女", "河童", "バニー妖精"
+{
+#DIMS 種族 = "赤巫女", "尼", "人妻", "メイド妖精", "イナバ",
+			 "妖精", "ゾンビフェアリー", "スク水河童", "白狼天狗", "鬼", "玉兎",
+			 "人妻", "人妻", "店番", "番台ちゃん", "緑巫女", 
+			 "河童", "バニー妖精", "販売員", "販売員"
+}
 #DIM キャラ番号
 #DIM GID
 #DIMS 生成文字列
@@ -22,6 +29,9 @@
 #DIM リソースカウント
 #DIM 店員番号
 種族:5 = %TEXTR("妖精/化け狸/化け猫/化け狐")%
+;３日に一度販売員が店番に入る
+SIF ((GETTIME()/1000000000) % 100) % 3 == 0
+	種族:4 = 販売員
 CALL SET_MOB_IMAGE_STR(0, 種族:店員番号, 店員番号)
 FOR リソースカウント, 0, 3
 	;初期化
@@ -31,45 +41,62 @@ FOR リソースカウント, 0, 3
 	合成数 = 0
 	;画像合成下地用のダミーを配置する
 	CALL 画像合成(GID,"ダミー")
-	;使うリソースの名称を配列に取得する
-	SELECTCASE リソースカウント
-		CASE 0
-			CALL モブ子リソース探索(合成文字列配列, 合成数, モブ子店員画像文字列_服_通常:店員番号, 1)
-		CASE 1
-			CALL モブ子リソース探索(合成文字列配列, 合成数, モブ子店員画像文字列_服_笑顔:店員番号, 1)
-		CASE 2
-			CALL モブ子リソース探索(合成文字列配列, 合成数, モブ子店員画像文字列_服_怒り:店員番号, 1)
-	ENDSELECT
-	
-	;モブ子画像は高い番号のリソースから先に合成していく必要があるので降順にソートする
-	ARRAYSORT 合成文字列配列, BACK, 0, 合成数
-	;モブ子用画像を順番に合成していく
-	FOR LOCAL, 0, 合成数
-		色合成 '= ""
-		IF 合成文字列配列:LOCAL != ""
-			;色合成確認
-			FOR LOCAL:1, 0 ,モブ子素材色種別数
-				SELECTCASE リソースカウント
-					CASE 0
-						IF STRFIND(合成文字列配列:LOCAL, @"_%モブ子素材色種別:(LOCAL:1)%_") != -1 && DIC_CONTAINSKEY(モブ子店員画像文字列_服_通常:店員番号, @"%モブ子素材色種別:(LOCAL:1)%色")
-							色合成 = %DIC_GET(モブ子店員画像文字列_服_通常:店員番号, @"%モブ子素材色種別:(LOCAL:1)%色")%
-							LOCAL:1 = モブ子素材色種別数
-						ENDIF
-					CASE 1
-						IF STRFIND(合成文字列配列:LOCAL, @"_%モブ子素材色種別:(LOCAL:1)%_") != -1 && DIC_CONTAINSKEY(モブ子店員画像文字列_服_笑顔:店員番号, @"%モブ子素材色種別:(LOCAL:1)%色")
-							色合成 = %DIC_GET(モブ子店員画像文字列_服_笑顔:店員番号, @"%モブ子素材色種別:(LOCAL:1)%色")%
-							LOCAL:1 = モブ子素材色種別数
-						ENDIF
-					CASE 2
-						IF STRFIND(合成文字列配列:LOCAL, @"_%モブ子素材色種別:(LOCAL:1)%_") != -1 && DIC_CONTAINSKEY(モブ子店員画像文字列_服_怒り:店員番号, @"%モブ子素材色種別:(LOCAL:1)%色")
-							色合成 = %DIC_GET(モブ子店員画像文字列_服_怒り:店員番号, @"%モブ子素材色種別:(LOCAL:1)%色")%
-							LOCAL:1 = モブ子素材色種別数
-						ENDIF
-				ENDSELECT
-			NEXT
-			CALL 画像合成(GID, 合成文字列配列:LOCAL, 0, 0, 0, 0, 色合成)
-		ENDIF
-	NEXT
+	;販売員は別処理
+	IF 種族:店員番号 == "販売員"
+		SELECTCASE リソースカウント
+			CASE 0
+				CALL 別絵モブ子リソース探索(合成文字列配列, 合成数, モブ子店員画像文字列_服_通常:店員番号, 1)
+			CASE 1
+				CALL 別絵モブ子リソース探索(合成文字列配列, 合成数, モブ子店員画像文字列_服_笑顔:店員番号, 1)
+			CASE 2
+				CALL 別絵モブ子リソース探索(合成文字列配列, 合成数, モブ子店員画像文字列_服_怒り:店員番号, 1)
+		ENDSELECT
+		FOR LOCAL, 0, 合成数
+			IF 合成文字列配列:LOCAL != ""
+				CALL 画像合成(GID, 合成文字列配列:LOCAL, 0, 0, 0, 0)
+			ENDIF
+		NEXT
+	ELSE
+		;使うリソースの名称を配列に取得する
+		SELECTCASE リソースカウント
+			CASE 0
+				CALL モブ子リソース探索(合成文字列配列, 合成数, モブ子店員画像文字列_服_通常:店員番号, 1)
+			CASE 1
+				CALL モブ子リソース探索(合成文字列配列, 合成数, モブ子店員画像文字列_服_笑顔:店員番号, 1)
+			CASE 2
+				CALL モブ子リソース探索(合成文字列配列, 合成数, モブ子店員画像文字列_服_怒り:店員番号, 1)
+		ENDSELECT
+		
+		;モブ子画像は高い番号のリソースから先に合成していく必要があるので降順にソートする
+		ARRAYSORT 合成文字列配列, BACK, 0, 合成数
+		;モブ子用画像を順番に合成していく
+		FOR LOCAL, 0, 合成数
+			色合成 '= ""
+			IF 合成文字列配列:LOCAL != ""
+				;色合成確認
+				FOR LOCAL:1, 0 ,モブ子素材色種別数
+					SELECTCASE リソースカウント
+						CASE 0
+							IF STRFIND(合成文字列配列:LOCAL, @"_%モブ子素材色種別:(LOCAL:1)%_") != -1 && DIC_CONTAINSKEY(モブ子店員画像文字列_服_通常:店員番号, @"%モブ子素材色種別:(LOCAL:1)%色")
+								色合成 = %DIC_GET(モブ子店員画像文字列_服_通常:店員番号, @"%モブ子素材色種別:(LOCAL:1)%色")%
+								LOCAL:1 = モブ子素材色種別数
+							ENDIF
+						CASE 1
+							IF STRFIND(合成文字列配列:LOCAL, @"_%モブ子素材色種別:(LOCAL:1)%_") != -1 && DIC_CONTAINSKEY(モブ子店員画像文字列_服_笑顔:店員番号, @"%モブ子素材色種別:(LOCAL:1)%色")
+								色合成 = %DIC_GET(モブ子店員画像文字列_服_笑顔:店員番号, @"%モブ子素材色種別:(LOCAL:1)%色")%
+								LOCAL:1 = モブ子素材色種別数
+							ENDIF
+						CASE 2
+							IF STRFIND(合成文字列配列:LOCAL, @"_%モブ子素材色種別:(LOCAL:1)%_") != -1 && DIC_CONTAINSKEY(モブ子店員画像文字列_服_怒り:店員番号, @"%モブ子素材色種別:(LOCAL:1)%色")
+								色合成 = %DIC_GET(モブ子店員画像文字列_服_怒り:店員番号, @"%モブ子素材色種別:(LOCAL:1)%色")%
+								LOCAL:1 = モブ子素材色種別数
+							ENDIF
+					ENDSELECT
+				NEXT
+				CALL 画像合成(GID, 合成文字列配列:LOCAL, 0, 0, 0, 0, 色合成)
+			ENDIF
+		NEXT
+	ENDIF
 	;汎用テンプレートで使用できるように名前を統一する
 	SELECTCASE リソースカウント
 		CASE 0
@@ -80,3 +107,349 @@ FOR リソースカウント, 0, 3
 			CALL リソース登録(@"顔絵_服_怒り_MOB_{店員番号}", GID)
 	ENDSELECT
 NEXT
+
+;=========================================================
+;別絵モブ子用の画像文字列を設定
+;CID		キャラ番号
+;ARGS		別絵使用の種族名	
+;NUMBER		CID=0でモブ店員番号、CID=RANDOM_CHARNUMの場合 =1なら風俗嬢
+;=========================================================
+@別絵モブ子STR設定(CID, ARGS, NUMBER = 0)
+#DIM CID
+#DIM NUMBER
+#DIMS HAIR_TYPE
+#DIMS FACE_TYPE
+#DIMS BODY_TYPE
+#DIM CLOTHES
+#DIM JOB
+#DIMS ACCESSORY_TYPE1
+#DIMS ACCESSORY_TYPE2
+#DIMS モブ子パーツ
+#DIMS モブ子パーツ_裸
+#DIMS 感情_通常
+#DIMS 感情_笑顔
+#DIMS 感情_怒り
+#DIMS LAYER
+#DIM WORD_COLOR_TYPE
+;kaoruセットとの識別子を入れておく
+モブ子パーツ = [00:%ARGS%別絵描画]
+SELECTCASE ARGS
+	CASE "販売員"
+		;髪型を設定
+		HAIR_TYPE = %TEXTR("長髪/セミロング/姫カット/ほわほわ/ショートカット/短髪/一つ結び/ポニテ/ツインテ/三つ編み/おさげ髪/こけし")%
+		
+		;瞳型を設定
+		FACE_TYPE = %TEXTR("丸目/垂れ目/釣り目")%
+		;バストにあわせて素体決め
+		SELECTCASE TALENT:RANDOM_CHARANUM:バストサイズ
+			CASE 0
+				BODY_TYPE = 普乳素体
+			CASE IS > 0
+				BODY_TYPE = 巨乳素体
+			CASE IS < 0
+				BODY_TYPE = 素体
+		ENDSELECT
+		;髪の毛と服が被るか判定
+		CLOTHES = GROUPMATCH(HAIR_TYPE, "長髪", "セミロング", "姫カット")
+		;たまにメガネ/ヘアピン。他に個性ないので裸でもつけっぱ
+		ACCESSORY_TYPE1 = %\@ RAND:8 ? # %TEXTR("赤/黒")%メガネ \@%
+		ACCESSORY_TYPE2 = %\@ RAND:6 ? # ヘアピン \@%
+		
+		;可変画像の設定。
+		モブ子パーツ += 販売員髪型(HAIR_TYPE)
+		モブ子パーツ += 販売員アクセ(ACCESSORY_TYPE1, ACCESSORY_TYPE2)
+		モブ子パーツ_裸 = %モブ子パーツ%
+
+		JOB = (CID && NUMBER)
+		モブ子パーツ += 販売員素体(BODY_TYPE, 0, JOB, CLOTHES)
+		モブ子パーツ_裸 += 販売員素体(BODY_TYPE, 1, JOB, CLOTHES)
+		感情_通常 = %販売員表情(FACE_TYPE, "通常")%
+		感情_笑顔 = %販売員表情(FACE_TYPE, "笑顔")%
+		感情_怒り = %販売員表情(FACE_TYPE, "怒り")%
+		
+		LAYER = 08
+		IF CID
+			CFLAG:CID:1000 = 販売員口上色()
+		ELSE
+			モブ子店員口上色:NUMBER = %TOSTR(販売員口上色(), "X")%
+		ENDIF
+ENDSELECT
+IF CID
+	CSTR:CID:モブ子画像文字列_服_通常 = %モブ子パーツ%%感情_通常%
+	CSTR:CID:モブ子画像文字列_服_笑顔 = %モブ子パーツ%%感情_笑顔%
+	CSTR:CID:モブ子画像文字列_服_怒り = %モブ子パーツ%%感情_怒り%
+	CSTR:CID:モブ子画像文字列_裸_通常 = %モブ子パーツ_裸%%感情_通常%
+	CSTR:CID:モブ子画像文字列_裸_笑顔 = %モブ子パーツ_裸%%感情_笑顔%[%LAYER%:%ARGS%_装飾_照れ]
+	CSTR:CID:モブ子画像文字列_裸_怒り = %モブ子パーツ_裸%%感情_怒り%
+ELSE
+	モブ子店員画像文字列_服_通常:NUMBER = %モブ子パーツ%%感情_通常%
+	モブ子店員画像文字列_服_笑顔:NUMBER = %モブ子パーツ%%感情_笑顔%
+	モブ子店員画像文字列_服_怒り:NUMBER = %モブ子パーツ%%感情_怒り%
+ENDIF
+RETURN RESULT
+
+;=========================================================
+;	髪型文字列の取得
+;
+;	HAIR_TYPE：髪種別(STR:2000以降)
+;=========================================================
+@販売員髪型(HAIR_TYPE)
+#FUNCTIONS
+#DIMS HAIR_TYPE
+SELECTCASE HAIR_TYPE
+	CASE "長髪"
+		LOCALS = [01:販売員_長い][04:販売員_もみあげ]
+	CASE "セミロング"
+		LOCALS = [01:販売員_ほわほわ][04:販売員_もみあげ]
+	CASE "姫カット"
+		LOCALS = [01:販売員_ショート][04:販売員_もみあげ]
+	CASE "ほわほわ"
+		LOCALS = [01:販売員_ほわほわ]
+	CASE "ショートカット"
+		LOCALS = [01:販売員_ショート][04:販売員_短]
+	CASE "短髪"
+		LOCALS = [01:販売員_結ぶ]
+	CASE "一つ結び"
+		LOCALS = [01:販売員_結ぶ][02:販売員_一つ結び][04:販売員_中]
+	CASE "三つ編み"
+		LOCALS = [01:販売員_結ぶ][02:販売員_三つ編み][04:販売員_中]
+	;テール系とウサ耳は相性悪いけど水増しのため入れる
+	CASE "ツインテ"
+		LOCALS = [01:販売員_結ぶ][02:販売員_ツインテ][04:販売員_中]
+	CASE "ポニテ"
+		LOCALS = [01:販売員_結ぶ][02:販売員_ポニテ]
+	CASE "おさげ髪"
+		LOCALS = [01:販売員_結ぶ][02:販売員_おさげ]
+	CASE "こけし"
+		LOCALS = [01:販売員_切り揃え][04:販売員_中][05:販売員_ぱっつん]
+ENDSELECT
+SIF HAIR_TYPE != "こけし" 
+	LOCALS = %LOCALS%[05:販売員_%TEXTR("短い/ぱっつん/粗め/真ん中寄せ/真ん中分け/斜め/")%]
+RETURNF LOCALS
+
+;=========================================================
+;	表情文字列の取得
+;
+;;=========================================================
+@販売員表情(FACE_TYPE, moodStr)
+#FUNCTIONS
+#DIMS FACE_TYPE
+#DIMS moodStr
+
+SELECTCASE FACE_TYPE
+	CASE "丸目"
+		SELECTCASE moodStr
+			CASE "通常"
+				RETURNF "[06:販売員_丸通常]"
+			CASE "笑顔"
+				RETURNF "[06:販売員_丸笑い]"
+			CASE "怒り"
+				RETURNF "[06:販売員_丸怒り]"
+		ENDSELECT
+	CASE "釣り目"
+		SELECTCASE moodStr
+			CASE "通常"
+				RETURNF "[06:販売員_釣通常]"
+			CASE "笑顔"
+				RETURNF "[06:販売員_釣笑い]"
+			CASE "怒り"
+				RETURNF "[06:販売員_釣怒り]"
+		ENDSELECT
+	CASE "垂れ目"
+		SELECTCASE moodStr
+			CASE "通常"
+				RETURNF "[06:販売員_垂通常]"
+			CASE "笑顔"
+				RETURNF "[06:販売員_垂笑い]"
+			CASE "怒り"
+				RETURNF "[06:販売員_垂怒り]"
+		ENDSELECT
+ENDSELECT
+RETURNF LOCALS
+;=========================================================
+;	服装文字列の取得
+;	NUDE	=1 裸
+;	JOB		=1 風俗嬢
+;	CLOTHES	=1 透過処理衣服を着せる 
+;=========================================================
+@販売員素体(BODY_TYPE, NUDE, JOB, CLOTHES)
+#FUNCTIONS
+#DIM NUDE
+#DIM JOB
+#DIM CLOTHES
+#DIMS BODY_TYPE
+#DIMS SETBODY
+IF NUDE
+	SETBODY = [03:販売員_%BODY_TYPE%]
+ELSEIF JOB
+	SETBODY = [03:販売員_%BODY_TYPE%][07:販売員_%BODY_TYPE%%\@ CLOTHES ? もみあげ # \@%バスタオル]
+ELSE
+	SETBODY = [03:販売員_%\@ CLOTHES ? もみあげ # \@%服素体]
+ENDIF
+RETURNF SETBODY
+;=========================================================
+;	装飾品文字列の取得
+
+;=========================================================
+@販売員アクセ(ACCESSORY_TYPE1, ACCESSORY_TYPE2)
+#FUNCTIONS
+#DIMS ACCESSORY_TYPE1
+#DIMS ACCESSORY_TYPE2
+#DIMS SET_ACC
+SET_ACC = 
+SIF ACCESSORY_TYPE1 != ""
+	SET_ACC = [09:販売員_%ACCESSORY_TYPE1%]
+SIF ACCESSORY_TYPE2 != ""
+	SET_ACC = %SET_ACC%[10:販売員_%ACCESSORY_TYPE2%]
+RETURNF SET_ACC
+
+;=========================================================
+;口上色を指定する式中関数
+;髪色が一択なのでこっちはランダム
+;=========================================================
+@販売員口上色
+#FUNCTION
+SELECTCASE RAND:13
+	CASE 0
+		RETURNF 0X888888
+	CASE 1
+		RETURNF 0X733E0C
+	CASE 2
+		RETURNF 0XFFFEA5
+	CASE 3
+		RETURNF 0XA84F66
+	CASE 4
+		RETURNF 0XD8FFFE
+	CASE 5
+		RETURNF 0X7BAEED
+	CASE 6
+		RETURNF 0X50A160
+	CASE 7
+		RETURNF 0XCE6F75
+	CASE 8
+		RETURNF 0XFFBEFF
+	CASE 9
+		RETURNF 0XFFFFFF
+	CASE 10
+		RETURNF 0XFF9400
+	CASE 11
+		RETURNF 0XC0FFFD
+	CASE 12
+		RETURNF 0XCECECE
+ENDSELECT
+
+;*******************************************************************************************************
+;販売員画像生成用関数
+;*******************************************************************************************************
+;既存モブ子と規格が違うので流用して簡略化した専用関数で生成
+;*******************************************************************************************************
+
+@別絵モブ子画像生成(キャラ番号, 立ち絵種類)
+#DIM キャラ番号
+#DIM 立ち絵種類
+#DIM GID
+#DIMS 生成文字列
+#DIMS 合成文字列配列, 50
+#DIM 合成数
+#DIM リソースカウント
+;モブ子素材CSTR開始位置 = 30	CSTR:モブ子画像文字列_服_通常のCSTR番号
+;モブ子素材CFLAG開始位置 = 923	モブ子画像GraphicsIDが入る場所。1枚の画像につき1個のIDらしい。
+;モブ子素材リソース数 = 6		CSTR:RANDOM_CHARANUM:モブ子画像文字列_服_通常～裸_怒りまでの６個
+
+;リソース作成
+;=====================================
+FOR リソースカウント, 0, モブ子素材リソース数
+	;初期化
+	GID = 0
+	VARSET LOCAL
+	VARSET 合成文字列配列,
+	合成数 = 0
+	
+	;画像合成下地用のダミーを配置する。GID(GraphicsID)にREF関数で登録可能な空き番号が入って戻ってくる
+	CALL 画像合成(GID,"ダミー")
+	
+	;使うリソースの名称を配列に取得する。CSTR:RANDOM_CHARANUM:モブ子画像文字列を渡すと
+	;REF関数で合成文字列配列にリソース名、合成数にスプライトの数が入って戻ってくる
+	CALL 別絵モブ子リソース探索(合成文字列配列, 合成数, CSTR:キャラ番号:(モブ子素材CSTR開始位置 + リソースカウント), 立ち絵種類)
+	
+	;重ねる順番で配列に入るのでARRAYSORTは不要
+	;ARRAYSORT 合成文字列配列, FORWARD, 0, 合成数
+	
+	;モブ子用画像を順番に合成していく
+	;色は一律なのでどんどん重ねる
+	FOR LOCAL, 0, 合成数
+		IF 合成文字列配列:LOCAL != ""
+			CALL 画像合成(GID, 合成文字列配列:LOCAL, 0, 0, 0, 0)
+		ENDIF
+	NEXT
+	;合成した画像をリソースに登録する
+	CFLAG:キャラ番号:(モブ子素材CFLAG開始位置 + リソースカウント) = GID
+	;汎用テンプレートで使用できるように名前を統一する
+	IF !立ち絵種類
+		SELECTCASE リソースカウント
+			CASE 0
+				CALL リソース登録(@"立ち絵_服_通常_{キャラ番号}", GID)
+			CASE 1
+				CALL リソース登録(@"立ち絵_服_笑顔_{キャラ番号}", GID)
+			CASE 2
+				CALL リソース登録(@"立ち絵_服_怒り_{キャラ番号}", GID)
+			CASE 3
+				CALL リソース登録(@"立ち絵_裸_通常_{キャラ番号}", GID)
+			CASE 4
+				CALL リソース登録(@"立ち絵_裸_笑顔_{キャラ番号}", GID)
+			CASE 5
+				CALL リソース登録(@"立ち絵_裸_怒り_{キャラ番号}", GID)
+		ENDSELECT
+	ELSE
+		SELECTCASE リソースカウント
+			CASE 0
+				CALL リソース登録(@"顔絵_服_通常_{キャラ番号}", GID)
+			CASE 1
+				CALL リソース登録(@"顔絵_服_笑顔_{キャラ番号}", GID)
+			CASE 2
+				CALL リソース登録(@"顔絵_服_怒り_{キャラ番号}", GID)
+			CASE 3
+				CALL リソース登録(@"顔絵_裸_通常_{キャラ番号}", GID)
+			CASE 4
+				CALL リソース登録(@"顔絵_裸_笑顔_{キャラ番号}", GID)
+			CASE 5
+				CALL リソース登録(@"顔絵_裸_怒り_{キャラ番号}", GID)
+		ENDSELECT
+	ENDIF
+NEXT
+
+
+RETURN 1
+
+;*******************************************************************************************************
+;販売員画像リソース探索用関数
+;チェックサム的なのを無くしてただ重ねるだけに
+;*******************************************************************************************************
+@別絵モブ子リソース探索(合成文字列配列, 合成数, 生成文字列, 立ち絵種類)
+#DIMS REF 合成文字列配列,0
+#DIM REF 合成数
+#DIMS 生成文字列
+#DIM 立ち絵種類
+#DIMS キー
+VARSET LOCAL
+キー =
+;ゴミ取り
+生成文字列 = %REPLACE(生成文字列, "^\"\"", "")%
+
+;素材のレイヤー数増やしたらカウントを適宜増やす
+FOR LOCAL, 1, 11
+	キー = %TOSTR(LOCAL,"D2")%
+	;PRINTFORML %キー%
+	;PRINTFORML %生成文字列%
+	IF DIC_CONTAINSKEY(生成文字列, キー)
+		IF (!立ち絵種類)
+			合成文字列配列:(合成数++) = %キー%_%DIC_GET(生成文字列, キー)%
+			;PRINTFORML %キー%_%DIC_GET(生成文字列, キー)%　\@ SPRITECREATED(@"%キー%_%DIC_GET(生成文字列, キー)%") ? あるよ # ないよ \@
+		ELSE
+			合成文字列配列:(合成数++) = %キー%_%DIC_GET(生成文字列, キー)%_顔
+			;PRINTFORML %キー%_%DIC_GET(生成文字列, キー)%_顔　\@ SPRITECREATED(@"%キー%_%DIC_GET(生成文字列, キー)%_顔") ? あるよ # ないよ \@
+		ENDIF
+	ENDIF
+NEXT
+RETURN 1
+

@@ -1900,8 +1900,29 @@ RETURN 1
 ;TFLAG:193(採集物のID, 0=『何も見つからなかった…』
 ;TFLAG:194(今回採集した個数
 ;==================================================
+
+@M_KOJO_SUCCESS_COM_K63_445
+;PRINTFORML インチキで幸運補正をアップ
+;PRINTFORML 元の補正：{TFLAG:幸運補正}
+
+SELECTCASE CFLAG:デート中
+;竹林
+CASE 4
+	TCVAR:355 = 2
+;森・山麓
+CASE 5, 7, 8
+	TCVAR:355 = 1
+CASEELSE
+	TCVAR:355 = 0
+ENDSELECT
+TFLAG:幸運補正 += TCVAR:355
+;PRINTFORML 補正後：{TFLAG:幸運補正}
+
 @M_KOJO_MESSAGE_COM_K63_445
 CALL M_KOJO_MESSAGE_COM_K63_445_1
+;幸運補正をリセット
+TFLAG:幸運補正 -= TCVAR:355
+TCVAR:355 = 0
 RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K63_445_1
@@ -1910,7 +1931,19 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	PRINTFORML 「%TEXTR("何？探し物？/ｸﾝｸﾝ……こっちかしら/んー、あんまり匂いがしないわね")%」
+	SELECTCASE CFLAG:デート中
+	;竹林
+	CASE 4
+		PRINTFORML 「私、この辺りは詳しいわよ」
+	;森
+	CASE 5
+		PRINTFORML 「相変わらずここはキノコ臭いわね…」
+	;山
+	CASE 7, 8
+		PRINTFORML 「こういうところは匂いが辿りやすいわね」
+	CASEELSE
+		PRINTFORML 「%TEXTR("何？探し物？/ｸﾝｸﾝ……こっちかしら/んー、あんまり匂いがしないわね")%」
+	ENDSELECT
 	SIF !RAND:4
 	{
 		PRINTFORMW %TEXTR("野外で作業しているときの影狼は生き生きしていて、たまに野生動物的な格好良さを感じる/
@@ -1924,7 +1957,7 @@ IF LOCAL
 		RETURN 1
 	ENDIF
 	;低確率でオマケ獲得
-	IF TFLAG:193 && TALENT:採集Lv >= RAND:100
+	IF TFLAG:193 && TALENT:採集Lv * 2 >= RAND:100
 		PRINTFORMW 「待って、あっちの方から同じ匂いがする！」
 		PRINTFORMW …
 		SETCOLOR 0x00FF00
@@ -1933,6 +1966,11 @@ IF LOCAL
 		ITEM:(TFLAG:193) ++
 		EXP:採集経験 ++
 		PRINTFORMW 「私と一緒でよかったでしょ？」
+	ELSEIF TALENT:採集Lv * 2 >= RAND:100
+		PRINTFORMW 「あっ！」
+		CALL SPTALK, [[影狼]], "笑顔", 0, @"「この石、姫が喜びそうな感じだわー」", 1 
+		;CFLAG:[[影狼]]:1006 = 1
+		CALL KIGEN_CHANGE(TARGET,100,1)
 	ENDIF
 ENDIF
 RETURN 1

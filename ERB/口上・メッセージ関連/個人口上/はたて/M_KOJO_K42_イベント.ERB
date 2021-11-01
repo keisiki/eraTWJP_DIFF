@@ -7304,7 +7304,7 @@ IF LOCAL
 	ENDIF
 	
 	;秘めた思い
-	IF (TALENT:セフレ || TALENT:愛欲) && CFLAG:42:好感度 >= 3000 && CFLAG:42:信頼度 >= 1000 && ABL:親密 < 10 && !FLAG:陥落路線変化
+	IF (TALENT:セフレ || TALENT:愛欲) && CFLAG:42:好感度 >= 3000 && CFLAG:42:信頼度 >= 1000 && ABL:親密 < 10 && !FLAG:陥落路線変化 && CFLAG:1412 == 0
 		CFLAG:1412 = 1
 	ENDIF
 	
@@ -9842,3 +9842,630 @@ ELSEIF ARG == 5
 	RETURN 1
 ENDIF
 RETURN 1
+
+
+;==================================================
+;ムシバトル
+;ムシバトルの口上は少し特殊で、PRINTを使うのではなく、
+;台詞一行のみをRESULTSに入れてください
+;ムシの名前は %MUSHI_NAME% で表示できます
+;ムシの名前の最長はアレキサンドラトリバネアゲハの全角14文字です
+;文字数制限があります。はみ出ないように気をつけてください
+;ARGは残りムシ数か順位です
+;==================================================
+@M_KOJO_MESSAGE_COM_K42_MUSHI_BATTLE(ARGS, ARG)
+#DIM 残りムシ数
+#DIM 順位
+SELECTCASE ARGS
+CASE "試合前"
+	;-------------------------------------------------
+	;キャラセレクト時,ARGは使えません
+	;全角50文字くらいまで
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1
+		SELECTCASE RAND:12
+		CASE 0
+			RESULTS = 「はたて！　いっきまーす！」
+		CASE 1
+			RESULTS = 「がんばるわよ！」
+		CASE 2
+			RESULTS = 「さあ、始めるわよ！」
+		CASE 3
+			RESULTS = 「すぐ楽にしてあげるわっ！」
+		CASE 4
+			RESULTS = 「どーしても、闘わないといけないのね…！」
+		CASE 5
+			RESULTS = 「お願いしまーす！」
+		CASE 6
+			RESULTS = 「いくわよ！」
+		CASE 7
+			RESULTS = 「かかってきなさい！」
+		CASE 8
+			RESULTS = 「準備はできてるー？」
+		CASE 9
+			RESULTS = 「行くわよ！」
+		CASE 10
+			RESULTS = 「とっととかかってきなさい！」
+		CASE 11
+			RESULTS = 「軽くいきましょ♪」
+		ENDSELECT
+;		RESULTS = 「ぶっとばしてさしあげますわ！」
+	ENDIF
+CASE "戦場に出した"
+	;-------------------------------------------------
+	;"【（キャラ）】は《（ムシ）》を戦場に出した！」"の直後
+	;全角40文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	残りムシ数 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+		SELECTCASE RAND:12
+		CASE 0
+			RESULTS = 「%MUSHI_NAME%、あなたに決めたわよ！」
+		CASE 1
+			RESULTS = 「レオパ…%MUSHI_NAME%、出なさいっ！」
+		CASE 2
+			RESULTS = 「えへへ、私の%MUSHI_NAME%は強いわよ！」
+		CASE 3
+			RESULTS = 「やっちゃえ%MUSHI_NAME%！」
+		CASE 4
+			RESULTS = 「この子に勝てる？」
+		CASE 5
+			RESULTS = 「頑張れ%MUSHI_NAME%！」
+		CASE 6
+			RESULTS = 「いけ、%MUSHI_NAME%！　ジャリガールたちをぶっとばせー！」
+		CASE 7
+			RESULTS = 「ククク…この%MUSHI_NAME%は私の闘昆三銃士の中でも最強…！」
+		CASE 8
+			RESULTS = 「準備はできてるー？」
+		CASE 9
+			RESULTS = 「行くわよ！　相棒！」
+		CASE 10
+			RESULTS = 「とっととかかってきなさい！」
+		CASE 11
+			RESULTS = 「軽くいきましょ♪」
+		ENDSELECT
+		;RESULTS = 「すぐ楽にしてあげる♪」
+	ENDIF
+CASE "攻撃時"
+	;-------------------------------------------------
+	;"【（キャラ）】《（ムシ）》の『（攻撃名）』！」"の直前
+	;全角40文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	残りムシ数 = ARG
+	;MUSHI_DATA.ERBに名称
+	;-------------------------------------------------
+	IF LOCAL:1
+		IF GROUPMATCH(MUSHI_NAME, "モンシロチョウ","モンキチョウ","アゲハチョウ","カラスアゲハ","アオスジアゲハ","オオゴマダラ","オオムラサキ","アオバセセリ",)
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%！　眠りの鱗粉よ！」
+			CASE 1
+				RESULTS = 「%MUSHI_NAME%！　はばたいて！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "モルフォチョウ","アレキサンドラトリバネアゲハ")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%！　眠りの鱗粉よ！」
+			CASE 1
+				RESULTS = 「%MUSHI_NAME%！　バタフライエフェクト！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "ミイロタテハ")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%！　眠りの鱗粉よ！」
+			CASE 1
+				RESULTS = 「%MUSHI_NAME%！　もっと速く！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "チャドクガ","クジャクヤママユ")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「毒攻撃、当たると痛いわよ！」
+			CASE 1
+				RESULTS = 「%MUSHI_NAME%！　はばたいて！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "オオミズアオ")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%！　動きを止めなさい！」
+			CASE 1
+				RESULTS = 「%MUSHI_NAME%！　はばたいて！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "スズメガ")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%！　今よ！」
+			CASE 1
+				RESULTS = 「%MUSHI_NAME%！　はばたいて！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "ヨナグニサン")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%の支配攻撃、防げる？」
+			CASE 1
+				RESULTS = 「%MUSHI_NAME%！　はばたいて！」
+			ENDSELECT
+		;バッタ
+		ELSEIF GROUPMATCH(MUSHI_NAME, "ショウリョウバッタ","トノサマバッタ","オンブバッタ","イナゴ")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%！　ライジングインパクト！」
+			CASE 1
+				RESULTS = 「跳べ、%MUSHI_NAME%！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "キリギリス","クツワムシ","エンマコオロギ","スズムシ","マツムシ","ウマオイ")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%！　ライジングインパクト！」
+			CASE 1
+				RESULTS = 「跳べ、%MUSHI_NAME%！」
+			ENDSELECT
+		;リオック
+		ELSEIF GROUPMATCH(MUSHI_NAME, "リオック")
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%！　ライジングインパクト！」
+			CASE 1
+				RESULTS = 「跳べ、%MUSHI_NAME%！」
+			CASE 2
+				RESULTS = 「喰らい尽くせ、%MUSHI_NAME%！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "コカマキリ","オオカマキリ")
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%の複眼に捉えられないものはないわ！」
+			CASE 1
+				RESULTS = 「右足にカマ、左足にカマ、合体攻撃、カマクロス！」
+			CASE 2
+				RESULTS = 「%MUSHI_NAME%の圧倒的攻撃力、思い知りなさい！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "ハナカマキリ","カレハカマキリ")
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%の圧倒的攻撃力、思い知りなさい！」
+			CASE 1
+				RESULTS = 「右足にカマ、左足にカマ、合体攻撃、カマクロス！」
+			CASE 2
+				RESULTS = 「ふふん、%MUSHI_NAME%がどこにいるか分かるかしら？」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "ミツバチ","オオマルハナバチ","クマンバチ","アシナガバチ")
+			SELECTCASE RAND:4
+			CASE 0
+				RESULTS = 「ハチの一刺し、痛いわよ！」
+			CASE 1
+				RESULTS = 「ハチのように舞い、ハチのように刺す！」
+			CASE 2
+				RESULTS = 「超必殺忍蜂ー！」
+			CASE 3
+				RESULTS = 「シビれちゃえ！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "ジガバチ")
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「ただのハチと思ったら大間違いなんだから！」
+			CASE 1
+				RESULTS = 「狩りなさい、%MUSHI_NAME%！」
+			CASE 2
+				RESULTS = 「そこよっ！　捉えたわ！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "ヒメスズメバチ")
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「姫ちゃんの一刺しは痛いわよ！」
+			CASE 1
+				RESULTS = 「狩りなさい、%MUSHI_NAME%！」
+			CASE 2
+				RESULTS = 「%MUSHI_NAME%！　突き立てなさい！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "オオスズメバチ")
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%の毒は伊達じゃない！」
+			CASE 1
+				RESULTS = 「狩りなさい、%MUSHI_NAME%！」
+			CASE 2
+				RESULTS = 「%MUSHI_NAME%の武器は針だけだと思った？」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "アブラゼミ","ミンミンゼミ","クマゼミ","ツクツクボウシ","ヒグラシ")
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%！　かき鳴らせ！」
+			CASE 1
+				RESULTS = 「砂を崩すほどの大音量よ！」
+			CASE 2
+				RESULTS = 「刻めビート！　ハートを震わせちゃえ！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "ギンヤンマ","ルリボシヤンマ","シオカラトンボ","ハグロトンボ","アキアカネ")
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「空の王者の二つ名は伊達じゃないわ！」
+			CASE 1
+				RESULTS = 「あなたの虫、逃げ切れるかしら？」
+			CASE 2
+				RESULTS = 「%MUSHI_NAME%！　速さでかき回しちゃえ！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "イトトンボ")
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%を捉えられるかしら？」
+			CASE 1
+				RESULTS = 「見た目は頼りなくても、スピードがある！」
+			CASE 2
+				RESULTS = 「%MUSHI_NAME%！　速さでかき回しちゃえ！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "オニヤンマ")
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「大顎に捕まったらおしまいだからね！」
+			CASE 1
+				RESULTS = 「名前にふさわしい見た目でしょ？」
+			CASE 2
+				RESULTS = 「餌になりたくなかったら逃げなさい！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "アメンボ")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「敵にこっそりしのびよれ！」
+			CASE 1
+				RESULTS = 「水の上をスイスイ歩くだけじゃないよ！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "ゲンゴロウ")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「こう見えて凶暴なんだから！」
+			CASE 1
+				RESULTS = 「硬い体に鋭い爪、攻防一体よ！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "タガメ")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「鎌で刻んであげるんだから！」
+			CASE 1
+				RESULTS = 「%MUSHI_NAME%！　溶かしちゃえ！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "ミズカマキリ")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「ふふん、%MUSHI_NAME%は飛ぶのも得意なのよ！」
+			CASE 1
+				RESULTS = 「枝だと思った？　それは%MUSHI_NAME%よ！」
+			ENDSELECT
+		ELSEIF GROUPMATCH(MUSHI_NAME, "ナミテントウ","ナナホシテントウ")
+			SELECTCASE RAND:2
+			CASE 0
+				RESULTS = 「かわいくても肉食なんだよ！」
+			CASE 1
+				RESULTS = 「お天道様の力を借りて、今、必殺の！」
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:20
+			CASE 0
+				RESULTS = 「決まりよっ！」
+			CASE 1
+				RESULTS = 「食らえーっ！」
+			CASE 2
+				RESULTS = 「遊びは終わりだー！」
+			CASE 3
+				RESULTS = 「これで終わりよ！」
+			CASE 4
+				RESULTS = 「いくわよ！」
+			CASE 5
+				RESULTS = 「%MUSHI_NAME%の攻撃、見切れる！？」
+			CASE 6
+				RESULTS = 「ボディが甘いしガラ空きだー！」
+			CASE 7
+				RESULTS = 「これで…決める！」
+			CASE 8
+				RESULTS = 「ここかな！？」
+			CASE 9
+				RESULTS = 「お別れだー！」
+			CASE 10
+				RESULTS = 「よーし、とどめいこー！」
+			CASE 11
+				RESULTS = 「取っておきよ！」
+			CASE 12
+				RESULTS = 「はたて流ムシ奥義！　なんちゃって！」
+			CASE 13
+				RESULTS = 「もらったぁ！」
+			CASE 14
+				RESULTS = 「燃えろ、%MUSHI_NAME%！」
+			CASE 15
+				RESULTS = 「やっちゃってー！」
+			CASE 16
+				RESULTS = 「突撃ぃぃぃぃぃ！！」
+			CASE 17
+				RESULTS = 「これで、倒れて！」
+			CASE 18
+				RESULTS = 「このお！　やっちゃえー！」
+			CASE 19
+				RESULTS = 「いけっ、%MUSHI_NAME%ー！」
+			ENDSELECT
+		ENDIF
+;RESULTS = 「ぶっとばせ！%MUSHI_NAME%！」
+	ENDIF
+CASE "倒れた時"
+	;-------------------------------------------------
+	;"【（キャラ）】《（ムシ）》は倒れた！！"の直後
+	;全角40文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	残りムシ数 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+		SELECTCASE 残りムシ数
+		CASE 2
+			SELECTCASE RAND:4
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%～～！」
+			CASE 1
+				RESULTS = 「あああーーー！！　私の%MUSHI_NAME%が～～～～！！」
+			CASE 2
+				RESULTS = 「うっそー！？」
+			CASE 3
+				RESULTS = 「つ…つぎ次鋒でろ！」
+			CASE 4
+				RESULTS = 「ムカツクゥ！」
+			ENDSELECT
+		CASE 1
+			SELECTCASE RAND:4
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%～～！」
+			CASE 1
+				RESULTS = 「ま、まだよ！　まだ終わりじゃないんだから！」
+			CASE 2
+				RESULTS = 「うっそー！？」
+			CASE 3
+				RESULTS = 「やばっ！？　後がないじゃん！」
+			CASE 4
+				RESULTS = 「うぎぎぎぎ…まだ、まだ終わらないわよー！」
+			ENDSELECT
+		CASE 0
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「%MUSHI_NAME%～～！」
+			CASE 1
+				RESULTS = 「あああーーー！！　私の虫ちゃんズが～～～～！！」
+			CASE 2
+				RESULTS = 「うっそー！？」
+			CASE 3
+				RESULTS = 「のぉーーーー！？」
+			ENDSELECT
+
+		ENDSELECT
+;		RESULTS = 「ああっ！私の%MUSHI_NAME%がっ！」
+	ENDIF
+CASE "敗退時"
+	;-------------------------------------------------
+	;"【（キャラ）】敗退！！"の直後
+	;全角40文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	残りムシ数 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+		SELECTCASE RAND:3
+		CASE 0
+			RESULTS = 「さよなら～」
+		CASE 1
+			RESULTS = 「あああーーー！！　私の虫ちゃんズが～～～～！！」
+		CASE 2
+			RESULTS = 「ありがとう！　そしてさようならあああああ！！」
+		ENDSELECT
+;		RESULTS = 「私のムシが全滅めつめつ……」
+	ENDIF
+CASE "タイマン：勝ち"
+	;-------------------------------------------------
+	;順位は1位
+	;全角20文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	順位 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+		SELECTCASE RAND:19
+		CASE 0
+			RESULTS = 「大自然のおしおきよ♪」
+		CASE 1
+			RESULTS = 「えへへ、燃えたでしょ♪」
+		CASE 2
+			RESULTS = 「ムシを見るたびに思い出しなさい♪」
+		CASE 3
+			RESULTS = 「うちとったり～♪」
+		CASE 4
+			RESULTS = 「よっ、幻想郷一～♪」
+		CASE 5
+			RESULTS = 「%CALLNAME:MASTER%じゃ燃えないわね」
+		CASE 6
+			RESULTS = 「やったぁ～！」
+		CASE 7
+			RESULTS = 「そのまま森に帰りなさい！」
+		CASE 7
+			RESULTS = 「よっ、やったね！」
+		CASE 8
+			RESULTS = 「なかなかのお手前ね！」
+		CASE 9
+			RESULTS = 「楽しかったわ、また来なさい！」
+		CASE 10
+			RESULTS = 「任務、かんりょー！☆(ゝω･)v」
+		CASE 11
+			RESULTS = 「ばきゅーん☆」
+		CASE 12
+			RESULTS = 「おっけー☆(ゝω･)v」
+		CASE 13
+			RESULTS = 「あーりがとー♪」
+		CASE 14
+			RESULTS = 「快感～♪」
+		CASE 15
+			RESULTS = 「もりへ　かえりなさい」
+		CASE 16
+			RESULTS = 「えへへ、どう？　負けないよ♪」
+		CASE 17
+			RESULTS = 「私もなかなかでしょ♪」
+		CASE 18
+			RESULTS = 「ほら、もっといーところ見せて♪」
+		ENDSELECT
+	ENDIF
+CASE "タイマン：負け"
+	;-------------------------------------------------
+	;順位は2位
+	;全角20文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	順位 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+		IF TALENT:恋慕
+			SELECTCASE RAND:7
+			CASE 0
+				RESULTS = 「やっぱり%MASTERNAME:42%ってすごい！」
+			CASE 1
+				RESULTS = 「あーもう、悔しいなあ」
+			CASE 2
+				RESULTS = 「全力で戦ってくれてありがとね！」
+			CASE 3
+				RESULTS = 「次は負けないんだから！」
+			CASE 4
+				RESULTS = 「またバトルしてね。約束だよ」
+			CASE 5
+				RESULTS = 「いい勝負だったわ。ありがとね」
+			CASE 6
+				RESULTS = 「もーはしゃぎすぎー。子供みたい」
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:6
+			CASE 0
+				RESULTS = 「このままでは終わらないんだから！」
+			CASE 1
+				RESULTS = 「あーもう、悔しいなあ」
+			CASE 2
+				RESULTS = 「妖怪の山の虫姫さまと呼ばれた私が…」
+			CASE 3
+				RESULTS = 「次は負けないんだから！」
+			CASE 4
+				RESULTS = 「私が負けても、第二、第三のはたてが…」
+			CASE 5
+				RESULTS = 「いい勝負だったわ。ありがとね」
+			ENDSELECT
+		ENDIF
+;		RESULTS = 「%CALLNAME:MASTER%つよーい！」
+	ENDIF
+CASE "バトルロイヤル：優勝"
+	;-------------------------------------------------
+	;順位は1位
+	;全角30文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	順位 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+		SELECTCASE RAND:10
+		CASE 0
+			RESULTS = 「ですとろーい！」
+		CASE 1
+			RESULTS = 「ぱーふぇくと！」
+		CASE 2
+			RESULTS = 「はたてちゃん、サイキョー！」
+		CASE 3
+			RESULTS = 「やったわ、椛ー！」
+		CASE 4
+			RESULTS = 「満月の夜にまたやりましょう！」
+		CASE 5
+			RESULTS = 「楽しかったわ！」
+		CASE 6
+			RESULTS = 「じゃーんぷ！　ぶいぶい！」
+		CASE 7
+			RESULTS = 「ムシバトルって、たのしー！」
+		CASE 8
+			RESULTS = 「ま、私と虫ちゃんズが本気を出せば、こーんなところかな？」
+		CASE 8
+			RESULTS = 「私より強いやつに会いに行くわ」
+		CASE 9
+			RESULTS = 「いぇい！」
+		ENDSELECT
+;		RESULTS = 「やったー！」
+	ENDIF
+CASE "バトルロイヤル：２位以下"
+	;-------------------------------------------------
+	;順位は2～4位
+	;全角30文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	順位 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+		SELECTCASE 順位
+		CASE 2
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「うん、悪くないわね」
+			CASE 1
+				RESULTS = 「あとちょっとだったのに～」
+			CASE 2
+				RESULTS = 「虫ちゃんズ、がんばったね♪」
+			ENDSELECT
+		CASE 3
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「う～ん、残念ー」
+			CASE 1
+				RESULTS = 「次はもっと上を目指すわよ！」
+			CASE 2
+				RESULTS = 「みんな強いなぁ」
+			ENDSELECT
+		CASE 4
+			SELECTCASE RAND:3
+			CASE 0
+				RESULTS = 「この面子強すぎー！」
+			CASE 1
+				RESULTS = 「あぁん。負けちゃったぁ」
+			CASE 2
+				RESULTS = 「ごめんねー、虫ちゃんズ…」
+			ENDSELECT
+		ENDSELECT
+;		RESULTS = 「くやし～！」
+	ENDIF
+CASE "チーム戦：勝ち"
+	;-------------------------------------------------
+	;順位は1位（やられていても）
+	;全角32文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	順位 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+		SELECTCASE RAND:3
+		CASE 0
+			RESULTS = 「1＋1は2じゃないわ。私たちは1＋1で200。10倍よ10倍」
+		CASE 1
+			RESULTS = 「2000万パワーズの力を見た？」
+		CASE 2
+			RESULTS = 「私たちは最強のふたりなんだから！」
+		ENDSELECT
+;		RESULTS = 「私のおかげね！」
+	ENDIF
+CASE "チーム戦：負け"
+	;-------------------------------------------------
+	;順位は2位
+	;全角32文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	順位 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+		SELECTCASE RAND:3
+		CASE 0
+			RESULTS = 「あーん負けちゃったー。ま、勝負は時の運っていうしね」
+		CASE 1
+			RESULTS = 「即席にしては悪くなかったんじゃない？」
+		CASE 2
+			RESULTS = 「なーに落ち込んでるのよ。鍛えてリベンジよ！」
+		ENDSELECT
+;		RESULTS = 「味方が弱い！！」
+	ENDIF
+ENDSELECT
+SIF RESULTS != ""
+	RETURN 1

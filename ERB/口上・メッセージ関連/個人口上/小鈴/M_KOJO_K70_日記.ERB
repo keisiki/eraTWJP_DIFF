@@ -1,253 +1,52 @@
-;日記口上
-
-;一日の終了時の流れ
-;@DIARY_TEXT_K70（日記本文）→@DIARY_AFTER_CHECK_K70（フラグの処理）
-
-
-;◆日記の仕様◆
-;※１@DIARY_BEFORE_CHECK_K70で日記のフラグが立つ。
-;→未読フラグ(2)が立っていると一日の終わりにデイリーイベントとして日記が読まれる（既読になる）。
-;→※２未読フラグ(3)が立っていると[日記を読む]で読む事ができる。読むと既読(1)になる。
-;※１各所イベント口上やコマンド口上でフラグを立たせても良いです。
-;※２基本的には未読(2)推奨です。既読(1)、未読(3)はワンステップ必要。
-
-;[日記を読む]には、持ち主が[恋慕]なら自由に読むことができ、
-;そうでない場合は恋慕でない人物がその場に居ない時、もしくは時間停止することで盗み読みできる。
-;拠点住民でないキャラは恋慕であれば自宅（お招き部屋）で読むことができる。
-
-;MAX_DIARY_PAGE:XX:0　キャラ番号XXの日記の最大ページ数　限度は101（1～100）
-;DIARY:XX:YY　　　　　キャラ番号XXの日記番号YYの情報
-;　　 3=未読　　　　　デイリーイベントで読まれない。[日記を読む]で読むと既読になる。
-;　　 2=未読　　　　　デイリーイベントで読まれる。読まれるまでは[日記を読む]では読めない。読まれると既読になる。
-;　　 1=既読　　　　　デイリーイベントで読まれない。[日記を読む]で読める。
-;　　 0=読めない　　　未解禁。
-;PAGESET:XX:YY　　　　キャラ番号XXの実際に書かれたYYページ目の日記番号。
-;=============================
-@DIARY_K70_EXIST
+;==========================================================
 ;存在判定
 ;0だと日記は書かれません。
-;=============================
+;==========================================================
+@DIARY_K70_EXIST
 RETURN 1
 
-;=============================
-@DIARY_AFTER_CHECK_K70
+;==========================================================
+;常時チェックされる日記の状態情報
+;簡易版ではCHARAに番号を入れれば自動で処理してくれます
+;MAX_DIARY_PAGEの有効範囲は2～100です
+;==========================================================
+@DIARY_BEFORE_CHECK_K70
+#DIM CHARA
+CHARA = [[小鈴]]
+MAX_DIARY_PAGE:CHARA:0 = 100
+FOR LOCAL, 1, MAX_DIARY_PAGE:CHARA:0 + 1
+	RESULT = 0
+	TRYCALLFORM DIARY_K{CHARA}_{LOCAL}_HAPPEN
+	IF RESULT
+		IF !DIARY:CHARA:LOCAL || RESULT:2
+			DIARY:CHARA:LOCAL = RESULT:1
+			SIF RESULT:1 == 3
+				CALL CHARA_DIARY_PAGESETTING(CHARA, LOCAL)
+		ENDIF
+	ENDIF
+NEXT
+
+;==========================================================
 ;デイリーイベントで日記が読まれた際の後処理。
 ;フラグの管理等自由に扱って良い。
+;==========================================================
+@DIARY_AFTER_CHECK_K70
 
-;条件フラグのリセットや判定追加もここに 
-;たとえば：今日構ったフラグ
-;今日構った日記が表示した後、構ったフラグをリセット。
-; CFLAG:XX:今日構ったフラグ = 0
-;あるいは何かの状態が続くことがフラグの場合
-;例：好感度がほぼ変わらない日が続くと
-;「あなた」の態度が冷たいな～みたいな日記を書く
-; SIF CFLAG:XX:好感度 <= LAST_LP+3
-;   NOTOUCH_DAY ++
-;=============================
-
-
-;=============================
-@DIARY_BEFORE_CHECK_K70
-;常時チェックされる日記の状態情報。
-;ここでDIARY:XX:YYの更新を行う。
-;※DIARY:XX:0番は使えません。
-
-;ここで汎用発生条件を記入する
-;コマンド別の発生条件はM_KOJOの各ファイル中で追加してください。
-
-;基本的に発生条件には"DIARY:XX:YY == 0"を入れること。
-;そうしないと同じ日記が書かれたりしてしまう。
-
-;DIARY:XX:YY　　　　キャラ番号XXの日記番号YYの情報
-;　　 3=未読　　　　デイリーイベントで読まれない。[日記を読む]で読むと既読になる。
-;　　 2=未読　　　　デイリーイベントで読まれる。読まれるまでは[日記を読む]では読めない。読まれると既読になる。
-;　　 1=既読　　　　デイリーイベントで読まれない。[日記を読む]で読める。
-;　　 0=読めない　　未解禁。
-
-;○未読(2)にする場合（基本）
-;未読(2)にするとデイリーイベントとして発生し、一日の終わりに１つだけ読まれる。
-;複数のページが未読(2)になっている場合は番号が小さいものが読まれ、それ以外はリセット(0)される。
-;その為、複数同時に発生すると、発生したのに読まれずリセットされる場合もある。
-;未読(2)にするには単純にフラグに2を入れるだけで良い。
-
-;例１)初対面
-;SIF DIARY:XX:YY == 0 && CFLAG:XX:面識
-;	DIARY:XX:YY = 2
-
-;○未読(3)にする場合（応用）
-;未読(3)にするとデイリーイベントとして読まれず、書かれた時点で[日記を読む]によって読めるようになる。
-;プレイヤーが自主的に読まない限り読まれず、一日に複数ページ加筆される場合もある。
-;未読(3)にするにはフラグに3を入れた上で、CALL CHARA_DIARY_PAGESETTING(XX, YY)をする必要がある。
-
-;例２）好感度100以上
-;IF DIARY:XX:YY == 0 && CFLAG:XX:好感度 >= 100
-;	DIARY:XX:YY = 3
-;	CALL CHARA_DIARY_PAGESETTING(XX, YY)
-;ENDIF
-
-;例３）例２の日記が読まれた上で好感度1000以上
-;これをするとYYを読んだ直後にZZが書き込まれることも起こる。
-;IF DIARY:XX:ZZ == 0 && DIARY:XX:YY == 1 && CFLAG:XX:好感度 >= 1000
-;	DIARY:XX:ZZ = 3
-;	CALL CHARA_DIARY_PAGESETTING(XX, ZZ)
-;ENDIF
-
-;▽おせっかいな注釈
-;ファーストキスは基本的に全員[キス未経験]を所持しているので、"!TALENT:XX:キス未経験"で判定できます。
-;デート帰りのキスで分岐したいならデート帰りのキス口上でフラグを立てます。
-;その場合、通常のファーストキス喪失と重複しないように気をつけましょう。
-;処女喪失は初期設定で処女喪失している場合もあるので、処女喪失口上の方でフラグを立てた方が良いです。
-;その他告白・陥落等のイベントは各種イベント口上でフラグを立てます。初対面はそっちでも大丈夫です。
-;日付を正確に測るには別途フラグが必要です。例えば初めて会った日とか。
-;=============================
-SIF CHARANUM <= [[小鈴]] + 1
-	RETURN
-;MAXPAGEはここで記入する
-MAX_DIARY_PAGE:[[小鈴]]:0 = 100
-
-;以下、勝手な設定
-;小鈴は読書家なので文章が堅い。
-;読むのは好きだけど書くのは好きという程でもない。
-;妊娠に関しては生々しいのでやめました。
-
-;初期設定
-CALL M_KOJO_DIARYSETTING_K70(1)
-CALL M_KOJO_DIARYSETTING_K70(2)
-CALL M_KOJO_DIARYSETTING_K70(3)
-
-;汎用
-SIF DAY >= 40 - ABL:[[アリス]]:親密 && ABL:[[小鈴]]:親密 >= 1 && ABL:[[アリス]]:親密 >= 1
-	CALL M_KOJO_DIARYSETTING_K70(4)
-SIF DAY >= 80 - ABL:[[阿求]]:親密 && ABL:[[小鈴]]:親密 >= 3 && ABL:[[阿求]]:親密 >= 3
-	CALL M_KOJO_DIARYSETTING_K70(5)
-IF DAY >= 30 - ABL:[[さとり]]:親密 && ABL:[[小鈴]]:親密 >= 1 && ABL:[[さとり]]:親密 >= 1
-	CALL M_KOJO_DIARYSETTING_K70(6)
-	CALL M_KOJO_DIARYSETTING_K70(7)
-ENDIF
-IF DAY >= 55 - ABL:[[美宵]]:親密 && ABL:[[小鈴]]:親密 >= 1 && ABL:[[美宵]]:親密 >= 1
-	CALL M_KOJO_DIARYSETTING_K70(8)
-	CALL M_KOJO_DIARYSETTING_K70(9)
-	CALL M_KOJO_DIARYSETTING_K70(10)
-	CALL M_KOJO_DIARYSETTING_K70(11)
-ENDIF
-SIF DAY >= 10 && ABL:[[阿求]]:親密 >= 3
-	CALL M_KOJO_DIARYSETTING_K70(12)
-SIF DAY >= 30 && ABL:[[阿求]]:親密 >= 5
-	CALL M_KOJO_DIARYSETTING_K70(13)
-SIF DAY >= 50 && ABL:[[阿求]]:親密 >= 7
-	CALL M_KOJO_DIARYSETTING_K70(14)
-IF DAY >= 150 + ABL:[[阿求]]:親密
-	CALL M_KOJO_DIARYSETTING_K70(15)
-	CALL M_KOJO_DIARYSETTING_K70(16)
-ENDIF
-IF FLAG:デート相手 == [[阿求]] && ABL:[[小鈴]]:親密 >= 1
-	;信頼,敵対は無し,複数発生可能
-	IF M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == 6
-		;揶揄
-		CALL M_KOJO_DIARYSETTING_K70(17)
-	ELSEIF M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == 2
-		;応援
-		CALL M_KOJO_DIARYSETTING_K70(18)
-	ELSEIF !TALENT:[[阿求]]:恋慕
-		CALL M_KOJO_DIARYSETTING_K70(19)
-	ENDIF
-ENDIF
-IF TALENT:[[阿求]]:恋慕 && ABL:[[小鈴]]:親密 >= 1
-	;１つのみ発生
-	SELECTCASE M_KOJO_K70_BALANCE([[小鈴]], [[阿求]])
-	CASE 2
-		;応援
-		CALL M_KOJO_DIARYSETTING_K70(20)
-	CASE 4
-		;敵対
-		CALL M_KOJO_DIARYSETTING_K70(21)
-	CASE 5
-		;信頼
-		CALL M_KOJO_DIARYSETTING_K70(22)
-	CASE 8
-		;独占
-		CALL M_KOJO_DIARYSETTING_K70(23)
-	ENDSELECT
-ENDIF
-IF TALENT:[[阿求]]:恋人 && ABL:[[小鈴]]:親密 >= 1
-	;１つのみ発生
-	IF !TALENT:[[小鈴]]:恋慕
-		;応援
-		CALL M_KOJO_DIARYSETTING_K70(24)
-	ELSEIF CFLAG:[[小鈴]]:信頼度 < 1000
-		;敵対
-		CALL M_KOJO_DIARYSETTING_K70(25)
-	ELSE
-		;信頼
-		CALL M_KOJO_DIARYSETTING_K70(26)
-	ENDIF
-ENDIF
-
-;イベント系
-IF TALENT:[[小鈴]]:思慕
-	CALL M_KOJO_DIARYSETTING_K70(27)
-	CALL M_KOJO_DIARYSETTING_K70(28)
-	IF TALENT:[[阿求]]:恋人
-		CALL M_KOJO_DIARYSETTING_K70(29)
-	ELSEIF TALENT:[[阿求]]:恋慕
-		CALL M_KOJO_DIARYSETTING_K70(30)
-	ELSEIF TALENT:[[阿求]]:思慕
-		CALL M_KOJO_DIARYSETTING_K70(31)
-	ELSE
-		CALL M_KOJO_DIARYSETTING_K70(32)
-	ENDIF
-ENDIF
-IF TALENT:[[小鈴]]:恋慕
-	IF TALENT:[[阿求]]:恋人
-		CALL M_KOJO_DIARYSETTING_K70(33)
-		CALL M_KOJO_DIARYSETTING_K70(36)
-	ELSEIF TALENT:[[阿求]]:恋慕
-		CALL M_KOJO_DIARYSETTING_K70(34)
-		CALL M_KOJO_DIARYSETTING_K70(37)
-	ELSE
-		CALL M_KOJO_DIARYSETTING_K70(35)
-		CALL M_KOJO_DIARYSETTING_K70(38)
-	ENDIF
-ENDIF
-;39:＠デートに出掛ける（拠点から出掛ける時じゃないと駄目）
-;40:＠キスキャンセル
-SIF !FIRSTTIME("ファーストキス", 1, [[小鈴]])
-	CALL M_KOJO_DIARYSETTING_K70(41)
-;42:＠告白失敗
-;43:＠最初の告白オッケー（恋慕）
-;44:＠最初の告白オッケー（恋慕じゃない）
-;45:＠告白オッケー（一度振られてる）
-SIF GETBIT(CFLAG:[[小鈴]]:既成事実, 1)
-	CALL M_KOJO_DIARYSETTING_K70(46)
-;47:＠処女喪失
-IF GET_GIFTDATA(TCVAR:[[小鈴]]:今日の贈り物, "本体") == 369
-	IF GET_GIFTDATA(TCVAR:[[小鈴]]:今日の贈り物, "得点") < 700
-		CALL M_KOJO_DIARYSETTING_K70(48)
-	ELSE
-		CALL M_KOJO_DIARYSETTING_K70(49)
-	ENDIF
-ELSEIF GET_GIFTDATA(TCVAR:[[小鈴]]:今日の贈り物, "本体") == 473
-	CALL M_KOJO_DIARYSETTING_K70(50)
-ENDIF
-;=============================
-@DIARY_TEXT_K70, PAGENUM, MODE, PAGECOUNT
+;==========================================================
 ;日記の内容
 ;PAGENUM   = 日記番号（日記のパターン）
 ;MODE      = "デイリー":一日終了時のデイリーイベントでの読み上げ
 ;          = "コマンド":[日記を読む]コマンドでの読み上げ
 ;PAGECOUNT = 何ページ目に書かれているか
-;=============================
+;==========================================================
+@DIARY_TEXT_K70(PAGENUM, MODE, PAGECOUNT)
 #DIM PAGENUM
 #DIMS MODE
 #DIM PAGECOUNT
-
-;口上色指定あるならコメントアウトを外す
-CALL M_KOJO_COLOR_K70
-
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 ;グループマッチに日記のIDを入れて、表示させたい顔絵を表示する
 ;表情・服装・特殊画像をオプション指定で表示（省略可）
 ;書式は\resources\顔.CSVと下の例を参照
-
 ;以下はサンプル
 IF MODE == "デイリー"
 ;	IF GROUPMATCH(PAGENUM, 1) 
@@ -260,383 +59,982 @@ IF MODE == "デイリー"
 ;		CALL PRINT_FACE, XX
 ;	ENDIF
 ENDIF
-
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 PRINTFORMDL - こすず日記　頁ノ%M_KOJO_K70_漢数字変換(PAGECOUNT)% --------------------------------------------------------------------------------------
 CALL M_KOJO_K70_適当日付設定(PAGECOUNT)
 PRINTL 
+;▼簡易版ではここから自動で表示されます
+CALLFORM DIARY_K70_{PAGENUM}
 
-;※PAGENUM:0は使えません
-SELECTCASE PAGENUM
-	CASE 1
-		PRINTFORML 阿求から手記を貰った。
-		PRINTFORML なんでも外の世界の物らしい。
-		PRINTFORML 行ごとに薄い線が入っていて綺麗に書ける。
-		PRINTFORML しかし横書きというのは難儀だ。
-		PRINTFORML 阿求は、「今時は横書きも必要な技能なんだ」とか言っていた。
-		PRINTFORML そんな事はどうでも良いんだけど、せっかくの珍品だし日記帳にする事にした。
-	CASE 2
-		PRINTFORML みのましろけそひにすうむ
-		PRINTFORML 
-		PRINTFORML がえあ　し　もやえせこ　もみもふ　わんぞふ　し　きせ　あみせいう。
-		PRINTFORML もつよそ　ま　べちう　てご　ぬぞる　あちぐなみ。
-		PRINTFORML こふ　たれもふ。
-	CASE 3
-		PRINTFORML 阿求と縁日に行ったら灼熱炎祭りというのをやっていた。
-		PRINTFORML 冬とは思えない暑さで気が狂いそうになった。
-		PRINTFORML あんなの絶対に妖怪の仕業だ。
-		PRINTFORML でも冷たいおでんは美味しかった。
-		PRINTFORML 
-	CASE 4
-		PRINTFORML 買い出しに行ったら人形劇をやっていた。
-		PRINTFORML 傀儡子の女の人が妖怪なのは皆知ってるのだろうか。
-		PRINTFORML 子供に優しくしている裏で、あの人は何を考えているんだろう。
-		PRINTFORML 怖くなってきた。
-		PRINTFORML 
-		PRINTFORML 眠れない。
-	CASE 5
-		PRINTFORML 阿求の誕生会にお呼ばれした。
-		PRINTFORML こんな時にしか使わない、一番高い着物を着て行った。
-		PRINTFORML 相変わらずしめやかな雰囲気と豪華な食事。
-		PRINTFORML 厠に連れられた際に沢山の愚痴を聞かされた。
-		PRINTFORML 「これが最後の誕生会になるかも」なんて縁起でもない事を言う。
-		PRINTFORML あいつの悪い癖だ。
-		FONTSTYLE 1
-		PRINTL 
-		PRINTFORML 来年も絶対行ってやる。
-		PRINTL 
-		FONTREGULAR
-		PRINTFORML 帰りにこれまたお高い羊羹を貰ったので、お母さんにあげた。
-		PRINTFORML お父さんには黙っておく。
-	CASE 6
-		PRINTFORML 最近、販促探偵というのが噂になっている。
-		PRINTFORML 一体何を宣伝しているんだろう。
-		PRINTFORML 推理小説だったら見逃せない。
-		PRINTFORML 
-		PRINTFORML 
-	CASE 7
-		PRINTFORML 反則探偵だった。
-		PRINTFORML 反則を使って何でも解決出来るらしい。
-		PRINTFORML 小説のネタとしては今一。
-		PRINTFORML 
-		PRINTFORML 
-	CASE 8
-		PRINTFORML 数日前から鯢呑亭で妖怪騒ぎが相次ぐ。
-		PRINTFORML どうせ酔った客の見た酔夢が独り歩きしているのだろう。
-		PRINTFORML でも、得てして妖怪とはそういった事から生まれる。
-		PRINTFORML ちょっと見に行ってみたい。
-		PRINTFORML 
-	CASE 9
-		PRINTFORML さっき鯢呑亭に行ったら霊夢さんに追い返された。
-		PRINTFORML ここのところ毎晩見張ってるらしい。
-		PRINTFORML そういえばうちに良くない噂が流れた時も同じ事をしていた。
-		PRINTFORML 本当に妖怪が居るのかも。
-		PRINTFORML 
-	CASE 10
-		PRINTFORML マミゾウさんと久しぶりに会った。
-		PRINTFORML 近頃は夜に呑みに来ているから昼はご無沙汰なんだとか。
-		PRINTFORML どこで呑んでいるんだろう。ひょっとして鯢呑亭なのでは。
-		PRINTFORML 嗚呼、気になる。
-		PRINTFORML 
-	CASE 11
-		PRINTFORML 霊夢さんと魔理沙さんと三人で鯢呑亭に行った。
-		PRINTFORML あんまりお酒は呑まなかったけど、煮物が美味しかった事くらいしか憶えてない。
-		PRINTFORML 何か損した気分。
-		PRINTFORML 
-		PRINTFORML 
+;==========================================================
+;日記の発生条件（@DIARY_KX_YY_HAPPEN）
+;RETURN    発生：1なら発生
+;RESULT:1  形式：2ならデイリーイベントで読まれる
+;                  複数の日記が同時に発生すると番号が小さいものだけが1つ読まれ、
+;                  それ以外は一旦リセットされる
+;                3ならデイリーイベントで読まれない
+;                  プレイヤーが自主的に読まない限り読まれない
+;                  発生した時点で書き込まれ、複数発生すると複数書き込まれる
+;                0は読めない,1は既読なので設定しないように
+;RESULT:2  リピート：1を入れると同じ日記が繰り返し書き込まれる
+;                    その日だけ有効なフラグ（TCVARやTFLAGなど）を使って弾かないと大量に書き込まれるので注意
+;
+;特定のコマンドやイベント時に日記を発生させたい場合は直接その口上内で"DIARY:XX:YY = 2"を加えてください
+;"DIARY:XX:YY = 3"にしたい場合は以下の命令も合わせてください
+;"CALL CHARA_DIARY_PAGESETTING(XX, YY)"
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;日記の内容（@DIARY_KX_YY）
+;PRINT命令だけでオッケー
+;==========================================================
+@DIARY_K70_1_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF 1
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_1
+PRINTFORML 阿求から手記を貰った。
+PRINTFORML なんでも外の世界の物らしい。
+PRINTFORML 行ごとに薄い線が入っていて綺麗に書ける。
+PRINTFORML しかし横書きというのは難儀だ。
+PRINTFORML 阿求は、「今時は横書きも必要な技能なんだ」とか言っていた。
+PRINTFORML そんな事はどうでも良いんだけど、せっかくの珍品だし日記帳にする事にした。
+;==========================================================
+@DIARY_K70_2_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF 1
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_2
+PRINTFORML みのましろけそひにすうむ
+PRINTFORML 
+PRINTFORML がえあ　し　もやえせこ　もみもふ　わんぞふ　し　きせ　あみせいう。
+PRINTFORML もつよそ　ま　べちう　てご　ぬぞる　あちぐなみ。
+PRINTFORML こふ　たれもふ。
+;==========================================================
+@DIARY_K70_3_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF 1
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_3
+PRINTFORML 阿求と縁日に行ったら灼熱炎祭りというのをやっていた。
+PRINTFORML 冬とは思えない暑さで気が狂いそうになった。
+PRINTFORML あんなの絶対に妖怪の仕業だ。
+PRINTFORML でも冷たいおでんは美味しかった。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_4_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF DAY >= 40 - ABL:[[アリス]]:親密 && ABL:[[小鈴]]:親密 >= 1 && ABL:[[アリス]]:親密 >= 1
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_4
+PRINTFORML 買い出しに行ったら人形劇をやっていた。
+PRINTFORML 傀儡子の女の人が妖怪なのは皆知ってるのだろうか。
+PRINTFORML 子供に優しくしている裏で、あの人は何を考えているんだろう。
+PRINTFORML 怖くなってきた。
+PRINTFORML 
+PRINTFORML 眠れない。
+;==========================================================
+@DIARY_K70_5_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF DAY >= 80 - ABL:[[阿求]]:親密 && ABL:[[小鈴]]:親密 >= 3 && ABL:[[阿求]]:親密 >= 3
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_5
+PRINTFORML 阿求の誕生会にお呼ばれした。
+PRINTFORML こんな時にしか使わない、一番高い着物を着て行った。
+PRINTFORML 相変わらずしめやかな雰囲気と豪華な食事。
+PRINTFORML 厠に連れられた際に沢山の愚痴を聞かされた。
+PRINTFORML 「これが最後の誕生会になるかも」なんて縁起でもない事を言う。
+PRINTFORML あいつの悪い癖だ。
+FONTSTYLE 1
+PRINTL 
+PRINTFORML 来年も絶対行ってやる。
+PRINTL 
+FONTREGULAR
+PRINTFORML 帰りにこれまたお高い羊羹を貰ったので、お母さんにあげた。
+PRINTFORML お父さんには黙っておく。
+;==========================================================
+@DIARY_K70_6_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF DAY >= 30 - ABL:[[さとり]]:親密 && ABL:[[小鈴]]:親密 >= 1 && ABL:[[さとり]]:親密 >= 1 && !CFLAG:[[小鈴]]:1051
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1051 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_6
+PRINTFORML 最近、販促探偵というのが噂になっている。
+PRINTFORML 一体何を宣伝しているんだろう。
+PRINTFORML 推理小説だったら見逃せない。
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_7_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF CFLAG:[[小鈴]]:1051 && DAY >= CFLAG:[[小鈴]]:1051 + 5
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_7
+PRINTFORML 反則探偵だった。
+PRINTFORML 反則を使って何でも解決出来るらしい。
+PRINTFORML 小説のネタとしては今一。
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_8_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF DAY >= 55 - ABL:[[美宵]]:親密 && ABL:[[小鈴]]:親密 >= 1 && ABL:[[美宵]]:親密 >= 1 && !CFLAG:[[小鈴]]:1052
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1052 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_8
+PRINTFORML 数日前から鯢呑亭で妖怪騒ぎが相次ぐ。
+PRINTFORML どうせ酔った客の見た酔夢が独り歩きしているのだろう。
+PRINTFORML でも、得てして妖怪とはそういった事から生まれる。
+PRINTFORML ちょっと見に行ってみたい。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_9_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF CFLAG:[[小鈴]]:1052 && DAY >= CFLAG:[[小鈴]]:1052 + 1
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_9
+PRINTFORML さっき鯢呑亭に行ったら霊夢さんに追い返された。
+PRINTFORML ここのところ毎晩見張ってるらしい。
+PRINTFORML そういえばうちに良くない噂が流れた時も同じ事をしていた。
+PRINTFORML 本当に妖怪が居るのかも。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_10_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF DAY >= CFLAG:[[小鈴]]:1052 && DAY >= CFLAG:[[小鈴]]:1052 + 7
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_10
+PRINTFORML マミゾウさんと久しぶりに会った。
+PRINTFORML 近頃は夜に呑みに来ているから昼はご無沙汰なんだとか。
+PRINTFORML どこで呑んでいるんだろう。ひょっとして鯢呑亭なのでは。
+PRINTFORML 嗚呼、気になる。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_11_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF DAY >= CFLAG:[[小鈴]]:1052 && DAY >= CFLAG:[[小鈴]]:1052 + 12
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_11
+PRINTFORML 霊夢さんと魔理沙さんと三人で鯢呑亭に行った。
+PRINTFORML あんまりお酒は呑まなかったけど、煮物が美味しかった事くらいしか憶えてない。
+PRINTFORML 何か損した気分。
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_12_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF DAY >= 10 && ABL:[[阿求]]:親密 >= 3
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_12
+PRINTFORML 阿求の髪を結った。
+PRINTFORML 阿求の髪はさらさらのつやつやでとても綺麗。
+PRINTFORML リボンを付けたらかわいかった。
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_13_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF DAY >= 30 && ABL:[[阿求]]:親密 >= 5
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_13
+PRINTFORML 阿求からすごく良い香りがした。
+PRINTFORML もっと嗅いでいたかったが、すぐに帰ってしまった。
+PRINTFORML 
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_14_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF DAY >= 50 && ABL:[[阿求]]:親密 >= 7
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_14
+PRINTFORML 阿求と手を繋いでいたら恥ずかしいと言われた。
+PRINTFORML 昔からしてるのに。ショック。
+PRINTFORML 
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_15_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF DAY >= 150 + ABL:[[阿求]]:親密 && !CFLAG:[[小鈴]]:1053
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1053 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_15
+PRINTFORML 阿求の体調が優れない。心配。
+PRINTFORML 
+PRINTFORML 
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_16_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF CFLAG:[[小鈴]]:1053 && DAY >= CFLAG:[[小鈴]]:1053 + MAX(18 - ABL:[[阿求]]:親密, 3)
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_16
+PRINTFORML 阿求の体調が良くなった。一安心。
+PRINTFORML 
+PRINTFORML 
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_17_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF FLAG:デート相手 == [[阿求]] && ABL:[[小鈴]]:親密 >= 1 && M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == 6
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_17
+PRINTFORML 阿求と%CALLNAME:MASTER%さんがデートしているのを見た。
+PRINTFORML へらへらと私に見せた事の無い笑顔をしていた。
+PRINTFORML 本当に幸せそう。
+PRINTFORML 私もいつかあんな笑顔になれる日が来るのだろうか。
+PRINTFORML 羨ましい。
+;==========================================================
+@DIARY_K70_18_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF FLAG:デート相手 == [[阿求]] && ABL:[[小鈴]]:親密 >= 1 && M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == 2
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_18
+PRINTFORML 阿求と%CALLNAME:MASTER%さんがデートしているのを見た。
+PRINTFORML ああいうのをお似合いって言うのかな。
+PRINTFORML 正直羨ましい。
+PRINTFORML 私もいつか
+PRINTFORML 
+;==========================================================
+@DIARY_K70_19_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF FLAG:デート相手 == [[阿求]] && ABL:[[小鈴]]:親密 >= 1 && GROUPMATCH(M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]), 1, 3, 4, 5, 7, 8)
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_19
+PRINTFORML 阿求と%CALLNAME:MASTER%さんがデートしているのを見た。
+PRINTFORML 付き合ってるのだろうか。
+PRINTFORML そんな話聞いてない。
+PRINTFORML 今度阿求に問い糾してやる。
+PRINTFORML 
+PRINTFORML 
+PRINTFORML 気になって眠れない。
+;==========================================================
+@DIARY_K70_20_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF TALENT:[[阿求]]:恋慕 && ABL:[[小鈴]]:親密 >= 1 && M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == 2 && !CFLAG:[[小鈴]]:1054
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1054 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_20
+PRINTFORML 阿求に好きな人ができた。%CALLNAME:MASTER%さんだ。
+PRINTFORML 妬ける。
+PRINTFORML 駄目。我儘だ。応援しよう。
+PRINTFORML それに、嬉しくもある。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_21_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF TALENT:[[阿求]]:恋慕 && ABL:[[小鈴]]:親密 >= 1 && M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == 4 && !CFLAG:[[小鈴]]:1054
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1054 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_21
+PRINTFORML 阿求に好きな人ができた。%CALLNAME:MASTER%さんだ。
+PRINTFORML 複雑な気持ち。
+PRINTFORML 譲れない。
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_22_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF TALENT:[[阿求]]:恋慕 && ABL:[[小鈴]]:親密 >= 1 && M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == 5 && !CFLAG:[[小鈴]]:1054
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1054 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_22
+PRINTFORML 阿求に好きな人ができた。%CALLNAME:MASTER%さんだ。
+PRINTFORML 二人で同じ人を好きになるなんて、こんなに嬉しい事は無い。
+PRINTFORML 私の知らない阿求。私の知らない%CALLNAME:MASTER%さん。
+PRINTFORML それを共有出来るんだ。なんて素敵なのだろう。
+PRINTFORML 私達はきっと幸せの中にいる。
+;==========================================================
+@DIARY_K70_23_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF TALENT:[[阿求]]:恋慕 && ABL:[[小鈴]]:親密 >= 1 && M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == 8 && !CFLAG:[[小鈴]]:1054
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1054 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_23
+PRINTFORML 阿求に好きな人ができた。%CALLNAME:MASTER%さんだ。
+PRINTFORML 他人の恋人に欲情するなんて不埒だ。
+PRINTFORML 阿求には悪いけど譲る気は無い。
+PRINTFORML %CALLNAME:MASTER%さんは私の物だ。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_24_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF TALENT:[[阿求]]:恋人 && ABL:[[小鈴]]:親密 >= 1 && !TALENT:[[小鈴]]:恋慕 && !CFLAG:[[小鈴]]:1055
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1055 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_24
+PRINTFORML 阿求と%CALLNAME:MASTER%さんが付き合っていると知った。
+PRINTFORML 阿求は毎日が楽しそう。
+PRINTFORML 少し淋しいけど、喜ばしい事だ。
+PRINTFORML 阿求の笑顔を見れることが私の幸せだ。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_25_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF TALENT:[[阿求]]:恋人 && ABL:[[小鈴]]:親密 >= 1 && TALENT:[[小鈴]]:恋慕 && CFLAG:[[小鈴]]:信頼度 < 1000 && !CFLAG:[[小鈴]]:1055
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1055 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_25
+PRINTFORML 阿求と%CALLNAME:MASTER%さんが付き合っていると知った。
+PRINTFORML 先を越された。悔しい悔しい悔しい。
+PRINTFORML でも、知らない誰かよりましだ。
+PRINTFORML 阿求で良かった。
+PRINTFORML そう思いたい。
+;==========================================================
+@DIARY_K70_26_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF TALENT:[[阿求]]:恋人 && ABL:[[小鈴]]:親密 >= 1 && TALENT:[[小鈴]]:恋慕 && CFLAG:[[小鈴]]:信頼度 >= 1000 && !CFLAG:[[小鈴]]:1055
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1055 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_26
+PRINTFORML 阿求と%CALLNAME:MASTER%さんが付き合っていると知った。
+PRINTFORML 先を越された。嬉しさと悔しさが半々。
+PRINTFORML とはいえ変わらず私達の日々は円満だ。
+PRINTFORML 阿求が
+FONTSTYLE 4
+PRINTFORML 亡く
+FONTREGULAR
+PRINTFORML 彼岸へ行った時は、私達で弔ってあげられる。
+FONTSTYLE 4
+PRINTFORML その後は私と%CALLNAME:MASTER%さんが
+FONTREGULAR
+PRINTFORML 邪な考えは忘れよう。
+;==========================================================
+@DIARY_K70_27_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF TALENT:[[小鈴]]:思慕 && !CFLAG:[[小鈴]]:1056
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1056 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_27
+PRINTFORML 恋愛小説を立て続けに読んだら、私も恋をしてみたくなった。
+PRINTFORML 恥ずかしい。
+PRINTFORML 相手が居ない。
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_28_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF CFLAG:[[小鈴]]:1056 && DAY >= CFLAG:[[小鈴]]:1056 + 1
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_28
+FONTSTYLE 4
+PRINTFORML %CALLNAME:MASTER%さん
+FONTREGULAR
+PRINTFORML 
+PRINTFORML 
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_29_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF CFLAG:[[小鈴]]:1056 && DAY >= CFLAG:[[小鈴]]:1056 + 2 && !CFLAG:[[小鈴]]:1057 && TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1057 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_29
+PRINTFORML 阿求に相談した。
+PRINTFORML 怒られるかと思った。
+PRINTFORML 考えてみれば他人の恋人に手を出そうというのだ。不埒。
+PRINTFORML でもあいつは笑ってくれた。
+PRINTFORML 転生してるくらいだ、倫理観が可怪しいのかも。
+;==========================================================
+@DIARY_K70_30_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF CFLAG:[[小鈴]]:1056 && DAY >= CFLAG:[[小鈴]]:1056 + 2 && !CFLAG:[[小鈴]]:1057 && TALENT:[[阿求]]:恋慕
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1057 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_30
+PRINTFORML 阿求に相談した。
+PRINTFORML %CALLNAME:MASTER%さんの良さをこれでもかという程聞かされた。
+PRINTFORML それと、不思議な人という認識は共通していた。
+PRINTFORML 不思議な人。良い響きだ。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_31_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF CFLAG:[[小鈴]]:1056 && DAY >= CFLAG:[[小鈴]]:1056 + 2 && !CFLAG:[[小鈴]]:1057 && TALENT:[[阿求]]:思慕
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1057 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_31
+PRINTFORML 阿求に相談した。
+PRINTFORML 初めて恋の話をした。
+PRINTFORML あいつも私と同じみたい。
+PRINTFORML 楽しい。もっと話したい。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_32_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF CFLAG:[[小鈴]]:1056 && DAY >= CFLAG:[[小鈴]]:1056 + 2 && !CFLAG:[[小鈴]]:1057 &&!TALENT:[[阿求]]:恋慕 && !TALENT:[[阿求]]:思慕
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1057 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_32
+PRINTFORML 阿求に相談した。
+PRINTFORML 興味無さそうだった。
+PRINTFORML 言わなきゃ良かった。
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_33_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF TALENT:[[小鈴]]:恋慕 && !CFLAG:[[小鈴]]:1058 && TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1058 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_33
+PRINTFORML %CALLNAME:MASTER%さんが好き。
+PRINTFORML これが恋なんだ。
+PRINTFORML 心に邪悪の種が植えられた気分。
+PRINTFORML いけない事なのは判ってる。
+PRINTFORML でも、
+PRINTFORML どうしよう
+PRINTFORML 判らない。
+PRINTFORML 辛い。
+;==========================================================
+@DIARY_K70_34_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF TALENT:[[小鈴]]:恋慕 && !CFLAG:[[小鈴]]:1058 && TALENT:[[阿求]]:恋慕 && !TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1058 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_34
+PRINTFORML %CALLNAME:MASTER%さんが好き。
+PRINTFORML これが恋なんだ。
+PRINTFORML 心に幸せの種が植えられた気分。
+PRINTFORML 阿求は敵。
+PRINTFORML そう思う事にした。
+PRINTFORML でも、円満が理想だ。
+PRINTFORML 物語は大団円で終わるのが一番好き。
+PRINTFORML 私達の行く末は、、、
+;==========================================================
+@DIARY_K70_35_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF TALENT:[[小鈴]]:恋慕 && !CFLAG:[[小鈴]]:1058 && !TALENT:[[阿求]]:恋慕 && !TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1058 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_35
+PRINTFORML %CALLNAME:MASTER%さんが好き。
+PRINTFORML これが恋なんだ。
+PRINTFORML 心に幸せの種が植えられた気分。
+PRINTFORML 早く阿求と話したい。
+PRINTFORML 何を言われるか大体想像がつく。
+PRINTFORML きっと花を咲かせてみせる。
+;==========================================================
+@DIARY_K70_36_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF CFLAG:[[小鈴]]:1058 && DAY >= CFLAG:[[小鈴]]:1058 + 2 && !CFLAG:[[小鈴]]:1059 && TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1059 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_36
+PRINTFORML 思い切って阿求に打ち明けた。
+PRINTFORML 私が愚図ついていたら、抱きしめてくれた。
+PRINTFORML そして罪過を禊いでくれた。
+PRINTFORML その優しさが辛い。
+PRINTFORML 誇り高き、私の親友だ。
+;==========================================================
+@DIARY_K70_37_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF CFLAG:[[小鈴]]:1058 && DAY >= CFLAG:[[小鈴]]:1058 + 2 && !CFLAG:[[小鈴]]:1059 && TALENT:[[阿求]]:恋慕 && !TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1059 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_37
+PRINTFORML 阿求に宣戦布告をした。
+PRINTFORML つもりだったが、あんまり乗り気じゃ無さそう。
+PRINTFORML 独りで熱くなっていたのだろうか。
+PRINTFORML いや、それが阿求の大人びた余裕なのだ。
+PRINTFORML 油断ならない。
+;==========================================================
+@DIARY_K70_38_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+IF CFLAG:[[小鈴]]:1058 && DAY >= CFLAG:[[小鈴]]:1058 + 2 && !CFLAG:[[小鈴]]:1059 && !TALENT:[[阿求]]:恋慕 && !TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1059 = DAY
+	RETURN 1
+ENDIF
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_38
+PRINTFORML 阿求に言ってみた。
+PRINTFORML 案の定笑われた。
+PRINTFORML あんなに話が弾んだのは初めて。
+PRINTFORML きっと明日も話すだろう。
+PRINTFORML これが青春というやつなのか。
+;==========================================================
+@DIARY_K70_39_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;この日記は＠405,出掛ける
+;条件を設定する
+SIF 0
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_39
+PRINTFORML %CALLNAME:MASTER%さんとデートした。
+IF TALENT:MASTER:性別 == 2
+	PRINTFORM 男の人と何処かへ
+ELSE
+	PRINTFORM 阿求や霊夢さん以外の人と何処かへ
+ENDIF
+PRINTFORML 出掛けるなんて初めて。
+PRINTFORML どうしたらいいのか全然判らなくて、全部リードして貰った。
+PRINTFORML つまらない女だと思われてそう。
+PRINTFORML 疲れた。
+;==========================================================
+@DIARY_K70_40_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;この日記は＠キスキャンセル
+;条件を設定する
+SIF 0
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_40
+PRINTFORML 馬鹿。
+PRINTFORML 思い切って%CALLNAME:MASTER%さんに迫ろうとしたけど、駄目だった。
+PRINTFORML 無念。
+PRINTFORML 私にもっと勇気が有れば。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_41_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF !FIRSTTIME("ファーストキス", 1, [[小鈴]])
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_41
+PRINTFORML %CALLNAME:MASTER%さんとキスしちゃった。
+PRINTFORML 心臓が今でもドキドキしてる。
+PRINTFORML 頭が真っ白で何にも判らない。
+PRINTFORML 
+PRINTFORML 
+PRINTFORML 眠れないので何か書こう。
+PRINTFORML キスは高揚感と背徳感の入り混じった、未知の感覚だった。
+PRINTFORML こうやって皆大人になっていくのかな。
+PRINTFORML 阿求や霊夢さんもしているんだろうか。
+PRINTFORML 私には知らない事が沢山ある。
+PRINTFORML 今日はそれを知った。
+;==========================================================
+@DIARY_K70_42_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;この日記は＠デート帰りに告白
+;条件を設定する
+SIF 0
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_42
+PRINTFORML %CALLNAME:MASTER%さんの馬鹿。
+PRINTFORML 私を弄んでるんだ。
+PRINTFORML 狡い。許せない。
+PRINTFORML それでもこの想いは消えない。
+PRINTFORML 辛い。苦しい。
+;==========================================================
+@DIARY_K70_43_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;この日記は＠デート帰りに告白/352,告白する
+;条件を設定する
+SIF 0
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_43
+PRINTFORML %CALLNAME:MASTER%さんとお付き合いする事になった。
+PRINTFORML 信じられない。
+PRINTFORML 嬉しさで胸が張り裂けそう。
+PRINTFORML 神社に足繁く通った甲斐があった。
+PRINTFORML ありがとう霊夢さん。
+PRINTFORML この気持ちを表現するにはこの手記は狭すぎる。
+PRINTFORML 愛しています。%CALLNAME:MASTER%さん。
+;==========================================================
+@DIARY_K70_44_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;この日記は＠352,告白する
+;条件を設定する
+SIF 0
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_44
+PRINTFORML %CALLNAME:MASTER%さんとお付き合いする事になった。
+PRINTFORML 突然の事で吃驚したけど、
+PRINTFORML %CALLNAME:MASTER%さんの事は前から気になっていたし、これで良かったと思う。
+PRINTFORML ところで恋人ってどんな事をすればいいんだろう。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_45_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;この日記は＠デート帰りに告白/352,告白する
+;条件を設定する
+SIF 0
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_45
+PRINTFORML %CALLNAME:MASTER%さんとお付き合いする事になった。
+PRINTFORML 私の想いが勝ったんだ。
+PRINTFORML 良かった。本当に良かった。
+PRINTFORML 神社に足繁く通った甲斐があった。
+PRINTFORML ありがとう霊夢さん。
+PRINTFORML この気持ちを表現するにはこの手記は狭すぎる。
+PRINTFORML 愛しています。%CALLNAME:MASTER%さん。
+;==========================================================
+@DIARY_K70_46_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF GETBIT(CFLAG:[[小鈴]]:既成事実, 1)
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_46
+PRINTFORML %UNICODE(0x2764)%
+PRINTFORML 
+PRINTFORML 
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_47_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;この日記は＠正真正銘処女喪失
+;条件を設定する
+SIF 0
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_47
+PRINTFORML 今日、私は大切な人に大切な物を捧げた。
+PRINTFORML 不安で一杯だったけど、大切に想ってくれるという気持ちのお陰で、緊張は和らいだ。
+PRINTFORML 幸せで胸が一杯。
+PRINTFORML 大人の階段を上った感じがする。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_48_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF GET_GIFTDATA(TCVAR:[[小鈴]]:今日の贈り物, "本体") == 369 && GET_GIFTDATA(TCVAR:[[小鈴]]:今日の贈り物, "得点") < 700
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_48
+PRINTFORML %CALLNAME:MASTER%さんから妖魔本を貰った。
+PRINTFORML 内容は薬の調合方法だった。
+PRINTFORML はちみつ、辰砂、湯の花、鳳凰の尾。
+PRINTFORML 肝心の効能は載ってない。がっかり。
+PRINTFORML 
+;==========================================================
+@DIARY_K70_49_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF GET_GIFTDATA(TCVAR:[[小鈴]]:今日の贈り物, "本体") == 369 && GET_GIFTDATA(TCVAR:[[小鈴]]:今日の贈り物, "得点") >= 700
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_49
+PRINTFORML %CALLNAME:MASTER%さんから妖魔本を貰った。
+PRINTFORML 僧侶と妖怪の冒険奇譚だった。大当たり。
+PRINTFORML 一気に読むのはもったいないから、毎日ちょっとずつ読もう。
+PRINTFORML 
+PRINTFORML 
+;==========================================================
+@DIARY_K70_50_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 3
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF GET_GIFTDATA(TCVAR:[[小鈴]]:今日の贈り物, "本体") == 473
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_K70_50
+PRINTFORML %CALLNAME:MASTER%さんからスペルカードを貰った。
+PRINTFORML 私もいつか弾幕ごっこをしてみたい。
+PRINTFORML その日が来る迄、これは保管しておく。
+PRINTFORML 
+PRINTFORML 
+;==========================================================
 
-	CASE 12
-		PRINTFORML 阿求の髪を結った。
-		PRINTFORML 阿求の髪はさらさらのつやつやでとても綺麗。
-		PRINTFORML リボンを付けたらかわいかった。
-		PRINTFORML 
-		PRINTFORML 
-	CASE 13
-		PRINTFORML 阿求からすごく良い香りがした。
-		PRINTFORML もっと嗅いでいたかったが、すぐに帰ってしまった。
-		PRINTFORML 
-		PRINTFORML 
-		PRINTFORML 
-	CASE 14
-		PRINTFORML 阿求と手を繋いでいたら恥ずかしいと言われた。
-		PRINTFORML 昔からしてるのに。ショック。
-		PRINTFORML 
-		PRINTFORML 
-		PRINTFORML 
-	CASE 15
-		PRINTFORML 阿求の体調が優れない。心配。
-		PRINTFORML 
-		PRINTFORML 
-		PRINTFORML 
-		PRINTFORML 
-	CASE 16
-		PRINTFORML 阿求の体調が良くなった。一安心。
-		PRINTFORML 
-		PRINTFORML 
-		PRINTFORML 
-		PRINTFORML 
 
-	CASE 17
-		PRINTFORML 阿求と%CALLNAME:MASTER%さんがデートしているのを見た。
-		PRINTFORML へらへらと私に見せた事の無い笑顔をしていた。
-		PRINTFORML 本当に幸せそう。
-		PRINTFORML 私もいつかあんな笑顔になれる日が来るのだろうか。
-		PRINTFORML 羨ましい。
-	CASE 18
-		PRINTFORML 阿求と%CALLNAME:MASTER%さんがデートしているのを見た。
-		PRINTFORML ああいうのをお似合いって言うのかな。
-		PRINTFORML 正直羨ましい。
-		PRINTFORML 私もいつか
-		PRINTFORML 
-	CASE 19
-		PRINTFORML 阿求と%CALLNAME:MASTER%さんがデートしているのを見た。
-		PRINTFORML 付き合ってるのだろうか。
-		PRINTFORML そんな話聞いてない。
-		PRINTFORML 今度阿求に問い糾してやる。
-		PRINTFORML 
-		PRINTFORML 
-		PRINTFORML 気になって眠れない。
+;==========================================================
+;▼ページを増やすなら以下のテンプレにXとYYを代入して使ってください
+[SKIPSTART]
+;==========================================================
+@DIARY_KX_YY_HAPPEN
+;デイリーで読まれるなら2,読まれないなら3
+RESULT:1 = 
+;リピートするなら1,しないなら0
+RESULT:2 = 0
+;条件を設定する
+SIF 0
+	RETURN 1
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+@DIARY_KX_YY
+PRINTFORML 
+;==========================================================
+[SKIPEND]
 
-	CASE 20
-		PRINTFORML 阿求に好きな人ができた。%CALLNAME:MASTER%さんだ。
-		PRINTFORML 妬ける。
-		PRINTFORML 駄目。我儘だ。応援しよう。
-		PRINTFORML それに、嬉しくもある。
-		PRINTFORML 
-	CASE 21
-		PRINTFORML 阿求に好きな人ができた。%CALLNAME:MASTER%さんだ。
-		PRINTFORML 複雑な気持ち。
-		PRINTFORML 譲れない。
-		PRINTFORML 
-		PRINTFORML 
-	CASE 22
-		PRINTFORML 阿求に好きな人ができた。%CALLNAME:MASTER%さんだ。
-		PRINTFORML 二人で同じ人を好きになるなんて、こんなに嬉しい事は無い。
-		PRINTFORML 私の知らない阿求。私の知らない%CALLNAME:MASTER%さん。
-		PRINTFORML それを共有出来るんだ。なんて素敵なのだろう。
-		PRINTFORML 私達はきっと幸せの中にいる。
-	CASE 23
-		PRINTFORML 阿求に好きな人ができた。%CALLNAME:MASTER%さんだ。
-		PRINTFORML 他人の恋人に欲情するなんて不埒だ。
-		PRINTFORML 阿求には悪いけど譲る気は無い。
-		PRINTFORML %CALLNAME:MASTER%さんは私の物だ。
-		PRINTFORML 
-
-	CASE 24
-		PRINTFORML 阿求と%CALLNAME:MASTER%さんが付き合っていると知った。
-		PRINTFORML 阿求は毎日が楽しそう。
-		PRINTFORML 少し淋しいけど、喜ばしい事だ。
-		PRINTFORML 阿求の笑顔を見れることが私の幸せだ。
-		PRINTFORML 
-	CASE 25
-		PRINTFORML 阿求と%CALLNAME:MASTER%さんが付き合っていると知った。
-		PRINTFORML 先を越された。悔しい悔しい悔しい。
-		PRINTFORML でも、知らない誰かよりましだ。
-		PRINTFORML 阿求で良かった。
-		PRINTFORML そう思いたい。
-	CASE 26
-		PRINTFORML 阿求と%CALLNAME:MASTER%さんが付き合っていると知った。
-		PRINTFORML 先を越された。嬉しさと悔しさが半々。
-		PRINTFORML とはいえ変わらず私達の日々は円満だ。
-		PRINTFORML 阿求が
-		FONTSTYLE 4
-		PRINTFORML 亡く
-		FONTREGULAR
-		PRINTFORML 彼岸へ行った時は、私達で弔ってあげられる。
-		FONTSTYLE 4
-		PRINTFORML その後は私と%CALLNAME:MASTER%さんが
-		FONTREGULAR
-		PRINTFORML 邪な考えは忘れよう。
-
-	CASE 27
-		PRINTFORML 恋愛小説を立て続けに読んだら、私も恋をしてみたくなった。
-		PRINTFORML 恥ずかしい。
-		PRINTFORML 相手が居ない。
-		PRINTFORML 
-		PRINTFORML 
-	CASE 28
-		FONTSTYLE 4
-		PRINTFORML %CALLNAME:MASTER%さん
-		FONTREGULAR
-		PRINTFORML 
-		PRINTFORML 
-		PRINTFORML 
-		PRINTFORML 
-	CASE 29
-		PRINTFORML 阿求に相談した。
-		PRINTFORML 怒られるかと思った。
-		PRINTFORML 考えてみれば他人の恋人に手を出そうというのだ。不埒。
-		PRINTFORML でもあいつは笑ってくれた。
-		PRINTFORML 転生してるくらいだ、倫理観が可怪しいのかも。
-	CASE 30
-		PRINTFORML 阿求に相談した。
-		PRINTFORML %CALLNAME:MASTER%さんの良さをこれでもかという程聞かされた。
-		PRINTFORML それと、不思議な人という認識は共通していた。
-		PRINTFORML 不思議な人。良い響きだ。
-	CASE 31
-		PRINTFORML 阿求に相談した。
-		PRINTFORML 初めて恋の話をした。
-		PRINTFORML あいつも私と同じみたい。
-		PRINTFORML 楽しい。もっと話したい。
-		PRINTFORML 
-	CASE 32
-		PRINTFORML 阿求に相談した。
-		PRINTFORML 興味無さそうだった。
-		PRINTFORML 言わなきゃ良かった。
-		PRINTFORML 
-		PRINTFORML 
-
-	CASE 33
-		PRINTFORML %CALLNAME:MASTER%さんが好き。
-		PRINTFORML これが恋なんだ。
-		PRINTFORML 心に邪悪の種が植えられた気分。
-		PRINTFORML いけない事なのは判ってる。
-		PRINTFORML でも、
-		PRINTFORML どうしよう
-		PRINTFORML 判らない。
-		PRINTFORML 辛い。
-	CASE 34
-		PRINTFORML %CALLNAME:MASTER%さんが好き。
-		PRINTFORML これが恋なんだ。
-		PRINTFORML 心に幸せの種が植えられた気分。
-		PRINTFORML 阿求は敵。
-		PRINTFORML そう思う事にした。
-		PRINTFORML でも、円満が理想だ。
-		PRINTFORML 物語は大団円で終わるのが一番好き。
-		PRINTFORML 私達の行く末は、、、
-	CASE 35
-		PRINTFORML %CALLNAME:MASTER%さんが好き。
-		PRINTFORML これが恋なんだ。
-		PRINTFORML 心に幸せの種が植えられた気分。
-		PRINTFORML 早く阿求と話したい。
-		PRINTFORML 何を言われるか大体想像がつく。
-		PRINTFORML きっと花を咲かせてみせる。
-	CASE 36
-		PRINTFORML 思い切って阿求に打ち明けた。
-		PRINTFORML 私が愚図ついていたら、抱きしめてくれた。
-		PRINTFORML そして罪過を禊いでくれた。
-		PRINTFORML その優しさが辛い。
-		PRINTFORML 誇り高き、私の親友だ。
-	CASE 37
-		PRINTFORML 阿求に宣戦布告をした。
-		PRINTFORML つもりだったが、あんまり乗り気じゃ無さそう。
-		PRINTFORML 独りで熱くなっていたのだろうか。
-		PRINTFORML いや、それが阿求の大人びた余裕なのだ。
-		PRINTFORML 油断ならない。
-	CASE 38
-		PRINTFORML 阿求に言ってみた。
-		PRINTFORML 案の定笑われた。
-		PRINTFORML あんなに話が弾んだのは初めて。
-		PRINTFORML きっと明日も話すだろう。
-		PRINTFORML これが青春というやつなのか。
-
-	CASE 39
-		PRINTFORML %CALLNAME:MASTER%さんとデートした。
-		IF TALENT:MASTER:性別 == 2
-			PRINTFORM 男の人と何処かへ
-		ELSE
-			PRINTFORM 阿求や霊夢さん以外の人と何処かへ
-		ENDIF
-		PRINTFORML 出掛けるなんて初めて。
-		PRINTFORML どうしたらいいのか全然判らなくて、全部リードして貰った。
-		PRINTFORML つまらない女だと思われてそう。
-		PRINTFORML 疲れた。
-	CASE 40
-		PRINTFORML 馬鹿。
-		PRINTFORML 思い切って%CALLNAME:MASTER%さんに迫ろうとしたけど、駄目だった。
-		PRINTFORML 無念。
-		PRINTFORML 私にもっと勇気が有れば。
-		PRINTFORML 
-	CASE 41
-		PRINTFORML %CALLNAME:MASTER%さんとキスしちゃった。
-		PRINTFORML 心臓が今でもドキドキしてる。
-		PRINTFORML 頭が真っ白で何にも判らない。
-		PRINTFORML 
-		PRINTFORML 
-		PRINTFORML 眠れないので何か書こう。
-		PRINTFORML キスは高揚感と背徳感の入り混じった、未知の感覚だった。
-		PRINTFORML こうやって皆大人になっていくのかな。
-		PRINTFORML 阿求や霊夢さんもしているんだろうか。
-		PRINTFORML 私には知らない事が沢山ある。
-		PRINTFORML 今日はそれを知った。
-	CASE 42
-		PRINTFORML %CALLNAME:MASTER%さんの馬鹿。
-		PRINTFORML 私を弄んでるんだ。
-		PRINTFORML 狡い。許せない。
-		PRINTFORML それでもこの想いは消えない。
-		PRINTFORML 辛い。苦しい。
-	CASE 43
-		PRINTFORML %CALLNAME:MASTER%さんとお付き合いする事になった。
-		PRINTFORML 信じられない。
-		PRINTFORML 嬉しさで胸が張り裂けそう。
-		PRINTFORML 神社に足繁く通った甲斐があった。
-		PRINTFORML ありがとう霊夢さん。
-		PRINTFORML この気持ちを表現するにはこの手記は狭すぎる。
-		PRINTFORML 愛しています。%CALLNAME:MASTER%さん。
-	CASE 44
-		PRINTFORML %CALLNAME:MASTER%さんとお付き合いする事になった。
-		PRINTFORML 突然の事で吃驚したけど、
-		PRINTFORML %CALLNAME:MASTER%さんの事は前から気になっていたし、これで良かったと思う。
-		PRINTFORML ところで恋人ってどんな事をすればいいんだろう。
-		PRINTFORML 
-	CASE 45
-		PRINTFORML %CALLNAME:MASTER%さんとお付き合いする事になった。
-		PRINTFORML 私の想いが勝ったんだ。
-		PRINTFORML 良かった。本当に良かった。
-		PRINTFORML 神社に足繁く通った甲斐があった。
-		PRINTFORML ありがとう霊夢さん。
-		PRINTFORML この気持ちを表現するにはこの手記は狭すぎる。
-		PRINTFORML 愛しています。%CALLNAME:MASTER%さん。
-	CASE 46
-		PRINTFORML %UNICODE(0x2764)%
-		PRINTFORML 
-		PRINTFORML 
-		PRINTFORML 
-		PRINTFORML 
-	CASE 47
-		PRINTFORML 今日、私は大切な人に大切な物を捧げた。
-		PRINTFORML 不安で一杯だったけど、大切に想ってくれるという気持ちのお陰で、緊張は和らいだ。
-		PRINTFORML 幸せで胸が一杯。
-		PRINTFORML 大人の階段を上った感じがする。
-		PRINTFORML 
-	CASE 48
-		PRINTFORML %CALLNAME:MASTER%さんから妖魔本を貰った。
-		PRINTFORML 内容は薬の調合方法だった。
-		PRINTFORML はちみつ、辰砂、湯の花、鳳凰の尾。
-		PRINTFORML 肝心の効能は載ってない。がっかり。
-		PRINTFORML 
-	CASE 49
-		PRINTFORML %CALLNAME:MASTER%さんから妖魔本を貰った。
-		PRINTFORML 僧侶と妖怪の冒険奇譚だった。大当たり。
-		PRINTFORML 一気に読むのはもったいないから、毎日ちょっとずつ読もう。
-		PRINTFORML 
-		PRINTFORML 
-	CASE 50
-		PRINTFORML %CALLNAME:MASTER%さんからスペルカードを貰った。
-		PRINTFORML 私もいつか弾幕ごっこをしてみたい。
-		PRINTFORML その日が来る迄、これは保管しておく。
-		PRINTFORML 
-		PRINTFORML 
-ENDSELECT
-
-RESETCOLOR
-
+;=============================
+;406,日記を読む
 ;=============================
 @M_KOJO_MESSAGE_COM_K70_406
-;=============================
 CALL TRAIN_MESSAGE
 CALL M_KOJO_MESSAGE_COM_K70_406_1
 RETURN RESULT
 
 ;=============================
-@M_KOJO_MESSAGE_COM_K70_406_1
 ;コマンド口上
 ;TFLAG:194（誰の日記を読んでいるか）
 ;TFLAG:194がXXでない場合は他人の日記なので注意。
 ;PAGEは書かれてあるページ数。
 ;SHIRAHU(XX)はキャラXXの状態が正常かどうか。
 ;=============================
-
-CALL M_KOJO_COLOR_K70
+@M_KOJO_MESSAGE_COM_K70_406_1
 IF SHIRAHU([[小鈴]]) && TFLAG:194 == [[小鈴]]
 	PRINTFORMW 「えへへ……やっぱり恥ずかしいです\/\/\/」
 ENDIF
@@ -647,66 +1045,6 @@ ENDIF
 ;=============================
 SIF DIARY:[[小鈴]]:ARG != 0
 	RETURN
-SELECTCASE ARG
-	;6～7,連作
-	CASE 6
-		CFLAG:[[小鈴]]:1051 = DAY
-		CASE 7
-			SIF DAY < CFLAG:[[小鈴]]:1051 + 5
-				RETURN
-	;8～11,連作
-	CASE 8
-		CFLAG:[[小鈴]]:1052 = DAY
-		CASE 9
-			SIF DAY < CFLAG:[[小鈴]]:1052 + 1
-				RETURN
-		CASE 10
-			SIF DAY < CFLAG:[[小鈴]]:1052 + 7
-				RETURN
-		CASE 11
-			SIF DAY < CFLAG:[[小鈴]]:1052 + 12
-				RETURN
-	;15～16,連作
-	CASE 15
-		CFLAG:[[小鈴]]:1053 = DAY
-		CASE 16
-			SIF DAY < CFLAG:[[小鈴]]:1053 + MAX(18 - ABL:[[阿求]]:親密, 3)
-				RETURN
-	;20,21,22,23,排他
-	CASE 20, 21, 22, 23
-		SIF CFLAG:[[小鈴]]:1054
-			RETURN
-		CFLAG:[[小鈴]]:1054 = DAY
-	;24,25,26,排他
-	CASE 24, 25, 26
-		SIF CFLAG:[[小鈴]]:1055
-			RETURN
-		CFLAG:[[小鈴]]:1055 = DAY
-	;27～29,30,31,32,連作＆排他
-	CASE 27
-		CFLAG:[[小鈴]]:1056 = DAY
-		CASE 28
-			SIF DAY < CFLAG:[[小鈴]]:1056 + 1
-				RETURN
-		CASE 29, 30, 31, 32
-			SIF DAY < CFLAG:[[小鈴]]:1056 + 2
-				RETURN
-			SIF CFLAG:[[小鈴]]:1057
-				RETURN
-			CFLAG:[[小鈴]]:1057 = DAY
-	;33,34,35～36,37,38,連作＆排他,35→37のジャンプ等は可能
-	CASE 33, 34, 35
-		SIF CFLAG:[[小鈴]]:1058
-			RETURN
-		CFLAG:[[小鈴]]:1058 = DAY
-		CASE 36, 37, 38
-			SIF DAY < CFLAG:[[小鈴]]:1058 + 2
-				RETURN
-			SIF CFLAG:[[小鈴]]:1059
-				RETURN
-			CFLAG:[[小鈴]]:1059 = DAY
-	CASEELSE
-ENDSELECT
 DIARY:[[小鈴]]:ARG = 3
 CALL CHARA_DIARY_PAGESETTING([[小鈴]], ARG)
 

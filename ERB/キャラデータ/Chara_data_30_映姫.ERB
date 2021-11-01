@@ -103,7 +103,7 @@ CASE "固有下着生地厚さ"
 
 ;料理関連
 CASE "料理：好きな味"
-	CALLF MAKE_STR(V_NAME, "野菜/麺類/中華/和食/もちもち/濃厚/温かい/ガッツリ/質素/冥界風/甘い/すっぱい/" + "スパイス/" * 3 + "辛い/" * 5)
+	CALLF MAKE_STR(V_NAME, "野菜/麺類/中華/和食/もちもち/温かい/質素/冥界風/甘い/すっぱい/" + "スパイス/" * 3 + "辛い/" * 5)
 CASE "料理：嫌いな味"
 	CALLF MAKE_STR(V_NAME, "魔力/霊障/しょっぱい/しょっぱい/" + "カエル/虫肉/ジャンキー/外界風/化学的/" * 3 + "謎料理/" * 5)
 CASE "料理：助手効果"
@@ -151,6 +151,24 @@ CASEELSE
 	SIF STRCOUNT(O_DATA, "依頼")
 		CALLF 固有依頼30(ARG, O_DATA, V_NAME)
 ENDSELECT
+
+;-------------------------------------------------
+;固有料理設定
+;DISH_NAME          料理名
+;RESULTS            料理の種類（軽食/主食/デザート）
+;CALL 材料設定("")  材料の指定。"汎用"を入れると自動で汎用食材になる
+;DISH_TASTE         味の設定
+;DISH_COMMENT       （任意）一行コメント
+;DISH_TIME          （任意）調理にかかる時間
+;DISH_MAXLIMIT      （任意）料理の持続時間
+;-------------------------------------------------
+@SPECIAL_MENU_30
+DISH_NAME = 地獄ラーメン（極辛）
+RESULTS = 主食
+CALL 材料設定("ネギ")
+DISH_TASTE = 中華/麺類//野菜/温かい/スパイス//スパイス//スパイス/辛い/辛い/辛い/辛い/辛い/辛い/
+DISH_COMMENT = 閻魔様が中有の道名物として考案した拉麺。恐ろしく辛い。
+RETURN 1
 
 ;IMAGE_I30_特殊服装(CHARA)-------------------------------------------------------------------
 ;キャラクター特有の服装表示条件
@@ -288,6 +306,14 @@ IF CFLAG:CHARA:差し替え適用
 		;赤面表情、開帳、尻を撫でる、スカートをめくる
 		CASE 8, 13, 310, 330
 			RESULTS:0 = 赤面
+		;メシの顔
+		CASE 413, 414, 415
+			SIF TALENT:CHARA:機嫌 < 0 || CFLAG:CHARA:衣装一時変更 == 62 || !SHIRAHU(CHARA) || MARK:CHARA:3 || !FLAG:立ち絵種類
+				RETURN
+			IF DISHNAME == "地獄ラーメン（極辛）" || TCVAR:30:360 == TIME
+				RESULTS:0 = お星
+				RESULTS:1 = 笑顔
+			ENDIF
 	ENDSELECT
 	SIF 絶頂判定(CHARA) || 絶頂判定2(CHARA)
 		RESULTS:1 = 絶頂
@@ -438,6 +464,8 @@ IF CFLAG:CHARA:差し替え適用
 		RETURN 1
 	SIF STRFIND(エフェクト, "泣き") != -1
 		RETURN 1
+	SIF STRFIND(エフェクト, "キラ") != -1 && FLAG:立ち絵種類
+		RETURN 1
 	SIF STRFIND(エフェクト, "ダミー") != -1
 		RETURN 1
 ELSE
@@ -459,6 +487,17 @@ VARSET RESULTS
 
 IF CFLAG:CHARA:差し替え適用
 	;差し替え画像
+	;辛いもの食べるor作るで星が湧く
+	IF GROUPMATCH(SELECTCOM, 413, 414, 415) && FLAG:立ち絵種類
+		SIF TALENT:CHARA:機嫌 < 0 || CFLAG:CHARA:衣装一時変更 == 62 || !SHIRAHU(CHARA) || MARK:CHARA:3
+			GOTO SKIP
+		IF DISHNAME == "地獄ラーメン（極辛）" || TCVAR:30:360 == TIME
+			RESULTS:エフェクト数 = キラ
+			エフェクト数 += 1
+			RETURN エフェクト数
+		ENDIF
+	ENDIF
+	$SKIP
 	IF TCVAR:CHARA:無理矢理 || (CFLAG:CHARA:1600 && CFLAG:CHARA:うふふ)
 		RESULTS:エフェクト数 = 泣き
 		エフェクト数 += 1
@@ -491,12 +530,12 @@ IF CFLAG:CHARA:差し替え適用
 	ENDIF
 	IF FLAG:立ち絵種類
 		;顔絵
-		IF CFLAG:CHARA:口に精液 || TCVAR:CHARA:363 == TIME:0
+		IF CFLAG:CHARA:口に精液 || TCVAR:CHARA:363 == TIME
 			;顔ぶっかけ
 			RESULTS:エフェクト数 = 精液上
 			エフェクト数 += 1
 			;朝フェラ後紅潮
-			IF TCVAR:CHARA:363 == TIME:0
+			IF TCVAR:CHARA:363 == TIME
 				RESULTS:エフェクト数 = 照れ
 				エフェクト数 += 1
 			ENDIF
@@ -540,7 +579,7 @@ IF CFLAG:CHARA:差し替え適用
 	ELSEIF MARK:CHARA:反発刻印 > 0 || CFLAG:CHARA:ブチギレ
 		RESULTS:エフェクト数 = 怒り
 		エフェクト数 += 1
-	ELSEIF CFLAG:CHARA:睡眠
+	ELSEIF CFLAG:CHARA:睡眠 && TFLAG:100
 		RESULTS:エフェクト数 = 睡眠
 		エフェクト数 += 1
 	ENDIF

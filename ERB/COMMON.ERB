@@ -908,6 +908,22 @@ ENDIF
 SIF GETBIT(FLAG:潜伏,0)
 	CALL 潜伏モード終了処理
 
+;-------------------------------------------------
+;関数名:ENDUFUFU_ALL
+;概　要:全員にENDUFUFU
+;人数を返す
+;-------------------------------------------------
+@ENDUFUFU_ALL
+VARSET LOCAL
+FOR LOCAL, 0, CHARANUM
+	IF CFLAG:LOCAL:うふふ
+		CALL ENDUFUFU(LOCAL)
+		LOCAL:1 ++
+	ENDIF
+NEXT
+TFLAG:MASTERのＰ挿入中 = 0
+RETURN LOCAL:1
+
 ;-------------------------------------------------------------
 ;ARGとあなたが同性だった場合、両者にレズ（ゲイ）経験を追加する関数
 ;-------------------------------------------------------------
@@ -1609,26 +1625,40 @@ ENDSELECT
 ;-------------------------------------------------
 ;ランク評価(数字が小さいほど優秀)の内容をアルファベット表記してカラー表示する
 ;形式さえあってりゃ別にPRINT_RANKでなくとも使えるぞ
+;ARG=1で大文字
 ;-------------------------------------------------
-@PRINT_ALPHABET(RANK, RANK_NUM)
+@PRINT_ALPHABET(RANK, RANK_NUM, ARG)
 #DIM RANK
 #DIM RANK_NUM
 #DIMS CONST STR_RANK10, 10 = "Ex", "SS", " S", " A", " B", " C", " D", " E", " F", " G"
 #DIMS CONST STR_RANK7,   7 = "Ex", " S", " A", " B", " C", " D", " E"
+#DIMS CONST STR_RANK10_F, 10 = "ＳＳＳ", "ＳＳ", "Ｓ", "Ａ", "Ｂ", "Ｃ", "Ｄ", "Ｅ", "Ｆ", "Ｇ"
+#DIMS CONST STR_RANK7_F,   7 = "ＥＸ", "Ｓ", "Ａ", "Ｂ", "Ｃ", "Ｄ", "Ｅ"
 {
 #DIMS  CONST C_RANK10, 10 = 
 	"C_P_PURPLE", "C_WHITE", "C_WHITE", "C_PINK", "C_RED", 
 	"C_ORANGE", "C_YELLOW", "C_GREEN", "C_AQUA", "C_GRAY"
 }
 #DIMS  CONST C_RANK7,   7 = "C_P_PURPLE", "C_WHITE", "C_PINK", "C_RED", "C_ORANGE", "C_YELLOW", "C_GRAY"
-SELECTCASE RANK_NUM
-CASE 10
-	CALL COLOR_PRINT(STR_RANK10:RANK, C_RANK10:RANK, 2)
-CASE  7
-	CALL COLOR_PRINT(STR_RANK7:RANK, C_RANK7:RANK, 2)
-CASEELSE
-	THROW 不正なRANK_NUM {RANK_NUM}
-ENDSELECT
+IF ARG
+	SELECTCASE RANK_NUM
+	CASE 10
+		CALL COLOR_PRINT(STR_RANK10_F:RANK, C_RANK10:RANK, 2)
+	CASE  7
+		CALL COLOR_PRINT(STR_RANK7_F:RANK, C_RANK7:RANK, 2)
+	CASEELSE
+		THROW 不正なRANK_NUM {RANK_NUM}
+	ENDSELECT
+ELSE
+	SELECTCASE RANK_NUM
+	CASE 10
+		CALL COLOR_PRINT(STR_RANK10:RANK, C_RANK10:RANK, 2)
+	CASE  7
+		CALL COLOR_PRINT(STR_RANK7:RANK, C_RANK7:RANK, 2)
+	CASEELSE
+		THROW 不正なRANK_NUM {RANK_NUM}
+	ENDSELECT
+ENDIF
 RESETCOLOR
 
 
@@ -1737,8 +1767,9 @@ RESETCOLOR
 ;-------------------------------------------------
 ;特定の記号を特定の色で並べる
 ;MARKの表示用だけどなんかその他にも使えるでしょう
+;ARG=1なら左寄せ
 ;-------------------------------------------------
-@COLOR_STAMP(STAMP_NUM, MAX_NUM, STAMP_STR, STAMP_COLOR)
+@COLOR_STAMP(STAMP_NUM, MAX_NUM, STAMP_STR, STAMP_COLOR, ARG)
 #DIM  STAMP_NUM   ;並べるスタンプの数
 #DIM  MAX_NUM     ;スタンプの最大数
 #DIMS STAMP_STR   ;スタンプに使用する文字列
@@ -1749,7 +1780,8 @@ SIF !STAMP_LENGTH
 	THROW STAMP_STRが指定されていません
 SIF STAMP_COLOR
 	SETCOLOR STAMP_COLOR
-PRINTFORM %" " * (MAX_NUM - STAMP_NUM) * STAMP_LENGTH%
+SIF !ARG
+	PRINTFORM %" " * (MAX_NUM - STAMP_NUM) * STAMP_LENGTH%
 PRINTFORM %STAMP_STR * STAMP_NUM%
 RESETCOLOR
 
@@ -2522,4 +2554,4 @@ RESULT:216 = [[マイ]]
 RESULT:217 = [[夢子]]
 RESULT:218 = [[神綺]]
 
-RESULT:300 = [[モブ子]]
+RESULT:299 = [[モブ子]]

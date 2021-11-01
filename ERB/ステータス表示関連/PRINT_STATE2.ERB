@@ -53,8 +53,11 @@ NEXT
 #DIM 選択中キャラID
 #DIMS KARADAMEATE
 PRINTL
-PRINTL □ 個人情報 □-----------------------------------------------------------------------
+PRINT □ 
+CALL PRINTBUTTON_EX("個人情報 ",169,TFLAG:169)
+PRINTL □-----------------------------------------------------------------------
 PRINTL  
+IF !TFLAG:169
 PRINTFORML 性格：%PERSONALITY_TYPE(選択中キャラID)%
 IF 選択中キャラID == MASTER
 	IF CFLAG:MASTER:睡眠
@@ -69,7 +72,7 @@ IF 選択中キャラID == MASTER
 	ENDIF
 	IF TRAP_POINT:1 || TRAP_POINT:2 || TRAP_POINT:3
 		PRINTL 
-		PRINTFORML 罠の設置状況
+		PRINTFORML ◆罠の設置状況
 		FOR LOCAL, 1, 4
 			IF TRAP_POINT:LOCAL
 				PRINTFORML 　罠{LOCAL}の設置場所：%猟場名(TRAP_POINT:LOCAL)%
@@ -77,51 +80,40 @@ IF 選択中キャラID == MASTER
 			ENDIF
 		NEXT
 	ENDIF
+	IF MUSHI_TRAP
+		PRINTFORML ◆虫トラップの設置状況
+		PRINTFORML 　 　　設置場所：%NAME_FROM_PLACE((GET_MUSHIDATA(MUSHI_TRAP, "場所")))%（%STR:((GET_MUSHIDATA(MUSHI_TRAP, "場所")) / 100 + 5000)%）
+	ENDIF
 ELSE
 	PRINT 活動時間帯:
-	SELECTCASE 選択中キャラID
-	CASE 1
-		PRINTL 6～13時 14～23時
-	CASE 2
-		PRINTL 5～13時 14～24時
-	CASE 3
-		PRINTL 0～10時 17～24時
-	CASE 4
-		PRINTL 0～10時 16～24時
-	CASE 5
-		PRINTL 6～24時
-	CASE 6
-		PRINTL 0～2時 8～24時
-	CASE 7
-		PRINTL 0～1時 6～13時 14～24時
-	CASE 8
-		PRINTL 0～1時 6～13時 14～24時
-	CASE 9
-		PRINTL 0～5時 10～13時 14～24時
-	CASE 10
-		PRINTL 0～3時 10～24時
-	CASEELSE
-		IF CFLAG:選択中キャラID:神社在住 || CFLAG:MASTER:現在位置 == OMANEKIBEYA()
-			CALL 起床時間表示(選択中キャラID)
-		ELSE
-			CALL 滞在時間表示(選択中キャラID)
-		ENDIF
-	ENDSELECT
+	IF CFLAG:選択中キャラID:神社在住 || CFLAG:MASTER:現在位置 == OMANEKIBEYA()
+		CALL 起床時間表示(選択中キャラID)
+	ELSE
+		CALL 滞在時間表示(選択中キャラID)
+	ENDIF
 	IF CFLAG:選択中キャラID:よく行く地域 >= 0
 		PRINTFORML よく行く地域：%GET_MAPNAME(CFLAG:選択中キャラID:よく行く地域)%
 	ENDIF
-	IF CFLAG:選択中キャラID:自宅位置 && !CFLAG:選択中キャラID:神社在住
-		LOCAL = CFLAG:選択中キャラID:自宅位置 / 10 + 6000
+	IF CFLAG:選択中キャラID:自宅位置 >= 10 && !CFLAG:選択中キャラID:神社在住
 		PRINT 自宅位置：
-		PRINTFORML %STR:LOCAL%
+		LOCAL = CFLAG:選択中キャラID:自宅位置 / 100 + 5000
+		PRINTFORM %STR:LOCAL% 
+		LOCAL = CFLAG:選択中キャラID:自宅位置 / 10 + 6000
+		PRINTFORML 【 %STR:LOCAL% 】
 	ELSEIF CFLAG:選択中キャラID:神社在住
 		PRINT 自宅位置：
-		PRINTFORML %GET_MAPNAME(MAIN_MAP)%
+		LOCAL = CFLAG:選択中キャラID:自宅位置 / 100 + 5000
+		PRINTFORM %STR:LOCAL% 
+		LOCAL = CFLAG:選択中キャラID:初期位置 + 8000
+		PRINTFORML 【 %STR:LOCAL% 】
+	ELSE
+		PRINTL 自宅位置：■■■■■ 【 ■■■■■ 】
 	ENDIF
 	PRINT 仕事情報：
 	PRINTFORML %CSTR:選択中キャラID:仕事情報%
 	PRINT 　職場　：
 	PRINTFORML %CSVCSTR(選択中キャラID, 2)%
+ENDIF
 ENDIF
 PRINTL 　
 IF 選択中キャラID == RANDOM_CHARANUM
@@ -223,7 +215,7 @@ CALL DANMAKU_OPPONENT_STATUS(選択中キャラID, 1)
 IF CFLAG:選択中キャラID:来訪時間 < CFLAG:選択中キャラID:帰宅時間
 	PRINTFORML {CFLAG:選択中キャラID:来訪時間 / 60}時～{CFLAG:選択中キャラID:帰宅時間 / 60}時
 ELSE
-	PRINTFORML 0時～{CFLAG:選択中キャラID:帰宅時間 / 60}時 {CFLAG:選択中キャラID:来訪時間 / 60}時～24時
+	PRINTFORML {CFLAG:選択中キャラID:来訪時間 / 60}時～翌 {CFLAG:選択中キャラID:帰宅時間 / 60}時
 ENDIF
 
 
@@ -234,7 +226,7 @@ ENDIF
 IF CFLAG:選択中キャラID:起床時間 < CFLAG:選択中キャラID:就寝時間
 	PRINTFORML {CFLAG:選択中キャラID:起床時間 / 60}時～{CFLAG:選択中キャラID:就寝時間 / 60}時
 ELSE
-	PRINTFORML 0時～{CFLAG:選択中キャラID:就寝時間 / 60}時 {CFLAG:選択中キャラID:起床時間 / 60}時～24時
+	PRINTFORML {CFLAG:選択中キャラID:起床時間 / 60}時～翌 {CFLAG:選択中キャラID:就寝時間 / 60}時
 ENDIF
 
 

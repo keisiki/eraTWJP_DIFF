@@ -1111,6 +1111,7 @@ ENDSELECT
 ;-------------------------------------------------
 ;448,罠を仕掛ける
 ;FLAG:194 はCRITTER_DATAを参照
+;虫トラップのムシの名前はMUSHI_NAMEに入ってます
 ;-------------------------------------------------
 @MESSAGE_COM448
 
@@ -1143,9 +1144,59 @@ SELECTCASE TFLAG:193
 				PRINTFORML やばそうなので、このキノコは食べないことにしよう…
 		ENDSELECT
 	;罠が壊れていた
-	CASEELSE
+	CASE -1
 		PRINTFORML %CALLNAME:MASTER%は散らばった罠の部品を回収した…
+	;虫トラップを仕掛けた
+	CASE 10
+		PRINTFORML 仕掛けたエサ：%ITEMNAME:(GET_MUSHIDATA(MUSHI_TRAP, "エサ番号"))%
+		PRINTFORML 　　エサの質：%"☆" * MUSHI_ESA_DATA(GET_MUSHIDATA(MUSHI_TRAP, "エサ番号"))%
+		PRINTFORML 　エサタイプ：%RESULTS:10%
+		DRAWLINE
+		PRINTFORML %NAME_FROM_PLACE((GET_MUSHIDATA(MUSHI_TRAP, "場所")))%に虫トラップを仕掛けた
+		PRINTFORML 明日になったら見に来てみよう
+	;虫トラップを破棄した
+	CASE 11
+		PRINTFORML %NAME_FROM_PLACE(CFLAG:MASTER:現在位置)%に仕掛けた虫トラップを破棄した
+	;虫トラップで捕まえた
+	CASE 12
+		PRINTFORML %CALLNAME:MASTER%は虫トラップを片付けた
 ENDSELECT
+
+;-------------------------------------------------
+;449,虫捕り
+;～を捕まえた！のメッセージはコマンド関数内で行われています
+;ここで表示するのは追加メッセージです
+;-------------------------------------------------
+@MESSAGE_COM449
+#DIM CHARA
+CHARA = TFLAG:194
+;殺してでもうばいとる
+IF TFLAG:193 == -2
+	PRINTL 
+	PRINTFORML な　なにをする　きさまらー！
+	PRINTW 
+	PRINTFORML 取っ組み合いをしていると%MUSHI_NAME%は逃げてしまった…
+;ゆずってくれ→拒否された
+ELSEIF TFLAG:193 == -1
+	PRINTFORML %CALLNAME:CHARA%は捕まえたのは自分なのだと拒否した…
+;捕獲失敗
+ELSEIF TFLAG:193 == 0
+	PRINTFORML 何も捕まえられなかった……
+;MASTERが捕まえた,追加メッセージ無し
+ELSEIF TFLAG:193 == 1
+;なかなかやるじゃん
+ELSEIF TFLAG:193 == 2
+	PRINTFORML %CALLNAME:MASTER%が褒めると%CALLNAME:CHARA%は照れながらも得意げな顔を浮かべた
+;ゆずってくれ→渋々オッケー
+ELSEIF TFLAG:193 == 3
+	PRINTFORML %CALLNAME:CHARA%は%CALLNAME:MASTER%がそんなに欲しがるならと呆れ気味に%MUSHI_NAME%を譲った
+;ゆずってくれ→オールオッケー
+ELSEIF TFLAG:193 == 4
+	PRINTFORML %CALLNAME:CHARA%は得意げな顔を浮かべて%CALLNAME:MASTER%が欲しいならと%MUSHI_NAME%を譲った
+ENDIF
+;虫カゴに入れる処理,口上で地の文を消す場合はこの処理を忘れないように
+SIF GROUPMATCH(TFLAG:193, 1, 3, 4)
+	CALL MUSHI_CAPTURE(MUSHI_CAGE)
 
 ;-------------------------------------------------
 ;460,妄想オナニー
@@ -1197,3 +1248,35 @@ ELSE
 		PRINTFORML %CALLNAME:MASTER%の体には僅かな我慢汁と愛液が付着している……
 ENDIF
 PRINTFORML %CALLNAME:MASTER%は少し悲しくなった
+;-------------------------------------------------
+;483,ムシバトル
+;-------------------------------------------------
+@MESSAGE_COM483
+PRINTFORML %CALLNAME:MASTER%たちは童心に帰ってムシバトルに熱中し、
+SELECTCASE TFLAG:193
+;タイマン
+CASE 1
+	;勝った
+	IF TFLAG:194 == 1
+		PRINTFORML %CALLNAME:MASTER%は%CALLNAME:TARGET%との戦いを制して勝利の余韻に浸った…
+	ELSE
+		PRINTFORML %CALLNAME:TARGET%のムシたちの前に敗れた%CALLNAME:MASTER%は想像以上の屈辱を味わった…
+	ENDIF
+;バトルロイヤル
+CASE 2
+	;勝った
+	IF TFLAG:194 == 1
+		PRINTFORML %CALLNAME:MASTER%は勝利をもらたらしたムシたちにご褒美をあげた…
+	ELSE
+		PRINTFORML %CALLNAME:MASTER%は敗れ去ったムシたちを労ってあげた…
+	ENDIF
+;チーム戦
+CASE 3
+	;勝った
+	IF TFLAG:194 == 1
+		PRINTFORML 戦友の%CALLNAME:TARGET%と勝利の歓びを分かち合った…
+	ELSE
+		PRINTFORML 戦友の%CALLNAME:TARGET%とお互いを称え合った…
+	ENDIF
+ENDSELECT
+

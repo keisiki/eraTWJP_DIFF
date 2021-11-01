@@ -118,8 +118,7 @@ ELSEIF PLACE_SENTO(CFLAG:MASTER:現在位置) == 2
 				PRINTW …
 				;大衆浴場は30分固定
 				TIME += 30
-				;大衆浴場総入湯回数+1
-				CFLAG:400 += 1
+				;大衆浴場総入湯回数はフラグごとオミット
 				;大衆浴場時限入湯回数+1
 				TFLAG:210 += 1
 				;大衆浴場フラグを1に設定
@@ -148,6 +147,7 @@ ELSEIF PLACE_SENTO(CFLAG:MASTER:現在位置) == 2
 		ENDIF
 	ENDIF
 ELSEIF PLACE_SENTO(CFLAG:MASTER:現在位置) == 9
+	LOCAL = 0
 	;番台を怒らせてしまった場合
 	IF TFLAG:211 == 4
 		PRINTFORML 番台の方から鋭い視線が飛んできている……
@@ -155,53 +155,68 @@ ELSEIF PLACE_SENTO(CFLAG:MASTER:現在位置) == 9
 		RETURN -1
 	;番台妖怪通常運行
 	ELSE
+		;初めて旧地獄温泉で入浴コマンドを選択した場合。周回後にゅーぷらん開放
+		IF !STRCOUNT(CSTR:0:0, "地獄温泉/")
+			CSTR:0:0 = %CSTR:0:0%地獄温泉/
+			PRINTL 「いらっしゃいましぇだぎゃー！」
+			PRINTL 「おんやぁー！　珍しいぎゃ、人間がこげんにゃ所ににゃーの用だぎゃ？」
+			PRINTFORMW  %CALLNAME:PLAYER%は番台の妖怪に入浴したいことを告げた
+			PRINTL 「にゃーぎゃて？……ふん……ふん」
+			PRINTL 「……にゃーのにゃーの、お客しゃまだったぎゃ！」
+			IF !FLAG:周回数
+				PRINTL 「やけんど、よおーこぎゃな所まで来ただぎゃ！　あんしゃん、変わりモンだぎゃねー」
+			ELSE
+				PRINTW 「そんにゃら、あんしゃん…ぐっーどてゃーみんぐぎゃ！」
+				PRINTL 「きょーはぎゃーが考ギャーた『にゅーぷらん』とーとーお披露目の日なんだぎゃ！」
+				PRINTL 「きれーどころのメスっこをてゃーくしゃん揃えて」
+				PRINTW 「お客しゃまぎゃ、てゃーっぷり金を落っことすの、お待ちしとったぎゃ！」
+				PRINTL 「ほれっ、ほれっ！　みゃよってにゃーで、しゃっしゃと入るぎゃ！」
+				PRINTFORMW 番台の妖怪は、げっへっへと厭らしい笑みを浮かべ、%CALLNAME:PLAYER%を急き立ててくる……
+				GOTO SKIP
+			ENDIF
 		;お金足りなかったイベントを見ている
-		IF TFLAG:211 == 3
+		ELSEIF TFLAG:211 == 3
 			PRINTL 「金のにゃー奴は相手にしたくにゃーで。金をぎゃーに落とせばお客しゃまとして扱うぎゃ！」
 		;やめるを選んだけどやっぱり入りたくなった
 		ELSEIF TFLAG:211 == 2
 			PRINTL 「せーっかく、こぎゃな所まで来て温泉入りゃねーにゃんて、一生の六割は損してるぎゃ！」
-		;それ以外
 		ELSE
-			;モブ妖怪
 			PRINTL 「いらっしゃいましぇだぎゃー！」
-			;初めて旧地獄温泉で入浴コマンドを選択した場合
-			IF TFLAG:211 == 0 && TFLAG:212 == 0 && CFLAG:401 == 0
-				PRINTL 「おんやぁー！珍しいぎゃ、人間がこげんにゃ所ににゃーの用だぎゃ？」
-				PRINTFORMW  %CALLNAME:PLAYER%は番台の妖怪に入浴したいことを告げた
-				PRINTL 「にゃーぎゃて？……ふん……ふん」
-				PRINTL 「……にゃーのにゃーの、お客しゃまだったぎゃ！」
-				PRINTL 「やけんど、よおーこぎゃな所まで来ただぎゃ！あんしゃん、変わりモンだぎゃねー」
-			ENDIF
 		ENDIF
+		;それ以外
 		PRINTL 「んーぎゃ、貰ゃうモンもりゃっとくだぎゃー」
-		;旧地獄温泉総入湯回数が通算15回以上でまだ にゅーぷらんを一度も選択していない
-		IF CFLAG:401 >= 15 && CFLAG:402 == 0
-			PRINTL 「あんしゃんには、たーんまり儲けしゃせてもりゃったぎゃ！」
-			PRINTL 「もーっと稼ぎまくるぎゃ！金！金！！金！！！金が欲しいぎゃー！」
-			PRINTL 「やけん、金ほしーから、ぎゃーが考ギャーた にゅーぷらんがあるぎゃ！」
-			PRINTFORMW  番台の妖怪は%CALLNAME:PLAYER%にそう言うと、げっへっへと厭らしい笑みを浮かべ、はよ！はよ！と%CALLNAME:PLAYER%を急き立ててくる……
-		ELSE
-			PRINTL 「こんだけチョーだい！」
-			PRINTFORML  番台の妖怪は、すぐ側に置かれていたメモのようなものを指差し、はよ！はよ！と%CALLNAME:PLAYER%を急き立ててくる……
-		ENDIF
+		PRINTL 「こんだけチョーだい！」
+		PRINTFORML 番台の妖怪は、すぐ側に置かれていたメモのようなものを指差し、はよ！はよ！と%CALLNAME:PLAYER%を急き立ててくる……
+		$SKIP
 		DRAWLINE
 		PRINTL [1] \1000払って入浴する
-		;旧地獄温泉総入湯回数が通算15回になった時出現
-		SIF CFLAG:401 >= 15
-			PRINTL [2] \5000払って入浴する
+		;にゅーぷらん選択肢
+		SIF FLAG:周回数
+			PRINTFORML [2] \\10000払って%\@ STRCOUNT(CSTR:0:0,"泡入浴") ? お風呂を借りる # 『にゅーぷらん』を試してみる \@%
 		PRINTL [0] やめる
 		$LOOP_titei
 		INPUT
 		SELECTCASE RESULT
+			CASE 0
+				;番台ブチギレ
+				IF TFLAG:211 >= 2
+					PRINTL 「んがー！！　んがー！！　んがー！！」
+					PRINTL 「金を落としゃん奴に構ってるヒマはにゃーだぎゃー！！」
+					TFLAG:211 = 4
+				ELSE
+					PRINTL 「んあー、入らないんだったらしゃっしゃとどっか行くぎゃー！」
+					PRINTL 「金にならん奴はお客しゃまでもなんでもにゃいぎゃー！」
+					TFLAG:211 = 2
+				ENDIF
+				RETURN -1
 			CASE 1
 				IF MONEY < 1000
 					PRINTW  番台の妖怪は一生懸命、金額が合っているかどうか数えながら確かめている……
 					PRINTW 「…………」
-					PRINTW 「おみゃーしゃん、ヒドいギャー！金足りねーのによくもみゃー図々しく払うにゃんて言えたもんだぎゃ！」
+					PRINTW 「おみゃーしゃん、ヒドいギャー！　金足りねーのによくもみゃー図々しく払うにゃんて言えたもんだぎゃ！」
 					;番台ブチギレ
 					IF TFLAG:211 >= 2
-						PRINTL 「んがー！！んがー！！んがー！！」
+						PRINTL 「んがー！！　んがー！！　んがー！！」
 						PRINTL 「金を落としゃん奴に構ってるヒマはにゃーだぎゃー！！」
 						TFLAG:211 = 4
 					ELSE
@@ -231,6 +246,7 @@ ELSEIF PLACE_SENTO(CFLAG:MASTER:現在位置) == 9
 						回復後体力２ = BASE:TARGET:体力
 						回復後気力２ = BASE:TARGET:気力
 					ENDIF
+					$OFURO
 					CALL ODEKAKE_OFURO(MASTER,2)
 					DRAWLINE
 					PRINTW …
@@ -239,15 +255,14 @@ ELSEIF PLACE_SENTO(CFLAG:MASTER:現在位置) == 9
 					IF TARGET > 0 && CFLAG:TARGET:6 > 0 && !CFLAG:TARGET:睡眠
 						PRINTFORMW %CALLNAME:PLAYER%と%CALLNAME:TARGET%は二人仲良く温泉でくつろいだ
 					ELSE
-						PRINTFORMW %CALLNAME:PLAYER%は温泉でくつろいだ
+						PRINTFORMW %CALLNAME:PLAYER%は\@ LOCAL ? 一人寂しく個室の # \@温泉でくつろいだ
 					ENDIF
 					PRINTW …………
 					PRINTW ……
 					PRINTW …
 					;旧地獄温泉は30分固定
 					TIME += 30
-					;旧地獄温泉総入湯回数+1
-					CFLAG:401 += 1
+					;旧地獄温泉総入湯回数はフラグごとオミット
 					;旧地獄温泉時限入湯回数+1
 					TFLAG:212 += 1
 					;旧地獄温泉フラグを1に設定
@@ -264,24 +279,33 @@ ELSEIF PLACE_SENTO(CFLAG:MASTER:現在位置) == 9
 							CALL 外出先から帰宅
 						ENDIF
 					ENDIF
-						RETURN 1
+					RETURN 1
 				ENDIF
 			CASE 2
-				PRINTL 「すみゃんぎゃー！今メスっこ達をちょーたつ中だぎゃー！」
-				PRINTL  現在イベント作成中なのでお待ち下さい
-				GOTO LOOP_titei
-			CASE 0
-				;番台ブチギレ
-				IF TFLAG:211 >= 2
-					PRINTL 「んがー！！んがー！！んがー！！」
-					PRINTL 「金を落としゃん奴に構ってるヒマはにゃーだぎゃー！！」
-					TFLAG:211 = 4
-				ELSE
-					PRINTL 「んあー、入らないんだったらさっさとどっか行くぎゃー！」
-					PRINTL 「金にならん奴はお客しゃまでもなんでもにゃいぎゃー！」
-					TFLAG:211 = 2
+				SIF !FLAG:周回数
+					GOTO LOOP_titei
+				IF FLAG:甲斐性無
+					PRINTL 「おみゃーしゃん…手足も声も震えとるぎゃ」
+					PRINTL 「やめとけやめとけ。こーんな意気地なし、メスっこも呆れてみゃうぎゃー」
+					GOTO LOOP_titei
+				ELSEIF FLAG:デート相手
+					PRINTL 「おみゃーしゃん、今はやめたほーがいーんでにゃーぎゃ？」
+					PRINTW 「隣の娘っこ、えっれぇー顔してにらんでくるぎゃ…」
+					GOTO LOOP_titei
+				ELSEIF GETBIT(TFLAG:一日一回, 9)
+					PRINTL 「……おんやぁ？」
+					PRINTW 「わりぃーな、おみゃーしゃん。いみゃ部屋はいっぴゃーだぎゃ」
+					GOTO LOOP_titei
+				ELSEIF (TARGET > 0 && CFLAG:TARGET:態度 > 0 && !CFLAG:TARGET:睡眠) || CFLAG:MASTER:同行
+					PRINTL 「わりぃーな、おみゃーしゃん」
+					PRINTL 「このぷらんは、ひとりよーなんだぎゃ！」
+					GOTO LOOP_titei
 				ENDIF
-				RETURN -1
+				CALL INVITE_NEWPLAN
+				SIF RESULT < 2
+					RETURN RESULT
+				LOCAL = 1
+				GOTO OFURO
 			CASEELSE
 				GOTO LOOP_titei
 		ENDSELECT
@@ -296,6 +320,7 @@ IF TARGET
 	PRINTFORML 体力+{ABS(回復後体力２ - 回復前体力２)}（%CALLNAME:TARGET%）
 	PRINTFORML 気力+{ABS(回復後気力２ - 回復前気力２)}（%CALLNAME:TARGET%）
 ENDIF
+RETURN 1
 
 ;銭湯
 @COM_ABLE432
@@ -316,6 +341,9 @@ SIF CFLAG:添い寝中
 	RETURN 0
 ;お風呂のある場所以外は不可
 SIF !PLACE_SENTO(CFLAG:MASTER:現在位置)
+	RETURN 0
+;物陰
+SIF FLAG:潜伏
 	RETURN 0
 SIF CFLAG:うふふ == 2
 	RETURN 0

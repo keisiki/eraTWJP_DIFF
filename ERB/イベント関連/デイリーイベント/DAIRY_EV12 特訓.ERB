@@ -29,12 +29,10 @@ ENDIF
 VARSET LOCAL
 イカサマ = 0
 制限時間 = 2000 - (ABL:ARG:戦闘能力 - ABL:MASTER:戦闘能力) * 100
-PRINTFORML %CALLNAME:ARG%から新技の訓練に付き合って欲しいと言われた
-SIF ABL:ARG:戦闘能力 >= 4
-		PRINTFORML 相手が相手なので、ヘタをすれば大怪我するかもしれない……
+CALL KOJO_MESSAGE_SEND("DAILY", 12, ARG, 1)
 CALL ASK_YN("付き合う","ヤダ")
 IF RESULT
-	PRINTFORML %CALLNAME:ARG%は残念そうだ
+	CALL KOJO_MESSAGE_SEND("DAILY", 12, ARG, 2)
 ELSE
 	正解 = RAND:4
 	経験値 = MAX(ABL:ARG:戦闘能力 * 5, 5)
@@ -78,6 +76,7 @@ ELSE
 	ENDIF
 	CALL FISHER_YATES_SHAFFLE(4)
 	PRINTFORMW %CALLNAME:ARG%の攻撃を避けよう（クリックで開始）
+	CALL KOJO_MESSAGE_SEND("DAILY", 12, ARG, 3)
 	PRINTFORM %CALLNAME:ARG%の
 	SETCOLOR C_YELLOW
 	IF FEINT
@@ -104,6 +103,7 @@ ELSE
 		ELSE
 			PRINTFORMW ズルしたのであまり練習にならなかった……
 		ENDIF
+		CALL KOJO_MESSAGE_SEND("DAILY", 12, ARG, 4, イカサマ)
 		経験値 = 経験値 * 倍率 / 100
 		EXP:MASTER:戦闘経験 += 経験値
 		EXP:ARG:戦闘経験 += 経験値 * 2
@@ -130,6 +130,7 @@ ELSE
 				PRINTFORM メチャクチャ
 		ENDSELECT
 		PRINTFORMW 痛い思いをした
+		CALL KOJO_MESSAGE_SEND("DAILY", 12, ARG, 5)
 		BASE:MASTER:体力 -= 400 * (1 + ABL:ARG:戦闘能力)
 		PRINTFORML 戦闘経験 ＋{経験値}（%CALLNAME:ARG%）
 		EXP:ARG:戦闘経験 += 経験値
@@ -140,3 +141,13 @@ ELSE
 	ENDIF
 ENDIF
 PRINTW 
+
+@DAILY_MESSAGE_12(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+SELECTCASE ARG:1
+CASE 1
+	PRINTFORMDL %CALLNAME:ARG%から新技の訓練に付き合って欲しいと言われた
+	SIF ABL:ARG:戦闘能力 >= 4
+			PRINTFORMDL 相手が相手なので、ヘタをすれば大怪我するかもしれない……
+CASE 2
+	PRINTFORMDL %CALLNAME:ARG%は残念そうだ
+ENDSELECT

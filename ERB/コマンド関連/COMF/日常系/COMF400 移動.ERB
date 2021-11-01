@@ -537,7 +537,7 @@ ELSEIF LOCK:(RESULT)
 		ELSEIF LOCAL:4 != CFLAG:MASTER:初期位置
 			CALL ASK_YN("部屋に忍び込む","やめておく")
 			IF RESULT == 0
-				CALL 部屋に忍び込む(LOCAL:4)
+				CALL 部屋に忍び込む(LOCAL:4, 直前位置)
 				GOTO END
 			ELSEIF RESULT == 1
 				CFLAG:MASTER:現在位置 = 直前位置
@@ -566,6 +566,28 @@ ELSE
 	IF CFLAG:93:同行 && !GETBIT (FLAG:プール, 0)
 		TIME += 2 * 経過時間
 		BASE:MASTER:体力 = MAX(BASE:MASTER:体力 - (5 * 経過時間), 500)
+	ENDIF
+ENDIF
+;21/09/01 自由行動に対応するフレーバー追加
+IF CFLAG:MASTER:現在位置 == FA16_HOLE:0 && !FA16_HOLE:1
+	IF (50 - (ABL:MASTER:戦闘能力 * 7)) < RAND:100
+		PRINTFORMW ……足元に落とし穴があったが%CALLNAME:MASTER%は難なくかわした
+		FA16_HOLE:1 = 1
+	ELSE
+		PRINTFORMW %CALLNAME:MASTER%は落とし穴に落っこちた！！
+		SELECTCASE RAND(15) + TFLAG:幸運補正 
+			CASE IS < 2
+				PRINTFORML 痛い！！　思いっきりお尻から落ちてしまった…
+				CALL RECOVER(MASTER, -50, "体力", "お尻が痛い")
+				WAIT
+			CASE IS > 12
+				MONEY += 100
+				PRINTFORML …穴の底で100円を見つけた
+				PRINTFORMW 　現在の所持金:%金額表示(MONEY)%
+		ENDSELECT
+		TIME += 3
+		FA16_HOLE:1 = 2
+		FA16_HOLE:2 = TIME
 	ENDIF
 ENDIF
 

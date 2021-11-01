@@ -15,9 +15,15 @@ IF Activity_Duration:ARG
 	IF !Activity_Duration:ARG
 		;CALL 自由行動内容(ARG, Activity_Type:ARG, "完了")
 		TRYCALLFORM 自由行動内容_{Activity_Type:ARG}(ARG, "完了")
+		;自由行動中口上,X-1,完了時
+		SIF CFLAG:ARG:現在位置 == CFLAG:MASTER:現在位置
+			CALL KOJO_MESSAGE_SEND("EVENT", 32, ARG, Activity_Type:ARG, 1)
 	;まだ行動中
 	ELSE
 		TRYCALLFORM 自由行動内容_{Activity_Type:ARG}(ARG, "行動中")
+		;自由行動中口上,X-0,行動中
+		SIF CFLAG:ARG:現在位置 == CFLAG:MASTER:現在位置
+			CALL KOJO_MESSAGE_SEND("EVENT", 32, ARG, Activity_Type:ARG, 0)
 		;連鎖しない行動は除く（考え事,読書）
 		IF FreeAct_Chain(ARG)
 			FOR LOCAL, 1, CHARANUM

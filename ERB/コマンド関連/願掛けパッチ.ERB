@@ -98,10 +98,11 @@ FOR LOCAL:1, 1, EX_CHARANUM
 	SIF !CFLAG:LOCAL:出禁 && !TALENT:LOCAL:行きずり
 		PRINTFORMLC [{LOCAL, 3}] %CALLNAME:LOCAL,15,LEFT%
 NEXT
-
+;21/08/27 反発履歴削除追加、反発解除時に反発履歴も消去可に変更
 @IKENIE(ARG,ARG:1)
 ;ARG 対象
-;ARG:1 願い(1=反発解除 2=感度一時上昇 3=小槌 4=時間停止バレ解除 5=天罰)
+;ARG:1 願い(1=反発解除 2=感度一時上昇 3=小槌 4=時間停止バレ解除[オミット]
+;			 5=天罰 6=子宝祈願 7=サドっ気減少 8=反発履歴削除)
 #DIM 総計
 #DIM 種類数
 #DIM ダブり
@@ -122,7 +123,7 @@ SELECTCASE ARG:1
 		必要枚数 = 3
 	CASE 3
 		必要枚数 = CFLAG:MASTER:魔力回収 / 2 + 1
-	CASE 4,6
+	CASE 4,6,8
 		必要枚数 = 1
 	CASE 5,7
 		必要枚数 = 3
@@ -167,9 +168,13 @@ IF RESULT == 1
 				BREAK
 		NEXT
 	ENDIF
+	SIF ARG:1 == 1
+		CALL ASK_M("履歴も消す",1,"履歴は残す",1)
 	SELECTCASE ARG:1
 		CASE 1
 			MARK:ARG:反発刻印 --
+			SIF !RESULT
+				MARK:ARG:反発取得履歴 --
 			TFLAG:193 = 30
 		CASE 2
 			FLAG:願掛け内容 = 999
@@ -204,6 +209,9 @@ IF RESULT == 1
 			ABL:ARG:サドっ気 -= 1
 			JUEL:ARG:優越 = 0
 			EXP:ARG:嗜虐快楽経験 = MAX(EXP:ARG:嗜虐快楽経験 - 200, 0)
+		CASE 8
+			MARK:ARG:反発取得履歴 = 0
+			TFLAG:193 = 35
 	ENDSELECT
 	PRINTFORML %CALLNAME:MASTER%が秘蔵のコレクションを並べて祈ると、この世ならぬ炎が{必要枚数}枚のパンツを燃えカスひとつ残さず焼き尽くした！
 	FLAG:篤信 += 必要枚数

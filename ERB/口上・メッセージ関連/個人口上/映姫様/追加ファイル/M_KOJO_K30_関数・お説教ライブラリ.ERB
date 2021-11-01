@@ -135,7 +135,7 @@ RETURNF LOCAL:(RAND(抽選))
 ;呼び捨て =小町 久侘歌：敬称 =ヘカーティア「様」：他は皆「さん」づけ
 ;ARG=0でMASTER 条件付けで呼び名を変える。需要なさそうだけどおにいさんにも対応
 ;引数 =1or2をとると行きずりキャラ/MASTER/対象キャラ無し(ARG=0)が指定されたら「だれか」「他の人」と呼ぶ＠セクハラが捗る
-;引数 =3で種族・属性呼び。CSV読みでTALENT分けより雰囲気出る気がするけど、個別で設定しないからやっぱり変なのはある。日記・説教に使う予定だがまだ未使用
+;引数 =3で種族・属性呼び。CSV読みでTALENT分けより雰囲気出る気がするけど、個別で設定しないからやっぱり変なのはある
 ;-------------------------------------------------
 @K30_C_NAME(ARG, TYPE = 0)
 #FUNCTIONS
@@ -198,11 +198,13 @@ IF STRFIND(LOCALS, "●") > -1
 		ENDIF
 	NEXT
 ENDIF
-;'（'が会話で出ると変なので除外
-SIF STRFIND(LOCALS:1, "（") > -1
-	LOCALS:1 = 
+;'（）'で種族が括られたキャラは個別対応
+IF STRFIND(LOCALS:1, "（") > -1
+	SPLIT LOCALS:1, "（", LOCALS
+	LOCALS:1 = %REPLACE(LOCALS:1, "）", "")%
+	LOCALS:1 = %\@ GROUPMATCH(ARG,35,40,104,105) ? %LOCALS:1% # %LOCALS:0% \@%
 ;'人間''妖怪'はTALENTの方で更に詳しく見る
-IF  LOCALS:1 == "人間"
+ELSEIF  LOCALS:1 == "人間"
 	VARIANT = 1
 	LOCALS:1 = 
 ELSEIF LOCALS:1 == "妖怪"
@@ -1542,14 +1544,10 @@ PRINTFORML %CSVCSTR(30, 10)%
 PRINTFORML 
 PRINTFORML 地獄に住む死者を裁く神様。日々の大半を死者の裁判と地獄の管理業務に費やしている。
 PRINTFORML 性格は真面目そのもの。だが、仕事の影響もあって少し説教くさい。
-PRINTFORML 例えば目の前に罪を負った人間（でも妖怪でもとにかく誰でも）がいたら、閻魔様は絶対に見過ごさない
-FONTSTYLE 4
-PRINTFORM 趣味の
-FONTSTYLE 0
+PRINTFORML 例えば目の前に罪を負った人間（でも妖怪でもとにかく誰でも）がいたら、閻魔様は絶対に見過ごさない。
+CALL COLORMESSAGE("趣味の", 0XD5DEDF, 0, 4)
 PRINTFORM 貴重な時間を使って
-FONTSTYLE 4
-PRINTFORM 口うるさい
-FONTSTYLE 0
+CALL COLORMESSAGE("口うるさい", 0XD5DEDF, 0, 4)
 PRINTFORML 有難いお話と教えをたっぷり説いてくれることだろう。
 SIF !CFLAG:30:面識
 	RETURN 1
@@ -1562,9 +1560,7 @@ IF !TALENT:30:恋慕
 		PRINTFORML 目下の悩みは何者にも影響されず迷うことがないはずの自分が、とある人物にすっかり惑わされていることだ。
 	ELSEIF STRCOUNT(CSTR:30:0, "変Ｔお披露目")
 		PRINTFORM 目下の悩みは、最近導入された閻魔の制服があまりにも
-		FONTSTYLE 4
-		PRINTFORM 変
-		FONTSTYLE 0
+		CALL COLORMESSAGE("変", 0XD5DEDF, 0, 4)
 		PRINTFORML 特徴的でうまく着こなせないことらしい…
 	ELSE
 		PRINTFORML 最近知り合った浄玻璃の鏡で見通せない人物を気にかけている。
@@ -1601,7 +1597,7 @@ PRINTFORML
 ;妊娠願望。恋慕後でも時姦妊娠とか鬼畜あなたを考慮したら見づらい分岐に
 ;願望再取得時
 IF GETBIT(CFLAG:30:1502, 4)
-	PRINTFORML %CALLNAME:MASTER%との子供を再び授かるのを望んでいる。
+	PRINTFORML %CALLNAME:MASTER%との子供を再び授かることを望んでいる。
 	PRINTFORML 
 	RETURN 1
 ELSEIF TALENT:30:妊娠願望
@@ -1614,9 +1610,9 @@ ELSEIF GETBIT(CFLAG:30:1502, 3) && !TALENT:30:育児中 && !TALENT:30:妊娠
 	PRINTFORML 
 	RETURN 1
 ENDIF
-SIF !INRANGE(CFLAG:30:1502, 1, 7) || TALENT:30:育児中 || TALENT:30:妊娠
+SIF !INRANGE(CFLAG:30:1502, 1, 7) || TALENT:30:育児中 || TALENT:30:妊娠 || EXP:30:出産経験
 	RETURN 1
-;bit演算を整数で捉えてCASE分け
+;bit演算を十進数で捉えてCASE分け
 SELECTCASE CFLAG:30:1502
 	CASE 1
 		PRINTFORML %CALLNAME:MASTER%に身体は許しているが母親になる自信は無い。

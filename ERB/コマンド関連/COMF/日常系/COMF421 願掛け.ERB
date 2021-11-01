@@ -3,7 +3,6 @@
 ;日常系コマンド、レベル1
 ;-------------------------------------------------
 @COM421
-
 PRINTL 何を願いますか？
 $INPUT_LOOP
 PRINTL [0] - 縁結び(\1000)
@@ -20,6 +19,8 @@ SIF TARGET
 SIF TALENT:TARGET:恋慕 && !TALENT:妊娠
 	PRINTFORML [21] - 子宝祈願(現在の子宝補正:{CFLAG:子宝補正})
 PRINTFORML [30] - 女の子に嫌われてしまったのを何とかしたい
+;21/08/27 反発履歴削除追加
+PRINTFORML [35] - 女の子のわだかまりをなくしたい
 SIF CFLAG:MASTER:魔力回収 && CFLAG:MASTER:小槌 < 6
 	PRINTFORML [40] - 小槌の代償を取り除いてほしい
 SIF FLAG:開運大紋購入回数 > 10
@@ -117,6 +118,23 @@ ELSEIF RESULT == 30
 	ELSE
 		RETURN -1
 	ENDIF
+ELSEIF RESULT == 35
+	PRINTL 誰の？
+	DRAWLINE
+	FOR LOCAL,1,CHARANUM
+		SIF !MARK:LOCAL:反発刻印 && MARK:LOCAL:反発取得履歴 && !CFLAG:LOCAL:出禁
+			PRINTFORMLC [{LOCAL}] %CALLNAME:LOCAL,15,LEFT%
+	NEXT
+	PRINTL 
+	DRAWLINE
+	PRINTL [999] - やっぱりやめる
+	INPUT
+	IF RESULT >= 1 && RESULT <= CHARANUM && !MARK:RESULT:反発刻印 && MARK:RESULT:反発取得履歴
+		CALL IKENIE(RESULT,8)
+	ELSE
+		RETURN -1
+	ENDIF
+
 ELSEIF RESULT == 40 && CFLAG:MASTER:魔力回収 && CFLAG:MASTER:小槌 < 6
 	CALL IKENIE(71,3)
 ELSEIF RESULT == 50 && FLAG:開運大紋購入回数 > 10

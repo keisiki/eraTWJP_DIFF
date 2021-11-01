@@ -135,14 +135,20 @@ IF RESULT
 	IF !CFLAG:ARG:睡眠
 		;デート中なら昼寝は無視する
 		IF !(CHK_DATENOW(CFLAG:ARG:デート中) && !睡眠時間(ARG))
-			;住み込みキャラの家にお泊まりした時は帰らないように97 + MAIN_MAP * 100に避難
-			IF CFLAG:ARG:現在位置 != 97 + MAIN_MAP * 100
-				;デート中に就寝時間になったら強制的に中止して帰宅
-				CALL 睡眠時デート中断(ARG)
-			ENDIF
+			;CHARA_SLEEP改良に伴い一旦凍結
+;			;住み込みキャラの家にお泊まりした時は帰らないように97 + MAIN_MAP * 100に避難
+;			IF CFLAG:ARG:現在位置 != 97 + MAIN_MAP * 100
+;				;デート中に就寝時間になったら強制的に中止して帰宅
+;				CALL 睡眠時デート中断(ARG)
+;			ENDIF
 			IF !CFLAG:ARG:お招き && !(CFLAG:ARG:神社在住 && CFLAG:ARG:現在位置 == CFLAG:ARG:初期位置)
-				SIF CFLAG:MASTER:現在位置 == CFLAG:ARG:現在位置 && !CFLAG:MASTER:睡眠
-					PRINTFORMW %CALLNAME:ARG%は暇を告げると、眠そうに去って行きました
+				IF CFLAG:MASTER:現在位置 == CFLAG:ARG:現在位置 && !CFLAG:MASTER:睡眠
+					IF CFLAG:ARG:うふふ || CHK_DATENOW(CFLAG:ARG:デート中)
+						PRINTFORMW %CALLNAME:ARG%は眠気に堪えられなくなったので、\@ CFLAG:ARG:神社在住 ? 自室 # 自宅 \@に帰ることにした
+					ELSE
+						PRINTFORMW %CALLNAME:ARG%は暇を告げると、眠そうに去って行きました
+					ENDIF
+				ENDIF
 			ENDIF
 		ENDIF
 	ENDIF
@@ -348,31 +354,32 @@ IF !CFLAG:ARG:うふふ || WORKING(ARG) || (CFLAG:ARG:うふふ == 2 && CFLAG:AR
 ENDIF
 
 
-@睡眠時デート中断(ARG)
-IF CHK_DATENOW(CFLAG:ARG:デート中)
-	IF CFLAG:ARG:衰弱
-		PRINTFORMW %CALLNAME:ARG%はぐったりとして眠たそうだ…
-	ELSE
-		PRINTFORMW %CALLNAME:ARG%はもう帰って眠る時間です…
-	ENDIF
-	IF GET_MAPID(CFLAG:ARG:自宅位置) == MAIN_MAP
-		PRINTFORMW 一緒に%GET_MAPNAME(MAIN_MAP)%へ帰ることにしました
-		CALL SET_DATE(99, ARG)
-	ELSE
-		CALL ASK_YN("家まで送る","その場で別れる")
-		IF RESULT == 0
-			PRINTFORMW %CALLNAME:ARG%を家まで送り届けることにしました
-			CALL SET_DATE(99, ARG)
-		ELSE
-			PRINTFORMW %CALLNAME:ARG%とのデートはその場でお開きとなりました
-			FLAG:デート相手 = 0
-			TFLAG:デート前好感度 = 0
-			CFLAG:ARG:デート中 = MAIN_MAP
-		ENDIF
-		CFLAG:ARG:現在位置 = CFLAG:ARG:自宅位置
-	ENDIF
-	IF CFLAG:ARG:うふふ
-		CALL ENDUFUFU(ARG)
-	ENDIF
-	CFLAG:ARG:同行 = 0
-ENDIF
+;CHARA_SLEEP改良に伴い一旦凍結
+;@睡眠時デート中断(ARG)
+;IF CHK_DATENOW(CFLAG:ARG:デート中)
+;	IF CFLAG:ARG:衰弱
+;		PRINTFORMW %CALLNAME:ARG%はぐったりとして眠たそうだ…
+;	ELSE
+;		PRINTFORMW %CALLNAME:ARG%はもう帰って眠る時間です…
+;	ENDIF
+;	IF GET_MAPID(CFLAG:ARG:自宅位置) == MAIN_MAP
+;		PRINTFORMW 一緒に%GET_MAPNAME(MAIN_MAP)%へ帰ることにしました
+;		CALL SET_DATE(99, ARG)
+;	ELSE
+;		CALL ASK_YN("家まで送る","その場で別れる")
+;		IF RESULT == 0
+;			PRINTFORMW %CALLNAME:ARG%を家まで送り届けることにしました
+;			CALL SET_DATE(99, ARG)
+;		ELSE
+;			PRINTFORMW %CALLNAME:ARG%とのデートはその場でお開きとなりました
+;			FLAG:デート相手 = 0
+;			TFLAG:デート前好感度 = 0
+;			CFLAG:ARG:デート中 = MAIN_MAP
+;		ENDIF
+;		CFLAG:ARG:現在位置 = CFLAG:ARG:自宅位置
+;	ENDIF
+;	IF CFLAG:ARG:うふふ
+;		CALL ENDUFUFU(ARG)
+;	ENDIF
+;	CFLAG:ARG:同行 = 0
+;ENDIF
