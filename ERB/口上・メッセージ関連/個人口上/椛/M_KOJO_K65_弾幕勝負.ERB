@@ -42,10 +42,10 @@ SIF FLAG:口上色
 	;キャラの能力に関わらずクッソ強くしたり弱くしたりできる
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
-	;CFLAG:351 (旧ハンデ管理変数) 初期化
-	;逆レイプイベント条件を満たしていた場合、CFLAG = TFLAG:GipsLVとなる。
+	;TCVAR:351 (旧ハンデ管理変数) 初期化
+	;逆レイプイベント条件を満たしていた場合、TCVAR = TFLAG:GipsLVとなる。
 	;IF CFLAG:1800 > 2 && CFLAG:既成事実 & 合意_うふふ &&  ABL:65:欲望 > 4 && TFLAG:GipsLV >= 7
-	CFLAG:351 = 0
+	;TCVAR:351 = 0
 	;-------------------------------------------------
 	;ギプス装着はこの関数の呼び出し直前に行うことになったので、入手イベントの発生タイミングを変更。
 	;辻褄合わせのために少し文章をいじったので、作者さんが手直ししてください。
@@ -135,7 +135,7 @@ SIF FLAG:口上色
 				;逆レイベント条件を満たしていたらハンデ激増
 				IF CFLAG:1800 > 2 && CFLAG:既成事実 & 合意_うふふ &&  ABL:65:欲望 > 4 && TFLAG:GipsLV >= 7
 					HANDICAP_FIXED += ABL:MASTER:戦闘能力 * 200
-					CFLAG:351 = TFLAG:GipsLV
+					TCVAR:351 = 1
 				ENDIF
 			ENDIF
 			PRINTFORMW 「%TEXTR("さあ！行きますよっ！/日々の鍛錬の成果をお見せしましょう！/今度こそ、負けませんよ！")%」
@@ -275,74 +275,91 @@ SIF FLAG:口上色
 	;戦闘後_ギプス使用時敗北イベント
 	;シューターギプス実装により、逆レイプイベントのみに利用されるようになりました
 	;-------------------------------------------------
-		;ギプス使用済み
-		IF CFLAG:351 >= 7
-		;IF TFLAG:GipsLV >0 && 相手残機 > 0
-			SELECTCASE CFLAG:351
-				;LUNATIC以上
-				CASE IS >= 10
-					CALL RECOVER(MASTER, -1500, "体力" , @"突然ギプスからエネルギーが逆流し、%CALLNAME:MASTER%はダメージを受けた！")
-					PRINTFORML 「%CALLNAME:MASTER%さんっ！？%CALLNAME:MASTER%さんっ！？大丈夫ですか……！！」
-					PRINTFORML 心配そうにこちらへ駆け寄ってくる%CALLNAME:TARGET%の姿がグラリと傾く
-					PRINTFORML %CALLNAME:MASTER%は、そのまま意識を失った……
-					PRINTFORML 
-					PRINTFORMW ………
-					PRINTFORMW ……
-					PRINTFORMW …
-					;逆レイベント
-					IF CFLAG:1800 > 2 && TCVAR:発情 && CFLAG:既成事実 & 合意_うふふ &&  ABL:65:欲望 > 4
-						;バグの温床になりそうな現在位置移動　椛はちゃんと部屋まで送ってくれたうえで逆レする
-						CFLAG:MASTER:現在位置 = CFLAG:MASTER:初期位置
-						;逆レイベント呼び出し
-						CALL K65_DANMAKU_EVENT_GYAKURE
-					ELSE
-						CALL HPH_PRINT,@"%TEXTR("意識を取り戻したとき、%CALLNAME:MASTER%は自室の寝床に横たわっていた。/…気が付くと、目の前には見慣れた天井があった。")%","L"
-						PRINTFORML 『ルナシューター養成ギプス』の反動を受けた後、%CALLNAME:TARGET%が%CALLNAME:MASTER%を自室まで連れ帰り、介抱してくれたのだろう。
-						PRINTFORMW %TEXTR("強烈な衝撃のせいか、じんわりと全身が重たくなっているのを感じた/いまだにぼんやりする頭と四肢に残る痺れが、与えられた衝撃の強さを物語っている")%。
-						PRINTFORML 「%TEXTR("お目覚めになったんですね。よかった…/ああ、よかった…心配したんですよ？/もう。無茶はダメって言ったじゃないですか")%」
-						PRINTFORMW %CALLNAME:MASTER%はきしむ身体をどうにか起こして、%CALLNAME:TARGET%に礼を言った…
-						;バグの温床になりそうな現在位置移動
-						CFLAG:MASTER:現在位置 = CFLAG:MASTER:初期位置
-						CFLAG:65:現在位置 = CFLAG:MASTER:初期位置
-					ENDIF
-					RETURN 1
-				;HARD以上
-				CASE IS >= 7
-					CALL RECOVER(MASTER, -1000, "体力" , @"突然ギプスからエネルギーが逆流し、%CALLNAME:MASTER%はダメージを受けた！")
-					PRINTFORML 「%CALLNAME:MASTER%さんっ！？%CALLNAME:MASTER%さんっ！？大丈夫ですか……！！」
-					IF CFLAG:1800 > 2 && TCVAR:発情 && CFLAG:既成事実 & 合意_うふふ &&  ABL:65:欲望 > 4
-					PRINTFORML 心配そうにこちらへ駆け寄ってくる%CALLNAME:TARGET%の姿がグラリと傾く
-					PRINTFORML %CALLNAME:MASTER%は、そのまま意識を失った……
-						;バグの温床になりそうな現在位置移動　椛はちゃんと部屋まで送ってくれたうえで逆レする
-						CFLAG:MASTER:現在位置 = CFLAG:MASTER:初期位置
-						;逆レイベント呼び出し
-						CALL K65_DANMAKU_EVENT_GYAKURE
-					ELSE
-						PRINTFORML こちらへ駆け寄ってきた%CALLNAME:TARGET%に肩を支えられ、どうにか%CALLNAME:MASTER%は倒れずに済んだ。
-						PRINTFORML 「%TEXTR("大丈夫ですか？…よかった…/もう。無茶はダメって言ったじゃないですか…")%」
-					ENDIF
-					RETURN 1
-				;NORMAL以上
-				;なぜ我慢するのかは分からない。
-				CASE IS >= 5
-					CALL RECOVER(MASTER, -500, "体力" , @"突然ギプスからエネルギーが逆流し、%CALLNAME:MASTER%はダメージを受けた！")
-					PRINTFORML 骨の髄にまで染み入るような衝撃を受けたものの、%CALLNAME:MASTER%は必死に痛みを我慢して平静を保った。
-					PRINTFORMW どうにか%CALLNAME:TARGET%には気取られずに済んだようだ…
-				;それ以外
-				CASEELSE
-					CALL RECOVER(MASTER, -200, "体力" , @"突然ギプスからエネルギーが逆流し、%CALLNAME:MASTER%はダメージを受けた！")
-					PRINTFORML ギプスに奪われていた力が衝撃となって返ってきたのか、%CALLNAME:MASTER%は全身を圧迫するような強い力を感じた。
-					PRINTFORMW …%CALLNAME:MASTER%はわずかに顔をしかめたものの、%CALLNAME:TARGET%には気付かれなかったようだ。
-			ENDSELECT
-		ENDIF
+	;	;ギプス使用済み
+	;	IF TCVAR:351 >= 7
+	;	;IF TFLAG:GipsLV >0 && 相手残機 > 0
+	;		SELECTCASE TCVAR:351
+	;			;LUNATIC以上
+	;			CASE IS >= 10
+	;				CALL RECOVER(MASTER, -1500, "体力" , @"突然ギプスからエネルギーが逆流し、%CALLNAME:MASTER%はダメージを受けた！")
+	;				PRINTFORML 「%CALLNAME:MASTER%さんっ！？%CALLNAME:MASTER%さんっ！？大丈夫ですか……！！」
+	;				PRINTFORML 心配そうにこちらへ駆け寄ってくる%CALLNAME:TARGET%の姿がグラリと傾く
+	;				PRINTFORML %CALLNAME:MASTER%は、そのまま意識を失った……
+	;				PRINTFORML 
+	;				PRINTFORMW ………
+	;				PRINTFORMW ……
+	;				PRINTFORMW …
+	;				;逆レイベント
+	;				IF CFLAG:1800 > 2 && TCVAR:発情 && CFLAG:既成事実 & 合意_うふふ &&  ABL:65:欲望 > 4
+	;					;バグの温床になりそうな現在位置移動　椛はちゃんと部屋まで送ってくれたうえで逆レする
+	;					CFLAG:MASTER:現在位置 = CFLAG:MASTER:初期位置
+	;					;逆レイベント呼び出し
+	;					CALL K65_DANMAKU_EVENT_GYAKURE
+	;				ELSE
+	;					CALL HPH_PRINT,@"%TEXTR("意識を取り戻したとき、%CALLNAME:MASTER%は自室の寝床に横たわっていた。/…気が付くと、目の前には見慣れた天井があった。")%","L"
+	;					PRINTFORML 『ルナシューター養成ギプス』の反動を受けた後、%CALLNAME:TARGET%が%CALLNAME:MASTER%を自室まで連れ帰り、介抱してくれたのだろう。
+	;					PRINTFORMW %TEXTR("強烈な衝撃のせいか、じんわりと全身が重たくなっているのを感じた/いまだにぼんやりする頭と四肢に残る痺れが、与えられた衝撃の強さを物語っている")%。
+	;					PRINTFORML 「%TEXTR("お目覚めになったんですね。よかった…/ああ、よかった…心配したんですよ？/もう。無茶はダメって言ったじゃないですか")%」
+	;					PRINTFORMW %CALLNAME:MASTER%はきしむ身体をどうにか起こして、%CALLNAME:TARGET%に礼を言った…
+	;					;バグの温床になりそうな現在位置移動
+	;					CFLAG:MASTER:現在位置 = CFLAG:MASTER:初期位置
+	;					CFLAG:65:現在位置 = CFLAG:MASTER:初期位置
+	;				ENDIF
+	;				RETURN 1
+	;			;HARD以上
+	;			CASE IS >= 7
+	;				CALL RECOVER(MASTER, -1000, "体力" , @"突然ギプスからエネルギーが逆流し、%CALLNAME:MASTER%はダメージを受けた！")
+	;				PRINTFORML 「%CALLNAME:MASTER%さんっ！？%CALLNAME:MASTER%さんっ！？大丈夫ですか……！！」
+	;				IF CFLAG:1800 > 2 && TCVAR:発情 && CFLAG:既成事実 & 合意_うふふ &&  ABL:65:欲望 > 4
+	;				PRINTFORML 心配そうにこちらへ駆け寄ってくる%CALLNAME:TARGET%の姿がグラリと傾く
+	;				PRINTFORML %CALLNAME:MASTER%は、そのまま意識を失った……
+	;					;バグの温床になりそうな現在位置移動　椛はちゃんと部屋まで送ってくれたうえで逆レする
+	;					CFLAG:MASTER:現在位置 = CFLAG:MASTER:初期位置
+	;					;逆レイベント呼び出し
+	;					CALL K65_DANMAKU_EVENT_GYAKURE
+	;				ELSE
+	;					PRINTFORML こちらへ駆け寄ってきた%CALLNAME:TARGET%に肩を支えられ、どうにか%CALLNAME:MASTER%は倒れずに済んだ。
+	;					PRINTFORML 「%TEXTR("大丈夫ですか？…よかった…/もう。無茶はダメって言ったじゃないですか…")%」
+	;				ENDIF
+	;				RETURN 1
+	;			;NORMAL以上
+	;			;なぜ我慢するのかは分からない。
+	;			CASE IS >= 5
+	;				CALL RECOVER(MASTER, -500, "体力" , @"突然ギプスからエネルギーが逆流し、%CALLNAME:MASTER%はダメージを受けた！")
+	;				PRINTFORML 骨の髄にまで染み入るような衝撃を受けたものの、%CALLNAME:MASTER%は必死に痛みを我慢して平静を保った。
+	;				PRINTFORMW どうにか%CALLNAME:TARGET%には気取られずに済んだようだ…
+	;			;それ以外
+	;			CASEELSE
+	;				CALL RECOVER(MASTER, -200, "体力" , @"突然ギプスからエネルギーが逆流し、%CALLNAME:MASTER%はダメージを受けた！")
+	;				PRINTFORML ギプスに奪われていた力が衝撃となって返ってきたのか、%CALLNAME:MASTER%は全身を圧迫するような強い力を感じた。
+	;				PRINTFORMW …%CALLNAME:MASTER%はわずかに顔をしかめたものの、%CALLNAME:TARGET%には気付かれなかったようだ。
+	;		ENDSELECT
+	;	ENDIF
 	;-------------------------------------------------
 	;戦闘後口上
 	;-------------------------------------------------
 		;残り残機4が表示されうるのは【洽覧深識】持ちのみ
 		;残機が1以上ならあなたの負け、0の場合はあなたの勝利
-		PRINTFORML
 		;椛勝利
 		IF 相手残機 > 0
+		;	PRINTFORMW {TCVAR:351}
+			;逆レイベント
+			;ほぼイースターエッグなのでは
+			IF TCVAR:351 > 0
+				CALL RECOVER(MASTER, -1500, "体力" , @"突然ギプスからエネルギーが逆流し、%CALLNAME:MASTER%はダメージを受けた！")
+				PRINTFORML 「%CALLNAME:MASTER%さんっ！？%CALLNAME:MASTER%さんっ！？大丈夫ですか……！！」
+				PRINTFORML 心配そうにこちらへ駆け寄ってくる%CALLNAME:TARGET%の姿がグラリと傾く
+				PRINTFORML %CALLNAME:MASTER%は、そのまま意識を失った……
+				PRINTFORML 
+				PRINTFORMW ………
+				PRINTFORMW ……
+				PRINTFORMW …
+				;バグの温床になりそうな現在位置移動　椛はちゃんと部屋まで送ってくれたうえで逆レする
+				CFLAG:MASTER:現在位置 = CFLAG:MASTER:初期位置
+				;逆レイベント呼び出し
+				CALL K65_DANMAKU_EVENT_GYAKURE
+			RETURN 1
+			ENDIF
 			SELECTCASE 相手残機
 				CASE 4
 					PRINTFORML 
@@ -662,53 +679,71 @@ ELSE
 	PRINTFORML 意識を取り戻したとき、%CALLNAME:MASTER%は自室の寝床で仰向けになっていた。
 	PRINTFORML 『ルナシューター養成ギプス』の反動を受けた後、椛が%CALLNAME:MASTER%を自室まで連れ帰り、介抱してくれたのだろう。
 	PRINTFORMW 強烈な衝撃のせいか、じんわりと全身が重たくなっているのを感じた。
+	PRINTFORML
 	PRINTFORMW ……そして、妙に股間が気持ちいいようにも感じられる。
 	PRINTFORML 
 	PRINTFORML 快感の生じる方へ目を向けると、丸くて形の良い、小ぶりな尻があった。
-	PRINTFORMW %CALLNAME:MASTER%をまたぐように広げられた下肢の上では、よく見慣れた白い尻尾が機嫌よく躍っている。
+	PRINTFORML %CALLNAME:MASTER%をまたぐように広げられた下肢の上では、よく見慣れた白い尻尾が機嫌よく躍っている。
 	PRINTFORMW どうやら、椛のようだ。
 	PRINTFORML 
 	CALL HPH_PRINT,@" 「んんっ…ちゅる、ちゅぶぷ、ちゅうううっ…HPH」","L"
-	PRINTFORMW 椛は発情の高揚感に荒い息を吐きながら、目の前にある%CALLNAME:MASTER%の怒張を一心に頬張っていた。
-	PRINTFORML 持ち主の消耗にもかかわらずピンと張り詰めるソレを舌先でねぶり、上気した頬をすぼめて吸い付き、
+	PRINTFORML 発情した椛の湿っぽい吐息が、%CALLNAME:MASTER%の下腹をかすかにくすぐる。
+	PRINTFORMW どうやら彼女は%CALLNAME:MASTER%が動けないのを良いことに、怒張を頬張って性欲を満たそうとしているようだ。
+	PRINTFORML
+	PRINTFORML 憔悴しきった%CALLNAME:MASTER%と裏腹にピンと張り詰めるソレを舌先でねぶり、上気した頬をすぼめて吸い付き、
 	PRINTFORMW 声を発することさえ忘れて咥え込んでいる。
-	PRINTFORMW 陰茎にねっとりとまぶされた唾液が、この行為が相応の長時間にわたり続けられていたことを物語っていた。
+	PRINTFORML
 	CALL HPH_PRINT,@" 「ちゅ、ちゅうちゅく…ちゅ、りゅぬ、ぢゅぷ……HPH」","L"
-	PRINTFORMW 温かく濡れた口腔粘膜の中で、舌が飴玉を舐め溶かすように動き、ペニスが溶けてしまうのではないかという錯覚にさえ陥る。
+	PRINTFORML 温かく濡れた口腔粘膜の中で、舌が飴玉を舐め溶かすように動き、ペニスが溶けてしまうのではないかという錯覚にさえ陥る。
+	PRINTFORMW 陰茎にねっとりとまぶされた唾液が、この行為が長い時間にわたり続けられていたことを物語っていた。
 	PRINTFORML
 	CALL HPH_PRINT,@" 「ちゅぴ、にゅちゅる…HPHふっ…HPHんむっ…HPH」","L"
-	PRINTFORMW 快楽に翻弄される思考の片隅で、何故こんな状況に？という疑問が頭をもたげた。
-	PRINTFORMW しかし過程を知ったところで、大きなダメージを負った%CALLNAME:MASTER%にはたいした抵抗もできないだろう…
+	PRINTFORML 快楽に翻弄される思考の片隅で、この状況をどうすべきだろう？という疑問が頭をもたげた。
+	PRINTFORML 大きなダメージを負った今となっては、たいした抵抗もできないだろう…
+	PRINTFORMW それならば、この快楽に身をゆだねてしまうほうが得なのではないだろうか？
 	PRINTFORML
 	CALL HPH_PRINT,@"「んー♪ちゅるHPHちゅHPH」","L"
 	PRINTFORML そんな%CALLNAME:MASTER%の逡巡をよそに、椛は臀を悩ましげにもじもじと揺らしている。
 	PRINTFORMW 発情に溢れた秘蜜が\@ CFLAG:65:ノーパン && !EQUIP:65:レオタード && !EQUIP:65:ボディースーツ ? 白い腿をトロトロと伝い # 下着をぐっしょりと濡らし \@、途方もなく煽情的だ。 
+	PRINTFORML
 	CALL HPH_PRINT,@" 「…HPH」","L"
 	PRINTFORMW 尖らせた舌が、先走りをほじりだすように鈴口を刺激する。
+	PRINTFORML
 	CALL HPH_PRINT,@" 「ん、ふふ…HPH…ちゅ…HPHちゅるりゅ……HPH」","L"
-	PRINTFORMW 彼女の口腔へ溢れ出た液汁は唾液と混じり合わされ、しっかりと味わいを確かめられてから、ゆっくりと嚥下される。
+	PRINTFORMW 彼女の口腔へ溢れ出た先走りは唾液と混じり合わされ、しっかりと味わいを確かめられてから、ゆっくりと嚥下される。
+	PRINTFORML
 	CALL HPH_PRINT,@" 「くちゅ…HPHくちゅ……HPH…こくん…HPH」","L"
-	PRINTFORMW 喉の動きに合わせて先端をチュッと吸われ、鋭い快感が背筋を駆け上がる。
-	PRINTFORMW 次々に送り込まれる性感に、もはや%CALLNAME:MASTER%は声さえ発せなくなってしまう。
+	PRINTFORMW 嚥下する喉の動きに合わせて亀頭をチュッと吸われ、鋭い快感が背筋を駆け上がる。
+	PRINTFORML
+	PRINTFORMW 次々に送り込まれる性感に、もはや%CALLNAME:MASTER%は声さえ発せなくなってしまっていた。
 	PRINTFORML 
 	CALL HPH_PRINT,@" 「ぢゅぷぷっHPHちゅぷHPHちゅHPH」","L"
-	PRINTFORMW 椛の右手が、\@ CFLAG:65:ノーパン && !EQUIP:65:レオタード && !EQUIP:65:ボディースーツ ? むき出しの # 薄布越しの \@秘裂に添えられる。昂奮した彼女のしかるべき欲求に応じて、細い指先が濡れそぼったソコをなぞり始める。
-	PRINTFORMW 指の動きに従って柔らかく形を変えるクレヴァスが遠慮がちにくちくちと音を立てるたびに、 甘酸っぱく悩ましい匂いがふわりと漂う。
+	PRINTFORML 椛の右手が、\@ CFLAG:65:ノーパン && !EQUIP:65:レオタード && !EQUIP:65:ボディースーツ ? むき出しの # 薄布越しの \@秘裂に添えられる。
+	PRINTFORMW 興奮しきった彼女のしかるべき欲求に応じて、細い指先が濡れそぼったソコをなぞり始める。
+	PRINTFORML 
 	CALL HPH_PRINT,@" 「ちゅるりゅ、ちゅ、くちゅっ…ふーっHPHん、じゅるっ、ちゅ、くぷっHPH」","L"
-	PRINTFORMW 普段の彼女を知る者であればこそ、彼女のこのような痴態など想像もできないだろう。
+	PRINTFORML 指の動きに従って柔らかく形を変えるクレヴァスが遠慮がちにくちくちと音を立てるたびに、 甘酸っぱく悩ましい匂いがふわりと漂った。
+	PRINTFORMW 普段の椛を知る者であればこそ、彼女のこのような痴態など想像もできないだろう。
 	PRINTFORML 
 	CALL HPH_PRINT,@" 「ふっ、ちゅ、ぷぁっ…HPH」","L"
-	PRINTFORMW 椛の唇が離れ、息継ぎをするかのような吐息が漏れる。
+	PRINTFORML 椛の唇が離れ、息継ぎをするかのような吐息が漏れる。
 	PRINTFORMW 温かな彼女の口内から解放されてしまったペニスが、外気の冷たさに驚いてビクリと震える。
+	PRINTFORML
 	CALL HPH_PRINT,@" 「ん、れるれるれる……HPH」","L"
 	PRINTFORMW しかし、あやすような舌先がすかさずその頭頂を捉え、優しく撫でまわしてくれた。
 	PRINTFORML 
 	CALL HPH_PRINT,@" 「んっ…HPHぁぷっHPH」","L"
 	PRINTFORMW 快感を与えられ続け否応なしに射精感が高まってきたとき、椛が再び口腔内へと怒張を迎え入れた。
+	PRINTFORML
 	CALL HPH_PRINT,@" 「じゅるちゅぷHPHにゅちゅっHPHちゅりゅHPHちゅるりゅりゅりゅりゅぅっHPH」","L"
-	PRINTFORMW 優しげな動きから一転、激しい吸い付きとストロークで絶頂へと追い立てられる。
-	PRINTFORMW ペニスの表面をくまなく濡らす唾液を小さな唇がこそいだ次の瞬間、ふたたび唾液がたっぷりとたまった頬の内側へ誘い込まれる。
-	PRINTFORMW その間にも白魚のような指が秘唇を弄び、とめどな\@ CFLAG:65:ノーパン && !EQUIP:65:レオタード && !EQUIP:65:ボディースーツ ? く溢れる淫水がかき混ぜられ、にじゅにじゅと音をたてる # い淫水で彼女の下着が素肌に張り付き、その向こうまでも透けさせる \@。
+	PRINTFORML 優しげな動きから一転して、激しい吸い付きとストロークで絶頂へと追い立てられる。
+	PRINTFORML ペニスの表面をくまなく濡らす唾液を小さな唇がこそいだ直後、温かく湿った頬の内側へペニスがふたたび誘い込まれ、
+	PRINTFORMW たっぷりとまぶされた唾液のローションが快楽を再加速させる。
+	PRINTFORML
+	CALL HPH_PRINT,@"「んむっHPHれるるりゅっHPHおいふぃっ…おいひぃHPH」","L"
+	PRINTFORML その間にも白魚のような指が秘唇を弄び、とめどな\@ CFLAG:65:ノーパン && !EQUIP:65:レオタード && !EQUIP:65:ボディースーツ ? く溢れる淫水がかき混ぜられ、にじゅにじゅと音をたてる # い淫水で彼女の下着が素肌に張り付き、その向こうまでも透けさせる \@。
+	PRINTFORML いやらしい水音とともに部屋を満たす熱気が、狂おしく%CALLNAME:MASTER%の性感を高めていく。
+	PRINTFORMW 絶頂の予感に震える衝動が、下腹の奥底に眠っていたマグマを呼び起こして理性の蓋を貫こうとする。
 	PRINTFORML
 	PRINTFORMW 周囲に充満するメスの匂いに中てられたように高まる鼓動が最高潮を迎えた瞬間。
 	PRINTFORML
@@ -718,32 +753,42 @@ ELSE
 	PRINTFORMW ほとんど間をおかないうちに細い指がぴたりと動きを止め、彼女の下肢が甘やかに痙攣した。
 	PRINTFORML 
 	CALL HPH_PRINT,@" 「んっHPHふぅぅーっHPH」","W"
-	PRINTFORMW むせかえるほどに濃縮された牡臭が彼女の鼻腔を刺激し、歓喜のため息が吐かれるわずかな間隙。
+	PRINTFORML 悦楽の声とともに椛が達する。
+	PRINTFORMW むせかえるほどに濃縮されたオスの臭いが彼女の鼻腔を刺激し、歓喜のため息が吐かれるわずかな間隙。
 	PRINTFORML
-	PRINTFORMW そしてまたも舌先が鈴口を捉え、さらなる射精をねだるようにチロチロと這い回る。
+	CALL HPH_PRINT,@"「くぷっHPHちゅ、りゅる…HPHくちゅ、くちゅちゅる……HPH」","L"
+	PRINTFORML そしてまたも舌先が鈴口を捉え、さらなる射精をねだるようにチロチロと這い回る。
 	PRINTFORMW 絶頂したばかりの敏感な部分を責め立てられ、彼女の望むままに、彼女の望むものを再び吐き出す。
 	PRINTFORML
 	CALL HPH_PRINT,@"「HPH」","W"
+	PRINTFORML
 	PRINTFORMW びゅくっ、びゅくっ、びゅくっ、どくん……
-	PRINTFORML 長い、長い射精が終わり、椛の満足げな吐息が陰嚢をくすぐった。
-	PRINTFORMW 彼女の唇からゆっくりとペニスが引き抜かれる間、舌先が肉竿の上を複雑に動き回り、背筋にぞくぞくとした快感が走る。
-	PRINTFORMW こちらからうかがうことはできないが、おそらく彼女は一滴も残すことのないよう、念入りに精液を舐めとっているのだろう…
+	PRINTFORML
+	PRINTFORMW 長い、長い射精が終わり、椛の満足げな吐息が陰嚢をくすぐった。
+	PRINTFORML
+	PRINTFORML 彼女の唇からゆっくりとペニスが引き抜かれる間、舌先が肉竿の上を複雑に動き回り、背筋にぞくぞくとした快感が走る。
+	PRINTFORMW こちらからうかがうことはできないが、精液を一滴も残すことのないように、念入りに舐めとっているのだろう…
 	PRINTFORML
 	CALL HPH_PRINT,@"「んふーっHPHにちゃっ…HPHふっHPHにじゅ…HPH」","L"
 	PRINTFORMW あけびのような割れ目の向こうから、猥褻な咀嚼音が聞こえる。
+	PRINTFORML
 	CALL HPH_PRINT,@"「んくっ…HPHこくっ…HPHぷぁ…HPH」","L"
 	PRINTFORMW そして、大げさなほどに喉を鳴らして、椛が口内の液汁を飲み干した。
 	PRINTFORML
 	CALL HPH_PRINT,@"「おい、し…HPH」","W"
+	PRINTFORML
 	PRINTFORMW つぶやくような言葉と同時に、彼女の秘唇からつう、と一筋の雫が垂れた。
 	PRINTFORMW ………
 	PRINTFORMW ……
 	PRINTFORMW …
 	CALL HPH_PRINT,@" 「んちゅるっHPHちゅっHPHちゅっちゅっHPH」","L"
-	PRINTFORML 見立てが甘かった、と言えるのは確かだ。
-	PRINTFORML 一度出せば満足するはず…%CALLNAME:MASTER%は、無意識にそう思っていたことを静かに後悔する。
+	PRINTFORMW 見立てが甘かった、と言えるのは確かだ。
+	PRINTFORML
+	PRINTFORMW 一度出せば満足するはず…%CALLNAME:MASTER%は、無意識にそう思っていたことを静かに後悔する。
+	PRINTFORML
 	PRINTFORML 先ほどが何度目の射精だっただろう。指折り数える気力もとうに失せてしまった。
 	PRINTFORMW 相変わらず、持ち主の消耗など知らぬ存ぜぬとばかりにペニスは屹立し、椛は飽きることなく口奉仕を続けている。
+	PRINTFORML
 	PRINTFORML ……もはや本当に、声一つ出せなかった。
 	PRINTFORMW かすむ視界の向こうで催眠振り子の如く揺れる尻尾を追いながら、%CALLNAME:MASTER%は意識を手放した…
 	;逆レイプイベントの最後に経験変動が表示された方が興奮しますかね？

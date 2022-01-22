@@ -106,7 +106,12 @@ IF CAN_SEE(CHARA) && !CFLAG:CHARA:ブチギレ && メッセージ表示
 			CALL KOJO_MESSAGE_SEND("EVENT", 20, CHARA, 帰宅口上)
 		ENDIF
 	ENDIF
-	CALL ENDUFUFU_ALL
+	IF BASE:MASTER:潜伏率 > 0
+		SIF CFLAG:CHARA:うふふ
+			CALL ENDUFUFU_ALL
+	ELSE
+		CALL ENDUFUFU_ALL
+	ENDIF
 ENDIF
 
 ;宴会中に寝たキャラは宴会フラグが外れる
@@ -134,7 +139,12 @@ IF CFLAG:CHARA:現在位置 != CFLAG:CHARA:初期位置 && !CFLAG:CHARA:睡眠 &
 			おやすみ口上２ = 0
 			IF CFLAG:MASTER:うふふ
 				LOCAL = FINDCHARA(CFLAG:うふふ, CFLAG:MASTER:うふふ, 1)
-				CALL ENDUFUFU_ALL
+				IF BASE:MASTER:潜伏率 > 0
+					SIF CFLAG:CHARA:うふふ
+						CALL ENDUFUFU_ALL
+				ELSE
+					CALL ENDUFUFU_ALL
+				ENDIF
 				人数 = RESULT
 				PRINTFORML 唇をとがらせる%CALLNAME:CHARA%に、%CALLNAME:MASTER%は渋々%CALLNAME:TARGET%\@ 人数 > 1 ? 達 #  \@から離れた
 				;おやすみ口上,7-2,他キャラとのＨを止めさせて寝た
@@ -330,11 +340,17 @@ ENDIF
 ;来訪キャラが拠点から帰って寝る処理
 ;-----------------------------------------
 @拠点から帰る(ARG)
-PRINTFORMW 疲れきった%CALLNAME:ARG%は帰って行きました
-;帰宅口上,10,疲れて帰宅
-CALL KOJO_MESSAGE_SEND("EVENT", 20, ARG, 10)
+IF IN_HOME(CFLAG:ARG:現在位置)
+	PRINTFORMW 疲れきった%CALLNAME:ARG%は帰って行きました
+	;帰宅口上,10,疲れて帰宅
+	CALL KOJO_MESSAGE_SEND("EVENT", 20, ARG, 10)
+	CFLAG:ARG:拠点来訪 = 0
+ELSE
+	PRINTFORMW 眠くなった%CALLNAME:ARG%は自室に帰って行きました
+	;おやすみ口上,10,拠点外のキャラが自宅前で帰って寝る
+	CALL KOJO_MESSAGE_SEND("EVENT", 3, ARG, 10)
+ENDIF
 CFLAG:ARG:現在位置 = CFLAG:ARG:初期位置
-CFLAG:ARG:拠点来訪 = 0
 
 ;-----------------------------------------
 ;寝室に入れるかどうか

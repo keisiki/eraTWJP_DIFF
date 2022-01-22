@@ -20,11 +20,12 @@ RETURN 1
 ;=============================
 @DIARY_BEFORE_CHECK_K30
 ;PAGENUM:0は使えません
+;EVENTCOMEND.ERBから現在位置に係わらず毎ターン呼び出される
 ;=============================
 ;MAXPAGEはここで記入する
 MAX_DIARY_PAGE:30:0 = 100
 
-;ここで汎用発生条件を記入する。
+;ここで汎用発生条件を記入する
 ;ファーストキス		No.1
 SIF DIARY:30:1 != 0 || GETBIT(CFLAG:30:1910, 2) == 1
 	GOTO THROUGH_K
@@ -72,7 +73,11 @@ SIF DIARY:30:20 == 0 && TALENT:30:思慕
 SIF DIARY:30:24 == 0 && TALENT:30:思慕 && INRANGE(FLAG:宴会開催フラグ, 2, 4) && (FLAG:開始日 % 2 == 1)
 	CALL K30_WRITE_DIARY(24)
 ;薄い本見ちゃった	No.25	日常コマンド
-	
+;地獄ラーメン伝授	No.26
+SIF DIARY:30:26 == 0 && LEARNED_MENU:30
+	CALL K30_WRITE_DIARY(26)
+;面倒なお悩み		No.27	依頼
+
 ;恋慕				No.30	一日の終了時
 ;映姫様から押し倒し	No.31	イベント口上
 ;妊娠願望			No.32	一日の終了時
@@ -85,7 +90,10 @@ SIF DIARY:30:34 ==0 && CFLAG:30:出産経過日 >= 2 && GETBIT(CFLAG:30:1910, 5)
 ;縦割れアナル		No.35	うふふ時Ａ性交経験100回以上でフラグ
 SIF DIARY:30:35 ==0 && GETBIT(CFLAG:30:1910, 7)
 	CALL K30_WRITE_DIARY(35)
-	
+;小町と同時			No.36	一日の終了時
+;尻穴狂い			No.37	一日の終了時
+;バイブデート		No.38	追加シチュ
+
 ;初対面				No.50	初対面挨拶
 
 ;=============================
@@ -123,43 +131,48 @@ IF MODE == "デイリー"
 	SIF YOUBI_MATCH(DAY, "金") || PAGENUM == 7
 		服装 = 服_変Ｔ
 	;ページごとに表情の指定
-	IF GROUPMATCH(PAGENUM, 1, 2, 32)
-		IF K30_DIARY_DATA(PAGENUM, 2) == "恋"
+	SELECTCASE PAGENUM
+		CASE 1, 2, 32
+			IF K30_DIARY_DATA(PAGENUM, 2) == "恋"
+				表情 = 笑顔
+				エフェクト = ダミー
+				TFLAG:192 = -7
+			ELSE
+				表情 = %\@ PAGENUM == 1 ? 発情 # 睡眠 \@%
+			ENDIF
+		CASE 3, 4, 9, 11, 13, 14, 16, 17, 18, 20, 21, 22, 24, 32, 33, 36, 50
+			表情 = 通常
+			SIF PAGENUM == 36
+				エフェクト = 照れ
+		CASE 5, 20, 25
+			表情 = 反発
+		CASE 6, 7, 12, 26, 34
 			表情 = 笑顔
+		CASE 8, 10
+			表情 = 怒り
+		CASE 15, 27, 31, 35
+			SELECTCASE K30_DIARY_DATA(PAGENUM, 5)
+				CASE "怒"
+					表情 = 怒り
+				CASE "喜"
+					表情 = LOVE
+					エフェクト = 照れ
+				CASEELSE
+					表情 = 赤面
+					エフェクト = 照れ
+			ENDSELECT
+		CASE 23
+			表情 = 絶頂
+			服装 = 服_下着
+			エフェクト = ダミー
+			TFLAG:192 = -9
+		CASE 30, 37, 38
+			表情 = %\@ PAGENUM == 30 ? LOVE # 発情 \@%
 			エフェクト = ダミー
 			TFLAG:192 = -7
-		ELSE
-			表情 = %\@ PAGENUM == 1 ? 発情 # 睡眠 \@%
-		ENDIF
-	ELSEIF GROUPMATCH(PAGENUM, 3, 4, 9, 11, 13, 14, 16, 17, 18, 20, 21, 22, 24, 32, 33, 50)
-		表情 = 通常
-	ELSEIF GROUPMATCH(PAGENUM, 5, 20, 25)
-		表情 = 反発
-	ELSEIF GROUPMATCH(PAGENUM, 6, 7, 12, 34)
-		表情 = 笑顔
-	ELSEIF GROUPMATCH(PAGENUM, 8, 10)
-		表情 = 怒り
-	ELSEIF GROUPMATCH(PAGENUM, 15, 31, 35)
-		SELECTCASE K30_DIARY_DATA(PAGENUM, 5)
-			CASE "怒"
-				表情 = 怒り
-			CASE "喜"
-				表情 = LOVE
-				エフェクト = 照れ
-			CASEELSE
-				表情 = 赤面
-				エフェクト = 照れ
-		ENDSELECT
-	ELSEIF PAGENUM == 23
-		表情 = 絶頂
-		服装 = 服_下着
-		エフェクト = ダミー
-		TFLAG:192 = -9
-	ELSEIF PAGENUM == 30
-		表情 = LOVE
-		エフェクト = ダミー
-		TFLAG:192 = -7
-	ENDIF
+			SIF PAGENUM == 37
+				SETBIT CFLAG:1609, 0
+	ENDSELECT
 	PRINTFORML 
 	CALL PRINT_FACE,30, 表情, 服装, "", エフェクト
 	;立ち絵種類を元に戻す
@@ -248,9 +261,11 @@ SELECTCASE PAGENUM
 			PRINTFORML もし幻滅なんてされたらどうすればいいのだろう。
 		ENDIF
 		PRINTFORMW 何につけても考え込んでしまう自分の性分が少し恨めしくなってくる。
-		表情 = 赤面
-		TFLAG:192 = -6
-		台詞 = 「…………………………」/「…………………………」
+		IF MODE == "コマンド"
+			表情 = 赤面
+			TFLAG:192 = -6
+			台詞 = 「…………………………」/「…………………………」
+		ENDIF
 	;処女喪失
 	CASE 2
 		;陥落、積極具合で簡単な分岐。思慕以下はキャンセル口上前提
@@ -490,7 +505,7 @@ SELECTCASE PAGENUM
 					台詞 = %台詞%「それでね…今日も午後から時間空いてる？」/「少しでいいから見に来てほしいの」
 				ELSEIF TCVAR:30:手伝った量
 					台詞 = %台詞%「今日もお手伝いありがとうございました」/「またよろしくお願いします」
-				ELSEIF STRFIND(CSTR:30:1, "お仕事拝見")
+				ELSEIF STRFIND(CSTR:30:1, "お仕事拝見") > -1
 					台詞 = %台詞%「見に来てくれるだけで本当に大歓迎よ」/「また今度もお願いね」
 				ELSE
 					表情 = 反発
@@ -500,11 +515,10 @@ SELECTCASE PAGENUM
 		ENDIF
 	;映姫様がぶん殴った
 	CASE 10
-		LOCAL = (K30_DIARY_DATA(PAGENUM, 2) == "倒")
 		PRINTFORML やってしまった。怒りのあまりとうとう%K30_DIARY_DATA(PAGENUM, 3)%を張り倒してしまった
 		PRINTFORML 普段なら鏡に映る姿を元にして罪状を書き記すのに、あの時は衝動に任せて何を書いたかさえ覚えてない。
 		PRINTFORM それで打ち据えたのだから
-		IF LOCAL
+		IF K30_DIARY_DATA(PAGENUM, 2) == "倒"
 			PRINTFORML ちょっと加減も出来ず、%K30_DIARY_DATA(PAGENUM, 3)%がばったりと倒れてしまう。
 			PRINTFORML さすがにやりすぎたと思ったが、ふらつきながらも自分で起き上がってきた
 		ELSE
@@ -577,7 +591,7 @@ SELECTCASE PAGENUM
 			PRINTFORML でひと目見て気に入った%K30_DIARY_DATA(PAGENUM, 2)%をその場で贈られたからだ。
 			PRINTFORML あまりに嬉しくてうきうきと贈り物を眺めていたらすっかりこんな時間。やることもあったのに。
 			PRINTFORML 閻魔としてそれでいいのかと自分でも思うが、嬉しいものはしょうがない。
-			PRINTFORML %K30_DIARY_DATA(PAGENUM, 3)%には少しづつでもお返しをしていこう。
+			PRINTFORMW %K30_DIARY_DATA(PAGENUM, 3)%には少しづつでもお返しをしていこう。
 		ENDIF
 		IF MODE == "コマンド"
 			PRINTFORML 
@@ -603,7 +617,7 @@ SELECTCASE PAGENUM
 	CASE 13
 		PRINTFORML %K30_DIARY_DATA(PAGENUM, 3)%から素敵な%K30_DIARY_DATA(PAGENUM, 2)%を頂いてしまった
 		PRINTFORML 私の好みを考えた、気持ちのこもった贈り物。やはり素直に嬉しく思う。
-		PRINTFORML ひとまず大切にしまっておこう。お返しも考えてないといけない
+		PRINTFORMW ひとまず大切にしまっておこう。お返しも考えてないといけない
 		IF MODE == "コマンド"
 			PRINTFORML 
 			PRINTFORMDW 無難に選んだつもりだったが、間違ってなくてなによりだ…
@@ -617,7 +631,7 @@ SELECTCASE PAGENUM
 				}
 			ELSE
 				TFLAG:192 = -6
-				表情 = 赤面
+				表情 = 笑顔
 				{
 				台詞 = 「贈り物や思い出…ほんと色々と貰いっぱなしね」
 				/「少しづつでもお返しはしていかないといけません」
@@ -643,7 +657,7 @@ SELECTCASE PAGENUM
 		PRINTFORMW この%K30_DIARY_DATA(PAGENUM, 2)%を見ていると、どうしてもあの時の事を思い出してしまう。
 		IF MODE == "コマンド"
 			PRINTFORML 
-			PRINTFORMDW あの%K30_DIARY_DATA(PAGENUM, 2)%がそこまでお気に召さないかったとは。ちょっとへこむ…
+			PRINTFORMDW あの%K30_DIARY_DATA(PAGENUM, 2)%がそこまでお気に召さないかったとは…ちょっとへこむ…
 			IF RAND:2 == 1
 				表情 = 反発
 				{
@@ -788,16 +802,14 @@ SELECTCASE PAGENUM
 				/「あれは評価せざるを得ませんね」
 				}
 			ELSE
-				TFLAG:192 = -6
-				表情 = 赤面
+				TFLAG:192 = -2
 				{
-				台詞 = 「さとりさんからも私は話しやすい相手だと聞いてます」
+				LOCALS = 「さとりさんからも私は話しやすい相手だと聞いてます」
 				/「心を読まれる事を無駄に警戒したり変におもねったりしないからだそうで」
 				/「確かに私には隠すことなどありませんから、そういうものなのでしょう」
-				/「…………」
-				/「ただ、最近は…貴方と一緒にいるときだけ…」
-				/「彼女がちょっと…苦手に…」
 				}
+				台詞 = 「…………」/「ただ、最近は…貴方と一緒にいるときだけ…」/「彼女がちょっと…苦手に…」
+				表情 = 赤面
 			ENDIF
 		ENDIF
 	;ヘカ様からお手紙
@@ -848,13 +860,11 @@ SELECTCASE PAGENUM
 				}
 			ENDIF
 		ENDIF
-		
 	;思慕
 	CASE 20
 		PRINTFORML %K30_DIARY_DATA(PAGENUM, 3)%の事を考えてしまうと仕事が全くはかどらない。
 		PRINTFORMW 少し早いが今日はもう寝てしまおう。
 		IF MODE == "コマンド"
-			PRINTFORML 
 			IF RAND:2 == 1
 				表情 = 通常
 				{
@@ -933,13 +943,15 @@ SELECTCASE PAGENUM
 				/「貴方と知り合ってから私は本当に変わったのよ」
 				}
 			ELSE
-				表情 = 赤面
-				TFLAG:192 = -6
+				TFLAG:192 = -2
 				{
-				台詞 = 「正直%K30_C_NAME(MASTER)%が釣りを嗜む事が意外でした」
-				/「貴方が心を落ち着けて釣りに集中する…なんて姿想像できなかったもの」
+				LOCALS = 「正直%K30_C_NAME(MASTER)%が釣りを嗜む事が意外でした」
+				/「貴方が心を落ち着けて釣りに集中する姿…全然想像できなかったもの」
 				/「釣っている最中でも女の子の事ばかり考えてるんじゃないかしら？」
-				/「…え？　私？」
+				}
+				表情 = 赤面
+				{
+				台詞 = 「…え？　私？」
 				/「私が、ほら…考える事といえば…その…やっぱり…」
 				/「ずっと…%K30_C_NAME(MASTER)%の事ばかり、ですかね……」
 				}
@@ -1018,10 +1030,10 @@ SELECTCASE PAGENUM
 		PRINTFORML 何かと思って覗いてみたら、どうも外の世界由来のいかがわしい本だったらしい。
 		IF LOCAL
 			IF K30_DIARY_DATA(PAGENUM, 2) == "惨" 
-				PRINTFORML しかもその中身ときたら、私そっくりな女性が凄まじい陵辱を受けているものではないか。
-				PRINTFORML 目を見開き、苦痛と快楽がないまぜになった表情を浮かべているのがとても印象に残っている。
+				PRINTFORML しかもその中身ときたら、私そっくりな女性が凄まじい陵辱を受けるものではないか。
+				PRINTFORML 目を見開き、苦痛と快楽がないまぜになった表情を浮かべていたのがとても印象に残っている。
 			ELSE
-				PRINTFORML しかもその中身ときたら、私そっくりな女性が淫らな行為に溺れているものではないか。
+				PRINTFORML しかもその中身ときたら、私そっくりな女性が淫らな行為に溺れるものではないか。
 				PRINTFORML 行為を嬉々として受け入れ、朱に染まった顔で快楽に喘ぐ姿がまだ頭から離れない。
 			ENDIF
 		ELSE
@@ -1051,6 +1063,56 @@ SELECTCASE PAGENUM
 				}
 			ENDIF
 		ENDIF
+	;地獄ラーメン伝授
+	CASE 26
+		PRINTFORML %K30_DIARY_DATA(PAGENUM, 3)%が私の考えた料理に興味を持ってくれたようだ。
+		PRINTFORML 部下たちに振る舞ってもなぜか敬遠されていたので素直に嬉しい。
+		PRINTFORML 小町や久侘歌たちに至っては、次の日のお手洗いに困るなどど文句を言っていたが、
+		PRINTFORML 一体何のことなのか。美味しい食事にそんな話をされてもこっちが困ってしまう。
+		PRINTFORML 
+		PRINTFORML それよりも、%K30_DIARY_DATA(PAGENUM, 3)%は外の世界の料理に詳しいのだろうか。
+		PRINTFORML いまよりもっと刺激的な味付けにできないか、いろいろ話を聞いてみたいと思う。
+		PRINTFORMW この料理を上手く流行らせて、少しでも中有の道にテコ入れ出来ることを期待したい。
+		IF MODE == "コマンド"
+			PRINTFORML 
+			PRINTFORMDW いくらなんでも、あれ以上辛くしてどうするのだろう…
+			IF RAND:2 == 1
+				表情 = 笑顔
+				{
+				台詞 = 「名物とうたうにはやはり第一印象が大事かと思います」
+						/「一度食べたら忘れられない味付けで、食べた人を虜にできるかと…」
+						/「……もしかして、間違ってますかね？」
+				}
+			ELSE
+				表情 = 反発
+				{
+				台詞 = 「今、実際作って出してくれるお店を探してます」
+						/「だけど、これがなかなか見つからなくて…」
+						/「『調理する時に目が痛くなる』と言われて敬遠されたり…」
+						/「もしかして、やり過ぎなんでしょうか…？」
+				}
+			ENDIF
+		ENDIF
+	;面倒なお悩み
+	CASE 27
+		PRINTFORML 思い出すのも恥ずかしいが自戒の念を込めて書き残しておく。
+		PRINTFORML 今日は%K30_DIARY_DATA(PAGENUM, 3)%相手に思い切り口を滑らせてしまった。
+		PRINTFORML さりげない相談を装ったつもりだったが、今考えてみれば%K30_DIARY_DATA(PAGENUM, 3)%を気を引くための質問としか思えない。
+		PRINTFORML そもそも全てを白黒はっきりつける閻魔があんな質問をして、返ってきた答えに一喜一憂すること自体おかしいではないか。
+		PRINTFORML 
+		PRINTFORML 相談の意図を%K30_DIARY_DATA(PAGENUM, 3)%には気づかれてるだろうか。
+		PRINTFORML それとも同じような質問を繰り返せば、単なる話題作りと考えてくれるだろうか。
+		PRINTFORMW なんだか頭の中がごちゃごちゃとして、今日はしばらく眠れそうにない。
+		IF MODE == "コマンド"
+			PRINTFORML 
+			PRINTFORMDW 変な質問だとは思っていたが、妙なことで悩んでいたようだ…
+			表情 = 発情
+			IF RAND:2 == 1
+				台詞 = 「ああ…今思い出しても」/「やっぱり…恥ずかしい…」
+			ELSE
+				台詞 = 「なんであんな事を急に聞いたのかしら」/「ほんと自分でもよくわかりません…」
+			ENDIF
+		ENDIF
 	;恋慕
 	CASE 30
 		SELECTCASE K30_DIARY_DATA(PAGENUM, 2)
@@ -1068,8 +1130,8 @@ SELECTCASE PAGENUM
 				PRINTFORML 自分の気持ちに素直になることを決めた矢先にこれでは少しへこんでしまう。
 				PRINTFORML 親しみを込めた名前で呼ぶのをあの人に提案したのにあっさり却下されてしまった。
 				PRINTFORML %K30_DIARY_DATA(PAGENUM, 3)%という呼び方は結局変わらないまま。
+				PRINTFORMW 大好きな%K30_DIARY_DATA(PAGENUM, 3)%。
 				PRINTFORML 私が名前を呼ぶ度どんな気持ちでいるのかあの人は気づいているのだろうか。
-				PRINTFORMW %K30_DIARY_DATA(PAGENUM, 3)%。大好きです。
 			;呼び名変更
 			CASEELSE
 				PRINTFORML 私と%K30_DIARY_DATA(PAGENUM, 5)%だけの秘密が今日ひとつできた。
@@ -1175,16 +1237,17 @@ SELECTCASE PAGENUM
 		ENDIF
 		PRINTFORMW %K30_DIARY_DATA(PAGENUM, 2)%、産まれてきてくれて本当にありがとう。
 		IF MODE == "コマンド"
+			PRINTFORML 
 			表情 = 笑顔
-			LOCAL = DAY - (TOINT(K30_DIARY_DATA(PAGENUM, 2)))
+			LOCAL = DAY - (TOINT(K30_DIARY_DATA(PAGENUM, 0)))
 			SELECTCASE LOCAL
-				CASE IS >= 56
+				CASE IS < 60
 					{
 					台詞 = 「子どもの成長は本当にあっという間」
 					/「当たり前ですけど、いつまでも小さいままでいてくれませんよ」
 					/「だからほら、もっと%K30_DIARY_DATA(PAGENUM, 2)%と遊んであげてください」
 					}
-				CASE 61 TO 121
+				CASE 60 TO 120
 					表情 = 通常
 					{
 					台詞 = 「ついこの間まで、こんなふうに一日中いっしょに過ごしていましたね」
@@ -1271,23 +1334,132 @@ SELECTCASE PAGENUM
 			;欲情
 			CALL JUEL_UP_SPECIAL(30, "欲情", "欲望", 3, 1)
 		ENDIF
+	;小町と同時
+	CASE 36
+		LOCALS = %K30_DIARY_DATA(PAGENUM, 2)%
+		PRINTFORM 私と小町は上司と部下の関係。
+		SELECTCASE LOCALS
+			CASE "小町"
+				PRINTFORML そして私はあの子の恋人に未練たっぷりのお邪魔虫だった。
+			CASE "映姫"
+				PRINTFORML ただ、あの子も%K30_DIARY_DATA(PAGENUM, 3)%に思いを寄せている事がずっと気になっていた。
+			CASEELSE
+				PRINTFORML そして最近では%K30_DIARY_DATA(PAGENUM, 3)%をめぐる恋敵だった。
+		ENDSELECT
+		PRINTFORML でも、その関係もこれから少し変わりそうな気がする。
+		PRINTFORML %K30_DIARY_DATA(PAGENUM, 3)%に二人いっぺんに抱かれて、お互いあんな顔まで見せあってしまったからだ。
+		PRINTFORML 
+		PRINTFORML だけど小町の方はあの後も、いつもの調子で軽口ばかり。ああいう割り切りは私には真似できないので少し羨ましい。
+		PRINTFORML ただ「竿姉妹同士仲良くしましょう」だの「四季様は思ってたよりずっと助平」などは少し自重してほしい。
+		PRINTFORML さすがに聞いているこちらが恥ずかしくなってくる。
+		PRINTFORML とりあえず一発叩いておいたが、あれもあの子なりの照れ隠しと私への気遣いだったのかもしれない。
+		PRINTFORML 
+		PRINTFORML 小町に見られることは恥ずかしいし、%K30_DIARY_DATA(PAGENUM, 3)%には私だけを見てもらいたいという気持ちはある。
+		IF LOCALS == "小町"
+			PRINTFORML だけどそれ以上に、私も小町を同じように可愛がってもらえたという安心感の方が強い。
+			PRINTFORML 正直女性としての魅力を比べたら、私なんか小町にはまるで敵わない。
+			PRINTFORML あのおっぱいを見れば、それはもうわかりきっている。
+			PRINTFORMW そんな私に手を差し伸べてくれた二人には本当に感謝しないといけない。
+		ELSE
+			PRINTFORML だけどそれ以上に、小町を私と同じように可愛がってもらえたという安心感の方が強い。
+			PRINTFORML 一人の男性を取り合う身としておかしな話だが、なぜか今は嫉妬より満足感で満たされている。
+			PRINTFORML 
+			PRINTFORML 正直女性としての魅力を比べたら、私なんか小町にはまるで敵わない。
+			PRINTFORML あのおっぱいを見れば、それはもうわかりきっている。
+			PRINTFORMW 私は私なりに、%K30_DIARY_DATA(PAGENUM, 3)%に喜んでもらうための努力をしよう。
+		ENDIF
+		IF MODE == "コマンド"
+			PRINTFORML 
+			PRINTFORMDW 二人に抵抗がないなら、これからもまとめて抱いて良さそうだ…
+			IF !TALENT:MASTER:恋人
+				表情 = 笑顔
+				{
+				台詞 = 「%K30_C_NAME(MASTER)%、今…都合のいいこと考えてませんか？」
+				/「貴方には、私か小町か…」
+				/「近いうちに白黒はっきりつけてもらいますから…♥」
+				}
+			ELSE
+				表情 = 睡眠
+				{
+				台詞 = 「…私たちが歪な関係だということはわかってます」
+				/「でも、これは小町とも話してお互い納得したこと」
+				/「%K30_C_NAME(MASTER)%、どうかこのまま…」
+				/「このまま私と小町、二人を可愛がってください」
+				}
+			ENDIF
+		ENDIF
+	;尻穴狂い
+	CASE 37
+		PRINTFORML このところずっと思考が快楽に流され、欲望に際限が無くなっていると感じる。
+		PRINTFORML ただ座っているだけでお尻に当たる感触が気になってしまう。
+		PRINTFORML 手頃な大きさの物を見て、あれを使って掻き回したいなどと思ってしまうことさえある。
+		PRINTFORML これでは執務にも支障が出てしまいそうだ。
+		PRINTFORML 
+		IF K30_DIARY_DATA(PAGENUM, 2) == "有"
+			PRINTFORML しかし考えてみれば、私にはもともとそういう素質があったのだろう。
+			PRINTFORML そうでなければこれだけ気持ち良くなれるわけがないし、
+			PRINTFORML デート中でもお尻に挿れていたいだなんて、頭のおかしいことを言いだせるはずがない。
+		ELSE
+			PRINTFORML こうなったら次のデートで前々から思っていたことを打ち明けよう。
+			PRINTFORML 私にお尻の気持ち良さを叩き込んだ%K30_DIARY_DATA(PAGENUM, 3)%なら喜んで協力してくれるはずだ。
+			PRINTFORML さすがに恥ずかしいが、これで発散できれば仕事に集中できるかもしれない。
+		ENDIF
+		PRINTFORML 
+		PRINTFORML もう認めて、楽になってしまおう。
+		PRINTFORM 私の価値は閻魔の責務を果たすこと。私に必要なのは
+		PRINTFORML %K30_DIARY_DATA(PAGENUM, 3)%\@ K30_DIARY_DATA(PAGENUM, 5) == "恋" ? に身体全てを愛して # にお尻を気持ち良くして \@もらうこと。
+		PRINTFORMW 今の私にはそれ以外、もはやどうでもいいことだ。
+		IF MODE == "コマンド"
+			PRINTFORML 
+			PRINTFORMDW 真面目な人ほど何かにハマるとヤバいとは聞くが、まさかここまでとは…
+			TFLAG:192 = -6
+			表情 = 睡眠
+			{
+			台詞 = %\@ RAND:2 ? 「ええ、おっしゃるとおり」/「私はもう…手遅れかもしれませんね…♥」
+					# 「こんなに私を変えてしまったのは貴方…」/「しっかり責任はとってもらいますよ…♥」 \@%
+			}
+		ENDIF
+	;バイブデート
+	CASE 38
+		PRINTFORML 今日は%K30_DIARY_DATA(PAGENUM, 3)%との秘密のデート。
+		PRINTFORML お尻に玩具を挿れて、いっぱい気持ち良くなりながらのお出かけ。
+		PRINTFORML だけど正直、最初に%K30_DIARY_DATA(PAGENUM, 4)%へ向かったこと、
+		PRINTFORML ここまでははっきりしてるが、後はもうぼんやりとしか覚えてない。
+		PRINTFORML 記憶にあるのは、途中の道でイって、向こうに着いてからイって、誰かの目の前でイって、
+		PRINTFORML 声と顔に出さないようにお尻でイくのは、ただただ気持ちが良かったことだけだ。
+		PRINTFORML 
+		PRINTFORML こんなのを知ってしまったら、本当にもう以前の自分には戻れないと思う。
+		PRINTFORML %K30_DIARY_DATA(PAGENUM, 3)%を巻き込んで、堕ちるところまで堕ちてしまいそうだ。
+		PRINTFORMW けど、それでいい。%K30_DIARY_DATA(PAGENUM, 3)%には悪いがまたお願いしよう。
+		IF MODE == "コマンド"
+			PRINTFORML 
+			PRINTFORMDW だいぶ危ない橋を渡ったと思うが、それでも続けたいのだろうか…
+			IF GETBIT(CFLAG:1609, 2)
+				表情 = 通常
+				台詞 = /「…控えたほうがいいのかしら？」
+			ELSE
+				表情 = LOVE
+				TFLAG:192 = -7
+				台詞 = /「…………………」/「………%\@ RAND:2 ? 貴方は、イヤなんですか… # ええ、もちろんですよ \@%♥」
+			ENDIF
+		ENDIF
 	;初対面
 	CASE 50
 		IF CFLAG:30:1900 % 3 == 1
 			PRINTFORML %K30_DIARY_DATA(PAGENUM, 4)%にて%NAME:MASTER%さんと初顔合わせ。
 			PRINTFORML 生者でありながら何食わぬ顔で彼岸に住み着いた外来人だ。
-			PRINTFORMW うさん臭いことこの上ない。何か異変の前触れでなければ良いが。
+			PRINTFORML うさん臭いことこの上ない。何か異変の前触れでなければ良いが。
 		ELSEIF CFLAG:30:1900 % 3 == 2
 			PRINTFORML %K30_DIARY_DATA(PAGENUM, 4)%にて%CALLNAME:MASTER%さんと遭遇。
 			PRINTFORML 生身のまま彼岸を行き来できるという、なんとも怪しげな外来人だ。
 			PRINTFORML 異変の調査に巫女が訪れたこともあるが、それとはわけが違う。
 			PRINTFORML あの人は誰の助力もなしに三途の川を渡ってくる。とんでもないことだ。
-			PRINTFORMW 念の為小町にも確認を取ったが、もちろんあの子は関わっていない。
+			PRINTFORML 念の為小町にも確認を取ったが、もちろんあの子は関わっていない。
 		ELSE
 			PRINTFORML %K30_DIARY_DATA(PAGENUM, 4)%で%CALLNAME:MASTER%さんを発見。
 			PRINTFORML いつのまにか幻想郷に住み着いた、噂通りの怪しげな外来人だ。
 			PRINTFORML %K30_C_NAME(CFLAG:1901)%もなぜ彼を住まわせているのだろう。
-			PRINTFORMW 何か弱味を握られて、脅迫でもされてるのかと心配になる。
+			PRINTFORML 何か弱味を握られて、脅迫でもされてるのかと心配になる。
 		ENDIF
 		PRINTFORML 
 		PRINTFORML そして何よりも問題なのが、%CALLNAME:MASTER%さんに閻魔の力が及ばないことである。
@@ -1321,6 +1493,12 @@ IF SHIRAHU(30) && MODE == "コマンド" && CFLAG:30:現在位置 == CFLAG:MASTE
 	FLAG:立ち絵種類 = 1
 	LOCAL:1 = CFLAG:30:差し替え適用
 	CFLAG:30:差し替え適用 = 1
+	IF GROUPMATCH(PAGENUM, 17, 22) && TFLAG:192 == -2
+		PRINTFORML 
+		CALL K30_SPTALK, "通常", LOCALS
+		WAIT
+		TFLAG:192 = -6
+	ENDIF
 	PRINTFORML 
 	CALL K30_SPTALK, 表情, 台詞
 	;元に戻す

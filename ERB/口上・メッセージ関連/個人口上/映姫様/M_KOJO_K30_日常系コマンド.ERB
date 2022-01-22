@@ -25,8 +25,11 @@ ENDIF
 IF !STRCOUNT(CSTR:30:0, "300/") || (CFLAG:30:衣装一時変更 == 62 && STRCOUNT(CSTR:30:1, "初対面"))
 	TFLAG:193 = 4
 ;変Ｔ
-ELSEIF CFLAG:30:衣装一時変更 == 62 && !(CFLAG:現在位置 == 連れ込み宿 || CFLAG:現在位置 == ラブホ || CFLAG:現在位置 == OMANEKIBEYA())
+ELSEIF CFLAG:30:衣装一時変更 == 62 && !GROUPMATCH(CFLAG:現在位置, 連れ込み宿, ラブホ, OMANEKIBEYA())
 	TFLAG:193 = 2
+;バイブデート中
+ELSEIF CHK_DATENOW(CFLAG:30:デート中) && TCVAR:30:364 > 0
+	TFLAG:193 = 5
 ;裁判中
 ELSEIF (仕事中チェック(30) && BETWEENTIME(540, 719) && (CFLAG:30:現在位置 == CFLAG:30:職場) && CFLAG:30:職種 == 43) 
 ;キス魔取得時確率
@@ -46,6 +49,7 @@ RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K30_300_1
 #DIM 一日一回
+#DIM A_COUNT
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
 LOCAL = 1
@@ -210,12 +214,22 @@ IF LOCAL
 			CALL K30_TALK_DRUNK(TFLAG:193)
 		ELSEIF TALENT:機嫌 == -1 || MARK:30:反発刻印 > 0 || CFLAG:ブチギレ
 			PRINTFORMW 「ごめんなさい。ちょっと気分が悪いの…」
-		;通常会話も手抜き
+		;バイブデート中も手抜き
+		ELSEIF TCVAR:30:364
+		 	IF CFLAG:現在位置 != OMANEKIBEYA()
+				PRINTFORMDL %CALLNAME:MASTER%は映姫と一旦落ち着くために話そうとした
+				PRINTFORMW 
+			ENDIF
+			CALL HPH_PRINT, "「……HPHHPH」", "L"
+			PRINTFORMDW どうやら映姫は言葉より行動を欲しているらしい…
+		;通常会話すら手抜き
 		ELSE
 			CALL K30_TALK_NORMAL
 		ENDIF
 	;デート中会話
 	ELSEIF CHK_DATENOW(CFLAG:30:デート中)
+		SIF NOWEX:Ａ絶頂 
+			TFLAG:194 = 19
 		;酔いどれ以上
 		IF K30_DRUNK() > 1
 			IF K30_DRUNK() == 2
@@ -237,6 +251,69 @@ IF LOCAL
 						PRINTFORMW 「きもちわるい……」
 				ENDSELECT
 			ENDIF
+		;バイブデート会話
+		ELSEIF TCVAR:30:364 > 0
+			一日一回 = DAY
+			LOCAL = K30_FIND_AROUND()
+			PRINTFORMD %CALLNAME:MASTER%は映姫%TEXTR("を気づかうように/の隣りを歩きながら/と気を落ち着かせるため/と緊張しながら/と声を潜めるように/")%
+			IF NOWEX:Ａ絶頂 
+				PRINTFORMDL 話そうとした
+				PRINTFORMDL だが映姫は%TEXTR("目を閉じ身体を震わせて/口元を手で押さえながら/瞳を潤ませ身体が硬直したように/両手で自分を抱きしめながら")%立ち%TEXTR("つくし/止まっ/")%ている…
+			ELSE
+				PRINTFORMDL 話をした
+			ENDIF
+			PRINTFORMW 
+			IF NOWEX:Ａ絶頂
+				STRDATA LOCALS
+					DATAFORM 「…あんっHPH　すごいの、来そう…HPH」\n「ちょっと…まってね…HPH」
+					DATAFORM 「ごめん、なさい…HPH」\n「一度、イってから、ね…HPH」
+					DATAFORM 「…あはっHPH　%K30_C_NAME(MASTER)%…HPH」\n「見てて、ね…HPH　私の、イく…ところ…HPH」
+					DATAFORM 「…だいじょうぶ、よHPH」\n「声は、がまん…するから…HPH」
+				ENDDATA
+			;道中
+			ELSEIF INRANGE(CFLAG:MASTER:現在位置 % 100, 0, 9) 
+				STRDATA LOCALS
+					DATAFORM 「恥ずかしい…恥ずかしいんですよ…？」\n「でも…それ以上に、すごく…気持ちよくて…HPH」
+					DATAFORM 「ゆっくり…歩きましょうか」\n「急ぐこと、ないですよね…HPH」
+					DATAFORM 「歩いていると…すごく、こすれて…HPH」\n「おしり…どんどん、熱くなってきます…HPH」
+					DATAFORM 「心配しないで、これくらいなら…我慢、できますから」\n「誰にも、気づかれないと…思いますよHPH」
+					DATAFORM 「寄り道、しますか…？」\n「いいですよ、デートは…ゆっくり、楽しみましょうHPH」
+					DATAFORM 「誰とも…すれ違いませんね…」\n「んっ…HPH　私なら…たぶん、大丈夫」\n「人前で、取り繕うのは…慣れてますからHPH」
+				ENDDATA
+			;小町・久侘歌同室
+			ELSEIF GROUPMATCH(LOCAL, 76, 129) && !RAND:3
+				STRDATA LOCALS
+					DATAFORM 「%K30_C_NAME(LOCAL)%が、気づかないくらいだもの…」\n「私たちだけの秘密、大丈夫そうね…HPH」
+					DATAFORM 「%K30_C_NAME(LOCAL)%…こっち、見てます？」\n「ふふっHPH　たとえあの子にだって…」\n「閻魔様の…こんな秘密、わからないでしょうねHPH」
+					DATAFORM 「出先でも、%K30_C_NAME(LOCAL)%に会うなんて…すごい偶然」\n「あはっHPH　あの子…首をひねってるわよ」\n「私の雰囲気、普段と…違うせいかしらHPH」
+				ENDDATA
+			;ネームド同室。さとりは色々ややこしいので見なかったことに
+			ELSEIF !GROUPMATCH(LOCAL, 0, 49, RANDOM_CHARANUM) && RAND:2
+				STRDATA LOCALS
+					DATAFORM 「%K30_C_NAME(LOCAL)%に、気づかれないかって？」\n「ふふふっ…HPH　じゃあ、逆に…聞きますけど」\n「堅物の、閻魔様が…こんなこと、するなんて」\n「%K30_C_NAME(LOCAL)%が、考えつくと…思いますかHPH」
+					DATAFORM 「%K30_C_NAME(LOCAL)%、こっち…見てますね」\n「私の方…じゃないみたい、貴方…かしら？」\n「ふふっHPH　%K30_C_NAME(MASTER)%の方が、不自然に…見えるのねHPH」
+					DATAFORM 「ほらっ、%K30_C_NAME(MASTER)%…貴方も、背筋伸ばして」\n「私と、並ぶんだもの…そうするのが、当然でしょ？」\n「さもないと…%K30_C_NAME(LOCAL)%に、怪しまれますよ…HPH」
+				ENDDATA
+			;モブ湧き場所
+			ELSEIF DATE_HITOGOMI() && RAND:2
+				STRDATA LOCALS
+					DATAFORM 「ほら、みてください…周りの人」\n「誰も…私たちを、気にしてませんよHPH」\n「このまま…二人で、楽しみましょうHPH」
+					DATAFORM 「やっぱり、私を見ると…人が、避けてきます」\n「いつもなら、嘆くことですが…」\n「ふふふっHPH　いまなら…好都合、かしらHPH」
+					DATAFORM 「んっ…HPH　いつもなら、ここで…」\n「誰かに…教えを説くことを、考えてしまいますが…」\n「今日は…そんな余裕、さすがに…ありませんねHPH」
+				ENDDATA
+			;誰もいない
+			ELSE
+				STRDATA LOCALS
+					DATAFORM 「顔も、身体も…すごく、熱いの…HPH」\n「貴方に、慰めてもらうのが…楽しみですHPH」
+					DATAFORM 「自分から…言い出しておいて、なんですが」\n「こんなに、恥ずかしくて…」\n「こんなに、気持ちいいなんて…思わなかったわ…HPH」
+					DATAFORM 「これ、外すときが…すごく、楽しみ…HPH」\n「今から…待ち遠しいのHPH」
+					DATAFORM 「急に…大きな、声とか…出さなければ、大丈夫…」\n「あっ…HPH　でも、私なら…いくらでも、ゴマかしは…効きそうねHPH」
+					DATAFORM 「ふふっ…HPH　閻魔様の…こんな、秘密」\n「こんな、はずかしい…秘密、知ってるのは…貴方だけHPH」\n「すごく…ドキドキしませんかHPH」
+				ENDDATA
+			ENDIF
+			SIF !RAND:15 && !NOWEX:Ａ絶頂
+				LOCALS = 「きゃっ！」\n「大丈夫、ちょっと足が…もつれただけ…」\n「足元…ふわふわ、しちゃってます…HPH」
+			CALL HPH_PRINT, LOCALS, "W"
 		ELSEIF TALENT:恋人
 			;一日一回の会話
 			IF 一日一回 != DAY
@@ -1510,8 +1587,8 @@ ELSE
 		CASE 20
 			;セフレ+愛人の人数を算出
 			LOCAL = (SUMCARRAY(TALENT:セフレ, 1) - CMATCH(TALENT:セフレ, 2, 1))
-			IF !LOCAL
-				PRINTFORML 「幻想郷に自分の意思で来る方も、稀ではありますが見かけます」
+			IF LOCAL <= 0
+				PRINTFORML 「幻想郷に自分から来る方も稀ではありますが見かけます」
 				PRINTFORML 「わざわざ引っ越してきた貴方は間違いなく自分の意思で来たのでしょう」
 				PRINTFORML 「何が目的かは\@ TALENT:思慕 ? いまさら # あえて \@詮索はしません」
 				PRINTFORMW 「けれども、道を踏み外すようなことだけはしないでください」
@@ -1867,6 +1944,12 @@ IF LOCAL
 		ELSEIF CFLAG:318 == 1
 			PRINTFORML 「…ありがとうございます」
 			PRINTFORMDW 礼こそ言ってもらえたが、映姫は仏頂面のままお茶をすすっている
+		;バイブデート中
+		ELSEIF TCVAR:30:364
+			PRINTFORML 「んっ…やっぱり、美味しい…」
+			PRINTFORMW 「普段なら、これで…とても、落ち着くんですが…」
+			CALL HPH_PRINT, "「今の私…そんな余裕、ありませんねHPH」", "W"
+			TEA_TIME = DAY
 		ELSEIF TALENT:恋慕
 			;お茶入れ大成功
 			IF TFLAG:193 == 1
@@ -1944,7 +2027,7 @@ RETURN 1
 TFLAG:192 =0
 
 @M_KOJO_MESSAGE_COM_K30_302
-IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置) || TCVAR:30:364
 	CALL K30_D_LINE
 	CALL K30_COMPENSATE_MESSAGE
 ELSE
@@ -1980,15 +2063,35 @@ IF LOCAL
 	ELSEIF CFLAG:ブチギレ
 		PRINTFORMW 「……今すぐに断罪されたいと？」
 	;◆お招き部屋とラブホと私室
-	ELSEIF CFLAG:30:現在位置 == 連れ込み宿 || CFLAG:30:現在位置 == ラブホ || CFLAG:30:現在位置 == OMANEKIBEYA() || (CFLAG:30:現在位置 == 615 && CFLAG:30:衣装一時変更 != 62 && K30_BE_SEEN() == 0)
+	ELSEIF GROUPMATCH(CFLAG:現在位置, 連れ込み宿, ラブホ, OMANEKIBEYA()) || (CFLAG:30:現在位置 == 615 && CFLAG:30:衣装一時変更 != 62 && K30_BE_SEEN() == 0)
 		IF TFLAG:193 == -1 && (CFLAG:30:現在位置 == OMANEKIBEYA() || CFLAG:30:現在位置 == 615)
-			PRINTFORMDL …スキンシップを始める直前に部屋をノックする音が聞こえた
-			PRINTFORMDW 「四季様～この書類で伺いたいことが～……」
+			PRINTFORMDW …スキンシップを始める直前で、部屋をノックする音に邪魔をされた…
+			PRINTFORMW 
+			PRINTFORMDL 『四季様～この書類で伺いたいことが～……』
 			PRINTFORMW 「……は、はい！　今出ますから！」
 			PRINTFORMDW 閻魔様の仕事はとても大変そうだ…
 		ELSEIF K30_DRUNK() > 1
 			PRINTFORMW 「%K30_C_NAME(MASTER)%～、んふふふふ～っ♪」
 			PRINTFORMDW 酔っ払った映姫は%CALLNAME:MASTER%に\@ TALENT:恋慕 ? 抱きついたまま離れて # もたれかかって動いて \@くれない…
+		ELSEIF TCVAR:30:364
+			PRINTFORMDL %CALLNAME:MASTER%は映姫の%TEXTR("背中を指でなぞってみた/脇腹を突っついてみた/首筋を撫でてみた")%
+			PRINTFORMW 
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT, "「あふっHPH　んっ…HPH」", "L"
+					PRINTFORMDW 軽く触っただけで映姫はへなへなと座り込んでしまった…
+					CALL HPH_PRINT, "「もう…HPH　お触りだけなら、禁止よ…HPH」\n「どこも、敏感になって…大変なんだからHPH」", "W"
+				CASE 1
+					PRINTFORMW 「は、はひっ！？」
+					PRINTFORML 「な、何するんですか、もう…」
+					PRINTFORMDL 突然触られたせいか、映姫はなんとも間の抜けた声をあげてしまった…
+					PRINTFORMW 「わ、笑わないで、ください！」
+				CASE 2
+					CALL HPH_PRINT, "「あんっ…HPH」", "L"
+					PRINTFORMDW 映姫はふらつくようにして%CALLNAME:MASTER%に身体を預けてきた…
+					PRINTFORML 「ほんと…意地悪、ですね…」
+					CALL HPH_PRINT, "「私の方は、もう…準備、できてるのに…HPH」", "W"
+			ENDSELECT
 		ELSEIF TALENT:恋人
 			SELECTCASE RAND:3
 				CASE 0
@@ -2033,7 +2136,8 @@ IF LOCAL
 		ELSEIF TALENT:思慕
 			SELECTCASE RAND:3
 				CASE 0
-					PRINTFORML 「こんなこと楽しいんですか？　………楽しそうですね………」
+					PRINTFORML 「こんなこと楽しいんですか…？」
+					PRINTFORML 「………楽しそうですね」
 					PRINTFORMDW 映姫はあきれてはいるが振り払う素振りはない
 				CASE 1 
 					PRINTFORMDL %CALLNAME:MASTER%は映姫の手を握ってみた
@@ -2058,8 +2162,44 @@ IF LOCAL
 		ENDIF
 	;◆デート中
 	ELSEIF CHK_DATENOW(CFLAG:TARGET:デート中)
+		IF TCVAR:30:364
+			IF NOWEX:Ａ絶頂 && RAND:2
+				PRINTFORMDL %CALLNAME:MASTER%が近づくと、映姫が突然胸元に飛び込んで抱きついてきた…
+				PRINTFORMW 
+				CALL HPH_PRINT, "「ふぅーっHPH　ふぅーっHPH　ふぅーっ……」", "W"
+				CALL HPH_PRINT, "「ごめん、なさい…すごいの、来そうなの…HPH」", "L"
+				CALL HPH_PRINT, "「声、我慢…するの、手つだって…HPH」", "W"
+				PRINTFORMDL 映姫はさらに力を込めて%CALLNAME:MASTER%に抱きつく
+				PRINTFORMDW %CALLNAME:MASTER%の胸元に顔を埋め、映姫は声を漏らさないように身構えた…
+				TFLAG:194 = 19
+				RETURN
+			ENDIF
+			SELECTCASE RAND:4
+				CASE 0
+					PRINTFORMDL %CALLNAME:MASTER%は\@ DAY:2 == 2 ? びっしょり # うっすら \@汗をかいた映姫の額を拭ってあげた
+					PRINTFORMW 
+					CALL HPH_PRINT, @"「んっ…HPH　%K30_C_NAME(MASTER)%、ありがと…HPH」", "L"
+					CALL HPH_PRINT, @"「身体…\@ DAY:2 == 2 ? もう、熱くて…スゴいの # ぽかぽか、してるの \@…HPH」", "W"
+				CASE 1
+					PRINTFORMDL %CALLNAME:MASTER%は映姫の肩を抱き寄せた
+					PRINTFORMW 
+					CALL HPH_PRINT, @"「んんっ、%K30_C_NAME(MASTER)%…HPH」", "L"
+					PRINTFORMDW 映姫は身体を預けるようにして%CALLNAME:MASTER%へもたれかかった…
+					PRINTFORML 「すこしの、あいだ…おねがい…」
+					CALL HPH_PRINT, "「気持ち、よすぎて…倒れちゃいそう…HPH」", "W"
+				CASE 2
+					PRINTFORMDL %CALLNAME:MASTER%が近づくと、映姫の方から腕に抱き着いてきた
+					PRINTFORMW 
+					CALL HPH_PRINT, "「少し、こうしていても、いいかしら…HPH」", "W"
+					CALL HPH_PRINT, "「んっ…HPH　思った以上に、歩きづらい、ですね…これ…HPH」", "W"
+				CASE 3
+					PRINTFORMDL %CALLNAME:MASTER%は映姫と手をつないだ
+					PRINTFORMW 
+					CALL HPH_PRINT, "「んっ、なんだか…安心、できます…HPH」", "L"
+					CALL HPH_PRINT, "「今、転んだり…したら、大変…ですからHPH」", "W"
+			ENDSELECT
 		;恋人
-		IF TALENT:恋人
+		ELSEIF TALENT:恋人
 			IF K30_DRUNK() > 1
 				PRINTFORML 「%K30_C_NAME(MASTER)%～、こんなことして、みんなみてますよ～♥」
 				PRINTFORMW 「あっ、それとも～みせつけたいの～？」
@@ -2141,7 +2281,7 @@ IF LOCAL
 				IF RAND:2 == 1
 					PRINTFORML 「！！！」
 					PRINTFORMDW %CALLNAME:MASTER%が映姫に手を伸ばしたが、映姫は飛び跳ねるようにして身を引いた
-					PRINTFORMDW 「今日は、こういうこと、やめませんか……」
+					PRINTFORMW 「今日は、こういうこと、やめませんか……」
 				ELSE
 					PRINTFORML 「きゃっー！！」
 					PRINTFORMDW %CALLNAME:MASTER%が映姫の肩に手を触れると、びっくりするほどの声で叫ばれた
@@ -2554,7 +2694,7 @@ IF LOCAL
 			TCVAR:30:372 = 0
 			PRINTFORML 「わかりました。謝罪を受け入れましょう」
 			PRINTFORMW 「『罪を犯すことを認めてはならない』なんて言い出したら」
-			PRINTFORML 「それでは誰も生きてはいけません」
+			PRINTFORML 「それこそ誰も生きてはいけません」
 			PRINTFORMW 「罪を反省し善行を積むことで罪を打ち消しなさい」
 			PRINTFORMW 「それがこの謝罪における誠意というものですよ」
 			PRINTFORMW 「よいですね？」
@@ -2683,6 +2823,7 @@ LOCAL = 1
 IF LOCAL
 	IF CFLAG:318 == 1
 		PRINTFORMW 「……我慢も限界にきそうです」
+	ELSEIF TFLAG:193 == -5
 	ELSEIF TALENT:TARGET:妊娠
 		IF CFLAG:身に覚え_母 == 1 && !CFLAG:無自覚妊娠 && TALENT:恋慕
 			IF CFLAG:妊娠経過日数 >= 71 && RAND:2 == 1
@@ -2740,7 +2881,7 @@ IF LOCAL
 			ENDIF
 		ENDIF
 	ELSEIF K30_DRUNK() > 1
-	ELSEIF CFLAG:30:衣装一時変更 == 62 && !(CFLAG:現在位置 == 連れ込み宿 || CFLAG:現在位置 == ラブホ || CFLAG:現在位置 == OMANEKIBEYA())
+	ELSEIF CFLAG:30:衣装一時変更 == 62 && !GROUPMATCH(CFLAG:現在位置, 連れ込み宿, ラブホ, OMANEKIBEYA())
 		IF ABL:親密 > 2
 			PRINTFORMDW 頭を撫でられる感触と映姫の太ももはとても気持ちいいのだが…
 			PRINTFORML 「…………」
@@ -2759,7 +2900,21 @@ IF LOCAL
 		ENDIF
 	ELSE
 		IF ABL:TARGET:親密 > 2
-			IF TALENT:恋人
+			IF TCVAR:30:364
+				PRINTDATAD 
+					DATAFORM 映姫から立ち昇る欲情の蜜の香りと甘い息づかいに
+					DATAFORM 太ももから伝わるバイブの振動と映姫の押し殺したあえぎ声に
+					DATAFORM 映姫がバイブの快感に耐えきれず身体を揺するのに
+				ENDDATA
+				PRINTFORMDL 気を取られて、%CALLNAME:MASTER%はなんだか落ち着かない…
+				PRINTFORMW 
+				STRDATA LOCALS
+					DATAFORM 「あふっ…HPH」\n「ごめん…なさい、腰…勝手に、動いちゃうの…HPH」
+					DATAFORM 「ふーっHPH　ふーっHPH　んんっ…HPH」\n「ちょっと、むずかしいですね…これ…」
+					DATAFORM 「ひんっHPH　やだっ…これ、たいへん…」\n「座ると、深く…入って……ひゃぁんっHPH」
+				ENDDATA
+				CALL HPH_PRINT, LOCALS, "W"
+			ELSEIF TALENT:恋人
 				SELECTCASE RAND:3
 					CASE 0
 						PRINTFORMDL ふと思いついて%CALLNAME:MASTER%はうつ伏せになってみる
@@ -2820,7 +2975,7 @@ RETURN 1
 ;はたて口上構文参考にしています
 ;==================================================
 @M_KOJO_MESSAGE_COM_K30_306
-IF ((NOWEX:Ｖ絶頂 && TALENT:恋慕) || TALENT:妊娠願望 || GETBIT(CFLAG:1502, 4)) && TFLAG:193 == 0 && !(FLAG:時間停止 || CFLAG:睡眠 || TCVAR:泥酔)
+IF ((NOWEX:Ｖ絶頂 && TALENT:恋慕) || TALENT:妊娠願望 || GETBIT(CFLAG:1502, 4)) && TFLAG:193 == 0 && !(FLAG:時間停止 || CFLAG:睡眠 || TCVAR:泥酔) || TCVAR:30:364
 	CALL K30_D_LINE
 	CALL K30_COMPENSATE_MESSAGE
 ELSE
@@ -2909,7 +3064,7 @@ IF LOCAL
 								PRINTFORMW 「もうすぐ私たちに逢いに来てくれますよ…」
 							CASE 1
 								PRINTFORML 「もういつ産まれてきてもおかしくありません」
-								PRINTFORMW 「%LOCALS%もいつでも大丈夫と言ってますが」
+								PRINTFORMW 「%LOCALS%もいつでも大丈夫と言ってくれてますが」
 								PRINTFORMW 「%K30_C_NAME(MASTER)%、産まれる時は…側にいてくれますか？」
 							CASE 2
 								PRINTFORML 「男の子と女の子の名前、ちゃんと両方準備してますよね？」
@@ -3036,24 +3191,27 @@ IF LOCAL
 					ENDIF
 				ENDIF
 			CASE 0
-				IF TALENT:妊娠願望 || GETBIT(CFLAG:1502, 4)
+				IF TCVAR:30:364
+					PRINTFORMDL %CALLNAME:MASTER%は\@ 充填率(30,1) > 30 ? たっぷり子種を植え付けた # \@映姫のお腹をなでた
+					PRINTFORMDL 手を止めると、お腹から低い振動が伝わってくるのがはっきりわかる…
+					PRINTFORMW 
+					STRDATA LOCALS
+						DATAFORM 「あっ…HPH　やっ、やだ…」\n「それ…なんだか、恥ずかしい…確かめないで…」
+						DATAFORM 「そ、それはっ…さすがに、目立っちゃいますよ…」
+						DATAFORM 「きゃっHPH　だめよ…そこは…」\n「今、すごく…敏感に、なってるから…HPH」
+					ENDDATA
+					CALL HPH_PRINT, LOCALS, "W"
+				ELSEIF TALENT:妊娠願望 || GETBIT(CFLAG:1502, 4)
 					PRINTFORMDL %CALLNAME:MASTER%は\@ 充填率(30,1) > 30 ? たっぷり子種を植え付けた # \@映姫のお腹をなでた
 					PRINTFORMDL 映姫は%CALLNAME:MASTER%の手に自分の手をそっと重ねた
 					PRINTFORMW 
 					IF 充填率(30, 1) && !TCVAR:ピル
 						IF TCVAR:種付けられ自覚
-							PRINTDATAL 
+							PRINTDATAW
 								DATAFORM 「出来ると…いいですね…♥」
-								DATALIST
-									DATAFORM 「貴方の種だから…たぶん、ものすごく元気だと思うの」
-									DATAFORM 「…もしかしたら、今ごろは、もう…ここで…♥」
-								ENDLIST
-								DATALIST
-									DATAFORM 「いっしょに…お願いしてもらっても、いいかしら」
-									DATAFORM 「きっと、出来ますよね…」
-								ENDLIST
+								DATAFORM 「貴方の種だから…たぶん、ものすごく元気だと思うの」\n「…もしかしたら、今ごろは、もう…ここで…♥」
+								DATAFORM 「いっしょに…お願いしてもらっても、いいかしら」\n「きっと、出来ますよね…」
 							ENDDATA
-							WAIT
 						ENDIF
 					ELSE
 						SELECTCASE RAND:3
@@ -3241,7 +3399,7 @@ IF LOCAL
 		IF RAND:2 == 0
 			PRINTFORMW 「……♥♥」
 		ELSE
-			PRINTFORMW 「こちら側も…撫ででください…」
+			PRINTFORMW 「こちら側も…撫ででください…♥」
 		ENDIF
 	ELSEIF TALENT:恋慕
 		IF TFLAG:193 > -1
@@ -3972,7 +4130,7 @@ RETURN 1
 ;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
 TFLAG:192 = 0
 @M_KOJO_MESSAGE_COM_K30_336
-IF CFLAG:30:衣装一時変更 == 62 && !(CFLAG:現在位置 == 連れ込み宿 || CFLAG:現在位置 == ラブホ || CFLAG:現在位置 == OMANEKIBEYA()) && TFLAG:193 < 1
+IF (CFLAG:30:衣装一時変更 == 62 && !GROUPMATCH(CFLAG:現在位置, 連れ込み宿, ラブホ, OMANEKIBEYA()) && TFLAG:193 < 1) || TCVAR:30:364
 	CALL K30_D_LINE
 	CALL K30_COMPENSATE_MESSAGE
 ELSE
@@ -3987,7 +4145,8 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	IF CFLAG:30:衣装一時変更 == 62 && !(CFLAG:現在位置 == 連れ込み宿 || CFLAG:現在位置 == ラブホ || CFLAG:現在位置 == OMANEKIBEYA()) && TFLAG:193 < 1
+	LOCAL = !GROUPMATCH(CFLAG:現在位置, 連れ込み宿, ラブホ, OMANEKIBEYA())
+	IF CFLAG:30:衣装一時変更 == 62 && LOCAL && TFLAG:193 < 1
 		PRINTFORMDL %CALLNAME:PLAYER%は%CALLNAME:TARGET%に膝枕した
 		PRINTFORMDL %CALLNAME:TARGET%は居心地悪そうにしている…
 		PRINTFORMW
@@ -3997,6 +4156,18 @@ IF LOCAL
 			DATAFORM 「……もう起きてもいいですか？」
 		ENDDATA
 	ELSEIF K30_DRUNK() > 1
+	ELSEIF TCVAR:30:364
+		PRINTFORMDL %CALLNAME:PLAYER%は%CALLNAME:TARGET%に膝枕した
+		PRINTFORMDL %CALLNAME:TARGET%は落ち着かない様子で身体を揺すっている…
+		PRINTFORMW
+		STRDATA LOCALS
+			DATAFORM 「あんっ…HPH　これ…ちょっと、だめかも…」\n「じっとしてると…おしり、すごく…気になって…HPH」
+			DATAFORM 「やっ、やだ…HPH　静かに…してると…」\n「音…響いている、気がして…落ち着けません…」
+			DATAFORM 「あふっ…HPH　気もち…いい…HPH」\n「もっと、したい…HPH　もっと、つよく…HPH」
+		ENDDATA
+		CALL HPH_PRINT, LOCALS, "W"
+		SIF STRFIND(LOCALS, "あふっ") > -1
+			PRINTFORMDW 映姫の手が無意識にバイブの方へ伸びていく…\@ LOCAL ? %CALLNAME:MASTER%は慌ててやめさせた # \nそのまま服の上からバイブを撫で付け、映姫はより強い快感に溺れていった \@
 	ELSEIF TFLAG:193 > 0
 	;寝ちゃった
 		PRINTFORMW 「………すぅ………すぅ……」
@@ -4199,7 +4370,7 @@ IF LOCAL
 						ENDIF
 					;いやだ
 					CASE 7
-						PRINTFORML 「止めて下さい。そんなつもりはありませんよ」
+						PRINTFORML 「止めて下さい。そんなつもりはありません」
 						PRINTFORML 「色欲を断ち切れとは言いませんが」
 						PRINTFORMW 「貴方はそれに振り回されすぎです」
 					;論外
@@ -4212,7 +4383,17 @@ IF LOCAL
 						CFLAG:1501 = 0
 						CFLAG:1600 = 0
 						CFLAG:1601 = 0
-						IF TALENT:恋慕
+						;バイブデート
+						IF TFLAG:193 == 350
+							CALL HPH_PRINT, @"「あぁ…HPH　私、もう…待ちきれませんHPH」", "L"
+							CALL HPH_PRINT, @"「身体…すごく、熱くて…頭も、焼き切れそうよHPH」", "W"
+							PRINTFORML 「%K30_C_NAME(MASTER)%…早く、私の…」
+							CALL HPH_PRINT, @"「早く…私の、ここを…慰めて…HPH」", "L"
+							PRINTFORMW 
+							PRINTFORMDL 映姫は我慢できずに自分からスカートを捲く\@ CFLAG:ノーパン ? り上げた # り%PANTSNAME(EQUIP:30:下半身下着２, 30)%をずらした \@
+							PRINTFORMDL ぷるんとなめらかなお尻と、その中心にしっかり固定されたバイブがむき出しになる
+							PRINTFORMDL 映姫はもどかしげに装着を緩め、自らの手でアナルバイブを一気に引き抜いた…
+						ELSEIF TALENT:恋慕
 							;仕事出勤前(07:00～)
 							IF !CHARA_HOLIDAY(30) && TIME >= 420
 								PRINTFORML 「ちょっと待って…今から、ですか！？」
@@ -4265,8 +4446,8 @@ IF LOCAL
 											PRINTFORMW 「それだけで嬉しいと思えてしまうんです…」
 											PRINTFORMW 「閻魔も死神も…貴方の前では形無しです」
 										ELSE
-											PRINTFORML 「もちろん負けるつもりはありませんから」
-											PRINTFORMW 「貴方を…ちゃんと振り向かせてみせますよ♥」
+											PRINTFORML 「もちろん負けるつもりはありませんよ」
+											PRINTFORMW 「貴方を…ちゃんと振り向かせてみせますから♥」
 										ENDIF
 									ENDIF
 								;久侘歌
@@ -4377,13 +4558,27 @@ IF LOCAL
 	ENDIF
 ENDIF
 RETURN 1
+;バイブデートで映姫様が自分で引き抜くEXTRASOURCE関数
+@M_KOJO_EXTRASOURCE_COM_K30_350
+SIF FLAG:時間停止 || !TCVAR:30:364
+	RETURN
+CALL COM45
+EXP:MASTER:道具使用経験 --
+;快感オマケして苦痛と反感抑えておく
+SOURCE:快Ａ += 150
+SOURCE:苦痛 /= 2
+SOURCE:反感 /= 3
+;口上に渡すフラグ
+TFLAG:193 = 350
+TCVAR:30:364 = 0
+RETURN
 ;-------------------------------------------------
 ;攻守交代判定口上
 ;-------------------------------------------------
 @K30_JUDGE_PUSHDOWN
 ;-------------------------------------------------
 ;朝うふふ初手or欲求不満高い時or専用フラグ時は抵抗する
-IF (CFLAG:溜まってる度 > 700 || TCVAR:30:363 == -2 || TCVAR:30:362) && GET_TARGETNUM() == 1
+IF (CFLAG:溜まってる度 > 750 || TCVAR:30:363 == -2 || TCVAR:30:362) && GET_TARGETNUM() == 1
 	IF TCVAR:30:362
 		PRINTFORMDL なんとなく気が乗らない%CALLNAME:MASTER%は\@ ONCE("押し倒し") ? # もう一度 \@映姫を押し倒そうとした
 		IF TCVAR:30:362 == 1
@@ -4467,6 +4662,7 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
+	CLEARBIT CFLAG:1609, 1
 	;TARGET連れ出し
 	IF CFLAG:同行 == 60
 		;押し倒す気まんまんの時
@@ -4679,7 +4875,7 @@ IF 仕事中チェック(30) && CFLAG:30:職種 == 43
 		PRINTFORML 「…二度とは言いません」
 		PRINTFORMW 「やめてもらえますか？」
 		PRINTFORMDL 閻魔様の%GET_JOBNAME(30)%を邪魔するのは確かにまずい
-		PRINTFORMDW 本当に怒られる前にやめたほうがよさそうだ
+		PRINTFORMDL 本当に怒られる前にやめたほうがよさそうだ
 		BASE:30:怒り += MAXBASE:30:怒り / 3 * 2
 	;良いペナルティ思いつかないのでSKIP
 	[SKIPSTART]
@@ -4744,7 +4940,7 @@ IF 仕事中チェック(30) && CFLAG:30:職種 == 43
 		ENDIF
 	ENDIF
 ;ハードルを高くして条件満たす前に通常押し倒されが先に発動するように
-ELSEIF !TALENT:恋慕 || BASE:ムード < 300
+ELSEIF !(TALENT:恋慕 || TALENT:セフレ || TALENT:愛欲)
 	PRINTFORMDL %CALLNAME:MASTER%は映姫を物陰へ引き込もうとしたが手をはたき落とされた…
 	PRINTFORMW 
 	PRINTFORML 「何を考えてるんですか！！」
@@ -4756,8 +4952,15 @@ ELSEIF GET_TARGETNUM() > 1
 	PRINTFORMDL %CALLNAME:MASTER%は映姫を物陰へ引き込もうとしたが手を振り払われた…
 	PRINTFORMW 
 	PRINTFORML 「えっ……無理！　無理！　ムリです！！」
-	PRINTFORML 「%K30_C_NAME(K30_FIND_AROUND())%もすぐそこに居るのにそんな事出来ません！」
+	PRINTFORML 「%K30_C_NAME(K30_FIND_AROUND())%もそこに居るのにそんな事出来ません！」
 	BASE:30:ムード = MIN(BASE:30:ムード, 100)
+ELSEIF TCVAR:30:364
+	PRINTFORMDL %CALLNAME:MASTER%は映姫を物陰へ引き込もうとしたが逆に手を掴まれた…
+	PRINTFORMW 
+	PRINTFORML 「ダメ、ですよ…%K30_C_NAME(MASTER)%」
+	PRINTFORMW 「ここは…そんなことする場所じゃ、ありません」
+	CALL HPH_PRINT, "「それより…貴方も、その気なら…早く、行きましょうHPH」", "L"
+	CALL HPH_PRINT, "「二人で…落ち着ける、場所に…ねHPH」", "L"
 ELSEIF CFLAG:溜まってる度 < 500 || (ABL:露出癖 + TALENT:羞恥心 < 3)
 	PRINTFORMDL %CALLNAME:MASTER%は映姫を物陰へ引き込もうとしたが弱々しく手を振りほどかれた…
 	PRINTFORMW 
@@ -4771,7 +4974,7 @@ ELSEIF !(TCVAR:媚薬 || TCVAR:発情 || TCVAR:泥酔)
 	PRINTFORMDL %CALLNAME:MASTER%は映姫を物陰へ引き込もうとしたが震える手で抵抗された…
 	PRINTFORMW 
 	PRINTFORML 「%K30_C_NAME(MASTER)%…私は普通に…普通に二人で愛を確かめ合いたいの…」
-	PRINTFORMW 「こんな…意地悪、しないでください…」
+	PRINTFORML 「こんな…意地悪、しないでください…」
 ELSE
 	PRINTFORMDL \@ TCVAR:泥酔 ? ぐでぐでに酔っ払った映姫は # 映姫の瞳は情欲で濁り \@まともな判断も出来ないようだ…
 	TFLAG:192 = 1
@@ -5684,7 +5887,7 @@ IF LOCAL
 					DATAFORM 「是非曲直庁の財政を
 					DATAFORM 「裁判の効率を
 				ENDDATA
-				PRINTFORMW %TEXTR("どうにかできたらなって/何とかできないかと")%…」
+				PRINTFORMW %TEXTR("どうにかできたらなって/何とかできないかと/少しでも改善できたらなと")%…」
 			ENDIF
 		CASE 2
 			$EAT
@@ -5720,7 +5923,7 @@ IF LOCAL
 					PRINTFORMW 「快適な場所を保つのに当たり前のことですね」
 				ELSE
 					PRINTFORML 「私も閻魔だからといって威張りくさってるだけではいけません」
-					PRINTFORML 「皆の模範となる行動を取ってこそ、人に教えを説く資格も生まれるというものです」
+					PRINTFORMW 「皆の模範となる行動を取ってこそ、人に教えを説く資格も生まれるというものです」
 				ENDIF
 			ENDIF
 				
@@ -5986,6 +6189,11 @@ CALL M_KOJO_COLOR_K30
 IF LOCAL
 	;TARGETとデート
 	IF CFLAG:同行
+		RESULT = 0
+		SIF !GETBIT(CFLAG:1609, 2)
+			CALL K30_INSERT_VIBE_DATE
+		SIF RESULT
+			GOTO SKIP
 		IF CFLAG:30:衣装一時変更 == 62
 			PRINTFORMW 「今日行かないとダメなんでしょうか…」
 		ELSEIF TALENT:恋慕
@@ -6026,6 +6234,7 @@ IF LOCAL
 	ELSE
 	ENDIF
 ENDIF
+$SKIP
 RESETCOLOR
 RETURN 1
 ;==================================================
@@ -7090,12 +7299,13 @@ IF LOCAL
 		RETURN 1
 	ENDIF
 	PRINTFORMDL 願掛けのついでに映姫にもお願いしたいことが……
-	LOCALS = %\@ GETBIT(CFLAG:1606, 0) ? 朝は普通に起こして欲しい # 朝の起こし方を変えて欲しい \@%
+	LOCALS:0 = %\@ GETBIT(CFLAG:1606, 0) ? 朝は普通に起こして欲しい # 朝の起こし方を変えて欲しい \@%
 	RESETCOLOR
 	{
 	CALL ASK_M("呼び名を変えてほしい", !GETBIT(CFLAG:1803, 2),
 	"二人きりの時の呼び名を変えたい", FIRSTTIME("呼び名",1) == 0 && K30_BE_SEEN() == 0,
-	@"%LOCALS%", CFLAG:MASTER:初期位置 == CFLAG:30:初期位置 && STRCOUNT(CSTR:30:0, "朝から") && ABL:精液中毒 > 4 && K30_BE_SEEN() == 0,
+	@"%LOCALS:0%", CFLAG:MASTER:初期位置 == CFLAG:30:初期位置 && STRCOUNT(CSTR:30:0, "朝から") && ABL:精液中毒 > 4 && K30_BE_SEEN() == 0,
+	@"デートに付けていくアクセサリーについて", GETBIT(CFLAG:1609, 3) && K30_BE_SEEN() == 0,
 	"特に無いので雑談",1)
 	}
 	SETCOLOR 0x337D5C
@@ -7148,7 +7358,7 @@ IF LOCAL
 			ELSE
 				PRINTFORMW 「……『あの』起こし方、お気に召してくれました…？」
 				PRINTFORML 「ええ、わかりました…喜んで♥」
-				PRINTFORMW 「貴方も私も満足できるように…起こしてあげますよ…♥」
+				PRINTFORMW 「貴方も私も満足できるように、頑張ります…♥」
 				PRINTFORML 「……あっ、でも、お仕事の日はダメですよ」
 				PRINTFORMW 「そこは節度を守らないといけませんから」
 				PRINTFORML
@@ -7158,6 +7368,25 @@ IF LOCAL
 				CFLAG:1606 = 3
 			ENDIF
 		CASE 3
+			IF GETBIT(CFLAG:1609, 2)
+				PRINTFORML 「あっ…もしかして、またお願いしても…いいんですか？」
+				PRINTFORMW 「…ありがとうございます」
+				PRINTFORMW 「では、いずれ次の機会に…♥」
+				PRINTFORML
+				PRINTFORMDL デートの際、\@ TALENT:尻穴狂い ? # 確率で \@映姫がアナルバイブを装着します
+				PRINTFORMDW 再度願掛けから禁止にできます
+				SIF !CFLAG:1608
+					SETBIT CFLAG:1609, 0
+			ELSE
+				PRINTFORML 「やっぱり、あれは…不味いですか？」
+				PRINTFORMW 「……そうですよね、万が一他の人に気づかれたら…大変なことに…」
+				PRINTFORMW 「すみません、これからは自重します…」
+				PRINTFORML
+				PRINTFORMDL アナルバイブ装着イベントを停止しました
+				PRINTFORMDW 再度願掛けから許可できます
+			ENDIF
+			INVERTBIT CFLAG:1609, 2
+		CASE 4
 			SELECTCASE RAND:5
 				CASE 0
 					PRINTFORML 「%K30_C_NAME(MASTER)%が信仰する神様…どのような方でしょうか」
@@ -7430,7 +7659,7 @@ IF LOCAL
 				IF TFLAG:193 == 636
 					PRINTFORML 「ええ、まあ…その辺に落ちてますし…」
 					PRINTFORMW 「好きなだけ持っていって構わないと思います」
-					PRINTFORMW 「…私にはあまり近づかないでくださいね」
+					PRINTFORMW 「…それ、持ったまま近づかないでくださいね」
 				;5個以上採れた
 				ELSEIF TFLAG:194 > 4
 					PRINTFORML 「この辺りは%LOCALS%がよく採れますね」
@@ -7569,10 +7798,14 @@ RETURN 1
 @M_KOJO_SUCCESS_COM_K30_603
 ;成否判定
 ;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
-TFLAG:192 =0
+TFLAG:192 = 0
 
 @M_KOJO_MESSAGE_COM_K30_603
-CALL TRAIN_MESSAGE
+IF TCVAR:30:364
+	CALL K30_D_LINE
+ELSE
+	CALL TRAIN_MESSAGE
+ENDIF
 CALL M_KOJO_MESSAGE_COM_K30_603_1
 RETURN RESULT
 
@@ -7582,10 +7815,43 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	IF TALENT:恋慕 
-		PRINTFORMW 「じゃあ、ほらもっとこっちに来て……ふふっ」
+	IF TCVAR:30:364
+		PRINTFORMDL %CALLNAME:MASTER%は映姫の手を取った
+		PRINTFORMDL 映姫の手はびっくりするほど熱く、握った手はしっとり汗ばんでいる…
+		PRINTFORMW 
+		CALL HPH_PRINT, @"「%K30_C_NAME(MASTER)%…ありがとうHPH」", "W"
+		STRDATA LOCALS
+			DATAFORM 「足元、ふわふわ…してるから…」\n「並んで、もらえると…安心しますHPH」
+			DATAFORM 「私が…転んじゃわない、ように…ちゃんと、見ていてねHPH」
+			DATAFORM 「……あはっHPH　手、つないでる…だけで」\n「身体も…熱く、なってきて…HPH」
+		ENDDATA
+		CALL HPH_PRINT, LOCALS, "W"
+	ELSEIF TFLAG:193 == -1
+		PRINTFORMW 「あっ…！」
+		PRINTFORML 「%K30_C_NAME(MASTER)%、ちょっと聞きますけど…」
+		PRINTDATAW
+			DATAFORM 「貴方が爪を切ったのは何日前になりますか…？」
+			DATAFORM 「土いじりしてから、ちゃんと爪の間も洗ってますか…？」
+		ENDDATA
+		PRINTFORML 
+		PRINTFORML 「そういうところですよ、%K30_C_NAME(MASTER)%」
+		PRINTFORML 「いくら人間内面が重要とはいえ、まずは外見で判断されるものです」
+		PRINTFORMW 「細かい手入れを疎かにしていれば、それだけで少しづつ評価は下がって……」
+		PRINTFORML 「………………………………………………」
+		PRINTFORMW 「……そもそも貴方の考え方は……」
+		PRINTFORML 「……………………」
+		PRINTFORMDW 映姫にしっかり手を握られながらお説教された…
+	ELSEIF TALENT:恋慕
+		PRINTDATAW 
+			DATAFORM 「んっ、なんだか今さらですけど…」\n「これだけで、ドキドキしてきます…♥」
+			DATAFORM 「ふふっ、%K30_C_NAME(MASTER)%…離しちゃダメですよ」
+			DATAFORM 「ふふふっ、こうやって手をつないでいると…」\n「デートしてるんだって気分になってきますね♪」
+		ENDDATA
 	ELSE
-		PRINTFORMW 「しょうがないですね……」
+		PRINTDATAW
+			DATAFORM 「はいはい、しょうがないですね……」
+			DATAFORM 「まあ…しかたないですね」\n「手でもつないでないと、貴方はすぐどこかへフラフラしそうだもの」
+		ENDDATA
 	ENDIF
 ENDIF
 RETURN 1
@@ -7605,14 +7871,17 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	IF (CFLAG:MASTER:現在位置 == 連れ込み宿 || CFLAG:MASTER:現在位置 == ラブホ) && TALENT:機嫌 != -1
+	IF GROUPMATCH(CFLAG:現在位置, 連れ込み宿, ラブホ) && TALENT:機嫌 != -1
 		IF TCVAR:30:泥酔
 			PRINTFORML 「ここ～どこかしら～？」
+		ELSEIF TCVAR:30:364
+			CALL HPH_PRINT, "「そうね、入りましょうか…HPH」", "L"
+			CALL HPH_PRINT, "「そろそろ、脚に…力、入らないの…HPH」", "L"
 		ELSEIF !TALENT:恋慕 
 			PRINTFORML （なんで…私……流されて……）
 		ELSEIF CFLAG:30:衣装一時変更 == 62 && GETBIT(CFLAG:30:既成事実, 1)
-			PRINTFORMW 「……確かにここなら人目につかないですね」
-			PRINTFORMW 「…………%TEXTR("いやじゃ、ないですよ/しましょう、か/行きましょ/")%」
+			PRINTFORML 「……確かにここなら人目につかないですね」
+			PRINTFORML 「…………%TEXTR("いやじゃ、ないですよ/しましょう、か/行きましょ/")%」
 		ELSEIF GETBIT(CFLAG:30:既成事実, 1)
 			PRINTFORML 「………%TEXTR("はい/したいの…ね？/いいわよ/")%」
 			PRINTFORMDL 一言つぶやくと映姫は真っ赤な顔で俯いてしまった
@@ -7648,14 +7917,36 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	IF TALENT:恋慕
-		SIF TCVAR:30:358 == 0
-			PRINTFORML 「誘っておいて行く場所も決めてないとか無しですよ？　……でも」
-		PRINTFORMW 「ぶらぶらとどこかに行くのも、楽しいものなんですね」
+	PRINTFORMDL %CALLNAME:MASTER%は%TEXTR("一本脇道に入ってみた/なんとなく遠回りをした/適当な道を選んで歩いた")%
+	PRINTFORMW 
+	IF TCVAR:30:364
+		STRDATA LOCALS
+			DATAFORM 「ええ、そうね…」\n「ゆっくり、のんびり…行きましょうかHPH」
+			DATAFORM 「ここまで、人気のない道…選ばなくても、大丈夫よ」\n「私…普通に、振る舞えますから…HPH」
+			DATAFORM 「そうそう…デートなら、のんびり楽しむのが…一番よ」\n「今は、急ぎたくても…急げませんけどね…HPH」
+		ENDDATA
+		CALL HPH_PRINT, LOCALS, "W"
+	ELSEIF CFLAG:宴会参加
+		PRINTFORMW 「寄り道…？」
+		PRINTFORML 「お呼ばれしているんですから、先にそちらへ向かうのが礼儀かと思いますよ」
+		PRINTFORMW 「ほら…急いで急いで、時間つぶしは向こうに着いてからでも出来ますから」
+	ELSEIF TALENT:恋慕
+		IF TCVAR:30:358 == 1
+			PRINTDATAW
+				DATAFORM 「二人でいられるなら、こんな回り道もいいですね」
+				DATAFORM 「ふふっ、貴方といっしょなら、何か新しいこと見つかるかしら？」
+			ENDDATA
+		ELSE
+			PRINTDATAW
+				DATAFORM 「あら、誘っておいて行く場所も決めてないのかしら…？」\n「ほらほら、ちゃーんといいトコ連れってってくださいよ♪」
+				DATAFORM 「%K30_DIARY_PLACE(CFLAG:現在位置)%に行くのにそっちは遠回りですよ？」\n「……あっ、でも」\n「今は別に急ぐ必要もありませんね」
+			ENDDATA
+		ENDIF
 	ELSEIF TALENT:思慕
-		PRINTFORMW 「しょうがないですね……」
-	ELSE
-		PRINTFORMW 「…時間の無駄よ」
+		PRINTDATAW
+			DATAFORM 「ほんと、しょうがないですね…」\n「どこでもフラフラしたがるのは、もう貴方の習性なのかしら？」
+			DATAFORM 「あら？　%K30_DIARY_PLACE(CFLAG:現在位置)%へ行くのにこんな道もあるんですね…」\n「知りませんでした」
+		ENDDATA
 	ENDIF
 ENDIF
 RETURN 1
@@ -7667,7 +7958,7 @@ RETURN 1
 @M_KOJO_SUCCESS_COM_K30_610
 ;成否判定
 ;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
-TFLAG:192 =0
+TFLAG:192 = TCVAR:30:364 ? -1 # 0
 
 @M_KOJO_MESSAGE_COM_K30_610
 CALL TRAIN_MESSAGE
@@ -7680,29 +7971,32 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
+	IF TCVAR:30:364
+		PRINTFORML 「%K30_C_NAME(MASTER)%…ちょっと、いじわるすぎ…」
+		PRINTFORMW 「こんなんじゃあ…ご飯なんて、美味しく…食べられません…」
 	;失敗
-	IF TFLAG:193 == -1
+	ELSEIF TFLAG:193 == -1
 	;成功
 	ELSE
 		PRINTFORMW 「ごちそうさまでした。美味しかったです」
-		SELECTCASE CFLAG:現在位置
-			CASE 200 TO 299
+		SELECTCASE CFLAG:現在位置 / 100
+			CASE 2
 				PRINTFORML 「料理も良くて気配りも行き届いていて」
 				PRINTFORMW 「商売においてはやはり生きている人間にかないませんね…」
 				PRINTFORMDW 閻魔様は競争相手の調査に余念が無い……
-			CASE 400 TO 199
+			CASE 4
 				PRINTFORML 「噂に聞く夜雀の串焼き屋、評判どおりでした」
 				PRINTFORMW 「中有の道にも屋台だしてもらえないかしら…」
 				PRINTFORMDW 閻魔様は人材の確保を考えている……
-			CASE 600 TO 699
+			CASE 6
 				PRINTFORML 「ここの屋台も競争相手が増えて大変ですが、頑張ってもらわないといけません」
 				PRINTFORMW 「…地獄の財政的に、頑張ってもらわないと困ります」
 				PRINTFORMDW 閻魔様はわりと切実な悩みを抱えてるようだ……
-			CASE 900 TO 999
+			CASE 9
 				PRINTFORML 「お酒や食事を楽しむことにおいては、やはり鬼達に一日の長がありますね」
 				PRINTFORMW 「うまく参考にして中有の道も繁盛させないと…」
 				PRINTFORMDW 閻魔様は競争相手の調査に余念が無い……
-			CASE 1000 TO 1099
+			CASE 10
 				PRINTFORML 「それにしても…月の民は地上の食事も穢れとして忌避すると聞いてますが」
 				PRINTFORMW 「こうやって食べても違いがよくわかりませんね…」
 				PRINTFORMDW 閻魔様は首をひねっている……
@@ -7749,7 +8043,10 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL && FLAG:デート相手 == 30
-	IF CFLAG:MASTER:初期位置 == CFLAG:30:初期位置 || TALENT:恋人
+	IF TCVAR:30:364
+		PRINTFORML 「お買い物…ですか？」
+		CALL HPH_PRINT, "じゃあ…私は、ここで…ゆっくり、見てますねHPH」", "W"
+	ELSEIF CFLAG:MASTER:初期位置 == CFLAG:30:初期位置 || TALENT:恋人
 		PRINTFORML 「ごはんのお買い物？　そうね、そしたら今日は……」
 		PRINTDATAW
 			DATAFORM 「何か一緒に作ってみませんか？」
@@ -7798,6 +8095,9 @@ IF LOCAL
 		PRINTFORML 「お弁当を作るの、これが初めてなんです」
 		PRINTFORMW 「ごめんなさい、自分でも上手く出来なかったと思います…」
 		PRINTFORMW 「良かったら今度料理を教えてもらえますか？」
+	ELSEIF TCVAR:30:364
+		PRINTFORML 「どうぞ、ゆっくり…食べてください」
+		CALL HPH_PRINT, "「私は、見てるだけで…いいですから…HPH」", "W"
 	ELSE
 		SELECTCASE ABL:30:料理技能
 			CASE IS < 2
@@ -7873,7 +8173,10 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	IF TFLAG:193 == 1
+	IF TCVAR:30:364
+		PRINTFORML 「あんまり…味わえません、でした…」
+		CALL HPH_PRINT, "「また、別の機会に…連れてきて、くださいね…HPH」", "W"
+	ELSEIF TFLAG:193 == -1
 		IF TALENT:恋慕
 			PRINTFORMW 「美味しかったわ、ごちそうさま」
 			PRINTFORMW 「%K30_C_NAME(MASTER)%、また一緒に来ましょうね」
@@ -8086,10 +8389,16 @@ IF LOCAL
 	;カエル
 	CASE 706
 		IF TFLAG:194 > 1000
-			PRINTFORMW 「ええ……蛙、ですか……どうしましょう」
+			PRINTFORMW 「ええ……魚ならともかく…蛙、ですか……」
+			PRINTFORMW 「%K30_C_NAME(MASTER)%に差し上げます…」
 		ELSE
-			PRINTFORMW 「釣ったはいいですが…どうします、それ」
-			PRINTFORMW 「……食べるんですか？」
+			IF RAND:2 == 1
+				PRINTFORMW 「釣ったはいいですが…どうします、それ」
+				PRINTFORMW 「……食べるんですか？」
+			ELSE
+				PRINTFORMW 「蛙…何か使いみちがあるとは思えませんが」
+				PRINTFORMW 「あっ、一応とっとくんですね…」
+			ENDIF
 		ENDIF
 		RETURN 1
 	ENDSELECT
@@ -8128,7 +8437,6 @@ IF LOCAL
 		ELSE
 			属性 = 眺める
 		ENDIF
-		CALL M_KOJO_COLOR_K30
 	ENDIF
 	SELECTCASE TFLAG:194
 		;ひやかし
@@ -8399,20 +8707,21 @@ IF LOCAL
 		PRINTFORMW 「仕事は法廷で進めますから、ここではほぼ寝るだけです」
 		PRINTFORMW 「お休みの時ですか？　休みも趣味で出掛けてばかりですね」
 		PRINTFORMW 「教えを守ってるか、どうしても貴方達が気になってしまって」
+	ELSEIF TCVAR:30:364
+		PRINTFORML 「さあ、早く…入りましょう…」
+		CALL HPH_PRINT, "「もう、いろいろと…限界、かも…HPH」", "W"
+	ELSEIF TALENT:恋人
+		PRINTFORML 「%K30_C_NAME(MASTER)%♪　……ふふっ」
+		PRINTFORML 二人きりになると早速映姫が腕に絡みついてきた
+		PRINTFORMW 「皆の前だとさすがに気をつかうから…」
+		PRINTFORMW 「二人でのんびりしましょうよ♪」
+	ELSEIF TALENT:恋慕
+		PRINTFORML 「それでは、私がお茶を用意しますね」
+		PRINTFORMW 「いつものお返しです。たまにはいいじゃないですか」
 	ELSE
-		IF TALENT:恋人
-			PRINTFORML 「%K30_C_NAME(MASTER)%♪　……ふふっ」
-			PRINTFORML 二人きりになると早速映姫が腕に絡みついてきた
-			PRINTFORMW 「皆の前だとさすがに気をつかうから…」
-			PRINTFORMW 「二人でのんびりしましょうよ♪」
-		ELSEIF TALENT:恋慕
-			PRINTFORML 「それでは、私がお茶を用意しますね」
-			PRINTFORMW 「いつものお返しです。たまにはいいじゃないですか」
-		ELSE
-			PRINTFORML 「えっと、ではこちらに…」
-			PRINTFORMDL 映姫は少し緊張しているように見える
-			PRINTFORMW （お話しだけなら他の場所でしたほうが良かったかしら…）
-		ENDIF
+		PRINTFORML 「えっと、ではこちらに…」
+		PRINTFORMDL 映姫は少し緊張しているように見える
+		PRINTFORMW （お話しだけなら他の場所でしたほうが良かったかしら…）
 	ENDIF
 ENDIF
 RETURN 1
@@ -8505,12 +8814,13 @@ RETURN 1
 ;60,耳かき
 ;前ターン膝枕後スキンシップコマンド
 ;人の耳をがりっとやって慌てる映姫様はイメージ合わないので強制成功に
+;さすがの映姫様でもバイブ挿れてたら強制失敗
 ;TFLAG:193(1=大成功 0=成功 -1=失敗)(失敗するのはTARGET
 ;==================================================
 @M_KOJO_SUCCESS_SCOM_K30_60
 ;成否判定
 ;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
-TFLAG:192 = 1
+TFLAG:192 = TCVAR:30:364 ? -1 # 1
 
 @M_KOJO_MESSAGE_SCOM_K30_60
 CALL TRAIN_MESSAGE
@@ -8522,7 +8832,10 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	IF ONCE("耳かき") && RAND:3 == 1
+	IF TCVAR:30:364
+		PRINTFORML 「む、無茶…いわないで」
+		PRINTFORMW 「こんな時に、頼む%K30_C_NAME(MASTER)%のほうが…悪いわよ…」
+	ELSEIF ONCE("耳かき") && RAND:3 == 1
 		;隙あらば説教できる。閻魔様はスゴイ、俺は感動を覚えずにはいられなかった
 		PRINTFORML 「ちょっと…汚いですよ。きちんと自分でも耳掃除してますか？」
 		PRINTFORMDW まずい。耳かきしてもらってるこの体勢では映姫の説教から逃げられない…
@@ -8558,6 +8871,7 @@ IF LOCAL
 			PRINTFORML 「はい、こっち側は終わりです。反対側向いてくださいね♪」
 			PRINTFORMDW 立場上なかなか出来ないが元々人に尽くすことが好きなのだろう
 			IF GETBIT(CFLAG:30:既成事実, 1) && EXP:精飲経験 > 20 && RAND:3 == 1
+				PRINTFORML 
 				PRINTFORMDL ふと%CALLNAME:MASTER%はペニスを愛しげに咥える映姫を思い浮かべた
 				PRINTFORMDW ……本当に奉仕するのが好きに違いない
 			ENDIF
@@ -8698,10 +9012,10 @@ RESULT = 1
 IF CFLAG:添い寝中
 	PRINTFORMDL %CALLNAME:PLAYER%は%CALLNAME:TARGET%の口を起こさないようにそっと塞いだ…
 	PRINTFORMDL %CALLNAME:TARGET%はうとうとしながら、微かに微笑んでくれた
-ELSEIF K30_TRY_HARASS() && TFLAG:193 > -1
+ELSEIF K30_TRY_HARASS() && TFLAG:193 > -1 || TCVAR:30:364
 	PRINTFORMDL %CALLNAME:PLAYER%は%CALLNAME:TARGET%の口を自分の口でもっと塞いだ…
 	IF TALENT:恋慕
-		IF CFLAG:溜まってる度 > 333 || CFLAG:うふふ == 2
+		IF CFLAG:溜まってる度 > 333 || CFLAG:うふふ == 2 || TCVAR:30:364
 			PRINTFORMDL %CALLNAME:TARGET%は首に抱きつき応えるように舌を絡めてきた…
 		ELSE
 			PRINTFORMDL %CALLNAME:TARGET%は顔を真っ赤にしながらも唇を押し付けてきた…
@@ -8760,7 +9074,7 @@ IF LOCAL
 		ENDIF
 	ELSE
 		IF TALENT:恋慕
-			IF K30_PUSH_DOWN() > 300 || CFLAG:うふふ == 2
+			IF K30_PUSH_DOWN() > 300 || CFLAG:うふふ == 2 || TCVAR:30:364
 				PRINTDATAW
 					DATAFORM 「ふふっ……何回しても、すてき……♥」
 					DATAFORM 「何回しても足りないの？　ふふふっ…私と同じね♥」
@@ -8786,8 +9100,7 @@ RETURN 1
 @M_KOJO_SUCCESS_SCOM_K30_80
 ;成否判定
 ;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
-TFLAG:192 =0
-
+TFLAG:192 = TCVAR:30:364 ? -1 # 0
 @M_KOJO_MESSAGE_SCOM_K30_80
 CALL TRAIN_MESSAGE
 CALL M_KOJO_MESSAGE_SCOM_K30_80_1
@@ -8798,8 +9111,19 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
+	IF TCVAR:30:364
+		PRINTDATAW
+			DATAFORM 「やだ…引っ張っちゃ、だめ…よ…」\n「ゆっくり、行きましょ…」
+			DATAFORM 「待って…急いで、歩くの…こわい…」
+			DATAFORM 「ちょ、ちょっと！？」\n「む、無理よ…お願い、急かさないで…」
+		ENDDATA
+		IF NOWEX:Ａ絶頂
+			CALL HPH_PRINT, @"「あっ…HPH　%TEXTR("ほんと、待って…まってぇ/おねがい…一度、止まってぇ")%…HPH」", "W"
+			PRINTFORMDW 映姫の握る手に力がこもる…そのまま立ち止まると、ぎゅっと目をつぶってしまった…
+			TFLAG:194 = 19
+		ENDIF
 	;デートに誘った
-	IF TCVAR:30:358 == 0
+	ELSEIF TCVAR:30:358 == 0
 		IF TALENT:恋慕
 			PRINTFORMW 「どうしたの急に。行き先が決まったの？」
 		ELSE

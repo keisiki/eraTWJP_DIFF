@@ -3,6 +3,9 @@
 ;日常系コマンド、レベル1
 ;-------------------------------------------------
 @COM436
+#DIM READING_EXP
+READING_EXP = 1
+
 
 PRINTL 何を読もう？ 
 CALL ASK_M("文学", 1, "実用書", 1, "えっちな本", 1, "キャンセル", 1)
@@ -83,30 +86,29 @@ SIF !RAND:3 && TARGET == 54
 SIF !RAND:5 && TALENT:TARGET:無知 && TFLAG:193 >= 6 && TFLAG:193 <= 8 && ABL:MASTER:教養 > ABL:教養 && ABL:教養 >= 2
 	TFLAG:194 = 2
 
-
 SELECTCASE TFLAG:193
 	CASE 1
 		EXP:MASTER:戦闘経験 += 5
 	CASE 3
 	;文学
-		EXP:MASTER:学習経験 ++
+		EXP:MASTER:学習経験 += READING_EXP
 	CASE 5
 	;実用
 		SELECTCASE RAND:7
 			CASE 0
-				EXP:MASTER:会話経験 ++
+				EXP:MASTER:会話経験 += READING_EXP
 			CASE 1
-				EXP:MASTER:撮影経験 ++
+				EXP:MASTER:撮影経験 += READING_EXP
 			CASE 2
-				EXP:MASTER:料理経験 ++
+				EXP:MASTER:料理経験 += READING_EXP
 			CASE 3
-				EXP:MASTER:釣り経験 ++
+				EXP:MASTER:釣り経験 += READING_EXP
 			CASE 4
-				EXP:MASTER:採集経験 ++
+				EXP:MASTER:採集経験 += READING_EXP
 			CASE 5
-				EXP:MASTER:調合経験 ++
+				EXP:MASTER:調合経験 += READING_EXP
 			CASEELSE
-				EXP:MASTER:伐採経験 ++
+				EXP:MASTER:伐採経験 += READING_EXP
 		ENDSELECT
 	CASE 6
 		CALL RECOVER(MASTER,100,"精力")
@@ -148,7 +150,13 @@ ENDIF
 
 DOWNBASE:MASTER:体力 = 50
 DOWNBASE:MASTER:気力 = 200
-TIME += 60
+;賢者タイムは読書がはかどる
+IF IS_WISEMAN()
+	PRINTFORML 煩悩が消えたおかげで、効率的に学習が進んだ
+	TIME += 45
+ELSE
+	TIME += 60
+ENDIF
 RETURN 1
 
 

@@ -56,7 +56,11 @@ ENDIF
 IF !FLAG:70
 	;虫カゴに入らないキャラを虫カゴから追い出す
 	IF CFLAG:ARG:現在位置 == 54 && TALENT:ARG:体型 > -5
-		CFLAG:ARG:現在位置 = 9
+		IF ARG == [[針妙丸]]
+			TALENT:ARG:体型 = -5
+		ELSE
+			CFLAG:ARG:現在位置 = 9
+		ENDIF
 	ENDIF
 
 	;拠点の外に衰弱中のキャラがいる場合スキマに送る
@@ -145,7 +149,7 @@ IF RESULT
 				IF CFLAG:MASTER:現在位置 == CFLAG:ARG:現在位置 && !CFLAG:MASTER:睡眠
 					IF CFLAG:ARG:うふふ || CHK_DATENOW(CFLAG:ARG:デート中)
 						PRINTFORMW %CALLNAME:ARG%は眠気に堪えられなくなったので、\@ CFLAG:ARG:神社在住 ? 自室 # 自宅 \@に帰ることにした
-					ELSE
+					ELSEIF IN_HOME(CFLAG:ARG:現在位置)
 						PRINTFORMW %CALLNAME:ARG%は暇を告げると、眠そうに去って行きました
 					ENDIF
 				ENDIF
@@ -245,10 +249,19 @@ RETURNF 0
 ;お泊まりすると起きる現象
 IF CFLAG:ARG:現在位置 == CFLAG:MASTER:現在位置 && !CHK_DATENOW(CFLAG:ARG:デート中) && !TALENT:ARG:行きずり
 	IF CFLAG:態度 && !FLAG:デート相手
-		PRINTFORMW %CALLNAME:ARG%は%GET_MAPNAME(MAIN_MAP)%に行きたいようだ
-		PRINTL [0] - 一緒に行く　[1] - 見送る
+		PRINTFORMW %CALLNAME:ARG%は%GET_MAPNAME(MAIN_MAP)%に行くようだ
+		PRINTL [1] - デートに誘う
+		PRINTL [2] - 一緒に行く
+		PRINTL [0] - 見送る
 		INPUT
-		IF !RESULT
+		IF RESULT == 1
+			PRINTFORMW %CALLNAME:ARG%とデートすることにした
+			CFLAG:MASTER:同行 = 60
+			CFLAG:ARG:同行 = 60
+			CFLAG:ARG:デート中 = CFLAG:MASTER:現在位置 / 100
+			FLAG:デート相手 = ARG
+			TFLAG:デート前好感度 = CFLAG:ARG:好感度
+		ELSEIF RESULT == 2
 			PRINTFORMW %CALLNAME:ARG%を連れて帰ることにした
 			CALL 帰宅の時間経過
 			CALL SET_DATE(99,ARG)

@@ -200,8 +200,31 @@ IF LOCAL
 		LOCAL = NOWEX:Ａ絶頂
 		SIF NOWEX:二重絶頂
 			LOCAL /= 2
+		;バイブデート中１
+		IF TCVAR:30:364 > 0 && !GROUPMATCH(CFLAG:現在位置, 連れ込み宿, ラブホ, OMANEKIBEYA())
+			CALL HPH_PRINT(@"「%UNICODE(0XFF5E)* RAND(5, 15)%%TEXTR("ッ/っ/")%%TEXTR("HPH/HPHHPH/")%HPH」", "W")
+			STRDATA LOCALS
+				DATAFORM （これ…いい…HPH　すごく、イイ…HPH）
+				DATAFORM （あぁ…HPH　わたし…イっちゃった…HPH）
+				DATAFORM （こんな、に…HPH　スゴ…い…HPH）
+				DATAFORM （んっ…HPH　くせに、なり…そう…HPH）
+			ENDDATA
+			CALL HPH_PRINT(LOCALS, "L")
+			PRINTFORMD %TEXTR("人知れず/声を殺し/息を潜め/")%静か\@ LOCAL > 1 && RAND:2 ? に激しい # な \@絶頂を迎え
+			PRINTDATADW
+				DATAFORM た後も映姫は余韻に震えている…
+				DATAFORM 、映姫は満足気に微笑んだ…
+				DATAFORM てから、映姫は大きく息をはいた…
+			ENDDATA
+		;バイブデート中２
+		ELSEIF TFLAG:193 == 350
+			CALL HPH_PRINT, @"「ああっ！　あっああんHPH　イくっ！　イくぅHPH　おしりっHPH　イっくぅううHPHHPH」", "W"
+			CALL HPH_PRINT, @"「はぁ…HPH　はぁ…HPH　はぁ…HPH」", "W"
+			CALL HPH_PRINT, @"「%K30_C_NAME(MASTER)%…早く、きて…HPH」", "W"
+			PRINTFORMDL 映姫のアナルは収まるべきものを待ち望みヒクヒクと収縮を繰り返す
+			PRINTFORMDW 外側にぷっくりとめくれたピンク色の粘膜が舌なめずりをしているようにも見える…
 		;超強絶頂Ａ
-		IF LOCAL >= 3
+		ELSEIF LOCAL >= 3
 			IF TCVAR:30:393 < 2
 				CALL HPH_PRINT("「おひりぃHPH　おひりぃが……きもちいぃHPH」", "L")
 				CALL HPH_PRINT("「あっHPH　あっHPHHPH　……イクっ、おひりイっちゃうぅうHPH」", "W")
@@ -237,8 +260,8 @@ IF LOCAL
 								CALL HPH_PRINT("「おまんこよりいいのぉ…おしりを…おまんこに、してぇHPH」", "W")
 								PRINTFORMDL 映姫はなにかとんでもないことを何か口走っている…
 								;日記とかも埋めたいなあ
-								SIF DIARY:30:36 == 0
-									CALL K30_WRITE_DIARY(36)
+								;SIF DIARY:30:XX == 0
+								;	CALL K30_WRITE_DIARY(XX)
 						ENDSELECT
 					;愛撫
 					CASE 3
@@ -644,9 +667,11 @@ ENDIF
 SIF !GROUPMATCH(SELECTCOM, 21, 81, 352)
 	CALL PALAM_MESSAGE_C
 ;非うふふ時のフラグ掃除
-CFLAG:1802 = (INRANGE(CFLAG:出産経過日, 1, 24) || CFLAG:妊娠経過日数 >= 90 )
+CFLAG:1802 = (INRANGE(CFLAG:出産経過日, 1, 24) || CFLAG:妊娠経過日数 >= 90)
 IF !CFLAG:うふふ
 	TCVAR:30:362 = 0
+	SIF TCVAR:30:364 != 0
+		CALL K30_DATE_WITH_VIBERATOR
 	RETURN
 ENDIF
 
@@ -655,6 +680,9 @@ ENDIF
 SIF TCVAR:30:376 == 0
 	CALL K30_FOLLOW_UP
 TCVAR:30:376 = CFLAG:うふふ == 1 ? 1 # 2
+;バイブデート保留フラグ
+SIF TCVAR:30:364
+	TCVAR:30:364 = FLAG:時間停止 ? -1 # TCVAR:30:364
 SIF (!TALENT:恋慕 && CFLAG:30:1801) || !SHIRAHU(30)
 	RETURN
 ;ここから恋慕かつシラフの挙動

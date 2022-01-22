@@ -965,6 +965,18 @@ RETURN 1
 ;TFLAG:194(51=どぶろく 52=清酒 53=鬼殺し)
 ;ALCOHOL_TASTE(TFLAG:194)(15以上=気に入る 9以下=口に合わない)
 ;==================================================
+@M_KOJO_SUCCESS_COM_K65_332
+;成否判定
+;TFLAG:192(-1＝強制失敗、0=COM依存
+;お仕事のある日は飲まない
+IF !CHARA_HOLIDAY(TARGET)||CFLAG:行動 == 5
+	PRINTFORML
+	PRINTFORML 「ご相伴にあずかりたいところですが、あいにく\@ CFLAG:行動 == 5 ? 今はお仕事中 # 今日はこの後お仕事 \@なので…」
+	PRINTFORMW 「お付き合いできなくてすみません、%CALLNAME:MASTER%さん」
+	TFLAG:192 = -1
+ELSE
+	TFLAG:192 = 0
+ENDIF
 @M_KOJO_MESSAGE_COM_K65_332
 CALL TRAIN_MESSAGE
 CALL M_KOJO_MESSAGE_COM_K65_332_1
@@ -1207,14 +1219,42 @@ IF LOCAL
 					ELSE
 						PRINTFORMW 
 					ENDIF
+				;椛以外に恋人がいる
+				ELSEIF !TALENT:恋人 && TALENT:MASTER:恋人 && RAND:4 == 0
+					PRINTFORML 「……%CALLNAME:MASTER%さんは、ひどい人です」
+					PRINTFORML 「ほかに恋人がいるのに、私に浮気なんかして」
+					PRINTFORMW 不満そうに唇を尖らせる椛だが、%CALLNAME:MASTER%の腕を振りほどこうとはしない。
+					PRINTFORML 
+					IF TALENT:恋慕 && RAND:3 == 0
+						;プレイヤーさんの良心に訴えるのもアリかなと思いましたが、せっかくなら都合よく気分よく抜いていただきたいものです
+						;PRINTFORMW 「…私の気持ちだって、とっくに知ってるのに。本当に、ひどい人…」
+						PRINTFORMW 「……せめて今だけは、私に夢中になってください」
+					ELSEIF TALENT:セフレ||TALENT:愛欲 && RAND:3 == 0
+						PRINTFORML 「……ふふ、びっくりしました？」
+						IF TCVAR:発情
+							CALL HPH_PRINT,@"「今だけはそんなこと忘れて、ただのオスとメスとして…HPH」","L"
+							CALL HPH_PRINT,@"「た～っぷり、まぐわいましょうね…HPH」","W"
+						ELSE
+							PRINTFORML 「ほかに恋人がいるって知りながら…%CALLNAME:MASTER%さんに抱かれる私も、同罪ですから」
+							PRINTFORMW 「いっしょに、ひどい人になっちゃいましょう？」
+						ENDIF
+					ELSEIF ABL:欲望 >= 6 && RAND:2 == 0
+						PRINTFORML 「そのうえ私の体まで、こんなにいやらしく作り変えて…」
+						PRINTFORMW 震える肩をそっと抱くと、椛はわずかにかぶりを振ってから%CALLNAME:MASTER%の胸元に顔をうずめた。
+					ELSE
+						PRINTFORML （ここでダメって言いきれないとダメなのに…）
+						PRINTFORMW ｛ダメだなぁ、私…）
+					ENDIF
 				;椛の住まい
 				ELSEIF CFLAG:現在位置 == OMANEKIBEYA() || CFLAG:現在位置 == CFLAG:65:311
 					IF TCVAR:発情
 						IF ABL:欲望 > 9
 							CALL HPH_PRINT,@"「あっ…HPH」","L"
 							PRINTFORMW 抱き寄せられた椛が嘆息を漏らす。
+							PRINTFORML 
 							PRINTFORML 「あの、%CALLNAME:MASTER%さん…」
 							PRINTFORMW 「私、部屋に入ってからずっと『いつ%CALLNAME:MASTER%さんが襲ってくれるだろう』って期待してたんです…」
+							PRINTFORML
 							PRINTFORML 「私がこんなえっちな娘になっちゃったのも、全部あなたのせいなんですから…」
 							CALL HPH_PRINT,@"「セキニン、とってくださいね？%CALLNAME:MASTER%さんHPH」","W"
 						ELSE
@@ -1229,21 +1269,29 @@ IF LOCAL
 					IF TCVAR:発情
 						IF CFLAG:65:溜まってる度 >= 550 && RAND:2
 							CALL HPH_PRINT,@"「んっ…HPH」","L"
-							PRINTFORML 「%CALLNAME:MASTER%さん、ガマンできなくなっちゃったんですか…？」
+							PRINTFORMW 「%CALLNAME:MASTER%さん、ガマンできなくなっちゃったんですか…？」
+							PRINTFORML
 							CALL HPH_PRINT,@"「…ぅん、私も……%CALLNAME:MASTER%さんとしたいな、って思ってました…HPH」","L"
 							PRINTFORML 椛は%CALLNAME:MASTER%の\@ EQUIP:MASTER:下半身下着１ || EQUIP:MASTER:下半身下着２ ? 着衣の上から # むき出しの \@性器をなぞり上げる。
 							CALL HPH_PRINT,@"「…あはHPHいいですよ…？」","W"
+							PRINTFORML
 							CALL HPH_PRINT,@"「えっちなこと、沢山しましょう…HPH」","W"
 						ELSE
 							CALL HPH_PRINT,@"「あは、%CALLNAME:MASTER%さん…HPHんっ、ふぅ…」","L"
 							PRINTFORMW 椛は%CALLNAME:MASTER%にしなだれかかり、発情した自分の匂いを移すかのように全身を擦りつけている。
 						ENDIF
 					ELSE
-						IF TALENT:恋慕
+						IF TALENT:恋慕 && RAND:3
 							PRINTFORML 「%CALLNAME:MASTER%さん…」
 							PRINTFORML 肩に手をかけると、椛は%CALLNAME:MASTER%の胸元へ頭を摺り寄せてきた。
 							PRINTFORMW 銀白色の髪がふわりと揺れ、ほのかに甘い香りが%CALLNAME:MASTER%の鼻をくすぐった。
 						ELSE
+							PRINTFORML 「……また、したくなったんですか」
+							IF CFLAG:65:溜まってる度 >= 700 && RAND:2
+								PRINTFORMW 「…その、私もまぁ…ちょっと期待してたところはありますけど…」
+							ELSE
+								PRINTFORMW 「………%CALLNAME:MASTER%さんのえっち」
+							ENDIF
 						ENDIF
 					ENDIF
 				ENDIF
@@ -1333,17 +1381,87 @@ RETURN 1
 ;TFLAG:193 (1=成功 0=失敗)
 ;==================================================
 @M_KOJO_MESSAGE_COM_K65_352
-CALL TRAIN_MESSAGE
+;CALL TRAIN_MESSAGE
 CALL M_KOJO_MESSAGE_COM_K65_352_1
 RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K65_352_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-
+	PRINTFORML %CALLNAME:MASTER%は%CALLNAME:TARGET%に恋慕の情を伝えた…
+	PRINTFORML 
+	IF TFLAG:193 == 1
+		IF TALENT:恋慕
+			PRINTFORMW 「……へ？」
+			PRINTFORML
+			PRINTFORML 「えっと、あの、それって……」
+			CALL ASK_YN("好きだと言う","愛していると言う")
+			PRINTFORML 
+			PRINTFORMW 「…………」
+			PRINTFORML
+			PRINTFORML 呆けたように見開かれた椛の瞳から、一筋の雫が流れ落ちる。
+			PRINTFORMW 「え、ぁ、え……なんで…うぁ、%CALLNAME:MASTER%さん、ちょっと、すみませ…」
+			PRINTFORML 
+			PRINTFORML ……彼女の気持ちを傷つけてしまっただろうか。
+			PRINTFORML 引きさがろうとする%CALLNAME:MASTER%に追いすがり、椛がきゅっと抱き着いてきた。
+			PRINTFORMW 「いや、嫌です、行かないでっ……！！」
+			PRINTFORML
+			PRINTFORML 「%CALLNAME:MASTER%さん、私もっ、私も%CALLNAME:MASTER%さんのことが好きです！！
+			PRINTFORMW 　大好きです！！愛してますっっっ！！！！」
+			PRINTFORML 
+			PRINTFORML 朗々と響き渡る、椛の愛の叫び。
+			PRINTFORMW 偶然にも\@ OUTROOF(CFLAG:現在位置) ? 上空をふよふよと飛んでいた天狗が空中で停止し # 往来をぶらぶらしていた天狗が足を止め \@、遠巻きにこちらを眺めている。
+			PRINTFORML 
+			;他に恋慕キャラがいる
+			IF CMATCH(TALENT:恋慕,1)-1 > 0
+				PRINTFORML 「……%CALLNAME:MASTER%さんを好きな人は、私以外にもたくさんいるんですよ」
+			ELSE
+				PRINTFORML 「……私、天狗ではありますけど、全然偉くなんかなくて、むしろ下っ端で…」
+			ENDIF
+			PRINTFORMW 「……それでも、私を選んでくれるんですか？」
+			PRINTFORML
+			PRINTFORML 不安げに見つめる椛の頬に手を添え、%CALLNAME:MASTER%はそっと口づけをした。
+			PRINTFORML 「んっ…！！」
+			PRINTFORMW 「……ん、はふ…うそ…夢みたい…嬉しいです、%CALLNAME:MASTER%さん……！」
+			PRINTFORML 
+			PRINTFORML まなじりに滲んだ涙を椛がぬぐった瞬間、喝采の声がどっと湧きあがった。
+			PRINTFORML 「へ？……え？あっ！？楓さん？椿さん？あっ……柊さんまで！？」
+			PRINTFORMW いつの間にか集まっていた白狼天狗たちが、%CALLNAME:MASTER%達の方へ駆け寄ってくる。
+			PRINTFORML
+			PRINTFORML よかったねぇ、と椛をねぎらう声。
+			PRINTFORML 幸せにしてやんなよ、と%CALLNAME:MASTER%の背中をたたく力強い手。
+			PRINTFORML これは人前式だ、いや天狗前式だろう、などとしょうもないことを言い合うざわめき。
+			PRINTFORMW しまいには、どこからともなく現れた酒樽に木槌が打たれ、パッカーンと景気の良い音が鳴り響いた。
+			PRINTFORML 
+			PRINTFORML 「あ、あはは……ムードも何もあったもんじゃありませんね……」
+			PRINTFORMW 主賓を差し置いて宴会を始めてしまった天狗たちを横目に、%CALLNAME:MASTER%と椛はそっとその場を離れた。
+			PRINTFORML 
+			PRINTFORML 「なんだか、話の腰を折られた気しかしませんが」
+			PRINTFORML 「私、幸せです。%CALLNAME:MASTER%さんとならきっと、もっともっと幸せになれるはずです」
+			PRINTFORMW 「……いえ、幸せになりましょう！一緒に！」
+		ELSE
+			PRINTFORMW 「……へ？」
+			PRINTFORML
+			PRINTFORML 「え、ぁ、はぁ……」
+			PRINTFORML 椛は目を白黒させている。
+			PRINTFORMW どうやら、自分のうちに渦巻く感情を上手く整理できないようだ。
+			PRINTFORML
+			PRINTFORML 「あ、えっと……その、うれしいです！！」
+			PRINTFORMW 「す、すいません、えっと、その……なんだかまだ、これが夢なんじゃないかって、信じられなくて…」
+			PRINTFORML
+			PRINTFORML 不安げに見つめる椛の頬に手を添え、%CALLNAME:MASTER%はそっと口づけをした。
+			PRINTFORMW 「んっ…！！」
+			PRINTFORML
+			PRINTFORML 「ん、ふぅ……えへへ。私も……私も%CALLNAME:MASTER%さんのこと好きです」
+			PRINTFORMW 「ふふ、これからもよろしくお願いします、%CALLNAME:MASTER%さん♪」
+		ENDIF
+	ELSE
+		PRINTFORMW %CALLNAME:TARGET%は怪訝な様子だ……
+		PRINTFORML
+	ENDIF
 ENDIF
 RETURN 1
 ;==================================================

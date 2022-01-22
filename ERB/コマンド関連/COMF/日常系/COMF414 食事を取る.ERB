@@ -204,7 +204,7 @@ IF BONUS
 	TIMES SOURCE:征服, 1.50
 ENDIF
 
-IF TCVAR:CHARA:料理評価値 >= 700
+IF TCVAR:CHARA:料理評価値 >= 750
 	IF TALENT:CHARA:機嫌 < 0
 		CALL KIGEN_CHANGE(CHARA, 100, 1)
 	ELSE
@@ -274,17 +274,17 @@ TSP回復率 = 0
 ;基本回復率と満腹度
 SELECTCASE DISH_TYPE
 	CASE "軽食"
-		体力回復率 = 300
+		体力回復率 = 200
 		気力回復率 = 300
 		精力回復率 = 100
 		満腹度 = 180
 	CASE "主食"
-		体力回復率 = 500
-		気力回復率 = 500
+		体力回復率 = 400
+		気力回復率 = 400
 		精力回復率 = 200
 		満腹度 = 360
 	CASE "デザート"
-		体力回復率 = 300
+		体力回復率 = 100
 		気力回復率 = 500
 		精力回復率 = 100
 		満腹度 = 180
@@ -297,30 +297,35 @@ SIF STRCOUNT(DISH_TASTE, "妖力/")
 SIF STRCOUNT(DISH_TASTE, "生命力/")
 	TIMES 体力回復率, 1.2
 SIF STRCOUNT(DISH_TASTE, "霊障/")
-	TSP回復率 += 200
+	TSP回復率 += 100
 ;鬼の魔力と区別
 SIF STRCOUNT(DISH_TASTE, "/魔力/")
-	TSP回復率 += 200
+	TSP回復率 += 100
 SIF STRCOUNT(DISH_TASTE, "仙術/")
-	TSP回復率 += 200
+	TSP回復率 += 100
 SIF STRCOUNT(DISH_TASTE, "秘術/")
-	TSP回復率 += 200
+	TSP回復率 += 100
 IF STRCOUNT(DISH_TASTE, "薬効/")
-	気力回復率 = 1000
-	CALL BUFF_BASE(ARG, BASE_気力, MIN(MAXBASE:ARG:気力 * 10 / 100, 300))
+	気力回復率 += 100
 ENDIF
-IF STRCOUNT(DISH_TASTE, "鬼の魔力/")
-	精力回復率 = 1000
-	CALL BUFF_BASE(ARG, BASE_精力, MIN(MAXBASE:ARG:精力 * 50 / 100, 500))
+IF STRCOUNT(DISH_TASTE, "薬膳/")
+	気力回復率 += 100
+	CALL BUFF_BASE(ARG, BASE_気力, MIN(MAXBASE:ARG:気力 * 10 / 100, 200))
 ENDIF
-IF STRCOUNT(DISH_TASTE, "血の魔力/") && ARG == MASTER
-	TSP回復率 = 1000
-	CALL BUFF_BASE(ARG, BASE_TSP, MIN(MAXBASE:ARG:TSP * 50 / 100, 500))
-ENDIF
+	;IF STRCOUNT(DISH_TASTE, "鬼の魔力/")
+	;	精力回復率 = 1000
+	;	CALL BUFF_BASE(ARG, BASE_精力, MIN(MAXBASE:ARG:精力 * 50 / 100, 500))
+	;ENDIF
+	;IF STRCOUNT(DISH_TASTE, "血の魔力/") && ARG == MASTER
+	;	TSP回復率 = 1000
+	;	CALL BUFF_BASE(ARG, BASE_TSP, MIN(MAXBASE:ARG:TSP * 50 / 100, 500))
+	;ENDIF
 IF STRCOUNT(DISH_TASTE, "精力/")
-	精力回復率 += 500
-	SIF ARG == MASTER
-		TALENT:MASTER:濃厚精液 = 1
+	精力回復率 += 100
+ENDIF
+IF STRCOUNT(DISH_TASTE, "強精/")
+	精力回復率 += 100
+	CALL BUFF_BASE(ARG, BASE_精力, MIN(MAXBASE:ARG:精力 * 10 / 100, 200))
 ENDIF
 SIF STRCOUNT(DISH_TASTE, "奇跡/")
 	TFLAG:幸運補正 = 5
@@ -329,9 +334,9 @@ SIF STRCOUNT(DISH_TASTE, "幸運/")
 ;添加物
 SELECTCASE DISH_DRG_2
 CASE GETNUM(ITEM, "栄養強化剤")
-	TIMES 気力回復率, 1.2
-	TIMES 体力回復率, 1.2
-	TIMES 精力回復率, 1.2
+	TIMES 気力回復率, 1.1
+	TIMES 体力回復率, 1.1
+	TIMES 精力回復率, 1.1
 ENDSELECT
 ;特殊バフ系
 ;祝福：妊娠率がほんの少し上昇,妊娠対象に付与されていないと効果なし（種側は効果なし）
@@ -371,15 +376,15 @@ IF ARG != MASTER
 	CASE IS < 400
 		TIMES 体力回復率, 0.6
 		TIMES 気力回復率, 0.6
-	CASE IS < 500
+	CASE IS < 600
 		TIMES 体力回復率, 0.8
 		TIMES 気力回復率, 0.8
-	CASE IS < 600
+	CASE IS < 750
 		TIMES 体力回復率, 1.0
 		TIMES 気力回復率, 1.0
 	CASEELSE
-		TIMES 体力回復率, 1.2
-		TIMES 気力回復率, 1.2
+		TIMES 体力回復率, 1.1
+		TIMES 気力回復率, 1.1
 	ENDSELECT
 ENDIF
 
@@ -394,13 +399,7 @@ SIF STRCOUNT(DISH_TASTE, "ローター/")
 	EXP:ARG:Ｃ経験 += 30
 
 ;満腹度上昇
-SIF TALENT:ARG:健啖
-	TIMES 満腹度, 0.7
-IF DISH_TYPE == "デザート"
-	TCVAR:ARG:デザート空腹時刻 = 1440 * DAY + TIME + 満腹度
-ELSE
-	TCVAR:ARG:空腹時刻 = 1440 * DAY + TIME + 満腹度
-ENDIF
+CALL 満腹度上昇(ARG, DISH_TYPE, 満腹度)
 
 ;回復処理
 ;CALL RECOVER(ARG, 体力回復量, "体力", "食事による回復")

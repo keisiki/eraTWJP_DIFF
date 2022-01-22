@@ -454,7 +454,7 @@ ELSE
 		種別 += 3
 	SELECTCASE 種別
 		CASE 0
-			RETURNF "0"
+			RETURNF "1"
 		CASE 1
 			LOCAL = TOINT(キー) % 5
 			RETURNF 仮天気:LOCAL
@@ -503,12 +503,14 @@ SIF TFLAG:100 == 0
 	天気 = %仮天気:(RAND:5)%
 ;名前はMASTERNAMEor恋慕後の愛称。陥落無しなら「さん」付け。変遷があると日記感がでる…かもしれない
 名前 = %\@ CSTR:30:80 != "" ? %CSTR:30:80% # %MASTERNAME:30% \@%%\@ TALENT:30:思慕 || TALENT:30:恋慕 ? # さん \@%
+;反発３で名前を呼んではいけないあの人扱い
+名前 = %\@ MARK:反発刻印 == 3 ? あの人 # %名前% \@%
 ;ページごとの特記事項
 SELECTCASE 日記ID
 	;キス：色々選別
 	CASE 1
 		;「と思っているが、実は」の場合、前の段落だけ拾って無自覚を弾く
-		IF STRFIND(CSTR:30:ファーストキス喪失履歴, "￥ＢＲ") > 0
+		IF STRFIND(CSTR:30:ファーストキス喪失履歴, "￥ＢＲ") > -1
 			SPLIT CSTR:30:ファーストキス喪失履歴, "￥ＢＲ", LOCALS
 		ELSE
 			LOCALS:0 = %CSTR:30:ファーストキス喪失履歴%
@@ -518,7 +520,6 @@ SELECTCASE 日記ID
 			SETBIT CFLAG:30:1910, 2
 			RETURN
 		ELSE
-			日時 = %TOSTR(CFLAG:30:ファーストキス喪失記念日)%
 			;UPDATEからなら場所をぼかす
 			SIF TFLAG:100 == 0
 				場所 = 大切な場所
@@ -630,6 +631,20 @@ SELECTCASE 日記ID
 	;出産：産まれた子どもの名前
 	CASE 34
 		特記 = %CHILDNAME:30:(TALENT:30:育児中)%
+	;小町と同時：映姫様と小町の陥落状態
+	CASE 36
+		SELECTCASE K30_FIND_LOVER()
+			CASE -1
+				特記 = 映姫
+			CASE 0
+			CASE 1, 2
+				SIF TALENT:76:恋人
+					特記 = 小町
+		ENDSELECT
+	;尻穴狂い：バイブデート経験、恋慕の有無
+	CASE 37
+		特記 = %\@ CFLAG:1608 ? 有 # \@%
+		別記 = %\@ TALENT:恋慕 ? 恋 # \@%
 ENDSELECT
 IF ARG == 0
 	DIARY:30:日記ID = 2

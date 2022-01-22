@@ -3021,7 +3021,7 @@ IF LOCAL
 		IF CFLAG:TARGET:睡眠
 		ELSE
 			IF CFLAG:K42C_結婚 >= 1
-				IF BASE:TARGET:体力 <= 500
+				IF BASE:TARGET:体力 < 600
 					;ステータス関連表示のLookに描写あり
 					SELECTCASE RAND:3
 					CASE 0
@@ -3116,7 +3116,7 @@ IF LOCAL
 					ENDSELECT
 				ENDIF
 			ELSEIF TALENT:恋慕 || TALENT:恋人
-				IF BASE:TARGET:体力 < 500
+				IF BASE:TARGET:体力 < 600
 					;ステータス関連表示のLookに描写あり
 					SELECTCASE RAND:3
 					CASE 0
@@ -3206,7 +3206,7 @@ IF LOCAL
 					ENDSELECT
 				ENDIF
 			ELSEIF TALENT:愛欲 || TALENT:セフレ
-				IF BASE:TARGET:体力 < 500
+				IF BASE:TARGET:体力 < 600
 					;ステータス関連表示のLookに描写あり
 					SELECTCASE RAND:4
 					CASE 0
@@ -3382,9 +3382,24 @@ IF LOCAL
 
 			IF TCVAR:357 >= 1
 				PRINTFORML はたての周りには精液がたっぷり詰まった使用済みコンドームが{TCVAR:357}個散らばっている…
-				PRINTFORML 「こんなにしちゃったんだ…%MASTERNAME:42%、スゴいんだね…%UNICODE(0x2665) *1%」
-				PRINTFORML 「どれも、セーエキぱんぱんだよ…%UNICODE(0x2665) *1%　気持ちよかった？」
-				PRINTW 
+				IF BASE:体力 < 600
+					IF TCVAR:357 > 10
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML いっぱい出した記念だと、はたての体の上にコンドームを並べ、ケータイで写真を撮ってやった
+							CALL HPH_PRINT,@"「らめぇ…いま、へんなかおしてるからぁ…HPH」","L"
+							PRINTW 
+						CASE 1
+							PRINTFORML はたての具合がよすぎてこんなに出してしまったと、体の上にコンドームを並べてやった
+							CALL HPH_PRINT,@"「あは、えへ、へぇ…うれしぃ…HPH」","L"
+							PRINTW 
+						ENDSELECT
+					ENDIF
+				ELSE
+					PRINTFORML 「こんなにしちゃったんだ…%MASTERNAME:42%、スゴいんだね…%UNICODE(0x2665) *1%」
+					PRINTFORML 「どれも、セーエキぱんぱんだよ…%UNICODE(0x2665) *1%　気持ちよかった？」
+					PRINTW 
+				ENDIF
 			ENDIF
 			RETURN 1
 		ENDIF
@@ -3403,28 +3418,40 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 1
-			IF CFLAG:TARGET:生解禁 == 2
-				IF TCVAR:TARGET:ピル == 1
-					IF EX:TARGET:膣内精液 > 500
-						PRINTFORML 「やンッ、いっぱい注いでもらったのに、セーエキ、垂れてきちゃった…」
-						PRINTFORML はたての膣からぶぴっ、ぶびゅっと下品な音を立てて精液が漏れ出る
-						PRINTW 
-						PRINTFORML 「やだぁ、音、恥ずかしいよぉ…\/\/\/」
-						PRINTFORML 「もぉ、%MASTERNAME:42%…めちゃくちゃセーエキ出したでしょー？」
-						PRINTW 
-					ELSE
-						PRINTFORML 「やだっ、セーエキ、漏れちゃう…」
-						PRINTFORML 「せっかく注いでもらったのに…」
-						PRINTW 
-					ENDIF
+			IF TALENT:妊娠
+				IF EX:TARGET:膣内精液 > 500
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「もう、妊婦にはもっと優しくしてくれないと…出しすぎだよぉ」
+					CASE 1
+						PRINTFORML 「もう、こんなに注いだら赤ちゃんが溺れちゃうじゃない」
+					ENDSELECT
 				ELSE
-					IF ESTRUS_CYCLE(TARGET) == 150
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「わっ…けっこー出てきた」
+						PRINTFORML 「あんっ、もったいないなー…」
+						PRINTFORML はたては膣から垂れ落ちる精液を指で掬うと、口元に運んでピチャピチャと舐めとった
+						IF ABL:精液中毒 >= 3
+							PRINTFORML 「んふ、おいしー…♪　最初はあんなに苦く感じたのに…♪」
+							PRINTW 
+						ELSE
+							PRINTFORML 「んんー…やっぱり変な味ー。もっと舐めたら、慣れてくるのかなぁ…」
+							PRINTW 
+						ENDIF
+					CASE 1
+						PRINTFORML 「妊娠の心配がないからって、好きに膣内出ししちゃって…もう」
+					ENDSELECT
+				ENDIF
+			ELSE
+				IF CFLAG:TARGET:生解禁 == 2
+					IF TCVAR:TARGET:ピル == 1
 						IF EX:TARGET:膣内精液 > 500
 							PRINTFORML 「やンッ、いっぱい注いでもらったのに、セーエキ、垂れてきちゃった…」
 							PRINTFORML はたての膣からぶぴっ、ぶびゅっと下品な音を立てて精液が漏れ出る
 							PRINTW 
-							PRINTFORML 「だめぇ、受精しないといけないんだからぁ、出ちゃ駄目ぇ…」
-							PRINTFORML はたては漏れ出る精液を掻き集め、指で膣内に戻している…
+							PRINTFORML 「やだぁ、音、恥ずかしいよぉ…\/\/\/」
+							PRINTFORML 「もぉ、%MASTERNAME:42%…めちゃくちゃセーエキ出したでしょー？」
 							PRINTW 
 						ELSE
 							PRINTFORML 「やだっ、セーエキ、漏れちゃう…」
@@ -3432,56 +3459,71 @@ IF LOCAL
 							PRINTW 
 						ENDIF
 					ELSE
-						IF EX:TARGET:膣内精液 > 500
-							PRINTFORML 「こんなに膣内出ししまくってたら、危険日じゃなくてもデきちゃうかも…%UNICODE(0x2665) *1%」」
-							PRINTFORML 「っていうか、ちゃんと受精しないかなー。赤ちゃん、ほしいもんね♪」
-							PRINTW 
-						ELSE
-							PRINTFORML 「わっ…けっこー出てきた」
-							PRINTFORML 「あんっ、もったいないなー…」
-							PRINTFORML はたては膣から垂れ落ちる精液を指で掬うと、口元に運んでピチャピチャと舐めとった
-							IF ABL:精液中毒 >= 3
-								PRINTFORML 「んふ、おいしー…♪　最初はあんなに苦く感じたのに…♪」
+						IF ESTRUS_CYCLE(TARGET) == 150
+							IF EX:TARGET:膣内精液 > 500
+								PRINTFORML 「やンッ、いっぱい注いでもらったのに、セーエキ、垂れてきちゃった…」
+								PRINTFORML はたての膣からぶぴっ、ぶびゅっと下品な音を立てて精液が漏れ出る
+								PRINTW 
+								PRINTFORML 「だめぇ、受精しないといけないんだからぁ、出ちゃ駄目ぇ…」
+								PRINTFORML はたては漏れ出る精液を掻き集め、指で膣内に戻している…
 								PRINTW 
 							ELSE
-								PRINTFORML 「んんー…やっぱり変な味ー。もっと舐めたら、慣れてくるのかなぁ…」
+								PRINTFORML 「やだっ、セーエキ、漏れちゃう…」
+								PRINTFORML 「せっかく注いでもらったのに…」
 								PRINTW 
+							ENDIF
+						ELSE
+							IF EX:TARGET:膣内精液 > 500
+								PRINTFORML 「こんなに膣内出ししまくってたら、危険日じゃなくてもデきちゃうかも…%UNICODE(0x2665) *1%」」
+								PRINTFORML 「っていうか、ちゃんと受精しないかなー。赤ちゃん、ほしいもんね♪」
+								PRINTW 
+							ELSE
+								PRINTFORML 「わっ…けっこー出てきた」
+								PRINTFORML 「あんっ、もったいないなー…」
+								PRINTFORML はたては膣から垂れ落ちる精液を指で掬うと、口元に運んでピチャピチャと舐めとった
+								IF ABL:精液中毒 >= 3
+									PRINTFORML 「んふ、おいしー…♪　最初はあんなに苦く感じたのに…♪」
+									PRINTW 
+								ELSE
+									PRINTFORML 「んんー…やっぱり変な味ー。もっと舐めたら、慣れてくるのかなぁ…」
+									PRINTW 
+								ENDIF
 							ENDIF
 						ENDIF
 					ENDIF
-				ENDIF
-			ELSEIF CFLAG:TARGET:生解禁 == 1
-				IF TCVAR:TARGET:ピル == 1
-					IF EX:TARGET:膣内精液 > 500
-						PRINTFORML 「やンッ、セーエキ、漏れちゃうよぉっ…\/\/\/」
-						PRINTFORML はたての膣からぶぴっ、ぶびゅっと下品な音を立てて精液が漏れ出る
-						PRINTW 
-						PRINTFORML 「音、恥ずかしいっ…\/\/\/　聞いちゃ、やだぁ…」
-						PRINTFORML はたては股間を押さえ、あふれ出る精液を止めようとする
-						PRINTW 
-					ELSE
-						PRINTFORML 
-					ENDIF
-				ELSE
-					IF EX:TARGET:膣内精液 > 500
-						IF ESTRUS_CYCLE(TARGET) == 150
-							PRINTFORML 「駄目っていうのに、生で膣内に出しちゃうんだもん…」
-							PRINTFORML 「今日、危険日だよ？　デきちゃったら、どーしよ…」
+				ELSEIF CFLAG:TARGET:生解禁 == 1
+					IF TCVAR:TARGET:ピル == 1
+						IF EX:TARGET:膣内精液 > 500
+							PRINTFORML 「やンッ、セーエキ、漏れちゃうよぉっ…\/\/\/」
+							PRINTFORML はたての膣からぶぴっ、ぶびゅっと下品な音を立てて精液が漏れ出る
+							PRINTW 
+							PRINTFORML 「音、恥ずかしいっ…\/\/\/　聞いちゃ、やだぁ…」
+							PRINTFORML はたては股間を押さえ、あふれ出る精液を止めようとする
 							PRINTW 
 						ELSE
-							PRINTFORML 「危険日じゃないけど、この量、ちょっとヤバいかも…」
-							PRINTFORML 「デきちゃうかもしんないね…」
-							PRINTW 
+							PRINTFORML 
 						ENDIF
 					ELSE
-						IF ESTRUS_CYCLE(TARGET) == 150
-							PRINTFORML 「駄目っていうのに、生で膣内に出しちゃうんだもん…」
-							PRINTFORML 「デきちゃったら、どーしよ…」
-							PRINTFORML 「そのときは、ちゃんとセキニンとってね？」
-							PRINTW 
+						IF EX:TARGET:膣内精液 > 500
+							IF ESTRUS_CYCLE(TARGET) == 150
+								PRINTFORML 「駄目っていうのに、生で膣内に出しちゃうんだもん…」
+								PRINTFORML 「今日、危険日だよ？　デきちゃったら、どーしよ…」
+								PRINTW 
+							ELSE
+								PRINTFORML 「危険日じゃないけど、この量、ちょっとヤバいかも…」
+								PRINTFORML 「デきちゃうかもしんないね…」
+								PRINTW 
+							ENDIF
 						ELSE
-							PRINTFORML 「危険日じゃないからって、遠慮なく膣内に出すんだもん…♪」
-							PRINTFORML 「%MASTERNAME:42%って、結構ゴーインなんだー…♪」
+							IF ESTRUS_CYCLE(TARGET) == 150
+								PRINTFORML 「駄目っていうのに、生で膣内に出しちゃうんだもん…」
+								PRINTFORML 「デきちゃったら、どーしよ…」
+								PRINTFORML 「そのときは、ちゃんとセキニンとってね？」
+								PRINTW 
+							ELSE
+								PRINTFORML 「危険日じゃないからって、遠慮なく膣内に出すんだもん…♪」
+								PRINTFORML 「%MASTERNAME:42%って、結構ゴーインなんだー…♪」
+							ENDIF
 						ENDIF
 					ENDIF
 				ENDIF
@@ -5258,19 +5300,98 @@ IF LOCAL
 	ENDIF
 	;-------------------------------------------------
 	;デート中帰宅
+	;クラウンピース口上を参考にしました
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
+		IF CFLAG:42:現在位置 == OMANEKIBEYA()
+			IF CFLAG:42:うふふ
+				;邪魔にならないよう表示しない
+				RETURN 1
+			ELSE
+				PRINTFORMW 「ふわぁ……あ、もうこんな時間かぁ」
+				PRINTFORMW 「お別れの時間だねー、%MASTERNAME:42%」
+				;泊まれる
+				SIF !TCVAR:(CFLAG:MASTER:お招き):連泊禁止 && NEMUKE() < 720
+					PRINTFORMW 「……やっぱり、朝まで一緒にいたいな」
+			ENDIF
+		ELSE
+			PRINTFORML 「うわっ、もーこんな時間じゃん」
+			IF CFLAG:K42C_結婚 >= 1
+				PRINTFORML 「ダーリンとデートできて今日は嬉しかった♪」
+				PRINTFORML 「またデートしようね。約束だよ♪　ちゅっ%UNICODE(0x2665) *1%」
+				PRINTW 
+			ELSEIF TALENT:恋人
+				PRINTFORML 「うぅ～、ホントーは帰りたくないのに～ゴメンね、%MASTERNAME:42%」
+				PRINTFORML 「またデートしようね。約束だよ♪　ちゅっ%UNICODE(0x2665) *1%」
+				PRINTW 
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「うぅ～ゴメン、もっと一緒にいたいけど、このままだとメーワクかかっちゃうから……」
+				PRINTFORML 「またデートしようね。約束だよ♪　ちゅっ%UNICODE(0x2665) *1%」
+				PRINTW 
+			ELSEIF TALENT:愛欲 || TALENT:セフレ
+				PRINTFORML 「%MASTERNAME:42%と気持ちいーことするのも好きだけど、デートするのも楽しいのよねー」
+				PRINTFORML 「また誘ってよね。じゃーねー♪」
+				PRINTW 
+			ELSEIF TALENT:思慕
+				PRINTFORML 「んー……」
+				PRINTFORML 「ん、ちょっと帰るのが惜しいなーって思っただけ」
+				PRINTFORML 「また誘ってよね。じゃーねー♪」
+				PRINTW 
+			ELSE
+				IF BASE:42:ムード == MAXBASE:42:ムード
+					PRINTFORML 「%MASTERNAME:42%と一緒に遊ぶの、すっごい楽しかった♪」
+					PRINTFORML 「次も誘ってくれたら嬉しーな♪　じゃあね、また遊びに行こーねー♪」
+					PRINTW 
+				;合意時にうふふできるくらいのムード
+				ELSEIF BASE:42:ムード >= 300
+					PRINTFORML 「眠くなかったら、%MASTERNAME:42%ともっと遊んでたいんだけどなー」
+					PRINTFORML 「じゃーねー。また遊びに行こーねー♪」
+					PRINTW 
+				;デート中ムードを上げなかったか遅い時間にデートに行ったか
+				ELSEIF BASE:42:ムード > 0
+					PRINTFORML 「次はもーちょっと時間にヨユーもつとか、色んなことして楽しませてよねー」
+					PRINTFORML 「じゃーねー」
+					PRINTW 
+				;何をしに行ったのだ
+				ELSEIF BASE:42:ムード == 0
+					PRINTFORML 「なんか連れ回されただけだし……サイアクー」
+					PRINTFORML 「じゃーねー」
+					PRINTW 
+				ENDIF
+			ENDIF
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
 	;玄関先でお見送り
+	;映姫様口上を参考にしました
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
-		PRINTFORML
+		IF CFLAG:K42C_結婚 >= 1
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「ウチに住んでくれれば毎日会えるのに～」
+				PRINTFORML 「まあ、適度な距離感も長続きの秘訣っていうけど」
+				PRINTW 
+			CASE 1
+				PRINTFORML 「通い妻っていうのも悪くないけど、どーせなら一緒に暮らしたいなー」
+			ENDSELECT
+				IF MAIN_MAP == 8
+					PRINTFORML 「『近いからすぐ会えるだろう？』そーいう問題じゃないの～」
+				ENDIF
+				PRINTFORML 「また様子を見に来るからね。%MASTERNAME:42%、愛してる%UNICODE(0x2665) *1%」
+				PRINTW 
+		ELSEIF TALENT:恋慕 || TALENT:恋人
+			PRINTFORML 「今日はありがとーね。そろそろ帰るね」
+			PRINTFORML 「えへへ、%MASTERNAME:42%とおうちデートしちゃった……%UNICODE(0x2665) *1%」
+		ELSE
+			PRINTFORML 「送ってもらってありがと」
+			PRINTFORMW 「ここまででいーよ。じゃーねー」
+		ENDIF
 		RETURN 1
 	ENDIF
 ENDIF
@@ -6491,7 +6612,7 @@ IF LOCAL
 		IF LOCAL:1
 			;時間停止時
 			IF FLAG:70
-				IF FIRSTTIME(SELECTCOM)
+				IF FIRSTTIME("脱衣-全裸")
 					IF TALENT:恋慕 || TALENT:恋人
 						PRINTFORML ついにはたての裸を拝むことができた
 						PRINTFORML 期待通り、いやそれ以上に綺麗だった
@@ -6533,7 +6654,7 @@ IF LOCAL
 				ENDIF
 			;通常
 			ELSE
-				IF FIRSTTIME(SELECTCOM)
+				IF FIRSTTIME("脱衣-全裸")
 					;はたてがふたなり
 					IF TALENT:42:性別 == 3
 						PRINTFORML 「あ、やっ、待ってっ、服脱がさないでっ」
@@ -6656,7 +6777,7 @@ IF LOCAL
 		IF LOCAL:1
 			;時間停止時
 			IF FLAG:70
-				IF FIRSTTIME(SELECTCOM)
+				IF FIRSTTIME("脱衣-下着姿")
 					IF TALENT:恋慕 || TALENT:恋人
 						PRINTFORML はたての服を脱がし、下着姿にしてやった
 						PRINTFORML このまま時間停止を解除したら、彼女はどんな反応をしてくれるだろうか
@@ -6687,7 +6808,7 @@ IF LOCAL
 				
 			;通常
 			ELSE
-				IF FIRSTTIME(SELECTCOM)
+				IF FIRSTTIME("脱衣-下着姿")
 					;はたてがふたなり
 					IF TALENT:42:性別 == 3
 						PRINTFORML 「あ、やっ、待ってっ、服脱がさないでっ」
@@ -6810,7 +6931,7 @@ IF LOCAL
 			IF FLAG:70
 			;通常
 			ELSE
-				IF FIRSTTIME(SELECTCOM)
+				IF FIRSTTIME("脱衣-半脱ぎ")
 					;はたてがふたなり
 					IF TALENT:42:性別 == 3
 						PRINTFORML 「あ、やっ、待ってっ、服脱がさないでっ」
@@ -7257,7 +7378,7 @@ IF LOCAL
 	ENDIF
 	
 	;大丈夫？
-	IF BASE:MASTER <= 800 && (TALENT:恋慕 || TALENT:恋人)
+	IF BASE:MASTER:体力 <= 800 && (TALENT:恋慕 || TALENT:恋人)
 		CALL K42_HEALTH
 	ENDIF
 	
@@ -7334,7 +7455,7 @@ IF LOCAL
 		IF CFLAG:1005 == 1 && CFLAG:MASTER:初期位置 != CFLAG:TARGET:初期位置
 			SELECTCASE CFLAG:1006
 			CASE IS > 15
-				SELECTCASE RAND:3
+				SELECTCASE RAND:15
 				CASE 0
 					;原理は分からんけど届くんだよ！河童の技術すげぇ！
 					PRINTFORML ﾋﾟﾛﾘﾝ♪
@@ -7552,7 +7673,7 @@ IF LOCAL
 					PRINTW 
 					PRINTFORML 歯に衣着せぬはたての言動が、さとりに対してはいい方向に作用しているようだ
 					PRINTFORML とりあえず「その顔文字は流行らないし流行らせない」と返事しておいた
-					PRINTFORML 即「なんでーー！？」と返事が返ってきた
+					PRINTFORML 即「なんでーー！？」と返信が来た
 					PRINTW 
 				CASE 7
 					PRINTFORML はたてからメールが届いたようだ
@@ -7649,7 +7770,7 @@ IF LOCAL
 					PRINTFORML 食べたいものと、「食後にはたてが食べたい」と返事しておいた
 					PRINTFORML やや間があった後、はたてから「エッチ（笑）」と返事が来た
 					PRINTW 
-				CASEELSE
+				CASE 11
 					PRINTFORML ﾋﾟﾛﾘﾝ♪
 					PRINTFORML はたてからメールが届いたようだ
 					PRINTW 
@@ -7675,6 +7796,346 @@ IF LOCAL
 					PRINTFORML 人間にだって天狗が可愛く見えるほどもっと狡猾で邪悪な者だっているのだ
 					PRINTFORML 素直で熱い天狗がいてもおかしくはないだろう
 					PRINTW 
+				CASE 12
+					PRINTFORML ﾋﾟﾛﾘﾝ♪
+					PRINTFORML はたてからメールが届いたようだ
+					PRINTW 
+					PRINTFORML ┏━━━━━━━━━┓
+					PRINTFORML ┃受信メール　　　　┃
+					PRINTFORML ┃─────────┃
+					PRINTFORML ┃はたて　　　　　　┃
+					PRINTFORML ┃無礼講　　　　　　┃
+					PRINTFORML ┃XXXX/XX/XX AA:BB　┃
+					PRINTFORML ┃─────────┃
+					PRINTFORML ┃妖怪の山のみんなと┃
+					PRINTFORML ┃宴会なう　　　　　┃
+					PRINTFORML ┃　　　　　　　　　┃
+					PRINTFORML ┃  ----ＥＮＤ----  ┃
+					PRINTFORML ┃─────────┃
+					PRINTFORML ┃□00.jpg　　　　　┃
+					PRINTFORML ┗━━━━━━━━━┛
+					PRINTW 
+					PRINTFORML 画像は、酒に酔ったはたてが龍の頭をどついている画像だった
+					PRINTFORML オイオイオイ　死ぬわコイツ
+					PRINTW 
+					PRINTFORML とりあえず「生きてる？　上司の頭なんてどついて大丈夫？」とメールする
+					PRINTFORML ほどなくして返信が来た
+					PRINTW 
+					PRINTFORML 「龍様って仕事には厳しいけどプライベートは割とユルいよ」とのことだ
+					PRINTFORML 天狗社会はガチガチの縦割りかと思っていたが、意外とそうでもないらしい
+					PRINTW 
+					PRINTFORML まあ、基本引きこもりなはたてが特にお咎めなしな辺り、よほどなことでなければ緩いのかもしれない
+					PRINTFORML それか、龍が部下に寛容かだ
+					PRINTW 
+					PRINTFORML ちなみに、「自分がどついてるのを見て真似した烏天狗は三脚が折れるほど思いっきり殴り返された」らしい
+					PRINTFORML 絶対に真似はしないでおこう
+					PRINTW 
+				CASE 13
+					PRINTFORML ﾋﾟﾛﾘﾝ♪
+					PRINTFORML はたてからメールが届いたようだ
+					PRINTW 
+					PRINTFORML ┏━━━━━━━━━┓
+					PRINTFORML ┃受信メール　　　　┃
+					PRINTFORML ┃─────────┃
+					PRINTFORML ┃はたて　　　　　　┃
+					PRINTFORML ┃パジャマパーティー┃
+					PRINTFORML ┃XXXX/XX/XX AA:BB　┃
+					PRINTFORML ┃─────────┃
+					PRINTFORML ┃何話してるかは　　┃
+					PRINTFORML ┃秘密♪　　　　　　┃
+					PRINTFORML ┃　　　　　　　　　┃
+					PRINTFORML ┃  ----ＥＮＤ----  ┃
+					PRINTFORML ┃─────────┃
+					PRINTFORML ┃□00.jpg　　　　　┃
+					PRINTFORML ┗━━━━━━━━━┛
+					PRINTW 
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 画像は、はたて、文、椛、龍がパジャマ姿でくつろいでいる画像だった
+						PRINTFORML はたてはフリルのついたパジャマズボン、文は烏の模様をあしらったワンピースタイプ、
+						PRINTFORML 椛は簡素な襦袢、龍は肌触りのよさそうな色っぽいネグリジェだった
+						PRINTW 
+						PRINTFORML うら若……いかどうかは分からないが、女性４人の寝間着姿はなかなかに眼福だ
+						PRINTFORML そんな華やかな場をブチ壊しにしているのは、数えきれないほどの酒瓶だった
+						PRINTW 
+					CASE 1
+						PRINTFORML 画像は、はたて、文、椛がパジャマ姿でくつろいでいる画像だった
+						PRINTFORML はたてはフリルのついたパジャマズボン、文は烏の模様をあしらったワンピースタイプ、
+						PRINTFORML 椛は簡素な襦袢だった
+						PRINTW 
+						PRINTFORML それだけ見れば女三人、華やかな画像ともいえる
+						PRINTFORML 床に転がっている夥しい量の一升瓶がなければだが
+						PRINTW 
+					ENDSELECT
+				CASE 14
+					PRINTFORML ﾋﾟﾛﾘﾝ♪
+					PRINTFORML はたてからメールが届いたようだ
+					PRINTW 
+					;春
+					IF DAY:2 == 1
+						PRINTFORML ┏━━━━━━━━━┓
+						PRINTFORML ┃受信メール　　　　┃
+						PRINTFORML ┃─────────┃
+						PRINTFORML ┃はたて　　　　　　┃
+						PRINTFORML ┃大量！　　　　　　┃
+						PRINTFORML ┃XXXX/XX/XX AA:BB　┃
+						PRINTFORML ┃─────────┃
+						PRINTFORML ┃おいしそーでしょ　┃
+						PRINTFORML ┃天ぷらにしよっかな┃
+						PRINTFORML ┃　　　　　　　　　┃
+						PRINTFORML ┃  ----ＥＮＤ----  ┃
+						PRINTFORML ┃─────────┃
+						PRINTFORML ┃□00.jpg　　　　　┃
+						PRINTFORML ┗━━━━━━━━━┛
+						PRINTW 
+						PRINTFORML 画像は、籠いっぱいにとれた山菜が写っていた
+						PRINTFORML ノビル、タラの芽、ワラビ、コゴミ……確かにおいしそうだ
+						PRINTW 
+						IF ABL:料理技能 < 1
+							PRINTFORML だが、はたては料理が苦手ではなかったか
+							PRINTFORML メールを返すと、「飯綱丸さまに作ってもらうもーん」と返信がきた
+							PRINTW 
+						ELSE
+							PRINTFORML はたての作ってくれる天ぷらかぁ…と思いを馳せながら、食べたいとメールを送る
+							PRINTFORML ほどなく「じゃー帰っておいで！」と返信がきた
+							PRINTW 
+						ENDIF
+					;夏
+					ELSEIF DAY:2 == 2
+						PRINTFORML ┏━━━━━━━━━┓
+						PRINTFORML ┃受信メール　　　　┃
+						PRINTFORML ┃─────────┃
+						PRINTFORML ┃はたて　　　　　　┃
+						PRINTFORML ┃気持ちいい！　　　┃
+						PRINTFORML ┃XXXX/XX/XX AA:BB　┃
+						PRINTFORML ┃─────────┃
+						PRINTFORML ┃水着　　　　　　　┃
+						PRINTFORML ┃かわいーでしょ♪　┃
+						PRINTFORML ┃　　　　　　　　　┃
+						PRINTFORML ┃  ----ＥＮＤ----  ┃
+						PRINTFORML ┃─────────┃
+						PRINTFORML ┃□00.jpg　　　　　┃
+						PRINTFORML ┗━━━━━━━━━┛
+						PRINTW 
+						IF TALENT:TARGET:育児中
+							PRINTFORML 画像は、はたて、%CHILDNAME:42:(TALENT:TARGET:育児中)%、文、椛が水着を着て滝つぼで水浴びしている姿だった
+						ELSE
+							PRINTFORML 画像は、はたて、文、椛が水着を着て滝つぼで水浴びしている姿だった
+						ENDIF
+						SELECTCASE RAND:3
+						CASE 0
+							PRINTFORMW はたては胸元がフリルになっているビキニ
+						CASE 1
+							PRINTFORMW はたてはおしゃれなワンピース
+						CASE 2
+							PRINTFORMW はたてはやや布地が少な目な扇情的なビキニ
+						ENDSELECT
+						PRINTFORML 
+						IF TALENT:TARGET:育児中
+							;女の子
+							IF CHILD_SEX:42:(TALENT:42:育児中) == 1
+								IF CFLAG:42:出産経過日 >= CHILD_自立前
+									SELECTCASE RAND:3
+									CASE 0
+										PRINTFORMW %CHILDNAME:42:(TALENT:TARGET:育児中)%は胸元がフリルになっているビキニ
+									CASE 1
+										PRINTFORMW %CHILDNAME:42:(TALENT:TARGET:育児中)%はおしゃれなワンピース
+									CASE 2
+										PRINTFORMW %CHILDNAME:42:(TALENT:TARGET:育児中)%はやや布地が少な目な扇情的なビキニ
+									ENDSELECT
+								ELSEIF CFLAG:42:出産経過日 >= CHILD_しつけ
+									SELECTCASE RAND:3
+									CASE 0
+										PRINTFORMW %CHILDNAME:42:(TALENT:TARGET:育児中)%はフリルをふんだんにあしらった露出が控えめなビキニ
+									CASE 1
+										PRINTFORMW %CHILDNAME:42:(TALENT:TARGET:育児中)%はスク水
+									CASE 2
+										PRINTFORMW %CHILDNAME:42:(TALENT:TARGET:育児中)%はかわいいフリルがついたワンピース
+									ENDSELECT
+								ELSE
+									PRINTFORMW %CHILDNAME:42:(TALENT:TARGET:育児中)%はシンプルながらかわいい水着
+								ENDIF
+							;男の子
+							ELSE
+								IF CFLAG:42:出産経過日 >= CHILD_しつけ
+									SELECTCASE RAND:3
+									CASE 0
+										PRINTFORMW %CHILDNAME:42:(TALENT:TARGET:育児中)%は海パン
+									CASE 1
+										PRINTFORMW %CHILDNAME:42:(TALENT:TARGET:育児中)%は白が眩しい褌
+									CASE 2
+										PRINTFORMW %CHILDNAME:42:(TALENT:TARGET:育児中)%はハーフパンツ
+									ENDSELECT
+								ELSE
+									PRINTFORMW %CHILDNAME:42:(TALENT:TARGET:育児中)%はシンプルながらかわいい水着
+								ENDIF
+							ENDIF
+						ENDIF
+						PRINTFORML 
+						SELECTCASE RAND:3
+						CASE 0
+							PRINTFORMW 文はボディーラインがくっきりした競泳水着
+						CASE 1
+							PRINTFORMW 文は大胆なデザインのビキニ
+						CASE 2
+							PRINTFORMW 文はスポーティーな水着の上にカットジーンズ
+						ENDSELECT
+						PRINTFORML 
+						SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 椛は臍がチラリと見えるタンキニだった
+						CASE 1
+							PRINTFORML 椛はスク水だった
+						CASE 2
+							PRINTFORML 椛は飾り気のないサラシに褌姿だった
+						ENDSELECT
+						PRINTW 
+						PRINTFORML またメールが届いた
+						PRINTFORML 「誰の水着が一番可愛い？」と書いてある
+						PRINTW 
+						PRINTFORML なんと返信するか……
+						PRINTL 
+						IF TALENT:TARGET:育児中
+							CALL ASK_M("はたて", 1,"我が子", 1,"文", 1,"椛", 1)
+							SELECTCASE RESULT
+							CASE 0
+								PRINTFORML (//∇//)
+								PRINTFORML と返信が来た
+							CASE 1
+								IF CHILD_SEX:42:(TALENT:42:育児中) == 1
+									PRINTFORML (·ω·｀*)ﾈｰ
+								ELSE
+									PRINTFORML (´∀｀*) 
+								ENDIF
+								PRINTFORML と返信が来た
+							CASE 2
+								PRINTFORML (怒｀Д´怒) 
+								PRINTFORML と返信が来た
+							CASE 3
+								PRINTFORML (´·ω·`)
+								PRINTFORML と返信が来た
+							ENDSELECT
+						ELSE
+							CALL ASK_M("はたて", 1,"文", 1,"椛", 1)
+							SELECTCASE RESULT
+							CASE 0
+								PRINTFORML (//∇//)
+								PRINTFORML と返信が来た
+							CASE 1
+								PRINTFORML (怒｀Д´怒) 
+								PRINTFORML と返信が来た
+							CASE 2
+								PRINTFORML (´·ω·`)
+								PRINTFORML と返信が来た
+							ENDSELECT
+						ENDIF
+					;秋
+					ELSEIF DAY:2 == 3
+						;ハロウィン
+						IF DAY:3 == 30
+							PRINTFORML ┏━━━━━━━━━┓
+							PRINTFORML ┃受信メール　　　　┃
+							PRINTFORML ┃─────────┃
+							PRINTFORML ┃はたて　　　　　　┃
+							PRINTFORML ┃ハロウィン！　　　┃
+							PRINTFORML ┃XXXX/XX/XX AA:BB　┃
+							PRINTFORML ┃─────────┃
+							PRINTFORML ┃お菓子をくれないと┃
+							PRINTFORML ┃悪戯するぞー！　　┃
+							PRINTFORML ┃　　　　　　　　　┃
+							PRINTFORML ┃  ----ＥＮＤ----  ┃
+							PRINTFORML ┃─────────┃
+							PRINTFORML ┃□00.jpg　　　　　┃
+							PRINTFORML ┗━━━━━━━━━┛
+							PRINTW 
+							PRINTFORML 画像は、はたて、文、椛が仮装している姿が写っていた
+							PRINTFORMW はたては肩を剥き出しにした色っぽいワンピースと、魔理沙のような帽子を身に着けている。これは……魔女だろう
+							PRINTFORMW 文は貴族のような服に、裏地が赤い黒のマントを羽織っている。吸血鬼か
+							PRINTFORML 椛は全身にぐるぐると包帯を巻いている。ミイラだろうか？
+							PRINTW 
+							PRINTFORML なんと返信するか……
+							PRINTL 
+							CALL ASK_YN("しょうがない、お菓子をあげよう","むしろ悪戯してほしい")
+							IF !RESULT
+								PRINTFORML 「やったー♪」と返信が来た
+								PRINTFORML こういうところは天狗のくせに子供っぽい
+								PRINTW 
+							ELSE
+								PRINTFORML 「じゃあお財布をこっそりベリベリ音がするやつに換えておく！」と返信がきた
+								PRINTFORML やめて！
+								PRINTW 
+							ENDIF
+						ELSE
+							PRINTFORML ┏━━━━━━━━━┓
+							PRINTFORML ┃受信メール　　　　┃
+							PRINTFORML ┃─────────┃
+							PRINTFORML ┃はたて　　　　　　┃
+							PRINTFORML ┃すっかり秋だねー　┃
+							PRINTFORML ┃XXXX/XX/XX AA:BB　┃
+							PRINTFORML ┃─────────┃
+							PRINTFORML ┃秋神さまが　　　　┃
+							PRINTFORML ┃色塗り頑張ってる　┃
+							PRINTFORML ┃　　　　　　　　　┃
+							PRINTFORML ┃  ----ＥＮＤ----  ┃
+							PRINTFORML ┃─────────┃
+							PRINTFORML ┃□00.jpg　　　　　┃
+							PRINTFORML ┗━━━━━━━━━┛
+							PRINTW 
+							PRINTFORML 画像は、紅葉が舞う中でポーズをとるはたての姿だった
+							PRINTFORML なるほど、妖怪の山の紅葉はいつ見ても見事なものだ
+							PRINTW 
+							PRINTFORML しかも驚くべきことに、麓に住む秋神が一枚一枚手で塗っているらしい
+							PRINTFORML 普通そういうのは、神通力的なものでやるのではないだろうか
+							PRINTW 
+						ENDIF
+					;冬
+					ELSEIF DAY:2 == 4
+						PRINTFORML ┏━━━━━━━━━┓
+						PRINTFORML ┃受信メール　　　　┃
+						PRINTFORML ┃─────────┃
+						PRINTFORML ┃はたて　　　　　　┃
+						PRINTFORML ┃寒いねー　　　　　┃
+						PRINTFORML ┃XXXX/XX/XX AA:BB　┃
+						PRINTFORML ┃─────────┃
+						PRINTFORML ┃雪、すっごい　　　┃
+						PRINTFORML ┃積もってる　　　　┃
+						PRINTFORML ┃　　　　　　　　　┃
+						PRINTFORML ┃  ----ＥＮＤ----  ┃
+						PRINTFORML ┃─────────┃
+						PRINTFORML ┃□00.jpg　　　　　┃
+						PRINTFORML ┗━━━━━━━━━┛
+						PRINTW 
+						IF TALENT:TARGET:育児中
+							IF CFLAG:42:出産経過日 >= CHILD_しつけ
+								PRINTFORML 画像は、三体の雪だるまの前でピースをするはたてと%CHILDNAME:42:(TALENT:TARGET:育児中)%の姿だった
+								PRINTFORML 二人ともどてらにマフラーという恰好だ
+								PRINTW 
+								PRINTFORML %CHILDNAME:42:(TALENT:TARGET:育児中)%も、もうこういうことができるのだなあとしみじみ思う
+								;恋慕出産だと愛情値はデフォで300なので、301以上なら子どもと触れ合った経験あり、なはず
+								IF CHILD_LOVE:42:(TALENT:TARGET:育児中) > 300
+									PRINTFORML 「%MASTERNAME:42%の雪だるま、自分が作るんだって%CHILDNAME:42:(TALENT:TARGET:育児中)%張り切ったんだよー」と続けてメールが送られてきた
+									PRINTFORML 離れていても父のことを思ってくれる妻と子に、胸が温かくなるのを感じた
+									PRINTW 
+								ELSE
+									PRINTFORML 「ちなみに右が私で左が%CHILDNAME:42:(TALENT:TARGET:育児中)%で真ん中が%MASTERNAME:42%だよ」と続けてメールが送られてきた
+								ENDIF
+							ELSE
+								PRINTFORML 画像は、小さい雪だるまを興味深そうに触っている%CHILDNAME:42:(TALENT:TARGET:育児中)%だった
+								PRINTFORML 風邪をひかないように、防寒具をしっかり着こんでいる。まるでそっちが雪だるまのようだ
+								PRINTW 
+								PRINTFORML 「ちなみに触った後は冷たかったのかプルプルしててメッチャ可愛かった」と続けてメールが送られてきた
+								PRINTFORML そんな姿を見逃すなんて……！　出先であることを後悔してしまった
+								PRINTW 
+							ENDIF
+						ELSE
+							PRINTFORML 画像は、二体の雪だるまの前でピースをするはたての姿が写っていた
+							PRINTFORML さすがに普段着では寒いのか、どてらにマフラーという色気のない恰好だ
+							PRINTW 
+							PRINTFORML 山からはあまり出ない癖に、こういうことは無駄に行動力がある
+							PRINTFORML 「ちなみに右が私で左が%MASTERNAME:42%だよ」と続けてメールが送られてきた
+							PRINTW 
+						ENDIF
+					ENDIF
 				ENDSELECT
 			CASE IS > 12
 				SELECTCASE RAND:6
@@ -7803,7 +8264,7 @@ IF LOCAL
 					PRINTFORML ┗━━━━━━━━━┛
 					PRINTW 
 					PRINTFORML その顔文字は流行らないし流行らせない
-					PRINTFORML そう返事すると即「なんでーー！？」と返事が返ってきた
+					PRINTFORML そう返事すると即「なんでーー！？」と返信が来た
 					PRINTW 
 				CASEELSE
 					PRINTFORML ﾋﾟﾛﾘﾝ♪
@@ -7912,7 +8373,7 @@ IF LOCAL
 					PRINTFORML あの屋台、ラーメンもやってたのか…
 					PRINTW 
 					PRINTFORML とりあえず「太るぞ」と返信しておいた
-					PRINTFORML 数秒後「うっさい！」と返事が返ってきた
+					PRINTFORML 数秒後「うっさい！」と返信が来た
 					PRINTW 
 				ENDSELECT
 			CASE IS > 6

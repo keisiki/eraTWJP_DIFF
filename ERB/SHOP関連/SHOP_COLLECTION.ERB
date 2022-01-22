@@ -1,19 +1,31 @@
 ﻿@SHOW_COLLECTION
+#DIM 総数
+#DIM 着用可能数
 DRAWLINE
-CALL DISPLAY_ALL_COLLECTION
-LOCAL = RESULT:0
+IF FLAG:パンツ収集状況タイプB
+	PRINT [0] - デフォルトソート 
+	PRINT [1] - 未所持数昇順ソート
+	INPUT
+ENDIF
+IF FLAG:パンツ収集状況タイプB && RESULT
+	CALL DISPLAY_SORT_ALL_COLLECTION
+ELSE
+	CALL DISPLAY_ALL_COLLECTION
+ENDIF
+総数 = RESULT:0
 FLAG:獲得パンツ種数 = RESULT:1
+着用可能数 = RESULT:2
 PRINTL 　 
 IF FLAG:パンツ収集状況タイプB == 0
-	PRINTFORML 総数：{LOCAL}枚　　種別：{FLAG:獲得パンツ種数}種　　ダブり：{LOCAL - FLAG:獲得パンツ種数}枚
+	PRINTFORML 総数：{総数}枚　　種別：{FLAG:獲得パンツ種数}種　　ダブり：{総数 - FLAG:獲得パンツ種数}枚
 ELSE
-	PRINTFORML 総数：{LOCAL}枚　　種別：{FLAG:獲得パンツ種数}/{RESULT:2}種　　ダブり：{LOCAL - FLAG:獲得パンツ種数}枚
+	PRINTFORML 総数：{総数}枚　　種別：{FLAG:獲得パンツ種数}/{着用可能数}種　　ダブり：{総数 - FLAG:獲得パンツ種数}枚
 ENDIF
 PRINT [0] - 戻る 
-SIF LOCAL - FLAG:獲得パンツ種数
+SIF 総数 - FLAG:獲得パンツ種数
 	PRINT [1] - 1枚残して全て売却する
 INPUT
-IF RESULT == 1 && (LOCAL - FLAG:獲得パンツ種数) != 0
+IF RESULT == 1 && (総数 - FLAG:獲得パンツ種数) != 0
 	CALL SPEND_COLLECTION
 	PRINTFORMW 全部で{RESULT:0}枚 \\{100 * RESULT:0}で売れました
 	MONEY += 100 * RESULT:0
@@ -55,6 +67,43 @@ FOR 対象,1,CHARANUM
 		総数 += RESULT:0
 		所有種類数 += RESULT:1
 	ENDIF
+NEXT
+RETURN 総数, 所有種類数, 着用可能数
+
+;全コレクション昇順表示
+@DISPLAY_SORT_ALL_COLLECTION
+#DIM 対象
+#DIM 総数
+#DIM 所有種類数
+#DIM 着用可能数
+#DIM 未所持数
+;本当は999ではなくCHARANUM使いたい
+#DIM 未所持数配列,999
+#DIM キャラ配列,999
+未所持数配列:0 = -1
+VARSET RESULT
+総数 = 0
+所有種類数 = 0
+着用可能数 = 0
+
+SIF !FLAG:パンツ収集状況タイプB
+	RETURN
+
+FOR 対象,1,CHARANUM
+	CALL CHECK_COLLECTION(対象)
+	未所持数 = RESULT:2 - RESULT:1
+	;0入ってるとARRAYMSORTが機能しないので-1を代わりに入れる
+	未所持数配列:対象 = 未所持数 ? 未所持数 # -1
+	キャラ配列:対象 = 対象
+NEXT
+ARRAYMSORT 未所持数配列,キャラ配列
+FOR 対象,1,CHARANUM
+	PRINTL
+	PRINTFORML 【%CALLNAME:(キャラ配列:対象)%】
+	CALL DISPLAY_COLLECTION_B(キャラ配列:対象)
+	総数 += RESULT:0
+	所有種類数 += RESULT:1
+	着用可能数 += RESULT:2
 NEXT
 RETURN 総数, 所有種類数, 着用可能数
 
@@ -144,7 +193,7 @@ ELSE
 		CFLAG:対象:(種類 + パンツ管理) -= 1
 	ENDIF
 ENDIF
-	
+
 RETURN (RESULT:0)
 
 ;コレクション枚数確認
@@ -152,6 +201,7 @@ RETURN (RESULT:0)
 ;引数	ARG:1		表示対象	0=コレクション	,1=手持ち
 ;戻り値	RESULT:0	総数
 ;		RESULT:1	種類数
+;		RESULT:2	着用可能数
 @CHECK_COLLECTION(対象, ARG:1=0)
 #DIM 対象
 #DIM 種類
@@ -168,10 +218,13 @@ FOR 種類,0,MAXPANTS
 	IF 所持数
 		RESULT:0 += 所持数
 		RESULT:1 ++
+		RESULT:2 ++
+	ELSEIF GET_INT(対象, "下半身下着_ずらし可能", 種類, "コレクション表示可能")
+		RESULT:2 ++
 	ENDIF
 NEXT
 
-RETURN RESULT:0,RESULT:1
+RETURN RESULT:0,RESULT:1,RESULT:2
 
 ;手持ちのコレクション1枚消費(DISPLAY_COLLECTION(1,1)と併用)
 ;引数	ARG:0	消費対象種類
@@ -311,7 +364,7 @@ RETURN 総数, 所有種類数,着用可能数
 #DIMS 条件
 #DIMS パンツ文字列
 IF 所有数
-		パンツ文字列 '= @"%PANTSNAME(種類,対象),22,LEFT%{LIMIT(所有数, 0, 999),3}枚" + "　"
+	パンツ文字列 '= @"%PANTSNAME(種類,対象),22,LEFT%{LIMIT(所有数, 0, 999),3}枚" + "　"
 ELSE
 	条件 '= GET_STR(対象, "下半身下着_ずらし可能", 種類, "コレクション解禁条件")
 	IF 種類 == 18

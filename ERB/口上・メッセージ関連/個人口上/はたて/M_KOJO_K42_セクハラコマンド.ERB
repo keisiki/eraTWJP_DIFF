@@ -378,6 +378,14 @@ IF LOCAL
 		PRINTFORML はたてに抱き付きながらクンカクンカと匂いをかいだ
 		PRINTW 
 	ELSEIF CFLAG:睡眠
+		IF TALENT:恋慕 || TALENT:恋人
+			PRINTFORML はたては眠りながらも抱き付き返す動きを見せる
+			PRINTFORML 夢の中で、自分と抱き合っているのだろうか
+			PRINTW 
+		ELSE
+			PRINTFORML はたては寝苦しいのか、かすかに眉をひそめている
+			PRINTW 
+		ENDIF
 	ELSEIF CHK_DATENOW(CFLAG:42:デート中)
 		IF TFLAG:400 && (DATE_HITOGOMI() || WITH_MOB() == 9) || GET_TARGETNUM() >= 2
 			IF TALENT:恋人
@@ -857,7 +865,7 @@ IF LOCAL
 			ENDSELECT
 		ENDIF
 	ELSEIF PREVCOM == 305;=膝枕、ひざ元から体を起こしてキス。親密5以上で好意的反応
-		IF FIRSTTIME(SELECTCOM)
+		IF FIRSTTIME("キス")
 			IF TALENT:恋人
 				PRINTFORML 「ロマンチックなキスもいーなーって思ってたけど」
 				PRINTFORML 「こーいうキスも恋人って感じでいーね」
@@ -929,7 +937,7 @@ IF LOCAL
 		PRINTFORML 「ちょっと、やめてよっ…！」
 		PRINTW 
 	ELSE
-		IF FIRSTTIME(SELECTCOM)
+		IF FIRSTTIME("キス")
 			IF EXP:キス経験 > 0
 				PRINTFORML 「あーっ、やっと自分からキスしてくれる気になったんだ」
 				PRINTFORML 「ずっと待ってたんだからね？　反省の意味を込めて、もっかいしてよ」
@@ -2108,95 +2116,108 @@ LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 	IF FIRSTTIME(SELECTCOM)
-		PRINTFORML 「！」
-		PRINTFORM 「ちょ、ちょっと、そこは違…
-		IF TALENT:恋慕 || TALENT:恋人
-			PRINTL あうあう…」
-			PRINTFORML はたては愛する相手の変態的な行為を受け入れるべきかどうか迷っているようだ
-			PRINTW 
+		;時姦中
+		IF FLAG:70
+		;睡眠中
+		ELSEIF CFLAG:TARGET:睡眠
 		ELSE
-			PRINTL いや、前も駄目だけどっ、やめてっ、あっ、やだっ、やめなさいってば！」
-			PRINTFORML 「やっ、やめんか、このーーーーーーっ！」
-			PRINTFORML はたての巻き起こした突風に吹き飛ばされ{RAND:10}回転した
-			PRINTW 
-			PRINTFORML 「次やったらズタズタにするからね！　分かった！？」
-			PRINTFORML お尻を押さえたはたてに説教され、逆さまの状態で頷いた
-			PRINTW 
+			PRINTFORML 「！」
+			PRINTFORM 「ちょ、ちょっと、そこは違…
+			IF TALENT:恋慕 || TALENT:恋人
+				PRINTL あうあう…」
+				PRINTFORML はたては愛する相手の変態的な行為を受け入れるべきかどうか迷っているようだ
+				PRINTW 
+			ELSE
+				PRINTL いや、前も駄目だけどっ、やめてっ、あっ、やだっ、やめなさいってば！」
+				PRINTFORML 「やっ、やめんか、このーーーーーーっ！」
+				PRINTFORML はたての巻き起こした突風に吹き飛ばされ{RAND:10}回転した
+				PRINTW 
+				PRINTFORML 「次やったらズタズタにするからね！　分かった！？」
+				PRINTFORML お尻を押さえたはたてに説教され、逆さまの状態で頷いた
+				PRINTW 
+			ENDIF
 		ENDIF
+		RETURN 1
 	ELSE
-		IF TALENT:恋慕 || TALENT:恋人
-			IF (CFLAG:42:現在位置 == CFLAG:42:初期位置) || CFLAG:42:現在位置 ==OMANEKIBEYA() || AT_HOME(MASTER)
-				IF ABL:Ａ感覚 >= 5
-					PRINTFORML 「あ～～、あぁぁぁ、やだぁ、恥ずかしいよぉッ、あうっ%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%　あ%UNICODE(0x2665) *1%　あ%UNICODE(0x2665) *1%」
-					PRINTFORML 「ちっ違うっ%UNICODE(0x2665) *1%　はたて、ヘンタイなんかじゃっ%UNICODE(0x2665) *1%　やだ、やだぁっ%UNICODE(0x2665) *1%」
-					PRINTW 
-					PRINTFORML はたては羞恥にイヤイヤと首を振りながらも、菊穴で指を二本をくわえ込み、腰をくねらせている
-					PRINTW 
-				ELSEIF ABL:Ａ感覚 >= 3
-					PRINTFORML 「あ…お尻…触る、の？　ひっ…そんな、奥まで入れちゃ、やぁ…\/\/\/」
-					PRINTFORML 慣らした甲斐があり、はたての尻穴は中指を丸々一本飲み込むようになった
-					PRINTFORML 尻を弄られるという行為にも、羞恥はともかく嫌悪感をあまり感じなくなったようだ
-					PRINTW 
-					PRINTFORML 「お尻、変になるぅ…やだ、なんか怖いっ、やだやだぁっ」
-					PRINTFORML とはいえ、快感よりも異物感が勝るのか、眉を八の字に曲げて体をくねらせている
-					PRINTW 
-				ELSEIF ABL:Ａ感覚 >= 1
-					PRINTFORML 「うぅっ、変な感じがするっ…あんまり動かさないで…」
-					PRINTFORML 少しだけ緊張はほぐれてきたものの、指一本を入り口付近で動かすのがせいぜいだ
-					PRINTW 
-				ELSE
-					PRINTFORMW 「やだァっ、お尻、気持ち悪いっ…動かしちゃやだぁっ」
-					PRINTW 
-				ENDIF
-			ELSE
-				IF ABL:Ａ感覚 >= 5
-					PRINTFORML 「あっあぁ、やだぁ、恥ずかしいよぉッ、こんなところでっ」
-					PRINTFORML 「ちっ違うっ%UNICODE(0x2665) *1%　はたて、感じてなんかっ%UNICODE(0x2665) *1%　やだ、やだぁっ%UNICODE(0x2665) *1%」
-					PRINTW 
-				ELSEIF ABL:Ａ感覚 >= 3
-					PRINTFORML 「ねぇ、やめようよぉ、そんなところ、触っちゃ、やだぁ…\/\/\/」
-					PRINTFORML 口では抵抗しつつ、はたては尻穴をいじられるがままになっている
-					PRINTW 
-				ELSEIF ABL:Ａ感覚 >= 1
-					PRINTFORML 「うぅっ、変な感じするし、痛いし、こんなとこで、やだぁ…ヘンタイっ…\/\/\/」
-					PRINTFORML 少しだけ緊張はほぐれてきたものの、指一本を入り口付近で動かすのがせいぜいだ
-					PRINTW 
-				ELSE
-					PRINTFORMW 「やめてっ…こんなとこで、お尻、触らないでよぉっ…痛いっ、痛いっ！」
-					PRINTW 
-				ENDIF
-			ENDIF
-		ELSEIF TALENT:愛欲 || TALENT:セフレ
-			;アナルの弱い女はやはりスケベじゃのう！
-			IF ABL:Ａ感覚 >= 5
-				PRINTFORML 「ヒッ……%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%　おぉぉっ%UNICODE(0x2665) *1%」
-				PRINTFORML 「おしりっ%UNICODE(0x2665) *1%　もっと%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%　おッ%UNICODE(0x2665) *1%　おおッ%UNICODE(0x2665) *1%」
-				PRINTW 
-			ELSEIF ABL:Ａ感覚 >= 3
-				PRINTFORML 「あ、やだぁ…こんな、ところで…」
-				PRINTFORML 「ふぅぅっ%UNICODE(0x2665) *1%　ひぐっ%UNICODE(0x2665) *1%　おしり、よわいからぁっ%UNICODE(0x2665) *1%」
-				PRINTW 
-			ELSEIF ABL:Ａ感覚 >= 1
-				PRINTFORML 「うぐ、お尻、変な感じぃ…でも、やめないでぇ…」
-				PRINTW 
-			ELSE
-				PRINTFORML 「あっ、馬鹿っ…ちょっと痛いってば…」
-				PRINTW 
-			ENDIF
+		;時姦中
+		IF FLAG:70
+		;睡眠中
+		ELSEIF CFLAG:TARGET:睡眠
 		ELSE
-			IF ABL:Ａ感覚 >= 5
-				PRINTFORML 「ちっ違うっ、気持ちよくなってなんかっ、やだ、やだぁっ%UNICODE(0x2665) *1%」
-				PRINTFORML 「馬鹿っ、スケベっ、絶対許してあげないんだからぁ%UNICODE(0x2665) *1%」
-				PRINTW 
-			ELSEIF ABL:Ａ感覚 >= 3
-				PRINTFORML 「嫌だよ、そんなところ、指、入れちゃっ…やだぁっ…」
-				PRINTW 
-			ELSEIF ABL:Ａ感覚 >= 1
-				PRINTFORML 「気持ち悪いって、言ってる…やめっ、うぅ…このヘンタイぃ…」
-				PRINTW 
+			IF TALENT:恋慕 || TALENT:恋人
+				IF (CFLAG:42:現在位置 == CFLAG:42:初期位置) || CFLAG:42:現在位置 ==OMANEKIBEYA() || AT_HOME(MASTER)
+					IF ABL:Ａ感覚 >= 5
+						PRINTFORML 「あ～～、あぁぁぁ、やだぁ、恥ずかしいよぉッ、あうっ%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%　あ%UNICODE(0x2665) *1%　あ%UNICODE(0x2665) *1%」
+						PRINTFORML 「ちっ違うっ%UNICODE(0x2665) *1%　はたて、ヘンタイなんかじゃっ%UNICODE(0x2665) *1%　やだ、やだぁっ%UNICODE(0x2665) *1%」
+						PRINTW 
+						PRINTFORML はたては羞恥にイヤイヤと首を振りながらも、菊穴で指を二本をくわえ込み、腰をくねらせている
+						PRINTW 
+					ELSEIF ABL:Ａ感覚 >= 3
+						PRINTFORML 「あ…お尻…触る、の？　ひっ…そんな、奥まで入れちゃ、やぁ…\/\/\/」
+						PRINTFORML 慣らした甲斐があり、はたての尻穴は中指を丸々一本飲み込むようになった
+						PRINTFORML 尻を弄られるという行為にも、羞恥はともかく嫌悪感をあまり感じなくなったようだ
+						PRINTW 
+						PRINTFORML 「お尻、変になるぅ…やだ、なんか怖いっ、やだやだぁっ」
+						PRINTFORML とはいえ、快感よりも異物感が勝るのか、眉を八の字に曲げて体をくねらせている
+						PRINTW 
+					ELSEIF ABL:Ａ感覚 >= 1
+						PRINTFORML 「うぅっ、変な感じがするっ…あんまり動かさないで…」
+						PRINTFORML 少しだけ緊張はほぐれてきたものの、指一本を入り口付近で動かすのがせいぜいだ
+						PRINTW 
+					ELSE
+						PRINTFORMW 「やだァっ、お尻、気持ち悪いっ…動かしちゃやだぁっ」
+						PRINTW 
+					ENDIF
+				ELSE
+					IF ABL:Ａ感覚 >= 5
+						PRINTFORML 「あっあぁ、やだぁ、恥ずかしいよぉッ、こんなところでっ」
+						PRINTFORML 「ちっ違うっ%UNICODE(0x2665) *1%　はたて、感じてなんかっ%UNICODE(0x2665) *1%　やだ、やだぁっ%UNICODE(0x2665) *1%」
+						PRINTW 
+					ELSEIF ABL:Ａ感覚 >= 3
+						PRINTFORML 「ねぇ、やめようよぉ、そんなところ、触っちゃ、やだぁ…\/\/\/」
+						PRINTFORML 口では抵抗しつつ、はたては尻穴をいじられるがままになっている
+						PRINTW 
+					ELSEIF ABL:Ａ感覚 >= 1
+						PRINTFORML 「うぅっ、変な感じするし、痛いし、こんなとこで、やだぁ…ヘンタイっ…\/\/\/」
+						PRINTFORML 少しだけ緊張はほぐれてきたものの、指一本を入り口付近で動かすのがせいぜいだ
+						PRINTW 
+					ELSE
+						PRINTFORMW 「やめてっ…こんなとこで、お尻、触らないでよぉっ…痛いっ、痛いっ！」
+						PRINTW 
+					ENDIF
+				ENDIF
+			ELSEIF TALENT:愛欲 || TALENT:セフレ
+				;アナルの弱い女はやはりスケベじゃのう！
+				IF ABL:Ａ感覚 >= 5
+					PRINTFORML 「ヒッ……%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%　おぉぉっ%UNICODE(0x2665) *1%」
+					PRINTFORML 「おしりっ%UNICODE(0x2665) *1%　もっと%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%　おッ%UNICODE(0x2665) *1%　おおッ%UNICODE(0x2665) *1%」
+					PRINTW 
+				ELSEIF ABL:Ａ感覚 >= 3
+					PRINTFORML 「あ、やだぁ…こんな、ところで…」
+					PRINTFORML 「ふぅぅっ%UNICODE(0x2665) *1%　ひぐっ%UNICODE(0x2665) *1%　おしり、よわいからぁっ%UNICODE(0x2665) *1%」
+					PRINTW 
+				ELSEIF ABL:Ａ感覚 >= 1
+					PRINTFORML 「うぐ、お尻、変な感じぃ…でも、やめないでぇ…」
+					PRINTW 
+				ELSE
+					PRINTFORML 「あっ、馬鹿っ…ちょっと痛いってば…」
+					PRINTW 
+				ENDIF
 			ELSE
-				PRINTFORML 「ちょ、痛いっ、痛いっ！　そんなところに指入れるなっ、馬鹿っ！　ヘンタイっ！」
-				PRINTW 
+				IF ABL:Ａ感覚 >= 5
+					PRINTFORML 「ちっ違うっ、気持ちよくなってなんかっ、やだ、やだぁっ%UNICODE(0x2665) *1%」
+					PRINTFORML 「馬鹿っ、スケベっ、絶対許してあげないんだからぁ%UNICODE(0x2665) *1%」
+					PRINTW 
+				ELSEIF ABL:Ａ感覚 >= 3
+					PRINTFORML 「嫌だよ、そんなところ、指、入れちゃっ…やだぁっ…」
+					PRINTW 
+				ELSEIF ABL:Ａ感覚 >= 1
+					PRINTFORML 「気持ち悪いって、言ってる…やめっ、うぅ…このヘンタイぃ…」
+					PRINTW 
+				ELSE
+					PRINTFORML 「ちょ、痛いっ、痛いっ！　そんなところに指入れるなっ、馬鹿っ！　ヘンタイっ！」
+					PRINTW 
+				ENDIF
 			ENDIF
 		ENDIF
 	ENDIF
@@ -2555,236 +2576,248 @@ LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 	IF FIRSTTIME(SELECTCOM)
-		IF TALENT:恋慕 || TALENT:恋人
-			PRINTFORML 「あっ！　ま、待って、そこはっ、心の準備がっ」
-			PRINTFORML 「ああっ　だっ%UNICODE(0x2665) *1%めぇ%UNICODE(0x2665) *1%　そこはっ、アッ%UNICODE(0x2665) *1%」
-			PRINTW 
+		;時姦中
+		IF FLAG:70
+		;睡眠中
+		ELSEIF CFLAG:TARGET:睡眠
 		ELSE
-			PRINTFORML 「！　馬鹿っ、そこはっ…」
-			PRINTFORML 「やめなさい馬鹿っ！！　あうぅっ%UNICODE(0x2665) *1%　…！」
-			PRINTFORML 無意識に喘ぎ声を出してしまい、はたては慌てて口元を押さえた
-			PRINTW 
+			IF TALENT:恋慕 || TALENT:恋人
+				PRINTFORML 「あっ！　ま、待って、そこはっ、心の準備がっ」
+				PRINTFORML 「ああっ　だっ%UNICODE(0x2665) *1%めぇ%UNICODE(0x2665) *1%　そこはっ、アッ%UNICODE(0x2665) *1%」
+				PRINTW 
+			ELSE
+				PRINTFORML 「！　馬鹿っ、そこはっ…」
+				PRINTFORML 「やめなさい馬鹿っ！！　あうぅっ%UNICODE(0x2665) *1%　…！」
+				PRINTFORML 無意識に喘ぎ声を出してしまい、はたては慌てて口元を押さえた
+				PRINTW 
+			ENDIF
 		ENDIF
 	ELSE
-		IF TALENT:恋慕 || TALENT:恋人
-			IF CFLAG:現在位置 == OMANEKIBEYA() || AT_HOME(MASTER)
-				IF TALENT:処女 == 1
-					IF PALAM:潤滑 >= PALAMLV:3
-						IF ABL:Ｖ感覚 >= 6
-							SELECTCASE RAND:2
-							CASE 0
-								PRINTFORML 「あうっ%UNICODE(0x2665) *1%　あうっ%UNICODE(0x2665) *1%　うっあっ、音たてちゃ、やぁ%UNICODE(0x2665) *1%」
-								PRINTFORML 「あっ%UNICODE(0x2665) *1%　あ%UNICODE(0x2665) *1%　や%UNICODE(0x2665) *1%　あ～～～～～～っ%UNICODE(0x2665) *1%」
-								PRINTFORML 膣内をかき回され、はたては処女と思えないほどあられもない声をあげて快楽を貪っている
-								PRINTW 
-							CASE 1
-								PRINTFORML 「あっ%UNICODE(0x2665) *1%　あぅあっ%UNICODE(0x2665) *1%　だめぇっ、そんな奥までぇっ%UNICODE(0x2665) *1%」
-								PRINTFORML 「あっ%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%　はじめてっ%UNICODE(0x2665) *1%　はじめてあげられなくなっちゃうからぁっ%UNICODE(0x2665) *1%」
-								PRINTW 
-							ENDSELECT
-						ELSEIF ABL:Ｖ感覚 >= 2
-							SELECTCASE RAND:2
-							CASE 0
-								PRINTFORML 「私って、んんぅんっ%UNICODE(0x2665) *1%　感じっ%UNICODE(0x2665) *1%　やすいのかなっ%UNICODE(0x2665) *1%」
-								PRINTFORML 「あっ%UNICODE(0x2665) *1%　恥ずかしい音っ、いっぱい、いっぱいっ%UNICODE(0x2665) *1%　出ちゃってるっっっ%UNICODE(0x2665) *1%」」
-								PRINTW 
-							CASE 1
-								PRINTFORML 「ん、ん…\/\/\/　ぐちゅぐちゅ、音、出ちゃってるよぉ…%UNICODE(0x2665) *1%」
-								PRINTFORML 「だって%UNICODE(0x2665) *1%　だってぇ%UNICODE(0x2665) *1%　気持ちいいんだもんっ%UNICODE(0x2665) *1%」
-								PRINTW 
-							ENDSELECT
+		;時姦中
+		IF FLAG:70
+		;睡眠中
+		ELSEIF CFLAG:TARGET:睡眠
+		ELSE
+			IF TALENT:恋慕 || TALENT:恋人
+				IF CFLAG:現在位置 == OMANEKIBEYA() || AT_HOME(MASTER)
+					IF TALENT:処女 == 1
+						IF PALAM:潤滑 >= PALAMLV:3
+							IF ABL:Ｖ感覚 >= 6
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「あうっ%UNICODE(0x2665) *1%　あうっ%UNICODE(0x2665) *1%　うっあっ、音たてちゃ、やぁ%UNICODE(0x2665) *1%」
+									PRINTFORML 「あっ%UNICODE(0x2665) *1%　あ%UNICODE(0x2665) *1%　や%UNICODE(0x2665) *1%　あ～～～～～～っ%UNICODE(0x2665) *1%」
+									PRINTFORML 膣内をかき回され、はたては処女と思えないほどあられもない声をあげて快楽を貪っている
+									PRINTW 
+								CASE 1
+									PRINTFORML 「あっ%UNICODE(0x2665) *1%　あぅあっ%UNICODE(0x2665) *1%　だめぇっ、そんな奥までぇっ%UNICODE(0x2665) *1%」
+									PRINTFORML 「あっ%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%　はじめてっ%UNICODE(0x2665) *1%　はじめてあげられなくなっちゃうからぁっ%UNICODE(0x2665) *1%」
+									PRINTW 
+								ENDSELECT
+							ELSEIF ABL:Ｖ感覚 >= 2
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「私って、んんぅんっ%UNICODE(0x2665) *1%　感じっ%UNICODE(0x2665) *1%　やすいのかなっ%UNICODE(0x2665) *1%」
+									PRINTFORML 「あっ%UNICODE(0x2665) *1%　恥ずかしい音っ、いっぱい、いっぱいっ%UNICODE(0x2665) *1%　出ちゃってるっっっ%UNICODE(0x2665) *1%」」
+									PRINTW 
+								CASE 1
+									PRINTFORML 「ん、ん…\/\/\/　ぐちゅぐちゅ、音、出ちゃってるよぉ…%UNICODE(0x2665) *1%」
+									PRINTFORML 「だって%UNICODE(0x2665) *1%　だってぇ%UNICODE(0x2665) *1%　気持ちいいんだもんっ%UNICODE(0x2665) *1%」
+									PRINTW 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:3
+								CASE 0
+									PRINTFORML 「あっ、だっ%UNICODE(0x2665) *1%　めぇ%UNICODE(0x2665) *1%」
+									PRINTFORML 「それ以上はっ、んんんっ%UNICODE(0x2665) *1%　怖いからっ、待ってぇ」
+								CASE 1
+									PRINTFORML 「ちょっと怖いから、優しくしてね」
+									PRINTFORML 「んっ…%UNICODE(0x2665) *1%　指、ヌルってぇ、入っ、ちゃったぁ…%UNICODE(0x2665) *1%」
+									PRINTW 
+								CASE 2
+									PRINTFORML 「やだっ、クチュクチュ音立てないでぇっ…\/\/\/」
+									PRINTW 
+								ENDSELECT
+							ENDIF
 						ELSE
-							SELECTCASE RAND:3
-							CASE 0
-								PRINTFORML 「あっ、だっ%UNICODE(0x2665) *1%　めぇ%UNICODE(0x2665) *1%」
-								PRINTFORML 「それ以上はっ、んんんっ%UNICODE(0x2665) *1%　怖いからっ、待ってぇ」
-							CASE 1
-								PRINTFORML 「ちょっと怖いから、優しくしてね」
-								PRINTFORML 「んっ…%UNICODE(0x2665) *1%　指、ヌルってぇ、入っ、ちゃったぁ…%UNICODE(0x2665) *1%」
-								PRINTW 
-							CASE 2
-								PRINTFORML 「やだっ、クチュクチュ音立てないでぇっ…\/\/\/」
-								PRINTW 
-							ENDSELECT
+							IF ABL:Ｖ感覚 >= 6
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「～～～～～～っ%UNICODE(0x2665) *1%～～～～～～～～っ%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%」
+									PRINTFORML はたては目をギュッと閉じ、太ももを震わせている
+									PRINTW 
+								CASE 1
+									PRINTFORML 「あっ%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%　指でグニグニしちゃやだぁっ」
+									PRINTFORML 「私っ、そこっ、ビンカンだからぁっ%UNICODE(0x2665) *1%」
+									PRINTW 
+								ENDSELECT
+							ELSEIF ABL:Ｖ感覚 >= 2
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「う、あっ！　だ、大丈夫…」
+									PRINTFORML 「なんかね、わ、わたしっ%UNICODE(0x2665) *1%　そこ、気持ちいいかもっ%UNICODE(0x2665) *1%」
+									PRINTW 
+								CASE 1
+									PRINTFORML 「ん、ん…\/\/\/」
+									PRINTFORML 「なんだか、気持ちよくなってるみたい…%UNICODE(0x2665) *1%」
+									PRINTW 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:3
+								CASE 0
+									PRINTFORML 「んっ…%UNICODE(0x2665) *1%」
+									PRINTFORML 「入り口クニクニされるのはちょっと気持ちいいかも…%UNICODE(0x2665) *1%」
+								CASE 1
+									PRINTFORML 「やあっ…ちょっと、怖い…」
+									PRINTFORML 「ゆっくり動かしてね…」
+									PRINTW 
+								CASE 2
+									PRINTFORML 「んっ…ちょっと、痛い…」
+									PRINTW 
+								ENDSELECT
+							ENDIF
 						ENDIF
+					;非処女
 					ELSE
-						IF ABL:Ｖ感覚 >= 6
-							SELECTCASE RAND:2
-							CASE 0
-								PRINTFORML 「～～～～～～っ%UNICODE(0x2665) *1%～～～～～～～～っ%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%」
-								PRINTFORML はたては目をギュッと閉じ、太ももを震わせている
-								PRINTW 
-							CASE 1
-								PRINTFORML 「あっ%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%　指でグニグニしちゃやだぁっ」
-								PRINTFORML 「私っ、そこっ、ビンカンだからぁっ%UNICODE(0x2665) *1%」
-								PRINTW 
-							ENDSELECT
-						ELSEIF ABL:Ｖ感覚 >= 2
-							SELECTCASE RAND:2
-							CASE 0
-								PRINTFORML 「う、あっ！　だ、大丈夫…」
-								PRINTFORML 「なんかね、わ、わたしっ%UNICODE(0x2665) *1%　そこ、気持ちいいかもっ%UNICODE(0x2665) *1%」
-								PRINTW 
-							CASE 1
-								PRINTFORML 「ん、ん…\/\/\/」
-								PRINTFORML 「なんだか、気持ちよくなってるみたい…%UNICODE(0x2665) *1%」
-								PRINTW 
-							ENDSELECT
+						IF PALAM:潤滑 >= PALAMLV:3
+							IF ABL:Ｖ感覚 >= 6
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「あぁっ%UNICODE(0x2665) *1%　激しっ%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%　ゆびっ%UNICODE(0x2665) *1%」
+									PRINTFORML 「もっと%UNICODE(0x2665) *1%　もっとぉ%UNICODE(0x2665) *1%　やあぁンッ%UNICODE(0x2665) *1%」
+									PRINTW 
+								CASE 1
+									PRINTFORML 「うあぁあっ%UNICODE(0x2665) *1%　あ%UNICODE(0x2665) *1%　指っ、指じゃっ、足りないのっ%UNICODE(0x2665) *1%」
+									PRINTFORML 「もっと%UNICODE(0x2665) *1%　おっきぃのちょーだい%UNICODE(0x2665) *1%　おっきぃのぉ～%UNICODE(0x2665) *1%」
+									PRINTW 
+								ENDSELECT
+							ELSEIF ABL:Ｖ感覚 >= 2
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「あ～～%UNICODE(0x2665) *1%　あぁ～～%UNICODE(0x2665) *1%」
+									PRINTFORML 「ちゅぼちゅぼされるの、気持ちいいっ%UNICODE(0x2665) *1%」
+									PRINTW 
+								CASE 1
+									PRINTFORML 「くふぅっ%UNICODE(0x2665) *1%　～～～～～～っ%UNICODE(0x2665) *1%」
+									PRINTFORML 「音、出ちゃってるよぉ…%UNICODE(0x2665) *1%　あッ%UNICODE(0x2665) *1%　あ%UNICODE(0x2665) *1%」
+									PRINTW 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「んっ…%UNICODE(0x2665) *1%」
+									PRINTFORML 「そこ、スキ…\/\/\/　%MASTERNAME:42%の指、気持ちいい…%UNICODE(0x2665) *1%」
+								CASE 1
+									PRINTFORML 「指、カンタンに入っちゃうね…\/\/\/」
+									PRINTFORML 「大丈夫だよ%UNICODE(0x2665) *1%　んっ%UNICODE(0x2665) *1%　優しいの、スキ…%UNICODE(0x2665) *1%」
+									PRINTW 
+								ENDSELECT
+							ENDIF
 						ELSE
-							SELECTCASE RAND:3
-							CASE 0
-								PRINTFORML 「んっ…%UNICODE(0x2665) *1%」
-								PRINTFORML 「入り口クニクニされるのはちょっと気持ちいいかも…%UNICODE(0x2665) *1%」
-							CASE 1
-								PRINTFORML 「やあっ…ちょっと、怖い…」
-								PRINTFORML 「ゆっくり動かしてね…」
-								PRINTW 
-							CASE 2
-								PRINTFORML 「んっ…ちょっと、痛い…」
-								PRINTW 
-							ENDSELECT
+							IF ABL:Ｖ感覚 >= 6
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「だっ%UNICODE(0x2665) *1%　だめっ%UNICODE(0x2665) *1%　だっあっ%UNICODE(0x2665) *1%」
+									PRINTFORML 「そこっ、弱いからっ%UNICODE(0x2665) *1%　変に%UNICODE(0x2665) *1%　なっちゃ%UNICODE(0x2665) *1%　からぁっ%UNICODE(0x2665) *1%」
+									PRINTW 
+								CASE 1
+									PRINTFORML 「あっ%UNICODE(0x2665) *1%　やだやだヤダっ%UNICODE(0x2665) *1%　そんなっ%UNICODE(0x2665) *1%」
+									PRINTFORML 「クチュクチュしちゃやだぁっ%UNICODE(0x2665) *1%　おかしくっ%UNICODE(0x2665) *1%　おかしくなるっ%UNICODE(0x2665) *1%」
+									PRINTW 
+								ENDSELECT
+							ELSEIF ABL:Ｖ感覚 >= 2
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「やだっ、エッチな音してる%UNICODE(0x2665) *1%　んっ%UNICODE(0x2665) *1%　んんっ%UNICODE(0x2665) *1%」
+									PRINTFORML はたての股間からはニチニチと粘り気のある音が聞こえてくる
+									PRINTW 
+								CASE 1
+									PRINTFORML 「いいよ、無理やりでも、大丈夫…%UNICODE(0x2665) *1%」
+									PRINTFORML 「指っ、来たぁっ…%UNICODE(0x2665) *1%　ふ、んんッ%UNICODE(0x2665) *1%」
+									PRINTW 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:3
+								CASE 0
+									PRINTFORML 「んっ…%UNICODE(0x2665) *1%」
+									PRINTFORML 「大丈夫、もうちょっと、奥まで…%UNICODE(0x2665) *1%　んんんッ%UNICODE(0x2665) *1%
+									PRINTW 」
+								CASE 1
+									PRINTFORML 「%MASTERNAME:42%の指、スキ…%UNICODE(0x2665) *1%」
+									PRINTFORML 「ん、ふ…%UNICODE(0x2665) *1%　いいよ、ちょっとずつなら、奥に…%UNICODE(0x2665) *1%」
+									PRINTW 
+								CASE 2
+									PRINTFORML 「んっ…ちょっと、痛い…」
+									PRINTFORML 「もうちょっと、慣らしてから…んっ、それ、好き…%UNICODE(0x2665) *1%」
+									PRINTW 
+								ENDSELECT
+							ENDIF
 						ENDIF
 					ENDIF
-				;非処女
+				;自宅以外
 				ELSE
-					IF PALAM:潤滑 >= PALAMLV:3
-						IF ABL:Ｖ感覚 >= 6
-							SELECTCASE RAND:2
-							CASE 0
-								PRINTFORML 「あぁっ%UNICODE(0x2665) *1%　激しっ%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%　ゆびっ%UNICODE(0x2665) *1%」
-								PRINTFORML 「もっと%UNICODE(0x2665) *1%　もっとぉ%UNICODE(0x2665) *1%　やあぁンッ%UNICODE(0x2665) *1%」
-								PRINTW 
-							CASE 1
-								PRINTFORML 「うあぁあっ%UNICODE(0x2665) *1%　あ%UNICODE(0x2665) *1%　指っ、指じゃっ、足りないのっ%UNICODE(0x2665) *1%」
-								PRINTFORML 「もっと%UNICODE(0x2665) *1%　おっきぃのちょーだい%UNICODE(0x2665) *1%　おっきぃのぉ～%UNICODE(0x2665) *1%」
-								PRINTW 
-							ENDSELECT
-						ELSEIF ABL:Ｖ感覚 >= 2
-							SELECTCASE RAND:2
-							CASE 0
-								PRINTFORML 「あ～～%UNICODE(0x2665) *1%　あぁ～～%UNICODE(0x2665) *1%」
-								PRINTFORML 「ちゅぼちゅぼされるの、気持ちいいっ%UNICODE(0x2665) *1%」
-								PRINTW 
-							CASE 1
-								PRINTFORML 「くふぅっ%UNICODE(0x2665) *1%　～～～～～～っ%UNICODE(0x2665) *1%」
-								PRINTFORML 「音、出ちゃってるよぉ…%UNICODE(0x2665) *1%　あッ%UNICODE(0x2665) *1%　あ%UNICODE(0x2665) *1%」
-								PRINTW 
-							ENDSELECT
-						ELSE
-							SELECTCASE RAND:2
-							CASE 0
-								PRINTFORML 「んっ…%UNICODE(0x2665) *1%」
-								PRINTFORML 「そこ、スキ…\/\/\/　%MASTERNAME:42%の指、気持ちいい…%UNICODE(0x2665) *1%」
-							CASE 1
-								PRINTFORML 「指、カンタンに入っちゃうね…\/\/\/」
-								PRINTFORML 「大丈夫だよ%UNICODE(0x2665) *1%　んっ%UNICODE(0x2665) *1%　優しいの、スキ…%UNICODE(0x2665) *1%」
-								PRINTW 
-							ENDSELECT
-						ENDIF
+					IF ABL:Ｖ感覚 >= 6
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「ねっ、おうち、帰ろっ…？　ここじゃ、恥ずかしいよ…」
+							PRINTFORML 「あっ%UNICODE(0x2665) *1%　あぁんっ%UNICODE(0x2665) *1%　駄目、指っ、動かしちゃっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「やだっ%UNICODE(0x2665) *1%　ここでイクの、やだぁっ%UNICODE(0x2665) *1%」
+							PRINTW 
+						CASE 1
+							PRINTFORML 「わっ、わたっ%UNICODE(0x2665) *1%　家っ、家の外っ%UNICODE(0x2665) *1%　なのにっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「やだっ、声、出ちゃっ%UNICODE(0x2665) *1%　駄目っ%UNICODE(0x2665) *1%　～～～～～～～～～～っ%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%」
+							PRINTW 
+						ENDSELECT
+					ELSEIF ABL:Ｖ感覚 >= 2
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「ここじゃ、恥ずかしい…ンッ%UNICODE(0x2665) *1%」
+							PRINTFORML 「家で、シよ？　あっ%UNICODE(0x2665) *1%　駄目、だってばぁ…%UNICODE(0x2665) *1%」
+							PRINTW 
+						CASE 1
+							PRINTFORML 「あンッ\/\/\/　ここじゃ、ダメだよぉ…\/\/\/」
+							PRINTFORML 「おうち帰ろ？　ね？　ンッ\/\/\/　もぉ…\/\/\/」
+						ENDSELECT
 					ELSE
-						IF ABL:Ｖ感覚 >= 6
-							SELECTCASE RAND:2
-							CASE 0
-								PRINTFORML 「だっ%UNICODE(0x2665) *1%　だめっ%UNICODE(0x2665) *1%　だっあっ%UNICODE(0x2665) *1%」
-								PRINTFORML 「そこっ、弱いからっ%UNICODE(0x2665) *1%　変に%UNICODE(0x2665) *1%　なっちゃ%UNICODE(0x2665) *1%　からぁっ%UNICODE(0x2665) *1%」
-								PRINTW 
-							CASE 1
-								PRINTFORML 「あっ%UNICODE(0x2665) *1%　やだやだヤダっ%UNICODE(0x2665) *1%　そんなっ%UNICODE(0x2665) *1%」
-								PRINTFORML 「クチュクチュしちゃやだぁっ%UNICODE(0x2665) *1%　おかしくっ%UNICODE(0x2665) *1%　おかしくなるっ%UNICODE(0x2665) *1%」
-								PRINTW 
-							ENDSELECT
-						ELSEIF ABL:Ｖ感覚 >= 2
-							SELECTCASE RAND:2
-							CASE 0
-								PRINTFORML 「やだっ、エッチな音してる%UNICODE(0x2665) *1%　んっ%UNICODE(0x2665) *1%　んんっ%UNICODE(0x2665) *1%」
-								PRINTFORML はたての股間からはニチニチと粘り気のある音が聞こえてくる
-								PRINTW 
-							CASE 1
-								PRINTFORML 「いいよ、無理やりでも、大丈夫…%UNICODE(0x2665) *1%」
-								PRINTFORML 「指っ、来たぁっ…%UNICODE(0x2665) *1%　ふ、んんッ%UNICODE(0x2665) *1%」
-								PRINTW 
-							ENDSELECT
-						ELSE
-							SELECTCASE RAND:3
-							CASE 0
-								PRINTFORML 「んっ…%UNICODE(0x2665) *1%」
-								PRINTFORML 「大丈夫、もうちょっと、奥まで…%UNICODE(0x2665) *1%　んんんッ%UNICODE(0x2665) *1%
-								PRINTW 」
-							CASE 1
-								PRINTFORML 「%MASTERNAME:42%の指、スキ…%UNICODE(0x2665) *1%」
-								PRINTFORML 「ん、ふ…%UNICODE(0x2665) *1%　いいよ、ちょっとずつなら、奥に…%UNICODE(0x2665) *1%」
-								PRINTW 
-							CASE 2
-								PRINTFORML 「んっ…ちょっと、痛い…」
-								PRINTFORML 「もうちょっと、慣らしてから…んっ、それ、好き…%UNICODE(0x2665) *1%」
-								PRINTW 
-							ENDSELECT
-						ENDIF
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「あっ、ちょっと、痛っ…乱暴はヤダっ」
+							PRINTFORML 「もー…あんまり痛くしないでよね」
+							PRINTFORML 「家じゃないところでするのもダメだからね？」
+						CASE 1
+							PRINTFORML 「やだっ、こんなところで…やっ」
+							PRINTW 
+						ENDSELECT
 					ENDIF
 				ENDIF
-			;自宅以外
 			ELSE
 				IF ABL:Ｖ感覚 >= 6
-					SELECTCASE RAND:2
-					CASE 0
-						PRINTFORML 「ねっ、おうち、帰ろっ…？　ここじゃ、恥ずかしいよ…」
-						PRINTFORML 「あっ%UNICODE(0x2665) *1%　あぁんっ%UNICODE(0x2665) *1%　駄目、指っ、動かしちゃっ%UNICODE(0x2665) *1%」
-						PRINTFORML 「やだっ%UNICODE(0x2665) *1%　ここでイクの、やだぁっ%UNICODE(0x2665) *1%」
+					IF PALAM:潤滑 >= PALAMLV:3
+						PRINTFORML 「違っ%UNICODE(0x2665) *1%　違ぁっ%UNICODE(0x2665) *1%」
+						PRINTFORML 「感じてなんかっ%UNICODE(0x2665) *1%　あ%UNICODE(0x2665) *1%　あぁンッ%UNICODE(0x2665) *1%」
+					ELSE
+						PRINTFORML 「気持ちよくなんかぁっ%UNICODE(0x2665) *1%　き%UNICODE(0x2665) *1%　気持ちよくっ%UNICODE(0x2665) *1%　うぅうんっ%UNICODE(0x2665) *1%」
+						PRINTFORML 「ヘタクソぉっ%UNICODE(0x2665) *1%　ヘタクソっ%UNICODE(0x2665) *1%　なんだからぁっ%UNICODE(0x2665) *1%」
 						PRINTW 
-					CASE 1
-						PRINTFORML 「わっ、わたっ%UNICODE(0x2665) *1%　家っ、家の外っ%UNICODE(0x2665) *1%　なのにっ%UNICODE(0x2665) *1%」
-						PRINTFORML 「やだっ、声、出ちゃっ%UNICODE(0x2665) *1%　駄目っ%UNICODE(0x2665) *1%　～～～～～～～～～～っ%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%」
-						PRINTW 
-					ENDSELECT
+					ENDIF
 				ELSEIF ABL:Ｖ感覚 >= 2
-					SELECTCASE RAND:2
-					CASE 0
-						PRINTFORML 「ここじゃ、恥ずかしい…ンッ%UNICODE(0x2665) *1%」
-						PRINTFORML 「家で、シよ？　あっ%UNICODE(0x2665) *1%　駄目、だってばぁ…%UNICODE(0x2665) *1%」
+					IF PALAM:潤滑 >= PALAMLV:3
+						PRINTFORML 「やだっ、音、立てるなぁっ\/\/\/　違うっ、違うっ\/\/\/」
+						PRINTFORML 「気持ちよくなんかっ、はうんっ%UNICODE(0x2665) *1%」
+					ELSE
+						PRINTFORML 「やめっ…き、気持ちよくなんかないわよっ、ヘタクソっ…！」
+						PRINTFORML 「こんなのっ、痛いだけぇっ…んううっ\/\/\/」
 						PRINTW 
-					CASE 1
-						PRINTFORML 「あンッ\/\/\/　ここじゃ、ダメだよぉ…\/\/\/」
-						PRINTFORML 「おうち帰ろ？　ね？　ンッ\/\/\/　もぉ…\/\/\/」
-					ENDSELECT
+					ENDIF
 				ELSE
-					SELECTCASE RAND:2
-					CASE 0
-						PRINTFORML 「あっ、ちょっと、痛っ…乱暴はヤダっ」
-						PRINTFORML 「もー…あんまり痛くしないでよね」
-						PRINTFORML 「家じゃないところでするのもダメだからね？」
-					CASE 1
-						PRINTFORML 「やだっ、こんなところで…やっ」
+					IF PALAM:潤滑 >= PALAMLV:3
+						PRINTFORML 「だっ、そんなとこっ、やめっ…！」
+						PRINTFORML 「ちっ、違うっ、濡れてなんかっ…やだぁっ\/\/\/」
+					ELSE
+						PRINTFORML 「だっ、そんなとこっ、やめっ、痛っ…！」
+						PRINTFORML 「痛いっ、やぁっ、やめっ…！」
 						PRINTW 
-					ENDSELECT
-				ENDIF
-			ENDIF
-		ELSE
-			IF ABL:Ｖ感覚 >= 6
-				IF PALAM:潤滑 >= PALAMLV:3
-					PRINTFORML 「違っ%UNICODE(0x2665) *1%　違ぁっ%UNICODE(0x2665) *1%」
-					PRINTFORML 「感じてなんかっ%UNICODE(0x2665) *1%　あ%UNICODE(0x2665) *1%　あぁンッ%UNICODE(0x2665) *1%」
-				ELSE
-					PRINTFORML 「気持ちよくなんかぁっ%UNICODE(0x2665) *1%　き%UNICODE(0x2665) *1%　気持ちよくっ%UNICODE(0x2665) *1%　うぅうんっ%UNICODE(0x2665) *1%」
-					PRINTFORML 「ヘタクソぉっ%UNICODE(0x2665) *1%　ヘタクソっ%UNICODE(0x2665) *1%　なんだからぁっ%UNICODE(0x2665) *1%」
-					PRINTW 
-				ENDIF
-			ELSEIF ABL:Ｖ感覚 >= 2
-				IF PALAM:潤滑 >= PALAMLV:3
-					PRINTFORML 「やだっ、音、立てるなぁっ\/\/\/　違うっ、違うっ\/\/\/」
-					PRINTFORML 「気持ちよくなんかっ、はうんっ%UNICODE(0x2665) *1%」
-				ELSE
-					PRINTFORML 「やめっ…き、気持ちよくなんかないわよっ、ヘタクソっ…！」
-					PRINTFORML 「こんなのっ、痛いだけぇっ…んううっ\/\/\/」
-					PRINTW 
-				ENDIF
-			ELSE
-				IF PALAM:潤滑 >= PALAMLV:3
-					PRINTFORML 「だっ、そんなとこっ、やめっ…！」
-					PRINTFORML 「ちっ、違うっ、濡れてなんかっ…やだぁっ\/\/\/」
-				ELSE
-					PRINTFORML 「だっ、そんなとこっ、やめっ、痛っ…！」
-					PRINTFORML 「痛いっ、やぁっ、やめっ…！」
-					PRINTW 
+					ENDIF
 				ENDIF
 			ENDIF
 		ENDIF

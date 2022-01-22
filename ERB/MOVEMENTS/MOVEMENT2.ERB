@@ -20,10 +20,16 @@ RETURNF TIME + DAY * 1440 - ARG
 ;-----------------------------------------------------------
 @KITAKU(ARG)
 #DIMS 帰宅理由
-IF TIME < 420 && TIME > 180
+;午前3時～午前7時
+IF INRANGE(TIME, 180, 420)
 	帰宅理由 = 夜が明けてきたので、
-ELSEIF TIME < 1140 && TIME > 900
+;午前7時～午後3時
+ELSEIF INRANGE(TIME, 421, 899)
+	帰宅理由 = ちょうどいい時間になったので、
+;午後3時～午後7時
+ELSEIF INRANGE(TIME, 900, 1140)
 	帰宅理由 = 日も落ちてきたので、
+;午後7時～午前3時
 ELSE
 	帰宅理由 = 夜ももう更けてきたので、
 ENDIF
@@ -107,6 +113,9 @@ ENDIF
 CFLAG:ARG:同行 = 0
 
 IF !TCVAR:ARG:休憩中 && !CFLAG:ARG:お招き
+	;拠点から帰るなら今日はもう来訪しない
+	SIF IN_HOME(CFLAG:ARG:現在位置) && !CFLAG:MASTER:睡眠
+		CFLAG:ARG:拠点来訪 = 0
 	;活動時間外は自宅があれば寝るまで自宅にいる
 	IF CFLAG:ARG:自宅位置 && !IN_HOME(CFLAG:ARG:自宅位置) && !睡眠時間(ARG)
 		CFLAG:ARG:現在位置 = CFLAG:ARG:自宅位置

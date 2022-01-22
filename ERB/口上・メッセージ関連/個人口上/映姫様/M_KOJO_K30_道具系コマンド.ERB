@@ -353,8 +353,14 @@ RETURN 1
 ;ナズ口上構文参考にして二本差し分岐も追加
 ;==================================================
 @M_KOJO_MESSAGE_COM_K30_45
-IF FLAG:70 || CFLAG:1501 || TCVAR:30:無理矢理 || TCVAR:30:泥酔
+IF CFLAG:1501 || TCVAR:30:無理矢理 || TCVAR:30:泥酔
 	CALL TRAIN_MESSAGE
+ELSEIF FLAG:70
+	IF TEQUIP:アナルバイブ || (!TEQUIP:アナルバイブ && !TCVAR:30:364)
+		CALL TRAIN_MESSAGE
+	ELSE
+		CALL K30_TRAIN_MESSAGE_45
+	ENDIF
 ELSE
 	CALL K30_TRAIN_MESSAGE_45
 ENDIF
@@ -501,12 +507,15 @@ RETURN 1
 DRAWLINE
 RESULT = 1
 ;解除時
-IF !TEQUIP:アナルバイブ
+IF !TEQUIP:アナルバイブ && TCVAR:30:364 != 0  
+	PRINTFORMDL \@ FLAG:70 ? 時間の止まった # \@映姫のアヌスがぱっくり咥えこんだバイブを一気に引き抜いた
+	PRINTFORMDL ぽっかりと開いたアナルはあるべきものを求めて物欲しげにヒクついている…
+ELSEIF !TEQUIP:アナルバイブ
 	PRINTFORMDL 映姫のアヌスからアナルバイブを抜いた
 	PRINTFORMD 映姫は
 	SELECTCASE ABL:Ａ感覚
 		CASE IS > 4
-			IF NOWEX:NOWEX:Ａ絶頂
+			IF NOWEX:NOWEX:Ａ絶頂 && RAND:3
 				PRINTDATAL
 					DATAFORM 背中を弓反りにして喘いでいる…
 					DATAFORM 引き抜いた刺激で身体をがくがくと震わせている…
@@ -537,7 +546,7 @@ ELSE
 	PRINTFORMD 映姫の
 	SIF TEQUIP:0 & 2
 		PRINTFORMD %SHOW_BOTTOM(TARGET,2)%をずらし、
-	PRINTFORMDL 菊穴にアナルバイブをあてがった…
+	PRINTFORMDL \@ GETBIT(CFLAG:1910, 7) ? 縦長に伸びた # \@菊穴にアナルバイブをあてがった…
 	PRINTFORMD 映姫は
 	SELECTCASE ABL:Ａ感覚
 		CASE IS > 4
@@ -561,14 +570,16 @@ ELSE
 			PRINTFORMD 不浄の穴を犯される恥辱と屈辱感にまみれた表情をし
 	ENDSELECT
 	PRINTFORMDL ている…
-	SIF TEQUIP:バイブ
-		PRINTFORMD 前の穴にもバイブを咥えこんだ
-	PRINTFORMD 映姫の
-	SIF TEQUIP:50 == PLAYER
-		PRINTFORMD 熱い膣内を味わいながら、
+	IF TEQUIP:バイブ
+		PRINTFORMD %CALLNAME:MASTER%は前の穴にもバイブを咥えこむ、映姫の
+	ELSEIF TEQUIP:50 == PLAYER
+		PRINTFORMD %CALLNAME:MASTER%は映姫の熱い膣内を楽しみつつ、
+	ELSE
+		PRINTFORMD %CALLNAME:MASTER%は\@ ABL:Ａ感覚 > 4 ? 早く飲み込みたいと口をぱくぱくさせる映姫の # 緊張する映姫の呼吸に合わせるようにして \@
+	ENDIF
 	SIF PALAM:潤滑 >= PALAMLV:4
 		PRINT ぬかるんだ
-	PRINTFORMDL アヌスにバイブを挿し込んだ
+	PRINTFORMDL アヌスにバイブをゆっくり挿し込んいった…
 ENDIF
 PRINTFORMW 
 CALL K30_COMPENSATE_MESSAGE
@@ -821,6 +832,9 @@ IF LOCAL
 					DATAFORM 「なんで着けてるの……？」
 					DATAFORM 「……外してもらえますか」
 				ENDDATA
+				PRINTFORMDW 映姫は不満そうに%CALLNAME:MASTER%を見上げている
+				ONEDARI = 3
+				RETURN 1
 			ELSEIF ABL:膣射中毒
 				PRINTDATAW
 					DATAFORM 「子どもを、つくること……やっぱり、迷ってます？」
@@ -842,11 +856,6 @@ IF LOCAL
 				DATAFORM 「よかった。ちゃんとしてくれて」
 				DATAFORM 「そうね。できてしまったら困りますから」
 			ENDDATA
-		ENDIF
-		IF TALENT:妊娠願望 || GETBIT(CFLAG:1502, 4)
-			PRINTFORMDW 映姫は不満そうに%CALLNAME:MASTER%を見上げている
-			ONEDARI = 3
-			RETURN 1
 		ENDIF
 		;Ａ挿入慣れてて、Ａの方が好きか見る
 		SIF !ABL:肛射中毒 || ABL:Ａ感覚 < 2 || (ABL:膣射中毒 >= ABL:肛射中毒 && !RAND:5)

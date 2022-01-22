@@ -26,7 +26,7 @@ ELSE
 	DISH_ASSI = 0
 ENDIF
 ;練習判定
-IF (!DISH_ASSI || CFLAG:DISH_ASSI:固有料理 >= 100)
+IF (!DISH_ASSI || LEARNED_MENU:DISH_ASSI >= 100)
 	練習不可 = 1
 ELSE
 	練習不可 = 0
@@ -139,7 +139,7 @@ FOR LOCAL, 1, 5
 		LOCALS = デザート
 	CASE 4
 		LOCALS = 教わる
-		SIF CFLAG:DISH_ASSI:固有料理 >= 100
+		SIF LEARNED_MENU:DISH_ASSI >= 100
 			LOCALS += "（済）"
 	ENDSELECT
 	IF LOCAL == 4 && 練習不可
@@ -684,10 +684,10 @@ PRINTL
 
 ;練習結果,初期状態だと4～7回必要。料理技能が上がるにつれ習得速度が上昇していく。
 IF 練習モード
-	CFLAG:DISH_ASSI:固有料理 += 20 + (TALENT:MASTER:習得速度 * 5) + RAND:(ABL:MASTER:料理技能 * 25)
+	LEARNED_MENU:DISH_ASSI += 20 + (TALENT:MASTER:習得速度 * 5) + RAND:(ABL:MASTER:料理技能 * 25)
 	PRINTFORM 　習熟度：
 	FOR LOCAL, 1, 10
-		IF LOCAL <= CFLAG:DISH_ASSI:固有料理 / 10
+		IF LOCAL <= LEARNED_MENU:DISH_ASSI / 10
 			SETCOLOR 0x64FFDC
 			PRINT ★
 		ELSE
@@ -697,7 +697,7 @@ IF 練習モード
 	NEXT
 	RESETCOLOR
 	PRINTL 
-	SIF CFLAG:DISH_ASSI:固有料理 >= 100
+	SIF LEARNED_MENU:DISH_ASSI >= 100
 		CALL LEARNING_SP_DISH(DISH_ASSI, DISH_NAME)
 ENDIF
 
@@ -1078,10 +1078,10 @@ RETURN 結果保存
 ;-------------------------------------------------
 ;固有料理のラーニング処理関数
 ;一応料理外で覚えた場合（口上とか）も想定
-;CFLAG:固有料理には100+DAYが入るので、いつ習得したか判定できる
+;LEARNED_MENUには100+DAYが入るので、いつ習得したか判定できる
 ;ARG      DISH_ASSI
 ;ARGS     DISH_NAME
 ;-------------------------------------------------
 @LEARNING_SP_DISH(ARG, ARGS)
-CFLAG:ARG:固有料理 = 100 + DAY
+LEARNED_MENU:ARG = 100 + DAY
 CALL COLORMESSAGE(@"『%ARGS%』をラーニング！", C_YELLOW, 1)
