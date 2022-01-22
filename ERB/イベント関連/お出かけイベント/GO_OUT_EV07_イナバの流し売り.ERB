@@ -1,0 +1,152 @@
+﻿@GO_OUT_CONDITION_EV7
+SIF RAND:10 || FLAG:デート相手
+	RETURN 0
+CALL GO_OUT_EV7
+RETURN 1
+@GO_OUT_EV7
+#DIM 取引
+#DIM 割引
+#DIM 値段
+#DIM 石販売中
+
+石販売中 = (GETBIT(FLAG_DAILY_EV23, 0) && !ITEM:(GETNUM(ITEM, "ミラダの石")))
+割引 = -50
+値段 = ITEMPRICE:(GETNUM(ITEM, "ミラダの石")) / 10
+SETCOLOR 0XFFFFFF
+PRINTFORMDW 道中、不意にイナバが襲い掛かってきた…！？
+PRINTFORML
+PRINTFORML 「あああ！！いけません！！お客さま！！！ああっ！困りますっ！！」
+PRINTFORMW 「あーっ！！お客さま！！私は弾幕勝負なんてやりませんから！！どうか待ってください！！！」
+PRINTFORML 「ああっ！いけません！！どうか落ち着いて！！話を聞いてくださいっ！！あーっ！！！」
+PRINTFORMDW 大きな荷物を抱えたイナバが一人で勝手に騒いでいる… 
+CALL PRINT_FACE, 0, "通常", "服", "20"
+PRINTFORML 「えー、お見苦しいところをすみません」
+PRINTFORMW 「私少々慌ててしまいまして…」
+PRINTFORML 「でも、ここで出会ったのもなにかのご縁」
+PRINTFORM 「お客さまはわたくしどもの
+CALL COLORMESSAGE("素晴らしい", C_YELLOW, 0, 1)
+PRINTFORMW 商品に興味はございませんか？」
+RESETCOLOR
+CALL ASK_M("無視して帰る", 1, "ちょっと見てみる", 1)
+SETCOLOR 0XFFFFFF
+IF !RESULT
+	PRINTFORMDL うさんくさいセールスはお断りだ
+	PRINTFORML 「そんなー、せめてお話だけでもー」
+	PRINTFORMDL なおも食い下がる販売員を無視して%CALLNAME:MASTER%は帰路についた
+	PRINTFORMW
+	RESETCOLOR
+	RETURN 1
+ENDIF
+CALL PRINT_FACE, 0, "笑顔", "服", "20"
+PRINTFORMW 「ありがとうございます！」
+PRINTFORM 「では、他所では見られない
+CALL COLORMESSAGE("秘蔵", C_AQUA, 0, 1)
+PRINTFORML の一品！」
+PRINTFORM 「多少
+CALL COLORMESSAGE("お値段", C_M_GREEN, 0, 1)
+PRINTFORM は張りますが、その効果は
+CALL COLORMESSAGE("折り紙", C_RED, 0, 1)
+PRINTFORMW 付き！！」
+PRINTFORM 「お客さまのような
+CALL COLORMESSAGE("特別", C_YELLOW, 0, 1)
+PRINTFORM な方にふさわしい
+CALL COLORMESSAGE("特別", C_YELLOW, 0, 1)
+PRINTFORML な商品の数々！！」
+PRINTFORMW 「さあこちらをご覧ください！！！」
+RESETCOLOR
+DRAWLINE
+$INPUT_LOOP
+RESETCOLOR
+CALL ITEM_SHOPPING(GETNUM(ITEM, "仙香玉兎"), "", 割引)
+CALL ITEM_SHOPPING(GETNUM(ITEM, "国士無双の薬"), "", 割引)
+CALL ITEM_SHOPPING(GETNUM(ITEM, "ガシングガーデン"), "", 割引)
+CALL ITEM_SHOPPING(GETNUM(ITEM, "ポイズンボディ"), "", 割引)
+IF 石販売中
+	PRINTFORM [{GETNUM(ITEM, "ミラダの石")}] 
+	CALL COLORMESSAGE("愛欲を独占するミラダの石ミレニアム", C_D_PINK, 1, 1)
+	CALL COLORMESSAGE("　　　特別価格90％OFF！", C_RED, 0, 1)
+	PRINTFORML %金額表示(値段), 13%
+ENDIF
+DRAWLINE
+SIF 石販売中
+	PRINTL [990] 「ミラダの石」って何だっけ？
+PRINTFORML [999] やっぱり買わない
+PRINTFORML 　　　現在の所持金:%金額表示(MONEY)%
+$INPUT_LOOP2
+INPUT
+取引 = RESULT
+SETCOLOR 0XFFFFFF
+SELECTCASE 取引
+	CASE GETNUM(ITEM, "仙香玉兎") TO GETNUM(ITEM, "ポイズンボディ"), GETNUM(ITEM, "ミラダの石")
+		IF 取引 == GETNUM(ITEM, "ミラダの石") && !石販売中
+			CLEARLINE 1
+			GOTO INPUT_LOOP2
+		ENDIF
+		LOCAL = 取引 == GETNUM(ITEM, "ミラダの石") ? 90 # 割引
+		CALL SHOP_ASK(RESULT, LOCAL)
+		IF RESULT
+			PRINTFORMW 「えー、では他の品物なんてどうでしょうか？」
+			CLEARLINE 12 + RESULT + (石販売中 * 3)
+			GOTO INPUT_LOOP
+		ENDIF
+		CALL GET_ITEM(ITEMNAME:取引, 1, 2)
+	;あのセリフたまに聞きたくなるので
+	CASE 990
+		IF !石販売中
+			CLEARLINE 1
+			GOTO INPUT_LOOP2
+		ENDIF
+		PRINTFORMW 「おや？　お客様さまはご存知かと思いましたが…」
+		PRINTFORML 「ああでも懐かしいですね」
+		PRINTFORML 「私も仕事を始めたての頃、あの商品説明を必死に覚えたものです…」
+		PRINTFORML 「では私の確認がてら、お客さまにも改めて聞いて頂きましょう」
+		PRINTFORMW 
+		CALL DAILY_EV23_SALESTALK(1)
+		FONTBOLD
+		PRINTFORMW 「なんと！」
+		PRINTFORM 「今回、お値段
+		CALL COLORMESSAGE(@"\\{値段}", C_RED, 0, 1)
+		PRINTFORMW でのご提供が実現いたしました！」
+		FONTREGULAR
+		PRINTFORML 「いつ手に入るかわからない希少な品！！」
+		PRINTFORM 「この
+		CALL COLORMESSAGE("特別価格", C_RED, 0, 1)
+		PRINTFORML で買わなければ…」
+		PRINTFORMW 「もう二度と手に入らないかもしれませんよ！？」
+		PRINTFORML 「さあ、お客さま！」
+		PRINTFORM 「充実した性生活を約束する
+		CALL COLORMESSAGE("愛欲を独占するミラダの石ミレニアム", C_D_PINK, 0, 1)
+		PRINTFORMW ！！！！」
+		PRINTFORML 「もちろんっ！　買いますよねッ！？」
+		FONTREGULAR
+		CALL ASK_M("買った！", MONEY >= 値段, "買わない", 1)
+		IF !RESULT
+			MONEY -= 値段
+			CALL GET_ITEM("ミラダの石", 1, 2)
+		ELSE
+			取引 = 999
+		ENDIF
+	CASE 999
+	CASEELSE
+		CLEARLINE 1
+		GOTO INPUT_LOOP2
+ENDSELECT
+IF 取引 < 999
+	CALL PRINT_FACE, 0, "笑顔", "服", "20"
+	CALL COLORMESSAGE("「お買い上げありがとうございます！」", 0XFFFFFF, 2, 1)
+	PRINTFORMW 「いや～お客さまはいいカモ…」
+	CLEARLINE 1
+	PRINTFORMW 「ぜひまたお買い上げ頂きたいですね！！」
+	PRINTFORML 「では今日はこの辺で失礼します！」
+ELSE
+	CALL PRINT_FACE, 0, "怒り", "服", "20"
+	CALL COLORMESSAGE("「なぁんだ、ただの貧乏人かあ…」", 0XFFFFFF, 1, 2)
+	CALL COLORMESSAGE("「やだやだ…時間を損しちゃったわー」", 0XFFFFFF, 1, 2)
+	PRINTFORMDW %CALLNAME:MASTER%が何も買わないとわかった途端、販売員の態度が悪くなった…
+	CALL COLORMESSAGE(@"「なーんにも買わないヤツ相手するほど%TEXTR("あたい/あたし/ボク/")%も暇じゃないんだよー」", 0XFFFFFF, 1, 2)
+	CALL COLORMESSAGE("「じゃあーねー」", 0XFFFFFF, 1, 2)
+ENDIF
+PRINTFORMDW ウサギの販売員は\@ 取引 < 999 ? # 捨て台詞を残して \@いなくなった
+RESETCOLOR
+PRINTFORML 
+RETURN 1

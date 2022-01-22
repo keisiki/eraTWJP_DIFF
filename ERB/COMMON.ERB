@@ -760,11 +760,48 @@ SIF ARG == MASTER
 	RETURNF CFLAG:MASTER:睡眠
 IF CFLAG:ARG:衰弱
 	RETURNF 1
-ELSEIF !BETWEENTIME(CFLAG:ARG:起床時間, CFLAG:ARG:就寝時間 + CFLAG:ARG:眠気覚まし)	;眠気覚まし強度分延長する
-	RETURNF 1
 ELSE
-	RETURNF 0
+	;睡眠時間をチェックする
+	CALLF 睡眠時間２(ARG)
+	IF !BETWEENTIME(CFLAG:ARG:起床時間, CFLAG:ARG:就寝時間 + CFLAG:ARG:眠気覚まし)
+		RETURNF 1
+	ELSE
+		RETURNF 0
+	ENDIF
 ENDIF
+;-------------------------------------------------
+;関数名:睡眠時間２
+;概　要:キャラARGが寝てから起きるまでの時間の計測
+;逸脱していた場合は自動で修正する
+;-------------------------------------------------
+@睡眠時間２(ARG)
+#FUNCTION
+#DIM SLEEPTIME
+#DIM WAKEUPTIME
+;眠気覚ましの強度分延長する
+WAKEUPTIME = CFLAG:ARG:起床時間
+SLEEPTIME = CFLAG:ARG:就寝時間 + CFLAG:ARG:眠気覚まし
+;就寝時間が24時を超えている場合
+WHILE SLEEPTIME >= 1440
+	SLEEPTIME -= 1440
+WEND
+;前日の夜に寝て翌日の朝に起きる場合
+SIF SLEEPTIME > WAKEUPTIME
+	WAKEUPTIME += 1440
+;睡眠時間が2～14時間を逸している場合はチェック
+IF !INRANGE(WAKEUPTIME - SLEEPTIME, 120, 840)
+	;眠気覚ましが原因
+	IF CFLAG:ARG:眠気覚まし
+		;30分ずつ是正していく
+		CFLAG:ARG:眠気覚まし -= 30
+		RESTART
+	;設定がおかしい
+	ELSE
+		;チェックのためTHROWしておく
+		THROW
+	ENDIF
+ENDIF
+RETURNF WAKEUPTIME - SLEEPTIME
 ;-------------------------------------------------
 ;関数名:子供の睡眠時間
 ;概　要:キャラARGの子供が寝てるかどうかを返す関数
@@ -2419,7 +2456,7 @@ SIF TALENT:ARG:愛欲
 RETURNF 0
 
 @CHARASORT_EX
-VARSET RESULT
+VARSET RESULT, -1
 RESULT:0 = MASTER
 RESULT:1 = [[霊夢]]
 RESULT:2 = [[魔理沙]]

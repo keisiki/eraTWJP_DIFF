@@ -1,22 +1,24 @@
 ﻿@GANKAKE_0(ARG,ARG:1)
 
+FLAG:願掛け内容 = ARG
 IF CFLAG:ARG:神社在住 && ARG > 0
 ;	// 好感度上昇 //
-	CFLAG:ARG:好感度 += 10 + RAND:20
-	CFLAG:ARG:信頼度 += 10 + RAND:20
+	CFLAG:ARG:好感度 += 10 + RAND:10
+	CFLAG:ARG:信頼度 += 5 + RAND:10
+ELSEIF CFLAG:ARG:来訪不能
+	FLAG:願掛け内容 = -1
+ELSE
+	FOR LOCAL, 1, CHARANUM
+	;	// 引っ越しで自宅が変わるので自宅メンバーも願掛けフラグは立てることにする //
+	;	SIF CFLAG:LOCAL:神社在住 > 0
+	;		CONTINUE
+		IF ARG == LOCAL
+			CFLAG:LOCAL:翌日来訪 = 1
+		ELSE
+			CFLAG:LOCAL:翌日来訪 = 0
+		ENDIF
+	NEXT
 ENDIF
-FOR LOCAL, 1, CHARANUM
-;	// 引っ越しで自宅が変わるので自宅メンバーも願掛けフラグは立てることにする //
-;	SIF CFLAG:LOCAL:神社在住 > 0
-;		CONTINUE
-	IF ARG == LOCAL
-		CFLAG:LOCAL:翌日来訪 = 1
-	ELSE
-		CFLAG:LOCAL:翌日来訪 = 0
-	ENDIF
-NEXT
-
-FLAG:願掛け内容 = ARG
 
 @GANKAKE_1(ARG)
 #FUNCTION
@@ -88,7 +90,7 @@ SIF FLAG:並び替え
 FOR LOCAL:1, 1, EX_CHARANUM
 	IF FLAG:並び替え
 		LOCAL = RESULT:(LOCAL:1)
-		SIF !LOCAL
+		SIF LOCAL < 0
 			CONTINUE
 	ELSE
 		LOCAL = LOCAL:1

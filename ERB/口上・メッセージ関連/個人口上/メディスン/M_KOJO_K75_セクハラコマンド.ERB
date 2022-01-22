@@ -65,7 +65,9 @@ IF LOCAL
 							DATAFORM 「%CALLNAME:MASTER%、楽しそう」
 							DATAFORM 下着の上からでは飽き足らず、ぷにぷにとした尻肉を直接撫でた
 							DATAFORM 「ちゃんと調べてね」
+							DATAFORM 「%CALLNAME:MASTER%、そこ好きだよね
 						ENDDATA
+						PRINTW 
 					ENDSELECT
 				ENDIF
 			ELSEIF TALENT:思慕
@@ -140,6 +142,7 @@ IF LOCAL
 					ENDSELECT
 				ENDIF
 			ENDIF
+		;無知消失
 		ELSE
 			IF TALENT:恋慕 || TALENT:恋人
 				IF FIRSTTIME(SELECTCOM)
@@ -164,6 +167,7 @@ IF LOCAL
 						PRINTFORML （もっと、いろんなことしてほしいって言ったら、はしたないかなぁ）
 						PRINTW 
 					ENDIF
+				;2回目以降
 				ELSE
 					SELECTCASE RAND:3
 					CASE 0
@@ -291,8 +295,6 @@ LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 	IF FLAG:70
-		CALL K75_POISON_COUNTER(2)
-	ELSEIF CHK_DATENOW(CFLAG:LOCAL:デート中)
 		CALL K75_POISON_COUNTER(2)
 	ELSEIF CFLAG:睡眠
 		CALL K75_POISON_COUNTER(2)
@@ -530,6 +532,9 @@ IF LOCAL
 							DATAFORM 「%CALLNAME:MASTER%、楽しそう」
 							DATAFORM 服の上からでは飽き足らず、ぷにぷにとした胸肉を直接揉んだ
 							DATAFORM 「おかしいところ、ないかなあ」
+							DATAFORM 「そんなにそこを揉むのが楽しいの？」
+							DATAFORM 「%CALLNAME:MASTER%に触られるのは好きだけど…これって何の意味があるの？」
+							DATAFORM 「どう？　私の体は異常ないかしら？」
 						ENDDATA
 					ENDSELECT
 				ENDIF
@@ -645,6 +650,7 @@ IF LOCAL
 						PRINTFORML メディスンがジト目でポツリと呟いた
 						PRINTW 
 					ENDIF
+				;2回目以降
 				ELSE
 					SELECTCASE RAND:4
 					CASE 0
@@ -812,10 +818,41 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K75_314_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-
+	IF FLAG:70
+	ELSEIF TALENT:75:人形 == 1
+		SELECTCASE ABL:Ａ感覚
+		CASE IS >= 4
+			PRINTDATADL 
+				DATAFORM 「嫌じゃない、かも」
+				DATAFORM 肛門を指の腹で撫でると、キュウキュウと吸い付いてきた
+				DATAFORM 「もう、大丈夫。動かされても、嫌じゃなくなった」
+				DATAFORM 「そこって、指が入っちゃうんだ」
+				DATAFORM 「そこは指を入れる場所じゃないと思う…」
+				DATAFORM 「やめなくていい、大丈夫…」
+				DATAFORM 「そこを触られるのは、何か恥ずかしいの」
+			ENDDATA
+		CASE IS >= 2
+			PRINTDATADL 
+				DATAFORM 「うわあ。何これ。体の中でぐにぐに、って」
+				DATAFORM 「あんまり好きじゃない、かも」
+				DATAFORM 「ううー、やめてよぉー」
+				DATAFORM 「体の中で指が動いてるの、変な感じ…」
+			ENDDATA
+		CASEELSE
+			PRINTDATADL 
+				DATAFORM 「うう、なんかもぞもぞする…」
+				DATAFORM 「よく分かんない…なんか変な感じがするわ」
+				DATAFORM 「うえー、なんか気持ち悪いよう」
+				DATAFORM 「そこ弄るのやだ」
+				DATAFORM メディスンはいままで存在しなかった排泄器官を弄られ、戸惑っている
+				DATAFORM メディスンの肛門を指の腹で撫でると、キュっと窄まった
+				DATAFORM 「ううー、これ、好きじゃないー」
+			ENDDATA
+		ENDSELECT
+	ENDIF
 ENDIF
 RETURN 1
 ;==================================================
@@ -963,8 +1000,213 @@ LOCAL = 1
 IF LOCAL
 	IF FLAG:70
 		CALL K75_POISON_COUNTER(1)
+	ELSEIF CFLAG:TARGET:睡眠
+		CALL K75_POISON_COUNTER(1)
 	ELSE
 		CALL K75_POISON_COUNTER(1)
+		IF TALENT:恋慕 || TALENT:恋人
+			IF TALENT:75:無知
+				SELECTCASE TFLAG:193
+				;ビンタ
+				CASE -5
+					PRINTFORML 「何か嫌な感じがしたからつい叩いちゃった…ごめんね」
+				;つねり
+				CASE -3
+					PRINTFORML 「多分そういうことしちゃ駄目だと思うの」
+				;いやがる
+				CASE -1
+					PRINTFORML 「私はあんまり楽しくない…」
+				;嬉し気
+				CASE 0
+					PRINTFORML 「%CALLNAME:MASTER%、なんだか嬉しそう」
+				;受け入れ
+				CASE 1
+					SELECTCASE ABL:露出癖
+					CASE IS >= 3
+						PRINTFORML 「はい。%CALLNAME:MASTER%はこれが見たいんだよね？」
+						PRINTFORML メディスンはためらいすら見せずスカートを自ら捲り上げた
+						IF EQUIP:TARGET:下半身下着１ || EQUIP:TARGET:下半身下着２
+							PRINTFORML 「%CALLNAME:MASTER%ってパンツを見るの好きなんだね」
+						ELSE
+							PRINTFORML 「今日は何も履いてないけどいいの？　ふーん」
+						ENDIF
+					;自分からはまくらない
+					CASEELSE
+						PRINTDATADL 
+							DATAFORM 「よく分からないけど%CALLNAME:MASTER%が嬉しそうだからもっとめくっていいよ」
+							DATAFORM 「わっ」
+							DATAFORM 「%CALLNAME:MASTER%は悪戯好きなのね」
+							DATAFORM 「もう、びっくりするなぁ」
+							DATAFORM 「いきなりなんだから、もう」
+							DATAFORM 「そういうことして飽きないの？」
+						ENDDATA
+					ENDSELECT
+				ENDSELECT
+				PRINTW 
+			;無知消失
+			ELSE
+				SELECTCASE TFLAG:193
+				;ビンタ
+				CASE -5
+					PRINTFORML 「%CALLNAME:MASTER%のヘンタイ。人形のスカートをめくって興奮するなんて」
+				;つねり
+				CASE -3
+					PRINTFORML 「レディのスカートをめくったら駄目だと思うの」
+				;いやがる
+				CASE -1
+					PRINTFORML 「%CALLNAME:MASTER%がこういうことするの、やだなぁ…」
+				;嬉し気
+				CASE 0
+					PRINTFORML 「%CALLNAME:MASTER%は私の下着を見て興奮しちゃう人なんだ。変態ね」
+				;受け入れ
+				CASE 1
+					SELECTCASE ABL:露出癖
+					;人前でためらいなし
+					CASE IS >= 5
+						PRINTFORML 「はい。%CALLNAME:MASTER%はこれが見たいんだよね？」
+						PRINTFORML メディスンはためらいすら見せずスカートを自ら捲り上げた
+						IF EQUIP:TARGET:下半身下着１ || EQUIP:TARGET:下半身下着２
+							PRINTFORML 「今日の下着は%CALLNAME:MASTER%の好みかしら？」
+							CALL ASK_YN("最高","うーん、イマイチ")
+							IF !RESULT
+								PRINTFORML 「そう思ったわ。だって、そんなに間近で見ているんだもの」
+							ELSE
+								PRINTFORML 「そう…%CALLNAME:MASTER%の好みって、難しいのね」
+							ENDIF
+							PRINTW 
+						ELSE
+							PRINTFORML 「今日は何も履いてないんだよ」
+							PRINTFORML 「それとも、%CALLNAME:MASTER%は穿いてる方が好み？」
+							PRINTFORML 「そんなことないよね。私のお股、そんな間近で見てるんだもん」
+							PRINTW 
+						ENDIF
+					;人前で弱い抵抗
+					CASE 4
+						IF GET_TARGETNUM() >= 2
+							PRINTFORML 「私が自分で？　やだよ、私が変態だと思われちゃうもの」
+							PRINTFORML 「あなたがするなら、許してあげる」
+						ELSE
+							PRINTFORML 「はい、これがいいんでしょう？」
+							PRINTFORML メディスンがスカートの裾をつまみ上げ、太ももの付け根まで露わにした
+							IF EQUIP:TARGET:下半身下着１ || EQUIP:TARGET:下半身下着２
+								PRINTFORML 「%CALLNAME:MASTER%の大好きなパンツだよ」
+								IF BASE:MASTER:勃起 >= 1000
+									PRINTFORML 「わあ。%CSTR:75:80%、そんなに大きくしちゃって、いけない人」
+									PRINTFORML 「人形のパンツを見て固くしちゃう%CALLNAME:MASTER%は、変態さんだね」
+									CALL ASK_YN("それは違う","もっと罵って")
+									IF !RESULT
+										PRINTFORML 「何が違うの？　%CSTR:75:80%を硬くして、そんな間近で息を荒くしながら見て」
+										PRINTFORML 「否定しても駄目。%CALLNAME:MASTER%は変態で間違いないわ」
+										PRINTFORML 「でも、私はそんな%CALLNAME:MASTER%も愛してあげる。醜い所も、全部見せて。受け入れてあげるから」
+									ELSE
+										PRINTFORML 「人形に欲情しちゃう性愛異常者。もう、普通の人は愛せないんじゃないかしら」
+										PRINTFORML 「ううん、生身の人間が怖いから、私のような人形に欲情しちゃうのよね」
+										PRINTFORML 「情けない人。這いつくばるように見て、視線が気持ち悪いわ。変態。私が人間だったら鳥肌が立ちそう。鼻息が豚みたい」
+										PRINTW 
+										PRINTFORML メディスンの容赦ない罵倒に、心もちんちんも折れそうだ…
+										PRINTFORML 「でもね」
+										PRINTFORML メディスンは一転して優しい微笑みを浮かべながら%CALLNAME:MASTER%の頭を抱き、耳元に唇を寄せた。
+										PRINTFORML 「そんな%CALLNAME:MASTER%が好き。愛してる」
+										BASE:MASTER:勃起 += 500
+									ENDIF
+								ENDIF
+							ELSE
+								PRINTFORML 「驚いた？　今は何も履いてないの」
+								PRINTFORML 「下着が見れなくてがっかりしちゃった？」
+								IF BASE:MASTER:勃起 >= 1000
+									PRINTFORML 「そんなことないよね。%CSTR:75:80%、そんなに大きくしちゃってるもの」
+									PRINTFORML 「人形の%CSTR:75:82%を見て固くしちゃう%CALLNAME:MASTER%は、変態さんだね」
+								ENDIF
+							ENDIF
+						ENDIF
+					;人目がないと自分で
+					CASE 3
+						IF GET_TARGETNUM() >= 2
+							PRINTFORML 「私が自分で？　やだよ、私が変態だと思われちゃうもの」
+							PRINTFORML 「あなたがするなら、許してあげる」
+						ELSE
+							PRINTFORML 「はい、これがいいんでしょう？」
+							PRINTFORML メディスンがスカートの裾をつまみ上げ、太ももの付け根まで露わにした
+							IF EQUIP:TARGET:下半身下着１ || EQUIP:TARGET:下半身下着２
+								PRINTFORML 「%CALLNAME:MASTER%の大好きなパンツだよ」
+								IF BASE:MASTER:勃起 >= 1000
+									PRINTFORML 「わあ。%CSTR:75:80%、そんなに大きくしちゃって、いけない人」
+									PRINTFORML 「人形のパンツを見て固くしちゃう%CALLNAME:MASTER%は、変態さんだね」
+									CALL ASK_YN("それは違う","もっと罵って")
+									IF !RESULT
+										PRINTFORML 「何が違うの？　%CSTR:75:80%を硬くして、そんな間近で息を荒くしながら見て」
+										PRINTFORML 「否定しても駄目。%CALLNAME:MASTER%は変態で間違いないわ」
+										PRINTFORML 「でも、私はそんな%CALLNAME:MASTER%も愛してあげる。醜い所も、全部見せて。受け入れてあげるから」
+									ELSE
+										PRINTFORML 「人形に欲情しちゃう性愛異常者。もう、普通の人は愛せないんじゃないかしら」
+										PRINTFORML 「ううん、生身の人間が怖いから、私のような人形に欲情しちゃうのよね」
+										PRINTFORML 「情けない人。這いつくばるように見て、視線が気持ち悪いわ。変態。私が人間だったら鳥肌が立ちそう。鼻息が豚みたい」
+										PRINTW 
+										PRINTFORML メディスンの容赦ない罵倒に、心もちんちんも折れそうだ…
+										PRINTFORML 「でもね」
+										PRINTFORML メディスンは一転して優しい微笑みを浮かべながら%CALLNAME:MASTER%の頭を抱き、耳元に唇を寄せた。
+										PRINTFORML 「そんな%CALLNAME:MASTER%が好き。愛してる」
+										BASE:MASTER:勃起 += 500
+									ENDIF
+								ENDIF
+							ELSE
+								PRINTFORML 「驚いた？　今は何も履いてないの」
+								PRINTFORML 「下着が見れなくてがっかりしちゃった？」
+								IF BASE:MASTER:勃起 >= 1000
+									PRINTFORML 「そんなことないよね。%CSTR:75:80%、そんなに大きくしちゃってるもの」
+									PRINTFORML 「人形の%CSTR:75:82%を見て固くしちゃう%CALLNAME:MASTER%は、変態さんだね」
+								ENDIF
+							ENDIF
+						ENDIF
+					CASEELSE
+						PRINTFORML 「私がスカートをめくられるのを許してあげないと、%CALLNAME:MASTER%は犯罪者になっちゃうかもしれないもの」
+						PRINTFORML 「私だけ許してあげる。人形の下着を見て興奮する変態の%CALLNAME:MASTER%。そんなあなたが大好きよ」
+					ENDSELECT
+				ENDSELECT
+				PRINTW 
+			ENDIF
+		ELSE
+			IF TALENT:75:無知
+				SELECTCASE TFLAG:193
+				;ビンタ
+				CASE -5
+					PRINTFORML 「何か嫌な感じ。やめてよね」
+				;つねり
+				CASE -3
+					PRINTFORML 「多分そういうことしちゃ駄目だと思うの」
+				;いやがる
+				CASE -1
+					PRINTFORML 「私はあんまり楽しくない…」
+				;嬉し気
+				CASE 0
+					PRINTFORML 「%CALLNAME:MASTER%、なんだか嬉しそう」
+				;受け入れ
+				CASE 1
+					PRINTFORML 「よく分からないけど%CALLNAME:MASTER%が嬉しそうだからもっとめくっていいよ」
+				ENDSELECT
+			ELSE
+				SELECTCASE TFLAG:193
+				;ビンタ
+				CASE -5
+					PRINTFORML 「%CALLNAME:MASTER%のヘンタイ。人形のスカートをめくって興奮するなんて」
+				;つねり
+				CASE -3
+					PRINTFORML 「気持ち悪い。やめて」
+				;いやがる
+				CASE -1
+					PRINTFORML 「%CALLNAME:MASTER%みたいなの、人間は変態っていうんでしょ。変態、変態」
+				;嬉し気
+				CASE 0
+					PRINTFORML 「%CALLNAME:MASTER%は私の下着を見て興奮しちゃう人なんだ。本当に変態だね」
+					PRINTFORML 「見てよスーさん。あのだらしない顔」
+				;受け入れ
+				CASE 1
+					PRINTFORML 「本当にどうしようもない人ね。人形に欲情するなんて」
+					PRINTFORML 「私のスカートをめくるときのあなたの卑屈な顔、とっても好きよ」
+					PRINTW 
+				ENDSELECT
+			ENDIF
+		ENDIF
 	ENDIF
 ENDIF
 RETURN 1
@@ -978,4 +1220,31 @@ SOURCE:反感 = 0
 IF TALENT:恋慕 || TALENT:恋人 && !TALENT:75:無知
 	SOURCE:歓楽 += 200
 ENDIF
+
+;アナル愛撫
+@M_KOJO_EXTRASOURCE_COM_K75_314
+IF TALENT:75:人形 == 99
+	SOURCE:75:快Ａ = 0
+ENDIF
+
+;クリ愛撫
+@M_KOJO_EXTRASOURCE_COM_K75_315
+IF TALENT:75:人形 == 99
+	SOURCE:75:快Ｃ = 0
+ENDIF
+
+;指挿れ
+@M_KOJO_EXTRASOURCE_COM_K75_316
+IF TALENT:75:人形 == 99
+	SOURCE:75:快Ｖ = 0
+ENDIF
 ;==================================================
+;キスする追加ソース
+@M_KOJO_EXTRASOURCE_COM_K75_312
+IF TALENT:恋慕 || TALENT:恋人 && !TALENT:75:無知
+	SOURCE:反感 = 0
+	SOURCE:歓楽 += 200
+	SOURCE:MASTER:快Ｍ += 500
+	SOURCE:MASTER:欲情 += 1000
+	BASE:MASTER:勃起 += 200
+ENDIF

@@ -819,58 +819,76 @@ CASE "失敗報告時"
 ;	RETURN 0
 ENDSELECT
 ;
-;;==================================================
-;;依頼口上・一般依頼08：手紙を届けて
-;;※この依頼はキャラによっては発生しません
-;;==================================================
-;@M_KOJO_IRAI_8_K111(ROLE, SCENE, CLIENT_ID)
-;#DIMS ROLE     ;キャラの立場、依頼者かそうでないか
-;#DIMS SCENE    ;セリフの表示されるタイミング
-;#DIM  CLIENT_ID;依頼者IDだけ抜き出したもの
-;;--------------------------------------------------
-;;RETURN 0 の部分は共通の口上が表示されます
-;;依頼ごとの口上を表示する部分は RETURN 0 を RETURN 1 にしてください
-;;--------------------------------------------------
-;SELECTCASE SCENE
-;CASE "依頼提示時"
-;	
+;==================================================
+;依頼口上・一般依頼08：手紙を届けて
+;※この依頼はキャラによっては発生しません
+;==================================================
+@M_KOJO_IRAI_8_K111(ROLE, SCENE, CLIENT_ID)
+#DIMS ROLE     ;キャラの立場、依頼者かそうでないか
+#DIMS SCENE    ;セリフの表示されるタイミング
+#DIM  CLIENT_ID;依頼者IDだけ抜き出したもの
+;--------------------------------------------------
+;RETURN 0 の部分は共通の口上が表示されます
+;依頼ごとの口上を表示する部分は RETURN 0 を RETURN 1 にしてください
+;--------------------------------------------------
+SELECTCASE SCENE
+CASE "依頼提示時"
+	
+	RETURN 0
+CASE "依頼非受託時"
+	
+	RETURN 0
+CASE "依頼受託時"
+	
+	RETURN 0
+CASE "依頼確認時"
+	
+	RETURN 0
+CASE "依頼破棄時"
+	
+	RETURN 0
+CASE "依頼実行直前"
+;○この依頼では手紙を渡される側の口上です
+;【◆口上】
+;【W ［あなた］は［彼女］に預かっていた手紙を渡した】
+;【▼そのまま下の口上へ】
+	PRINTFORML 「ん？ 手紙？」
+	SELECTCASE CLIENT_ID
+	CASE [[サニー]]
+		PRINTFORMW 「サニーからだ、なになに…？」
+	CASE [[ルナ]]
+		PRINTFORMW 「ルナからだ、なになに…？」
+	CASE [[スター]]
+		PRINTFORMW 「スターからだ、なになに…？」
+	ENDSELECT
+	RETURN 1
+CASE "依頼実行直後"
+;○この依頼は必ず実行後達成します
+;【▲上の口上から続き】
+;【◆口上】
+	;内容はどれも（キャラによって変わらず）同じようなものだろう
+	SELECTCASE RAND:3
+	CASE 1
+		PRINTFORMW 「は～、くっだらなー！」
+	CASE 2
+		PRINTFORML 「へー！ ふーん！」
+		PRINTFORMW 「……なんのことかさっぱりわからないや」
+	CASEELSE
+		PRINTFORMW 「お、集会があるみたい」
+	ENDSELECT
+	PRINTFORMW 「%CALLNAME:MASTER%、わざわざお使いご苦労さん」
+	RETURN 1
+CASE "成功報告時"
+;報酬：素材4つ
+	
+	RETURN 0
+CASE "失敗報告時"
+	
+	RETURN 0
+;CASE "依頼報告不要"
+;＜この依頼にはありません＞
 ;	RETURN 0
-;CASE "依頼非受託時"
-;	
-;	RETURN 0
-;CASE "依頼受託時"
-;	
-;	RETURN 0
-;CASE "依頼確認時"
-;	
-;	RETURN 0
-;CASE "依頼破棄時"
-;	
-;	RETURN 0
-;CASE "依頼実行直前"
-;;○この依頼では手紙を渡される側の口上です
-;;【◆口上】
-;;【W ［あなた］は［彼女］に預かっていた手紙を渡した】
-;;【▼そのまま下の口上へ】
-;	
-;	RETURN 0
-;CASE "依頼実行直後"
-;;○この依頼は必ず実行後達成します
-;;【▲上の口上から続き】
-;;【◆口上】
-;	
-;	RETURN 0
-;CASE "成功報告時"
-;;報酬：素材4つ
-;	
-;	RETURN 0
-;CASE "失敗報告時"
-;	
-;	RETURN 0
-;;CASE "依頼報告不要"
-;;＜この依頼にはありません＞
-;;	RETURN 0
-;ENDSELECT
+ENDSELECT
 
 ;==================================================
 ;依頼口上・一般依頼09：誰かの落とし物
@@ -1252,6 +1270,224 @@ CASE "失敗報告時"
 ;	RETURN 0
 ENDSELECT
 
+;==================================================
+;依頼口上・一般依頼16：お悩み相談
+;==================================================
+@M_KOJO_IRAI_16_K111(ROLE, SCENE, CLIENT_ID)
+#DIMS ROLE     ;キャラの立場、依頼者かそうでないか
+#DIMS SCENE    ;セリフの表示されるタイミング
+#DIM  CLIENT_ID;依頼者IDだけ抜き出したもの
+;--------------------------------------------------
+;RETURN 0 の部分は共通の口上が表示されます
+;依頼ごとの口上を表示する部分は RETURN 0 を RETURN 1 にしてください
+;--------------------------------------------------
+SELECTCASE SCENE
+CASE "依頼提示時"
+	PRINTFORML 「%CALLNAME:MASTER%、ちょっと聞いてよ～！」
+	RETURN 1
+CASE "依頼非受託時"
+	PRINTFORML 「フンだ、いいもん！」
+	RETURN 1
+CASE "依頼受託時"
+	PRINTFORML 「やった！ よろしく！」
+	RETURN 1
+CASE "依頼確認時"
+	
+	RETURN 0
+CASE "依頼破棄時"
+	
+	RETURN 0
+CASE "依頼実行直前"
+	PRINTFORML 「あのねー……」
+	RETURN 1
+CASE "依頼実行直後"
+	IF TFLAG:193 == 1
+		;正解の選択肢
+		PRINTFORML 「うんうん！ さすが%CALLNAME:MASTER%！」
+	ELSEIF TFLAG:193 == 2
+		;ハズレの選択肢だったが逆に正解
+		PRINTFORML 「ん！？ %CALLNAME:MASTER%、それすごくイイ！」
+	ELSEIF TFLAG:193 == -1
+		;ハズレの選択肢
+		PRINTFORML 「も～、判ってないなぁ……」
+	ELSEIF TFLAG:193 == -2
+		;正解の選択肢だったが逆にハズレ
+		PRINTFORML 「全くナンセンスだね……」
+	ENDIF
+	RETURN 1
+CASE "成功報告時"
+;報酬：野菜か果物
+	PRINTFORML 「ありがとー！」
+	RETURN 1
+CASE "失敗報告時"
+	PRINTFORML 「%CALLNAME:MASTER%に聞いたのが間違いだったか……」
+	RETURN 1
+;CASE "依頼報告不要"
+;＜この依頼にはありません＞
+;	RETURN 0
+CASE "口上委託率"
+;＜この依頼特有の分岐です。(RESULT:100の値)％の確率で"口上専用"が発生します＞
+	RESULT:100 = 50
+
+;＜RESULT:YYに0以外の数値を入れると、該当のお悩みを発生させなくできます（詳しくは一般依頼16_お悩み相談参照）＞
+;1,2:弾幕ごっこの悩み 3,4:晩酌の悩み 5,6:本の悩み 7,8:香料の悩み
+;9,10:音楽の悩み 11,12:服の悩み 13:髪型の悩み 14:参拝の悩み 15:ダイエットの悩み
+;16,17:菜園の悩み 18:休日の悩み 19:人気の悩み 20:集中力の悩み 21:御三家の悩み 22:進化の悩み
+	RESULT:1 = 0
+	RESULT:2 = 0
+	RETURN 1
+CASE "口上専用"
+;＜この依頼特有の分岐です。(口上委託率)％の確率で発生します＞
+;16,お悩み相談 の場合
+;RESULT        発生判定,0だと発生しません
+;RESULT:1      正解の選択肢（ただしRESULT:2が0だと、一定確率で逆にハズレる）
+;RESULT:2      逆張り正解／ハズレ判定の消去,1だと逆張りが無くなります
+;RESULTS:0     お悩み文章（自動で『』で囲まれます）
+;RESULTS:1～3  選択肢１～３
+;何も発生しない状態になると無限ループになるので注意してください
+;●追記メモ
+;RESULT:1を4～6にするとそれぞれ1～3がハズレ（残り2つが正解）になります
+;RESULT:1を7にするとどれも正解になります
+;RESULT:1を8にするとどれもハズレになります
+;1～3以外の場合は逆張り判定が自動で無くなります
+	SELECTCASE RAND:7
+	CASE 1
+		RESULTS:0 = 新しいスペルカードの名前は何にしよう？
+
+		LOCALS:1 = 「地獄界の夢」
+		LOCALS:2 = 「フリーダムトレイル」
+		LOCALS:3 = 「ミリオンダラーランプス」
+		LOCALS:4 = 「アンダーワールドシー」
+		LOCALS:5 = 「スターストライプフォーエバー」
+		LOCALS:6 = 「アビスの風」
+
+		LOCALS:11 = 「地獄のノンイデアル弾幕」
+		LOCALS:12 = 「地獄に降る雨」
+		LOCALS:13 = 「インビジブルフルムーン」
+		LOCALS:14 = 「ロケット・イン・ミスト」
+		LOCALS:15 = 「ルナティックレッドアイズ」
+		LOCALS:16 = 「スターライトレイン」
+		LOCALS:17 = 「スターピースシャワー」
+		LOCALS:18 = 「スターストーム」
+		LOCALS:19 = 「スターヴォヤージュ」
+		LOCALS:20 = 「スプリーンイーター」
+		LOCALS:21 = 「火焔の車輪」
+		LOCALS:22 = 「無間の狭間」
+		LOCALS:23 = 「亀甲地獄」
+		LOCALS:24 = 「獄界視線」
+		CALL M_KOJO_K111_ONAYAMI_POT(6, 14)
+		RESULTS:1 = %LOCALS:(RESULT:11)%
+		RESULTS:2 = %LOCALS:(RESULT:12)%
+		RESULTS:3 = %LOCALS:(RESULT:13)%
+		RESULT = 1
+;		RESULT:1 = 決定済み
+		RESULT:2 = 1
+	CASE 2
+		RESULTS:0 = 次は誰にイタズラしたらいいだろう？
+		RESULTS:1 = 霊夢
+		RESULTS:2 = 魔理沙
+		RESULTS:3 = 早苗
+		RESULT = 1
+		RESULT:1 = 7
+	CASE 3
+		RESULTS:0 = 次は誰にイタズラしたらいいだろう？
+		RESULTS:1 = サニーミルク
+		RESULTS:2 = ルナチャイルド
+		RESULTS:3 = スターサファイア
+		RESULT = 1
+		RESULT:1 = 7
+	CASE 4
+		RESULTS:0 = 今年の冬はどうやって乗り切ろう？
+		RESULTS:1 = 雪玉で弾幕ごっこ
+		RESULTS:2 = 新種のおでんを開発
+		RESULTS:3 = 魔界の炎を召喚
+		;秋に発生
+		SIF DAY:2 == 3
+			RESULT = 1
+		RESULT:1 = 7
+	CASE 5
+		RESULTS:0 = 今度の縁日の出し物は何にしよう？
+
+		LOCALS:1 = 焼きそば
+		LOCALS:2 = ケバブ
+		LOCALS:3 = タコス
+		LOCALS:4 = りんご飴
+		LOCALS:5 = フランクフルト
+		LOCALS:6 = 射的
+		LOCALS:7 = スーパーボールすくい
+
+		LOCALS:11 = 金魚すくい
+		LOCALS:12 = 型抜き
+		LOCALS:13 = くじ引き
+		LOCALS:14 = ヨーヨー釣り
+		LOCALS:15 = お面屋
+		LOCALS:16 = わたあめ
+		LOCALS:17 = かき氷
+		LOCALS:18 = 輪投げ
+		LOCALS:19 = 扇子屋
+		CALL M_KOJO_K111_ONAYAMI_POT(7, 9)
+		RESULTS:1 = %LOCALS:(RESULT:11)%
+		RESULTS:2 = %LOCALS:(RESULT:12)%
+		RESULTS:3 = %LOCALS:(RESULT:13)%
+		RESULT = 1
+;		RESULT:1 = 決定済み
+		RESULT:2 = 1
+	CASE 6
+		RESULTS:0 = 死者と話すにはどうしたらいいと思う？
+		RESULTS:1 = 彼岸に行く
+		RESULTS:2 = 黒魔術で蘇らせる
+		RESULTS:3 = 降霊術で対話する
+		RESULT = 1
+		RESULT:1 = 2
+		RESULT:2 = 1
+	CASEELSE
+		RESULTS:0 = どのスタンドがいいと思う？
+
+		LOCALS:1 = Ｄ４Ｃ
+
+		LOCALS:11 = スター・プラチナ
+		LOCALS:12 = ザ・ワールド
+		LOCALS:13 = クレイジー・ダイヤモンド
+		LOCALS:14 = キラー・クイーン
+		LOCALS:15 = ゴールド・エクスペリエンス
+		LOCALS:16 = キング・クリムゾン
+		LOCALS:17 = ストーン・フリー
+		LOCALS:18 = メイド・イン・ヘブン
+		LOCALS:19 = タスク
+		CALL M_KOJO_K111_ONAYAMI_POT(1, 9)
+		RESULTS:1 = %LOCALS:(RESULT:11)%
+		RESULTS:2 = %LOCALS:(RESULT:12)%
+		RESULTS:3 = %LOCALS:(RESULT:13)%
+		RESULT = 1
+;		RESULT:1 = 決定済み
+		RESULT:2 = 1
+	ENDSELECT
+
+	SIF !RESULT
+		RESTART
+	RETURN 1
+ENDSELECT
+
+
+;お悩み相談用
+;回答と選択肢を抽出してくれる関数
+@M_KOJO_K111_ONAYAMI_POT(正解数, 間違い数)
+#DIM 正解数
+#DIM 間違い数
+VARSET RESULT
+VARSET LOCAL
+RESULT:1 = RAND:3 + 1
+RESULT:(10 + RESULT:1) = RAND:正解数 + 1
+FOR LOCAL, 11, 14
+	WHILE !RESULT:LOCAL
+		RESULT:LOCAL = RAND:間違い数 + 11
+		IF RESULT:LOCAL == LOCAL:1
+			RESULT:LOCAL = 0
+		ELSE
+			LOCAL:1 = RESULT:LOCAL
+		ENDIF
+	WEND
+NEXT
 ;==================================================
 ;依頼口上・固有依頼101：
 ;固有依頼の仕様はキャラによって異なりますが依頼番号は101～で共通です

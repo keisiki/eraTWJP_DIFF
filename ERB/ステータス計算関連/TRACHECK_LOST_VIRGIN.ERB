@@ -400,11 +400,15 @@ VARSET LOCALS
 無理矢理シチュ = (TCVAR:ARG:無理矢理 && !(TALENT:ARG:愛欲 || TALENT:ARG:セフレ || TALENT:ARG:恋慕 || TALENT:ARG:思慕))
 ;無理矢理状態で、キス合意はつかない。無理矢理だから！！！唇を許すわけ無いでしょ！！　ただし、陥落素質があればギリギリセーフ。
 
-;キス未経験が無ければ帰る
-SIF !TALENT:ARG:キス未経験
+;キス経験済み
+IF TALENT:ARG:キス未経験 == 0
 	RETURN
-SIF TALENT:ARG:キス未経験 < 0 && シチュエーション & 16
-	RETURN
+;無自覚キス経験済み
+ELSEIF TALENT:ARG:キス未経験 < 0
+	;無自覚キス同士では重複しない
+	SIF シチュエーション & 16
+		RETURN
+ENDIF
 
 ;FLAG:ＦＫ判定によっては帰る
 SIF !(FLAG:ＦＫ判定 & 1) && シチュエーション & 16
@@ -504,6 +508,7 @@ ENDIF
 IF CSTR:ARG:ファーストキス喪失履歴 == ""
 	CSTR:ARG:ファーストキス喪失履歴 = %PRINT_DATE_F(DAY)%、%CSTR:ARG:ファーストキス位置%で%LOCALS:2%%LOCALS:0%%CALLNAME:キス相手%%LOCALS:1%%修飾語%ファーストキスを%LOCALS:3%
 ELSE
+	;無自覚キスがある場合のみ重複する
 	CSTR:ARG:ファーストキス喪失履歴 = %PRINT_DATE_F(DAY)%、%CSTR:ARG:ファーストキス位置%で%LOCALS:2%%LOCALS:0%%CALLNAME:キス相手%%LOCALS:1%%修飾語%ファーストキスを%LOCALS:3%￥ＢＲ%CSTR:ARG:ファーストキス喪失履歴%
 ENDIF
 ;既成事実もつけておく

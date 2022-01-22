@@ -1,0 +1,4340 @@
+﻿;※※※※※※※※※※※※※※※※※※※※※※※※※
+;日常系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;300,会話
+;TFLAG:193(1=大成功 0=成功 -1=失敗 -2=大失敗（TARGETがMASTERより教養が4以上高い)
+;TCVAR:302(0=会話可能 1>=非恋慕時会話不能)
+;MARK:反発刻印(3以上=会話不能)(4以上はバグ
+;TCVAR:泥酔(1=通常成功or大失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_300
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_300
+;コマンド共通メッセージ(TRAIN_MESSAGE) 
+;削除すると「～話をした。」とかが消えます。また、削除した場合は自動で口上色が付きません。
+CALL TRAIN_MESSAGE
+;口上メイン呼出
+CALL M_KOJO_MESSAGE_COM_K99_300_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_300_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;初回会話
+	IF FIRSTTIME(SELECTCOM)
+		PRINTFORML 「こうして地上の人間と話すのは随分と久しぶりだわ」
+		PRINTFORML 「今から千五百年以上前……確か彼の名は水江浦嶋子といったか」
+		PRINTFORMW 「ああ、浦島太郎と言った方が分かりやすいかしら？」
+	;怒り
+	ELSEIF CFLAG:ブチギレ > 0  || MARK:反発刻印 >= 3
+		PRINTFORML 「……………」
+		PRINTFORMDW 豊姫は扇子で口元を隠しながら%CALLNAME:MASTER%の事をじっと見つめている
+	;会話不能
+	ELSEIF TCVAR:302
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORML 「………」
+			PRINTFORMDW 豊姫は微笑を浮かべながら黙って%CALLNAME:MASTER%の話を聞いている
+		;それ以外
+		ELSE
+			PRINTFORML 「まあまあ、そう固くならないで」
+			PRINTFORMW 「もっとリラックスしてお話しましょう？」
+		ENDIF
+	;通常
+	ELSE
+		;恋慕
+		IF TALENT:恋慕
+			SELECTCASE RAND:10
+				CASE 0
+					;１５分の１の確率でフェムトファイバーについて語る
+					IF !RAND:15
+						PRINTFORML 「そろそろフェムトファイバーが何であるか忘れてしまったんじゃない？」
+						PRINTFORMW 「どう？ ここでもう一度おさらいしてみるというのは」
+						PRINTFORML 
+						;選択肢
+						CALL ASK_YN("はい","いいえ")
+						;判定
+						SELECTCASE RESULT
+							;はい
+							CASE 0
+								GOTO FEMTOFIBER
+							;いいえ
+							CASE 1
+								PRINTFORMW 「そう言うと思っていたわ」
+								GOTO FEMTOFIBER
+						ENDSELECT
+					;通常
+					ELSE
+						PRINTFORMDL 話もひと段落し二人並んで一息つく
+						PRINTFORMDL %CALLNAME:MASTER%がそっと肩を抱き寄せ甘い言葉を囁くと
+						PRINTFORMDL 豊姫は恥ずかしさに頬を染めながらも嬉しそうに微笑んだ
+						PRINTFORMW 「……ふふっ、私も大好きよ。%CALLNAME:MASTER%♪」
+					ENDIF
+				CASE 1
+					PRINTFORML 「いつの日か貴方も……」
+					PRINTFORML 「……ううん、なんでもない」
+					PRINTFORMW 「さ、もっと貴方のお話を聞かせて？」
+				CASE 2
+					PRINTFORML 「あら？ あらあらー？ どこを見ているのかしらー？」
+					PRINTFORML 「人と話すときはちゃんと相手の目を見て話さないと……♪」
+					PRINTFORMDW 豊姫はブラウスのボタンを外すと、胸を寄せ上げ、谷間を見せつけてきた……
+				CASE 3
+					PRINTFORML 「……ぷっ、ふふっ」
+					PRINTFORML 「あっははっ、ごめんなさい」
+					PRINTFORMW 「貴方の話がおかしくって、つい」
+				CASE 4
+					PRINTFORML 「そのお話、まだ続きがあるのでしょう？」
+					PRINTFORML 「ほらほら、もっと聞かせて頂戴な♪」
+					PRINTFORMDW 豊姫は%CALLNAME:MASTER%の話を聞いて楽しそうに笑っている
+				CASE 5
+					PRINTFORML 「貴方は聞いたことがある？」
+					PRINTFORML 「ある月の民と地上の民に関する噂を……」
+					PRINTFORML 「人の噂も七十五日というけれど、もうかなり経つのに中々消えないのよねぇ」
+					PRINTFORMW 「うふふー、いったい誰と誰のことなのかしらー」
+				CASE 6
+					PRINTFORML 「いつか貴方と一緒に旅に出たいと思っているの」
+					PRINTFORML 「誰も私達を知らない土地に行って、そこで……」
+					PRINTFORML 「……二人だけで、小さな結婚式を上げたり」
+					PRINTFORML 「ああ、でも依姫は招待してあげたいかな……あと八意様も……」
+					PRINTFORMDW なんだか急に話が飛躍した気がする……
+				CASE 7
+					PRINTFORML 「ん？ 私のお話を聞きたいの？」
+					PRINTFORML 「そうねぇ……それじゃあ……」
+					PRINTFORMDW %CALLNAME:MASTER%は豊姫から%TEXTR("気の遠くなるような昔の出来事/依姫との思い出/面白い話/")%を聞かせてもらった
+				CASE 8
+					CALL HPH_PRINT,@"「………HPH」","L"
+					PRINTFORMDL 豊姫は%CALLNAME:MASTER%の話に耳を傾けながら熱っぽい視線を送り続けている
+					PRINTFORML 「ああ、いいのよ。続けて？」
+					PRINTFORMW 「貴方の話はちゃんと聞いてるから」
+				CASE 9
+					PRINTFORML 「ねぇ……私のこと『とよねぇ』って呼んでみてくれない？」
+					PRINTFORML 「………ぁぁっ♪」
+					PRINTFORMW 「今の……凄くゾクゾクってしちゃった……♪」
+			ENDSELECT
+		;思慕
+		ELSEIF TALENT:思慕
+			SELECTCASE RAND:10
+				CASE 0
+					PRINTFORML 「依姫とは仲良くしてる？」
+					PRINTFORML 「あの子のこと、気軽によっちゃんって呼んでもいいのよ」
+					PRINTFORMW 「大丈夫よ。最初は恥ずかしがるけどその内慣れるから」
+				CASE 1
+					PRINTFORML 「兎達の間でも貴方の話題で持ちきりよ」
+					PRINTFORML 「ん？ どう噂されてるのかって？」
+					PRINTFORML 「……………」
+					PRINTFORMW 「ま、まぁ……その話は追い追いね」
+				CASE 2
+					PRINTFORML 「仕事をしなくていいのかって？」
+					PRINTFORML 「あら、貴方にはそう見える？」
+					PRINTFORMW 「これでも結構忙しいのよ？ 本を読んだり、桃を食べたり……」
+				CASE 3
+					PRINTFORML 「桃のカロリーは100gあたり40kcal」
+					PRINTFORML 「つまり、低カロリーで太りにくいのよ」
+					PRINTFORML 「だからいくら食べても大丈夫ってことになるわね」
+					PRINTFORML 「なのに……はぁ、依姫ったら」
+					PRINTFORML 「あの子、私が桃を食べてると食べ過ぎだって言ってくるのよ」
+					PRINTFORMW 「太らないって言っても聞いてくれなくて……」
+				CASE 4
+					PRINTFORML 「はぁ……なんだかお腹が空いてきちゃった」
+					PRINTFORML 「そうだ、そろそろ良い頃合いの桃があるの。一緒に取りに行く？」
+					PRINTFORMW 「……あ、依姫には内緒よ？ 小言が始まってしまうから」
+				CASE 5
+					PRINTFORML 「貴方のことをどう思っているか？」
+					PRINTFORML 「うーん……頼りになる弟…かな？」
+					PRINTFORMDW 手のかかる姉を持った依姫は大変そうだ
+				CASE 6
+					PRINTFORML 「道は近きにあり 而るにこれを遠きに求む」
+					PRINTFORML 「回りくどいことが正しいとは限らないということ」
+					PRINTFORMW 「ああ、これ八意様の口癖ね」
+				CASE 7
+					PRINTFORML 「昔話？ そうねぇ……」
+					PRINTFORMW 「あれは今から三十六万……いや、一万四千年前だったかも」
+				CASE 8
+					PRINTFORML 「そういえば……私、見てしまったの」
+					PRINTFORML 「依姫が鏡の前ですごい服を着てポーズを取っているのを」
+					PRINTFORML 「勿論それは偶然手に持っていたカメラで録画済なんだけど」
+					PRINTFORMW 「見たい？ うふふっ、それじゃあ今度二人っきりでね♪」
+				CASE 9
+					PRINTFORML 「一時の気の迷い……例えそうだとしても」
+					PRINTFORML 「%CALLNAME:MASTER%という穢れを受け入れるのも、悪くないかなって……」
+					PRINTFORMW 「……なんて、こんなこと言ったら妹に叱られてしまいそうね」
+			ENDSELECT
+		;それ以外
+		ELSE
+			SELECTCASE RAND:10
+				CASE 0
+					PRINTFORMW 「フェムトファイバーとは何か知っている？」
+					;選択肢
+					CALL ASK_YN("はい","いいえ")
+					;判定
+					SELECTCASE RESULT
+						;はい
+						CASE 0
+							PRINTFORML 「フェムト、わかりやすく言うと……え？ もう知ってる？」
+							PRINTFORMW 「そう……残念」
+							RETURN 1
+						;いいえ
+						CASE 1
+							GOTO FEMTOFIBER
+					ENDSELECT
+					$FEMTOFIBER
+					PRINTFORMW 「フェムト……わかりやすく言うと須臾のことね」
+					PRINTFORMW 「須臾とは生き物が認識できない僅かな時間のことよ」
+					PRINTFORMW 「時間とは……認識できない時が無数に積み重なってできています」
+					PRINTFORMW 「時間の最小単位である須臾が認識できないから時間は連続に見えるけど……」
+					PRINTFORMW 「本当は短い時が組み合わさってできているの」
+					PRINTFORMW 「組紐も１本の紐のようだけど、本当は細い紐が組み合わさっているもの」
+					PRINTFORMW 「認識できない細さの繊維で組まれた組紐は限りなく連続した物質に見えるでしょう」
+					PRINTFORMW 「そのとき、紐から余計な物がなくなり最強の強度を誇る」
+					PRINTFORMW 「さらには余計な穢れもつかなくなるのです」
+					PRINTFORMW 「この紐をさらに組み合わせて太い縄にすることで、決して腐らない縄ができる」
+					PRINTFORMW 「その縄は遥か昔から、不浄な者の出入りを禁じるために使われてきたのよ」
+					PRINTFORMW 「それがフェムトファイバー。理解できた？」
+					PRINTFORML 
+					EXP:MASTER:学習経験 ++
+					TCVAR:99:350 += 1
+					;選択肢
+					CALL ASK_M("はい", 1, "いいえ", TCVAR:99:350 < 3)
+					;判定
+					SELECTCASE RESULT
+						;はい
+						CASE 0
+							CALL M_KOJO_COLOR_K99
+							PRINTFORMW 「よかった♪ また聞きたくなったらいつでも教えてあげるからね」
+							RESETCOLOR
+							TCVAR:99:350 = 0
+						;いいえ
+						CASE 1
+							PRINTFORML 「あら、地上の民には少し難しかったかしら？」
+							PRINTFORMW 「なら、もう一度説明してあげるわね」
+							TIME += 10
+							GOTO FEMTOFIBER
+					ENDSELECT
+				CASE 1
+					PRINTFORML 「そうだ、兎達が迷惑をかけていない？」
+					PRINTFORML 「鈍臭くてトロい奴が多いから、少し心配になって」
+					PRINTFORMW 「……言い過ぎって？ 貴方は優しいのね」
+				CASE 2
+					;小説版儚月抄ほぼまんま
+					PRINTFORML 「一年中続く春の暖かさ。夏の活気の良さ。秋の豊かさ。冬の侘しさ」
+					PRINTFORML 「青い星の下に輝く美しい桃の木。そして兎達の笑顔の絶えない月の都……」
+					PRINTFORMW 「月面が荒涼とした世界だなんて、一体誰が言ったのかしら？」
+				CASE 3
+					PRINTFORML 「貴方は地上と月を自由に行き来しているけれど、本当はいけないことなのよ？」
+					PRINTFORML 「それこそ、殺されても文句が言えない程に……」
+					PRINTFORMDL %CALLNAME:MASTER%が身を強張らせていると、豊姫の表情がふっと和らいだ
+					PRINTFORML 「……ふふっ、冗談よ。そんなに怯えないで」
+					PRINTFORMW 「良い子にしてたら誰も貴方を傷付けないから。本当よ？」
+				CASE 4
+					PRINTFORML 「八意様にはお会いになりました？」
+					PRINTFORML 「あの方は私達姉妹の師匠なのですよ」
+					PRINTFORML 「とても素晴らしいお方で、あの方のお陰で私達は……」
+					PRINTFORMW 「……っと、つい熱くなってしまうところだったわ」
+				CASE 5
+					PRINTFORML 「はぁ……最近は何もなくて暇ね」
+					PRINTFORMW 「偶には兎達の稽古にでも顔を出そうかしら」
+				CASE 6
+					PRINTFORML 「私の妹……依姫にはもう会った？」
+					PRINTFORML 「あの子も偶には海でも眺めて肩の力を抜けばいいのに」
+					PRINTFORMW 「ねぇ、貴方もそう思わない？」
+				CASE 7
+					PRINTFORML 「ああそうだ、妖精を見掛けたら私か妹に教えて頂戴」
+					PRINTFORML 「あれは穢れの塊のようなもの。私達月人にとっては毒そのもの」
+					PRINTFORML 「プチッと潰しておかないと色々と面倒なのよ」
+					PRINTFORMW 「ほら、貴方達も潰すでしょう？ 羽虫を」
+				CASE 8
+					PRINTFORML 「くすっ、面白い話ね」
+					PRINTFORMW 「兎達に話してあげたらきっと喜ぶわ」
+				CASE 9
+					PRINTFORML 「ん？ この扇子に興味があるの？」
+					PRINTFORML 「気を付けてね。それで自分を扇いだら貴方自身が消滅してしまうから」
+					PRINTFORML 「あら、冗談だと思う？ 怖いなら私が扇いであげましょうか」
+					PRINTFORMW 「大丈夫よー痛みすら感じさせず浄土へと送ってあげるから」
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;301,お茶を淹れる
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_301
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_301
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K99_301_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_301_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K99
+	;恋慕
+	IF TALENT:恋慕
+		;判定
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORMDL %CALLNAME:MASTER%は\@ CFLAG:TARGET:行動 == 5 ? 休憩がてら #  \@お茶を淹れて豊姫\@ GET_TARGETNUM() > 1 ? 達 # \@に差し出した…
+				PRINTFORMDL 豊姫と%CALLNAME:MASTER%はお茶を飲みながら\@ CFLAG:TARGET:行動 == 5 ? 休憩時間を楽しんだ # 楽しいひとときを過ごした \@…
+				PRINTFORMDW 
+				PRINTFORML 「せっかくお茶を淹れてくれたのだから、私も何かお出ししなくてはね」
+				PRINTFORML 「えーっと、何か持ってたかしら……あっ」
+				PRINTFORMW 「飴ちゃんがあったわ。はい、どうぞ♪」
+				CALL GET_ITEM("飴", 1, 1)
+			;成功
+			CASE 0
+				PRINTFORMDL %CALLNAME:MASTER%が『喉が渇いた』と言うと、既に豊姫がお茶の用意をしてくれていた
+				PRINTFORMDW 
+				PRINTFORML 「熱いお茶で良かったよね？」
+				PRINTFORML 「はい、どうぞ。火傷しないように気を付けて」
+				PRINTFORMDW %CALLNAME:MASTER%と豊姫は隣り合って座りながら、のんびりとした時間を楽しんだ……
+			;失敗
+			CASE -1
+				PRINTFORMDL %CALLNAME:MASTER%は\@ CFLAG:TARGET:行動 == 5 ? 休憩がてら #  \@お茶を淹れて豊姫\@ GET_TARGETNUM() > 1 ? 達 # \@に差し出した…
+				PRINTFORMDL ……どうやら豊姫の口に合わなかったようだ
+				PRINTFORMDW 
+				PRINTFORML 「ね、ねえ……%CALLNAME:MASTER%……？」
+				PRINTFORML 「それって……その、コーヒーよね？」
+				PRINTFORML 「……私、その……コーヒーは……」
+				PRINTFORMW 「……………お砂糖、たっぷりお願いね？」
+		ENDSELECT
+	;思慕
+	ELSEIF TALENT:思慕
+		;判定
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORMDL %CALLNAME:MASTER%は\@ CFLAG:TARGET:行動 == 5 ? 休憩がてら #  \@お茶を淹れて豊姫\@ GET_TARGETNUM() > 1 ? 達 # \@に差し出した…
+				PRINTFORMDL 豊姫と%CALLNAME:MASTER%はお茶を飲みながら\@ CFLAG:TARGET:行動 == 5 ? 休憩時間を楽しんだ # 楽しいひとときを過ごした \@…
+				PRINTFORMDW 
+				PRINTFORML 「あら、茶柱」
+				PRINTFORMW 「飲みづらいから捨てちゃいましょう」
+			;成功
+			CASE 0
+				PRINTFORMDL %CALLNAME:MASTER%は\@ CFLAG:TARGET:行動 == 5 ? 休憩がてら #  \@お茶を淹れて豊姫\@ GET_TARGETNUM() > 1 ? 達 # \@に差し出した…
+				PRINTFORMDW 
+				PRINTFORML 「ありがとう、頂くわ」
+				PRINTFORML 「ずずっ……ふぅ……」
+				PRINTFORMW 「……落ち着く」
+			;失敗
+			CASE -1
+				PRINTFORMDL %CALLNAME:MASTER%は\@ CFLAG:TARGET:行動 == 5 ? 休憩がてら #  \@お茶を淹れて豊姫\@ GET_TARGETNUM() > 1 ? 達 # \@に差し出した…
+				PRINTFORMDL ……どうやら豊姫の口に合わなかったようだ
+				PRINTFORMDW 
+				PRINTFORML 「これ……出涸らしね」
+				PRINTFORML 「ああ、淹れ直さなくてもいいのよ」
+				PRINTFORMW 「偶にはこういう薄いお茶も悪くないわ」
+		ENDSELECT
+	;それ以外
+	ELSE
+		;判定
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORMDL %CALLNAME:MASTER%は\@ CFLAG:TARGET:行動 == 5 ? 休憩がてら #  \@お茶を淹れて豊姫\@ GET_TARGETNUM() > 1 ? 達 # \@に差し出した…
+				PRINTFORMDL 豊姫と%CALLNAME:MASTER%はお茶を飲みながら\@ CFLAG:TARGET:行動 == 5 ? 休憩時間を楽しんだ # 楽しいひとときを過ごした \@…
+				PRINTFORMDW 
+				PRINTFORML 「ずずっ……ふぅ……」
+				PRINTFORMW 「……結構なお点前でした」
+			;成功
+			CASE 0
+				PRINTFORMDL %CALLNAME:MASTER%は\@ CFLAG:TARGET:行動 == 5 ? 休憩がてら #  \@お茶を淹れて豊姫\@ GET_TARGETNUM() > 1 ? 達 # \@に差し出した…
+				PRINTFORMDW 
+				PRINTFORML 「あら、ありがとう」
+				PRINTFORMW 「んくっ……ふぅ……」
+			;失敗
+			CASE -1
+				PRINTFORMDL %CALLNAME:MASTER%は\@ CFLAG:TARGET:行動 == 5 ? 休憩がてら #  \@お茶を淹れて豊姫\@ GET_TARGETNUM() > 1 ? 達 # \@に差し出した…
+				PRINTFORMDL ……どうやら豊姫の口に合わなかったようだ
+				PRINTFORMDW 
+				PRINTFORML 「頂くわ。……ん、あちゅっ」
+				PRINTFORMW 「ふぅっ、ふぅっ……氷とかないかしら」
+		ENDSELECT
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;302,スキンシップ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_302
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_302
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_302_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_COM_K99_302
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_COM_K99_302_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;お風呂
+	IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+		;恋慕
+		IF TALENT:恋慕
+			CALL HPH_PRINT,@"「あんっHPH もう、胸ばっかり……HPH」","L"
+			CALL HPH_PRINT,@"「そこだけじゃなくて、もっと洗うトコロがあるでしょう……？HPH」","L"
+			CALL HPH_PRINT,@"「例えば、こことか……HPH んっHPH」","W"
+		;それ以外
+		ELSE
+			PRINTFORML 「やぁん、殿方に背中を流してもらうなんて恥ずかしいわー」
+			PRINTFORMW 「………本当よ？ ちょっぴり、ほんの少しだけ」
+		ENDIF
+	;通常
+	ELSE
+		;恋慕
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL 豊姫の頬に手を添えて、親指でそっと彼女の唇をなぞった
+					PRINTFORML 「くすくすっ、なぁに？」
+					PRINTFORMW 「キス、したいの？」
+				CASE 1
+					PRINTFORML 「あらあら、そんな遠慮しなくてもいいのよ？」
+					PRINTFORML 「ほら……どこに触りたいの……？」
+					PRINTFORMW 「ここ……？ それとも、ここ……？」
+				CASE 2
+					PRINTFORML 「ねえ、手を握ってくれる？」
+					PRINTFORML 「……ん、ありがとう」
+					PRINTFORML 「……%CALLNAME:MASTER%の手、温かい」
+					PRINTFORMW 「当たり前のことなのにね……」
+			ENDSELECT
+		;思慕
+		ELSEIF TALENT:思慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「あら、肩を揉んでくれるの？」
+					PRINTFORML 「それじゃあ、お願いしちゃおっかな」
+					PRINTFORML 「……んっ、ぁ……そこ、もっと……っ」
+					PRINTFORMDW 豊姫は気持ち良さそうに%CALLNAME:MASTER%に身を任せている
+				CASE 1
+					PRINTFORML 「触られて恥ずかしくないのかって？」
+					PRINTFORML 「うーん……恥ずかしいというより……」
+					PRINTFORML 「こうやってペタペタ触ってくる貴方がまるで子供のようで」
+					PRINTFORMW 「ついつい甘えさせたくなってしまうのよ」
+				CASE 2
+					PRINTFORML 「そんなにくっついてどうしたの？」
+					PRINTFORML 「疲れた？ それとも……」
+					PRINTFORMW 「うふふっ、甘えたくなっちゃった……？」
+			ENDSELECT
+		;それ以外
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「まあ、随分と気安いこと」
+					PRINTFORML 「次は何をしてくるのかしら。ワクワクするわ♪」
+					PRINTFORMDW %CALLNAME:MASTER%に触れられても豊姫はニコニコと笑ったままだ
+				CASE 1
+					PRINTFORMDL %CALLNAME:MASTER%は豊姫の腰に手を回してみた
+					PRINTFORML 「あらあら、どうしたのー？」
+					PRINTFORMW 「随分と距離が近いようだけど」
+				CASE 2
+					PRINTFORML 「依姫もね、小さい頃はよくこうやってペタペタ触ってきたのよ」
+					PRINTFORML 「あの頃はあんなに甘えん坊だったのに……」
+					PRINTFORML 「……ん？ 子供扱いするなって？ ふふふっ」
+					PRINTFORMW 「ごめんなさい。気を付けるわね」
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;303,謝る
+;TFLAG:193(2=菓子折成功 1=大成功 0=成功 -1=失敗 -2=菓子折失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_303
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_303
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_303_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_303_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;判定
+	SELECTCASE TFLAG:193 
+		;許してくれた
+		CASE 0,1,2
+			PRINTFORML 「………ふふっ」
+			PRINTFORML 「十分に反省したようね」
+			PRINTFORMW 「それじゃあ、許してあげます」
+		;許してくれなかった
+		CASEELSE
+			PRINTFORML 「………ん？」
+			PRINTFORML 「なにか……言ったかしら？」
+			PRINTFORMW 「ごめんなさいね。聞く気が無かったから」
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;304,仕事を手伝う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;CFLAG:350(仕事内容(JOB_仕事内容.ERB参照のこと
+;TCVAR:手伝えない(=2 手伝っても早くは終わらない、時間停止中不可 永琳の診察等)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_304
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_304
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_304_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_304_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+	;通常
+	ELSE
+	ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;305,膝枕してもらう
+;TFLAG:193(-5=MASTERがTARGETよりも巨体の場合(TALENT:MASTER:体型 > TALENT:体型 + 2) 1=大成功 0=成功 -1=失敗)(-5以外は地の文分岐無し)
+;ABL:親密(6以上=顔をのぞき込みながら頭を撫でてくれる 3以上=ただ頭を撫でてくれる 2以下=縮こまっている)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_305
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_305
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K99_305_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_COM_K99_305
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_COM_K99_305_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K99
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORMDL %CALLNAME:MASTER%は豊姫に膝枕してもらった
+		PRINTFORMDL 豊姫は%CALLNAME:MASTER%の顔を覗き込みながら頭を優しく撫でている…
+		PRINTFORMDW 
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML （こんなに安心しきった顔してぐっすり寝ちゃって……）
+				PRINTFORML （ふふふっ、本当に可愛い人……）
+				PRINTFORMW 「……こんな日がずっと続けばいいのに……」
+			CASE 1
+				PRINTFORML 「ん、ん……足が痺れてきたわ」
+				PRINTFORML 「ねぇ、そろそろ交代してくれないかしら」
+				PRINTFORMW 「いいでしょう？ 貴方の膝、とても寝心地が良いのよ」
+			CASE 2
+				PRINTFORMDL いつの間にか眠ってしまっていた%CALLNAME:MASTER%はゆっくりと目を開けた
+				PRINTFORML 「おはよう。%CALLNAME:MASTER%」
+				PRINTFORML 「随分とお疲れだったみたいね」
+				PRINTFORMW 「ああ、いいのよ。貴方の可愛い寝顔を見ることができたから」
+		ENDSELECT
+	;思慕
+	ELSEIF TALENT:思慕
+		PRINTFORMDL %CALLNAME:MASTER%は豊姫に膝枕してもらった
+		PRINTFORMDL 豊姫は%CALLNAME:MASTER%の頭を優しく撫でている…
+		PRINTFORMDW 
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「……%CALLNAME:MASTER%」
+				PRINTFORML 「ふふっ、呼んでみただけよ」
+				PRINTFORMW 「なんとなくね」
+			CASE 1
+				PRINTFORML 「子守唄でも唄ってあげましょうか」
+				PRINTFORMW 「～～♪～～♪」
+				PRINTFORMW 
+				PRINTFORMW 「……くすっ、おやすみなさい」
+			CASE 2
+				PRINTFORML 「さ、今はゆっくり休んで」
+				PRINTFORMW 「私が見守っててあげるから」
+		ENDSELECT
+	;それ以外
+	ELSE
+		PRINTFORMDL %CALLNAME:PLAYER%は%CALLNAME:TARGET%に膝枕してもらった
+		PRINTFORMDW 
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「さ、そろそろ起きて」
+				PRINTFORMW 「足が痺れてきちゃったわ」
+			CASE 1
+				PRINTFORML 「寝心地はどうかしら？」
+				PRINTFORMDL 豊姫は横になった%CALLNAME:MASTER%の頭を優しく撫でている
+				PRINTFORMDW 今まで使ってきたどんな枕よりも、豊姫の膝枕は素晴らしかった
+			CASE 2
+				PRINTFORML 「依姫の膝枕も中々寝心地が良いのよ」
+				PRINTFORML 「まあ、あの子は恥ずかしがり屋だから中々してくれないけれど」
+				PRINTFORMW 「今度してもらおうかしら。久々に」
+		ENDSELECT
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;306,お腹を撫でる
+;TFLAG:193(1=ABL:親密6以上かつ妊娠時 0=成功 -1=ABL:親密5以下)
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_306
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K99_306_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_COM_K99_306
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_COM_K99_306_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K99
+	;時間停止中
+	IF FLAG:時間停止
+		PRINTFORMDL %CALLNAME:MASTER%は豊姫のお腹に手を伸ばした…
+		PRINTFORMDW 時間を止められた豊姫は無抵抗のままお腹を撫でられている……
+	;妊娠中
+	ELSEIF TALENT:妊娠
+		PRINTFORMDL %CALLNAME:MASTER%は%CALLNAME:MASTER%の子を宿している豊姫のお腹を撫でた
+		PRINTFORMDL 豊姫は%CALLNAME:MASTER%の手に自分の手を愛おしげに重ねた
+		PRINTFORMDW 
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「今の内にこの子の名前を考えておかないと……貴方は何か考えてある？」
+				PRINTFORMDL 男だったらシンジ、女だったらレイと名付けよう
+				PRINTFORMW 「それは止めたほうが良いと思うけど……貴方がどうしてもって言うのなら……」
+			CASE 1
+				PRINTFORML 「ほーら、お父さんが撫でてくれてるわよー」
+				PRINTFORMDL 豊姫はお腹の子に優しく話し掛けている
+				PRINTFORMW 「……ん、今蹴ったわ。ちゃんと分かってるみたい」
+			CASE 2
+				PRINTFORML 「赤ちゃんのおかげで、いっぱい食べても依姫に怒られなくなったの」
+				PRINTFORML 「それどころか『躰に良いのでいっぱい食べてください』だって」
+				PRINTFORMW 「ふふふっ、赤ちゃん様々ね♪」
+		ENDSELECT
+	;通常
+	ELSE
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫のお腹を撫でた
+			PRINTFORMDL 豊姫のお腹はプニプニとしていて柔らかい……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ん、ふふっ、くすぐったいわ」
+					PRINTFORML 「急にお腹なんか触ってどうしたの？」
+					PRINTFORML 「……触りたくなった？ くすっ」
+					PRINTFORMW 「そういうことなら、お好きにどうぞ」
+				CASE 1
+					PRINTFORMDL 豊姫のお腹を撫でていると、グゥとお腹が鳴った
+					PRINTFORML 「……腹八分目に医者いらず」
+					PRINTFORML 「そう思い実践してみたのだけど……想像以上に苦行ね、これ」
+					PRINTFORMW 「お茶を淹れてくれない？ ほら、茶腹も一時と言うし」
+				CASE 2
+					PRINTFORML 「ねぇ……少し食べ過ぎちゃったの」
+					PRINTFORML 「『運動』しないといけないから、付き合ってくれない？」
+					PRINTFORMW 「方法は……貴方に任せるわね♪」
+			ENDSELECT
+		;思慕
+		ELSEIF TALENT:思慕
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫のお腹を撫でた
+			PRINTFORMDL 豊姫はお腹を撫でられくすぐったそうにしている……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「はぁ……そろそろ運動しないといけないわねぇ」
+					PRINTFORML 「かといって、ただ闇雲に運動するのも……ぁ」
+					PRINTFORML 「そうだわ、桃を食べて口を動かす運動というのはどうかしら」
+					PRINTFORMW 「お腹も満たせて、運動もできる。うん、一石二鳥ね」
+				CASE 1
+					PRINTFORML 「貴方のお腹はだいぶ引き締まっているのね」
+					PRINTFORML 「……ん？ どうして撫でてるのかって？」
+					PRINTFORMW 「だって、貴方が楽しそうに私のお腹を撫でるんだもの」
+				CASE 2
+					PRINTFORML 「ふんっ……」
+					PRINTFORMDL 豊姫は頑張ってお腹を引っ込めている
+					PRINTFORML 「……っはぁ……もう、いつまで触ってるの」
+					PRINTFORMW 「見栄を張るのも結構大変なのよ」
+			ENDSELECT
+		;それ以外
+		ELSE
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫のお腹を撫でた
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ねぇ、私って太っているように見える？」
+					PRINTFORML 「この間、依姫に『太りました？』って言われてしまって……」
+					PRINTFORMW 「……はぁ、穢れと一緒に脂肪も消えて無くなればいいのに」
+				CASE 1
+					PRINTFORML 「んん？ どうしたの？」
+					PRINTFORMW 「そんなに私のお腹が気になる？」
+				CASE 2
+					PRINTFORML 「はぁ……依姫が羨ましいわ」
+					PRINTFORML 「あの子、太りにくい体質なのよね」
+					PRINTFORMW 「姉より優れた妹が存在していいのかしら」
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;307,頬をつまむ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐無し
+	;以下は先に書いた条件が優先される
+	;TALENT:恋慕(受け入れつつ笑顔でやり返す
+	;ABL:親密(6以上=おずおずとやり返す
+	;ABL:従順(5以上=されるがまま
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_307
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗(注、抱きつきモード中は自動成功)、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_307
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K99_307_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_COM_K99_307
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_COM_K99_307_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K99
+	;時間停止中
+	IF FLAG:時間停止
+		PRINTFORMDL %CALLNAME:MASTER%は豊姫の頬に手を伸ばした…
+		PRINTFORMDW 時間を止められた豊姫は無抵抗のまま頬をつままれている…
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		PRINTFORMDL %CALLNAME:MASTER%は眠っている豊姫の頬を指でつまんだ…
+		PRINTFORMDW 豊姫は嫌そうに顔を背けた…
+	;通常
+	ELSE
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫の頬を指でつまんだ
+			PRINTFORMDL 豊姫は照れくさそうな表情を浮かべながらやり返してきた……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「%CALLNAME:MASTER%の頬、お餅みたいに柔らかいわ」
+					PRINTFORML 「……少しだけ味見してみてもいい？」
+					PRINTFORMDW そう言うと、豊姫は%CALLNAME:MASTER%の頬にそっと唇を触れ合わせた
+				CASE 1
+					PRINTFORML 「あら、私の頬に何か付いていた？」
+					PRINTFORML 「え？ なんとなく……？」
+					PRINTFORML 「………えいっ♪」
+					PRINTFORMW 「ふふっ、私も『なんとなく』つまんじゃった♪」
+				CASE 2
+					PRINTFORML 「もう少し強く引っ張ってみてくれない？」
+					PRINTFORML 「もしこれが邯鄲の夢だとしたら、あまりにも残酷だと思うから……」
+					PRINTFORMW 「……んっ、ありがとう。ちゃんと現実ね」
+			ENDSELECT
+		;思慕
+		ELSEIF TALENT:思慕
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫の頬を指でつまんだ
+			PRINTFORMDL 豊姫もおずおずと%CALLNAME:MASTER%の頬に手を伸ばした……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ねぇ、ちょっと……？」
+					PRINTFORML 「あのね？ それ以上引っ張ったら……」
+					PRINTFORML 「ぁ、いたたたっ！」
+					PRINTFORMW 「もう、いじめっ子ねぇ……」
+				CASE 1
+					PRINTFORML 「随分と楽しそうねぇ」
+					PRINTFORML 「私もやってみようかしら」
+					PRINTFORMDW %CALLNAME:MASTER%の頬をつまむ豊姫は楽しそうに笑っている
+				CASE 2
+					PRINTFORMDL %CALLNAME:MASTER%と豊姫は互いの頬を引っ張り合っている
+					PRINTFORML 「ふふっ、まるで子供のようね。私達」
+					PRINTFORMW 「でも、偶にはこういうのも悪くないかな」
+			ENDSELECT
+		;それ以外
+		ELSE
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫の頬を指でつまんだ
+			PRINTFORMDL 豊姫は照れくさそうな表情を浮かべながらも%CALLNAME:MASTER%にされるがままになっている…
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「一口物に頬を焼く」
+					PRINTFORML 「ちょっとしたことに手を出して、意外な失敗をするということ」
+					PRINTFORML 「貴方も好奇心で女の子の頬を引っ張って嫌われてしまわないようにね」
+					PRINTFORMDW そう言いつつも豊姫はされるがままになっている
+				CASE 1
+					PRINTFORML 「こういう時、依姫ならなんて言うかしら」
+					PRINTFORML 「『これだから地上の人間は！』……とか？」
+					PRINTFORMW 「……ぷっ、ふふっ、絶対言いそう」
+				CASE 2
+					PRINTFORML 「私はいいけど、依姫にはこういうことしちゃダメよ？」
+					PRINTFORML 「なんでって……ねえ？」
+					PRINTFORMW 「あの子が『こういうこと』に慣れてると思う？」
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;308,頬をつつく
+;添い寝中or睡眠中限定
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_308
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗(注、抱きつきモード中は自動成功)、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_308
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_308_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_308_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;睡眠中
+	IF CFLAG:睡眠
+		PRINTFORML 
+		RETURN 1
+	;通常
+	ELSE
+		;判定
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORML 「このままお布団で一日中イチャイチャして……」
+				PRINTFORML 「そして躰を重ねて、愛し合って……」
+				PRINTFORML 「そのまま寝てしまうのも良いかもね」
+				PRINTFORMDW そう言いながら、豊姫は添い寝する%CALLNAME:MASTER%の頬を撫でた
+			;成功
+			CASE 0
+				PRINTFORML 「うふふ、なぁに？」
+				PRINTFORMDW 豊姫は優しい笑みを浮かべている
+			;失敗
+			CASE -1
+				PRINTFORML 「もう、それくらいにしておいて」
+				PRINTFORMW 「頬が赤くなっちゃうわ」
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;309,頭を撫でる
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;ABL:親密(6以上=通常成功時分岐
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_309
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗(注、抱きつきモード中は自動成功)、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_309
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K99_309_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_COM_K99_309
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_COM_K99_309_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K99
+	;時間停止中
+	IF FLAG:時間停止
+		PRINTFORMDL %CALLNAME:MASTER%は豊姫の頭に手を伸ばした
+		PRINTFORMDW 時間を止められた豊姫は無抵抗のまま頭を撫でられている……
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		PRINTFORMDL %CALLNAME:MASTER%は眠っている豊姫の頭を優しく撫でた
+		PRINTFORMDW 豊姫は嫌がる素振りもなく%CALLNAME:PLAYER%に撫でられている……
+	;通常
+	ELSE
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫の頭を優しく撫でた
+			PRINTFORMDL 豊姫はリラックスしたような表情を浮かべて目を細めた……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「こうして甘えさせてくれるのは貴方だけ……」
+					PRINTFORML 「だから、もっと撫でて……♪」
+					PRINTFORMDW 豊姫は頭を撫でる%CALLNAME:MASTER%に寄りかかって甘えている
+				CASE 1
+					PRINTFORML 「ふふっ、いいこいいこ」
+					PRINTFORMDL %CALLNAME:MASTER%はいつの間にか攻守逆転し豊姫に撫でられていた
+					PRINTFORML 「あら、どうしたの？ 顔赤くして」
+					PRINTFORMW 「もう今更でしょう？ 何を恥ずかしがる必要があるの？」
+				CASE 2
+					PRINTFORML 「ぁ……もう止めてしまうの？」
+					PRINTFORML 「もう少しだけ撫でてくれないかしら……ダメ？」
+					PRINTFORMDW 上目遣いでおねだりしてくる豊姫の頭を彼女が満足するまで撫でてあげた
+			ENDSELECT
+		;思慕
+		ELSEIF TALENT:思慕
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫の頭を優しく撫でた
+			PRINTFORMDL 豊姫はなんだか嬉しそうにしている……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「そうだ、今度依姫の頭を撫でてみてくれない？」
+					PRINTFORML 「うふふー、あの子の怒った顔が目に浮かぶわー♪」
+					PRINTFORMDW 豊姫は%CALLNAME:MASTER%に頭を撫でられながら楽しそうに笑っている
+				CASE 1
+					PRINTFORML 「ん、撫でたいの？」
+					PRINTFORML 「……優しくお願いね」
+					PRINTFORMDW 豊姫は帽子を脱いで%CALLNAME:MASTER%に頭を差し出すと、目を瞑った
+				CASE 2
+					PRINTFORML 「どう？ 満足したかしら？」
+					PRINTFORML 「それじゃあ今度は私の番ね♪」
+					PRINTFORMDW %CALLNAME:MASTER%は豊姫に優しく頭を撫でられた
+			ENDSELECT
+		;それ以外
+		ELSE
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫の頭を優しく撫でた
+			PRINTFORMDL 豊姫は少しだけ頬を染めつつ、%CALLNAME:MASTER%のやりたいようにやらせている
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「撫でられる側に回るというのは少し恥ずかしいわね」
+					PRINTFORMW 「でもこの感じ……なんだか懐かしいわ」
+				CASE 1
+					PRINTFORML 「レイセンに貴方の面倒を見るよう言付けたのだけど……ちゃんとやっている？」
+					PRINTFORML 「……ふふっ、そう。それはよかった」
+					PRINTFORMW 「私の頭もいいけど、あの子の頭も撫でてあげてね。意外と触り心地良いのよ？」
+				CASE 2
+					PRINTFORML 「撫でるのは良いけれど、もう少し優しくお願いね？」
+					PRINTFORMDW 豊姫は%CALLNAME:MASTER%にグチャグチャにされた髪を整えている
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;331,お茶を淹れる（薬入り）
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_331
+;成否判定
+;TFLAG:192(-2=強制失敗(注、非コマンド終了）、-1＝強制失敗、0=COM依存、1=強制成功or大成功(注、睡眠薬アイスティーは眠気を感じていると飲まない)
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_331
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_331_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_331_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		;失敗
+		CASE -1
+			PRINTFORML 「困ったわねぇ……」
+			PRINTFORML 「せっかく淹れてくれたのだから飲んであげたいけど……」
+			PRINTFORML 「このお茶から強い『穢れ』を感じてしまって……」
+			PRINTFORMDL 豊姫は『言わなくても分かるでしょう』と言いたげに%CALLNAME:MASTER%を見ている
+			PRINTFORMDW ……淹れ直した方がよさそうだ
+		;成功
+		CASEELSE
+			PRINTFORML 「丁度飲み物が欲しかったところなの」
+			PRINTFORMDW 豊姫は何の疑いもなくお茶に口を付けた
+			PRINTFORMDW ……………
+			;媚薬
+			IF TCVAR:媚薬 == 210
+				PRINTFORML 「……ふぅ……ふぅ……」
+				PRINTFORML （何かしら……躰が熱い……）
+				PRINTFORMDW 媚薬の効果が出てきたのか、豊姫は居心地悪そうに太腿を擦り合わせている
+				TCVAR:発情 = 1
+			;利尿剤
+			ELSEIF TCVAR:利尿剤 == 210
+				PRINTFORML 「……少し席を外してもいいかしら」
+				PRINTFORML 「どうしてって……その、お花を摘みに……ね？」
+				PRINTFORMDW そう言うと、豊姫はトイレへと移動してしまった
+				TCVAR:利尿剤 = 0
+			;惚れ薬
+			ELSEIF TCVAR:惚れ薬 == 210
+				PRINTFORML 「ねぇ……何かして欲しいことはない……？」
+				PRINTFORML 「今なら貴方の望むこと、なんでもしてあげちゃうかも……」
+				PRINTFORMDL 豊姫の暖かい手が%CALLNAME:MASTER%の頬を優しく撫でる
+				PRINTFORMDW ……薬の分量を少し間違えただろうか
+			;睡眠薬
+			ELSEIF TCVAR:睡眠薬強度 == 2
+				PRINTFORML 「……んん……」
+				PRINTFORML 「ごめんなさい……少し眠気が……」
+				PRINTFORMDW 豊姫は扇子で口元を隠すと、大きな大きな欠伸をした
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;332,お酒をふるまう
+;TFLAG:193(0=下戸飲み成功 -1=下戸飲み失敗 -2=下戸飲み大失敗 -5=下戸飲みあきらめ)
+;TFLAG:194(51=どぶろく 52=清酒 53=鬼殺し)
+;ALCOHOL_TASTE(TFLAG:194)(15以上=気に入る 9以下=口に合わない)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_332
+;成否判定
+;TFLAG:192(-1＝強制失敗、0=COM依存
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_332
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_332_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_332_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	LOCAL:1 = ALCOHOL_TASTE(TFLAG:194)
+	;気に入った
+	IF LOCAL:1 >= 15
+		PRINTFORML 「んくっ……あら、美味しい」
+		PRINTFORML 「月のお酒も良いけれど、地上のお酒の雑味もまた乙なものね」
+		PRINTFORMDW お酒を呑んだ豊姫は満足気にほっと息を吐いた
+	;口に合わない
+	ELSEIF LOCAL:1 <= 9
+		PRINTFORML 「うーん……これは私の口には合わないわねぇ」
+		PRINTFORMDW 豊姫はチビチビとお酒を呑んでいる
+	;普通
+	ELSE
+		PRINTFORML 「私が注いであげましょうか」
+		PRINTFORML 「ほら、遠慮しないで」
+		PRINTFORMDW %CALLNAME:MASTER%は豊姫にお酌してもらいながら酒を呑んだ
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;333,愚痴を聞く
+;TFLAG:193(6=大成功(酔い) 5=成功(酔い) 4=失敗(酔い) 3=大成功 2=成功 1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_333
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_333
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_333_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_333_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;判定
+	SELECTCASE TFLAG:193
+		;しゃべっているうちにまた怒りがぶり返してきたようだ…
+		CASE 1
+			PRINTFORML 「………はぁ」
+			PRINTFORML 「ごめんなさい、愚痴を聞いてもらってるのに」
+			PRINTFORMW 「少し頭を冷やさないとね……」
+		;言いたいことを言って落ち着いたようだ
+		CASE 2
+			PRINTFORMDL 豊姫の愚痴を聞いていると、グーと彼女のお腹が鳴った
+			PRINTFORML 「………さて、怒るのはこのくらいにして」
+			PRINTFORMW 「お腹が空いてきたわ。一緒にご飯でも食べに行く？」
+		;一通り吐き出した豊姫は、大人しく聞いてくれたあなたに礼を言った
+		CASE 3
+			PRINTFORML 「ごめんなさいね……愚痴なんて聞かせてしまって」
+			PRINTFORMW 「ありがとう。貴方のお陰でスッキリしたわ」
+		;豊姫はますます理不尽な絡み方をしてきた…
+		CASE 4
+			PRINTFORML 「ねぇ……聞いてるの……？」
+			PRINTFORML 「聞いてないでしょう……？ ほら、正直に話してみて……？」
+			PRINTFORMW 「嘘を付く悪い子は素粒子レベルで浄化してしまうわよ……？」
+		;自分で何を言っているかわかっているのかも怪しい…
+		CASE 5
+			PRINTFORMW 「フェムト……わかりやすく言うと桃のことね」
+			PRINTFORMW 「桃とは私が今一番食べたい物のことよ」
+			PRINTFORMW 「桃とは……赤みがかった白い皮に包まれています」
+			PRINTFORMW 「私が桃ばかり食べてるみたいに言われているけれど……」
+			PRINTFORMW 「本当は依姫だっていっぱい食べているのよ」
+			PRINTFORMW 「それなのに、あの子ったら私が食べ過ぎだって……」
+			PRINTFORMW 「それなら、あの子だって食べ過ぎよ。食べまくりよ」
+			PRINTFORMW 「それで……なんの話だったかしら」
+			PRINTFORMW 「ああそう、フェムトの話ね」
+			PRINTFORMW 「フェムトとは分かりやすく言うと縄のことね」
+			PRINTFORMW 「細い紐をいっぱい重ねると丈夫な縄ができるのよ」
+		;あなたが適当に相槌を打っていると、なにかツボにはまったのか豊姫は急に笑い出した
+		CASE 6
+			PRINTFORML 「………うふっ、うふふふふふふっ」
+			PRINTFORMW 「もう、笑わせないで……ッ、ふふふっ」
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;334,杯を交わす
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;CFLAG:妊娠自覚状態(1=食事)
+;TALENT:酒耐性(-2=食事)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_334
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_334
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_334_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_334_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		CASE 1
+		;大成功
+		CASE 0
+		;成功
+		CASE -1
+		;失敗
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;335,介抱する
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_335
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_335
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_335_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_335_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		CASE 1
+		;大成功
+		CASE 0
+		;成功
+		CASE -1
+		;失敗
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;336,膝枕する
+;ABL:親密(4以下=居心地悪げ 9以下=恥ずかしげ それ以上=幸せそう
+;TIME_PROGRESS(TFLAG:膝枕した)(44以下=失敗
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_336
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_336
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K99_336_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_COM_K99_336
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_COM_K99_336_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K99
+	;寝ちゃった
+	IF TFLAG:193 > 0
+		PRINTFORMDL 気持ちよかったのか、%CALLNAME:TARGET%はそのままうたた寝してしまった
+		PRINTFORMDL %CALLNAME:MASTER%は%CALLNAME:TARGET%が起きるまで寝顔を眺めて過ごした
+		PRINTFORMDW 
+		PRINTFORML 「……すぅ……すぅ……」
+		PRINTFORMDL いつの間にか眠ってしまっていた豊姫の頭を優しく撫でる
+		PRINTFORMDW %CALLNAME:MASTER%を信頼しているのか、その寝姿はあまりに無防備だ
+	;通常
+	ELSE
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫に膝枕した
+			PRINTFORMDL 豊姫は幸せそうだ……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「大丈夫？ 足は痺れてない？」
+					PRINTFORML 「辛くなったら言うのよ？ 交代してあげるから」
+					PRINTFORMDL %CALLNAME:MASTER%が大丈夫だと言うかのように頭を撫でると
+					PRINTFORMDW 豊姫は気持ち良さそうに目を細めた
+				CASE 1
+					PRINTFORML 「はぁ……安らぐわ……」
+					PRINTFORML 「このまま寝てしまうのも良いけれど……」
+					PRINTFORMDL 豊姫が手を伸ばし、%CALLNAME:MASTER%の頬を撫でる
+					PRINTFORMW 「……ふふっ、このまま貴方とお話する方が楽しそうね」
+				CASE 2
+					PRINTFORML 「色々な寝具を試したけど……」
+					PRINTFORML 「ん～……貴方の膝に勝るものは無いわねぇ……」
+					PRINTFORMDW 豊姫は%CALLNAME:MASTER%の膝に頬擦りしている
+			ENDSELECT
+		;思慕
+		ELSEIF TALENT:思慕
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫に膝枕した
+			PRINTFORMDL 豊姫はのんびりとくつろいでいる……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「………ぁぁ、ダメ……横になると………」
+					PRINTFORML 「……………すぅ……」
+					PRINTFORMDW 月の民といえど睡魔には抗えないようだ
+				CASE 1
+					PRINTFORML 「健やかに育つには寝ることも大切なのよ」
+					PRINTFORML 「貴方も眠たくなったら………」
+					PRINTFORML 「……………」
+					PRINTFORMDW 豊姫はスヤスヤと寝息を立て始めた
+				CASE 2
+					PRINTFORML 「あら、膝枕してくれるの？」
+					PRINTFORML 「では、少ししたら起こしてねー」
+					PRINTFORMDW 豊姫は%CALLNAME:MASTER%の膝に頭を乗せると、あっという間に寝息を立て始めた
+			ENDSELECT
+		;それ以外
+		ELSE
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫に膝枕した
+			PRINTFORMDL 豊姫は気恥ずかしそうだ……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「………んー」
+					PRINTFORML 「やっぱり私は膝枕してもらうよりしてあげる方が性に合ってるわ」
+					PRINTFORMDW 落ち着かなかったのか豊姫は躰を起こしてしまった
+				CASE 1
+					PRINTFORML 「昔、八意様にこうやって膝枕をしてもらったっけ」
+					PRINTFORML 「懐かしいわねぇ……あの方もそろそろお戻りになれば良いのに」
+					PRINTFORMW 「……会いたいわ……」
+				CASE 2
+					PRINTFORML 「あら、膝枕？」
+					PRINTFORML 「いいわよ、ほら……え？ 私が寝るの？」
+					PRINTFORMW 「うーん……それじゃあ、少しだけお願いしようかな」
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;350,押し倒す（時姦時イタズラする
+;TFLAG:194 (0=成功 1=人目がある　2=野外は嫌でござりまする　3=多人数プレイは勘弁　4=合意があってもムードが足りぬ　100=合意はあるが口上内特殊判定によって失敗）
+;TCVAR:抱き寄せ初回　1=普通に合意ゲット　2=先にキスぐらいしろよ　3=媚薬or発情には勝てなかったよお…　4=悔しい…刻印さえなければﾋﾞｸﾋﾞｸﾝ
+;5=強引に迫られると断れぬ(素質臆病持ち専用) 6=まんざらでもない　7=駄目　8=論外 98=口上内特殊判定による失敗 99=口上内特殊判定による成功
+;口上内特殊判定は該当するCFLAGが0だと無効
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_350
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_350_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_COM_K99_350
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_COM_K99_350_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;押し倒し失敗
+	IF TFLAG:194
+		;判定
+		SELECTCASE TFLAG:194
+			;人目がある
+			CASE 1
+				PRINTFORML 「んんっ……こんな場所じゃダメよ……」
+				PRINTFORML 「人気の無いトコロへ行きましょう？ ……ね？」
+				PRINTFORMDW 豊姫は躰をまさぐる%CALLNAME:MASTER%の手を優しく引き離した
+			;野外は嫌でござりまする
+			CASE 2
+				PRINTFORML 「だ～め」
+				PRINTFORML 「そういうことはお家に帰ってからね」
+				PRINTFORMDW %CALLNAME:MASTER%は豊姫に軽くあしらわれてしまった
+			;多人数プレイは勘弁
+			CASE 3
+				PRINTFORML 「そうねぇ……それも楽しそうだけれど……」
+				PRINTFORMDL 豊姫の豊満な胸がむにゅんと%CALLNAME:MASTER%に押し付けられる
+				PRINTFORMW 「今は、貴方と二人っきりの気分かな……」
+			;合意があってもムードが足りぬ
+			CASE 4
+				PRINTFORML 「ふふっ、慌てない慌てない」
+				PRINTFORML 「時間はたっぷりあるんだから……」
+				PRINTFORMDW 押し倒そうとしたが、豊姫にスルリと抜けられてしまった……
+		ENDSELECT
+	;抱き寄せ初回
+	ELSEIF TCVAR:抱き寄せ初回
+		;判定
+		SELECTCASE TCVAR:抱き寄せ初回
+			;普通に合意ゲット
+			CASE 1
+				PRINTFORMW 「ふふっ、こんなに大きくして……」
+				PRINTFORMW 「私とそういうことしたかったの？」
+				PRINTFORMW 「……くすっ、正直ね」
+				PRINTFORMDW 豊姫が服をはだけ陶器のように美しい肌を晒す
+				PRINTFORMW 「来て……貴方の穢れ、私が受け止めてあげる」
+				PRINTFORMDW そう言うと、豊姫は%CALLNAME:MASTER%にそっと口付けた……
+				EXP:99:キス経験 ++
+				EXP:MASTER:キス経験 ++
+			;先にキスぐらいしろよ
+			CASE 2
+				PRINTFORMW 「もう、物事には順序というものがあるでしょう？」
+				PRINTFORMW 「………んっ」
+				PRINTFORMDW そう言うと、豊姫は%CALLNAME:MASTER%にそっと口付けた
+				PRINTFORMW 「………ふぅ……これで良し」
+				PRINTFORMW 「それじゃあ……シましょうか♪」
+				PRINTFORMDW ………確かに少し急ぎ過ぎたのかもしれない
+				PRINTFORMDW %CALLNAME:MASTER%がもう一度唇を重ねると、豊姫は嬉しそうに舌を絡ませてきた
+				EXP:99:キス経験 ++
+				EXP:MASTER:キス経験 ++
+				;ファーストキスを記録
+				CALL SET_FIRSTKISS(99, MASTER, 0)
+				;あなたキス未経験の場合ファーストキス記録
+				SIF TALENT:MASTER:キス未経験
+					CALL SET_FIRSTKISS(MASTER, 99, 0)
+			;媚薬or発情には勝てなかったよお…
+			CASE 3
+				$TOYOHIME_OSHITAOSHI
+				PRINTFORML 「……まぁ私も最近ご無沙汰だったし……」
+				PRINTFORML 「少しくらいなら……良い、かな」
+				PRINTFORMDL 頬を紅潮させた豊姫がに寄り掛かってくる
+				PRINTFORMDW 女性特有の甘い香りに%CALLNAME:MASTER%の興奮は急速に高まっていく……
+			;悔しい…刻印さえなければﾋﾞｸﾋﾞｸﾝ
+			CASE 4
+				;CASE3と共通
+				GOTO TOYOHIME_OSHITAOSHI
+			;強引に迫られると断れぬ(素質臆病持ち専用)
+			CASE 5
+				PRINTFORML 
+			;まんざらでもない
+			CASE 6
+				PRINTFORML 「もう、気が早いのね」
+				PRINTFORML 「そういうのは……もう少しお互いのことを知ってからじゃないと」
+				PRINTFORMDW 拒まれてしまったが……が、あと一押しで行けそうな気がする……
+			;駄目
+			CASE 7
+				PRINTFORML 「うーん……貴方のことは嫌いじゃないけど……」
+				PRINTFORML 「ごめんなさい。そういう気分になれないの」
+				PRINTFORMDW 押し倒そうとしたが、豊姫にやんわりと拒否されてしまった
+			;論外
+			CASE 8
+				PRINTFORML 「地上の民と交わる……それはすなわち穢れを受け入れるということ」
+				PRINTFORML 「月の民にとって、それは死よりも重い罰……」
+				PRINTFORML 「……というのは冗談だけど」
+				PRINTFORMW 「ごめんなさい。貴方と交わることはできません」
+		ENDSELECT
+	;妊娠中
+	ELSEIF TALENT:妊娠
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「お腹の子に障るから……」
+				PRINTFORML 「……なんて、言う必要無かったわね」
+				PRINTFORML 「いつも優しくしてくれるもの」
+				PRINTFORMDW 豊姫はお腹を一撫ですると、%CALLNAME:MASTER%に身を任せた
+			CASE 1
+				PRINTFORML 「んっ……優しくね……」
+				PRINTFORML 「お腹の子が起きてしまうから……」
+				PRINTFORMDW %CALLNAME:MASTER%が豊姫のお腹を撫でると、彼女は安心したように肩の力を抜いた
+			CASE 2
+				PRINTFORML 「困ったわねぇ……」
+				PRINTFORML 「本当はダメって言わないといけないのに……」
+				CALL HPH_PRINT,@"「……ふふっ、私もシたくなっちゃったHPH」","L"
+				PRINTFORMDW お腹の子と肉欲を天秤に掛けた豊姫は、少し迷って後者を選択した……
+		ENDSELECT
+	;お風呂
+	ELSEIF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「ふふっ、ここなら汚れても安心ね」
+				PRINTFORML 「それじゃあ、まずはこれを敷いて……」
+				PRINTFORMDW 豊姫は勃起した%CALLNAME:MASTER%の一物をチラチラと見ながら準備をしている
+			CASE 1
+				PRINTFORML 「うーん……声抑えられるかしら」
+				PRINTFORML 「ほら、浴室って声響くでしょう？」
+				PRINTFORMW 「……まぁ、気にするだけ無駄よね♪」
+			CASE 2
+				PRINTFORML 「のぼせないように気を付けないと」
+				PRINTFORMW 「いい？ 眩暈がしたらちゃんと言うのよ？」
+		ENDSELECT
+	;通常
+	ELSE
+		;恋慕
+		IF TALENT:恋慕
+			;危険日かつ危険日生Ｈ解禁済
+			IF CFLAG:900 == 7 && CFLAG:生解禁 >= 2
+				SELECTCASE RAND:3
+					CASE 0
+						CALL HPH_PRINT,@"「ふふっHPH 待ちきれないの？HPH」","L"
+						CALL HPH_PRINT,@"「そうよねぇ……だって……HPH」","L"
+						CALL HPH_PRINT,@"「今日は待ちに待った『あの日』なんだから……HPH」","L"
+						PRINTFORMDW そう言うと、豊姫はこれから自分を孕ませてくれる男根を布越しにそっと撫でた
+					CASE 1
+						CALL HPH_PRINT,@"「ねぇ……抱いて……HPH 早く……HPH」","L"
+						CALL HPH_PRINT,@"「私に貴方の赤ちゃん産ませて……HPH」","L"
+						PRINTFORMDW %CALLNAME:MASTER%が抱き寄せると、豊姫は待ちきれないといった様子で胸を押し付けてきた
+					CASE 2
+						CALL HPH_PRINT,@"「はぁ……はぁ……HPH ふぅ……HPH」","L"
+						CALL HPH_PRINT,@"「今日の貴方……すっごい濃い穢れのニオイがする……HPH」","L"
+						PRINTFORMDL 豊姫は%CALLNAME:MASTER%の躰に鼻を押し付け雄のニオイを嗅いでいる
+						CALL HPH_PRINT,@"「ぁぁ……待ちきれない……HPH ねぇ、早く抱いて……HPH」","W"
+				ENDSELECT
+			;通常
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「んっ……シたくなっちゃった……？」
+						PRINTFORML 「いいわよ……きて……♪」
+						PRINTFORMDW 豊姫は%CALLNAME:MASTER%に躰を預け、力を抜いた……
+					CASE 1
+						PRINTFORML 「ふふっ、奇遇ね」
+						PRINTFORML 「丁度私も貴方を誘おうと思っていたところなの……♪」
+						PRINTFORMDW %CALLNAME:MASTER%が躰を求めると、豊姫が嬉しそうに抱きついてきた
+					CASE 2
+						PRINTFORML 「さて、今日はどんなことがシたい？」
+						PRINTFORML 「貴方はシたいことなら何でも付き合うわ♪」
+						PRINTFORMDW 豊姫は両手に大人の玩具を持ちニコニコと笑っている
+				ENDSELECT
+			ENDIF
+		;それ以外
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ええ、いいわ」
+					PRINTFORMW 「いっぱい気持ち良くしてね」
+				CASE 1
+					PRINTFORML 「もう……しょうがないんだから……♪」
+					PRINTFORMDW 求められることが嬉しいのか、豊姫は素直に応じてくれた
+				CASE 2
+					PRINTFORML 「依姫にはナイショよ？」
+					PRINTFORMW 「あの子、きっと凄く怒るから」
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;351,連れ出す
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_351
+;連れ出しにはTRAIN_MESSAGEが無い
+CALL M_KOJO_MESSAGE_COM_K99_351_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_351_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;TARGET連れ出し
+	IF CFLAG:同行 == 60
+		IF TALENT:恋慕
+			PRINTFORML 「あら、デートのお誘いかしら？」
+			PRINTFORMDW 豊姫は甘えるように%CALLNAME:MASTER%に寄り添ってきた
+		ELSEIF TALENT:思慕
+			PRINTFORML 「ええ、行きましょうか」
+			PRINTFORMDW %CALLNAME:MASTER%が誘うと、豊姫は二つ返事でついて来てくれた
+		ELSE
+			PRINTFORML 「それで、どこへ行くの？」
+			PRINTFORMDW 豊姫は%CALLNAME:MASTER%の後ろをのんびりとついて来ている
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;352,告白する
+;FLAG:甲斐性無(1=失敗)
+;TFLAG:193 (1=成功 0=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_352
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+
+;豊姫に恋慕が無いまたは依姫が恋慕の場合強制失敗
+IF !TALENT:恋慕 || TALENT:98:恋慕
+	TFLAG:192 =-1
+;豊姫が恋慕かつ依姫に恋慕が無い場合成功
+ELSEIF TALENT:恋慕 && !TALENT:98:恋慕
+	TFLAG:192 =1
+ENDIF
+
+@M_KOJO_MESSAGE_COM_K99_352
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_352_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_352_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K99
+	;成功
+	IF TFLAG:193 == 1
+		PRINTFORMW 「ぇ……なんて……」
+		PRINTFORMDW %CALLNAME:MASTER%は豊姫の目を真っ直ぐに見つめ、もう一度想いを伝えた
+		PRINTFORMW 「………ふふっ、そっか」
+		PRINTFORMW 「ちゃんと両想いだったのね。私達」
+		PRINTFORMDW その言葉の意味する所は、つまり……
+		PRINTFORMW 「でも……それは許されないことなの」
+		PRINTFORMDW %CALLNAME:MASTER%の期待を裏切るかのように豊姫がそう続ける
+		PRINTFORMW 「私は月の使者のリーダーで貴方は地上の人間」
+		PRINTFORMW 「地上という牢獄を監視する者と、そこに住まう罪人」
+		PRINTFORMW 「だから……ぁッ！？」
+		PRINTFORMDW 『それでも貴女のことが好きだ』
+		PRINTFORMDW %CALLNAME:MASTER%は豊姫を強く抱き締め、何度も何度も想いをぶつけた
+		PRINTFORMW 「……………」
+		PRINTFORMW 
+		PRINTFORMW （……ぁぁ……）
+		PRINTFORMW （ごめんなさい……依姫……）
+		PRINTFORMW （私……やっぱり……）
+		PRINTFORMW （この人のこと拒めない……）
+		PRINTFORMW 
+		PRINTFORMW 「……はい、私も貴方様のことをお慕い申しております」
+		PRINTFORMW 「この先、何があろうとも貴方様のお傍にいることを誓います」
+		PRINTFORMW 「それが……たとえ月の民や妹を裏切ることだとしても」
+		PRINTFORMW 「私は、貴方様について行きます」
+		PRINTFORMW 「……大好き……%CALLNAME:MASTER%……」
+		PRINTFORML 
+		PRINTFORMDL ……………
+		PRINTFORMDL ………
+		PRINTFORMDL …
+		PRINTFORMW 
+		PRINTFORMW 「はぁ……弟子は師匠に似るって本当なのねぇ」
+		PRINTFORMW 「依姫にはどう説明しようかしら」
+		PRINTFORMW 「………ん、そうね」
+		PRINTFORMW 「あの子のことだもの、きっと認めてくれるわよね」
+		PRINTFORMW 「もしダメだったら……二人で一緒に地上へ逃げちゃおっか」
+		PRINTFORMW 「ふふっ、大丈夫よ。だって……」
+		PRINTFORMDW 豊姫が%CALLNAME:MASTER%の手を強く握る
+		PRINTFORMW 「%CALLNAME:MASTER%が傍に居るから」
+		PRINTFORMW 「どうにでもなるわ。きっとね」
+		PRINTFORMDL 豊姫がそう言うならきっとそうなのだろう
+		PRINTFORMDW なんとなく、%CALLNAME:MASTER%はそんな気がした
+		PRINTFORML 
+		CALL COLORMESSAGE(@"月の姫である豊姫と恋人同士になりました",C_PINK,0,1)
+		PRINTFORMW 
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;353,イタズラする
+;FLAG:甲斐性無(1=失敗)
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_353
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_353_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_353_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;354,添い寝する（相手は起きて布団に招く感じ）
+;CFLAG:衰弱(1以上=起きない
+;CFLAG:お招き(0以外=起きない
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_354
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_354_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_354_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:TARGET:衰弱 || CFLAG:TARGET:お招き
+		PRINTFORML 「んん……」
+		PRINTFORMDW 余程疲れているのか、豊姫は少し身動ぎしただけで目を覚まさなかった
+	ELSE
+		;DAY:2で季節を選択
+		SELECTCASE DAY:2
+			;春
+			CASE 1
+				PRINTFORML 「一緒に寝ましょうか♪」
+				PRINTFORMDW %CALLNAME:MASTER%が布団に潜り込むと、豊姫がギュッと抱き着いてきた
+			;夏
+			CASE 2
+				PRINTFORML 「ん……んー……」
+				PRINTFORMW 「ねぇ%CALLNAME:MASTER%……少し暑くない？」
+			;秋
+			CASE 3
+				PRINTFORML 「はぁぁ……%CALLNAME:MASTER%の温もり……」
+				PRINTFORMW 「最近、貴方がいないと寝付きが悪いのよ……」
+			;冬
+			CASE 4
+				PRINTFORML 「ほら、寒かったでしょう？」
+				PRINTFORMW 「こうやってくっつけば温かいわ」
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;355,時止め（地の文の改変程度に留めるべき
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_355
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_355_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_355_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;356,物陰に誘う
+;ABL:露出癖 + TALENT:羞恥心で判定
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_356
+;成否判定
+;TFLAG:192(-1＝強制失敗、0=COM依存、1=強制成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_356
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_356_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_356_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;妊娠中
+	IF TALENT:妊娠
+		;通常押し倒しと共通
+		CALL M_KOJO_MESSAGE_COM_K99_350_1
+	;デート中に人里の人混みで
+	ELSEIF DATE_HITOGOMI() && CFLAG:MASTER:現在位置 / 100 == 2
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「ぁっ……」
+				PRINTFORMDL 物陰で%CALLNAME:MASTER%に躰をまさぐられている豊姫は
+				PRINTFORMDL 小さな子供が不思議そうにこちらを覗いているのを発見した
+				CALL HPH_PRINT,@"「……はぁ……ぁぁ……っHPH」","L"
+				PRINTFORMDL 何も知らない子供に穢れに塗れた行為を見せつける
+				PRINTFORMDW その背徳感に豊姫の興奮はいつも以上に高まった……
+			CASE 1
+				PRINTFORML 「こんなところでシていたら誰かに見られてしまうかも……」
+				PRINTFORMW 「ああ、ワクワクするわね♪」
+			CASE 2
+				PRINTFORML 「ふふっ、誰か来ないか気になるの？」
+				PRINTFORML 「いいじゃない……見せつけちゃいましょう？」
+				PRINTFORMDW 誰かに見られてしまうリスクをものともせず、豊姫は%CALLNAME:MASTER%を求めてきた
+		ENDSELECT
+	;それ以外
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				CALL HPH_PRINT,@"「んっ……静かにね……HPH」","L"
+				CALL HPH_PRINT,@"「誰かに声、聞かれちゃうから……HPH」","W"
+			CASE 1
+				CALL HPH_PRINT,@"「ほら、もっと密着して……HPH」","L"
+				CALL HPH_PRINT,@"「ちゃんと隠れないと誰かに見られてしまうから……HPH」","W"
+			CASE 2
+				PRINTFORML 「さ、早くスッキリしちゃいましょう」
+				CALL HPH_PRINT,@"「誰か来ない内に……ねHPH」","W"
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;360,身を任せる
+;TCVAR:20(27=谷間を見せる 32=前から抱きつく 35=スカートの中を見せる 53=パイズリ 73=ぱふぱふ 77=乳を吸わせる 85=Ｖ挿入する 86=だいしゅきホールド 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_360
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_360_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_360_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;361,抵抗する
+;TCVAR:20(27=谷間を見せる 32=前から抱きつく 35=スカートの中を見せる 53=パイズリ 73=ぱふぱふ 77=乳を吸わせる 85=Ｖ挿入する 86=だいしゅきホールド 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_361
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_361_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_361_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;363,読み聞かせ（[幼稚]持ち専用）
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐無し
+;CFLAG:添い寝中(1=布団orベッドの中で本を読む
+;MASTERがTARGETより大柄の場合、膝の上にTARGETを乗せる
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_363
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_363
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_363_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_363_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;364,豆まき(萃香、勇儀、スカーレット姉妹用
+;TFLAG:193(豆まきに参加してる人数
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_364
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_364_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_364_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;365,守矢神社へ移動(早苗、神奈子、諏訪子用
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_365
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_365_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_365_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;368,自由行動に付き合う 
+;技能系の行動は技能レベルが1以上なら発生
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_368
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_368_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_368_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE Activity_Type:TARGET
+		CASE 0
+			;▼考え事［なに考えてるの］
+			;TFLAG:193,-1=はぐらかされる
+			;PRINTFORMW 
+		CASE 1
+			;▼遊ぶ［一緒に遊ぶ］
+			;※[幼稚]持ちのみ
+			;TFLAG:193,1=大いに盛り上がる,-1=あまり盛り上がらない
+			;PRINTFORMW 
+		CASE 2
+			;▼食事［一緒に食事する］
+			;TFLAG:193,-1=MASTERはお腹が空いてなかった
+			;PRINTFORMW 
+		CASE 3
+			;▼つまみ食い［一緒につまみ食い］
+			;※[妖精]持ちとルーミア、こいし、幽々子、紫苑のみ
+			;TFLAG:193,-1=MASTERはお腹が空いてなかった
+			;PRINTFORMW 
+		CASE 4
+			;▼掃除［掃除を手伝う］
+			;※[掃除係]持ちまたは汚臭耐性-1以下のみ
+			;PRINTFORMW 
+		CASE 5
+			;▼運動［一緒に運動する］
+			;※[音楽知識]持ちは除く（演奏になる）
+			;PRINTFORMW 
+		CASE 6
+			;▼読書［本の感想を聞く］
+			;TFLAG:193,-1=集中していて返事してくれない
+			;PRINTFORMW 
+		CASE 7
+			;▼料理［料理を手伝う］→［料理を分けてもらう］
+			;TFLAG:193,2=料理を手伝う,0=作った料理を食べる,-1==MASTERはお腹が空いてなかった（食べる時）
+			;PRINTFORMW 
+		CASE 8
+			;▼演奏［セッションする］or［伴奏する］
+			;※[音楽知識]持ちのみ（TALENT:音楽知識で変化）
+			;TALENT:音楽知識,1=演奏してる,2=歌ってる,3=踊ってる
+			;TFLAG:193,1=ノリノリ,0=成功,-1=失敗,-2=楽器がなくて見てるだけ
+			;PRINTFORMW 
+		CASE 9
+			;▼採集［採集を手伝う］
+			;PRINTFORMW 
+		CASE 10
+			;▼釣り［一緒に釣りをする］
+			;TFLAG:193,-1=釣り竿がなくて見てるだけ
+			;PRINTFORMW 
+		CASE 11
+			;▼実験［実験を手伝う］
+			;PRINTFORMW 
+		CASE 12
+			;▼のんびり［一緒にのんびりする］
+			;PRINTFORMW 
+		CASE 13
+			;▼晩酌［晩酌に付き合う］
+			;※酒耐性0以上のみ
+			;PRINTFORMW 
+		CASE 14
+			;▼買い物［買い物を手伝う］
+			;PRINTFORMW 
+		CASE 15
+			;▼説教［様子をうかがう］
+			;※神霊・蓬莱人は除く
+			;TFLAG:193,-1
+			;PRINTFORMW 
+		CASE 16
+			;▼落とし穴［いたずらに付き合う］or［様子をうかがう］
+			;※三月精・チルノ・クラウンピースのみ
+			;それ以外は落ちる側
+			;PRINTFORMW 
+		CASE 17
+			;▼雪だるま作り［一緒に雪作り］
+			;※冬の月のみ
+			;PRINTFORMW 
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;402,就寝
+;TFLAG:193(0=通常 1=子供と一緒に川の字で寝る)
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_402
+;就寝にTRAIN_MESSAGEは無い
+CALL M_KOJO_MESSAGE_COM_K99_402_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_402_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K99
+	;睡眠中か衰弱中
+	IF CFLAG:睡眠 || CFLAG:衰弱
+		PRINTFORML 「……すぅ……すぅ……」
+		PRINTFORMDW %CALLNAME:MASTER%は豊姫の頭を撫でると、部屋の明かりを消した……
+	;一緒に寝る
+	ELSEIF CFLAG:MASTER:現在位置 == CFLAG:99:初期位置
+		;判定
+		SELECTCASE TFLAG:193
+			;通常
+			CASE 0
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「ええ、そろそろ寝ましょうか」
+						PRINTFORMDL 豊姫が部屋の明かりを消して布団に潜り込んでくる
+						PRINTFORML 「……ん……おやすみ、%CALLNAME:MASTER%」
+						PRINTFORMDW そして、おやすみのキスをしてきた……
+					CASE 1
+						PRINTFORML 「……ん？ どうしたの？ 寝付けない？」
+						PRINTFORML 「それじゃあ、%CALLNAME:MASTER%が眠れるように……」
+						PRINTFORMDL 豊姫が%CALLNAME:MASTER%を抱き締め、優しく頭を撫でる
+						PRINTFORMW 「ずっと、こうしていてあげるわね……」
+						PRINTFORMDL ……………
+						PRINTFORMDL ………
+						PRINTFORMDW …
+						PRINTFORMW 「………おやすみなさい。%CALLNAME:MASTER%♪」
+					CASE 2
+						PRINTFORML 「すぅ……すぅ……」
+						PRINTFORMDL 豊姫は布団に横になって数分もしない内に夢の世界へと旅立ってしまった
+						PRINTFORMDW 彼女の寝付きの良さは自分も見習いたいものだ……
+				ENDSELECT
+			;子供と一緒に川の字で寝る
+			CASE 1
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORMW 「ねぇ、%CALLNAME:MASTER%……」
+						PRINTFORMDW 布団に横になっていた%CALLNAME:MASTER%に豊姫が覆い被さってくる
+						PRINTFORMW 「ちょっとだけでいいから……ね？ シましょう？」
+						PRINTFORMW 「大丈夫よ……ぐっすり寝てるみたいだから……」
+						PRINTFORMDL 豊姫も育児が忙しく欲求不満なのだろう
+						PRINTFORMDL %CALLNAME:MASTER%は体勢を入れ替えると
+						PRINTFORMDW 彼女の経産婦とは思えない美しい肢体に優しく手を這わせた……
+						CALL HPH_PRINT,@"「ん、ぁ……HPH ぁぁ……っHPH」","W"
+						PRINTFORMDL ……………
+						PRINTFORMDL ………
+						PRINTFORMDW …
+						CALL ADD_SAMEN_V(99, 200)
+						EXP:99:キス経験 += 3
+						EXP:99:Ｃ経験 += 3
+						EXP:99:Ｂ経験 += 3
+						EXP:99:Ｖ経験 += 3
+						EXP:99:Ｍ経験 += 3
+						EXP:99:Ｖ性交経験 += 3
+						EXP:99:絶頂経験 += 2
+						EXP:99:精液経験 += 1
+						EXP:99:膣射経験 += 1
+					CASE 1
+						PRINTFORML 「おやすみ、%CHILDNAME:99:(TALENT:99:育児中)%」
+						PRINTFORML 「ふふっ、%CALLNAME:MASTER%もね」
+						PRINTFORMDW 豊姫は二人におやすみのキスをすると、部屋の明かりを消した
+					CASE 2
+						PRINTFORML 「すぅ……すぅ……」
+						PRINTFORMDL 豊姫は%CHILDNAME:99:(TALENT:99:育児中)%と一緒に安らかな寝息を立てている
+						PRINTFORMDW %CALLNAME:MASTER%は二人を起こさないよう布団を抜け出すと、部屋の明かりを消した
+				ENDSELECT
+		ENDSELECT
+	;通常
+	ELSE
+		;恋慕
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「んー……確かにもう良い時間か」
+					PRINTFORMW 「おやすみなさい。%CALLNAME:MASTER%」
+				CASE 1
+					PRINTFORML 「もう寝てしまうの？」
+					PRINTFORML 「……少しだけ貴方の傍に居てもいい？」
+					PRINTFORMDL %CALLNAME:MASTER%が頷くと、豊姫が嬉しそうに布団に潜り込んできた
+					PRINTFORML 「ちゃんと部屋に帰って寝ろって？」
+					PRINTFORMW 「大丈夫よー、少ししたらちゃんと帰るから……多分」
+				CASE 2
+					PRINTFORML 「おやすみ。%CALLNAME:MASTER%」
+					PRINTFORML 「……また明日ね」
+					PRINTFORMDW 豊姫は明かりを消すと%CALLNAME:MASTER%の部屋を後にした
+			ENDSELECT
+		;それ以外
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「もうお休み？」
+					PRINTFORMW 「では、私は帰るわね」
+				CASE 1
+					PRINTFORML 「寝る前にちゃんと歯を磨くのよー」
+					PRINTFORMDW 豊姫は母親みたいなことを言って帰って行った
+				CASE 2
+					PRINTFORML 「そうねー、私もそろそろ寝ようかしら」
+					PRINTFORMW 「それじゃあ、おやすみなさい」
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;403,休憩
+;CFLAG:TARGET:睡眠(1=TARGETが寝てる隣で休憩
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_403
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_403_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_403_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;睡眠中
+	IF CFLAG:睡眠
+		PRINTFORML 「すぅ……すぅ……」
+		PRINTFORMDW %CALLNAME:MASTER%は眠る豊姫の横で一息ついた
+	;通常
+	ELSE
+		;恋慕
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「休憩？ それなら……」
+					PRINTFORML 「はい、桃を召し上がれ♪」
+					PRINTFORMDW %CALLNAME:MASTER%は豊姫と桃を食べながら暫し談笑した
+					;『待つ』コマンドで貰えないように
+					SIF SELECTCOM == 403
+						CALL GET_ITEM("仙桃", 1, 1)
+				CASE 1
+					PRINTFORML 「肩、借りるわね」
+					PRINTFORMDL %CALLNAME:MASTER%の返事を待たず豊姫が寄り掛かってきた
+					PRINTFORML 「ふぅ……それじゃあ、少ししたら起こしてねー……」
+					PRINTFORMW 「……………zzz」
+				CASE 2
+					PRINTFORML 「ほら、疲れたでしょう？」
+					PRINTFORML 「私の膝でゆっくり休んで」
+					PRINTFORMDL 豊姫が自分の膝をポンポンと叩いて%CALLNAME:MASTER%に寝るよう促している
+					PRINTFORMDW %CALLNAME:MASTER%はお言葉に甘えて、豊姫の膝枕で暫し休憩した
+			ENDSELECT
+		;それ以外
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「百日の労、一日の楽」
+					PRINTFORML 「動いてばかりじゃなくて、偶には休むのも大切だということよ」
+					PRINTFORMDW 豊姫は%CALLNAME:MASTER%の隣でのんびりしている
+				CASE 1
+					PRINTFORML 「こうのんびりしてると……」
+					PRINTFORML 「ふぁ～あ……眠たくなってくるわねぇ……」
+					PRINTFORMDW 豊姫は扇子で口元を隠して大きな欠伸をした
+				CASE 2
+					PRINTFORML 「疲れた時は糖分を補給しないとね」
+					PRINTFORMDL 豊姫はどこからか取り出した桃を齧っている
+					PRINTFORMW 「貴方も食べる？ はい、どうぞ」
+					;『待つ』コマンドで貰えないように
+					SIF SELECTCOM == 403
+						CALL GET_ITEM("仙桃", 1, 1)
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;405,出掛ける(同行時デート
+;条件が厄介なので、COMF405 出掛ける.ERBを参照のこと
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_405
+;出掛けるにTRAIN_MESSAGEは無い
+CALL M_KOJO_MESSAGE_COM_K99_405_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_405_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K99
+	;睡眠中
+	IF CFLAG:睡眠
+		PRINTFORML
+		RETURN 1
+	;通常
+	ELSE
+		;TARGETとデート
+		IF CFLAG:同行
+			;恋慕
+			IF TALENT:恋慕
+				PRINTFORML 「%CALLNAME:MASTER%とのデート……」
+				PRINTFORML 「ふふっ、楽しみね♪」
+				PRINTFORMDW 豊姫と腕を組んで%CALLNAME:MASTER%はデートに出発した
+			;思慕
+			ELSEIF TALENT:思慕
+				PRINTFORML 「ふふっ、期待しても良いのかしら？」
+				PRINTFORMDW %CALLNAME:MASTER%と豊姫は寄り添いながらデートへと出発した
+			;それ以外
+			ELSE
+				PRINTFORML 「デート？ んー……」
+				PRINTFORML 「ま、少しくらい空けても大丈夫でしょう」
+				PRINTFORML 「お弁当を用意してくるから、少し待っていてね」
+				PRINTFORMDW 豊姫はハイキングにでも行くような気軽さでデートをＯＫしてくれた
+			ENDIF
+		;お出かけお見送り
+		ELSEIF !CFLAG:MASTER:同行
+			;幼い子供がいる
+			IF CFLAG:99:出産経過日 < CHILD_しつけ
+				PRINTFORML 「行ってらっしゃい。気を付けてね」
+				PRINTFORMDW 豊姫は胸に抱いた我が子の手を取り、バイバイと振らせている
+			;恋慕
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「大丈夫？ 私が居なくても平気？」
+				PRINTFORML 「……そう……早く帰ってきてね？」
+				PRINTFORMDW 母親のように心配する豊姫を宥め、%CALLNAME:MASTER%は目的地へと出掛けた
+			;思慕
+			ELSEIF TALENT:思慕
+				PRINTFORML 「あら、一人でお出掛け？」
+				PRINTFORML （んー……デートに誘おうと思っていたのだけど……）
+				PRINTFORMW 「気を付けて行ってきてね」
+			;それ以外
+			ELSE
+				PRINTFORML 「行ってらっしゃーい」
+				PRINTFORMDW 豊姫は小さく手を振って%CALLNAME:MASTER%を見送った
+			ENDIF
+		ENDIF
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;410,掃除
+;FLAG:70(1=時間停止中
+;TFLAG:193(0=見てるだけ 1=一緒に掃除)
+;TFLAG:194(3=汚れ高 2=汚れ中 1=汚れ低 0=汚れ最小
+;OUTROOF(CFLAG:現在位置)(野外掃除（冬は雪かき
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_410
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_410_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_410_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:睡眠
+		PRINTFORML 
+		RETURN 1
+	ELSEIF FLAG:時間停止
+		PRINTFORML 
+		RETURN 1
+	ELSEIF CFLAG:うふふ && SHIRAHU(TARGET)
+		PRINTFORML 
+		RETURN 1
+	;通常
+	ELSE
+		;判定
+		SELECTCASE TFLAG:193
+			;見てるだけ
+			CASE 0
+				;汚れ高
+				IF TFLAG:194 >= 3
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「よくもまぁ、これだけ……」
+							PRINTFORML 「ここはもうダメね……浄化してしまいましょう」
+							PRINTFORMDW 辺り一帯を『浄化』しようとする豊姫を%CALLNAME:MASTER%は慌てて止めた
+						CASE 1
+							PRINTFORML 「ぅ……けほっけほっ」
+							PRINTFORML 「ごめんなさい、向こうに行ってるわね」
+							PRINTFORMDW 立ち昇る穢れの臭いに豊姫は咽てしまったようだ
+						CASE 2
+							PRINTFORML 「んー……少し気分が……」
+							PRINTFORML 「悪いけれど、後はお願いね」
+							PRINTFORMDW 埃の臭いが苦手なのか、豊姫は離れて行ってしまった
+					ENDSELECT
+				;汚れ中以下
+				ELSE
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「人手が足りなかったら言って頂戴」
+							PRINTFORML 「暇そうな兎を呼んできてあげるから」
+							PRINTFORMDW どうやら豊姫に手伝う気は無いようだ
+						CASE 1
+							PRINTFORML 「それじゃ大変でしょう？ さ、これを使って」
+							PRINTFORML 「これは月の最新鋭掃除道具。ボタンを押すだけでゴミを吸い取ってくれるのよ」
+							PRINTFORMDW %CALLNAME:MASTER%は豊姫に借りた掃除機のようなものを使ってゴミを吸い取っていった
+						CASE 2
+							PRINTFORML 「精が出るわねぇ」
+							PRINTFORML 「疲れたらここに座って一緒に桃でも食べましょう」
+							PRINTFORMDW 豊姫は呑気に%CALLNAME:MASTER%の掃除を眺めている
+					ENDSELECT
+				ENDIF
+			;一緒に掃除
+			CASE 1
+				;汚れ高
+				IF TFLAG:194 >= 3
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「この扇子は、森を一瞬で素粒子レベルで浄化する風を起こす」
+							PRINTFORML 「そんな月の最新兵器相手に貴方は何ができる？」
+							PRINTFORMDW 豊姫は扇子を広げながら圧倒的な量のゴミに話し掛けている
+						CASE 1
+							PRINTFORML 「これだけ穢れていると寿命が縮まってしまいそう」
+							PRINTFORML 「終わったら湯浴みをして躰を清めないと」
+							PRINTFORMDW %CALLNAME:MASTER%は豊姫を気遣いながら大量のゴミを片付けていった
+						CASE 2
+							PRINTFORML 「は……はぁぁ……」
+							PRINTFORML 「………はくちゅっ！」
+							PRINTFORMDW くしゃみばかりで掃除にならないので、豊姫にはゴミの運び出しをお願いした
+					ENDSELECT
+				;汚れ中以下
+				ELSE
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「月の技術をもってすれば、この程度造作もないことよ」
+							PRINTFORMDW 豊姫は月の最新鋭掃除道具を使ってゴミを吸い取っている
+						CASE 1
+							PRINTFORML 「いつもは兎達に任せていたけれど……」
+							PRINTFORMW 「偶には自分で掃除するのも良い運動になるわね」
+							PRINTFORMW
+							PRINTFORMW 「ふぅ……こんなものかしら」
+						CASE 2
+							PRINTFORML 「よいしょっと……ぁいたたっ」
+							PRINTFORML 「はぁ……慣れないことをしたから腰が……」
+							PRINTFORMW 「な、慣れてないだけよ？ お年寄り扱いしないでね？」
+					ENDSELECT
+				ENDIF
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;411,戦闘訓練
+;TFLAG:194(3=夏の昼間 2=ヤバい天気 1=悪天候 0=屋内or通常天気
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_411
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K99_411_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_411_1
+
+#DIM 正解
+#DIM 経験値
+#DIM 制限時間
+#DIM 倍率
+#DIM FEINT
+#DIM イカサマ
+VARSET LOCAL
+イカサマ = 0
+制限時間 = 2000 - (ABL:99:戦闘能力 - ABL:MASTER:戦闘能力) * 100
+
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;特訓デイリーからお借りしました
+	CALL M_KOJO_COLOR_K99
+	PRINTFORML 「玉琢かざれば器を成さず。人学ばざれば道を知らず」
+	PRINTFORML 「宝石も才能も、磨かなければ光り輝くことはないということ……」
+	PRINTFORMDL 豊姫が手に持った扇子を%CALLNAME:MASTER%へと突き付ける
+	PRINTFORML 「さあ、持てる力を全て出し切って」
+	PRINTFORMW 「死ぬ気で掛かってきなさい。地上の人間らしくね」
+	RESETCOLOR
+	PRINTFORML 
+	CALL ASK_YN("稽古開始","やっぱり止める")
+	IF RESULT
+		CALL M_KOJO_COLOR_K99
+		PRINTFORML 「あら？ やめるの？」
+		PRINTFORML 「それなら一緒にお茶でもしましょうか」
+		PRINTFORMDW 先程までの気迫が嘘のように消え、豊姫はすっかりいつもの調子に戻っていた
+		RESETCOLOR
+	ELSE
+		正解 = RAND:4
+		経験値 = MIN(ABL:99:戦闘能力 * 5, 5)
+		SELECTCASE RAND:20
+			CASE IS <= 11
+			;普通に
+				LOCALS:0 = 上
+				LOCALS:1 = 右
+				LOCALS:2 = 左
+				LOCALS:3 = 下
+				倍率 = 100
+			CASE 12 TO 15
+			;ローマ字
+				LOCALS:0 = UE
+				LOCALS:1 = MIGI
+				LOCALS:2 = HIDARI
+				LOCALS:3 = SHITA
+				倍率 = 160
+			;英語
+			CASE 16,17,18
+				LOCALS:0 = UP
+				LOCALS:1 = RIGHT
+				LOCALS:2 = LEFT
+				LOCALS:3 = DOWN
+				倍率 = 120
+			;スペイン語
+			CASE 19
+				LOCALS:0 = encima de
+				LOCALS:1 = a la derecha
+				LOCALS:2 = a la izquierda
+				LOCALS:3 = abajo de
+				倍率 = 300
+		ENDSELECT
+		;あなたの戦闘能力が高いと５分の一の確率でフェイントをかけてくる
+		IF ABL:MASTER:戦闘能力 >= 5 && !RAND:5
+			FEINT = 1
+			制限時間 += 400
+			倍率 += 80
+		ELSE
+			FEINT = 0
+		ENDIF
+		CALL FISHER_YATES_SHAFFLE(4)
+		PRINTFORMW %CALLNAME:TARGET%の攻撃を避けよう（クリックで開始）
+		PRINTFORM %CALLNAME:TARGET%の
+		SETCOLOR C_YELLOW
+		IF FEINT
+			PRINTFORM %LOCALS:(RAND:4)%
+			RESETCOLOR
+			PRINTFORM と見せかけて%LOCALS:(3 - 正解)%
+		ELSE
+			PRINTFORM %LOCALS:(3 - 正解)%
+			RESETCOLOR
+		ENDIF
+		PRINTFORML からの攻撃！
+		$LOOP_IKASAMA
+		FOR LOCAL:10,0,4
+			LOCAL = SHAFFLE_ARRAY:(LOCAL:10)
+			PRINTFORML [{LOCAL}] - %LOCALS:LOCAL%に避ける
+		NEXT
+		SIF !イカサマ && BASE:MASTER:TSP > 500
+			PRINTFORML [{4}] - 時間停止
+		TINPUT 制限時間, -1, 1
+		IF RESULT == 正解
+			PRINTFORML %CALLNAME:MASTER%は攻撃を回避した！
+			CALL M_KOJO_COLOR_K99
+			IF !イカサマ
+				PRINTFORMDL ……………
+				PRINTFORMDL ………
+				PRINTFORMDW …
+				PRINTFORML 「ふぅ……こんなところかしら」
+				PRINTFORMDL すっかり息の上がった%CALLNAME:MASTER%に対して、豊姫は平然としている
+				PRINTFORML 「さ、疲れたでしょう？」
+				PRINTFORMW 「稽古はこのくらいにして、一休みしましょうか」
+			ELSE
+				PRINTFORML 「ぁ、きゃっ！？」
+				PRINTFORMDL %CALLNAME:MASTER%は時間を止めて攻撃を回避すると隙を突いて豊姫を押し倒した
+				PRINTFORML 「はぁ……負けちゃった。強いのねぇ」
+				PRINTFORML （それにしても、この能力……どこかで……）
+				PRINTFORMDW 衣服に付いた汚れを払う豊姫は訝し気に%CALLNAME:MASTER%を見ていた
+			ENDIF
+			RESETCOLOR
+			BASE:MASTER:体力 -= 100 * (1 + ABL:99:戦闘能力)
+			BASE:MASTER:気力 -= 100 * (1 + ABL:99:戦闘能力)
+			経験値 = 経験値 * 倍率 / 100
+			EXP:MASTER:戦闘経験 += 経験値
+			EXP:99:戦闘経験 += 経験値 * 2
+			CFLAG:99:好感度 += 経験値 * 2
+			CFLAG:99:信頼度 += 経験値 * 2
+			PRINTFORML 戦闘経験 ＋{経験値}（%CALLNAME:MASTER%）
+			PRINTFORML 戦闘経験 ＋{経験値 * 2}（%CALLNAME:TARGET%）
+			PRINTFORML 好感度 ＋{経験値 * 2}（%CALLNAME:TARGET%）
+			PRINTFORML 信頼度 ＋{経験値 * 2}（%CALLNAME:TARGET%）
+		ELSEIF RESULT == 4 && !イカサマ && BASE:MASTER:TSP > 500
+			イカサマ = 1
+			倍率 /= 5
+			PRINTFORMW %CALLNAME:MASTER%は時間停止能力で攻撃を見極めた！
+			GOTO LOOP_IKASAMA
+		ELSE
+			CALL M_KOJO_COLOR_K99
+			PRINTFORMDL 失敗した……
+			PRINTFORML 「大丈夫ー？ 怪我してないー？」
+			PRINTFORMDL 派手に吹き飛ばされた%CALLNAME:MASTER%の元に豊姫が歩いてくる
+			PRINTFORML 「ん……大した怪我は無さそうね」
+			PRINTFORML 「どう？ 起きられそう？」
+			PRINTFORMDW %CALLNAME:MASTER%は豊姫に手を貸してもらいながら、ふらつく躰をなんとか起こした……
+			RESETCOLOR
+			BASE:MASTER:体力 -= 500 * (1 + ABL:99:戦闘能力)
+			BASE:MASTER:気力 -= 500 * (1 + ABL:99:戦闘能力)
+			PRINTFORML 戦闘経験 ＋{経験値}（%CALLNAME:TARGET%）
+			EXP:99:戦闘経験 += 経験値
+			CFLAG:99:好感度 += 経験値 / 2
+			CFLAG:99:信頼度 += 経験値 / 2
+			PRINTFORML 好感度 ＋{経験値}（%CALLNAME:TARGET%）
+			PRINTFORML 信頼度 ＋{経験値}（%CALLNAME:TARGET%）
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;412,勉強
+;ABL:教養(ABL:MASTER:教養より大=MASTERが教えてもらう ABL:MASTER:教養より小=TARGETが教えてもらう
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_412
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_412_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_412_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:睡眠
+		PRINTFORML 
+		RETURN 1
+	;通常
+	ELSE
+		;あなたの教養が６未満
+		IF ABL:MASTER:教養 < 6
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「お勉強？ 偉いのね」
+					PRINTFORML 「どれどれ～？ 私が見てあげましょうか」
+					PRINTFORMDW %CALLNAME:MASTER%は豊姫先生に教えてもらいながら勉強に励んだ
+				CASE 1
+					PRINTFORML 「あまり根を詰め過ぎないようにね？」
+					PRINTFORML 「疲れた時は無理せず休むことも大切なのよ」
+					PRINTFORML 「というわけで、おやつの時間ね」
+					PRINTFORMDW 勉強もそこそこに、%CALLNAME:MASTER%は豊姫とおやつを食べながら一休みした
+				CASE 2
+					PRINTFORML 「昔レイセンに手紙を代筆させてみたら、それはもう汚い字ねぇ」
+					PRINTFORML 「まあ兎は学が無いから仕方ないけれど……」
+					PRINTFORMW 「今度依姫に言っておこうかしら。武術の稽古だけじゃなくて座学の時間も必要よって」
+			ENDSELECT
+		;あなたの教養が６
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ああ、それは……え？ 間違ってる？」
+					PRINTFORML 「むー……八意様みたいなことを言うのね」
+					PRINTFORMDW %CALLNAME:MASTER%が間違いを指摘すると、豊姫は何故かむくれてしまった
+				CASE 1
+					PRINTFORML 「ふふっ、まさか私が教えられる立場になるなんてね」
+					PRINTFORML 「八意様が月におられた頃を思い出すわ」
+					PRINTFORMDW そう言う豊姫は、どこか楽しそうに笑っていた
+				CASE 2
+					PRINTFORML 「教うるは学ぶの半ばと言うけれど……」
+					PRINTFORML 「貴方に教えてあげられることはもう無さそうねぇ……」
+					PRINTFORMDW %CALLNAME:MASTER%の知識量に豊姫は舌を巻いている
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;413,料理
+;TFLAG:194(100以上=禁断のメニュー 3=デザート 2=主食 1=軽食
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_413
+;TFLAG:194が100以上の場合のみ
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_413_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_413_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;睡眠中
+	IF CFLAG:睡眠
+		PRINTFORML 
+		RETURN 1
+	;通常
+	ELSE
+		;料理技能で分岐
+		SELECTCASE ABL:料理技能
+			;料理技能２以上
+			CASE IS > 1
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「さ、出来たわ」
+						PRINTFORML 「お皿用意しておいてもらえる？」
+						PRINTFORMDW 豊姫が手際よく進めてくれたお陰であっという間に料理が完成した
+					CASE 1
+						;母親の背中みたいな
+						PRINTFORML 「～～♪～～♪」
+						PRINTFORMDL 豊姫は鼻歌を歌いながら手際よく料理を作っている
+						PRINTFORMDW その後ろ姿を見て%CALLNAME:MASTER%はどこか懐かしい気持ちになった
+					CASE 2
+						PRINTFORML 「この前、依姫に手料理を振舞ったの」
+						PRINTFORML 「そうしたら凄く美味しそうに食べてくれて」
+						PRINTFORML 「あの子の幸せそうな顔、貴方にも見せたかったわ」
+						PRINTFORMDW %CALLNAME:MASTER%は豊姫と談笑しながら料理を作った
+				ENDSELECT
+			;料理技能２未満
+			CASEELSE
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「八意様からは色々なことを教わったけど……」
+						PRINTFORML 「はぁ……こんなことなら料理も教わっておけばよかったわ」
+						PRINTFORMDW 危なっかしい手つきの豊姫をサポートしながら%CALLNAME:MASTER%は料理を完成させた
+					CASE 1
+						PRINTFORML 「うーん……料理って難しいのねぇ」
+						PRINTFORML 「一応レシピ通りに作った筈だけど……」
+						PRINTFORMDW 豊姫は出来上がった料理の味に自信が無いようだ
+					CASE 2
+						PRINTFORML 「私が料理をしてしまうと、料理担当の者の仕事を奪うことになってしまう」
+						PRINTFORML 「つまり、私が料理をしないことで雇用を生み出しているのよ」
+						PRINTFORML 「だから、私が料理下手なのは至極当然ということね」
+						PRINTFORMDW %CALLNAME:MASTER%は料理下手な豊姫に言いくるめられてしまった
+				ENDSELECT
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;414,食事を取る
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;TFLAG:194(1=ノーパンしゃぶしゃぶ 2=禁断のメニュー 31=ドーピングコンソメスープ 30=モッツァレラチーズとトマトのサラダ 34=ギンギー料理
+;TCVAR:MASTER:308(bit0=濃い味 bit1=薄味 bit3=激辛 bit4=激甘 bit5=わさび bit6=激酸っぱ
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_414
+;成否判定
+;TFLAG:192(-2=コマンド終了(非TARGET時強制失敗)、-1＝強制失敗、0=COM依存(非TARGET時強制成功)、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_414
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_414_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_414_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:睡眠
+		PRINTFORML 
+		RETURN 1
+	;通常
+	ELSE
+		;豊姫と一緒に作った料理を食べる
+		IF DISH_ASSI == 99
+			;判定
+			SELECTCASE TFLAG:193
+				;大成功
+				CASE 1
+					PRINTFORML 「では、いただきます」
+					PRINTFORML 「あむ……ん～♪」
+					PRINTFORML 「我ながら会心の出来ね」
+					PRINTFORML 「ほら、貴方も食べて食べて♪」
+					PRINTFORMDL 豊姫に促され%CALLNAME:MASTER%も食事に手を付ける
+					PRINTFORMDW ………とても美味しかった
+				;成功
+				CASE 0
+					PRINTFORML 「腹が減っては戦ができぬ」
+					PRINTFORML 「というわけで、いただきます」
+					PRINTFORML 「あむ、もぐっ………うん、美味しい」
+					PRINTFORMDW 豊姫はうんうんと頷きながら食事をとっている
+				;失敗
+				CASE -1
+					PRINTFORML 「いただきます」
+					PRINTFORMDL %CALLNAME:MASTER%は豊姫と手を合わせると食事に手を付けた
+					PRINTFORML 「………ぁっ」
+					PRINTFORML 「……調味料、間違えちゃった♪」
+					PRINTFORMDW 豊姫がそう言うのと%CALLNAME:MASTER%が吹き出すのはほぼ同時だった……
+			ENDSELECT
+		;それ以外
+		ELSE
+			;判定
+			SELECTCASE TFLAG:193
+				;大成功
+				CASE 1
+					PRINTFORMW 「では、いただきます」
+					PRINTFORML 「あむ……んんっ！」
+					PRINTFORML 「もぐ……ん……んく……ん……っ！」
+					PRINTFORMW 「もぐもぐもぐもぐもぐもぐもぐ……ごくんっ」
+					PRINTFORML 「ふぅ……ごちそうさまでした」
+					PRINTFORMDW 余程美味しかったのか、豊姫は目にも止まらぬ速さで料理を完食してしまった
+				;成功
+				CASE 0
+					PRINTFORML 「衣食足りて礼節を知る」
+					PRINTFORML 「人は空腹が満たされて初めて心に余裕を持つことができるのよ」
+					PRINTFORMDW 豊姫は出された料理を美味しそうに食べている
+					PRINTFORML 「ごちそうさまでした。美味しかったわ」
+					PRINTFORMDW そして欠片すら残さず完食した
+				;失敗
+				CASE -1
+					PRINTFORML 「では……あむっ」
+					PRINTFORML 「……ん……んん……？」
+					PRINTFORMDL 豊姫は料理を口に運びながら首を傾げている
+					PRINTFORMDW それでも食べる速度は変わらない
+					PRINTFORML 「……ふぅ、ごちそうさまでした」
+					PRINTFORML 「美味しかったか？ んー……」
+					PRINTFORML 「あまり馴染みの無い味だったから……」
+					PRINTFORMDW どうやら口に合わなかったようだ……
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;415,食事をふるまう
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;TCVAR:MASTER:308(bit0=濃い味 bit1=薄味 bit3=激辛 bit4=激甘 bit5=わさび bit6=激酸っぱ
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_415
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_415
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_415_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_415_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;食事を取ると共通
+	CALL M_KOJO_MESSAGE_COM_K99_414_1
+ENDIF
+RETURN 1
+;==================================================
+;416,演奏する
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;TFLAG:使用楽器(1=キーボード 2=ピアノ 3=ギター 4=トランペット 5=ヴァイオリン)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_416
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_416
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_416_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_416_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;失敗
+	IF TFLAG:193 == -1
+		PRINTFORML 「ううっ……ちょっと、この音は……っ」
+		PRINTFORMDW 豊姫は%CALLNAME:MASTER%の酷い演奏に顔を顰めている……
+	;成功
+	ELSE
+		;判定
+		SELECTCASE TFLAG:使用楽器
+			;キーボード
+			CASE 1
+				PRINTFORML 「地上の楽器も中々面白いのね」
+				PRINTFORML 「今度の宴で演奏させてみようかしら」
+				PRINTFORMDW 豊姫は%CALLNAME:MASTER%の演奏に聴き入っている……
+			;ピアノ
+			CASE 2
+				PRINTFORML 「良い音色……」
+				PRINTFORML 「私もやってみても良いかしら？」
+				;あなたの音楽技能が豊姫より高い
+				IF ABL:MASTER:音楽技能 > ABL:音楽技能
+					PRINTFORMDW %CALLNAME:MASTER%は豊姫に演奏を教えながら連弾を楽しんだ
+				;それ以外
+				ELSE
+					PRINTFORMDW %CALLNAME:MASTER%は豊姫と連弾を楽しんだ
+				ENDIF
+				EXP:99:演奏経験 += 2
+			;ギター
+			CASE 3
+				PRINTFORML 「こういうの、レイセンに持たせてみたら面白そうだと思わない？」
+				PRINTFORML 「どうしてって？ うーん……なんとなく？」
+				PRINTFORMDL %CALLNAME:MASTER%はレイセンがギターを持っている姿を想像してみた
+				PRINTFORMDW ……案外似合うかもしれない……
+			;トランペット
+			CASE 4
+				PRINTFORML 「え？ 私も吹いてみろって？」
+				PRINTFORML （これって間接キス……よね？）
+				PRINTFORML （ふふっ、なんだかドキドキしちゃう……）
+				PRINTFORMDW 豊姫は少しだけ頬を赤らめながらマウスピースに唇を付けた
+				EXP:99:演奏経験 += 2
+			;ヴァイオリン
+			CASE 5
+				PRINTFORMDL %CALLNAME:MASTER%は演奏を終えると豊姫にヴァイオリンを持たせてみた
+				PRINTFORML 「えっと……こう？」
+				PRINTFORMW 「似合ってる？ そ、そう……？」
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;417,昼寝をする
+;TFLAG:193(0=MASTERを抱き枕にして寝ている 1=MASTERの膝を枕にして寝ている 2=寝顔にキスされた 3=寝顔をのぞき込まれた 4=MASTERが膝枕されてる 5=秘処orペニス揉み
+;CFLAG:添い寝中(1=一緒に寝ている
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_417
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_417_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_417_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;添い寝中
+	IF CFLAG:添い寝中
+		PRINTFORML 
+		RETURN 1
+	;通常
+	ELSE
+		;判定
+		SELECTCASE TFLAG:193
+			;MASTERを抱き枕にして寝ている
+			CASE 0
+				PRINTFORML 「ん、んん～…………あら……？」
+				PRINTFORMDL 目を覚ました豊姫と目が合う
+				PRINTFORML 「おはよう……よく眠れた……？」
+				PRINTFORML 「私は……ちょっと寝足りないかも……zzz」
+				PRINTFORMDW %CALLNAME:MASTER%は二度寝をしようとする豊姫を慌てて揺り動かした……
+			;MASTERの膝を枕にして寝ている
+			CASE 1
+				PRINTFORML 「う～ん……もう少し優しく起こしてくれても……」
+				PRINTFORML 「ふぁ～あ……ん、んん～……ふぅ……」
+				PRINTFORMDL 豊姫は呑気に伸びをしながら大きな欠伸をしている
+				PRINTFORMDW そのあまりに無防備な姿はとても月の使者のリーダーとは思えない……
+			;寝顔にキスされた
+			CASE 2
+				PRINTFORML 「お、おはよう……」
+				PRINTFORML 「その、よく眠れた？」
+				PRINTFORML 「そ、そう……よかった」
+				PRINTFORML 「………ふふっ」
+				PRINTFORMDW 豊姫は自分の唇に指を添え頬を赤らめている……
+			;寝顔をのぞき込まれた
+			CASE 3
+				;恋慕
+				IF TALENT:恋慕
+					PRINTFORML 「ぁ……起きた？」
+					PRINTFORML 「おはよう。%CALLNAME:MASTER%」
+					PRINTFORMDL 目覚めた%CALLNAME:MASTER%の頭を豊姫が優しく撫でる
+					PRINTFORMDW ずっと寝顔を観察されていたのだろうか……%CALLNAME:MASTER%は少し気恥ずかしくなった
+				;それ以外
+				ELSE
+					PRINTFORML 「あっ……起きた？」
+					PRINTFORML 「そろそろ起こしてあげようと思って」
+					PRINTFORML 「……本当よ？」
+					PRINTFORMDW 豊姫は何故か恥ずかしがっている……
+				ENDIF
+			;MASTERが膝枕されてる
+			CASE 4
+				PRINTFORML 「……ん、もういいの？」
+				PRINTFORML 「もう少しゆっくりすればいいのに」
+				PRINTFORMDL そういう訳にはいかない
+				PRINTFORMDW %CALLNAME:MASTER%は豊姫に礼を言うと躰を起こした……
+			;秘処orペニス揉み
+			CASE 5
+				PRINTFORML 「ぁ……起きちゃった……？」
+				PRINTFORML 「ふふっ、どう？ エッチな夢は見れた……？」
+				PRINTFORML 「恥ずかしがらなくても良いのよ……ねぇ、どんな夢だった……？」
+				PRINTFORML 「お姉さんだけに、こっそり教えて……？」
+				PRINTFORMDW 豊姫は%CALLNAME:MASTER%の膨らんだ股間をマッサージしながら、耳元で囁いてきた……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;421,願掛けする
+;条件が複雑なので、COMF421 願掛け.ERBおよび、EVENT_MESSAGE_COM400.ERBの願掛けするの項を参照のこと
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_421
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_421_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_421_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;恋慕
+	IF TALENT:恋慕
+		SELECTCASE RAND:3
+			CASE 0
+				;豊姫が豊玉姫だとすると物凄く位の高い神様だよね
+				PRINTFORMDL 月人ということは豊姫も神様の類かもしれない
+				PRINTFORMDL %CALLNAME:MASTER%はついでに彼女に向かって手を合わせてみた
+				PRINTFORML 「んー……願いを叶えてあげたいのは山々なんだけど」
+				PRINTFORML 「そうねぇ……なら」
+				PRINTFORML 「貴方の願いが叶うよう、私も神に祈りましょうか」
+				PRINTFORMDW 豊姫はそう言うと、美しい所作で神に祈りを捧げた
+			CASE 1
+				PRINTFORML 「依姫は神霊を呼びその力を身に宿すことができるの」
+				PRINTFORML 「貴方が祈りを捧げた神霊にも、もしかしたらお会いしたことがあるかもね」
+				PRINTFORMDW 月人がパンツ神の力を借りることなどあるのだろうか……
+			CASE 2
+				PRINTFORML 「まあ、立派な注連縄ねぇ」
+				PRINTFORML 「……………うずうず」
+				PRINTFORMDW 願掛けをする%CALLNAME:MASTER%の横で豊姫は何かを語りたそうにしている
+		ENDSELECT
+	;それ以外
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「そういえばこっちには水江浦嶋子……筒川大明神を祀る神社はあるのかしら」
+				PRINTFORML 「ん？ ああ、手でも合わせておこうかなって」
+				PRINTFORMW 「一介の平凡な漁師だった彼も随分と出世したものよねぇ」
+			CASE 1
+				PRINTFORML 「神が願いを叶えるかどうかはその時の気分次第」
+				PRINTFORML 「最近は……依姫や人間の巫女にこき使われたばかりだから」
+				PRINTFORMW 「お願いしても聞いてくれるかどうか……」
+			CASE 2
+				PRINTFORML 「最近地上に現れた神のことを知っている？」
+				PRINTFORML 「なんでも願いを叶える対価に女性の下着を求めるとか」
+				PRINTFORML 「本当に神かどうかも怪しいけれど……」
+				PRINTFORMW 「もし見掛けたら、二度と出てこられないよう厳重に封印しないとね」
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;422～430は、特殊コマンドなのでテンプレでは対応しません
+;==================================================
+
+;==================================================
+;431,お風呂でくつろぐ
+;TFLAG:209(4=人里の銭湯で番台ちゃんを怒らせている 1=銭湯に入った
+;TFLAG:211(4=地底の温泉で番台妖怪を怒らせている 1=温泉に入った
+;TFLAG:194(1=連続入浴不可(表示しない可能性あり？
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_431
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_431_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_431_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF BATHCHECK(CFLAG:MASTER:現在位置)
+		;恋慕
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「はぁ……良いお湯ねぇ……」
+					PRINTFORML 「疲れが抜けていくようだわ……」
+					PRINTFORML 「……………」
+					PRINTFORML 「………ごぼごぼごぼ」
+					PRINTFORMDW いつの間にか沈んでいた豊姫を%CALLNAME:MASTER%は慌てて引き揚げた
+				CASE 1
+					PRINTFORML 「ん……ちょっとのぼせちゃった……」
+					PRINTFORML 「ねぇ……この躰の火照り、貴方の手で鎮めてくれない……？」
+					PRINTFORMDL それは大変だ。%CALLNAME:MASTER%は豊姫を湯舟から上げると
+					PRINTFORMDL 彼女に向かって冷たいシャワーを浴びせかけた
+					PRINTFORMW 「きゃあっ！？ も、もうっ！ そうじゃないったらっ！」
+				CASE 2
+					PRINTFORMDL %CALLNAME:MASTER%は豊姫を足の間に座らせ一緒に湯舟に浸かりながら
+					PRINTFORMDL 水面に浮かぶ彼女の巨乳を下から持ち上げて遊んでいる
+					CALL HPH_PRINT,@"「ん……っHPH もう……貴方の触り方がエッチだから……」","L"
+					CALL HPH_PRINT,@"「乳首、勃ってきちゃった……HPH ぁ、んんっHPH」","L"
+					PRINTFORMDL コリコリとした乳首を指先でつまみ擦り上げると豊姫が気持ち良さそうに躰をくねらせる
+					PRINTFORMDW %CALLNAME:MASTER%は彼女が達するまで執拗に乳首だけを刺激し続けた……
+					EXP:99:Ｂ経験 += 2
+					EXP:99:Ｂ絶頂経験 += 1
+					PALAM:潤滑 += 2000
+			ENDSELECT
+		;それ以外
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ふぁ～あ……眠くなってきたわねぇ……」
+					PRINTFORML 「……んー……少しだけ寝るから、後はよろしく……」
+					PRINTFORML 「………………zzz」
+					PRINTFORMDW いつか風呂で溺れやしないだろうか……%CALLNAME:MASTER%は少し心配になった
+				CASE 1
+					PRINTFORML 「ほらほら、遠慮しないで」
+					PRINTFORML 「丁度良いお湯加減よ。一緒に入りましょう？」
+					PRINTFORMDL 一緒に浸かって良いものか迷っていると豊姫が湯舟の中から手招きしてきた
+					PRINTFORMDL どうやら豊姫は裸の付き合いにあまり抵抗が無いらしい
+					PRINTFORMDW %CALLNAME:MASTER%はお言葉に甘えて彼女の隣でゆっくり風呂を満喫することにした
+				CASE 2
+					PRINTFORML 「やっぱりお風呂は誰かと一緒に入ってこそよねぇ」
+					PRINTFORML 「ね？ 貴方もそう思うでしょう？」
+					PRINTFORML 「そうだ、今度依姫とレイセンも呼んで皆で入りましょうか」
+					PRINTFORMDW それは色々と問題になりそうだ……%CALLNAME:MASTER%は豊姫の提案を丁重にお断りした
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;432,お風呂でくつろぐ
+;表示タイミングは入浴後なので、お風呂上がりでの
+;TFLAG:209(4=人里の銭湯で番台ちゃんを怒らせている 1=銭湯に入った
+;TFLAG:211(4=地底の温泉で番台妖怪を怒らせている 1=温泉に入った
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_432
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_432_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_432_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;人里の銭湯
+	IF TFLAG:209 == 1
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「ふぅ……お待たせ」
+				PRINTFORML 「髪を乾かすのに時間が掛かってしまって……」
+				PRINTFORMDW %CALLNAME:MASTER%から少し遅れて豊姫が銭湯から出てきた
+			CASE 1
+				PRINTFORML 「あむっ……ん～っ、美味しい♪」
+				PRINTFORML 「お風呂上がりに食べるアイスはやっぱり格別ねぇ」
+				PRINTFORMW 「あ、貴方の分も買ってあるわ。はいこれ」
+				CALL GET_ITEM("アイス", 1, 1)
+			CASE 2
+				PRINTFORML 「待たせたかしら？」
+				PRINTFORMDL %CALLNAME:MASTER%が外で待っていると、豊姫が遅れて銭湯から出てきた
+				PRINTFORML 「ごめんなさい、少し話し込んでしまって……」
+				PRINTFORML 「うふふっ、うちの孫の嫁になってくれって言われちゃった」
+				PRINTFORMDW どんな会話をしていたのか、%CALLNAME:MASTER%はなんとなく想像がついた
+		ENDSELECT
+	;地底の温泉
+	ELSEIF TFLAG:211 == 1
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「ああ、%CALLNAME:MASTER%。待っていたわ」
+				PRINTFORMDL %CALLNAME:MASTER%が温泉から出てくると
+				PRINTFORMDL なんと豊姫が番台の妖怪を土下座させていた
+				PRINTFORML 「この妖怪が私達のことを覗いていたみたいなの」
+				PRINTFORML 「お代は結構だって。さ、行きましょう」
+				PRINTFORMDL そう言うと、豊姫は温泉饅頭を食べながら上機嫌に歩き出した
+				PRINTFORMDW あれもこの番台からせしめたものなのだろうか……？
+				MONEY += 1000
+			CASE 1
+				PRINTFORML 「はぁ……少しのぼせちゃった……」
+				PRINTFORML 「ちょっとだけ膝を貸してもらえる……？」
+				PRINTFORMDL それくらいお安い御用だ
+				PRINTFORMDL %CALLNAME:MASTER%は豊姫に膝を貸し扇子で彼女を扇いであげた
+				PRINTFORMW 「ん、ありがとう……助かるわぁ……」
+			CASE 2
+				PRINTFORML 「ふぅ……良いお湯だったわねぇ……」
+				PRINTFORML 「月の都にもこういう温泉があればいいんだけど」
+				PRINTFORMDL 豊姫は火照った躰を扇子で扇ぎ涼んでいる
+				PRINTFORMDL 確かに良い湯だった
+				PRINTFORMDW 番台の妖怪が下卑た笑いを浮かべていたのが少しだけ気になったが……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;436,読書
+;TFLAG:193(選択肢文学(1=忍殺(文学？) 2=失敗 3=文学),選択肢実用書(4=失敗 5=実用書),選択肢エッチな本(6=薄い高い本 7=保健体育 8=カーマスートラ))
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_436
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_436_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_436_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;判定
+	SELECTCASE TFLAG:193
+		;文学
+		CASE 1,3
+			;恋慕
+			IF TALENT:恋慕
+				PRINTFORML 「私のおすすめの本？」
+				PRINTFORML 「えーっとね……これなんかどう？」
+				PRINTFORMDL 豊姫が手渡してきた本の表紙には%TEXTR("魔法探偵マリサ/東方儚月抄/サメ映画辞典/")%と書かれている
+				PRINTFORMW 「なかなか面白いから、きっと貴方も気に入ると思うわ」
+			;それ以外
+			ELSE
+				PRINTFORML 「あら、読書？」
+				PRINTFORML 「私もお邪魔して良いかしら」
+				PRINTFORMDL 『どうぞ』と頷くと、豊姫は向かいの席に座らず
+				PRINTFORMDL 何故か%CALLNAME:MASTER%の隣に座って読書を始めた
+				PRINTFORMDW なんというか距離が近い……
+			ENDIF
+		;実用書
+		CASE 5
+			;恋慕
+			IF TALENT:恋慕
+				PRINTFORML 「そんな本を読むより良い師を見つけた方が良いと思うけど」
+				PRINTFORML 「例えば？ うーん、そうねぇ……八意様はどうかしら？」
+				PRINTFORML 「月の頭脳とも謳われるあの方に師事すればまず間違いない」
+				PRINTFORMW 「それは弟子である私が保証しましょう」
+			;それ以外
+			ELSE
+				PRINTFORML 「地上の技術も随分と進歩してきたようだけど……」
+				PRINTFORML 「さすがに月の技術にはまだ遠く及ばないわね」
+				PRINTFORMDW 豊姫はそう言うと、パタンと実用書を閉じた
+			ENDIF
+		;薄い高い本
+		CASE 6
+			;恋慕
+			IF TALENT:恋慕
+				PRINTFORML 「時間を停止して女の子にあんなことやこんなことを……」
+				PRINTFORMDL 驚いた%CALLNAME:MASTER%が振り向くと
+				PRINTFORMDL 豊姫がニコニコとこちらを見ていた
+				PRINTFORML 「へえ、貴方はそういうのが好みなのね」
+				PRINTFORML 「今度時間停止ごっこでもやってみる？」
+				PRINTFORMDL どうやら能力を知られたわけではないようだ
+				PRINTFORMDW %CALLNAME:MASTER%は内心、胸を撫で下ろした……
+			;それ以外
+			ELSE
+				PRINTFORML 「んー……この本は前に読んだから……」
+				PRINTFORMDL 豊姫は文学作品が纏められた本棚に目を通している
+				PRINTFORMDW 今の内にこっそり読んでしまおう……
+			ENDIF
+		;保健体育
+		CASE 7
+			;恋慕
+			IF TALENT:恋慕
+				PRINTFORML 「くすっ、女の子の躰が気になるの？」
+				PRINTFORML 「私が手取り足取り、マンツーマンで教えてあげましょうか？」
+				PRINTFORMDW 耳元でそう囁かれ、%CALLNAME:MASTER%は思わず生唾を飲んでしまった……
+			;それ以外
+			ELSE
+				PRINTFORML 「へえ、色々書いてあるのねぇ……」
+				PRINTFORMDL %CALLNAME:MASTER%が保険体育の本を呼んでいると
+				PRINTFORMDL いつの間にか豊姫が後ろから覗き込んでいた……
+				PRINTFORML 「うふふっ、恥ずかしがらなくても良いのに」
+				PRINTFORMW 「女の子に興味があるのは男の子なら当然のことなんだから」
+			ENDIF
+		;カーマスートラ
+		CASE 8
+			;恋慕
+			IF TALENT:恋慕
+				PRINTFORML 「貴方が望むなら、この本に書いてあること……」
+				PRINTFORMDL %CALLNAME:MASTER%にしなだれかかった豊姫がゆっくりと耳元に口を寄せてくる
+				CALL HPH_PRINT,@"「ぜーんぶ、やってあげてもいいけど……HPH」","L"
+				PRINTFORMDW 豊姫が誘惑してくるせいで、%CALLNAME:MASTER%は読書に集中することができなかった……
+			;それ以外
+			ELSE
+				PRINTFORML 「まぁ……こんな体位もあるのね」
+				PRINTFORML 「こっちの体位は……うーん、腰を痛めてしまいそう……」
+				PRINTFORML 「……ぁ、ほら。これならやれそうじゃない？」
+				PRINTFORMDW %CALLNAME:MASTER%の隣で本を覗き見ている豊姫は何故か楽しそうだ
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;440,待つ
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_440
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_440_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_440_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;休憩と共通
+	CALL M_KOJO_MESSAGE_COM_K99_403_1
+ENDIF
+RETURN 1
+;==================================================
+;441,授業を受ける(慧音専用
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_441
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_441_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_441_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;442,伐採する（未実装
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_442
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_442_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_442_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;445,採集する
+;TFLAG:193(採集物のID, 0=『何も見つからなかった…』
+;TFLAG:194(今回採集した個数
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_445
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_445_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_445_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;448,罠を仕掛ける／虫トラップ
+;TFLAG:193,
+;   -1=罠が壊れた
+;    0=罠を仕掛けた
+;    1=獲物が得られた
+;   10=虫トラップを仕掛けた
+;   11=虫トラップを破棄した
+;   12=ムシを捕まえた
+;FLAG:194,獲物の番号
+;ムシの名前は MUSHI_NAME で表示したり判別したりできます
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_448
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_448_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_448_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;449,虫捕り
+;TFLAG:193,
+;   -2=殺してでもうばいとる（取っ組み合いの末逃がす）
+;   -1=ゆずってくれ！→拒否
+;    0=捕獲失敗
+;    1=MASTERが捕まえた
+;    2=キャラが捕まえたのをMASTERが褒めた
+;    3=ゆずってくれ！→渋々オッケー
+;    4=ゆずってくれ！→オールオッケー
+;TRAINMESSAGEを省略する場合は虫カゴに入れる処理を忘れないように
+;ムシの名前は MUSHI_NAME で表示したり判別したりできます
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_449
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_449_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_449_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;483,ムシバトル
+;TFLAG:193,
+;    1=１対１の対戦
+;    2=３～４人戦
+;    3=２対２のチーム戦
+;TFLAG:194にMASTERの順位が入っています（MASTERが1ならキャラ負け）
+;バトル中の口上はイベント口上ファイルに入っています
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_483
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_483_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_483_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;デート系コマンド
+;デート系口上は文字通り外出先で発生
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+[SKIPSTART]
+;現状未実装
+;==================================================
+;600,デート会話
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_600
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_600_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_600_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;601,デートスキンシップ
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_601
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_601_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_601_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;602,デートキス
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_602
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_602_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_602_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+[SKIPEND]
+;==================================================
+;603,手を繋ぐ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(失敗でもふりほどかれたりはしません
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_603
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_603
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_603_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_COM_K99_603
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_COM_K99_603_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;恋慕
+	IF TALENT:恋慕
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「今日一日、ずっと手を握っていましょうか」
+				PRINTFORML 「……へ？ 風呂やトイレはどうするんだって？」
+				PRINTFORML 「貴方が良いなら握ったままでも良いけど……本当にそれでいいの？」
+				PRINTFORML 「……くすっ、分かっているわ。冗談だってことくらい」
+				PRINTFORMW 「でも、お風呂やおトイレで手を繋いだままというのも……それはそれで楽しそうね」
+			CASE 1
+				PRINTFORMDL 豊姫は%CALLNAME:MASTER%の腕を抱きながら手を握っている
+				PRINTFORML 「歩きにくい？ まあまあ、いいじゃない」
+				PRINTFORMW 「せっかくのデートなんだから。ね？」
+			CASE 2
+				PRINTFORML 「ん？ 手を繋ぎたいの？」
+				PRINTFORML 「うふふっ、いいわよ。ほら」
+				PRINTFORMDW %CALLNAME:MASTER%が指を絡ませると、豊姫も優しく握り返してきた
+		ENDSELECT
+	;思慕
+	ELSEIF TALENT:思慕
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「デートなんだから、そんな手の繋ぎ方じゃダメよ」
+				PRINTFORML 「もっとこうやって……指を絡ませないと」
+				PRINTFORMW 「ね？ こっちの方がデートらしくて良いでしょう？」
+			CASE 1
+				PRINTFORML 「こうしていると恋人同士に見えるかしら」
+				PRINTFORML 「あら？ なぁに？ 恥ずかしいの？」
+				PRINTFORMW 「いいじゃない、見られちゃっても」
+			CASE 2
+				PRINTFORML 「せっかくのデートなんだし手くらい繋がないと」
+				PRINTFORML 「ほら、もっとギュって握って♪」
+				PRINTFORMDW 豊姫は%CALLNAME:MASTER%の手を取ると、積極的に指を絡ませてきた
+		ENDSELECT
+	;それ以外
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORMDL %CALLNAME:MASTER%が控えめに手を繋ぐと、豊姫も優しく握り返してきた
+				PRINTFORML 「さぁ、もっと肩の力を抜いて」
+				PRINTFORMW 「お散歩だと思って気楽に楽しみましょう？」
+			CASE 1
+				PRINTFORML 「こうしていると、依姫が小さい頃を思い出すわ」
+				PRINTFORML 「あの子、どこへ行くにも私の手を握ってきたのよ？」
+				PRINTFORMDW 正直に言って想像がつかない……
+			CASE 2
+				PRINTFORML 「向こうに着いたら何をしましょうか」
+				PRINTFORML 「何か面白いものでもあればいいんだけど」
+				PRINTFORMDW 豊姫は緊張している%CALLNAME:MASTER%をリラックスさせようとしている
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;604,散策する
+;デート中の場合、CFLAG:現在位置に移動先の場所が既に入ってる
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_604
+;散策するにはTRAIN_MESSAGEが無い
+CALL M_KOJO_MESSAGE_COM_K99_604_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_604_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;605,寄り道する
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文無し
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_605
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_605
+;寄り道するにはTRAIN_MESSAGEが無い
+DRAWLINE
+CALL M_KOJO_MESSAGE_COM_K99_605_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_605_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K99
+	;天候で分岐
+	SELECTCASE TIME:5
+		;晴れ
+		CASE 0,1
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「少し寄り道？ ふふっ、いいわよ」
+					PRINTFORML 「天気も良いし、お散歩には丁度良いから」
+					PRINTFORMDW 二人は少しだけ遠回りをして風景を楽しんだ
+				CASE 1
+					PRINTFORML 「何か面白いものでも見つけた？」
+					PRINTFORMDL 急にルートを外れた%CALLNAME:MASTER%に
+					PRINTFORMDW 豊姫は興味津々といった様子で付いて行った
+				CASE 2
+					PRINTFORML 「こう、ポカポカした日は……」
+					PRINTFORML 「ふぁ……なんだか眠くなるのよねぇ……」
+					PRINTFORML 「……あそこに丁度良い木陰もあるし、少し休憩していかない？」
+					PRINTFORMDW %CALLNAME:MASTER%は豊姫に付き合って木陰で休憩することにした……
+					;１時間経過
+					TIME += 60
+			ENDSELECT
+		;曇り・霧
+		CASE 2,3,7
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「急に降り出さないと良いけど……」
+					PRINTFORMDL 豊姫は天気を気にしている
+					PRINTFORMDW 早めに寄り道を切り上げた方が良さそうだ
+				CASE 1
+					PRINTFORML 「ここ？ 良い景色が見れるという場所は」
+					PRINTFORML 「……んー、何も見えないわね」
+					PRINTFORMW 「また今度天気の良い日に来ましょう」
+				CASE 2
+					PRINTFORML 「……あら？」
+					PRINTFORMDL 豊姫が不意に空を見上げる
+					PRINTFORMDL %CALLNAME:MASTER%も釣られて空を見上げると
+					PRINTFORMDW 顔にポツリ、ポツリと雨粒が落ちてきた
+					PRINTFORMW 「うーん、急いだ方がよさそうね。傘の用意は良い？」
+					;雨になる
+					TIME:5 = 4
+			ENDSELECT
+		;雨・雪
+		CASE 4,5,6,8,9,10,11,12,13
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「こんな天気なのに寄り道？」
+					PRINTFORML 「うーん……止めた方が良いと思うけど」
+					PRINTFORMDW そう言いながらも豊姫は付いて来てくれた
+				CASE 1
+					PRINTFORML 「はぁ……服が濡れちゃった……」
+					PRINTFORMDL %CALLNAME:MASTER%と豊姫は朽ち果てた小屋の軒下で休憩している
+					PRINTFORML 「……へ……へ……へくしゅっ」
+					PRINTFORML 「ぐすっ……風邪を引かないと良いけど……」
+					PRINTFORMDW 豊姫には悪いことをしたかもしれない……
+					;３０分経過
+					TIME += 30
+				CASE 2
+					PRINTFORMDL 寄り道をしている間に天候が悪化してきたので偶然見つけた洞窟で休憩していると……
+					PRINTFORML 「あ、%CALLNAME:MASTER%。見て」
+					PRINTFORML 「晴れてきたわ」
+					PRINTFORMDL %CALLNAME:MASTER%が洞窟から出てみると
+					PRINTFORMDL 先程までの天候が嘘のように晴れ、空に七色の虹が掛かっていた
+					PRINTFORML 「ふふっ、晴れてくれてよかったわ」
+					PRINTFORMW 「それじゃあ、デートの続きをしましょうか♪」
+					;晴れて虹になる
+					TIME:5 = 0
+					TIME:7 = 1
+					;１時間経過
+					TIME += 60
+			ENDSELECT
+	ENDSELECT
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;610,食事に誘う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_610
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_610
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_610_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_610_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;人間の里
+	IF CFLAG:MASTER:現在位置 / 100 == 2
+		SELECTCASE RAND:3
+			CASE 0
+				;ハンチョウ
+				PRINTFORML 「えっと……それぞれ単品で」
+				PRINTFORML 「コロッケとかきあげ……」
+				PRINTFORML 「えび天に……このほうれん草に温玉のせて小鉢で頂ける？」
+				PRINTFORML 「それとあとは……生ビールひとつ。以上で」
+				PRINTFORML 「あ、シメでお蕎麦もお願いね」
+				PRINTFORMDL ……お金、足りるかな……
+				PRINTFORMDW %CALLNAME:MASTER%はこっそり財布の中身を確認した
+			CASE 1
+				PRINTFORML 「ふぅ……ごちそうさまでした」
+				PRINTFORML 「地上のご飯も中々美味しいのね」
+				PRINTFORMDL あれもこれもと頼んだ料理を豊姫はペロリと平らげてしまった
+				PRINTFORMDW しかも、まだまだ余裕がありそうだ……
+			CASE 2
+				PRINTFORML 「すみません、追加の注文を……」
+				PRINTFORMDL 既に満腹の%CALLNAME:MASTER%を差し置いて豊姫は次々と料理を注文している
+				PRINTFORMDW 彼女の胃袋はまるでブラックホールのようだ……
+		ENDSELECT
+	;迷いの竹林
+	ELSEIF CFLAG:MASTER:現在位置 / 100 == 4
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「ふぅ……なんだかホッとするわ」
+				PRINTFORML 「いいわね。屋台で吞むというのも」
+				PRINTFORMDW 一献傾ける豊姫を横目で見ながら、%CALLNAME:MASTER%もお猪口に口を付けた
+			CASE 1
+				PRINTFORML 「あ、女将さん。もう何本か頂ける？」
+				PRINTFORML 「…え？ もう終わり？ うーん、残念ね」
+				PRINTFORMDL どうやらもう店仕舞いのようだ。きっと豊姫が食べ過ぎたせいだろう
+				PRINTFORMDW %CALLNAME:MASTER%はこれから来るであろう客に心の中で謝罪した……
+			CASE 2
+				PRINTFORML 「それじゃあ、乾杯♪」
+				PRINTFORMDW 豊姫と八目鰻屋台で一杯ひっかけた
+		ENDSELECT
+	;三途の川～冥界
+	ELSEIF CFLAG:MASTER:現在位置 / 100 == 6
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「さ、次はあの屋台に行きましょう」
+				PRINTFORML 「うふふっ、やっぱり屋台巡りは楽しいわね♪」
+				PRINTFORMDL 豊姫は両手に食べ物を持って子供のようにはしゃいでいる
+				PRINTFORMDW そんな彼女の姿に%CALLNAME:MASTER%は思わず笑みがこぼれた
+			CASE 1
+				PRINTFORMDL %CALLNAME:MASTER%は豊姫と一緒に屋台巡りをしている
+				PRINTFORML 「ここって、いつもお祭りをやっているのでしょう？」
+				PRINTFORML 「羨ましいわ。いつでも屋台巡りできるだなんて」
+				PRINTFORMW 「月の都にもそんな場所があればねぇ……きっと楽しいのに」
+			CASE 2
+				PRINTFORML 「さあさあ、時間が勿体ないわよ」
+				PRINTFORML 「次はあそこに行って、その次は……」
+				PRINTFORMDL %CALLNAME:MASTER%は豊姫に引っ張られるようにして屋台を巡っている
+				PRINTFORMDW そして気が付けば、全屋台を制覇してしまっていた……
+		ENDSELECT
+	;地底
+	ELSEIF CFLAG:MASTER:現在位置 / 100 == 9
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「ぅっ……この料理からは強い穢れを感じるわ……」
+				PRINTFORML 「でも食べないのは勿体ないし、一口だけ……あむっ」
+				PRINTFORML 「…………あ、美味しい」
+				PRINTFORMDL 結局豊姫はいつも通り料理を完食した
+				PRINTFORMDW しかも追加の注文まで……
+			CASE 1
+				PRINTFORML 「依姫……見てて……」
+				PRINTFORML 「お姉ちゃん、絶対にこの料理を完食してみせるから……ッ！」
+				PRINTFORMDL そう言うと、豊姫はグロテスクな見た目の料理に手を付けた
+				PRINTFORML 「もぐっ、もぐもぐっ……あら？ 意外と美味しい？」
+				PRINTFORML 「もう一口……ん、んんッ！ やっぱり美味しい！」
+				PRINTFORMDW 結局豊姫は普通に料理を完食した
+			CASE 2
+				PRINTFORML 「なんだ、普通の料理を出すお店もあるのね」
+				PRINTFORML 「ホッとしたような、ああいう料理も食べてみたいような……」
+				PRINTFORMDL 豊姫の視線の先には獣の丸焼きを美味しそうに食べる鬼達がいる
+				PRINTFORMDW 食欲に関して言えば、きっと豊姫も負けていないだろう……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;613,お金稼ぎする（オミットされました
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_613
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_613
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_613_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_613_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;614,食材の買い出し
+;TFLAG:193(1=購入＆デート経験アップ 0=購入 -1=非購入)
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_614
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_614_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_614_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;恋慕
+	IF TALENT:恋慕
+		;豊姫とデート中
+		IF FLAG:デート相手 == 99
+			PRINTFORML 「今晩は何を作ろうかしらねぇ」
+			PRINTFORML 「%CALLNAME:MASTER%は何か食べたいものはある？」
+			PRINTFORML 「どうせなら貴方の好きな食べ物を作ってあげたいから」
+			PRINTFORMDW %CALLNAME:MASTER%は豊姫と相談しながら食材の買い出しを済ませた
+		;それ以外
+		ELSE
+			PRINTFORML 「ああ、%CALLNAME:MASTER%。お買い物は終わった？」
+			PRINTFORMDL 豊姫は食材が沢山入った袋を抱えている
+			PRINTFORMDL 彼女も買い物をしていたようだ
+			PRINTFORML 「これ？ 今度のデートに持っていくお弁当の材料よ」
+			PRINTFORMW 「貴方の好物をいっぱい作ってあげるから楽しみにしていてね♪」
+		ENDIF
+	;それ以外
+	ELSE
+		;豊姫とデート中
+		IF FLAG:デート相手 == 99
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫に買い物を手伝ってもらっている
+			PRINTFORML 「すみません。これを一つ」
+			PRINTFORML 「あと、これと……」
+			PRINTFORML 「そうだ、何か食べたいものはある？」
+			PRINTFORML 「よかったら今度作ってあげましょうか」
+			PRINTFORMDW それは有難い。%CALLNAME:MASTER%はいくつか好物をリクエストをしておいた
+		;それ以外
+		ELSE
+			PRINTFORML 「むー……」
+			PRINTFORMDL 豊姫は真剣な眼差しで果物とにらめっこをしている
+			PRINTFORMDL 買い物を終えた%CALLNAME:MASTER%は豊姫にどうしたのかと声を掛けた
+			PRINTFORML 「いえね、どれも美味しそうだなって思って……」
+			PRINTFORML 「すみません、これを一つ……やっぱり二つください」
+			PRINTFORMDW 二つが三つ、四つと膨らみ……結局豊姫は袋が一杯になるまで果物を買っていた
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;615,お弁当を食べる
+;実行可能場所　お地蔵通り,枝垂れ柳の下,霧の湖,玄武の沢,大蝦蟇の池,絶景の丘,山の湖,天界
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;ABL:料理技能(2未満=微妙な出来 4未満=そこそこ美味しい 4以上=絶品)
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_615
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_615_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_COM_K99_615
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_COM_K99_615_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;天候で分岐
+	SELECTCASE TIME:5
+		;雨・霧・雪
+		CASE 4,5,6,7,8,9,10,11,12,13
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「本当にここで食べるの？」
+					PRINTFORML 「今からでもお店を探した方が良いと思うけど……」
+					PRINTFORMDL それでは豊姫が作ってきてくれた弁当が無駄になってしまう
+					PRINTFORMDW %CALLNAME:MASTER%は悪天候の中、豊姫の手作り弁当を完食した
+				CASE 1
+					PRINTFORML 「はぁ……こんな天気じゃ外で食べるのは無理そうねぇ」
+					PRINTFORML 「このお弁当は私が持ち帰って……あっ」
+					PRINTFORMDL %CALLNAME:MASTER%は豊姫から弁当箱を奪うと物凄い速さで中身を平らげた
+					PRINTFORML 「……ふふっ、優しいのね」
+					PRINTFORML 「でも、私の分まで食べちゃったの？」
+					PRINTFORMDW %CALLNAME:MASTER%が『あっ』と声を上げると、豊姫は心底可笑しそうに笑った
+				CASE 2
+					PRINTFORML 「ふぅ……ごちそうさまでした」
+					PRINTFORMDW 生憎の天気だったが、豊姫の手作り弁当はとても美味しかった
+			ENDSELECT
+		;それ以外
+		CASEELSE
+			;恋慕
+			IF TALENT:恋慕
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「はい、あ～ん……どう？ 美味しい？」
+						PRINTFORMDL %CALLNAME:MASTER%は豊姫に弁当を食べさせてもらっている
+						PRINTFORMDL 『とても美味しい』と言うと、豊姫は嬉しそうに顔を綻ばせた
+						PRINTFORML 「ふふっ、気に入ってくれたみたいでよかった♪ さ、もっと食べて食べて♪」
+						PRINTFORMDW 美味しいと言ってもらえたことが嬉しかったのか、豊姫は自分の分のおかずまで差し出してきた……
+					CASE 1
+						PRINTFORML 「今度、皆でピクニックに行きましょうか」
+						PRINTFORML 「依姫と八意様と……\@ CFLAG:99:子供人数 ? あの子も連れて、家族皆で # ああ、一応レイセンも \@」
+						PRINTFORMDW それは良い案だ。その時は自分も弁当作りを手伝うとしよう……
+					CASE 2
+						PRINTFORML 「よいしょっと……」
+						PRINTFORMDL 豊姫が大きな重箱を取り出す
+						PRINTFORMDL 軽く５～６人前はありそうな量だ……
+						PRINTFORMW 「さ、たーんとお食べ♪」
+				ENDSELECT
+			;それ以外
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「急だったから簡単なものしか作れなかったけど……」
+						PRINTFORML 「美味しい？ ふふっ、お口に合ったみたいで良かった」
+						PRINTFORMW 「普段お勝手に立つことってあまり無いから、少し心配だったの」
+					CASE 1
+						PRINTFORML 「今日の朝、デートに持っていくお弁当を作っていたら……」
+						PRINTFORML 「依姫が来て『お姉様、またつまみ食いですか？』だって」
+						PRINTFORML 「もう、失礼しちゃうわ。人を意地汚いみたいな言い方して」
+						PRINTFORMDW %CALLNAME:MASTER%は豊姫の話に相槌を打ちながら彼女の手作り弁当を完食した
+					CASE 2
+						PRINTFORML 「さ、食後のデザートに……」
+						PRINTFORML 「たーんと、桃をお食べ♪」
+						PRINTFORMDW 弁当を完食し、豊姫が剥いてくれた桃を食べながら一息ついた
+				ENDSELECT
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;617,甘味処に誘う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐は大成功のみ追加
+;==================================================
+@M_KOJO_SUCCESS_COM_K99_617
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K99_617
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_617_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_617_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;恋慕
+	IF TALENT:恋慕
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「はい、あーんして？」
+				PRINTFORML 「ふふっ、美味しい？」
+				PRINTFORML 「それじゃあ次は貴方からね？ あーん♪」
+				PRINTFORMDL 周囲からの妬ましいという視線が%CALLNAME:MASTER%に突き刺さる
+				PRINTFORMDW 豊姫はその状況に気付いていないようだ……
+			CASE 1
+				PRINTFORML 「あ、%CALLNAME:MASTER%。動かないで」
+				PRINTFORML 「……はい、取れたわ」
+				PRINTFORMDL 豊姫は%CALLNAME:MASTER%の頬に付いたクリームを指で掬うと、それを口に含んだ
+				PRINTFORMW 「ん、甘い♪」
+			CASE 2
+				PRINTFORML 「むー……どれにしようか迷うわねぇ……」
+				PRINTFORML 「%CALLNAME:MASTER%はもう決めた？」
+				PRINTFORMDL %CALLNAME:MASTER%はメニューを指差した
+				PRINTFORML 「ふーん……それじゃあ私も同じものにしようかしら」
+				PRINTFORML 「あー……でも、同じものだと食べ比べできないし……」
+				PRINTFORML 「うぅ～ん……………よし、決めたわ」
+				PRINTFORML 「ここに書いてあるもの、全部頼んじゃいましょう」
+				PRINTFORMDW ダメです
+		ENDSELECT
+	;それ以外
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「ずずっ……ふぅ……」
+				PRINTFORML 「そこな店員さん。お団子もう一皿お願いね」
+				PRINTFORMDL 呑気にお茶を啜る豊姫の横には大量の空き皿が積まれている
+				PRINTFORMDW 忙しく走り回る店員に%CALLNAME:MASTER%は心の中で謝罪した
+			CASE 1
+				PRINTFORML 「ここってお土産も売っているのねぇ」
+				PRINTFORML 「えっと、依姫が好きそうなのは……」
+				PRINTFORMDL 豊姫は和菓子のディスプレイを眺めている
+				PRINTFORML 「すみません。これを二箱と、これを一箱」
+				PRINTFORML 「あとは……」
+				PRINTFORMDW ……………
+				PRINTFORML 「うーん……ちょっと買い過ぎちゃったかも」
+				PRINTFORML 「ちょと待っててね。……よいしょっと」
+				PRINTFORMDL 豊姫は空間に裂け目を作ると、そこに買ったお土産を押し込んだ
+				PRINTFORMW 「これでよし。それじゃあ行きましょうか」
+			CASE 2
+				PRINTFORML 「甘いものを食べると甘いものが食べたくならない？」
+				PRINTFORML 「というわけで、口直しにあそこの甘味処へ行きましょう」
+				PRINTFORMDW %CALLNAME:MASTER%は豊姫に連れられ甘味処をハシゴすることになった
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;618,花屋（口上は表示されない模様？
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_618
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_618_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_618_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;620,鈴奈庵
+;TFLAG:193(1=貸し出しOK 0=貸し出し不可
+;ITEM:10X (X=1戦術指南書 X=2調理指南書 X=3字引 X=4御伽草子
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_620
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_620_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_620_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;621,釣りをする
+;TFLAG:193(0=釣れない 1～4=魚 11～15=うまい魚 610=木材 131=守矢の守札 21=ローター 609=氷の鱗 606=龍の爪)
+;TFLAG:194(1000以上ならTARGETが釣った)
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_621
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_621_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_621_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;626,土産屋
+;TFLAG:194(行動結果(-2=ひやかし -1=ウィンドウショッピング 1=400点未満（BAD） 2=～699点（NOMAL） 3=700点以上（GOOD）
+;CFLAG:性格傾向による地の文分岐あり
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_626
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_626_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_626_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:194
+		;ひやかし
+		CASE -2
+		
+		;やっぱりやめる（見送り）
+		CASE -1
+		
+		;400点未満（BAD）
+		CASE 1
+		
+		;400点～699点（NOMAL）
+		CASE 2
+		
+		;700点以上（GOOD）
+		CASE 3
+		
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;660,読書
+;TFLAG:193(選択肢文学(1=忍殺(文学？) 2=失敗 3=文学),選択肢実用書(4=失敗 5=実用書),選択肢エッチな本(6=薄い高い本 7=保健体育 8=カーマスートラ))
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_660
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_660_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_660_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;436.読書と共通
+	CALL M_KOJO_MESSAGE_COM_K99_436_1
+ENDIF
+RETURN 1
+;==================================================
+;698,部屋に入る
+;TARGETの部屋に入る場合のみ表示
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_698
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_698_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_698_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;699,外に出る
+;==================================================
+@M_KOJO_MESSAGE_COM_K99_699
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K99_699_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K99_699_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;派生コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;60,耳かき
+;前ターン膝枕後スキンシップコマンド
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(失敗するのはTARGET
+;==================================================
+@M_KOJO_SUCCESS_SCOM_K99_60
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_SCOM_K99_60
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_SCOM_K99_60_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_SCOM_K99_60
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_SCOM_K99_60_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;恋慕
+	IF TALENT:恋慕
+		;判定
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORML 「はい、おしまい」
+				PRINTFORML 「……%CALLNAME:MASTER%？ 終わったわよ？」
+				PRINTFORMDL 豊姫が顔を覗き込むと、%CALLNAME:MASTER%は静かに寝息を立てていた
+				PRINTFORMW 「……ふふっ、もう少しだけ寝かせてあげましょうか」
+			;成功
+			CASE 0
+				PRINTFORML 「ふーっ……うん、綺麗になったわ」
+				PRINTFORML 「またして欲しくなったらいつでも言ってね」
+				PRINTFORMDW %CALLNAME:MASTER%は躰を起こすと豊姫に礼を言った
+			;失敗
+			CASE -1
+				PRINTFORML 「あっ、ごめんなさい……痛かった？」
+				PRINTFORML 「うーん、ダメね。もっと丁寧にやってあげないと……」
+				PRINTFORMDW 自分を責める豊姫を%CALLNAME:MASTER%は慰めた
+		ENDSELECT
+	;それ以外
+	ELSE
+		;判定
+		SELECTCASE TFLAG:193
+			;大成功
+			CASE 1
+				PRINTFORML 「まあ、随分と溜まってるのね」
+				PRINTFORML 「ほら、横になって……動かないでね」
+				PRINTFORML 「……ふふっ、どう？ 気持ち良いでしょう？」
+				PRINTFORML 「ぁぁ、見て……こんなに大きいのが……♪」
+				PRINTFORMDL %CALLNAME:MASTER%は豊姫に耳掃除をしてもらった
+				PRINTFORMDW エッチなイベントは起こらなかった
+			;成功
+			CASE 0
+				PRINTFORML 「はい、おしまい」
+				PRINTFORML 「ほら見て。こんなに取れたわ」
+				PRINTFORMW 「ちゃんと自分でも綺麗にしないとダメよ？」
+			;失敗
+			CASE -1
+				PRINTFORML 「あっ、とと……」
+				PRINTFORML 「大丈夫？ 痛くなかった？」
+				PRINTFORMDW 豊姫は心配そうに%CALLNAME:MASTER%を覗き込んでいる
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;61,抱きまくら
+;(TARGET睡眠時間or衰弱)添い寝中、前ターン抱きつく後就寝コマンド
+;分岐無し
+;==================================================
+@M_KOJO_MESSAGE_SCOM_K99_61
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_SCOM_K99_61_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K99_61_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;62,デコちゅー
+;前ターン頭撫で後キスする
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐無し
+;ABL:欲望(5以上=物足りない
+;ABL:親密(5以上=照れる
+;==================================================
+@M_KOJO_SUCCESS_SCOM_K99_62
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_SCOM_K99_62
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_SCOM_K99_62_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_SCOM_K99_62
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_SCOM_K99_62_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;睡眠中
+	IF CFLAG:睡眠
+		PRINTFORML 「……ん……」
+		PRINTFORMDW %CALLNAME:MASTER%の額にお休みのキスをすると、少しだけ表情が和らいだ
+	;通常
+	ELSE
+		;恋慕
+		IF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「おでこにキスも良いけど……」
+					PRINTFORMDL %CALLNAME:MASTER%は豊姫を焦らすように鼻先にキスをする
+					PRINTFORML 「……ううん、もうちょっと下……」
+					CALL HPH_PRINT,@"「……んっ……ちゅ……HPH」","L"
+					PRINTFORMDW 唇が触れ合うと、豊姫の方から啄むようなキスをしてきた……
+					EXP:99:キス経験 ++
+					EXP:MASTER:キス経験 ++
+				CASE 1
+					PRINTFORMW 「さぁ、次はどこにしてくれるの？」
+					PRINTFORML 「……ここ？」
+					PRINTFORMDW 豊姫が自分の鼻先を指差す
+					PRINTFORML 「……それとも、ここ？」
+					PRINTFORMDW 次に、豊姫は自分の頬を指差す
+					PRINTFORML 「……やっぱり、ここ？」
+					PRINTFORMDW 最後に、豊姫は誘うように自分の唇を指差した
+				CASE 2
+					PRINTFORML 「あらあら、唇でも良いのに♪」
+					CALL HPH_PRINT,@"「ほら……ここ……HPH」","L"
+					PRINTFORMDW 豊姫は%CALLNAME:MASTER%を誘うように唇をトントンと叩いている
+			ENDSELECT
+		;思慕
+		ELSEIF TALENT:思慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL %CALLNAME:MASTER%は豊姫の頭を引き寄せ彼女の額にキスをした
+					PRINTFORML 「ぁ……」
+					PRINTFORML （……唇でも良かったのに……）
+					PRINTFORMDW 豊姫はどことなく不満そうに%CALLNAME:MASTER%を見ている……
+				CASE 1
+					PRINTFORML 「ねぇ、少し屈んでもらえる？」
+					PRINTFORMDL %CALLNAME:MASTER%が言われた通りに屈むと、額に温かいものが触れた
+					PRINTFORML 「……これ、お返しね」
+					PRINTFORMDL 豊姫にキスをされたのだと気付くと
+					PRINTFORMDW %CALLNAME:MASTER%はなんだか気恥ずかしい気持ちになった……
+				CASE 2
+					PRINTFORML 「さ、貴方もおでこを出して？」
+					PRINTFORML 「……んっ」
+					PRINTFORMDL 豊姫は少しだけ背伸びをすると、%CALLNAME:MASTER%の額にそっと口付けした
+					PRINTFORML 「あらあら、どうしたの？ 顔赤くしちゃって」
+					PRINTFORML 「貴方がしたことを私もしただけなのに」
+					PRINTFORMW 「え？ 私も赤くなってる？ んー、それじゃあおあいこね」
+			ENDSELECT
+		;それ以外
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ん……なんだか恥ずかしいわ」
+					PRINTFORML 「こういうこと、貴方にしかされたことないから……」
+					PRINTFORMDW %CALLNAME:MASTER%の愛情表現に豊姫は恥ずかしそうにしている
+				CASE 1
+					PRINTFORML 「え？ 私からも？」
+					PRINTFORMDL 豊姫は少しの沈黙の後、少しだけ背伸びをして……
+					PRINTFORML 「……ううん、やっぱりダメ。恥ずかしいわ」
+					PRINTFORMDW 顔を赤くして%CALLNAME:MASTER%から離れた
+				CASE 2
+					PRINTFORML 「私だからよかったけど……」
+					PRINTFORML 「こういうこと、他の女の子にしちゃダメよ？」
+					PRINTFORMDW そう言う豊姫の顔は満更でもなさそうだ……
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;63,もっとキスする
+;前ターンキスする後キスする
+;分岐条件はEVENT_MESSAGE_COM500.ERB参照
+;==================================================
+@M_KOJO_SUCCESS_SCOM_K99_63
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_SCOM_K99_63
+;CALL TRAIN_MESSAGE
+DRAWLINE
+CALL M_KOJO_MESSAGE_SCOM_K99_63_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_SCOM_K99_63
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_SCOM_K99_63_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+CALL M_KOJO_COLOR_K99
+	;時間停止中
+	IF FLAG:時間停止
+		PRINTFORMDL %CALLNAME:MASTER%は豊姫の口を、自分の口でもっと塞いだ……
+		PRINTFORMDW 時間を止められている豊姫は無抵抗のまま口づけされている……
+	ELSEIF CFLAG:睡眠
+		PRINTFORMDL %CALLNAME:MASTER%は眠っている豊姫の口を、自分の口でもっと塞いだ……
+		PRINTFORMDW ゆっくりと舌を挿入し口内を舐め回すと、豊姫は無意識に舌を絡ませてきた……
+	;押し倒され
+	ELSEIF CFLAG:うふふ == 2
+		CALL TRAIN_MESSAGE
+		RETURN 1
+	;通常
+	ELSE
+		;恋慕
+		IF TALENT:恋慕
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫の口を、自分の口でもっと塞いだ……
+			PRINTFORMDL %CALLNAME:MASTER%に求められることに豊姫は幸福感を感じている……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「んん……っHPH ちゅ……れる……っHPH」","L"
+					PRINTFORMDL 豊姫の髪を掻き抱くように引き寄せて濃厚な口付けを交わす
+					PRINTFORMDL 口の端から唾液が零れるのも構わず
+					PRINTFORMDL %CALLNAME:MASTER%は豊姫と情熱的に舌を絡ませ合った……
+					CALL HPH_PRINT,@"「ふ、ぅ……はぁ……っHPH ねぇ、もっとしましょう……？HPH」","W"
+				CASE 1
+					CALL HPH_PRINT,@"「んむ……ちゅ……れる……っHPH」","L"
+					CALL HPH_PRINT,@"「ぷはっ……はぁ……ぁぁ……HPH」","L"
+					CALL HPH_PRINT,@"「頭……ボーッとしちゃう……HPH」","L"
+					PRINTFORMDW 豊姫は上気した頬を%CALLNAME:MASTER%の胸元に擦り寄せ甘えている……
+				CASE 2
+					CALL HPH_PRINT,@"「はぁ……はぁ……HPH 貴方のキス、激しいから……HPH」","L"
+					CALL HPH_PRINT,@"「私……エッチな気分になってきちゃったわ……HPH」","L"
+					PRINTFORMDL 豊姫が%CALLNAME:MASTER%の手を取り自分の胸へと導く
+					PRINTFORMDW 勃起した彼女の乳首は、衣服の上からでも分かるほど存在を主張している……
+			ENDSELECT
+		;それ以外
+		ELSE
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫の口を、自分の口でもっと塞いだ……
+			PRINTFORMDL 豊姫は頬を赤らめながらも%CALLNAME:MASTER%を受け入れている……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「動かないで……」
+					PRINTFORML 「私の方からしてあげるから……」
+					PRINTFORMDL 豊姫は少し背伸びをすると、%CALLNAME:MASTER%の唇に自らのものを重ねた
+					PRINTFORMDW 彼女の柔らかい唇の感触に%CALLNAME:MASTER%の興奮を否応なしに高まっていく……
+				CASE 1
+					PRINTFORML 「ん……んん……っ」
+					PRINTFORML 「%CALLNAME:MASTER%、待って……ぁ、んむ……ぢゅる……っ」
+					PRINTFORMDL %CALLNAME:MASTER%の情熱的な口付けに豊姫は流されるがまま
+					PRINTFORMDW 唾液を交換し、舌を絡ませ合い、互いの口内を貪り合った……
+				CASE 2
+					PRINTFORML 「はぁ……はぁ……」
+					PRINTFORML 「%CALLNAME:MASTER%……激しすぎるわ……」
+					PRINTFORMDW 豊姫は%CALLNAME:MASTER%の胸に顔を埋め、キスの余韻に浸っている……
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;80,手を引く
+;デート出発後目的地に着くまでの間
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_SCOM_K99_80
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_SCOM_K99_80
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_SCOM_K99_80_1
+RETURN RESULT
+
+;フラグがONの場合コマンド実行による反感を減少
+@M_KOJO_EXTRASOURCE_SCOM_K99_80
+IF CFLAG:99:1000 == 1
+	SOURCE:反感 = SOURCE:反感 / 5
+ENDIF
+
+@M_KOJO_MESSAGE_SCOM_K99_80_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;恋慕
+	IF TALENT:恋慕
+		PRINTFORML 「ちょ、ちょっと……もう少しゆっくり歩いて……」
+		PRINTFORML 「%CALLNAME:MASTER%、歩くの早いから……はぁ……はぁ……」
+		PRINTFORMDL %CALLNAME:MASTER%はすっかり息が上がってしまっている
+		PRINTFORMW 「言わないで……運動不足なのは分かってるから……」
+	;思慕
+	ELSEIF TALENT:思慕
+		PRINTFORML 「んー……私としては景色を楽しみたいところだけど」
+		PRINTFORML 「分かった。少し急ぎましょうか」
+		PRINTFORMDW %CALLNAME:MASTER%は豊姫の手を引き目的地へと急いだ
+	;それ以外
+	ELSE
+		PRINTFORML 「っとと、そんなに急いでどうしたの？」
+		PRINTFORMW 「時間はたっぷりあるんだから、もう少しゆっくり歩きましょう？」
+	ENDIF
+ENDIF
+RETURN 1

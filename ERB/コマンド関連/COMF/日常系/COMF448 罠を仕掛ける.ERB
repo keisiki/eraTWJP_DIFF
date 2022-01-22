@@ -816,7 +816,7 @@ SELECTCASE Serch
 				DATAFORM ガサガサ、とそこらじゅうから枝葉の擦れた音が聞こえてくる…
 				DATAFORM ツタや草が敷き詰められたような痕跡がある…
 				DATAFORM 地面がサークル状にならされた跡がある…
-				DATAFORM \@ 季節 == 4 ? 群れが動いたものか、幾重ににも重なる雪上の足跡が見られる… # くっきりとした輪郭の足跡が、幾重にも見つかった… \@
+				DATAFORM \@ 季節 == 4 ? 群れが動いたものか、幾重にも重なる雪上の足跡が見られる… # くっきりとした輪郭の足跡が、幾重にも見つかった… \@
 				DATAFORM \@ 季節 == 4 ? わりと雪が薄く、通りやすい場所に足跡が集中している… # 藪の中に泥場がある…今さっきまで使われていたような泥の撥ね方だ \@
 				DATAFORM \@ 季節 == 4 ? 枝の皮を剥いだ後が見られる…まだ新しい # 緑の枝葉がかじりとられた跡がある…まだ新しい \@
 				DATAFORM \@ 季節 == 4 ? 雪がほじくり返され、地面が露出している… # 地面をほじくり返した跡がある…まだ湿っている。掘られたばかりのようだ \@
@@ -1108,6 +1108,88 @@ FOR トラップ番号, 1, 4
 				TRAP_POINT:トラップ番号 = 948
 	ENDSELECT
 NEXT
+
+;虫トラップ
+;設置した場所に引っ越した
+IF MAIN_MAP == GET_MUSHIDATA(MUSHI_TRAP, "場所") / 100
+	SELECTCASE GET_MUSHIDATA(MUSHI_TRAP, "場所")
+	;桜並木の鳥居,境内
+	CASE 10, 20
+		CALL MUSHI_TRAP_MOVING(2)
+	;妖精の大樹
+	CASE 50
+		CALL MUSHI_TRAP_MOVING(25)
+	CASE 枝垂れ柳の下, 命蓮寺境内
+		CALL MUSHI_TRAP_MOVING(102)
+	CASE 墓地
+		CALL MUSHI_TRAP_MOVING(121)
+	CASE 広場
+		CALL MUSHI_TRAP_MOVING(202)
+	CASE 長屋街
+		CALL MUSHI_TRAP_MOVING(201)
+	CASE 霧の湖
+		CALL MUSHI_TRAP_MOVING(347)
+	CASE 廃洋館
+		CALL MUSHI_TRAP_MOVING(343)
+	CASE 正門
+		CALL MUSHI_TRAP_MOVING(302)
+	CASE 竹林入り口
+		CALL MUSHI_TRAP_MOVING(433)
+	CASE 迷いの小道
+		CALL MUSHI_TRAP_MOVING(434)
+	CASE 斜角の竹林
+		CALL MUSHI_TRAP_MOVING(434)
+	CASE 兎の洞穴
+		CALL MUSHI_TRAP_MOVING(431)
+	CASE 無名の丘
+		CALL MUSHI_TRAP_MOVING(436)
+	CASE 太陽の畑
+		CALL MUSHI_TRAP_MOVING(438)
+	CASE 森の入り口
+		CALL MUSHI_TRAP_MOVING(501)
+	CASE 古木の大樹
+		CALL MUSHI_TRAP_MOVING(540)
+	CASE 再思の道
+		CALL MUSHI_TRAP_MOVING(509)
+	CASE 無縁塚
+		CALL MUSHI_TRAP_MOVING(506)
+	CASE 中有の道
+		CALL MUSHI_TRAP_MOVING(601)
+	CASE 三途の川
+		CALL MUSHI_TRAP_MOVING(602)
+	CASE 彼岸, 地獄
+		CALL MUSHI_TRAP_MOVING(604)
+	CASE 白玉楼庭
+		CALL MUSHI_TRAP_MOVING(621)
+	CASE 麓の樹海
+		CALL MUSHI_TRAP_MOVING(701)
+	CASE 玄武の沢
+		CALL MUSHI_TRAP_MOVING(703)
+	CASE 大蝦蟇の池
+		CALL MUSHI_TRAP_MOVING(708)
+	CASE 絶景の丘
+		CALL MUSHI_TRAP_MOVING(805)
+	CASE 山の湖
+		CALL MUSHI_TRAP_MOVING(814)
+	CASE 守矢神社境内
+		CALL MUSHI_TRAP_MOVING(811)
+	CASE 幻想風穴
+		CALL MUSHI_TRAP_MOVING(948)
+	CASE 地獄の深道
+		CALL MUSHI_TRAP_MOVING(945)
+	CASE 旧地獄街道
+		CALL MUSHI_TRAP_MOVING(939)
+	CASE 地霊殿
+		CALL MUSHI_TRAP_MOVING(901)
+	CASE 静かの海
+		CALL MUSHI_TRAP_MOVING(916)
+	ENDSELECT
+;設置した場所から引っ越した
+ELSEIF !MUSHITORI_SPOT(GET_MUSHIDATA(MUSHI_TRAP, "場所"))
+	CALL MUSHI_TRAP_MOVING(GET_MAP_REPLACEMENT(GET_MUSHIDATA(MUSHI_TRAP, "場所")))
+ENDIF
+
+
 ;-----------------------------------------------------------
 ;罠の日数経過による変化について変数に記入を行う
 ;-----------------------------------------------------------
@@ -1304,3 +1386,11 @@ IF MUSHI_TRAP && !GET_MUSHIDATA(MUSHI_TRAP, "ムシ番号")
 		WEND
 	NEXT
 ENDIF
+
+;-------------------------------------------------
+;虫トラップを引っ越す関数
+;ARGが引越し先
+;-------------------------------------------------
+@MUSHI_TRAP_MOVING(ARG)
+MUSHI_TRAP -= GET_MUSHIDATA(MUSHI_TRAP, "場所") * 100000000
+MUSHI_TRAP += ARG * 100000000

@@ -61,47 +61,75 @@ CALL FISHER_YATES_SHAFFLE(MAXROOM - MINROOM())
 ;PRINTFORML %CALLNAME:ARG%＠%NAME_FROM_PLACE(CFLAG:ARG:現在位置)%
 移動決定 = 0
 $KYOUSEI
-FOR LOCAL, 0, MAXROOM - MINROOM()
-	移動先 = SHAFFLE_ARRAY:LOCAL + MAIN_MAP * 100 + 1
-;	PRINTFORML 移動先：%NAME_FROM_PLACE(移動先)%({移動先})
-	;現在位置
-	SIF 移動先 == CFLAG:ARG:現在位置
-		CONTINUE
-	;移動できない
-	SIF !(CAN_MOVE(CFLAG:ARG:現在位置, 移動先) & 1)
-		CONTINUE
-	;移動できない２,ワンルーム制限等、移動に制限がある場所
-	SIF !MAP_CAN_MOVE(移動先, ARG)
-		CONTINUE
-	;外に出られない
-	SIF 天候による影響(ARG, 移動先) <= -3 && CFLAG:ARG:現在位置 != MAXROOM && 天候による影響(ARG, CFLAG:ARG:現在位置) >= -2
-		CONTINUE
+;引力点判定
+TCVAR:ARG:引力点 = 0
+SIF CFLAG:ARG:神社在住
+	CALLFORM CHARAMOVE_DATA_{ARG}(8)
+;引力点がある場合は引力点に向かって移動する
+IF TCVAR:ARG:引力点 && CFLAG:ARG:現在位置 != TCVAR:ARG:引力点 && 天候による影響(ARG, TCVAR:ARG:引力点) >= 0
+	移動先 = TCVAR:ARG:引力点
+	WHILE !(CAN_MOVE(CFLAG:ARG:現在位置, 移動先) & 1)
+		TRYCALLFORM SKIP_MOVE_{MAIN_MAP}(移動先, CFLAG:ARG:現在位置)
+		移動先 = RESULT
+	WEND
 	;移動先があなた私室であり、そのキャラの私室でなく、そこであなたがウフフ中の場合は入ってこれない
-	SIF 移動先 == CFLAG:MASTER:初期位置 && 移動先 != CFLAG:ARG:初期位置 && 移動先 == CFLAG:MASTER:現在位置 && CFLAG:MASTER:うふふ
-		CONTINUE
+	IF 移動先 == CFLAG:MASTER:初期位置 && 移動先 != CFLAG:ARG:初期位置 && 移動先 == CFLAG:MASTER:現在位置 && CFLAG:MASTER:うふふ
 	;結界発動中
-	SIF TEQUIP:MASTER:結界発動 && 移動先 == CFLAG:MASTER:現在位置
-		CONTINUE
-	SIF 移動先 == TCVAR:ARG:追い出され地点
-		CONTINUE
-	CALL キャラ移動率(ARG, 移動先, 留まり率)
-;	PRINTFORM ＞移動率：{RESULT * TIME_PROGRESS(TIME:1)}
-	;移動判定,強制移動なら即移動
-	IF RESULT * TIME_PROGRESS(TIME:1) > RAND:1000
-;		PRINTFORMW ＞移動！
-		移動決定 = 移動先
-		BREAK
-	;無差別移動時は移動率があれば即移動,強制移動が発動しているならどこでも移動
-	ELSEIF (RESULT && 無差別移動) || 強制移動
-;		PRINTFORMW ＞移動！
-		移動決定 = 移動先
-		BREAK
-	;移動率0%じゃなければ終了
-	ELSEIF RESULT
-;		PRINTFORMW ＞ループ
-		BREAK
+	ELSEIF TEQUIP:MASTER:結界発動 && 移動先 == CFLAG:MASTER:現在位置
+	ELSE
+		;留まり率に補正をかけて動きやすくする（要調整,-100だとほぼ動く）
+		CALL キャラ移動率(ARG, 移動先, 留まり率 - 100)
+		;移動判定,強制移動なら即移動
+		IF RESULT * TIME_PROGRESS(TIME:1) > RAND:1000
+			移動決定 = 移動先
+		;無差別移動時は移動率があれば即移動,強制移動が発動しているならどこでも移動
+		ELSEIF (RESULT && 無差別移動) || 強制移動
+			移動決定 = 移動先
+		ENDIF
 	ENDIF
-NEXT
+ELSE
+	FOR LOCAL, 0, MAXROOM - MINROOM()
+		移動先 = SHAFFLE_ARRAY:LOCAL + MAIN_MAP * 100 + 1
+	;	PRINTFORML 移動先：%NAME_FROM_PLACE(移動先)%({移動先})
+		;現在位置
+		SIF 移動先 == CFLAG:ARG:現在位置
+			CONTINUE
+		;移動できない
+		SIF !(CAN_MOVE(CFLAG:ARG:現在位置, 移動先) & 1)
+			CONTINUE
+		;移動できない２,ワンルーム制限等、移動に制限がある場所
+		SIF !MAP_CAN_MOVE(移動先, ARG)
+			CONTINUE
+		;外に出られない
+		SIF 天候による影響(ARG, 移動先) <= -3 && CFLAG:ARG:現在位置 != MAXROOM && 天候による影響(ARG, CFLAG:ARG:現在位置) >= -2
+			CONTINUE
+		;移動先があなた私室であり、そのキャラの私室でなく、そこであなたがウフフ中の場合は入ってこれない
+		SIF 移動先 == CFLAG:MASTER:初期位置 && 移動先 != CFLAG:ARG:初期位置 && 移動先 == CFLAG:MASTER:現在位置 && CFLAG:MASTER:うふふ
+			CONTINUE
+		;結界発動中
+		SIF TEQUIP:MASTER:結界発動 && 移動先 == CFLAG:MASTER:現在位置
+			CONTINUE
+		SIF 移動先 == TCVAR:ARG:追い出され地点
+			CONTINUE
+		CALL キャラ移動率(ARG, 移動先, 留まり率)
+	;	PRINTFORM ＞移動率：{RESULT * TIME_PROGRESS(TIME:1)}
+		;移動判定,強制移動なら即移動
+		IF RESULT * TIME_PROGRESS(TIME:1) > RAND:1000
+	;		PRINTFORMW ＞移動！
+			移動決定 = 移動先
+			BREAK
+		;無差別移動時は移動率があれば即移動,強制移動が発動しているならどこでも移動
+		ELSEIF (RESULT && 無差別移動) || 強制移動
+	;		PRINTFORMW ＞移動！
+			移動決定 = 移動先
+			BREAK
+		;移動率0%じゃなければ終了
+		ELSEIF RESULT
+	;		PRINTFORMW ＞ループ
+			BREAK
+		ENDIF
+	NEXT
+ENDIF
 ;無差別移動時に全方位移動率0なら強制移動
 IF 無差別移動 && !移動決定 && !強制移動
 	強制移動 = 1

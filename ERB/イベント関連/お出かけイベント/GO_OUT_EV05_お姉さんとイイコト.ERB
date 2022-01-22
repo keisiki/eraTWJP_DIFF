@@ -1,0 +1,74 @@
+﻿@GO_OUT_CONDITION_EV5
+IF !RAND:10 && !FLAG:デート相手 && 顔絵付きメッセージ
+	CALL GO_OUT_EV5
+ELSE
+	RETURN 0
+ENDIF
+@GO_OUT_EV5
+#DIMS NAM
+NAM = お%\@ TALENT:MASTER:性別 == 2 ? 兄 # 姉 \@%さん
+
+PRINTFORMDW 道中、見知らぬ女が近づいてきた…
+PRINTFORML 
+CALL PRINT_FACE, 0, "通常", "服", "24"
+SETCOLOR モブ子店員口上色:24
+PRINTFORML 「そこの%NAM%、私と…イイことしない？」
+PRINTFORMW 「ほら…こっち来て、早く早く…」
+PRINTFORMDL 女は%CALLNAME:MASTER%の腕を引っ張りどこかへ連れていこうとする
+RESETCOLOR
+CALL ASK_M("振り払って帰る", 1, "ホイホイついていく", 1)
+IF !RESULT
+	PRINTFORML あまりにもうさんくさい
+	PRINTFORML %CALLNAME:MASTER%は無言で腕を振り払い帰路を急いだ
+	PRINTFORMW
+	RETURN 1
+ENDIF
+SETCOLOR モブ子店員口上色:24
+CALL PRINT_FACE, 0, "笑顔", "服", "24"
+PRINTFORMW 「ふふふっ、ありがとう」
+PRINTFORML 「よく見たら%NAM%いい身体してるわね〜」
+IF CFLAG:MASTER:今日の運勢 / 100 + TFLAG:幸運補正 > 4
+	PRINTFORML 「もしかしたら、すごく大当たりかしら♪」
+	PRINTFORMW 
+	PRINTFORMDL 女に引っ張られて%CALLNAME:MASTER%は広場にたどり着いた
+	PRINTFORMDW 目の前にはゴミの山がひろがっている…どうやら宴会が終わった後のようだ 
+	PRINTFORML 「最近あちこちで妖怪が酒を飲んでは汚してるの」
+	PRINTFORML 「おかげでこの辺も散らかされてもう大変！」
+	PRINTFORMW 「じゃあ%NAM%、頑張って片付けましょうね♪」
+	PRINTFORMDL なぜか掃除を手伝わされた
+	PRINTFORMDL %CALLNAME:MASTER%は皆のためにすごくイイことをした気分になった…
+	PRINTFORML 
+	PRINTFORMDL 清掃経験 +5(%CALLNAME:MASTER%)
+	EXP:MASTER:清掃経験 +=5
+	TCVAR:MASTER:清掃経験 += 5
+	EX:MASTER:今日の掃除回数 += 20000
+	PRINTFORMW 
+	CALL PRINT_FACE, 0, "笑顔", "服", "24"
+	PRINTFORML 「わぁ～きれいになった！　噂どおりですね%NAM%♪」
+	PRINTFORML 「疲れたでしょ？　これをどうぞ」
+	CALL GET_ITEM("スポーツドリンク", 2, 2)
+	PRINTFORMDL %CALLNAME:MASTER%は掃除ができたことに満足しながら帰路についた
+ELSE
+	PRINTFORMW 「ん～、楽しみ♥」
+	PRINTFORMDL 二人で茂みに隠れると女は%CALLNAME:MASTER%に背を向ける
+	PRINTFORMDW そのまま見せつけるようにして着物を脱いでいった…
+	PRINTFORML 
+	PRINTFORML 「さあ%NAM%、私の好きなところ…使っていいですよ♥」
+	PRINTFORMW 「おまんこもおっぱいもおしりの穴だって…好きなところ♥」
+	PRINTFORMW 「あっ…でも、ごめんなさい」
+	PRINTFORMW 「お口だけはダメなの…」
+	PRINTFORMW 「どうしてかって…？」
+	CALL PRINT_FACE, 0, "通常", "裸", "24"
+	CALL COLORMESSAGE("ソンナノモッテネエンダヨ！！", C_RED, 1, 1)
+	PRINTFORMW 
+	PRINTFORMDW %CALLNAME:MASTER%はびっくりして逃げ出した！！
+	PRINTFORMDL 痛い！　途中で派手に転んでしまった…
+	CALL RECOVER(MASTER, -250, "体力", "コケた")
+	WAIT
+	PRINTFORMDL 這々の体で%CALLNAME:MASTER%は帰路についた…
+ENDIF
+TIME += 60
+PRINTFORMDL +60分
+PRINTFORMW 
+RESETCOLOR
+RETURN 1

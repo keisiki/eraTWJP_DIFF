@@ -149,10 +149,106 @@ CALL PALAM_MESSAGE_A
 ;-------------------------------------------------
 ;TARGETの手による射精で、射精対象が非TARGET
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	PRINTFORMW 
+	;初めて射精を見るなら精液名づけ
+	IF CFLAG:75:1007 == 0
+		CALL SAMEN_MEETING_K75
+		CFLAG:75:1007 = 1
+	ELSE
+		IF TALENT:MASTER:濃厚精液
+			IF TALENT:恋慕 || TALENT:恋人
+				IF TALENT:75:無知
+					PRINTFORML 「わぁ、%CSTR:75:81%がいっぱい出てる」
+					PRINTFORML メディスンは鈴口から噴き出る精液の量に目を丸くしている
+					PRINTW 
+				ELSE
+					PRINTFORML 「%CALLNAME:MASTER%の%CSTR:75:81%、とっても濃いのが出てるわ」
+					PRINTFORML 「私に出してもらいたくてずっと我慢してたの？　いい子ね」
+					PRINTFORML 「もっとしてほしいの？　いいわ、中身が空になるまで出してあげる」
+					PRINTW 
+				ENDIF
+			ELSE
+				IF TALENT:75:無知
+					PRINTFORML 「わ、わっ。ナニこれっ。すっごくドロドロしてる」
+					PRINTFORML 「これって、もうちょっと白っぽくなかったっけ？　今日の、なんだか黄色っぽいんだけど」
+					PRINTW 
+				ELSE
+					PRINTFORML 「ふふ。すっごく濃いのが出てる。あんなに飛んだんだよ」
+					PRINTFORML 「本当は女性の%CSTR:75:82%に出したかったんでしょう？」
+					PRINTFORML 「でも無駄射ちに終わっちゃったわね。残念でした」
+					PRINTW 
+				ENDIF
+			ENDIF
+		ELSE
+			IF TALENT:恋慕 || TALENT:恋人
+				IF TALENT:75:無知
+					;精力8分の1以下で反応変化
+					IF BASE:MASTER:精力 <= MAXBASE:MASTER:精力 / 8
+						PRINTFORML 「あれっ、あんまり飛ばなくなってきちゃった」
+						PRINTFORML 「つまんなーい。もっと出してよ」
+						PRINTFORML メディスンはイったばかりで敏感な肉棒をコシコシと扱き始めた
+						PRINTW 
+					ELSE
+						PRINTFORML 「ふふ、いっぱい出したね。偉い偉い」
+						PRINTFORML 「でも、まだいっぱい出せるでしょう？　出せるよね？」
+						PRINTFORML 「ちゃんとお願いできたら、また気持ちよくしてあげる」
+						PRINTW 
+					ENDIF
+				ELSE
+					;精力8分の1以下で反応変化
+					IF BASE:MASTER:精力 <= MAXBASE:MASTER:精力 / 8
+						PRINTFORML 「あれっ、なんだか量も濃さも減ってきちゃったね」
+						PRINTFORML 「もう疲れちゃったの？　残念だわ」
+						PRINTW 
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「わぁ、とっても濃くて臭いわ」
+							PRINTFORML 「人形の手でこんなに出しちゃうなんて、%CALLNAME:MASTER%はヘンタイさんね」
+							PRINTFORML メディスンに擦られるたび、鈴口から精液がびゅくっ、びゅくっと噴き出る
+							PRINTW 
+							PRINTFORML 「でも、そんなヘンタイさんが私は大好きよ」
+							PRINTFORML 「我慢しなくていいんだよ。私が、いっぱい気持ちよくしてあげる」
+							PRINTW 
+						CASE 1
+							PRINTFORML 「ふふ、いっぱい出したね。偉い偉い」
+							PRINTFORML 「でも、手で射精しても子どもは作れないわ」
+							PRINTFORML 「ちゃんと私の%CSTR:75:82%の中に出さないと」
+							PRINTW 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			ELSE
+				IF TALENT:75:無知
+					;精力8分の1以下で反応変化
+					IF BASE:MASTER:精力 <= MAXBASE:MASTER:精力 / 8
+						PRINTFORML 「なんかあんまり飛ばなくなっちゃった。つまんない」
+						PRINTFORML 「ねえ、もっと%CSTR:75:81%射してよー」
+						PRINTW 
+					ELSE
+						PRINTFORML 「ふふっ、面白いね、スーさん」
+						PRINTFORML 「%CSTR:75:80%の先から白いのがいっぱい出てるよ」
+						PRINTFORML 「もっと擦ったら、もっとたくさん出るかな♪」
+						PRINTW 
+					ENDIF
+				ELSE
+					;精力8分の1以下で反応変化
+					IF BASE:MASTER:精力 <= MAXBASE:MASTER:精力 / 8
+						PRINTFORML 「あれっ、なんだか量も濃さも減ってきちゃったね」
+						PRINTFORML 「人間って、すぐ弱っちゃうから駄目だね、スーさん」
+						PRINTW 
+					ELSE
+						PRINTFORML 「へー、こんなに出せるんだ」
+						PRINTFORML 「でも、まだいっぱい出せるでしょう？　出せるよね？」
+						PRINTFORML 「嫌だって言ってもだーめ。私が飽きるまで出すの」
+						PRINTW 
+					ENDIF
+				ENDIF
+			ENDIF
+		ENDIF
+	ENDIF
 	RETURN 1
 ENDIF
 RETURN 1
@@ -162,10 +258,36 @@ CALL PALAM_MESSAGE_A
 ;-------------------------------------------------
 ;コンドーム
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	PRINTFORMW 
+	;初めて射精を見るなら精液名づけ
+	IF CFLAG:75:1007 == 0
+		CALL SAMEN_MEETING_K75
+		CFLAG:75:1007 = 1
+	ELSE
+		IF TALENT:MASTER:濃厚精液
+			IF TALENT:恋慕 || TALENT:恋人
+				IF TALENT:75:無知
+				ELSE
+				ENDIF
+			ELSE
+				IF TALENT:75:無知
+				ELSE
+				ENDIF
+			ENDIF
+		ELSE
+			IF TALENT:恋慕 || TALENT:恋人
+				IF TALENT:75:無知
+				ELSE
+				ENDIF
+			ELSE
+				IF TALENT:75:無知
+				ELSE
+				ENDIF
+			ENDIF
+		ENDIF
+	ENDIF
 	RETURN 1
 ENDIF
 RETURN 1
@@ -326,6 +448,7 @@ IF LOCAL
 					ENDSELECT
 				ENDIF
 			ENDIF
+		;無知
 		ELSE
 			;精飲
 			IF EXP_UP(15) == NOWEX:PLAYER:射精 * 3

@@ -1,0 +1,94 @@
+﻿@GO_OUT_CONDITION_EV3
+IF !RAND:10 && (MAIN_MAP == 2 || CFLAG:MASTER:デート中 == 2)
+	CALL GO_OUT_EV3
+ELSE
+	RETURN 0
+ENDIF
+RETURN 1
+
+@GO_OUT_EV3
+#DIM PAIR
+PAIR = FLAG:デート相手
+SETCOLOR C_L_GRAY
+PRINTFORMDW 道中、何やら怪しげな男が近づいてきた…！？
+PRINTFORML 
+IF PAIR
+	PRINTFORML 「君たち！　邪魔をして悪いが、ちょっとだけ話を聞いてくれないか？」
+ELSE
+	PRINTFORML 「君！　そこの君だよ！　ちょっと話を聞いてくれないかな？」
+ENDIF
+PRINTFORMW 「いや、たいして時間は取らせはしないさ。ただ聞いてくれるだけでいいんだ…」
+PRINTFORMDL ぼさぼさの長髪に口ひげを生やした男が話しかけてくる
+PRINTFORMDL 目だけをギラギラさせた表情は見ているこちらが不安になる…
+RESETCOLOR
+CALL ASK_M("無視して帰る", 1, "相手をしてやる", 1)
+SETCOLOR C_L_GRAY
+IF !RESULT
+	PRINTFORMDL むさ苦しい男の相手なんてお断りだ
+	PRINTFORML 「ああ！　待ってくれ！　無視しないで助けてくれ～」
+	PRINTFORMDL %CALLNAME:MASTER%\@ PAIR ? 達 # \@は振り返りもせず帰路についた
+	PRINTFORMW
+	RESETCOLOR
+	RETURN 1
+ENDIF
+PRINTFORML 「おお！　ありがとう、ありがとう！」
+PRINTFORML 「さて、どこから話したものやら…」
+SELECTCASE DAY:2
+	CASE 1, 3
+		PRINTFORMDW この季節なのになぜか汗を吹き出しながら男は語り始めた…
+	CASE 2
+		PRINTFORMDW いくら暑いとはいえ尋常ではない汗をかきながら男は語り始めた…
+	CASE 4
+		PRINTFORMDW この寒さにも関わらず顔に汗を浮かべながら男は語り始めた…
+ENDSELECT
+PRINTDW …………
+PRINTDW ……
+PRINTDW …
+IF CFLAG:MASTER:今日の運勢 / 100 + TFLAG:幸運補正 < 5
+	PRINTFORML 「君\@ PAIR ? たち # \@も気づいているだろ？　このところ起きている異変の数々…」
+	PRINTFORML 「こんな異常なことがずっと続いているのはなぜなのか？」
+	PRINTFORML 「そう、近いうちに世界は終わってしまうんだよ！」
+	PRINTFORML 「こんなのを知ったら、もう不安で不安でしょうがないんだ…」
+	PRINTFORMW 「…………！　…………！！」
+	PRINTFORMDL 男はありもしない妄想を延々と説いてくる…
+	PRINTFORMDL いやになった%CALLNAME:MASTER%\@ PAIR ? と%CALLNAME:PAIR% # \@は適当なところで逃げ出した
+	PRINTFORMW 
+	IF PAIR
+		PRINTFORML せっかくのデートに水を差され、しらけた雰囲気のまま二人は帰路についた…
+		CALL RECOVER(MASTER, -300, "気力", "憂鬱な話")
+		CALL RECOVER(PAIR, -300, "気力", "憂鬱な話")
+		BASE:PAIR:ムード = BASE:PAIR:ムード / 3
+	ELSE
+		PRINTFORMDL 時間と気力を無駄にした%CALLNAME:MASTER%はうんざりしながら帰路についた…
+		CALL RECOVER(MASTER, -300, "気力", "憂鬱な話")
+	ENDIF
+	PRINTFORMDL +60分
+	TIME += 60
+ELSE
+	PRINTFORML 「世界の終わりが近いという噂は君\@ PAIR ? たち # \@も知っているだろ？」
+	PRINTFORMW 「あの噂にはずいぶん悩まされたんだけどね…」
+	PRINTFORML 「懇意の薬売りから買ったこの薬！」
+	PRINTFORML 「こいつのおかげで…悩みもすっかり解消されたんだ！」
+	PRINTFORML 「いやあ、これなら世界の終わりも怖くない！」
+	PRINTFORMDW 男は延々と抗鬱薬の素晴らしさについて語っている…
+	PRINTFORML 
+	PRINTFORML 「本当にこれは凄いぞ！　ちょっと値が張るが……今の世なら必須だぞ！」
+	PRINTFORMW 「まあ、おかげでこっちの薬が余ってしまったけど…」
+	PRINTFORMW 「よし！　話を聞いてくれたお礼だ！　これは全部君にあげるよ！」
+	PRINTFORMDL 山盛りの睡眠薬を%CALLNAME:MASTER%に押し付けて男は去っていった
+	CALL GET_ITEM("睡眠薬", 9, 2)
+	IF PAIR
+		PRINTFORMDL …よく見ると何やら違う種類の薬も混じっている
+		CALL GET_ITEM("媚薬", 2, 2)
+	ENDIF
+	PRINTFORML 
+	PRINTFORMDL これを使って大丈夫なのか悩みつつ%CALLNAME:MASTER%\@ PAIR ? 達 # \@は帰路についた…
+	CALL RECOVER(MASTER, -100, "気力", "疲れる話")
+	SIF PAIR
+		CALL RECOVER(PAIR, -100, "気力", "疲れる話")
+	PRINTFORMDL +30分
+	TIME += 30
+ENDIF
+PRINTFORMW 
+RESETCOLOR
+RETURN 1
