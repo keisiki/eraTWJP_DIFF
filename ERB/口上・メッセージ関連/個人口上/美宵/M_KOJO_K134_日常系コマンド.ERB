@@ -1509,6 +1509,226 @@ IF LOCAL
 ENDIF
 RETURN 1
 ;==================================================
+;368,自由行動に付き合う 
+;技能系の行動は技能レベルが1以上なら発生
+;==================================================
+@M_KOJO_MESSAGE_COM_K134_368
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K134_368_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K134_368_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE Activity_Type:TARGET
+		CASE 0
+			;▼考え事［なに考えてるの］
+			;TFLAG:193,-1=はぐらかされる
+			IF CFLAG:318 == 1
+				PRINTFORMW 「気持ち悪いので話しかけないでもらえますか？」
+			ELSEIF TFLAG:193 == -1
+				PRINTFORMW 「ふふっ、さあ？美宵は何を考えていたのでしょう？」
+			ELSEIF TALENT:恋慕
+				IF RAND:3 == 0
+					PRINTFORMW 「最近胸がキツくなってきて……成長期なのかなぁ？」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「美味しいお酒、手に入ったんですよ、また一緒に飲みましょうねぇ%UNICODE(0x2665) *1%」
+				ELSE
+					PRINTFORMW 「最近は流行りのお店と評判なんですよ、%CALLNAME:MASTER%さんのお陰かもしれないわね%UNICODE(0x2665) *1%」
+				ENDIF
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW 「最近は変なお客さんも多くて困りますねぇ」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「いつでもお料理できるように腕を磨かないと……」
+				ELSE
+					PRINTFORMW 「美味しい物をいつでも出せますからぁ、いつでも鯢呑亭に来てね%UNICODE(0x2665) *1%」
+				ENDIF
+			ENDIF
+		CASE 2
+			;▼食事［一緒に食事する］
+			;TFLAG:193,-1=MASTERはお腹が空いてなかった
+			IF CFLAG:318 == 1
+				PRINTFORMW 「……こっち見ないでもらえますか？気持ち悪くてご飯が美味しくないわ」
+				PRINTFORMW 美宵は怒りながら食事をしている。
+			ELSEIF TALENT:恋慕
+				PRINTFORMW 「せっかくですから一緒に食べましょうか！きっといつもより美味しいですよ%UNICODE(0x2665) *1%」
+			ELSE
+				PRINTFORMW 「ご飯～ご飯～、美味しいご飯はどうですか？」
+			ENDIF
+		CASE 4
+			;▼掃除［掃除を手伝う］
+			;※[掃除係]持ちまたは汚臭耐性-1以下のみ
+			IF CFLAG:318 == 1
+				PRINTFORMW 「汚い手で掃除しないでくれますか～？」
+			ELSEIF TALENT:恋慕
+				PRINTFORMW 「ふふっ、美宵より掃除が上手なんですね%UNICODE(0x2665) *1%」
+			ELSE
+				PRINTFORMW 「お掃除しないと黴びてしまうわ！」
+			ENDIF
+		CASE 5
+			;▼運動［一緒に運動する］
+			;※[音楽知識]持ちは除く（演奏になる）
+			IF CFLAG:318 == 1
+				PRINTFORMW 「……はぁ……はぁ……変態……！」
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW 「ん……汗ぐっしょりになっちゃった……%UNICODE(0x2665) *1%」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「……ん……お水ほしいな……」
+				ELSE
+					PRINTFORMW 「……ふぅ……たまには運動するのもいいですね%UNICODE(0x2665) *1%」
+				ENDIF
+			ENDIF
+		CASE 6
+			;▼読書［本の感想を聞く］
+			;TFLAG:193,-1=集中していて返事してくれない
+			IF CFLAG:318 == 1
+				PRINTFORMW 「……うるさいんですけど？」
+			ELSEIF TFLAG:193 == -1
+				PRINTFORMW 「……さすがーしらなかったわー」
+				PRINTFORMW 美宵は気のない返事をした。
+			ELSE
+				PRINTFORMW 「続きは鈴奈庵にあるかしら？気になりますね」
+			ENDIF
+		CASE 7
+			;▼料理［料理を手伝う］→［料理を分けてもらう］
+			;TFLAG:193,2=料理を手伝う,0=作った料理を食べる,-1==MASTERはお腹が空いてなかった（食べる時）
+			IF TFLAG:193 == 2
+				IF CFLAG:318 == 1
+					PRINTFORMW 「汚いからやめてもらえます？」
+				ELSEIF TALENT:恋慕
+					PRINTFORMW 「こうして並んで料理するなんて素敵ですね%UNICODE(0x2665) *1%」
+				ELSE
+					PRINTFORMW 「包丁の使い方は上手なんですか？意外ですね」
+				ENDIF
+			ELSE
+				IF CFLAG:318 == 1
+					PRINTFORMW 「……どういう神経をしてるんですか？」
+				ELSEIF TALENT:恋慕
+					PRINTFORMW 「はいどうぞ、あーん%UNICODE(0x2665) *1%」
+				ELSE
+					PRINTFORMW 「ふふっ、たーんと召し上がれ%UNICODE(0x2665) *1%」
+				ENDIF
+			ENDIF
+		CASE 9
+			;▼採集［採集を手伝う］
+			IF CFLAG:318 == 1
+				PRINTFORMW 「……視線が気持ち悪いんですけど」
+			ELSE
+				PRINTFORMW 「料理に使えるかしら？」
+			ENDIF
+		CASE 10
+			;▼釣り［一緒に釣りをする］
+			;TFLAG:193,-1=釣り竿がなくて見てるだけ
+			IF CFLAG:318 == 1
+				PRINTFORMW 「魚が逃げるから邪魔しないでもらえます？」
+			ELSE
+				PRINTFORMW 「美味しいお魚が釣れるかなぁ」
+			ENDIF
+		CASE 11
+			;▼実験［実験を手伝う］
+			IF CFLAG:318 == 1
+				PRINTFORMW 「邪魔しないでもらえるかしら」
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW 「なーにができるかなー？」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「美味しい実験をしましょうか%UNICODE(0x2665) *1%」
+				ELSE
+					PRINTFORMW 「キュウリに蜂蜜をかける実験？そういうのも面白そうですね！」
+				ENDIF
+			ENDIF
+		CASE 12
+			;▼のんびり［一緒にのんびりする］
+			IF CFLAG:318 == 1
+				PRINTFORMW 「暇なんですか？気持ち悪いですね」
+			ELSEIF TALENT:恋慕
+				IF RAND:3 == 0
+					PRINTFORMW 「こういう時間も大切なんですよ、多分ですけど」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「美宵と過ごした時間、忘れないでね」
+				ELSE
+					PRINTFORMW 「%CALLNAME:MASTER%のことなら、私は忘れないのにね」
+				ENDIF
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW 「暇ですねぇ……」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「あくびが出ちゃうぐらい平和だわぁ……」
+				ELSE
+					PRINTFORMW 「こういう日が続けばいいんですけどねぇ……」
+				ENDIF
+			ENDIF
+		CASE 13
+			;▼晩酌［晩酌に付き合う］
+			;※酒耐性0以上のみ
+			IF CFLAG:318 == 1
+				PRINTFORMW 「……ぷはぁ」
+				PRINTFORMW 美宵は無表情で晩酌している。
+			ELSEIF TALENT:恋慕
+				IF RAND:3 == 0
+					PRINTFORMW 「乾杯♪一緒に飲みましょうか%UNICODE(0x2665) *1%」
+					PRINTFORMW 美宵は頬を染めながら晩酌をしている。
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「お酒はいつでも美味しいですね%UNICODE(0x2665) *1%」
+					PRINTFORMW 美宵は頬を染めながら晩酌をしている。
+				ELSE
+					PRINTFORMW 「二人で飲み明かしましょうか%UNICODE(0x2665) *1%」
+					PRINTFORMW 美宵は頬を染めながら晩酌をしている。
+				ENDIF
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW 「いいお酒、見つけてきたんですよ」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「今日は私のおごりですからね」
+				ELSE
+					PRINTFORMW 「いいお酒はいい人と呑むものなんですよ？」
+				ENDIF
+			ENDIF
+		CASE 14
+			;▼買い物［買い物を手伝う］
+			IF CFLAG:318 == 1
+				PRINTFORMW 「……もしかしてストーカーなんですか？」
+				PRINTFORMW 美宵はぷりぷりと怒りながら買い物をしている。
+			ELSEIF TALENT:恋慕
+				IF RAND:3 == 0
+					PRINTFORMW 「買い出しも%CALLNAME:MASTER%さんが居てくれるから楽しいわ♪」
+					PRINTFORMW 美宵は頬を染めながらそう言った。
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「ふふっ、こうしているとまるでカップルに見えるかもしれませんね♪」
+					PRINTFORMW 美宵は頬を染めながらそう言った。
+				ELSE
+					PRINTFORMW 「鯢呑亭の看板娘に男ができたなんて噂になったら責任取ってくださいね%UNICODE(0x2665) *1%」
+					PRINTFORMW 美宵は頬を染めながらそう言った。
+				ENDIF
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW 「野菜が安いわね」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「荷物もってもらえるかしら？」
+				ELSE
+					PRINTFORMW 「新酒もいっぱい出てるますねぇ」
+				ENDIF
+			ENDIF
+		CASE 17
+			;▼雪だるま作り［一緒に雪作り］
+			;※冬の月のみ
+			IF CFLAG:318 == 1
+				PRINTFORMW 「雪だるまなんて似合いませんよ」
+				PRINTFORMW 美宵は怒りながら雪だるまを作っている。
+			ELSEIF TALENT:恋慕
+					PRINTFORMW 「雪の結晶じゃ無くて愛の結晶ですね%UNICODE(0x2665) *1%」
+			ELSE
+				PRINTFORMW 「鯢呑亭の前に飾りたいですねぇ」
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
 ;402,就寝
 ;TFLAG:193(0=通常 1=子供と一緒に川の字で寝る)
 ;==================================================

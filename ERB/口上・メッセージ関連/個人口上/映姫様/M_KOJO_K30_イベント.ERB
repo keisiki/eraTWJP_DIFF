@@ -1,11 +1,12 @@
 ﻿;-------------------------------------------------
-; eraTheWorld 4.793 映姫様口上（キャラクターの名前を入れる、下にコンセプトなど一言あれば入れる）
+; eraTheWorld 4.831 映姫様口上（キャラクターの名前を入れる、下にコンセプトなど一言あれば入れる）
 ;-------------------------------------------------
 ;
 ;「四季様の愛のあるお説教……イイ……！」
 ;
 ;**** FlagManagement **********************************************************
 ;本口上にて使用しているCFLAG・TCVAR等
+;TCVAR:30:357 フェラアニメ制御フラグ
 ;TCVAR:30:358 デートのお誘い(=0 あなたから =1 相手から)
 ;TCVAR:30:359 一日一回の会話＠来訪理由
 ;TCVAR:30:360 IMAGE.ERB受け渡し用フラグ (=TIMEで表情変化) 
@@ -32,7 +33,8 @@
 ;TCVAR:30:395 口内射精回数
 ;TCVAR:30:396 五重絶頂
 ;TCVAR:30:397 騎乗位の向き(=0 対面 =1 背面)
-;CFLAG:1501 映姫様マグロスイッチ（ =1 スイッチオン）
+;CFLAG:1500 映姫様アニメーションスイッチ（ =1 OFF）
+;CFLAG:1501 映姫様マグロスイッチ（ =1 ON）
 ;CFLAG:1502 妊娠願望関連フラグ
 ;(Bit =0 危険日Ｈ解禁 =1 子宝願掛け済 =2 信頼度到達 =3 願望取得済 =4 二人目願望)
 ;CFLAG:1503 うふふ我慢日数[未使用]
@@ -88,9 +90,9 @@ ENDIF
 ;バイブデートフォロー
 SIF TCVAR:30:364 >= 0
 	RETURN 1
-SIF CFLAG:うふふ
+SIF CFLAG:30:うふふ
 	RETURN 1
-TEQUIP:アナルバイブ = 1
+TEQUIP:30:アナルバイブ = 1
 TCVAR:30:364 = 1
 RETURN 1
 ;### 口上色判定 ###################################
@@ -178,6 +180,17 @@ IF GETBIT(CFLAG:30:1803, 0)
 			RETURN 1
 	ENDSELECT
 ENDIF
+PRINTL 映姫様のフェラアニメを…
+PRINTL [0] - 使用する
+PRINTL [1] - 使用しない
+$LOOP_ANIME
+INPUT
+IF !INRANGE(RESULT, 0, 1)
+	CLEARLINE 1
+	GOTO LOOP_ANIME
+ENDIF
+CFLAG:30:1500 = RESULT
+
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
 ;"ENCOUNTER"系イベント（エクストラ構文）
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
@@ -511,7 +524,7 @@ IF LOCAL
 				PRINTFORMW 「あの感じ…もう、クセになったみたいなの…♥」
 			ELSE
 				PRINTFORML 「恥ずかしかったけど…すごく、ドキドキして…」
-				PRINTFORMW 「なんだか、忘れられないの…♥」
+				PRINTFORMW 「なんだか忘れられないの…♥」
 			ENDIF
 				
 		ELSEIF TALENT:恋人
@@ -1461,7 +1474,6 @@ IF LOCAL
 	LOCAL:1 = 0
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
-		PRINTFORMW 
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -1511,19 +1523,19 @@ IF LOCAL
 				LOCAL = 2
 				CALL HPH_PRINT, @"「…あんっHPH　まだ、\@ TEQUIP:51 == PLAYER ? おしりの # \@なかで、おっきい…HPHHPH」", "L"
 				CALL HPH_PRINT, @"「…んっHPH　あぁんっHPH　%K30_C_NAME(MASTER)%…このまま、私に…HPH」", "W"
-			ELSEIF MASTER_POSE(4, 1) == 30
+			ELSEIF MASTER_POSE(4, 1) == 30 && !TCVAR:無理矢理
 				LOCAL = 2
 				CALL HPH_PRINT, @"「あっHPH　……おちんちんは、元気なまま…HPH」", "W"
 				CALL HPH_PRINT, @"「…れろっ、ちゅっHPH　……ふふっ、びくびくってして…可愛い…HPH」", "W"
 			ENDIF
 			PRINTFORMW 「………………」
-			PRINTFORMW 「\@ LOCAL == 2 ? へ、変なこと続けて # い、今は変な事考え \@ないで早くお部屋に運ばなくちゃ……」
+			PRINTFORMW 「\@ LOCAL == 2 ? へ、変なこと続けて # い、今は変な事考え \@ないで早く\@ ARG:1 ? 寝かせてあげ # お部屋に運ば \@なくちゃ……」
 		;通常
 		ELSE
 			PRINTFORML 「えっ！？　 %K30_C_NAME(MASTER)%、大丈夫！？」
 			SIF TCVAR:30:371 != 0
 				PRINTFORML 「どうしましょう…少しやりすぎてしまったかしら…」
-			PRINTFORMW 「とりあえず…お部屋に運ばないと……」
+			PRINTFORMW 「とりあえず…\@ ARG:1 ? 寝かせてあげ # お部屋に運ば \@ないと……」
 		ENDIF
 		CFLAG:1501 = 0
 		CFLAG:1600 = 0
@@ -3220,6 +3232,7 @@ IF LOCAL && 連打防止 != TIME && CFLAG:30:職種 == 43
 					DATAFORM 「えぇ…申請書類、後いくついるのよこれ…」\n「死神の人助け…後始末も大変ね…」
 					DATAFORM 「鯨呑亭から例の亡霊を無事連れ戻せた、と…」\n「結局は小町のサボりのせいじゃない…」
 					DATAFORM 「修繕費…こんなにかかるのね…」\n「この建物、いいかげん直したいけど…これじゃあ無理か…」
+					DATAFORM 「三途の川底に穴を開けるなんて無茶なことを…」\n「久侘歌にきちんと調べてもらわないと…」
 				ENDDATA
 				PRINTFORMDL 映姫は\@ CFLAG:30:衣装一時変更 == 62 ? 心を無にして # \@大量の事務仕事を片付けている
 				PRINTFORMW
@@ -3443,7 +3456,7 @@ IF LOCAL
 			PRINTFORMW 「………………ぉ…し……り、…お尻の…穴が、お尻の………奥が切ないんです」
 			PRINTFORMW 「貴方の指で、おちんちんで、このはしたない穴を鎮めてほしいんです……♥」
 			PRINTFORMDW 閻魔様が自分で尻穴をいじり懇願する姿を見て、%CALLNAME:MASTER%は嗜虐的な満足感を得た
-		ELSEIF TALENT:淫壺 && TCVAR:30:391 >= 10 && 充填率(30, 1) >= 40 && CFLAG:妊娠自覚状態 == 0 && RAND:2 == 0
+		ELSEIF TALENT:淫壺 && TCVAR:30:391 >= 10 && 充填率(30, 1) >= 40 && CFLAG:妊娠自覚状態 == 0 && RAND:3 == 1
 			PRINTFORMDW あれだけ絶頂し%SAMEN_DESCRIPTION(PLAYER)%を注がれても、まだ映姫は満たされない…
 			PRINTFORMW 「%K30_C_NAME(MASTER)%…お願いします、私にもっと…注いでください…」
 			PRINTFORMW 「疼いてしょうがないんです、色欲の罪に塗れた私を、もっと堕としてください…」
@@ -4243,7 +4256,7 @@ IF LOCAL
 			PRINTFORMDL %CALLNAME:MASTER%は映姫に是非曲直庁を空けない方がいいと伝えた
 			PRINTFORMW 「うーん、貴方にもそう言われると……やっぱりそうですよねえ……」
 			PRINTFORMW 「実は周りにも結構反対されてるの。『閻魔様がいないと困ります』って」
-			PRINTFORMW 「…それによく考えたら…私が不在になれば絶対にあの子は……」
+			PRINTFORMW 「…それによく考えたら…私が不在になれば絶対にあの子はサボり放題……」
 			PRINTFORMW 「……しかたないか。引っ越しは諦めましょう」
 			RETURN 1
 		;残当
@@ -4498,7 +4511,7 @@ IF LOCAL
 				PRINTFORMW 「わかってはいたけど…やっぱり貴方ってひどい人ね…」
 			CASE 0
 				PRINTFORML 「…そうですよね」
-				PRINTFORMW 「いきなり押しかけられても、困りますよね…」
+				PRINTFORMW 「いきなり押しかけられても困りますよね…」
 			CASEELSE
 				IF TALENT:MASTER:恋人 == YANUSHI
 					PRINTFORML 「…いえ、私こそ申し訳有りません」
@@ -4507,7 +4520,7 @@ IF LOCAL
 				ELSE
 					PRINTFORML 「…いえ、私こそごめんなさい」
 					PRINTFORML 「こんな事言いだしたら、%K30_C_NAME(TALENT:MASTER:恋人)%にも悪いですよね」
-					PRINTFORMW 「今のことは、忘れてください…」
+					PRINTFORMW 「今のことは忘れてください…」
 				ENDIF
 		ENDSELECT
 		RETURN 1
@@ -4682,7 +4695,7 @@ IF LOCAL
 		PRINTFORMW 「はあっ、はぁぁっ♥ 　ひぅんっっ♥♥」
 		PRINTFORMDL いつの間にか%CALLNAME:MASTER%の手を秘所に導いて陰核に擦りつけている……
 		IF !CFLAG:30:弱み握り && ABL:30:精液中毒 > 4
-			CFLAG:1603 = 2
+			CFLAG:1603 = 3
 			PRINTFORMDL 気のせいか映姫がちらちらとこちらを伺ってるようにも見えたが
 		ENDIF
 		PRINTFORMDW バレたと知ったら気まずくなると思い、%CALLNAME:MASTER%は寝たふりを続けた……
@@ -5178,18 +5191,14 @@ IF LOCAL
 	ENDSELECT
 ENDIF
 RETURN 1
-[SKIPSTART]
 ;オナバレックス判定用関数
-;ガチガチにガード固めすぎてもつまんないからそのままで
+;ガチガチにガード固めすぎてもつまんないけど陥落無しならさすがに弾く
 ;RETURN -1で強制失敗、RETURN 1で強制成功
 @M_KOJO_EVENT_K30_26_1(ARGS)
 #DIM 補正値
-IF ARGS == "どうぞそのまま"
-
-ELSEIF ARGS == "二人で"
-
-ENDIF
-[SKIPEND]
+SIF !(TALENT:思慕 || TALENT:恋慕 || TALENT:セフレ || TALENT:愛欲)
+	RETURN -1
+RETURN 0
 ;==================================================
 ;相手からデートのお誘い
 ;デートに誘われるのは恋慕から、相手に宴会参加予定あれば思慕以上で宴会に同行
@@ -5962,7 +5971,8 @@ IF LOCAL
 			PRINTFORML 「あの人のことだから…」
 			PRINTFORMW 「目を離してる間、また変なことしてるかも…」
 		ELSE
-			PRINTFORMW 「最近見ないわね…本当に、どうしているのかしら？」
+			PRINTFORML 「最近見ないわね…」
+			PRINTFORMW 「本当にどうしているのかしら？」
 		ENDIF
 	ELSE
 		PRINTFORML 「よし、明日は…巡回ついでに%K30_C_NAME(MASTER)%を観察っと…」

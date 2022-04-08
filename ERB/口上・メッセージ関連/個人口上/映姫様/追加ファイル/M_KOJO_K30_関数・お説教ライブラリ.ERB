@@ -260,6 +260,30 @@ SIF TALENT:30:妊娠 && !INRANGE(CFLAG:妊娠経過日数, 31, 70)
 ;ここまで抜けたらOK
 	RETURNF 0
 ;==================================================
+;キスハメ実行可能か見る式中関数
+;性交関連口上をシチュ固定して埋めやすくする
+;--------------------------------------------------
+;=0 OK =-1 猫舌だからダメ =-2 ばっちいからダメ
+;--------------------------------------------------
+@K30_KISS_CANCEL()
+#FUNCTION
+SIF TALENT:PLAYER:猫舌 && ABL:PLAYER:舌 < 2
+	RETURNF -1
+SIF TALENT:猫舌 && ABL:舌 < 2
+	RETURNF -1
+SIF TALENT:PLAYER:汚臭耐性 > 1
+	RETURNF 0
+SIF STAIN:0 & 汚れ_精液 && ABL:PLAYER:精液中毒 < 3
+	RETURNF -2
+SIF STAIN:0 & 汚れ_アナル
+	RETURNF -2
+SIF STAIN:0 & 汚れ_ペニス && TALENT:PLAYER:汚臭耐性 < 0
+	RETURNF -2
+SIF TALENT:PLAYER:汚臭耐性 == -2 && (STAIN:0 & 汚れ_破瓜血 || STAIN:0 & 汚れ_愛液)
+	RETURNF -2
+RETURNF 0
+
+;==================================================
 ;映姫様がどれだけヤル気か見る式中関数
 ;@ENDUREを仕事やスキンシップ中に使う為に少し削って持ってきただけ
 ;本体ではこの値が RAND:300 + 300 より大きいと押し倒されに移行
@@ -374,9 +398,6 @@ SIF CFLAG:30:初期位置 == ARG
 	RETURNF "自分の部屋"
 対象マップ =  GET_MAPID(ARG)
 SELECTCASE 対象マップ
-;※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
-;MAPX_AREANAMEが廃止されたので月マップに倣ってMAP_SEARCH_REPLACEMENTで置換しました
-;※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 	CASE 0
 		SELECTCASE MAP_SEARCH_REPLACEMENT_0(ARG)
 			CASE 妖精の大樹
@@ -981,7 +1002,155 @@ ELSE
 			PRINTFORML %MESSAGE_PRINT:LOCAL%
 	NEXT
 ENDIF
-
+;==================================================
+;映姫様のフェラをアニメーションさせる関数
+;髪型とかめちゃくちゃなんであんまり映姫様に見えない
+;--------------------------------------------------
+;ARG =0:通常 =1:射精 =2:顔射
+;--------------------------------------------------
+;PAT		強化ごっくんアニメパターン
+;G_TIME		強化ごっくんのウエイトタイム
+;S_TIME		顔射のアニメウエイトタイム
+;SUCCESS	ごっくん成功判定
+;SIZE		表示サイズ、sModifierは本体オプションで設定された倍率
+;BLOCK		演出弱化フラグ、非陥落時や無理矢理時
+;FAVOR		演出強化フラグ、恋慕+高欲情+高精液中毒
+;--------------------------------------------------
+@K30_BLOW_JOB_ANIME(ARG)
+#DIM PAT = 1, 2, 3, 4, 3, 2, 3, 4, 3, 2, 3, 4, 3, 2, 3, 4, 5 
+#DIM G_TIME = 1400, 750, 450, 350, 350, 250, 250, 250, 250, 250, 250, 250, 250, 450, 550, 750, 1200
+#DIM S_TIME = 300, 900, 1000, 1200, 1000
+#DIM WAIT_T
+#DIM LOOP_C
+#DIM SUCCESS
+#DIM SIZE
+#DIM BLOCK
+#DIM FAVOR
+SIF !FLAG:画像表示 || !FLAG:アニメーション || CFLAG:1500
+	RETURN RESULT
+SIZE = 700 + isModifier * 10
+BLOCK = CFLAG:1501 || TCVAR:30:無理矢理 || !(TALENT:恋慕 || TALENT:セフレ || TALENT:愛欲)
+;通常
+IF !ARG
+	WAIT_T = 100 - (NOWEX:MASTER:射精 > 0) * 30
+	LOOP_C = 3 + (NOWEX:MASTER:射精 > 0) - BLOCK + ((TCVAR:30:357 !=0) * 100)
+	;前ターン咥えて無ければひと舐め
+	IF MASTER_POSE(SET_M, SET_P, 1) != 30 && TALENT:恋慕 && TCVAR:30:357 < 2
+		CALL PRINT_IMAGE("30_start", SIZE, "left")
+		TWAIT 700, 0
+		CLEARLINE SIZE / 100
+	ENDIF
+	FOR LOCAL,0, LOOP_C
+		FOR COUNT, 1, 7
+			CALL PRINT_IMAGE(@"30_blow{COUNT}", SIZE, "left")
+			TWAIT WAIT_T, 0
+			CLEARLINE SIZE / 100
+			SIF GETKEY(1) && LOCAL
+				GOTO SKIP
+		NEXT
+	NEXT
+	FOR COUNT, 1, 4
+		CALL PRINT_IMAGE(@"30_blow{COUNT}", SIZE, "left")
+		TWAIT WAIT_T, 0
+		CLEARLINE SIZE / 100
+		SIF GETKEY(1)
+			BREAK
+	NEXT
+	$SKIP
+	CALL PRINT_IMAGE(@"30_blow{COUNT}", SIZE, "left")
+;射精
+ELSE
+	FAVOR = (TALENT:恋慕 && ABL:精液中毒 > 4 && PALAM:欲情 > PALAMLV:7 && RAND:3) || TCVAR:30:357
+	SUCCESS = (EXP_UP(15, 30) == NOWEX:MASTER:射精 * 3) || TFLAG:193 == -999 || TCVAR:30:357
+	;スパート
+	FOR LOCAL, 0, 4 + (ARG == 2)
+		FOR COUNT, 1, 7
+			CALL PRINT_IMAGE(@"30_blow{COUNT}", SIZE, "left")
+			TWAIT 55, 0
+			CLEARLINE SIZE / 100
+			SIF GETKEY(1) && LOCAL > 0
+				GOTO SKIP2
+		NEXT
+	NEXT
+	;ぶっかけ
+	IF ARG == 2
+		FOR COUNT, 1, 6
+			CALL PRINT_IMAGE(@"30_shower{COUNT}", SIZE, "left")
+			TWAIT (S_TIME:(COUNT -1)), 0
+			CLEARLINE SIZE / 100
+			SIF GETKEY(1) && COUNT > 1
+				GOTO SKIP2
+		NEXT
+		GOTO SKIP2
+	ENDIF
+	;奥まで飲み込む動作
+	FOR COUNT, 1, 5
+		CALL PRINT_IMAGE(@"30_blow{COUNT}", SIZE, "left")
+		TWAIT 55 + (COUNT == 4) * 100, 0
+		CLEARLINE SIZE / 100
+		SIF GETKEY(1)
+			GOTO SKIP2
+	NEXT
+	WAIT_T = 1200 - (!SUCCESS * 300)
+	FOR COUNT, 7, 8 + !BLOCK 
+		CALL PRINT_IMAGE(@"30_blow{COUNT}", SIZE, "left")
+		TWAIT WAIT_T, 0
+		CLEARLINE SIZE / 100
+		SIF GETKEY(1)
+			GOTO SKIP2
+	NEXT
+	;陥落ない場合は演出少なめ
+	SIF BLOCK
+		GOTO SKIP2
+	;だらだらこぼす
+	IF !SUCCESS && NOWEX:MASTER:射精 > 1 
+		FOR COUNT, 1, 2 + (TALENT:恋慕 && ABL:精液中毒 > 4)
+			CALL PRINT_IMAGE(@"30_failed{COUNT}", SIZE, "left")
+			TWAIT 1200, 0
+			CLEARLINE SIZE / 100
+			SIF GETKEY(1)
+				GOTO SKIP2
+		NEXT
+	;ごっくんパターン1、陥落高くてMASTER大量射精
+	ELSEIF FAVOR && SUCCESS
+		FOR COUNT, 0, 17
+			CALL PRINT_IMAGE(@"30_success{PAT:COUNT}", SIZE, "left")
+			TWAIT (G_TIME:COUNT), 0
+			CLEARLINE SIZE / 100
+			SIF GETKEY(1)
+				GOTO SKIP2
+		NEXT
+	;ごっくんパターン2、手に吐き出しもこっち
+	ELSE
+		LOCAL = 500
+		FOR COUNT, 2, 5
+			CALL PRINT_IMAGE(@"30_success{COUNT}", SIZE, "left")
+			TWAIT LOCAL, 0
+			CLEARLINE SIZE / 100
+			SIF GETKEY(1)
+				GOTO SKIP2
+			LOCAL += 250
+		NEXT
+	ENDIF
+	$SKIP2
+	;ラスト
+	;顔射
+	IF ARG == 2
+		CALL PRINT_IMAGE("30_shower6", SIZE, "left")
+	;非恋慕
+	ELSEIF BLOCK
+		LOCALS =%\@ SUCCESS ? 30_blow8 # 30_failed1 \@%
+		CALL PRINT_IMAGE(LOCALS, SIZE, "left")
+	;ごっくん
+	ELSEIF SUCCESS
+		CALL PRINT_IMAGE(@"30_success{FAVOR + 5}", SIZE, "left")
+	;だらだら
+	ELSE
+		LOCAL = TALENT:恋慕 && ABL:精液中毒 > 4 && NOWEX:MASTER:射精 > 1 ? 3 # 2
+		CALL PRINT_IMAGE(@"30_failed{LOCAL}", SIZE, "left")
+	ENDIF
+ENDIF
+RETURN
 
 ;==================================================
 ;汎用説教判定＆実行
@@ -1445,7 +1614,7 @@ SELECTCASE LOCAL
 		PRINTFORMW 「畑にスイカの種をまけばスイカが出てくる。これは自然の理であって当たり前のことです」
 		PRINTFORML 
 		PRINTFORML 「でも考えてみてください。理を知っているからといって誰でもスイカを作れるかというと違いますよね」
-		PRINTFORML 「食べ終わったスイカの種を適当にまいたら、またスイカが生えてきてまた食べて…なんて、そう上手くはいきません」
+		PRINTFORML 「食べ終わったスイカの種を適当にまいたら、またスイカが生えてきてまた食べて…なんて、そうは上手くいきません」
 		PRINTFORMW 「確実に芽を息吹かせるには、正しい知識できちんと手入れすることが必要です」
 		PRINTFORML 
 		PRINTFORML 「同じく善因善果、善い行いと幸せという結果には正しい知識と手順が要求されます」
@@ -1621,6 +1790,7 @@ IF CFLAG:弱み握り && !GETBIT(CFLAG:1803, 1)
 ELSE
 	$IGNORE
 	PRINTFORMDW 説法に付き合って、映姫の好感度と信頼度が\@ RESULT ? ほんの # \@すこし上がった
+	LOCAL = RESULT
 	CALL CHANGE_CFLAG(2, TARGET, RAND:5 + 7 - RESULT)
 	CALL CHANGE_CFLAG(4, TARGET, RAND:3 + 3 - RESULT)
 	SELECTCASE RAND:3
@@ -1636,6 +1806,7 @@ ELSE
 	SOURCE:鬱屈 = 0
 	SOURCE:歓楽 += ABL:30:親密 * 50
 	SOURCE:情愛 += 1500
+	RETURN LOCAL
 ENDIF
 RETURN 1
 
@@ -1744,3 +1915,118 @@ SELECTCASE CFLAG:30:1502
 ENDSELECT
 PRINTFORML 
 RETURN 1
+;==================================================
+;映姫様のお尻の穴と抵抗を緩くするEXTRASOURCE関数群
+;豊姫口上参考にしました
+;--------------------------------------------------
+;COMF4 アナル舐め
+@M_KOJO_EXTRASOURCE_COM_K30_4
+CALL K30_LESS_RESISTANCE_ANAL
+
+;COMF5 アナル愛撫
+@M_KOJO_EXTRASOURCE_COM_K30_5
+CALL K30_LESS_RESISTANCE_ANAL
+
+;COMF45 アナルバイブ
+@M_KOJO_EXTRASOURCE_COM_K30_45
+CALL K30_LESS_RESISTANCE_ANAL
+
+;COMF62 正常位アナル
+@M_KOJO_EXTRASOURCE_COM_K30_62
+CALL K30_LESS_RESISTANCE_ANAL
+
+;COMF63 後背位アナル
+@M_KOJO_EXTRASOURCE_COM_K30_63
+CALL K30_LESS_RESISTANCE_ANAL
+
+;COMF66 騎乗位アナル
+@M_KOJO_EXTRASOURCE_COM_K30_66
+CALL K30_LESS_RESISTANCE_ANAL
+
+;COM74(SCOMF14) Ｓ状結腸責め
+@M_KOJO_EXTRASOURCE_SCOM_K30_14
+CALL K30_LESS_RESISTANCE_ANAL
+
+;COM75(SCOMF15) 膣裏責め
+@M_KOJO_EXTRASOURCE_SCOM_K30_15
+CALL K30_LESS_RESISTANCE_ANAL
+
+;SCOMF16 アナル交互挿入
+@M_KOJO_EXTRASOURCE_SCOM_K30_16
+CALL K30_LESS_RESISTANCE_ANAL
+
+;COMF314 アナル愛撫
+@M_KOJO_EXTRASOURCE_COM_K30_314
+CALL K30_LESS_RESISTANCE_ANAL
+
+;COMF318 腰を動かす（Ａ）
+@M_KOJO_EXTRASOURCE_COM_K30_318
+CALL K30_LESS_RESISTANCE_ANAL
+
+;COMF323 相手主導後背位Ａ
+@M_KOJO_EXTRASOURCE_COM_K30_323
+CALL K30_LESS_RESISTANCE_ANAL
+
+;軽減処理関数
+@K30_LESS_RESISTANCE_ANAL
+#DIM DIVIDED
+SIF !(TALENT:思慕 || TALENT:恋慕 || TALENT:セフレ || TALENT:愛欲)
+	RETURN
+SOURCE:逸脱 /= 4
+SOURCE:不潔 /= 6
+SIF TALENT:機嫌 == -1 || MARK:反発刻印
+	RETURN
+DIVIDED = 3 + (TALENT:恋慕 * 2) - (K30_BE_SEEN() * 2)
+SOURCE:鬱屈 = SOURCE:鬱屈 / DIVIDED
+SOURCE:反感 = SOURCE:反感 / DIVIDED
+RETURN
+;==================================================
+;映姫様が仕事中にフェラ抜きしてくれるEXTRASOURCE関数群
+;本体側改造しない都合で1ターンであなたを発射させる仕様
+;仕事中どうしても我慢できないのを手早く済ます…というシチュとしてごまかす
+;--------------------------------------------------
+;COMF300 会話
+@M_KOJO_EXTRASOURCE_COM_K30_300
+SIF K30_CHECK_BLOW_JOB()
+	CALL K30_SET_BLOW_JOB
+
+;COMF304 仕事を手伝う
+@M_KOJO_EXTRASOURCE_COM_K30_304
+IF K30_CHECK_BLOW_JOB() && BASE:30:仕事量 > 0
+	CALL K30_SET_BLOW_JOB
+	DOWNBASE:MASTER:体力 -= 50
+	DOWNBASE:MASTER:気力 -= 180
+	;経過時間の減少と仕事量を戻す
+	TIME -= 50
+	BASE:仕事量 = TFLAG:194
+ENDIF
+
+;フェラ抜き判別用式中関数
+@K30_CHECK_BLOW_JOB()
+#FUNCTION
+SIF K30_BE_SEEN() || !仕事中チェック(30) || INRANGE(TIME, 540, 719) || CFLAG:職種 != 43
+	RETURNF 0
+SIF !SHIRAHU(30) || !TALENT:恋慕 || MARK:反発刻印 || TALENT:機嫌 == -1
+	RETURNF 0
+SIF ABL:技巧 < 3 || ABL:精液中毒 < 5 || EXP:精飲経験 < 100
+	RETURNF 0 
+SIF !GETBIT(CFLAG:30:既成事実, 1) || TALENT:妊娠願望 || GETBIT(CFLAG:1502, 4)
+	RETURNF 0
+SIF !(TALENT:PLAYER:2 & 2) || 挿入不可(30) == 3 || CFLAG:30:衣装一時変更 == 62
+	RETURNF 0
+SIF !(TCVAR:発情 || CFLAG:溜まってる度 > 850 || TCVAR:媚薬)
+	RETURNF 0
+SIF !ONCE("フェラ抜き")
+	RETURNF 0
+;ここまで抜けたら確定
+RETURNF 1
+
+;フェラ抜きソース処理関数
+@K30_SET_BLOW_JOB
+CALL COM81
+;映姫様とあなたを同時絶頂させる
+TCVAR:MASTER:イきそう = 1
+BASE:MASTER:射精 = MAXBASE:MASTER:射精
+PALAM:30:4 = PALAMLV:4
+SOURCE:反感 = 0
+TFLAG:193 = -999

@@ -85,28 +85,26 @@ IF CFLAG:109:1000 == 0
 		CASE 2
 			PRINTFORMW 了解しました
 			CFLAG:109:1000 = 1
-			RETURN 1
 	ENDSELECT
 	PRINTL 
 	PRINTFORML ついでに色々変更できます
 	PRINTFORML ドレミーを………
 	PRINTL 
-	CALL ASK_M("巨乳で母乳体質にする",1 , "朝型にする",1 , "そういうのいいです",1)
+	$DOREMY_UPDATE
+	CALL ASK_M("巨乳で母乳体質にする",1 , "朝型にする",1 , "変更を終了する",1)
 	SELECTCASE RESULT
 		CASE 0
 			PRINTFORMW おっぱいおっぱい
 			TALENT:109:バストサイズ = 1
 			TALENT:109:母乳体質 = 2
-			RETURN 1
 		CASE 1
 			CFLAG:109:生活時間補正 = -600
-			PRINTFORML ドレミーを６時起床２３時就寝に変更しました
-			PRINTFORMW もう一度[UPDATE]を押すとリセットされます
-			RETURN 1
+			PRINTFORMW ドレミーを６時起床２３時就寝に変更しました
 		CASE 2
 			PRINTFORMW 了解しました
 			RETURN 1
 	ENDSELECT
+	GOTO DOREMY_UPDATE
 ENDIF
 RETURN 1
 
@@ -664,226 +662,226 @@ LOCAL = 1
 IF LOCAL
 	;仕事中ではなく、今日会ってない。
 	IF !TCVAR:109:今日会ったか
-	;-------------------------------------------------
-	;小分岐
-	;-------------------------------------------------
-	;MASTERが入ってきた
-	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 1
-	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 1
-		;正月、バレンタイン、ハロウィン、クリスマスの場合
-		IF (DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1) || (DAY:2 == 4 && DAY:3 == 14 && CFLAG:2 >= 1000) || (DAY:2 == 3 && DAY:3 == 30) || (DAY:2 == 4 && DAY:3 == 25)
-			CALL SPECIALDAY_EVENT_K109
-		ELSEIF CFLAG:318 == 1
-			PRINTFORML 「今はちょっと話す気になれませんね」
-			PRINTFORMDW ドレミーはムスっとしている
-		;同棲してる
-		ELSEIF CFLAG:MASTER:初期位置 == CFLAG:109:初期位置
-			PRINTFORML 「%MASTERNAME:109%、どこに行っていたのですか？」
-			PRINTFORML 「どこでもいいだろって？ふふ、まあ確かにそうなのですが……」
-			PRINTFORML 「貴方が怪我でもしていないか、心配だったもので」
-			PRINTFORMDW ドレミーはそれだけ言うと%CALLNAME:MASTER%の傍に寄り添った
-		ELSEIF TALENT:恋慕
-			CALL DOREMY_ENCOUNTER
-		ELSE
-			SELECTCASE TIME:2
-				;朝
-				CASE 1,2
-					PRINTFORML 「おや、おはようございます」
-					PRINTFORML 「早起きですねぇ…それとも今から寝るところですか？」
-					PRINTFORMW 「より良い睡眠は規則正しい生活から。昼夜逆転は直したほうが身の為ですよ」
-				;昼
-				CASE 3,4
-					PRINTFORML 「こんにちは。%MASTERNAME:109%」
-					PRINTFORML 「この時間帯は仕事が少なくて暇なので色々見て回ってました」
-					PRINTFORMW 「%MASTERNAME:109%は何を？」
-				;夜
-				CASE 5,6,7
-					PRINTFORML 「こんばんは。%MASTERNAME:109%」
-					PRINTFORML 「仕事をしなくていいのかって？分身に任せているので大丈夫ですよ」
-					PRINTFORMDW 分身できたら色々と捗りそうだと%CALLNAME:MASTER%は思った
-			ENDSELECT
-			RETURN 1
-		ENDIF
-	ENDIF
-	;-------------------------------------------------
-	;TARGETが入ってきた
-	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 1
-	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 2
-		;正月、バレンタイン、ハロウィン、クリスマスの場合
-		IF (DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1) || (DAY:2 == 4 && DAY:3 == 14 && CFLAG:2 >= 1000) || (DAY:2 == 3 && DAY:3 == 30) || (DAY:2 == 4 && DAY:3 == 25)
-			CALL SPECIALDAY_EVENT_K109
-		ELSEIF CFLAG:318 == 1
-			PRINTFORML 「%CALLNAME:MASTER%…」
-			PRINTFORMDW ドレミーはムスっとしている
-		;同棲してる
-		ELSEIF CFLAG:MASTER:初期位置 == CFLAG:109:初期位置
-			PRINTFORML 「おや、ここに居たのですか」
-			PRINTFORML 「突然どこかに行ってしまうから、探していたのですよ？」
-			PRINTFORMDW ドレミーはそれだけ言うと%CALLNAME:MASTER%の傍に寄り添った
-		ELSEIF TALENT:恋慕
-			CALL DOREMY_ENCOUNTER
-		ELSE
-			SELECTCASE RAND:3
-				CASE 0
-					CALL HPH_PRINT,@"「来ちゃったHPH」","W"
-					PRINTFORML 「ふふ、言ってみたかったんですよね。じゃあ私はこれで…」
-					PRINTFORMDW %CALLNAME:MASTER%は帰ろうとするドレミーを引き留めた
-				CASE 1
-					PRINTFORML 「おや、奇遇ですね」
-					PRINTFORMDL ドレミーはこちらを見止めると、飄々とした表情を崩さぬまま近付いてきた
-					PRINTFORML 「なぜここにって？想像にお任せしますよ」
-					PRINTFORMDW 自分に会いに来たと都合の良いように想像しておいた
-				CASE 2
-					PRINTFORML 「また会いましたね」
-					PRINTFORMDW ドレミーはこちらを見ている
-			ENDSELECT
-			RETURN 1
-		ENDIF
-	ENDIF
-	;-------------------------------------------------
-	;TARGETが風呂に入ってきて一緒に入る
-	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 1
-	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 3
-		IF TALENT:恋慕
-			PRINTFORMW 「%MASTERNAME:109%。入ってたのね」
-			PRINTFORMDL 風呂の戸が開くと、一糸纏わぬ姿のドレミーが入ってきた
-			PRINTFORMDL 普段は服装のからは想像できないとても魅力的な肢体を惜し気もなく晒している
-			PRINTFORML 「ご一緒しても？」
-			PRINTFORMDW 笑顔で近付いてくるドレミーの姿に%CALLNAME:MASTER%は一も二もなく頷いた
-		ELSE
-			PRINTFORMDL %CALLNAME:MASTER%がくつろいでいると突然ガラッと戸が開く
-			PRINTFORMDW ビックリして戸の方向を見ると、そこには一糸纏わぬ姿のドレミーが立っていた
-			PRINTFORML 「あれ？入ってたのですか…」
-			PRINTFORMW 「服を着直すのも面倒なので、お邪魔しても？」
-			PRINTFORMDW %CALLNAME:MASTER%は前屈みになりながら頷いた
-		ENDIF
-		RETURN 1
-	ENDIF
-	;-------------------------------------------------
-	;TARGETが風呂に入ってきて出て行った
-	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 1
-	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 4
-			PRINTFORML 「おや、失礼しました」
-			PRINTFORMDW こちらがドレミーの肢体を目に焼き付ける間もなく出て行ってしまった
-		RETURN 1
-	ENDIF
-	;-------------------------------------------------
-	;TARGETが風呂に入ってきて追い出された
-	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 1
-	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 5
-			PRINTFORML 「…えっと、その…」
-			PRINTFORMDL ドレミーと%CALLNAME:MASTER%はお互いに一糸纏わぬ姿で見つめ合っている
-			PRINTFORMDL 気まずい沈黙が辺りを包む…
-			PRINTFORML 「…とりあえず、夢魂…いっときます？」
-			PRINTFORMDW ドレミーに夢魂を投げ付けられる前に%CALLNAME:MASTER%はそそくさと退散した
-		RETURN 1
-	ENDIF
-	;-------------------------------------------------
-	;外出先で遭遇した
-	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 1
-	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 6
-		;正月、バレンタイン、ハロウィン、クリスマスの場合
-		IF (DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1) || (DAY:2 == 4 && DAY:3 == 14 && CFLAG:2 >= 1000) || (DAY:2 == 3 && DAY:3 == 30) || (DAY:2 == 4 && DAY:3 == 25)
-			CALL SPECIALDAY_EVENT_K109
-		ELSEIF CFLAG:318 == 1
-			PRINTFORML 「………」
-			PRINTFORMDW ドレミーにさっと目を逸らされた
-		ELSEIF TALENT:恋慕
-			CALL DOREMY_ENCOUNTER
-		ELSE
-			SELECTCASE CFLAG:現在位置
-				;CASE 槐安通路
-				CASE 1010
-					IF TALENT:思慕
-						PRINTFORML 「おや…%MASTERNAME:109%じゃないですか」
-						PRINTFORMW 「生身の人間がこんな所に来てはいけませんよ」
-						PRINTFORMDL ドレミーはどこか威厳に満ちた、言うなれば夢の支配者然とした態度で警告してくる
-						PRINTFORMDL %CALLNAME:MASTER%は、そんなこと今更だ。と言い返す
-						PRINTFORMW 「はぁ…仕方ないですねぇ…」
-					ELSE
-						PRINTFORML 「おやおや、誰かと思えば…」
-						PRINTFORML 「きっと強い悪夢を見ているのね…って生身…！？」
-						PRINTFORMDW 夢の支配者の威厳は何処へやら、ドレミーは夢でもみたような顔をしてこちらを見ている
-						PRINTFORML 「どうやって夢の世界まで…って聞くのはきっと野暮なのでしょうねぇ…」
-						PRINTFORMW 「私の方で処理しても良いですが…今日の所は見逃しておきましょう」
-					ENDIF
-				CASEELSE
-					PRINTFORML 「奇遇ですね」
-					PRINTFORMDW ドレミーは%CALLNAME:MASTER%に気付くと挨拶してきた
-			ENDSELECT
-		ENDIF
-	RETURN 1
-	ENDIF
-	;-------------------------------------------------
-	;他キャラとデート中に遭遇した
-	;ARG:1にデート相手
-	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 1
-	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 7
-		IF CFLAG:318 == 1
-			PRINTFORML 「………」
-			PRINTFORMDW ドレミーにさっと目を逸らされた
-		ELSEIF TALENT:恋人
-			IF FLAG:デート相手 == 110
-				PRINTFORML 「へぇ～ふ～ん…ほぉ～…」
-				PRINTFORMDW サグメとデート中、ドレミーと鉢合わせた
-				PRINTFORML 「サグメさんも隅に置けないですねぇ…まさか%MASTERNAME:109%とデートだなんて」
-				PRINTFORMDL %CALLNAME:MASTER%は冷や汗を垂らしながらドレミーに弁明をする
-				PRINTFORMDW その様子をサグメは冷ややかな目で見つめている…
-				PRINTFORML 「いえいえ、怒ってなんていませんよ？むしろ%MASTERNAME:109%の魅力を知ってもらういい機会ですからねぇ…」
-				PRINTFORMDW ドレミーの目は笑っていなかった
-				TALENT:109:機嫌 = -1
+		;-------------------------------------------------
+		;小分岐
+		;-------------------------------------------------
+		;MASTERが入ってきた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG == 1
+			;正月、バレンタイン、ハロウィン、クリスマスの場合
+			IF (DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1) || (DAY:2 == 4 && DAY:3 == 14 && CFLAG:2 >= 1000) || (DAY:2 == 3 && DAY:3 == 30) || (DAY:2 == 4 && DAY:3 == 25)
+				CALL SPECIALDAY_EVENT_K109
+			ELSEIF CFLAG:318 == 1
+				PRINTFORML 「今はちょっと話す気になれませんね」
+				PRINTFORMDW ドレミーはムスっとしている
+			;同棲してる
+			ELSEIF CFLAG:MASTER:初期位置 == CFLAG:109:初期位置
+				PRINTFORML 「%MASTERNAME:109%、どこに行っていたのですか？」
+				PRINTFORML 「どこでもいいだろって？ふふ、まあ確かにそうなのですが……」
+				PRINTFORML 「貴方が怪我でもしていないか、心配だったもので」
+				PRINTFORMDW ドレミーはそれだけ言うと%CALLNAME:MASTER%の傍に寄り添った
+			ELSEIF TALENT:恋慕
+				CALL DOREMY_ENCOUNTER
 			ELSE
-				PRINTFORML 「堂々と浮気とは、逆に清々しいですね」
-				PRINTFORMDW ドレミーは%CALLNAME:MASTER%をじーっと見つめている
-				PRINTFORMW 「まあ夢の中では私が独占しているのでいいですが」
+				SELECTCASE TIME:2
+					;朝
+					CASE 1,2
+						PRINTFORML 「おや、おはようございます」
+						PRINTFORML 「早起きですねぇ…それとも今から寝るところですか？」
+						PRINTFORMW 「より良い睡眠は規則正しい生活から。昼夜逆転は直したほうが身の為ですよ」
+					;昼
+					CASE 3,4
+						PRINTFORML 「こんにちは。%MASTERNAME:109%」
+						PRINTFORML 「この時間帯は仕事が少なくて暇なので色々見て回ってました」
+						PRINTFORMW 「%MASTERNAME:109%は何を？」
+					;夜
+					CASE 5,6,7
+						PRINTFORML 「こんばんは。%MASTERNAME:109%」
+						PRINTFORML 「仕事をしなくていいのかって？分身に任せているので大丈夫ですよ」
+						PRINTFORMDW 分身できたら色々と捗りそうだと%CALLNAME:MASTER%は思った
+				ENDSELECT
+				RETURN 1
 			ENDIF
-		ELSE
-			PRINTFORMW 「おや、モテモテですね」
-			PRINTFORMDW ドレミーは%CALLNAME:MASTER%をじとーっと見つめている
 		ENDIF
-	RETURN 1
-	ENDIF
-	;-------------------------------------------------
-	;MAIN_MAP上で一日最初の挨拶
-	;注、このあと通常の遭遇口上、ARG==1 OR ARG==2に接続します
-	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 8
-		PRINTFORML 
-		RETURN 1
-	ENDIF
-	;-------------------------------------------------
-	;外出先で一日最初の挨拶
-	;ARG:1にデート相手、ARG:1が0の場合は非デート
-	;注、このあと通常の外出先で遭遇した口上、ARG==6 OR ARG==7に接続します
-	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 9
-		;ARG:1とデート中
-		IF ARG:1
-		;一人で外出
-		ELSE
+		;-------------------------------------------------
+		;TARGETが入ってきた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG == 2
+			;正月、バレンタイン、ハロウィン、クリスマスの場合
+			IF (DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1) || (DAY:2 == 4 && DAY:3 == 14 && CFLAG:2 >= 1000) || (DAY:2 == 3 && DAY:3 == 30) || (DAY:2 == 4 && DAY:3 == 25)
+				CALL SPECIALDAY_EVENT_K109
+			ELSEIF CFLAG:318 == 1
+				PRINTFORML 「%CALLNAME:MASTER%…」
+				PRINTFORMDW ドレミーはムスっとしている
+			;同棲してる
+			ELSEIF CFLAG:MASTER:初期位置 == CFLAG:109:初期位置
+				PRINTFORML 「おや、ここに居たのですか」
+				PRINTFORML 「突然どこかに行ってしまうから、探していたのですよ？」
+				PRINTFORMDW ドレミーはそれだけ言うと%CALLNAME:MASTER%の傍に寄り添った
+			ELSEIF TALENT:恋慕
+				CALL DOREMY_ENCOUNTER
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						CALL HPH_PRINT,@"「来ちゃったHPH」","W"
+						PRINTFORML 「ふふ、言ってみたかったんですよね。じゃあ私はこれで…」
+						PRINTFORMDW %CALLNAME:MASTER%は帰ろうとするドレミーを引き留めた
+					CASE 1
+						PRINTFORML 「おや、奇遇ですね」
+						PRINTFORMDL ドレミーはこちらを見止めると、飄々とした表情を崩さぬまま近付いてきた
+						PRINTFORML 「なぜここにって？想像にお任せしますよ」
+						PRINTFORMDW 自分に会いに来たと都合の良いように想像しておいた
+					CASE 2
+						PRINTFORML 「また会いましたね」
+						PRINTFORMDW ドレミーはこちらを見ている
+				ENDSELECT
+				RETURN 1
+			ENDIF
 		ENDIF
-		PRINTFORML 
+		;-------------------------------------------------
+		;TARGETが風呂に入ってきて一緒に入る
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG == 3
+			IF TALENT:恋慕
+				PRINTFORMW 「%MASTERNAME:109%。入ってたのね」
+				PRINTFORMDL 風呂の戸が開くと、一糸纏わぬ姿のドレミーが入ってきた
+				PRINTFORMDL 普段は服装のからは想像できないとても魅力的な肢体を惜し気もなく晒している
+				PRINTFORML 「ご一緒しても？」
+				PRINTFORMDW 笑顔で近付いてくるドレミーの姿に%CALLNAME:MASTER%は一も二もなく頷いた
+			ELSE
+				PRINTFORMDL %CALLNAME:MASTER%がくつろいでいると突然ガラッと戸が開く
+				PRINTFORMDW ビックリして戸の方向を見ると、そこには一糸纏わぬ姿のドレミーが立っていた
+				PRINTFORML 「あれ？入ってたのですか…」
+				PRINTFORMW 「服を着直すのも面倒なので、お邪魔しても？」
+				PRINTFORMDW %CALLNAME:MASTER%は前屈みになりながら頷いた
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;TARGETが風呂に入ってきて出て行った
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG == 4
+				PRINTFORML 「おや、失礼しました」
+				PRINTFORMDW こちらがドレミーの肢体を目に焼き付ける間もなく出て行ってしまった
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;TARGETが風呂に入ってきて追い出された
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG == 5
+				PRINTFORML 「…えっと、その…」
+				PRINTFORMDL ドレミーと%CALLNAME:MASTER%はお互いに一糸纏わぬ姿で見つめ合っている
+				PRINTFORMDL 気まずい沈黙が辺りを包む…
+				PRINTFORML 「…とりあえず、夢魂…いっときます？」
+				PRINTFORMDW ドレミーに夢魂を投げ付けられる前に%CALLNAME:MASTER%はそそくさと退散した
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;外出先で遭遇した
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG == 6
+			;正月、バレンタイン、ハロウィン、クリスマスの場合
+			IF (DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1) || (DAY:2 == 4 && DAY:3 == 14 && CFLAG:2 >= 1000) || (DAY:2 == 3 && DAY:3 == 30) || (DAY:2 == 4 && DAY:3 == 25)
+				CALL SPECIALDAY_EVENT_K109
+			ELSEIF CFLAG:318 == 1
+				PRINTFORML 「………」
+				PRINTFORMDW ドレミーにさっと目を逸らされた
+			ELSEIF TALENT:恋慕
+				CALL DOREMY_ENCOUNTER
+			ELSE
+				SELECTCASE CFLAG:現在位置
+					;CASE 槐安通路
+					CASE 1010
+						IF TALENT:思慕
+							PRINTFORML 「おや…%MASTERNAME:109%じゃないですか」
+							PRINTFORMW 「生身の人間がこんな所に来てはいけませんよ」
+							PRINTFORMDL ドレミーはどこか威厳に満ちた、言うなれば夢の支配者然とした態度で警告してくる
+							PRINTFORMDL %CALLNAME:MASTER%は、そんなこと今更だ。と言い返す
+							PRINTFORMW 「はぁ…仕方ないですねぇ…」
+						ELSE
+							PRINTFORML 「おやおや、誰かと思えば…」
+							PRINTFORML 「きっと強い悪夢を見ているのね…って生身…！？」
+							PRINTFORMDW 夢の支配者の威厳は何処へやら、ドレミーは夢でもみたような顔をしてこちらを見ている
+							PRINTFORML 「どうやって夢の世界まで…って聞くのはきっと野暮なのでしょうねぇ…」
+							PRINTFORMW 「私の方で処理しても良いですが…今日の所は見逃しておきましょう」
+						ENDIF
+					CASEELSE
+						PRINTFORML 「奇遇ですね」
+						PRINTFORMDW ドレミーは%CALLNAME:MASTER%に気付くと挨拶してきた
+				ENDSELECT
+			ENDIF
 		RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;他キャラとデート中に遭遇した
+		;ARG:1にデート相手
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG == 7
+			IF CFLAG:318 == 1
+				PRINTFORML 「………」
+				PRINTFORMDW ドレミーにさっと目を逸らされた
+			ELSEIF TALENT:恋人
+				IF FLAG:デート相手 == 110
+					PRINTFORML 「へぇ～ふ～ん…ほぉ～…」
+					PRINTFORMDW サグメとデート中、ドレミーと鉢合わせた
+					PRINTFORML 「サグメさんも隅に置けないですねぇ…まさか%MASTERNAME:109%とデートだなんて」
+					PRINTFORMDL %CALLNAME:MASTER%は冷や汗を垂らしながらドレミーに弁明をする
+					PRINTFORMDW その様子をサグメは冷ややかな目で見つめている…
+					PRINTFORML 「いえいえ、怒ってなんていませんよ？むしろ%MASTERNAME:109%の魅力を知ってもらういい機会ですからねぇ…」
+					PRINTFORMDW ドレミーの目は笑っていなかった
+					TALENT:109:機嫌 = -1
+				ELSE
+					PRINTFORML 「堂々と浮気とは、逆に清々しいですね」
+					PRINTFORMDW ドレミーは%CALLNAME:MASTER%をじーっと見つめている
+					PRINTFORMW 「まあ夢の中では私が独占しているのでいいですが」
+				ENDIF
+			ELSE
+				PRINTFORMW 「おや、モテモテですね」
+				PRINTFORMDW ドレミーは%CALLNAME:MASTER%をじとーっと見つめている
+			ENDIF
+		RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;MAIN_MAP上で一日最初の挨拶
+		;注、このあと通常の遭遇口上、ARG==1 OR ARG==2に接続します
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG == 8
+			PRINTFORML 
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;外出先で一日最初の挨拶
+		;ARG:1にデート相手、ARG:1が0の場合は非デート
+		;注、このあと通常の外出先で遭遇した口上、ARG==6 OR ARG==7に接続します
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG == 9
+			;ARG:1とデート中
+			IF ARG:1
+			;一人で外出
+			ELSE
+			ENDIF
+			PRINTFORML 
+			RETURN 1
+		ENDIF
 	ENDIF
-ENDIF
 ENDIF
 RETURN 1
 

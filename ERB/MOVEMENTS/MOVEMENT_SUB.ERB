@@ -191,8 +191,7 @@ SIF CFLAG:ARG:拠点来訪 || 仕事日チェック(ARG) || CFLAG:ARG:神社在�
 	RETURN
 
 ;訪問時間でまだ移動していない場合
-IF VISIT(ARG) && !CFLAG:ARG:休日移動済
-	CFLAG:ARG:休日移動済 = 1
+IF VISIT(ARG) && CFLAG:ARG:現在位置 != CFLAG:ARG:遭遇位置
 	LOCAL = 0
 	IF CFLAG:ARG:現在位置 == CFLAG:MASTER:現在位置
 		;お泊まりすると起きる現象（連動キャラを考慮すると面倒なことに）
@@ -202,7 +201,11 @@ IF VISIT(ARG) && !CFLAG:ARG:休日移動済
 	CFLAG:ARG:現在位置 = CFLAG:ARG:遭遇位置 ? CFLAG:ARG:遭遇位置 # SUKIMA()
 	CFLAG:ARG:同行 = 0
 	IF CFLAG:ARG:現在位置 != CFLAG:MASTER:現在位置 && LOCAL
-		PRINTFORMW %CALLNAME:ARG%はどこかへ出掛けたようだ
+		IF TALENT:ARG:恋慕
+			PRINTFORMW %CALLNAME:ARG%は%NAME_FROM_PLACE(CFLAG:ARG:遭遇位置)%へ行くと言って出掛けた
+		ELSE
+			PRINTFORMW %CALLNAME:ARG%はどこかへ出掛けたようだ
+		ENDIF
 	ENDIF
 ENDIF
 

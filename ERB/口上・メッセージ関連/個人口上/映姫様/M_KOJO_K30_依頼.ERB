@@ -47,7 +47,7 @@ SELECTCASE IRAI_NO
 	;あなたに抱かれたい（発生条件：セフレor愛欲かつ溜まってる度700以上 or ヤリマン）
 	CASE 15
 		RETURN 1
-	;お悩み相談（発生条件：MASTERの話術技能が１以上）→普通の悩みは映姫様なら自分で白黒つけそうなので無し
+	;お悩み相談（発生条件：MASTERの話術技能が１以上）→普通の悩みは映姫様なら自分で白黒つけるので無し
 	CASE 16
 		SIF TALENT:30:思慕
 			RETURN 1
@@ -1257,6 +1257,8 @@ CASE "口上委託率"
 ;1,2:弾幕ごっこの悩み 3,4:晩酌の悩み 5,6:本の悩み 7,8:香料の悩み
 ;9,10:音楽の悩み 11,12:服の悩み 13:髪型の悩み 14:参拝の悩み 15:ダイエットの悩み
 ;16,17:菜園の悩み 18:休日の悩み 19:人気の悩み 20:集中力の悩み 21:御三家の悩み 22:進化の悩み
+	RESULT:1 = 0
+	RESULT:2 = 0
 	RETURN 1
 CASE "口上専用"
 ;＜この依頼特有の分岐です。(口上委託率)％の確率で発生します＞
@@ -1350,6 +1352,8 @@ SELECTCASE GET_MAPID(CFLAG:[[小町]]:現在位置)
 	CASEELSE
 		LOCALS = 訳のわからない場所
 ENDSELECT
+SIF CFLAG:[[小町]]:現在位置 % 100 == 99 && MAIN_MAP != 6
+	LOCALS = 自分の部屋
 SELECTCASE SCENE
 CASE "依頼提示時"
 	PRINTFORML 「%K30_C_NAME(MASTER)%、この手紙を小町へ届けてもらえますか？」
@@ -1361,13 +1365,19 @@ CASE "依頼非受託時"
 CASE "依頼受託時"
 	PRINTFORML 「ありがとうございます。それで、肝心の小町の居場所ですが…」
 	PRINTFORM 「%TEXTR("おおかた/どうせ/たぶん/")%%LOCALS%
-	PRINTDATAL
-		DATAFORM で油でも売っているのでしょう」
-		DATAFORM へサボりにでも行っているのでしょう」
-		DATAFORM でぷらぷらしているのではないかと」
-		DATAFORM まで行って昼寝でもしてるはずです」
-	ENDDATA
-	PRINTFORML 
+	IF LOCALS == "あの子の部屋"
+		PRINTDATAL
+			DATAFORM でまだ寝ているはずです」
+			DATAFORM でひっくり返ってサボっているのでしょう」
+		ENDDATA
+	ELSE
+		PRINTDATAL
+			DATAFORM で油でも売っているのでしょう」
+			DATAFORM へサボりにでも行っているのでしょう」
+			DATAFORM でぷらぷらしているのではないかと」
+			DATAFORM まで行って昼寝でもしてるはずです」
+		ENDDATA
+	ENDIF
 	PRINTDATAL
 		DATAFORM 「ほんと…何度言ったらわかるのかしら」
 		DATAFORM 「やれやれ…今度はどんな言い訳をしてくるのかしら」
@@ -1378,7 +1388,7 @@ CASE "依頼受託時"
 CASE "依頼確認時"
 	PRINTFORML 「おや？　%LOCALS%にいるのは間違いないと思いましたが…」
 	PRINTFORML 「小町のことですから、またどこかふらふらとしているのでしょう」
-	PRINTFORML 「すみませんがもう一度周りも含めて探してもらえますか」
+	PRINTFORML 「すみませんがもう一度周りも含めて探してもらえますか？」
 	RETURN 1
 CASE "依頼破棄時"
 	

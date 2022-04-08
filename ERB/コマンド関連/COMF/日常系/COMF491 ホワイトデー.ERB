@@ -1,0 +1,213 @@
+﻿;-------------------------------------------------
+;ホワイトデー
+;-------------------------------------------------
+@COM491
+
+#DIM CAN_COOK
+#DIM 好感度上昇量
+#DIM 信頼度上昇量
+#DIM WD_BUFF
+#DIMS WD_GIFT
+
+好感度上昇量 = 0
+信頼度上昇量 = 0
+CAN_COOK = 0
+WD_BUFF = 0
+
+;調理可能か
+CALL COM_ABLE413
+CAN_COOK = RESULT
+IF FESTIVAL() == "ホワイトデー" && INRANGE(CFLAG:TARGET:バレンタイン,1,4) && SHIRAHU(TARGET)
+	CALL ASK_M("返礼相手一覧",1,"返礼用の菓子を作る(甘味材5個)",ITEM:甘味材 >= 5,@"%CALLNAME:TARGET%に返礼品を渡す",1)
+ELSE
+	CALL ASK_M("返礼相手一覧",1,"返礼用の菓子を作る",1)
+ENDIF
+SELECTCASE RESULT
+	CASE 0
+		CALL Valentine_List
+		WAIT
+		RETURN -1
+	CASE 1
+		IF !CAN_COOK
+			PRINTFORMW 料理ができる環境が必要だ
+			RETURN -1
+		ENDIF
+		CALL WD_COOK
+		RETURN RESULT
+	CASE 2
+		PRINTFORML 何を渡そう？（貰ったもの：%Valentine_Chocolate(TARGET)%）
+		{
+		CALL ASK_M("やめる",1,"ブラックサンダー",ITEM:ブラックサンダー,"ローターチョコ",ITEM:ローターチョコ,"WDチョコレート",ITEM:WDチョコレート,
+		"手作りチョコクッキー",ITEM:手作りチョコクッキー,"WDプティング",ITEM:WDプティング,
+		"手作りプティング",ITEM:手作りプティング,"デコレーションケーキ",ITEM:デコレーションケーキ && CFLAG:TARGET:バレンタイン == 4)
+		}
+		SELECTCASE RESULT
+			CASE 0
+				RETURN -1
+			CASE 1
+				WD_GIFT = ブラックサンダー
+				SIF CFLAG:バレンタイン > 1
+					PRINTFORMW %CALLNAME:TARGET%は釈然としない顔をしている……
+				好感度上昇量 = 30
+				信頼度上昇量 = 30
+			CASE 2
+				WD_GIFT = ローターチョコ
+				好感度上昇量 = 50
+				信頼度上昇量 = 50
+				SOURCE:快Ｃ += 3000
+				SOURCE:反感 += 300
+			CASE 3
+				WD_GIFT = WDチョコレート
+				好感度上昇量 = 100
+				信頼度上昇量 = 100
+				WD_BUFF = 100
+			CASE 4
+				WD_GIFT = 手作りチョコクッキー
+				好感度上昇量 = 150
+				信頼度上昇量 = 150
+				EXP:愛情経験 += 1
+				WD_BUFF = 100
+			CASE 5
+				WD_GIFT = WDプティング
+				好感度上昇量 = 200
+				信頼度上昇量 = 200
+				EXP:愛情経験 += 3
+				WD_BUFF = 100
+			CASE 6
+				WD_GIFT = 手作りプティング
+				好感度上昇量 = 300
+				信頼度上昇量 = 300
+				EXP:愛情経験 += 5
+				WD_BUFF = 200
+			CASE 7
+				WD_GIFT = デコレーションケーキ
+				好感度上昇量 = 1000
+				信頼度上昇量 = 1000
+				EXP:愛情経験 += 30
+				WD_BUFF = 1000
+		ENDSELECT
+		TFLAG:193 = RESULT
+		SIF RESULT >= 5
+			TALENT:機嫌 = 1
+		PRINTFORMW %CALLNAME:TARGET%に%WD_GIFT%を贈った
+		ITEM:WD_GIFT --
+		CALL CHANGE_CFLAG(2,TARGET,好感度上昇量)
+		CALL CHANGE_CFLAG(4,TARGET,信頼度上昇量)
+		IF WD_BUFF
+			CALL BUFF_BASE(TARGET,BASE_体力, WD_BUFF, 1)
+			CALL BUFF_BASE(TARGET,BASE_気力, WD_BUFF, 1)
+		ENDIF
+		CFLAG:TARGET:バレンタイン += 100
+		TIME += 10
+		RETURN 1
+ENDSELECT
+
+
+@Valentine_List
+FOR LOCAL,1,CHARANUM
+	SIF !CFLAG:LOCAL:バレンタイン
+		CONTINUE
+	SELECTCASE CFLAG:LOCAL:バレンタイン % 100
+		CASE 2
+			SETCOLOR C_GREEN
+		CASE 3
+			SETCOLOR C_YELLOW
+		CASE 4
+			SETCOLOR C_PINK
+	ENDSELECT
+	;返礼済みなら打ち消し線
+	SIF CFLAG:LOCAL:バレンタイン > 100
+		FONTSTYLE 4
+	PRINTFORMLC [{LOCAL}]%CALLNAME:LOCAL%
+	FONTREGULAR
+	RESETCOLOR
+NEXT
+PRINTFORML 
+DRAWLINE
+SETCOLOR C_PINK
+PRINTFORM 手作り　
+SETCOLOR C_YELLOW
+PRINTFORM 高級　
+SETCOLOR C_GREEN
+PRINTFORM 普通　
+RESETCOLOR
+PRINTFORML 義理
+
+@WD_COOK
+PRINTFORML 何を作ろう？（すべて甘味材５個消費）
+{
+CALL ASK_M("やめる",1, "チョコクッキー×10＋α：大量に作れる。バラマキ用。",1,
+"プティング×5＋α：バランスが良い。はちみつが必要。（要はちみつ）",ITEM:はちみつ,
+"デコレーションケーキ：大切な人へ。（要イチゴ３・料理技能４）",ITEM:イチゴ >= 3 && ABL:MASTER:料理技能 >= 4,
+"ローターチョコ×5：ローターを使った食べられる謎のチョコレート。（要ローター）",ITEM:ローター)
+}
+SELECTCASE RESULT
+	CASE 0
+		RETURN -1
+	CASE 1
+		CALL GET_ITEM("手作りチョコクッキー", 10 + ABL:MASTER:料理技能, 2)
+		ITEM:甘味材 -= 5
+	CASE 2
+		CALL GET_ITEM("手作りプティング", 5 + ABL:MASTER:料理技能 / 3, 2)
+		ITEM:甘味材 -= 5
+		ITEM:はちみつ -= 1
+	CASE 3
+		ITEM:甘味材 -= 5
+		ITEM:イチゴ -= 3
+		CALL GET_ITEM("デコレーションケーキ", 1, 2)
+	CASE 4
+		CALL GET_ITEM("ローターチョコ", 5, 2)
+		ITEM:甘味材 -= 5
+		ITEM:ローター -= 1
+ENDSELECT
+TIME += 60
+EXP:MASTER:料理経験 += 3
+DOWNBASE:MASTER:気力 = 300
+RETURN 1
+
+;-------------------------------------------------
+;実行判定
+;-------------------------------------------------
+@COM_ABLE491
+;チョコレートを贈る実行判定
+SIF !TFLAG:100
+	RETURN 0
+;一括管理
+SIF GLOBAL_COMABLE(491)
+	RETURN RESULT
+;気力0
+SIF BASE:MASTER:気力 <= 0
+	RETURN 0
+;停止中は不可
+SIF FLAG:70 == 1
+	RETURN 0
+;添い寝中
+SIF CFLAG:添い寝中
+	RETURN 0
+;イタズラ中
+SIF CFLAG:MASTER:イタズラ
+	RETURN 0
+SIF CFLAG:うふふ == 2
+	RETURN 0
+SIF !PREPARE_WD()
+	RETURN 0
+RETURN 1
+
+@PREPARE_WD()
+#FUNCTION
+SIF DAY:2 != 1
+	RETURNF 0
+SIF DAY:3 > 14
+	RETURNF 0
+RETURNF 1
+
+;デバッグ用
+@WD_DEBUG
+ITEM:甘味材 = 99
+ITEM:イチゴ = 99
+ITEM:はちみつ = 99
+DAY:2 = 1
+DAY:3 = 13
+FOR LOCAL,1,CHARANUM
+	CFLAG:LOCAL:バレンタイン = 1 + RAND:4
+NEXT

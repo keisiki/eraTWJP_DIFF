@@ -289,7 +289,7 @@ IF LOCAL
 				ENDSELECT
 			ENDIF
 			;表現くどいので他のには重ねない
-			RETURN
+			GOTO SKIP
 		;強絶頂Ａ
 		ELSEIF LOCAL == 2
 			IF TCVAR:30:393 > 5
@@ -407,7 +407,14 @@ IF LOCAL
 				;クンニさせる,乳首舐め,アナル奉仕等うふふ時
 				IF CFLAG:うふふ
 					PRINTFORMW 「れろ、れろっ………！！　……♥」
-					PRINTFORMDW 半開きの口元からよだれが一筋垂れ落ちる。どうやら映姫は奉仕の喜びだけでイってしまったようだ……
+					PRINTFORMDL 半開きの口元からよだれが一筋垂れ落ちる
+					PRINTFORMDW どうやら映姫は奉仕の喜びだけでイってしまったようだ……
+				;フェラ抜き。TEQUIP:口接触部位が0のままなのでここに割り振られる
+				ELSEIF TFLAG:193 == -999
+					PRINTFORML 「んんっ♥♥　んっ♥　んっ♥　んふぅ…♥♥」
+					PRINTFORMDW ペニスを最奥で咥えたまま、映姫は奉仕の喜びだけで達したようだ
+					PRINTFORML （裁きを下すこの場所で…わたしは…なんて、はしたない…）
+					PRINTFORMW （ああ…でも、おくちも身体も…すごく、悦んでる…♥）
 				;日常
 				ELSE
 					PRINTFORML 「んちゅ…ちゅっ……！！　んっ…………んんっ♥　ん……♥」
@@ -415,6 +422,20 @@ IF LOCAL
 				ENDIF
 		ENDSELECT
 	ENDIF
+	$SKIP
+	;絶頂→逆ギレを軽減する処理
+	SIF !(TALENT:思慕 || TALENT:恋慕 || TALENT:セフレ || TALENT:愛欲)
+		RETURN
+	SOURCE:逸脱 /= 2
+	SOURCE:鬱屈 = SOURCE:鬱屈 / 3 * 2
+	SIF TALENT:機嫌 == -1 || K30_BE_SEEN()
+		RETURN
+	SOURCE:反感 /= 2
+	SOURCE:不潔 = SOURCE:不潔 / 3 * 2
+	SIF !TALENT:恋慕 || !(NOWEX:Ａ絶頂 || TFLAG:193 == -999)
+		RETURN
+	SOURCE:反感 /= 3
+	SOURCE:鬱屈 /= 3
 ENDIF
 ;-------------------------------------------------
 ;奴隷の睡眠絶頂時の口上
@@ -672,6 +693,8 @@ IF !CFLAG:うふふ
 	TCVAR:30:362 = 0
 	SIF TCVAR:30:364 != 0
 		CALL K30_DATE_WITH_VIBERATOR
+	SIF TFLAG:193 == -999
+		CALL K30_AFTER_BLOW_JOB_IN_COURT
 	RETURN
 ENDIF
 
@@ -865,7 +888,6 @@ IF LOCAL
 	ELSE
 		PRINTFORML 「ゴホッ！！　ゴホ！　ゴホゴホっ…………うえぇ………」
 		PRINTFORMW 「あまりムチャなことはしないで……」
-	RETURN 1
 	ENDIF
 ENDIF
 RETURN 1
@@ -899,6 +921,12 @@ ENDIF
 RETURN 1
 
 @M_KOJO_MESSAGE_PALAMCNG_A_K30_21(ARG)
+;射精アニメ
+IF TALENT:恋慕 && !(NOWEX:Ｂ絶頂 || NOWEX:Ｍ絶頂 || CFLAG:1501 || TCVAR:30:無理矢理 || TCVAR:30:泥酔)
+	CALL K30_BLOW_JOB_ANIME(2)
+	PRINTFORML 
+ENDIF
+
 CALL PALAM_MESSAGE_A
 TCVAR:30:394 ++
 TCVAR:30:395 ++
@@ -913,23 +941,25 @@ IF LOCAL
 	;マグロスイッチオン
 	ELSEIF CFLAG:1501 || TCVAR:30:無理矢理 || TCVAR:30:泥酔
 		RETURN 1
-	ELSE
-	PRINTFORML 「%TEXTR("んふっ/んんっ/んっ/")%！　…%TEXTR("んくっ/んむっ/んっ/")%…%TEXTR("んくっ/あむっ/んんっ/")%、ぷはぁ…」
-	PRINTDATAL
-		DATAFORM 「頑張ったご褒美…ありがとうございます♥」
-		DATAFORM 「良かった…ちゃんとこぼさず飲めました…♥」
-		DATAFORM 「んっ…少しだけ、こぼしちゃいました…」
-		DATALIST
-			DATAFORM 「あっ…もしかして、かけたかったの？」
-			DATAFORM 「ごめんなさい、私はお口に欲しかったのよ…♥」
-		ENDLIST
-	ENDDATA
-	WAIT
+	ELSEIF NOWEX:TARGET:Ｂ絶頂 || NOWEX:TARGET:Ｍ絶頂
+		PRINTFORML 「%TEXTR("んふっ/んんっ/んっ/")%！　…%TEXTR("んくっ/んむっ/んっ/")%…%TEXTR("んくっ/あむっ/んんっ/")%、ぷはぁ…」
+		PRINTDATAW
+			DATAFORM 「頑張ったご褒美…ありがとうございます♥」
+			DATAFORM 「良かった…ちゃんとこぼさず飲めました…♥」
+			DATAFORM 「んっ…少しだけ、こぼしちゃいました…」
+			DATALIST
+				DATAFORM 「あっ…もしかして、かけたかったの？」
+				DATAFORM 「ごめんなさい、私はお口に欲しかったのよ…♥」
+			ENDLIST
+		ENDDATA
 	ENDIF
 ENDIF
 RETURN 1
 
 @M_KOJO_MESSAGE_PALAMCNG_A_K30_20(ARG)
+;射精アニメ
+CALL K30_BLOW_JOB_ANIME(1)
+PRINTFORML 
 CALL PALAM_MESSAGE_A
 TCVAR:30:394 ++
 TCVAR:30:395 ++
@@ -1114,9 +1144,17 @@ ENDIF
 RETURN 1
 
 @M_KOJO_MESSAGE_PALAMCNG_A_K30_4(ARG)
-CALL PALAM_MESSAGE_A
+#DIM CHR
 TCVAR:30:394 ++
 TCVAR:30:395 ++
+CALL K30_FACECUM
+SIF RESULT
+	RETURN 1
+IF SHIRAHU(30)
+	CALL K30_BLOW_JOB_ANIME(1)
+	PRINTFORML 
+ENDIF
+CALL PALAM_MESSAGE_A
 ;-------------------------------------------------
 ;フェラチオ
 ;小町口上で百合百合している映姫様がとても良かったのでもろに影響うけてます
@@ -1128,15 +1166,23 @@ TCVAR:30:395 ++
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	;行儀悪いけどわかりやすいので、ダブルフェラの相手をLOCALに代入
-	LOCAL = TCVAR:30:375
+	CHR = TCVAR:30:375
 	;フラグ折っておく
 	TCVAR:30:375 = 0
 	;マグロスイッチオン
-	IF CFLAG:1501 || TCVAR:30:無理矢理 || TCVAR:30:泥酔 || FLAG:70
+	SIF CFLAG:1501 || TCVAR:30:無理矢理 || TCVAR:30:泥酔 || FLAG:70
 		RETURN 1
+	;フェラ抜き
+	IF TFLAG:193 == -999
+		PRINTFORML 「んぐっ…んっ、んくっ…んくっ…んふぅ♥」
+		PRINTFORMDL %CALLNAME:MASTER%が射精しきって萎びかけても映姫は口を離そうとしない
+		PRINTFORMDW いつもよりたっぷり時間をかけ、本当に最後の一滴まで舐め取ってからようやく吸い付くのをやめた
+		PRINTFORMW 「ぷはっ…♥」
+		PRINTFORML 「…仕事の場をこんなことで汚すわけにはいきません」
+		PRINTFORML 「ええ、そうです」
+		PRINTFORMW 「こうやってキレイにするのも…仕方のないことことなんですよ…♥」
 	;足扱き派生で精飲/吐き出し見せつけ
-	ELSEIF (TCVAR:30:362 == 3 || TFLAG:193 == 99) && ((EXP_UP(15, TARGET) == NOWEX:PLAYER:射精 * 3) || NOWEX:PLAYER:射精 == 1)
+	ELSEIF (TCVAR:30:362 == 3 || TFLAG:193 == 99)
 		IF (EXP_UP(15, TARGET) == NOWEX:PLAYER:射精 * 3)
 			SELECTCASE RAND:3 
 				CASE 0
@@ -1149,7 +1195,7 @@ IF LOCAL
 					PRINTFORML 「んふっ…やっぱり、私はこっちの方が好き…」
 					PRINTFORMW 「お口で、貴方に気もちよくなってもらうのが…好きなの♥」
 			ENDSELECT
-		ELSEIF NOWEX:PLAYER:射精 == 1
+		ELSE
 			IF RAND:2 == 1
 				PRINTFORML 「ほら見て…こんなに出したのよ…♥」
 				PRINTFORMW 「どうです、足よりもやっぱり私のお口のほうがいいんでしょ？」
@@ -1171,18 +1217,34 @@ IF LOCAL
 			PRINTFORMW 「ほら…我慢しないで、もっと出して…いいのよ」
 		ELSE
 			IF RAND:2 == 1
-				PRINTFORMW 「んっ、すごい量…でも、満足してませんよね♥」
+				PRINTFORMW 「んっ、すごい量…でも、まだ満足してませんよね♥」
 			ELSE
 				PRINTFORML 「ふふっ…たくさん出ましたね」
-				PRINTFORMW 「でも、まだ元気そう…ええ、いいわよ…何回でも♥」
+				PRINTFORML 「でも、まだ元気そう…」
+				PRINTFORMW 「ええ、いいわよ…何回でも♥」
 			ENDIF
 		ENDIF
 		RETURN 1
 	;精飲判定
-	ELSEIF (EXP_UP(15, TARGET) == NOWEX:PLAYER:射精 * 3)
+	ELSEIF (EXP_UP(15, TARGET) == NOWEX:PLAYER:射精 * 3) && EXP:30:精飲経験 >= 20
 		;「喉を鳴らして飲み込んだ」
-		IF NOWEX:PLAYER:射精 == 1
-			SELECTCASE RAND:3
+		IF ABL:精液中毒 < 3
+			SELECTCASE 0
+				CASE 0
+					PRINTFORML 「んんっ……んくっ、んぐっ……ぷはっ」
+					PRINTFORML 「…美味しいとは思いませんけど」
+					PRINTFORMW 「こうしたほうが、貴方に喜んでもらえかなって…」
+				CASE 1
+					PRINTFORML 「んっ、んんっ……んぐっ」
+					PRINTFORML 「%K30_C_NAME(MASTER)%が気持ち良いならそれで嬉しいですが」
+					PRINTFORMW 「他のところじゃなくて、お口に出してしまっても…良かったの？」
+				CASE 2
+					PRINTFORML 「んんっ…この味にはやっぱり慣れませんね…」
+					PRINTFORML 「あっ、でも…嫌々やってるわけじゃありませんから」
+					PRINTFORMW 「そこは気にしないでください」
+			ENDSELECT
+		ELSEIF NOWEX:PLAYER:射精 == 1
+			SELECTCASE RAND:(3 + (EXP:精飲経験 > 150 && ABL:精液中毒 >= 5) * 3)
 				CASE 0
 					PRINTFORML 「くちゅっ、ぐちゅっ……んく、んく……んんっ」
 					PRINTFORMW 「ほら…ちゃんと、ごくんって出来ました…♥」
@@ -1190,84 +1252,120 @@ IF LOCAL
 					PRINTFORML 「んんっ…くちゅっ、ぐちゅっ…じゅぷ……」
 					PRINTFORMW 「もっと出しても……大丈夫よ…♥」
 				CASE 2
-					PRINTFORML 「んっ………んくっ、んんっ」
-					PRINTFORML 「ええ、ちゃんと飲めたわよ。えらいでしょ？」
-					PRINTFORMW 「ごほうびは…どこに出してもらえるのかしら♥」
+					PRINTFORML 「ほら…きちんと、飲めました…♥」
+					PRINTFORMW 「あっ…でも、透明なおつゆ…まだ出てますね…」
+					PRINTFORMW 「これもきれいにしたほうが…いいのかしら？」
+				CASE 3
+					PRINTFORML 「んっ…%K30_C_NAME(MASTER)%、\@ BASE:MASTER:精力 > 0 ? あまり気持ち良くなかった # ちょっとお疲れ \@ですか？」
+					PRINTFORML 「もっともっと、いっぱい出しても大丈夫よ」
+					PRINTFORML 「何回でも、私が元気にしてあげますから…んっ、ちゅっ…♥」
+					PRINTFORMDW 映姫は労るように亀頭へキスを繰り返している…
+				CASE 4
+					PRINTFORML 「……一回で、ごくんって出来ちゃいました」
+					PRINTFORMW 「遠慮しないで、私のお口にもっと…ください♥」
+				CASE 5
+					PRINTFORML 「…んっ、んふふっ♥」
+					PRINTFORML 「お口の中でね、\@ TALENT:MASTER:形状 > 5 ? こんなにおっきい # 貴方 \@のがびくびくってするの…」
+					PRINTFORMW 「なんだかそれが…すごく可愛らしくて…♥」
 			ENDSELECT
 		;咥えたまま飲み込む
 		ELSE
-			SELECTCASE RAND:4
+			SELECTCASE RAND:(4 + (EXP:精飲経験 > 150 && ABL:精液中毒 >= 5) * 5 + (NOWEX:Ｍ絶頂 > 1))
 				CASE 0
-					PRINTFORML 「んふ、んく…こくっ…んくっ……んんっ」
+					PRINTFORML 「んふ、んくっ…んくっ……んんっ」
 					PRINTFORMW 「すごい量……私のお口が、そんなに良かったのね……♥」
 				CASE 1
-					PRINTFORML 「……ん、んく…じゅぷ…んっ……」
-					PRINTFORMW 「はい、全部飲みましたよ……♥」
-					PRINTFORMDW 映姫は口を開けて精液が残ってない事を見せてくれた…
+					PRINTFORML 「んんんっ…♥　んくっ…んんっ♥」
+					PRINTFORMW 「んふっ、こんなに射精されて…飲みきれないかと思ったわ♥」
 				CASE 2
 					PRINTFORML 「ちゅっ、ちゅる、んくっ、んく…」
 					PRINTFORMW 「んっ…ごちそうさま♥」
 				CASE 3
 					PRINTFORML 「んっ…んっ……んふっ、んくっ……ぷはぁっ」
 					PRINTFORML 「ふふふっ、いっぱい…出ましたね♥」
+				CASE 4
+					PRINTFORML 「あぁ、すごい…匂い…」
+					PRINTFORMW 「お口も、お腹の中まで…全部貴方に染められて…♥」
+				CASE 5
+					PRINTFORML 「……いっぱい射精してもらって、ぜんぶ飲んだ後」
+					PRINTFORML 「%K30_C_NAME(MASTER)%の満足そうな顔…こうやって見上げるの…」
+					PRINTFORMW 「私…大好きなんです…♥」
+				CASE 6
+					PRINTFORML 「んっ…んっ、んくっ…♥」
+					PRINTFORML 「……お口にもらっただけなのに私」
+					PRINTFORMW 「お腹の奥から…すごく、うずいてきます…♥」
+				CASE 7
+					PRINTFORML 「んくっ…んっ、んっ…♥」
+					PRINTFORML 「ふふふっ、ほんと、苦くて…変な匂い」
+					PRINTFORMW 「なのにね、私…もっともっと、欲しくなってるの…♥」
+				CASE 8
+					PRINTFORML 「……ん、んく……じゅぷ……んっ…♥」
+					PRINTFORMW 「はい、全部飲みましたよ……♥」
+					PRINTFORMDW 映姫は口を開けて精液が残ってない事を見せてくれた…
+				CASE 9
+					CALL HPH_PRINT, "「ぷはっ…HPH　この量…私のお口で、感じてくれた証拠、ですね…HPH」", "L"
+					CALL HPH_PRINT, "「なんだか…うれしい…HPH」", "W"
+					CALL HPH_PRINT, "「…ちゅっHPH　んちゅっ…HPH」", "L"
+					PRINTFORMDW 映姫は絶頂を迎え震える口唇でペニスに口付けている…
+					RETURN 1
 			ENDSELECT
 		ENDIF
 		;精飲できるくらいだしこれぐらいやってしまえ
-		IF LOCAL && ABL:精液中毒 > 2
-			IF (EXP_UP(15, LOCAL) == NOWEX:PLAYER:射精 * 3)
+		IF CHR && ABL:精液中毒 > 2
+			IF (EXP_UP(15, CHR) == NOWEX:PLAYER:射精 * 3)
 				PRINTFORML 
-				PRINTFORML 「%K30_C_NAME(LOCAL)%もきちんと飲めたかしら……」
+				PRINTFORML 「%K30_C_NAME(CHR)%もきちんと飲めたかしら……」
 				PRINTFORMW 「んっ…まだ、少し残ってますよ……♥　ほら…」
-				PRINTFORMD 映姫は%CALLNAME:LOCAL%の唇から垂れた精液
-				IF GROUPMATCH(LOCAL, 76, 129, 80) || (((TALENT:LOCAL:神霊 && CFLAG:LOCAL:地位 < 900) || !TALENT:LOCAL:神霊) && !CHECK_CHARA(LOCAL, "蓬莱人") && PALAM:欲情 >= PALAMLV:5) 
+				PRINTFORMD 映姫は%CALLNAME:CHR%の唇から垂れた精液
+				IF GROUPMATCH(CHR, 76, 129, 80) || (((TALENT:CHR:神霊 && CFLAG:CHR:地位 < 900) || !TALENT:CHR:神霊) && !CHECK_CHARA(CHR, "蓬莱人") && PALAM:欲情 >= PALAMLV:5) 
 					PRINTFORMDL に唇を重ね直接舐め取った
-					IF GROUPMATCH(LOCAL, 76, 129, 80) && PALAM:LOCAL:欲情 >= PALAMLV:8 && ABL:精液中毒 > 4
-						PRINTFORMDW %CALLNAME:LOCAL%は映姫のキスで目はとろんと潤み、口はだらしなく半開きになってしまう…
-						PRINTFORML 「ちゅっ、ちゅっ……ふふっ♥　%K30_C_NAME(LOCAL)%…とっても、可愛いわよ…♥」
-						PRINTFORMDW 映姫は%CALLNAME:LOCAL%の歯の裏まで舌を這わせて唾液混じりの精液を吸いつくした…
-					ELSEIF PALAM:LOCAL:欲情 >= PALAMLV:10 || GROUPMATCH(LOCAL, 76, 129, 80)
-						PRINTFORMDW %CALLNAME:LOCAL%はうっとりとした表情で映姫のキスを受け入れている…
+					IF GROUPMATCH(CHR, 76, 129, 80) && PALAM:CHR:欲情 >= PALAMLV:8 && ABL:精液中毒 > 4
+						PRINTFORMDW %CALLNAME:CHR%は映姫のキスで目はとろんと潤み、口はだらしなく半開きになってしまう…
+						PRINTFORML 「ちゅっ、ちゅっ……ふふっ♥　%K30_C_NAME(CHR)%…とっても、可愛いわよ…♥」
+						PRINTFORMDW 映姫は%CALLNAME:CHR%の歯の裏まで舌を這わせて唾液混じりの精液を吸いつくした…
+					ELSEIF PALAM:CHR:欲情 >= PALAMLV:10 || GROUPMATCH(CHR, 76, 129, 80)
+						PRINTFORMDW %CALLNAME:CHR%はうっとりとした表情で映姫のキスを受け入れている…
 					ELSE
-						PRINTFORMDW %CALLNAME:LOCAL%は映姫の行動にびっくりしている…
+						PRINTFORMDW %CALLNAME:CHR%は映姫の行動にびっくりしている…
 					ENDIF
 				ELSE
 					PRINTFORMDL を指で拭い取り口に含んだ
-					PRINTFORMDW %CALLNAME:LOCAL%は映姫の行動にびっくりしている…
+					PRINTFORMDW %CALLNAME:CHR%は映姫の行動にびっくりしている…
 				ENDIF
-			ELSEIF EXP:LOCAL:精飲経験 < 20 || (NOWEX:PLAYER:射精 != 1 && EXP:LOCAL:精飲経験 >= 20)
+			ELSEIF EXP:CHR:精飲経験 < 20 || (NOWEX:PLAYER:射精 != 1 && EXP:CHR:精飲経験 >= 20)
 				PRINTFORML 
-				PRINTFORML 「%K30_C_NAME(LOCAL)%はまだ%K30_C_NAME(MASTER)%の味、苦手かしら？」
-				IF GROUPMATCH(LOCAL, 76, 129, 80)
+				PRINTFORML 「%K30_C_NAME(CHR)%はまだ%K30_C_NAME(MASTER)%の味、苦手かしら？」
+				IF GROUPMATCH(CHR, 76, 129, 80)
 					PRINTFORMW 「ふふっ…そんなもったいないこと、私は許しませんよ……♥」
 				ELSE
 					PRINTFORMW 「ふふっ…手伝ってあげますよ……♥」
 				ENDIF
-				PRINTFORMD 映姫は精液をこぼす%CALLNAME:LOCAL%
-				IF GROUPMATCH(LOCAL, 76, 129, 80) || (((TALENT:LOCAL:神霊 && CFLAG:LOCAL:地位 < 900) || !TALENT:LOCAL:神霊) && !CHECK_CHARA(LOCAL, "蓬莱人") && PALAM:欲情 >= PALAMLV:5)
-					IF GROUPMATCH(LOCAL, 76, 129, 80) && PALAM:LOCAL:欲情 >= PALAMLV:7 && ABL:精液中毒 > 4 && PALAM:欲情 >= PALAMLV:7 && RAND:3 != 1
+				PRINTFORMD 映姫は精液をこぼす%CALLNAME:CHR%
+				IF GROUPMATCH(CHR, 76, 129, 80) || (((TALENT:CHR:神霊 && CFLAG:CHR:地位 < 900) || !TALENT:CHR:神霊) && !CHECK_CHARA(CHR, "蓬莱人") && PALAM:欲情 >= PALAMLV:5)
+					IF GROUPMATCH(CHR, 76, 129, 80) && PALAM:CHR:欲情 >= PALAMLV:7 && ABL:精液中毒 > 4 && PALAM:欲情 >= PALAMLV:7 && RAND:3 != 1
 						PRINTFORMDL に顔を近づけると、こぼした精液をきれいに舐め取りはじめた
 						PRINTFORML 「もう…こんなにこぼしてしまって、だめじゃないの」
-						PRINTFORMW 「貴方\@ LOCAL == 80 ? を見守る管理者 # の上司 \@として、不始末の責任はとらないとね…♥」
+						PRINTFORMW 「貴方\@ CHR == 80 ? を見守る管理者 # の上司 \@として、不始末の責任はとらないとね…♥」
 						PRINTFORML 「ほら、次はお口の中よ……あむっ」
-						PRINTFORMDW 映姫は%CALLNAME:LOCAL%の顔をきれいにすると、次は息も詰まるような濃厚な口づけを交わしはじめる
+						PRINTFORMDW 映姫は%CALLNAME:CHR%の顔をきれいにすると、次は息も詰まるような濃厚な口づけを交わしはじめる
 						PRINTFORML 「んんっ…ちゅっ、ちゅぷっ♥　ちゅっ…」
-						PRINTFORMDW 映姫の舌は%CALLNAME:MASTER%の精を最後の一滴まで求めて、%CALLNAME:LOCAL%の口内を蹂躙していく
+						PRINTFORMDW 映姫の舌は%CALLNAME:MASTER%の精を最後の一滴まで求めて、%CALLNAME:CHR%の口内を蹂躙していく
 						RESETCOLOR
-						TRYCALLFORM M_KOJO_COLOR_K{LOCAL}
+						TRYCALLFORM M_KOJO_COLOR_K{CHR}
 						PRINTFORML 「………♥　……♥♥」
 						CALL M_KOJO_COLOR_K30
-						PRINTFORMDW \@ LOCAL == 80 ? 縁深い恩人 # 敬愛する上司 \@の舌使いに%CALLNAME:LOCAL%はすっかり骨抜きになったようだ…
+						PRINTFORMDW \@ CHR == 80 ? 縁深い恩人 # 敬愛する上司 \@の舌使いに%CALLNAME:CHR%はすっかり骨抜きになったようだ…
 						
-					ELSEIF PALAM:LOCAL:欲情 >= PALAMLV:10 || GROUPMATCH(LOCAL, 76, 129, 80)
+					ELSEIF PALAM:CHR:欲情 >= PALAMLV:10 || GROUPMATCH(CHR, 76, 129, 80)
 						PRINTFORMDL にキスをして、残っている精液を口移しに吸い取りはじめた
-						PRINTFORMDW %CALLNAME:LOCAL%は映姫のキスと舌使いに陶然としている…
+						PRINTFORMDW %CALLNAME:CHR%は映姫のキスと舌使いに陶然としている…
 					ELSE
 						PRINTFORMDL に口づけして、飛び散った精液をついばむように吸い取った
-						PRINTFORMDW %CALLNAME:LOCAL%は映姫の行動にびっくりしている…
+						PRINTFORMDW %CALLNAME:CHR%は映姫の行動にびっくりしている…
 					ENDIF
 				ELSE
 					PRINTFORMDL の口周りを手で拭うと、そのまま手指を舐め始めた
-					PRINTFORMDW %CALLNAME:LOCAL%は映姫の行動にびっくりしている…
+					PRINTFORMDW %CALLNAME:CHR%は映姫の行動にびっくりしている…
 				ENDIF
 			ENDIF
 		ENDIF
@@ -1275,9 +1373,13 @@ IF LOCAL
 		;飲めなかった
 		;精飲経験20未満で「精液の味に慣れないようだ…」
 		IF EXP:30:精飲経験 < 20
-			IF RAND:2 == 1 || EXP:精飲経験 == 0
+			IF (RAND:3 == 1 || EXP:精飲経験 == 0) && EXP:30:精飲経験 < 15
 				PRINTFORML 「けほっ、けほ、…んっ……」
-				PRINTFORMW 「…これって飲めるものなの？　…変な味がしてムリ……」
+				PRINTFORML 「…これって\@ EXP:精飲経験 ? やっぱり飲んであげたほうがいい # 本当に飲めるものな \@ の？」
+				PRINTFORMW 「変な味がしてムリ……」
+			ELSEIF RAND:2 == 1
+				PRINTFORML 「けほっ、けほっ……うぇえ…」
+				PRINTFORMW 「ちょっと、待って…すごい、量が…けほっ、けほっ…」
 			ELSE
 				PRINTFORML 「ん、んんっ……けほっ、けほっ……」
 				PRINTFORMW 「喉に引っかかって、ちょっと苦しいの……」
@@ -1285,79 +1387,114 @@ IF LOCAL
 			RETURN 1
 		;「手に吐き出し見せつける」
 		ELSEIF NOWEX:PLAYER:射精 == 1
-			IF RAND:2 == 1
-				PRINTFORMW 「ほら、貴方…こんなに出したのよ」
-			ELSE
-				PRINTFORMW 「すごく…濃いのが出たみたいよ」
-			ENDIF
-			SIF ABL:精液中毒 < 3 || !LOCAL || EXP:LOCAL:精飲経験 < 20
+			SELECTCASE RAND:(2 + (EXP:精飲経験 > 150 && ABL:精液中毒 >= 5) * 2)
+				CASE 0
+					PRINTFORMW 「ほら、貴方…こんなに出したのよ」
+				CASE 1
+					PRINTFORML 「んっ…貴方のが、こんなに…」
+					PRINTFORMW 「私、上手に出来たと思いません？」
+				CASE 2
+					PRINTFORML 「ほら、見て…」
+					PRINTFORML 「私のつばと混じって、こんなにたくさん」
+					PRINTFORMW 「とっても…えっちだと思いませんか…♥」
+				CASE 3
+					PRINTFORML 「こんなに出たんだもの」
+					PRINTFORMW 「私のお口…気持ち良かったみたいね…♥」
+			ENDSELECT
+			SIF ABL:精液中毒 < 3 || !CHR || EXP:CHR:精飲経験 < 20
 				RETURN 1
-			IF GROUPMATCH(LOCAL, 76, 129, 80) || (((TALENT:LOCAL:神霊 && CFLAG:LOCAL:地位 < 900) || !TALENT:LOCAL:神霊) && !CHECK_CHARA(LOCAL, "蓬莱人") && PALAM:LOCAL:欲情 >= PALAMLV:5)
-				IF PALAM:欲情 >= PALAMLV:5 && (EXP_UP(15, LOCAL) == NOWEX:PLAYER:射精 * 3)
+			IF GROUPMATCH(CHR, 76, 129, 80) || (((TALENT:CHR:神霊 && CFLAG:CHR:地位 < 900) || !TALENT:CHR:神霊) && !CHECK_CHARA(CHR, "蓬莱人") && PALAM:CHR:欲情 >= PALAMLV:5)
+				IF PALAM:欲情 >= PALAMLV:5 && (EXP_UP(15, CHR) == NOWEX:PLAYER:射精 * 3)
 					PRINTFORML 
-					IF GROUPMATCH(LOCAL, 76, 129, 80)
-						IF PALAM:LOCAL:欲情 < PALAMLV:8
-							PRINTFORML 「%K30_C_NAME(LOCAL)%はきちんと飲めて偉いわね…おすそ分け、どうかしら？」
-							PRINTFORMDW 映姫は手にとった精液を指ですくい、%CALLNAME:LOCAL%の口元に持っていった
-							PRINTFORMDL %CALLNAME:LOCAL%は喜んで映姫の指をしゃぶり始め、そのまま手の上の精液も舐めとった…
-							PRINTFORMW 「ふふっ、%K30_C_NAME(LOCAL)%…満足できたようね」
+					IF GROUPMATCH(CHR, 76, 129, 80)
+						IF PALAM:CHR:欲情 < PALAMLV:8
+							PRINTFORML 「%K30_C_NAME(CHR)%はきちんと飲めて偉いわね…おすそ分け、どうかしら？」
+							PRINTFORMDW 映姫は手にとった精液を指ですくい、%CALLNAME:CHR%の口元に持っていった
+							PRINTFORMDL %CALLNAME:CHR%は喜んで映姫の指をしゃぶり始め、そのまま手の上の精液も舐めとった…
+							PRINTFORMW 「ふふっ、%K30_C_NAME(CHR)%…満足できたようね」
 						ELSE
-							PRINTFORML 「%K30_C_NAME(LOCAL)%はきちんと飲めて偉いわね。だから私からもご褒美よ…」
-							PRINTFORMDW 映姫は手にとった精液をまた口に含むと、%CALLNAME:LOCAL%と唇を重ね合わせた
-							PRINTFORMDL %CALLNAME:LOCAL%はうっとりとした様子でキスを受け入れ、口移しに精液を流し込まれる…
+							PRINTFORML 「%K30_C_NAME(CHR)%はきちんと飲めて偉いわね。だから私からもご褒美よ…」
+							PRINTFORMDW 映姫は手にとった精液をまた口に含むと、%CALLNAME:CHR%と唇を重ね合わせた
+							PRINTFORMDL %CALLNAME:CHR%はうっとりとした様子でキスを受け入れ、口移しに精液を流し込まれる…
 							PRINTFORMW 「んく…んふっ、じゅぷ…じゅるっ……んっ……♥」
 						ENDIF
 					ELSE
-						PRINTFORML 「%K30_C_NAME(LOCAL)%はきちんと飲めてるのね………おすそ分け、どうかしら？」
-						PRINTFORMDL 映姫は手にとった精液を指ですくい、%CALLNAME:LOCAL%の口元に持っていく
-						PRINTFORMDW %CALLNAME:LOCAL%はおずおずと指を口に含み、映姫の味が混じる精液を味わった…
+						PRINTFORML 「%K30_C_NAME(CHR)%はきちんと飲めてるのね………おすそ分け、どうかしら？」
+						PRINTFORMDL 映姫は手にとった精液を指ですくい、%CALLNAME:CHR%の口元に持っていく
+						PRINTFORMDW %CALLNAME:CHR%はおずおずと指を口に含み、映姫の味が混じる精液を味わった…
 					ENDIF
 				ENDIF
 			ENDIF
 		;「口からダラダラとこぼす」
 		ELSE
-			IF PALAM:欲情 >= PALAMLV:5 && PALAM:LOCAL:欲情 >= PALAMLV:5 && (EXP_UP(15, LOCAL) == NOWEX:PLAYER:射精 * 3) && LOCAL
+			IF PALAM:欲情 >= PALAMLV:5 && PALAM:CHR:欲情 >= PALAMLV:5 && (EXP_UP(15, CHR) == NOWEX:PLAYER:射精 * 3) && CHR
 				PRINTFORML 
-				PRINTFORMDL ……欲情した%CALLNAME:(LOCAL)%は%CALLNAME:(MASTER)%の精液を飲み干しても足りないようだ
-				IF GROUPMATCH(LOCAL, 76, 129, 80)
-					PRINTFORMDW 映姫の口から垂れる精液に顔を近づけると、うっとりとした表情で舐め取りはじめた
-					PRINTFORML 「んっ！？　%K30_C_NAME(LOCAL)%……？」
+				PRINTFORMDL ……欲情した%CALLNAME:(CHR)%は%CALLNAME:(MASTER)%の精液を飲み干してもまだ足りないようだ
+				IF GROUPMATCH(CHR, 76, 129, 80)
+					PRINTFORMDW 映姫の口から垂れる精液に顔を近づけ、うっとりとした表情で舐め取りはじめた
+					PRINTFORML 「んっ！？　%K30_C_NAME(CHR)%……？」
 					PRINTFORMW 「……ふふっ、しょうがない子ね♥」
 					PRINTFORMDW 同じく欲情した映姫はされるがままになり、最後には口に少し残った精液を口移しで分け与えていた…
 				ELSE
-					PRINTFORMDW 映姫の顔に張り付いた精液を指で拭うと、その指をしゃぶりはじめた
-					PRINTFORML 「まあ、%K30_C_NAME(LOCAL)%ったら……じゃあ、おすそ分けね」
-					PRINTFORMDW 映姫も満更でもない様子で、顔を拭った自分の指を%CALLNAME:(LOCAL)%の口に含ませた…
+					PRINTFORMDW 映姫の顔に張り付いた精液を指で拭い、その指をしゃぶりはじめた
+					PRINTFORML 「まあ、%K30_C_NAME(CHR)%ったら……じゃあ、おすそ分けね」
+					PRINTFORMDW 映姫も満更でもない様子で、顔を拭った自分の指を%CALLNAME:(CHR)%の口に含ませた…
 				ENDIF
-			ELSEIF PALAM:欲情 >= PALAMLV:5 && (PALAM:LOCAL:欲情 >= PALAMLV:5 || GROUPMATCH(LOCAL, 76, 129, 80)) && EXP:LOCAL:精飲経験 >= 20 && (EXP_UP(15, LOCAL) != NOWEX:PLAYER:射精 * 3) && LOCAL
+			ELSEIF PALAM:欲情 >= PALAMLV:5 && (PALAM:CHR:欲情 >= PALAMLV:5 || GROUPMATCH(CHR, 76, 129, 80)) && EXP:CHR:精飲経験 >= 20 && (EXP_UP(15, CHR) != NOWEX:PLAYER:射精 * 3) && CHR
 				PRINTFORML 
-				PRINTFORMDL ……欲情した映姫は自分と同じように精液をこぼす%CALLNAME:(LOCAL)%に気づいた
-				IF GROUPMATCH(LOCAL, 76, 129, 80)
-					PRINTFORMW 「%K30_C_NAME(MASTER)%がくれたのに、これじゃあダメよ。%K30_C_NAME(LOCAL)%…」
-					PRINTFORMDL 映姫は%CALLNAME:(LOCAL)%の顎に手を添えながら、顔に散った精液を舐め取りはじめた
-					PRINTFORMDW %CALLNAME:(LOCAL)%も\@ LOCAL == 80 ? 縁深い恩人 # 敬愛する上司 \@の大胆な行為に、うっとりとされるがままになっている
-					PRINTFORMW 「%K30_C_NAME(LOCAL)%、きれいになったわ。またいっぱい…もらいましょうね♥」
+				PRINTFORMDL ……欲情した映姫は自分と同じように精液をこぼす%CALLNAME:(CHR)%に気づいた
+				IF GROUPMATCH(CHR, 76, 129, 80)
+					PRINTFORMW 「%K30_C_NAME(MASTER)%がくれたのに、これじゃあダメよ。%K30_C_NAME(CHR)%…」
+					PRINTFORMDL 映姫は%CALLNAME:(CHR)%の顎に手を添えながら、顔に散った精液を舐め取りはじめた
+					PRINTFORMDW %CALLNAME:(CHR)%も\@ CHR == 80 ? 縁深い恩人 # 敬愛する上司 \@の大胆な行為に、うっとりとされるがままになっている
+					PRINTFORMW 「%K30_C_NAME(CHR)%、きれいになったわ。またいっぱい…もらいましょうね♥」
 				ELSE
-					PRINTFORMW 「ふふふっ…%K30_C_NAME(LOCAL)%、お互いひどい顔になってますよ。少しきれいにしましょうか…」
-					PRINTFORMDL 映姫は%CALLNAME:(LOCAL)%の顎を指で拭うと、そのまま指を自分の口に運びしゃぶりはじめた
-					PRINTFORMDL %CALLNAME:(LOCAL)%も同じように映姫の頬を指で拭い、自分の口へ運ぶ
-					PRINTFORMDW ぴちゃぴちゃと音を立てながら二人の後始末は続いた…
+					PRINTFORML 「ふふふっ…%K30_C_NAME(CHR)%、お互いひどい顔になってますよ」
+					PRINTFORMW 「少しきれいにしましょうか…」
+					PRINTFORMDL 映姫は%CALLNAME:(CHR)%の顎を指で拭うと、そのまま指を自分の口に運びしゃぶりはじめた
+					PRINTFORMDL %CALLNAME:(CHR)%も同じように映姫の頬を指で拭い、自分の口へと運ぶ
+					PRINTFORMDW ぴちゃぴちゃ音を立てながら二人の後始末は続いた…
 				ENDIF
 			ELSE
-				SELECTCASE RAND:3 + ((ABL:精液中毒 > 4) * 2)  
-					CASE 0
-						PRINTFORMW 「すごい量ね、飲みきれないの……」
-					CASE 1
-						PRINTFORML 「……こぼしちゃいました」
-						PRINTFORMW 「次は頑張ってみますね」
-					CASE 2
-						PRINTFORMW 「ごめんなさい…いっぱい出たから飲みきれなかったの……」
-					CASE 3
-						PRINTFORMW 「あんっ、せっかく貰えたのにもったいない…」
-					CASE 4
-						PRINTFORML 「ああっ、大変…こぼすなんて、ダメ…」
-						PRINTFORMDW 映姫は口の周りの精液を指で拭い舐め取っている
-				ENDSELECT
+				IF ABL:精液中毒 < 3 || RAND:6 == 1
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORMW 「すごい量ね、飲みきれないの……」
+						CASE 1
+							PRINTFORML 「……こぼしちゃいました」
+							PRINTFORMW 「次は頑張ってみますね」
+						CASE 2
+							PRINTFORMW 「ごめんなさい…いっぱい出たから飲みきれなかったの……」
+					ENDSELECT
+				ELSE
+					SELECTCASE RAND:(3 + ((EXP:精飲経験 > 150 && ABL:精液中毒 >= 5) * 3) + (NOWEX:Ｍ絶頂 > 2)) 
+						CASE 0
+							PRINTFORMW 「あんっ、せっかく貰えたのにもったいない…」
+						CASE 1
+							PRINTFORML 「ああっ、大変…こぼすなんて、ダメ…」
+							PRINTFORMDW 映姫は口の周りの精液を指で拭い舐め取っている
+						CASE 2
+							PRINTFORML 「けふっ、けふっ…こほっ…」
+							PRINTFORML 「んっ、ごめんなさい…ちょっと…変なところ、引っかかって…」
+							PRINTFORMW 「せっかく出してもらえたのに…」
+						CASE 3
+							PRINTFORML 「んっ、んんっ…いくら吸っても、出てくるんだもの」
+							PRINTFORMW 「私のお口に、入りきりませんよ…♥」
+						CASE 4
+							PRINTFORML 「閻魔様の口に…こんなこと教え込んで…」
+							PRINTFORML 「本当に%K30_C_NAME(MASTER)%のここは…罪深いですね…♥」
+							PRINTFORMDW 映姫は鈴口からにじむ汁を嬉しそうに舐め取っている
+						CASE 5
+							CALL HPH_PRINT, @"「……HPHHPH」\n「%K30_C_NAME(MASTER)%、元気すぎ、です…HPH」", "L"
+							PRINTFORMDL 普段からは想像出来ないほど蠱惑的な微笑を浮かべ、映姫は大きく口を開ける
+							PRINTFORMDW 口元から形の良い顎へと%CALLNAME:MASTER%の放った白濁がどろりと垂れ落ちた…
+						CASE 6 
+							CALL HPH_PRINT, "「ご、ごめんなひゃい…HPH　おくち、きもちよしゅぎてHPH」", "L"
+							CALL HPH_PRINT, "「じょうじゅに…にょみこめにゃくて…HPH」", "L"
+							PRINTFORMDL 映姫はしゃぶるだけで絶頂してしまい口も上手く回らないようだ
+							PRINTFORMDW 舌足らずで喋る閻魔様はなんだか新鮮で可愛らしく見える…
+					ENDSELECT
+				ENDIF
 			ENDIF
 		ENDIF
 	ENDIF

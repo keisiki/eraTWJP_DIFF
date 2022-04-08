@@ -15,7 +15,8 @@
 ;**** FlagManagement **********************************************************
 ;本口上にて使用しているCFLAG・TCVAR等
 ;CFLAG:105:1001 固有料理の話
-;
+;CFLAG:105:1002 媚薬OD経験
+;TCVAR:105:351	うふふ中媚薬投与量
 ;
 ;******************************************************************************
 
@@ -57,7 +58,12 @@
 RETURN 1
 ;### 口上色判定 ###################################
 @M_KOJO_COLOR_K105
+
+IF TCVAR:105:351 >= 4 && CFLAG:105:うふふ
+SETCOLOR 0xFF99EE
+ELSE
 SETCOLOR 0xFFDDEE
+ENDIF
 
 ;ここでSETCOLORすることで口上に色を付けられます
 ;例：SETCOLOR 0xC07070
@@ -162,7 +168,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 0
 		;弱点は精神的な（意味のある）攻撃に繋がるということなので
-		IF FIRSTTIME(1105) ;FIRSTTIMEの使い方が良くわからない
+		IF FIRSTTIME(1105) 
 			PRINTFORML 「自分を全部見せるのって、怖いことだと思う」
 			PRINTFORML 「すごく無防備じゃない？」
 			PRINTFORMW 「自分の底が、弱点が、見えちゃう」
@@ -466,7 +472,7 @@ IF LOCAL
 		ELSEIF TALENT:恋慕
 			PRINTFORML 「わっ、%CALLNAME:MASTER%」
 			PRINTFORML 「出直しかな」
-			PRINTFORMDW マイは%CALLNAME:MASTER%がいるのを見ると、慌てたようにに風呂場から出ていった。
+			PRINTFORMDW マイは%CALLNAME:MASTER%がいるのを見ると、慌てたように風呂場から出ていった。
 		ELSEIF TALENT:思慕
 			PRINTFORML 「……%CALLNAME:MASTER%」
 			PRINTFORML （いっしょは、流石に無いな）
@@ -578,14 +584,13 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 8
 		IF TALENT:恋人
-			PRINTFORML 「やっ、%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
-			PRINTFORMW 「ノルマ達成だね」
+			PRINTFORML 
 		ELSEIF TALENT:恋慕
-			PRINTFORML 「…………」
-			PRINTFORMDW マイが暇そうにぼんやりしている……
+			PRINTFORML 
 		ELSEIF TALENT:思慕
-			PRINTFORML （えーと、今日は%CALLNAME:MASTER%は……）
+			PRINTFORML （今日は、会えた……）
 			PRINTFORMW （……いや、毎日会わなきゃいけないこともないけど）
+			PRINTFORML 
 		ELSE
 			PRINTFORML 
 		ENDIF
@@ -714,33 +719,84 @@ IF LOCAL
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
-	;自室に帰る（定時になって寝る）
+	;自室に帰る（～は【現在地】から【キャラの自室】に戻りました）
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
-		IF CFLAG:318 == 1
-			PRINTFORML 「…………」
-			PRINTFORMDW マイは苛立った様子で帰っていった。
-		ELSEIF TCVAR:泥酔 == 1
-			PRINTFORML 
-		ELSEIF TALENT:恋人
-			PRINTFORML 「もう寝ようかな」
-			PRINTFORMW 「おやすみ、%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
-		ELSEIF TALENT:恋慕
-			PRINTFORML 「わたし……もう寝るね」
-			PRINTFORMW 「一緒に来る……？なんてね」
-		ELSEIF TALENT:思慕
-			PRINTFORML 「…………それじゃあ」
-			PRINTFORMDW マイは軽く挨拶をして去っていった。
+		IF ARG:1
+			;デート中に眠くて帰って寝る（拠点キャラのみ）
+			IF TCVAR:泥酔 == 1
+				PRINTFORML 
+			ELSEIF TCVAR:105:351 >= 4
+				PRINTFORML 「はぁっ、はぁっ……うふふふふ、もっと……もっとぉ……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「……あっ、あぇ？　な、なに……なんか、ぐにゃぐにゃに……」
+				PRINTFORML
+				PRINTFORMW 「う゛っ」
+				PRINTFORMW 「お゛っ、え゛ぇぇ……げほっ、げぼっ……」
+				CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+				CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+				TCVAR:105:351 = 1
+				SETCOLOR 0xFFDDEE
+				PRINTFORML 
+				PRINTFORML 「わ……わた、し……何を……」
+				PRINTFORMW 「ごっ、ごめんなさい……なんか、気分が……ぁ」 
+				PRINTFORMDW マイは消耗しているようだ……
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「ダメだ、眠すぎる……」
+				PRINTFORMW 「んん……続きは……また、今度で」
+				PRINTFORMW 「おやすみ……」
+			ELSE
+				PRINTFORML 
+			ENDIF
+		ELSEIF CFLAG:うふふ
+			IF TCVAR:泥酔 == 1
+				PRINTFORML 
+			ELSEIF TCVAR:105:351 >= 4
+				PRINTFORML 「はぁっ、はぁっ……うふふふふ、もっと……もっとぉ……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「……あっ、あぇ？　な、なに……なんか、ぐにゃぐにゃに……」
+				PRINTFORML
+				PRINTFORMW 「う゛っ」
+				PRINTFORMW 「お゛っ、え゛ぇぇ……げほっ、げぼっ……」
+				CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+				CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+				TCVAR:105:351 = 1
+				SETCOLOR 0xFFDDEE
+				PRINTFORML 
+				PRINTFORML 「わ……わた、し……何を……」
+				PRINTFORMW 「ごっ、ごめんなさい……なんか、気分が……ぁ」 
+				PRINTFORMDW マイは消耗しているようだ……
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「ダメだ、眠すぎる……」
+				PRINTFORMW 「んん……続きは……また、今度で」
+				PRINTFORMW 「おやすみ……」
+			ELSE
+				PRINTFORML 
+			ENDIF
 		ELSE
-			PRINTFORMW 「…………」
-			PRINTFORMDW マイは無言で去っていった。
+			IF CFLAG:318 == 1
+				PRINTFORML 「…………」
+				PRINTFORMDW マイは苛立った様子で帰っていった。
+			ELSEIF TCVAR:泥酔 == 1
+				PRINTFORML 
+			ELSEIF TALENT:恋人
+				PRINTFORML 「もう寝ようかな」
+				PRINTFORMW 「おやすみ、%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「わたし……もう寝るね」
+				PRINTFORMW 「一緒に来る……？なんてね」
+			ELSEIF TALENT:思慕
+				PRINTFORML 「…………それじゃあ」
+				PRINTFORMDW マイは軽く挨拶をして去っていった。
+			ELSE
+				PRINTFORMW 「…………」
+				PRINTFORMDW マイは無言で去っていった。
+			ENDIF
 		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
-	;眠そうにしている
+	;眠そうにしている（～は眠そうにしている）
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
 	;-------------------------------------------------
@@ -765,7 +821,7 @@ IF LOCAL
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
-	;睡眠中（起きていないので会話というよりは寝言？）
+	;睡眠中（～は眠っている）
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 0
 	;-------------------------------------------------
@@ -783,91 +839,290 @@ IF LOCAL
 		;RETURN 1
 	;ENDIF
 	;-------------------------------------------------
-	;衰弱中（恋慕付き拠点内キャラがMAIN_MAPで衰弱状態になった場合か、お招き部屋で相手が衰弱した場合に発生
-	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 5
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-	;-------------------------------------------------
-	;MASTERがダウン（部屋まで運ばれる）
+	;衰弱して寝る（体力500以下,うふふ時はうふふ強制終了）
+	;（キャラの自室以外：～を【現在地】から【キャラの自室】に運びました）
+	;（キャラの自室　　：～は疲れたと言って、横になりました）
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
 	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 6
-		IF CFLAG:318 == 1
-			PRINTFORML 「…………」
-			PRINTFORMDW マイは苛立った様子で帰っていった。
-		ELSEIF TCVAR:泥酔 == 1
-			PRINTFORML 
-		ELSEIF TALENT:恋人
-			PRINTFORML 「お～い、%CALLNAME:MASTER%～」
-			PRINTFORML 「持って帰っちゃうよ？好きにしていいの？」
-			PRINTFORMW 「ふふ」
-		ELSEIF TALENT:恋慕
-			PRINTFORML 「わっ、%CALLNAME:MASTER%！　大丈夫？」
-			PRINTFORMW 「仕方ないな、連れてってあげる……部屋で良いよね？」
-		ELSEIF TALENT:思慕
-			PRINTFORML 「う～ん、翼生やしたわたしが運んでると……」
-			PRINTFORMW 「死んでるみたい」
+	IF LOCAL:1 && ARG == 5
+		IF CFLAG:うふふ
+		;うふふ中にダウン
+			IF CFLAG:318 == 1
+				PRINTFORML 
+			ELSEIF TCVAR:泥酔 == 1
+				PRINTFORML 「はーっ、はーっ、はーっ……」
+				PRINTFORMW 「つかれたぁ、もう……ねむい」
+			ELSEIF TCVAR:105:351 >= 4
+				PRINTFORML 「はぁっ、はぁっ……うふふふふ、もっと……もっとぉ……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「……あっ、あぇ？　な、なに……なんか、ぐにゃぐにゃに……」
+				PRINTFORML
+				PRINTFORMW 「う゛っ」
+				PRINTFORMW 「お゛っ、え゛ぇぇ……げほっ、げぼっ……」
+				CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+				CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+				TCVAR:105:351 = 1
+				PRINTFORML 
+				PRINTFORML 「わ……わた、し……何を……」
+				PRINTFORMW 「ごっ、ごめんなさい……なんか、気分が……ぁ」 
+				PRINTFORMDW マイは消耗しているようだ……
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「ごめんっ、ちょっと……ふぅ、休憩」
+				PRINTFORMW 「%CALLNAME:MASTER%を満足させようと思ったら……もっと体力つけなきゃダメか」
+			ELSE
+				PRINTFORML 「疲れたわ……」
+				PRINTFORMW 「……ふぅ」
+				SIF TALENT:思慕
+					PRINTFORMW （け、結構キツいかも……これ以上は真面目に倒れちゃう）
+			ENDIF 
 		ELSE
-			PRINTFORML 「なんなの、こいつは」
-			PRINTFORMW 「わたしのせいみたいじゃん」
+			PRINTFORML 
 		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
-	;TARGETが自室まで戻ってきた
+	;MASTERがダウン（恋慕のみ,そのまま一日が終了）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		;お酒でダウン
+		IF BASE:MASTER:酒気 >= MAXBASE:MASTER:酒気
+			IF ARG:1
+			;自室でダウン,（～が【MASTER】をベッド（布団）へと運んでくれた…）
+				IF CFLAG:318 == 1
+					PRINTFORML 「何やってんだか……」
+					PRINTFORMW 「……布団くらいには入れてやるか」
+				ELSEIF TCVAR:泥酔 == 1
+					PRINTFORMW 「うえ～い、わたしの勝ち～」
+				ELSEIF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「わたしを放っといて潰れちゃうなんて……」
+					PRINTFORMW 「こっちを酔わせて悪戯するくらいの気概を見せてくれないと」
+					PRINTFORMW 「……それとも、わたしがしてやろっかな……ふふふ、ちゃんと寝てる？」
+				ELSE
+					PRINTFORML 
+				ENDIF 
+			ELSE
+				;部屋まで運ばれる,（～が【MASTER】を私室へと運んでくれた…）
+				IF CFLAG:318 == 1
+					PRINTFORML 「…………」
+					PRINTFORMW 「……まぁ、放っておくわけにもいかないか」
+				ELSEIF TCVAR:泥酔 == 1
+					PRINTFORML 「うえ～い、わたしの勝ち～」
+					PRINTFORMW 「ふぅぅ～……%CALLNAME:MASTER%、部屋どこだっけ？　こらっ、起きろ～」
+				ELSEIF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「動けなさそう？　ダメか」
+					PRINTFORMW 「う～ん……折角だし、酔いつぶれてないとできなそうなことを……」
+					PRINTFORMW 「……まぁ、今日はゆっくり休ませてあげよっか」
+				ELSE
+					PRINTFORML 
+				ENDIF 
+			ENDIF
+		;体力切れでダウン
+		ELSE
+			IF ARG:1
+				IF CFLAG:318 == 1
+					PRINTFORML 「何やってんだか……」
+					PRINTFORMW 「……布団くらいには入れてやるか」
+				ELSEIF TCVAR:泥酔 == 1
+					PRINTFORML
+				ELSEIF TCVAR:105:351 >= 4
+					PRINTFORML 「はぁっ、はぁっ……うふふふふ、もっと……もっとぉ……%UNICODE(0x2665) *1%」
+					PRINTFORMW 「……%CALLNAME:MASTER%？　どうしたの、っ……あれ、わたし、も……？」
+					PRINTFORML
+					PRINTFORMW 「う゛っ、く……あ、あたまが」
+					PRINTFORMW 「やっ、ば……やりすぎた、みたい……」
+					CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+					CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+					TCVAR:105:351 = 1
+					SETCOLOR 0xFFDDEE
+					PRINTFORML 
+					PRINTFORML 「まずい、わたしも……眩暈、が」
+					PRINTFORMW 「とっ、とにかく……%CALLNAME:MASTER%、を……っ」
+				ELSEIF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「お疲れみたいだね」
+					PRINTFORMW 「わたしも、ここで寝ちゃおうかな～……」
+					PRINTFORMW 「聞いてないか……おやすみ、%CALLNAME:MASTER%」
+				ELSE
+					PRINTFORML 
+				ENDIF 
+			ELSE
+				;部屋まで運ばれる,（～が【MASTER】を私室へと運んでくれた…）
+				IF CFLAG:318 == 1
+					PRINTFORML 「…………」
+					PRINTFORMW 「……まぁ、放っておくわけにもいかないか」
+				ELSEIF TCVAR:泥酔 == 1
+					PRINTFORML 
+				ELSEIF TCVAR:105:351 >= 4
+					PRINTFORML 「はぁっ、はぁっ……うふふふふ、もっと……もっとぉ……%UNICODE(0x2665) *1%」
+					PRINTFORMW 「……%CALLNAME:MASTER%？　どうしたの、っ……あれ、わたし、も……？」
+					PRINTFORML
+					PRINTFORMW 「う゛っ、く……あ、あたまが」
+					PRINTFORMW 「やっ、ば……やりすぎた、みたい……」
+					CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+					CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+					TCVAR:105:351 = 1
+					SETCOLOR 0xFFDDEE
+					PRINTFORML 
+					PRINTFORML 「まずい、わたしも……眩暈、が」
+					PRINTFORMW 「とっ、とにかく……%CALLNAME:MASTER%、を……っ」
+				ELSEIF TALENT:恋人
+					PRINTFORML 「お～い、%CALLNAME:MASTER%～」
+					PRINTFORML 「持って帰っちゃうよ？好きにしていいの？」
+					PRINTFORMW 「ふふ」
+				ELSEIF TALENT:恋慕
+					PRINTFORML 「わっ、%CALLNAME:MASTER%！　大丈夫？」
+					PRINTFORMW 「仕方ないな、連れてってあげる……部屋で良いよね？」
+				ELSE
+					PRINTFORML 
+				ENDIF 
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;TARGETが寝るために自室まで戻ってきた
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 7
 		;-------------------------------------------------
-		;そのまま着替えて寝た
+		;そのまま着替えて寝た（【TARGET】が部屋に戻ってきた→寝間着へと着替え、寝床に潜った）
 		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 0
+		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 0
+			IF CFLAG:318 == 1
+				PRINTFORML 
+			ELSEIF TCVAR:泥酔 == 1
+				PRINTFORML 「あ～～っ、着いたぁ……」
+				PRINTFORMW 「んん…………」
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「ん？誰か……ああ、%CALLNAME:MASTER%か……いたんだ？」
+				PRINTFORMW 「わたし、もう寝るね……おやすみ」
+			ELSE
+				PRINTFORML 
+			ENDIF
 			RETURN 1
 		ENDIF
 		;-------------------------------------------------
-		;部屋から追い出された
+		;部屋から追い出して寝た（眠そうな【TARGET】に追い出された…）
 		;記入チェック（=0, 非表示、1, 表示）
 		LOCAL:1 = 0
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 1
+			IF CFLAG:前ターン位置 == CFLAG:現在位置
+				;前のターンまで一緒に部屋にいた
+				PRINTFORMW 
+			ELSE
+				;寝るために部屋に帰ってきたところ
+				PRINTFORMW 
+			ENDIF
 			RETURN 1
 		ENDIF
 		;-------------------------------------------------
-		;他キャラとのＨを止めさせて寝た
+		;他キャラとのＨを止めさせて寝た（【TARGET】が部屋に戻ってきた→唇をとがらせる【TARGET】に、【MASTER】は渋々【Ｈの相手】から離れた）
 		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 0
+		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 2
+			IF CFLAG:318 == 1
+				PRINTFORML 
+			ELSEIF TCVAR:泥酔 == 1
+				PRINTFORML 
+			ELSEIF TALENT:恋人
+				PRINTFORML 「この部屋で他の奴とやるのをさぁ、セックスのスパイスくらいに思ってる？」
+				PRINTFORML 「今すぐやめて……ちょっと！　なんなの、その不服そうな顔」
+				PRINTFORMW 「ああっ、疲れる……うう、もう寝よ」
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「っ、%CALLNAME:MASTER%……」
+				PRINTFORML 「はぁ……はいはい、時間切れね」
+				PRINTFORMW 「ここでやることないでしょ……わたしの気も知らないで」
+			ELSE
+				PRINTFORML 
+			ENDIF
 			RETURN 1
 		ENDIF
 	ENDIF
 	;-------------------------------------------------
-	;非在住TARGETがMAIN_MAPで休憩
+	;来訪キャラが拠点で休憩（～は疲れ切っている→ちょっと休んでいきなよ）
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 8
-		PRINTFORMW 
+		IF CFLAG:318 == 1
+			PRINTFORML 
+		ELSEIF TCVAR:泥酔 == 1
+			PRINTFORML 
+		ELSEIF TCVAR:105:351 >= 4
+			TCVAR:105:351 = 1
+			PRINTFORML 
+		ELSEIF TCVAR:媚薬 || TCVAR:発情
+			PRINTFORML 
+		ELSEIF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「え、いいの？」
+			PRINTFORMW 「ありがと……うん、わざわざ来た甲斐があったわ」
+			PRINTFORMW 「あ、本気で疲れてるから……すぐ寝ちゃうからね、よろしく」
+		ELSE
+			PRINTFORML 
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
-	;前のターンから一緒の部屋にいる状態で相手が寝る（お招き部屋含む（
+	;寝室に居る状態でその場で寝る（～は眠気に負け、眠りについた…）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 9
+		IF CFLAG:うふふ
+			IF CFLAG:318 == 1
+				PRINTFORML 
+			ELSEIF TCVAR:泥酔 == 1
+				PRINTFORML 
+			ELSEIF TCVAR:105:351 >= 4
+				PRINTFORML 「はぁっ、はぁっ……うふふふふ、もっと……もっとぉ……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「……あっ、あぇ？　な、なに……なんか、ぐにゃぐにゃに……」
+				PRINTFORML
+				PRINTFORMW 「う゛っ」
+				PRINTFORMW 「お゛っ、え゛ぇぇ……げほっ、げぼっ……」
+				CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+				CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+				TCVAR:105:351 = 1
+				SETCOLOR 0xFFDDEE
+				PRINTFORML 
+				PRINTFORML 「わ……わた、し……何を……」
+				PRINTFORMW 「ごっ、ごめんなさい……なんか、気分が……ぁ」 
+				PRINTFORMDW マイは消耗しているようだ……
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「ダメだ、眠すぎる……」
+				PRINTFORMW 「んん……続きは……また、今度で」
+				PRINTFORMW 「おやすみ……」
+			ELSE
+				PRINTFORML 
+			ENDIF
+		ELSE
+			IF CFLAG:318 == 1
+				PRINTFORML 
+			ELSEIF TCVAR:泥酔 == 1
+				PRINTFORML 
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「ん……ふぁ」
+				PRINTFORMW 「寝よ……なんか用あったら起こして」
+			ELSE
+				PRINTFORML 
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;拠点外で自宅前に居るキャラが自室に帰って寝る（眠くなった～は自室に帰って行きました）
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 0
 	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 9
+	IF LOCAL:1 && ARG == 10
 		PRINTFORMW 
 		RETURN 1
 	ENDIF
-	;その他
 ENDIF
 RETURN 1
 
@@ -912,12 +1167,12 @@ IF LOCAL
 		ELSEIF TALENT:恋慕
 			PRINTFORML 「%CALLNAME:MASTER%」
 			PRINTFORML 「……%UNICODE(0x2665) *1%」
-			PRINTFORMW マイは小さく手を振っている。
+			PRINTFORMDW マイは小さく手を振っている。
 		ELSE
 			PRINTFORML 「……」
 				SIF TALENT:思慕
 					PRINTFORML （あ、%CALLNAME:MASTER%……えーと、方角と時刻は……）
-			PRINTFORMW マイは小さくお辞儀をしている。
+			PRINTFORMDW マイは小さくお辞儀をしている。
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -1166,6 +1421,8 @@ IF LOCAL
 	IF LOCAL:1 && ARG:1 == 1
 		IF TCVAR:泥酔 == 1
 			PRINTFORML 
+		ELSEIF TCVAR:105:351 >= 4
+			PRINTFORML 
 		ELSEIF TALENT:恋人
 			PRINTFORMW 「……ふん」
 			PRINTFORMW 「いいから、わたしの方を見て」
@@ -1190,6 +1447,9 @@ IF LOCAL
 	IF LOCAL:1 && ARG:1 == 2
 		IF TCVAR:泥酔 == 1
 			PRINTFORML 
+		ELSEIF TCVAR:105:351 >= 4
+			PRINTFORML 「あぁ、だれ……？　まぁ、いいかぁ……%UNICODE(0x2665) *1%」
+			PRINTFORMW 「いっしょに、きもちよくなろ……ふふ、ふふふふ……%UNICODE(0x2665) *1%」
 		ELSEIF TALENT:恋人
 			PRINTFORMW 「えっ、うそでしょ！？」
 			PRINTFORMW 「ちょっと、%CALLNAME:MASTER%も何か言ってやって……」
@@ -1214,6 +1474,10 @@ IF LOCAL
 	IF LOCAL:1 && ARG:1 == 3
 		IF TCVAR:泥酔 == 1
 			PRINTFORML 
+		ELSEIF TCVAR:105:351 >= 4
+			PRINTFORML 
+			PRINTFORML 「……？　どうしたのぉ、%CALLNAME:MASTER%……%UNICODE(0x2665) *1%」
+			PRINTFORMW 「ほらっ、つづき……もっと、せっくすぅ……%UNICODE(0x2665) *1%」
 		ELSEIF TALENT:恋人
 			PRINTFORML 
 			PRINTFORML 「ふむ」
@@ -1265,7 +1529,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG:1 == 1
 		IF TALENT:恋人 || TALENT:恋慕
-			PRINTFORML 「これは……どう見てもパンツね」
+			PRINTFORML 「これは……どう見ても他人のパンツね」
 			PRINTFORMW 「ふむ、リアクションに困るなぁ」
 			PRINTFORML 
 			PRINTFORML 「……まぁ、言い逃れできないし……どこで手に入れたにせよ、さっさとしまった方が良いね」
@@ -1362,16 +1626,54 @@ IF LOCAL
 	;-------------------------------------------------
 	;なだめられた（終了時）
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 		;-------------------------------------------------
 		;抜け出した
 		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 0
+		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1 && !ARG:1
-			PRINTFORML
+			IF TCVAR:媚薬 || TCVAR:発情
+				IF TCVAR:105:351 >= 4
+					PRINTFORML 「そんなぁ、%CALLNAME:MASTER%……わたしぃ、まだ……ぁ、れ……」
+					PRINTFORMW 「なんか……まわり、が……あ、あ、ぁ……」
+					PRINTFORML 「…………」
+					PRINTFORML 
+					PRINTFORMW 「う゛っ」
+					PRINTFORMW 「お゛っ、え゛ぇぇ……げほっ、げぼっ……」
+					CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+					CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+					TCVAR:105:351 = 1
+					SETCOLOR 0xFFDDEE
+					PRINTFORML 
+					PRINTFORML 「わ……わた、し……何を……」
+					PRINTFORMW 「ごっ、ごめんなさい……なんか、気分が……ぁ」 
+					PRINTFORMDW マイは消耗しているようだ……
+				ELSEIF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「どうしても、イヤなら……仕方ない、ね……」
+					PRINTFORML 「う、う……でも、わたし……まだ……」
+					PRINTFORMW 「……%CALLNAME:MASTER%……」
+				ELSE
+					PRINTFORML 「そ、そう……ここまでなの」
+					PRINTFORMW 「……うう、どうしよう……身体、が……」
+				ENDIF
+			ELSE
+				IF TALENT:恋人
+					PRINTFORML 「え……そう、駄目なんだ」
+					PRINTFORMW 「まぁ、%CALLNAME:MASTER%が嫌なら……無理強いはしないわ」
+					PRINTFORMW 「……ちょっと、寂しいけど」
+				ELSEIF TALENT:恋慕
+					PRINTFORMW 「なんだ……ちょっと、冷たいんじゃない？　わたしには、もう飽きちゃった？」
+					IF TALENT:MASTER:恋人
+						PRINTFORML 「……それとも、大事な恋人の顔でも浮かんだかな……ふふ」
+						PRINTFORMW 「それなら……まぁ、立派だと思うけど」
+					ENDIF
+				ELSE
+					PRINTFORML 
+				ENDIF
+			ENDIF
 			RETURN 1
 		ENDIF
 		;-------------------------------------------------
@@ -1405,7 +1707,10 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 1
-			IF TALENT:恋人 || TALENT:恋慕
+			IF TCVAR:105:351 >= 4
+				PRINTFORML 「ぅふふふ、もうどこにもいかせない……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「まだまだ、もっと、もっとぉ……%UNICODE(0x2665) *1%」
+			ELSEIF TALENT:恋人 || TALENT:恋慕
 				PRINTFORML 「もちろん、ダメ%UNICODE(0x2665) *1%　逃がしてあげない」
 				PRINTFORML 「つらそうな%CALLNAME:MASTER%も、今は……ふふふふっ%UNICODE(0x2665) *1%」
 				PRINTFORMW 「もっといろんな顔見せて……%CALLNAME:MASTER%……%UNICODE(0x2665) *1%」
@@ -1422,7 +1727,10 @@ IF LOCAL
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 2
 			IF TCVAR:媚薬 || TCVAR:発情
-				IF TALENT:恋人 || TALENT:恋慕
+				IF TCVAR:105:351 >= 4
+					PRINTFORML 「ぅふふふ、もうどこにもいかせない……%UNICODE(0x2665) *1%」
+					PRINTFORMW 「まだまだ、もっと、もっとぉ……%UNICODE(0x2665) *1%」
+				ELSEIF TALENT:恋人 || TALENT:恋慕
 					PRINTFORML 「待っ、て……%CALLNAME:MASTER%、もう少し……ごめん、ごめんね」
 					PRINTFORML 「でも……わたし、苦しくて……%CALLNAME:MASTER%じゃないと、治まらないの」
 					PRINTFORMW 「人助けだと思って……ね、身体、使わせて……%UNICODE(0x2665) *1%」
@@ -1780,6 +2088,12 @@ LOCAL = 0
 IF LOCAL
 	;-------------------------------------------------
 	;持っていた食物を食べられた
+	;TCVAR:盗み食い抑制で持っていた食物を食われるのを回避できる
+	;仕様例（薬が入ってたら食わない）
+	;IF DISH_DRG
+	;	TCVAR:盗み食い抑制 = 1
+	;ENDIF
+
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 0
 	;-------------------------------------------------
@@ -1827,6 +2141,28 @@ IF LOCAL
 		ELSEIF TCVAR:泥酔 == 1
 			PRINTFORML 「はーっ、はーっ……んぅー……」
 			PRINTFORMW 「……%UNICODE(0x2665) *1%」
+		ELSEIF TCVAR:媚薬 || TCVAR:発情
+			IF TCVAR:105:351 >= 4
+				PRINTFORML 「はぁっ、はぁっ……うふふふふ、もっと……もっとぉ……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「……あっ、あぇ？　な、なに……なんか、ぐにゃぐにゃに……」
+				PRINTFORML
+				PRINTFORMW 「う゛っ」
+				PRINTFORMW 「お゛っ、え゛ぇぇ……げほっ、げぼっ……」
+				CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+				CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+				TCVAR:105:351 = 1
+				SETCOLOR 0xFFDDEE
+				PRINTFORML 
+				PRINTFORML 「わ……わた、し……何を……」
+				PRINTFORMW 「ごっ、ごめんなさい……なんか、気分が……ぁ」 
+				PRINTFORMDW マイは消耗しているようだ……
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「はぁ、はぁ……%UNICODE(0x2665) *1%　もう、終わり……？」
+				PRINTFORMW 「そっか……ねぇ、%CALLNAME:MASTER%……もう少し、一緒にいてくれる……？」
+			ELSE
+				PRINTFORML 「そう……%CALLNAME:MASTER%は、もう満足ってこと」
+				PRINTFORMW 「……わたし、は……」
+			ENDIF
 		ELSEIF TALENT:恋人
 			PRINTFORML 「ふーっ、おつかれ%UNICODE(0x2665) *1%」
 			PRINTFORML 「ふふ、良かったよ」
@@ -1868,6 +2204,8 @@ IF LOCAL
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 1
 			IF TCVAR:泥酔 == 1
+				PRINTFORML 
+			ELSEIF TCVAR:媚薬
 				PRINTFORML 
 			ELSEIF TALENT:恋人 || TALENT:恋慕
 				PRINTFORML 「ちょっと……収まらないじゃん、精液」
@@ -2238,8 +2576,22 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
-			IF TALENT:恋人
-			PRINTFORMW 「まだ、二人でいいと思ってるんだけど」
+		IF TCVAR:媚薬 || TCVAR:発情
+			IF TCVAR:105:351 >= 4
+				PRINTFORMW 「あは……%UNICODE(0x2665) *1%　なませっくすぅ……%UNICODE(0x2665) *1%　なか出しぃ……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「中出し……は、あかちゃん……%UNICODE(0x2665) *1%　……？　あかちゃんだめ、やだ……」
+				PRINTFORMW 「そうっ、ひにん……避妊、しないと……」
+				PRINTFORMDW 妊娠への抵抗感から、マイは正気に戻りかけているようだ……
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「生ぁ……わたしも、欲しい……%UNICODE(0x2665) *1%」
+				PRINTFORML 「……ぁ、違う……ダメなんだった」
+				PRINTFORMW 「冷静にっ、ならないと……%CALLNAME:MASTER%も、落ち着いて考えて……」
+			ELSE
+				PRINTFORML 「は、はやく……いれ……」
+				PRINTFORMW 「っ、待っ……避妊は、その……してね」
+			ENDIF
+		ELSEIF TALENT:恋人
+			PRINTFORMW 「まだ、二人きりでいいと思ってるんだけど」
 		ELSEIF TALENT:恋慕
 			PRINTFORMW 「う～ん」
 			PRINTFORMW 「できちゃうのは困るわ」
@@ -2254,7 +2606,22 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
-		IF TALENT:恋人
+		IF TCVAR:媚薬 || TCVAR:発情
+			IF TCVAR:105:351 >= 4
+				PRINTFORML 「……や、だ……やめな、きゃ……」
+				PRINTFORML 
+				PRINTFORMDL マイは冷静さを取り戻しつつある……
+				PRINTFORMDW これ以上粘ると面倒事になるかもしれない……
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「や、やめてよ……こんな時に粘ってこないで」
+				PRINTFORML 「はぁっ……%UNICODE(0x2665) *1%　何でもいいから、適当に避妊して」
+				PRINTFORMW 「それで、早く続きを……おねがい」
+			ELSE
+				PRINTFORML 「生だと、もっときもちいい……？」
+				PRINTFORML 「…………」
+				PRINTFORMW 「でも、我慢しないと……やめて」
+			ENDIF
+		ELSEIF TALENT:恋人
 			PRINTFORMW 「%CALLNAME:MASTER%」
 			PRINTFORMW 「ちょっと冷静になって」
 		ELSEIF TALENT:恋慕
@@ -2270,7 +2637,28 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
-		IF TALENT:恋人
+		IF TCVAR:媚薬 || TCVAR:発情
+			IF TCVAR:105:351 >= 4
+				PRINTFORML 「は、離れて……っ、ぅぐ……あたま、痛い……」
+				PRINTFORML 「はぁっ、はぁっ、はぁっ……」
+				PRINTFORML 「……ぐ……」
+				CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+				CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+				TCVAR:105:351 = 1
+				SETCOLOR 0xFFDDEE
+				PRINTFORML 
+				PRINTFORML 「わ……わた、し……何を……」
+				PRINTFORMW 「ごっ、ごめんなさい……なんか、気分が……ぁ」 
+				PRINTFORMDW マイは消耗しているようだ……
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「このっ……わたしが我慢できないと思って、調子に乗ってるでしょ」
+				PRINTFORML 「舐めないで……このくらい、自分でもなんとかできるんだから」
+				PRINTFORMW 「はーっ、はーっ……」
+			ELSE
+				PRINTFORML 「しつこいわ……」
+				PRINTFORMW 「……お互い、我慢ね」
+			ENDIF
+		ELSEIF TALENT:恋人
 			PRINTFORMW 「結構しつこいね」
 			PRINTFORMW 「そろそろ怒るから」
 		ELSEIF TALENT:恋慕
@@ -2286,7 +2674,23 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 4
-			IF TALENT:恋人
+		IF TCVAR:媚薬 || TCVAR:発情
+			IF TCVAR:105:351 >= 4
+				PRINTFORMW 「…………」
+				PRINTFORMW 「…………%UNICODE(0x2665) *1%」
+				PRINTFORML 「なま、せっくすぅ……%UNICODE(0x2665) *1%　せいえきほしい……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「ふふふふふ、へへ……はやくぅ%UNICODE(0x2665) *1%」
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORMW 「う、ぅ……わたしだって、生でしたい……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「それに、今日は……多分大丈夫……」
+				PRINTFORMW 「…………」
+				PRINTFORMW 「良いや、やっちゃって……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「そのかわり、いっぱい気持ちよくして……%UNICODE(0x2665) *1%」
+			ELSE
+				PRINTFORML 「もう、わかったから……はやく……っ」
+				PRINTFORMW 「多分、大丈夫な日だし……」
+			ENDIF
+		ELSEIF TALENT:恋人
 			PRINTFORMW 「ふふ、じゃあ危険日以外はオッケーにしようか」
 			PRINTFORMW 「その次はこれからの%CALLNAME:MASTER%次第……%UNICODE(0x2665) *1%」
 			PRINTFORMW 「口説き落としてみて」
@@ -2306,7 +2710,24 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 5
-		IF TALENT:恋人
+		IF TCVAR:媚薬 || TCVAR:発情
+			IF TCVAR:105:351 >= 4
+				PRINTFORMW 「…………」
+				PRINTFORMW 「…………%UNICODE(0x2665) *1%」
+				PRINTFORML 「なま、せっくすぅ……%UNICODE(0x2665) *1%　せいえきほしい……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「ふふふふふ、へへ……はやくぅ%UNICODE(0x2665) *1%」
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORMW 「今日は、本当にヤバいの……」
+				PRINTFORMW 「……でも、きもちいいよね……絶対……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「わたしも、我慢なんてできない……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「…………」
+				PRINTFORMW 「ふふ……もう、後のことなんてどうでもいいや」
+				PRINTFORMW 「はやく、精液ちょうだい……ぐちゃぐちゃに犯して……%UNICODE(0x2665) *1%」
+			ELSE
+				PRINTFORML 「……好きにしたら良いわ」
+				PRINTFORMW 「ふ、ふふ……%UNICODE(0x2665) *1%　精液……中出し……%UNICODE(0x2665) *1%」
+			ENDIF
+		ELSEIF TALENT:恋人
 			PRINTFORML 「%CALLNAME:MASTER%……%UNICODE(0x2665) *1%」
 			PRINTFORMW 「いいよ、解禁！」
 			PRINTFORML 「子供……子供か……」
@@ -2353,6 +2774,15 @@ IF LOCAL
 		PRINTFORML
 		RETURN 1
 	ENDIF
+	;-------------------------------------------------
+	;あなたの私室変更により同居
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML
+		RETURN 1
+	ENDIF
 ENDIF
 RETURN 1
 ;==================================================
@@ -2372,24 +2802,65 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
-		IF CFLAG:318 == 1
-			PRINTFORML 「…………」
-			PRINTFORMDW マイはこちらをちらりとも見ずに帰っていった。
-		ELSEIF TCVAR:泥酔 == 1
-			PRINTFORML 
-		ELSEIF TALENT:恋人
-			PRINTFORML 「そろそろ帰らないと」
-			PRINTFORML 「じゃーね、また！」
-			PRINTFORMDW マイはそう言いながら%CALLNAME:MASTER%をポンと叩き、帰っていった。
-		ELSEIF TALENT:恋慕
-			PRINTFORML 「わたし、もう帰るね」
-			PRINTFORMW 「また会いましょう……%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
-		ELSEIF TALENT:思慕
-			PRINTFORML 「……それじゃあ」
-			PRINTFORMDW マイは少し名残惜しそうに去っていった。
+		IF CFLAG:うふふ
+		;うふふ中に眠くて帰る
+			IF TCVAR:泥酔 == 1
+				PRINTFORML 
+			ELSEIF TCVAR:媚薬 || TCVAR:発情
+				IF TCVAR:105:351 >= 4
+					PRINTFORML
+					PRINTFORMW 「……う゛っ」
+					PRINTFORMW 「お゛っ、え゛ぇぇ……げほっ、げぼっ……」
+					CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+					CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+					TCVAR:105:351 = 1
+					SETCOLOR 0xFFDDEE
+					PRINTFORML 
+					PRINTFORML 「わ……わた、し……何を……」
+					PRINTFORMW 「いっ、一旦……帰る、わ……ごめん……」
+				ELSEIF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「……っ、わたし……なにか、おかしいわ……」
+					PRINTFORMW 「そろそろやめておかないと、まずいかも……」
+					PRINTFORMW 「ごめんね、%CALLNAME:MASTER%……」
+				ELSE
+					PRINTFORML 「……っ、わたし……なにか、おかしいわ……」
+					PRINTFORMW 「そろそろやめておかないと、まずい…」
+				ENDIF
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「あ……ごめん、寝ちゃいそう……眠い」
+				PRINTFORMW 「途中で悪いんだけど……ちょっと用もあるから、帰るわ」
+				PRINTFORML 「あの、嫌になったわけじゃないからね」
+				PRINTFORMW 「また今度、埋め合わせさせて」
+				PRINTFORMW 「……それじゃあ、またね」
+				PRINTFORML 
+				PRINTFORMW （あ～あ、勿体ないことしたわ……）
+			ELSE 
+				PRINTFORML 「…………ん、ぅ……」
+				PRINTFORML 「ん……もう帰るわ……眠い」
+				PRINTFORMW 「それじゃ」
+					SIF TALENT:思慕
+						PRINTFORMW （さすがに、ちょっと悪いことしたかな……でも、眠かったし）
+			ENDIF
 		ELSE
-			PRINTFORMW 「…………」
-			PRINTFORMDW マイはクルリと振り返り、帰っていった。
+			IF CFLAG:318 == 1
+				PRINTFORML 「…………」
+				PRINTFORMDW マイはこちらをちらりとも見ずに帰っていった。
+			ELSEIF TCVAR:泥酔 == 1
+				PRINTFORML 
+			ELSEIF TALENT:恋人
+				PRINTFORML 「そろそろ帰らないと」
+				PRINTFORML 「じゃーね、また！」
+				PRINTFORMDW マイはそう言いながら%CALLNAME:MASTER%をポンと叩き、帰っていった。
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「わたし、もう帰るね」
+				PRINTFORMW 「また会いましょう……%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
+			ELSEIF TALENT:思慕
+				PRINTFORML 「……それじゃあ」
+				PRINTFORMDW マイは少し名残惜しそうに去っていった。
+			ELSE
+				PRINTFORMW 「…………」
+				PRINTFORMDW マイはクルリと振り返り、帰っていった。
+			ENDIF
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -2399,56 +2870,312 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
-		IF TCVAR:泥酔 == 1
-			PRINTFORML 
-		ELSEIF TALENT:恋人
-			PRINTFORML 「あっ、帰るんだった」
-			PRINTFORMW 「あんたとはこれ以上付き合ってられないわ、さよなら！」
-			PRINTFORML 「……なんてね」
-			PRINTFORMW 「また、デートしようね」
-		ELSEIF TALENT:恋慕
-			PRINTFORML 「……その、ちょっと用があるんだよね」
-			PRINTFORMW 「また、誘ってね」
-			PRINTFORMDW そう言うとマイは振り返り、帰っていった。
-		ELSEIF TALENT:思慕
-			PRINTFORMW 「……もう、帰るね」
-			PRINTFORMDW マイはそう言って帰っていった。
+		IF CFLAG:うふふ
+			IF TCVAR:泥酔 == 1
+				PRINTFORML 
+			ELSEIF TCVAR:媚薬 || TCVAR:発情
+				IF TCVAR:105:351 >= 4
+					PRINTFORML
+					PRINTFORMW 「……う゛っ」
+					PRINTFORMW 「お゛っ、え゛ぇぇ……げほっ、げぼっ……」
+					CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+					CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+					TCVAR:105:351 = 1
+					SETCOLOR 0xFFDDEE
+					PRINTFORML 
+					PRINTFORML 「わ……わた、し……何を……」
+					PRINTFORMW 「いっ、一旦……帰る、わ……ごめん……」
+				ELSEIF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「……っ、わたし……なにか、おかしいわ……」
+					PRINTFORMW 「そろそろやめておかないと、まずいかも……」
+					PRINTFORMW 「ごめんね、%CALLNAME:MASTER%……」
+				ELSE
+					PRINTFORML 「……っ、わたし……なにか、おかしいわ……」
+					PRINTFORMW 「そろそろやめておかないと、まずい…」
+				ENDIF
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「あ……ごめん、寝ちゃいそう……眠い」
+				PRINTFORMW 「途中で悪いんだけど……ちょっと用もあるから、帰るわ」
+				PRINTFORML 「あの、嫌になったわけじゃないからね」
+				PRINTFORMW 「また今度、埋め合わせさせて」
+				PRINTFORMW 「……それじゃあ、またね」
+				PRINTFORML 
+				PRINTFORMW （あ～あ、勿体ないことしたわ……）
+			ELSE 
+				PRINTFORML 「…………ん、ぅ……」
+				PRINTFORML 「ん……もう帰るわ……眠い」
+				PRINTFORMW 「それじゃ」
+					SIF TALENT:思慕
+						PRINTFORMW （さすがに、ちょっと悪いことしたかな……でも、眠かったし）
+			ENDIF
 		ELSE
-			PRINTFORMW 「…………この辺で、ちょっと」
-			PRINTFORMDW マイはスッと離れ、帰っていった。
+			IF TCVAR:泥酔 == 1
+				PRINTFORML 
+			ELSEIF TALENT:恋人
+				PRINTFORML 「あっ、帰るんだった」
+				PRINTFORMW 「あんたとはこれ以上付き合ってられないわ、さよなら！」
+				PRINTFORML 「……なんてね」
+				PRINTFORMW 「また、デートしようね」
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「……その、ちょっと用があるんだよね」
+				PRINTFORMW 「また、誘ってね」
+				PRINTFORMDW そう言うとマイは振り返り、帰っていった。
+			ELSEIF TALENT:思慕
+				PRINTFORMW 「……もう、帰るね」
+				PRINTFORMDW マイはそう言って帰っていった。
+			ELSE
+				PRINTFORMW 「…………この辺で、ちょっと」
+				PRINTFORMDW マイはスッと離れ、帰っていった。
+			ENDIF
 		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
-	;玄関先でお見送り
+	;玄関先でお見送り（キャラの自宅位置、またはキャラの部屋でデート終了）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;デート終了時に部屋に来ないかと誘う（～から部屋に来ないかと誘われた）
+	;（来訪キャラのみ,自宅が無いキャラでも発生します）
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
 	;-------------------------------------------------
-	IF LOCAL:1 && ARG == 3
-		IF CFLAG:318 == 1
-			PRINTFORML 「……いいって」
-			PRINTFORML 「それじゃ」
-			PRINTFORMDW マイはぷいっと振り返り、帰っていった。
-		ELSEIF TCVAR:泥酔 == 1
+	IF LOCAL:1 && ARG == 4
+		IF TCVAR:泥酔 == 1
 			PRINTFORML 
-		ELSEIF TALENT:恋人
-			PRINTFORML 「律義だね」
-			PRINTFORML 「もう、好感度は十分じゃない？」
-			PRINTFORMW 「それとも、もっと好きになってほしいの？」
-			PRINTFORML 「ふふっ、じゃあね」
-			PRINTFORMDW マイは嬉しそうに帰っていった。
-		ELSEIF TALENT:恋慕
-			PRINTFORML 「わ、見送り」
-			PRINTFORML 「大変だね、気配り」
-			PRINTFORMW 「勉強になるわ……」
-			PRINTFORMDW マイはウンウンと頷きながら帰っていった。
-		ELSEIF TALENT:思慕
-			PRINTFORML 「……ここでいいよ」
-			PRINTFORML 「それじゃあ……」
-			PRINTFORMDW マイは挨拶をすると、帰っていった。
+		ELSEIF TCVAR:媚薬 || TCVAR:発情
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「%CALLNAME:MASTER%……まだ、帰っちゃダメぇ……」
+				PRINTFORMW 「とにかく、わたしの部屋に来て……ねぇ、良いでしょ……？」
+				PRINTFORMDW マイの様子がおかしい……顔は紅潮し、息も荒いようだ。
+			ELSE
+				PRINTFORML 「……これで、終わり……？」
+				PRINTFORMW 「それじゃあ、困るわ……」
+				PRINTFORML 「…………」
+				PRINTFORMW 「少し、わたしの部屋に寄っていかない……？」
+				PRINTFORMW 「……%UNICODE(0x2665) *1%」
+				PRINTFORMDW マイの様子がおかしい……顔は紅潮し、息も荒いようだ。
+			ENDIF
+		ELSEIF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「え、もう帰っちゃうの？」
+			PRINTFORMW 「えーっと……まだ、一緒に居たくて」
+			PRINTFORML 「とりあえず、うちに来ない？」
+			PRINTFORMW 「忙しいなら、仕方ないけど……できれば、もうちょっとだけ」
+		ELSE 
+			PRINTFORML 「……あ……待って」
+			PRINTFORML 「ちょっと、わたしの部屋に……その……」
+			PRINTFORMW 「……来ても、良いけど」
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;部屋に来ないか→「行く」を選択（～に誘われるまま、【MASTER】は【TARGET】の部屋へと向かった……）
+	;（これが発生すると十中八九押し倒されます）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		IF TCVAR:泥酔 == 1
+			PRINTFORML 
+		ELSEIF TCVAR:媚薬 || TCVAR:発情
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「来てくれるんだ……良かったぁ……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「あのまま放っておかれたら、わたし……」
+				PRINTFORML 「ふふ、%CALLNAME:MASTER%……%UNICODE(0x2665) *1%　今日はとことん付き合ってもらうからね……%UNICODE(0x2665) *1%」
+			ELSE
+				PRINTFORML 「素直……そう、それで良いわ」
+				PRINTFORMW 「ふふふふ……%UNICODE(0x2665) *1%」
+				PRINTFORML 
+				PRINTFORMW 「逃がさないから……%UNICODE(0x2665) *1%」
+			ENDIF
+		ELSEIF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「よかった、来てくれるんだ」
+			PRINTFORML 「なんか最近、一人でいると寂しくなるようになって」
+			PRINTFORML 「%CALLNAME:MASTER%のせいだね、多分」
+			PRINTFORMW 「まあ、とりあえず……もうしばらく、よろしくね%UNICODE(0x2665) *1%」
+		ELSE 
+			PRINTFORML 「そう、来るのね……」
+			PRINTFORML 「……%UNICODE(0x2665) *1%」
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;部屋に来ないか→「やめとく」を選択（～は心なしか寂しそうだ……）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		IF TCVAR:泥酔 == 1
+			PRINTFORML 
+		ELSEIF TCVAR:媚薬 || TCVAR:発情
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「だ、ダメ……？　そんな」
+				PRINTFORMW 「でも、わたし……身体が、疼いて……どうしたらいいの」
+				PRINTFORML 「ねえ、%CALLNAME:MASTER%……っ%UNICODE(0x2665) *1%」
+				PRINTFORML 「はぁ、はぁ……いや、そうだね……わたしも少し、冷静に、ならないと」
+				PRINTFORMW 「気にしないで良いわ……じゃあ、またね」
+			ELSE
+				PRINTFORML 「……そう……」
+				PRINTFORMW 「じゃあ、自分で何とかしないとダメね」
+				PRINTFORML 「……え？　いや、なんでもないわ……」
+				PRINTFORMW 「それじゃあ」
+			ENDIF
+		ELSEIF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「なんだ、つれないね……まあ、良いけど」
+			PRINTFORMW 「また行こうね、デート」
+		ELSE 
+			PRINTFORML 「……そう……」
+			PRINTFORMW 「……じゃあ、今日は終わりね」
+				SIF TALENT:思慕
+					PRINTFORMW （一緒に居たかったのは、わたしだけか……なんか惨めね）
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;今夜は帰りたくないと言い出す（～は今夜は帰りたくないと言い出した…）
+	;（来訪キャラの帰宅時に欲求不満と欲望が高いと発生）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		IF TCVAR:泥酔 == 1
+			PRINTFORML 
+		ELSEIF TCVAR:媚薬 || TCVAR:発情
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「そろそろ帰る頃合い……でも」
+				PRINTFORMW 「……ダメだ、我慢できないぃ……%UNICODE(0x2665) *1%」
+				PRINTFORML 「ねぇっ、%CALLNAME:MASTER%……今日、泊まっていって良い……？」
+				PRINTFORMW 「なんか、身体が……今から帰るなんて、無理……お願い」
+				PRINTFORMDW マイの様子がおかしい……顔は紅潮し、息も荒いようだ。
+			ELSE
+				PRINTFORMW 「……このままじゃ、マズいわ……%UNICODE(0x2665) *1%」
+				PRINTFORML 「あの……できれば、今日泊めて欲しいんだけど」
+				PRINTFORMW 「ちょっと、気分が……その、変で」 
+				PRINTFORMDW マイの様子がおかしい……顔は紅潮し、息も荒いようだ。
+			ENDIF
+		ELSEIF TALENT:恋人 || TALENT:恋慕
+			PRINTFORMW 「もう、こんな時間か……はぁ」
+			PRINTFORML 「ねぇ、%CALLNAME:MASTER%……このあと、暇？」
+			PRINTFORMW 「良かったら、泊めてほしくて」
+			PRINTFORMW 「あー……もうちょっと、その……一緒に居たいの」
+		ELSE 
+			PRINTFORML 「……%CALLNAME:MASTER%……泊めてもらっていい？」
+			PRINTFORMW 「えーと……その、帰るのが面倒で……」
+				SIF TALENT:思慕
+					PRINTFORMW （はぁ……何言ってんだろ、わたし……ここで素直になれれば楽なのにね）
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;今夜は帰りたくない→「泊める」を選択（～は【MASTERの自室】に泊まっていくことになりました）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 8
+		IF TCVAR:泥酔 == 1
+			PRINTFORML 
+		ELSEIF TCVAR:媚薬 || TCVAR:発情
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「ありがとう……助かるわ……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「お礼に、わたしの身体……好きに使っていいからね」
+				PRINTFORMW 「ふふ……%CALLNAME:MASTER%も、そのつもりでしょ？　さぁ、はやくぅ……%UNICODE(0x2665) *1%」
+			ELSE
+				PRINTFORML 「良いのね……ふふ……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「じゃあ、今夜は……お願い」
+			ENDIF
+		ELSEIF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「あ、良いの？　ふふっ、やった%UNICODE(0x2665) *1%」
+			PRINTFORMW 「このまま住みついちゃおっかな……なんて」
+			PRINTFORMW 「いや、結構本気だよ」
+		ELSE 
+			PRINTFORML 「……良いの？　そう、なんだ……じゃあ、よろしく」
+			PRINTFORMW 「……%UNICODE(0x2665) *1%」
+				SIF TALENT:思慕
+					PRINTFORMW （……このあとも、期待していいのかな） 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;今夜は帰りたくない→「泊めない」を選択、または家主が居る（【MASTER】は丁重に断った）
+	;（家主が居る＝MASTERの私室に他のキャラの私室を設定している）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 9
+		IF TCVAR:泥酔 == 1
+			PRINTFORML 
+		ELSEIF TCVAR:媚薬 || TCVAR:発情
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「だ、ダメ……？　そんな」
+				PRINTFORMW 「でも、わたし……身体が、疼いて……どうしたらいいの」
+				PRINTFORML 「ねえ、%CALLNAME:MASTER%……っ%UNICODE(0x2665) *1%」
+				PRINTFORML 「……はぁ、はぁ……いや、そうだね……わたしも少し、冷静に、ならないと」
+				PRINTFORMW 「気にしないで良いわ……じゃあ、またね」
+			ELSE
+				PRINTFORML 「……そう……」
+				PRINTFORMW 「じゃあ、自分で何とかしないとダメね」
+				PRINTFORML 「……え？　いや、なんでもないわ……」
+				PRINTFORMW 「それじゃあ」
+			ENDIF
+		ELSEIF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「あれ、忙しかった？　……それとも、見られたくないものがあるとか」
+			PRINTFORML 「まあ……突然だったし、無理ならしょうがないね」
+			PRINTFORMW 「じゃあ、またの機会に」
+		ELSE 
+			PRINTFORML 「そんなに畏まらなくていいわ……ちょっとした気まぐれだから」
+			PRINTFORMW 「じゃあ……さようなら」
+				SIF TALENT:思慕
+					PRINTFORMW （あーあ、やっぱり素直にお願いしたほうがよかったかな……いや、それでもダメだったかも）
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;疲れて帰宅（疲れきった～は帰って行きました）
+	;（～は疲れ切っている→（入り口）まで送るよ でも発生）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 10
+		IF CFLAG:うふふ
+			IF TCVAR:泥酔 == 1
+				PRINTFORML 
+			ELSEIF TCVAR:媚薬 || TCVAR:発情
+				IF TCVAR:105:351 >= 4
+					PRINTFORML
+					PRINTFORMW 「……う゛っ」
+					PRINTFORMW 「お゛っ、え゛ぇぇ……げほっ、げぼっ……」
+					CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+					CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+					TCVAR:105:351 = 1
+					SETCOLOR 0xFFDDEE
+					PRINTFORML 
+					PRINTFORML 「わ……わた、し……何を……」
+					PRINTFORMW 「いっ、一旦……帰る、わ……ごめん……」
+				ELSEIF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「……っ、わたし……なにか、おかしいわ……」
+					PRINTFORMW 「そろそろやめておかないと、まずいかも……」
+					PRINTFORMW 「ごめんね、%CALLNAME:MASTER%……」
+				ELSE
+					PRINTFORML 「……っ、わたし……なにか、おかしいわ……」
+					PRINTFORMW 「そろそろやめておかないと、まずい…」
+				ENDIF
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「こ、これ以上は限界……帰って休むわ」
+				PRINTFORMW 「はぁ、情けないわ……ごめんなさい、%CALLNAME:MASTER%」
+				PRINTFORMW 「次は、もっと体力つけておくから……それじゃあね」
+			ELSE
+				PRINTFORML 「……もう、疲れて……限界……」
+				PRINTFORMW 「ごめんなさい、これで失礼するわ……」
+					SIF TALENT:思慕
+						PRINTFORMW （ハードだわ、セックス……競技人口のわりに）
+			ENDIF
 		ELSE
-			PRINTFORML 「…………」
-			PRINTFORMDW マイはクルリと振り返り、帰っていった。
+			PRINTFORML 
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -2472,23 +3199,23 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
 		PRINTFORML 
-		PRINTFORMW マイは部屋で一人騒いでいる……
+		PRINTFORMDW マイは部屋で一人騒いでいる……
 		PRINTFORML 「あーっ、やっちゃった！」
 		PRINTFORMW 「のめり込みすぎたわ……」
 		PRINTFORML 
-		PRINTFORML 一旦夢中になると歯止めが効かなくなるのが悪い癖だ。
+		PRINTFORMDL 一旦夢中になると歯止めが効かなくなるのが悪い癖だ。
 		PRINTFORML 「%CALLNAME:MASTER%……」
 		PRINTFORML 「わたしのことも、見て欲しい……」
-		PRINTFORMW 見切りをつけるはずだったのに……深みに嵌ってしまった。
+		PRINTFORMDW よく観察して、見切りをつけるはずだったのに……深みに嵌ってしまった。
 		PRINTFORML
-		PRINTFORML だが、気づいてしまった以上やることは一つ。
+		PRINTFORMDL だが、気づいてしまった以上やることは一つ。
 		PRINTFORML 「わたしが好きなんだから、%CALLNAME:MASTER%にも好きになってもらわないと……」
 		PRINTFORMW 「収まり、つかないよね」
 		PRINTFORMW 「問題は……」
-		PRINTFORML %CALLNAME:MASTER%に見せてきた、よそ行きの自分。
-		PRINTFORMW これは、"わたし"じゃない。
-		PRINTFORMW わたしのままで、一緒にいたい――
-		PRINTFORMW わたしのことを、愛して欲しい。
+		PRINTFORMDL %CALLNAME:MASTER%に見せてきた、よそ行きの自分。
+		PRINTFORMDW これは、"わたし"じゃない。
+		PRINTFORMDW わたしのままで、一緒にいたい――
+		PRINTFORMDW わたしのことを、愛して欲しい。
 		PRINTFORML 
 		PRINTFORMW 「うわっつらのわたしはもはや足手まといよ」
 		PRINTFORMW 「これからは、本気で……」
@@ -2504,19 +3231,22 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 		PRINTFORML 
-		PRINTFORMW マイは部屋で一人思索に耽っている……
+		PRINTFORMDW マイは部屋で一人思索に耽っている……
+		PRINTFORML 
 		PRINTFORML 「%CALLNAME:MASTER%……」
 		PRINTFORML 「変なやつ」
-		PRINTFORML ――今まで、他者にさほど興味が無かった。
-		PRINTFORML 交流は魔法のためだったり、生活のためだったり……自分が必要な時に、必要な分だけ。
-		PRINTFORML その利用価値に興味があっても、個人そのものに対して特別な感情は無かった。
-		PRINTFORMW だが、この気持ちは……まさか――
+		PRINTFORMDL ――今まで、他者にさほど興味が無かった。
+		PRINTFORMDL 交流は魔法のためだったり、生活のためだったり……自分が必要な時に、必要な分だけ。
+		PRINTFORMDL その利用価値に興味があっても、個人そのものに対して特別な感情は無かった。
+		PRINTFORMDW だが、この気持ちは……まさか――
 		PRINTFORML 
 		PRINTFORML 「いやいや、ちょっと思うところがあっただけで、飛躍しすぎでしょ」
 		PRINTFORMW 「変わった人だから、ちょっとした探求心、みたいな……」
-		PRINTFORML だから、よく観察しなくては。
-		PRINTFORML %CALLNAME:MASTER%の人となりをよく知れば、きっと大したことないやつ。
-		PRINTFORMW それが分かれば、おしまい。
+		PRINTFORML 
+		PRINTFORMDL だから、よく観察しなくては。
+		PRINTFORMDL %CALLNAME:MASTER%の人となりをよく知れば、きっと大したことないやつ。
+		PRINTFORMDW それが分かれば、おしまい。
+		PRINTFORML 
 		PRINTFORMW 「そう、%CALLNAME:MASTER%のことを……」
 		PRINTFORMW 「じっくりと……見て……」
 		PRINTFORMW 「……一緒に、出掛けたり……」
@@ -2536,8 +3266,8 @@ IF LOCAL
 		PRINTFORML 「うーっ、足りない……」
 		PRINTFORML 「もっと、したい……」
 		PRINTFORMW 「%CALLNAME:MASTER%……%UNICODE(0x2665) *1%」
-		PRINTFORML とにかく、愛して欲しい……
-		PRINTFORMW どう、思われても。
+		PRINTFORMDL とにかく、愛して欲しい……
+		PRINTFORMDW どう、思われても。
 		PRINTFORMW 「なんなのよ、あの巧さは……%UNICODE(0x2665) *1%」
 		PRINTFORML 
 		RETURN 1
@@ -2562,6 +3292,42 @@ IF LOCAL
 		PRINTFORMW （なんか、変に慣れてきたなぁ）
 		PRINTFORMW 「まあ、こういうのも……アリなのかな」
 		PRINTFORML 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;キス魔取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;自慰狂い取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;ポルチオ性感取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 8
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;おもらし癖取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 9
+		PRINTFORML
 		RETURN 1
 	ENDIF
 ENDIF
@@ -2988,17 +3754,42 @@ IF LOCAL
 		CASE 5
 		;事後
 		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 0
+		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「ん、ぅ……%UNICODE(0x2665) *1%　……はぁ、軽くオナニーするだけのつもりだったのに」
+				PRINTFORMW 「良いんだけどね、こっちの方が気持ちいいし……」
+				PRINTFORMW 「急だったからビックリしたけど……来てくれて、嬉しかったわ」
+				PRINTFORML 
+				PRINTFORMW 「……さて、今日はこのあとどうするの？」
+			ELSE
+				PRINTFORML 「っ……ぅ、あ……%UNICODE(0x2665) *1%」
+				PRINTFORML 「……確かに……欲求不満、だったけど」
+				PRINTFORMW 「もう……や、やりすぎ……%UNICODE(0x2665) *1%」
+			ENDIF
 			RETURN 1
 		ENDIF
 		;-------------------------------------------------
 		CASE 6
 		;事後お泊り
 		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 0
+		LOCAL:1 = 1
 		;-------------------------------------------------
+		IF LOCAL:1
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「え、泊まってくって……ずっといてくれるの？」
+				PRINTFORMW 「どうしたの、今日……ずいぶんサービス良いじゃん」
+				PRINTFORMW 「……あ、まさか……まだやり足りないとか？」
+				PRINTFORMW 「ふふ、こっちはそれこそオナニーするくらいしか用事無かったから……何でも好きにして良いよ%UNICODE(0x2665) *1%」
+			ELSE
+				PRINTFORML 「……泊まってく……」
+				PRINTFORMW 「まぁ、なんにも無いけど……くつろいでいったら」
+				PRINTFORML 
+				PRINTFORMW 「……そんなに物欲しそうにしてたかな……わたし」
+			ENDIF
+			RETURN 1
+		ENDIF
 	ENDSELECT
 ENDIF
 
@@ -3188,7 +3979,11 @@ IF LOCAL
 				LOCAL:1 = 1
 				;-------------------------------------------------
 				IF LOCAL:1
-					IF TALENT:恋人 || TALENT:恋慕
+					IF TCVAR:泥酔 == 1
+						PRINTFORML 
+					ELSEIF TCVAR:媚薬 || TCVAR:発情
+						PRINTFORML 
+					ELSEIF TALENT:恋人 || TALENT:恋慕
 						PRINTFORML 「パンツが欲しいって……じゃ、交換だね」
 						PRINTFORMW 「え、使い道？　それは、お互い秘密の方が良いんじゃない」
 					ELSE
@@ -3204,7 +3999,11 @@ IF LOCAL
 				LOCAL:1 = 1
 				;-------------------------------------------------
 				IF LOCAL:1
-					IF TALENT:恋人 || TALENT:恋慕
+					IF TCVAR:泥酔 == 1
+						PRINTFORML 
+					ELSEIF TCVAR:媚薬 || TCVAR:発情
+						PRINTFORML 
+					ELSEIF TALENT:恋人 || TALENT:恋慕
 						PRINTFORML 「良いよ……どうせ、わたしの全部%CALLNAME:MASTER%にあげちゃうんだから」
 						PRINTFORMW 「いまさら、下着くらい」
 					ELSE
@@ -3220,7 +4019,11 @@ IF LOCAL
 				LOCAL:1 = 1
 				;-------------------------------------------------
 				IF LOCAL:1
-					IF TALENT:恋人 || TALENT:恋慕
+					IF TCVAR:泥酔 == 1
+						PRINTFORML 
+					ELSEIF TCVAR:媚薬 || TCVAR:発情
+						PRINTFORML 
+					ELSEIF TALENT:恋人 || TALENT:恋慕
 						PRINTFORML 「良いよ……どうせ、わたしの全部%CALLNAME:MASTER%にあげちゃうんだから」
 						PRINTFORMW 「いまさら、下着くらい」
 					ELSE
@@ -3236,7 +4039,11 @@ IF LOCAL
 				LOCAL:1 = 1
 				;-------------------------------------------------
 				IF LOCAL:1
-					IF TALENT:恋人 || TALENT:恋慕
+					IF TCVAR:泥酔 == 1
+						PRINTFORML 
+					ELSEIF TCVAR:媚薬 || TCVAR:発情
+						PRINTFORML 
+					ELSEIF TALENT:恋人 || TALENT:恋慕
 						PRINTFORML 「なっ……これからって時に、なんてこと言い出すの」
 						PRINTFORMW 「バカなこと言ってないで……はい、続き」
 					ELSE
@@ -3260,7 +4067,7 @@ RETURN 1
 ;ARGはTARGETの度胸で分岐
 ;--------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------
 IF LOCAL
 	;-------------------------------------------------
@@ -3268,9 +4075,26 @@ IF LOCAL
 	;-------------------------------------------------
 	;怒らせてしまった
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
+		IF TCVAR:泥酔 == 1
+			PRINTFORML 
+		ELSEIF TCVAR:媚薬 || TCVAR:発情
+			IF TCVAR:105:351 >= 4
+				TCVAR:105:351 = 1
+				PRINTFORML 
+				PRINTFORMDW マイは激しい怒りで正気を取り戻した！
+			ELSEIF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 
+			ELSE
+				PRINTFORML 
+			ENDIF
+		ELSEIF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 
+		ELSE 
+			PRINTFORML 
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -3301,7 +4125,15 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
 	;疲れた
-		IF TALENT:恋人 || TALENT:恋慕
+		IF TCVAR:泥酔 == 1
+			PRINTFORML 
+		ELSEIF TCVAR:105:351 >= 4
+			PRINTFORML 「はぁっ、はぁっ、はぁっ、はぁっ、…………」
+			PRINTFORMW 「……ぁ、あ……？」
+			TCVAR:105:351 = 1
+			PRINTFORML 
+			PRINTFORMDW 体力の限界だったのか、マイは倒れてしまった……
+		ELSEIF TALENT:恋人 || TALENT:恋慕
 			PRINTFORML 「はっ、はぁ……一旦、やめ……疲れたわ」
 			PRINTFORMW 「%CALLNAME:MASTER%、まだまだいける？　……じゃあ、もったいないことしちゃったかな」
 		ELSE
@@ -3316,7 +4148,23 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 	;満足して解放
-		IF TALENT:恋人 || TALENT:恋慕
+		IF TCVAR:泥酔 == 1
+			PRINTFORML 
+		ELSEIF TCVAR:105:351 >= 4
+			PRINTFORML 「ふふ、ふふふ……あぁ……きもち、よかったぁ……%UNICODE(0x2665) *1%」
+			PRINTFORMW 「あははは……ぇへ……」
+			PRINTFORML 
+			PRINTFORML 「あ、ぁ……？」
+			PRINTFORMW 「……う゛っ」
+			PRINTFORMW 「お゛っ、え゛ぇぇ……げほっ、げぼっ……」
+			CALL RECOVER(TARGET,-500 * TCVAR:105:351, "体力")
+			CALL RECOVER(TARGET,-500 * TCVAR:105:351, "気力")
+			TCVAR:105:351 = 1
+			PRINTFORML 
+			PRINTFORML 「わ……わた、し……何を……」
+			PRINTFORMW 「ごっ、ごめんなさい……なんか、気分が……ぁ」 
+			PRINTFORMDW マイは消耗しているようだ……
+		ELSEIF TALENT:恋人 || TALENT:恋慕
 			PRINTFORML 「はぁっ、満足……%UNICODE(0x2665) *1%　ありがと、%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
 			PRINTFORMW 「まぁ、でも……また、すぐにお願いしちゃうかもね%UNICODE(0x2665) *1%」
 		ELSE
@@ -3331,7 +4179,12 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
 	;満足したところを押し倒された
-		IF TALENT:恋人 || TALENT:恋慕
+		IF TCVAR:泥酔 == 1
+			PRINTFORML 
+		ELSEIF TCVAR:105:351 >= 4
+			PRINTFORML 「！　……ぇへへへ、もっとしたいの……？」
+			PRINTFORMW 「わたしもぉ……%UNICODE(0x2665) *1%　もっと、ほしい……%UNICODE(0x2665) *1%　ずっと、ずっと……ふふふふ……」
+		ELSEIF TALENT:恋人 || TALENT:恋慕
 			PRINTFORML 「っと、まだしたい？　……うん、もちろん良いよ」
 			PRINTFORMW 「どうぞ、気の済むまで……好きに使って%UNICODE(0x2665) *1%」
 		ELSE
@@ -3346,7 +4199,13 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 4
 	;壊れるまでしてあげる
-		IF TALENT:恋人 || TALENT:恋慕
+		IF TCVAR:泥酔 == 1
+			PRINTFORML 
+		ELSEIF TCVAR:105:351 >= 4
+			PRINTFORMW 「こわれるまで……」
+			PRINTFORMW 「……壊す、壊す……ふふふ……うん……%UNICODE(0x2665) *1%」
+			PRINTFORMW 「あははは……いっしょに、こわれようねぇ……%UNICODE(0x2665) *1%」
+		ELSEIF TALENT:恋人 || TALENT:恋慕
 			PRINTFORML 「良いの？　じゃあ、遠慮しないけど……逃がさないよ」
 			PRINTFORML 「大丈夫……最低限、加減はするから」
 			PRINTFORMW 「ほんとに壊れちゃったら困るしね、ふふ……%UNICODE(0x2665) *1%」
@@ -3393,6 +4252,466 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 0
 		RETURN 1
 	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;自由行動中
+;ARG:1      0=行動中,1=完了時
+;技能系の行動は技能レベルが1以上なら発生
+;==================================================
+@M_KOJO_EVENT_K105_32(ARG,ARG:1)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	SELECTCASE ARG
+	CASE 0
+		;▼考え事,（～は考えに耽っている。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 1
+		;▼遊ぶ,（～は走り回っている。）
+		;※[幼稚]持ちのみ
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 2
+		;▼食事,（～は食事を摂っている。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 3
+		;▼つまみ食い（～はこっそりつまみ食いをしている。）
+		;※[妖精]持ちとルーミア、こいし、幽々子、紫苑のみ
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 4
+		;▼掃除,（～はテキパキと部屋の掃除をしている。）
+		;※[掃除係]持ちまたは汚臭耐性-1以下のみ
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 5
+		;▼運動,（～は張り切って運動している。）
+		;※[音楽知識]持ちは除く（演奏になる）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 6
+		;▼読書,（～は黙々と本を読んでいる。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 7
+		;▼料理,
+		IF !ARG:1
+			;行動中
+			IF Activity_Duration:TARGET > 30
+				;料理中（～は軽快に料理をしている。）
+				PRINTFORML 
+			ELSE
+				;食事中（～は作った料理を食べている。）
+				PRINTFORML 
+			ENDIF
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 8
+		;▼演奏
+		;※[音楽知識]持ちのみ（TALENT:音楽知識で変化）
+		;1,～は小気味よく演奏している。
+		;2,～は気ままに歌っている。
+		;3,～は華麗に踊っている。
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 9
+		;▼採集,（～使える素材を探している。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 10
+		;▼釣り,（～はのんびり釣りをしている。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 11
+		;▼実験,（～は怪しい実験をしている。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 12
+		;▼のんびり,（～はのんびりしている。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 13
+		;▼晩酌,（～はまったりとお酒を飲んでいる。）
+		;※酒耐性0以上のみ
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 14
+		;▼買い物,（～は気ままに買い物している。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 15
+		;▼説教,（～はじっと聞いている…）
+		;※神霊・蓬莱人は除く
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 16
+		;▼落とし穴,（～は落とし穴を増やしている）
+		;※三月精・チルノ・クラウンピースのみ
+		;それ以外は落ちる側
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時,
+			;（仕掛け人（失敗時）,誰も引っかからないので～は飽きてしまったようだ…）
+			;（落ちた側（戦闘能力2～4）,～はすぐに穴から飛び出して周りをキョロキョロ見回している…）
+			PRINTFORML 
+		ENDIF
+	CASE 17
+		;▼雪だるま作り
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+
+;==================================================
+;ハッピーニューイヤー
+;年越しの瞬間に同じ部屋に居ると発生
+;==================================================
+@M_KOJO_EVENT_K105_33(ARG,ARG:1)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	IF TALENT:恋人 || TALENT:恋慕
+		PRINTFORML 「ああ、日付が……あけましておめでとう」
+		PRINTFORMW 「まあ……年が明けたからって、何が変わるってんでもないけど」
+		PRINTFORMW 「今年も一年、よろしくね……%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
+	ELSE
+		PRINTFORML 「……？　……ああ、年が……」
+		PRINTFORMW 「……あけましておめでとうございます」
+			SIF TALENT:思慕
+				PRINTFORMW （%CALLNAME:MASTER%と年越しか……この関係も、1年でどう変わっていくのやら）
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;技能レベルアップ
+;各ABL値はレベルアップ後の値になってます
+;==================================================
+@M_KOJO_EVENT_K105_34(ARG,ARG:1)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	SELECTCASE ARG
+	CASE 1
+		;戦闘技能
+		PRINTFORMW 
+	CASE 2
+		;話術技能
+		PRINTFORMW 
+	CASE 3
+		;清掃技能
+		PRINTFORMW 
+	CASE 4
+		;教養
+		PRINTFORMW 
+	CASE 5
+		;料理技能
+		PRINTFORMW 
+	CASE 6
+		;採集Lv
+		PRINTFORMW 
+	CASE 7
+		IF ARG:1 == 0
+			;音楽技能
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【音楽知識】取得
+			PRINTFORMW 
+		ELSEIF ARG:1 == 2
+			;【相対音感】取得
+			PRINTFORMW 
+		ENDIF
+	CASE 8
+		;釣りLv
+		PRINTFORMW 
+	CASE 9
+		IF ARG:1 == 0
+			;調合Lv
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【調合知識】取得
+			PRINTFORMW 
+		ENDIF
+	CASE 10
+		;伐採Lv
+		PRINTFORMW 
+	CASE 11
+		IF ARG:1 == 0
+			;指
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【器用な指】取得
+			PRINTFORMW 
+		ENDIF
+	CASE 12
+		IF ARG:1 == 0
+			;舌
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【舌使い】取得
+			PRINTFORMW 
+		ENDIF
+	CASE 13
+		IF ARG:1 == 0
+			;胸
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【淫乳】取得
+			PRINTFORMW 
+		ENDIF
+	CASE 14
+		;腰
+		PRINTFORMW 
+	CASE 15
+		IF ARG:1 == 0
+			;膣
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【淫壺】取得
+			PRINTFORMW 
+		ENDIF
+	CASE 16
+		IF ARG:1 == 0
+			;アナル
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【尻穴狂い】取得
+			PRINTFORMW 
+		ENDIF
+	ENDSELECT
+	PRINTL 
+ENDIF
+RETURN 1
+
+;==================================================
+;デイリーイベント2,夢精
+;親密5以上で発生（来訪キャラのみ）
+;▼地の文--------------------------------------------------
+;【MASTER】が夢精で汚した下着を洗っていると【TARGET】が飛んできた！
+;【TARGET】はそんなもの他の洗濯物と一緒に洗わないでと抗議すると、【MASTER】の手に収まった下着をふんだくり戻っていった…
+;【TARGET】　欲情の珠＋1000
+;==================================================
+@M_KOJO_DAILY_EVENT_K105_2(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+;地の文を変えたければコメントアウト
+;※コメントアウトすると欲情の珠＋1000（JUEL:11 += 1000）もカットされるので注意
+CALL DAILY_MESSAGE_2(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	IF TALENT:恋人 || TALENT:恋慕
+		PRINTFORMW 「ふぅっ、まったく……何考えてるんだか！　こんなものを」
+		PRINTFORMW 「……こんなものを……」
+		PRINTFORMW 「持ってきちゃったわ……何考えてるんだろう、わたし……」
+		PRINTFORML 
+		PRINTFORMW 「でも、なんか……これ……ふふふふ……%UNICODE(0x2665) *1%」
+		PRINTFORMW 「……いや、なんか変態っぽいかも……人に見られたりする前に、さっさと片づけよ……」
+	ELSE
+		PRINTFORML 「……貰ってきちゃった……」
+		PRINTFORMW 「うーん、折角だし……何かに使えるかな」
+		PRINTFORMW 「いや、無いわ……何してんだろ、わたし」
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;デイリーイベント4,物思い
+;濃厚精液状態で発生
+;▼地の文--------------------------------------------------
+;とりとめもない思考に耽っていた【TARGET】は、いつの間にか【MASTER】のことを考えていたことに気づいた
+;【TARGET】は明日【MASTER】に会いに行くことにしたようだ
+;==================================================
+@M_KOJO_DAILY_EVENT_K105_4(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+;地の文を変えたければコメントアウト
+CALL DAILY_MESSAGE_4(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	IF TALENT:恋人 || TALENT:恋慕
+		PRINTFORML 「……こんなとき、%CALLNAME:MASTER%なら……ふふ、%CALLNAME:MASTER%……%UNICODE(0x2665) *1%」
+		PRINTFORML 「……ああっ、考えがまとまらなくなった！　もうっ」
+		PRINTFORML 「うう、一度浮かんだらダメだなぁ……よし、明日会いに行っちゃおう」
+		PRINTFORML 「無駄足にならないと良いけど……あいつ、変に色んなとこ行くからなぁ」
+		PRINTFORMW 「わたしのことだけ見てくれればいいのに……」
+	ELSE
+		PRINTFORML 「……%CALLNAME:MASTER%……んん、なんで%CALLNAME:MASTER%のことを」
+		PRINTFORMW 「試しに会ってみるかな……まぁ、特に意味があるとも思えないけど」
+		SIF TALENT:思慕
+		PRINTFORMW 「でも……ちょっと楽しみだったりして……なんか、そろそろ言い訳できなくなってきたかもね……」
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;デイリーイベント12,特訓
+;信頼100以上で発生（拠点キャラのみ）
+;==================================================
+@M_KOJO_DAILY_EVENT_K105_12(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+;地の文を変えたければコメントアウト
+;コメントアウトできるのはARG:1=1,2のみです
+CALL DAILY_MESSAGE_12(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	SELECTCASE ARG:1
+	CASE 1
+		;特訓を頼まれる
+		;～から新技の訓練に付き合って欲しいと言われた
+		IF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「ちゃんと形になってないんだけど、ちょっと試してみたいことがあるの」
+			PRINTFORML 「客観的な意見が欲しくてさ……それに%CALLNAME:MASTER%なら、普通とは違う視点で見てくれそうな気がして」
+		ELSE
+			PRINTFORML 「あぁ、%CALLNAME:MASTER%……少し、頼みたいことがあって」
+			PRINTFORML 「たぶん、%CALLNAME:MASTER%くらいがちょうどいいの……」
+		ENDIF
+	CASE 2
+		;断る
+		;～は残念そうだ
+		IF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「なんだ、ダメ？」
+			PRINTFORML 「じゃあ、%CALLNAME:MASTER%へのお披露目は完成してからだね」
+		ELSE
+			PRINTFORML 「あ、そう……なら、いいわ」
+			PRINTFORML 「他をあたってみるから……」
+				SIF TALENT:思慕
+					PRINTFORML （ユキの奴にお願いするのは癪だし……どうしよっかな）
+		ENDIF
+	CASE 3
+		;～の攻撃！
+		;※ここはWAITしないでください
+		PRINTFORML 
+	CASE 4
+		IF ARG:2
+			;時間停止して回避
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「っ……出た、変な移動」
+				PRINTFORML 「それさぁ、まさか……うーん、そんなわけないか」
+			ELSE
+				PRINTFORML 「……？　どうやったの、今の」
+				PRINTFORML 「まぁ、いいか……？」
+					SIF TALENT:思慕
+						PRINTFORML （%CALLNAME:MASTER%が、たまにやってる移動だわ……あれは、一体……）
+			ENDIF
+		ELSE
+			;回避成功
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「そんな、初見であっさり……やっぱり微妙かなぁ」
+				PRINTFORML 「ねぇっ、どんな風にしたらいいと思う？　折角だから一緒に考えて欲しいんだけど」
+			ELSE
+				PRINTFORML 「……ダメ、か」
+				PRINTFORML 「考え直しかな……」
+			ENDIF
+		ENDIF
+	CASE 5
+		;回避失敗
+		IF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「やったっ……じゃない、ごめん！　大丈夫？」
+			PRINTFORML 「いやまぁ、避け難かったなら技としては成功なんだけど……」
+		ELSE
+			PRINTFORML 「あ……ふむ、悪くないのかな……」
+			PRINTFORML 「……大丈夫？」
+		ENDIF
+	ENDSELECT
 ENDIF
 RETURN 1
 

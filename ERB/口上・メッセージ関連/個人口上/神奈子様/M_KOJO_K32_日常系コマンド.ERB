@@ -1551,6 +1551,16 @@ CALL TRAIN_MESSAGE
 CALL M_KOJO_MESSAGE_COM_K32_356_1
 RETURN RESULT
 
+@M_KOJO_MESSAGE_COM_K32_356_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
 ;==================================================
 ;360,身を任せる
 ;TCVAR:20(27=谷間を見せる 32=前から抱きつく 35=スカートの中を見せる 53=パイズリ 73=ぱふぱふ 77=乳を吸わせる 85=Ｖ挿入する 86=だいしゅきホールド 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ
@@ -1567,6 +1577,7 @@ LOCAL = 0
 ;-------------------------------------------------
 IF LOCAL
 
+	PRINTFORML 「もっと委ねなさい……」
 ENDIF
 RETURN 1
 ;==================================================
@@ -1584,6 +1595,8 @@ RETURN RESULT
 LOCAL = 0
 ;-------------------------------------------------
 IF LOCAL
+
+	PRINTFORML 「暴れても無駄だぞ！」
 
 ENDIF
 RETURN 1
@@ -1607,9 +1620,30 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K32_363_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
+;神奈子様幼稚持ってないけど一応書いておくか……
 IF LOCAL
+	PRINTFORML %CALLNAME:MASTER%は神奈子に読み聞かせをしてあげる事にした。
+	SELECTCASE RAND:3
+		CASE 0
+		;諏訪の甲賀三郎の伝説
+			PRINTFORML 「――そして、三郎の腕の中には維縵姫が安らかに眠っているのでした。」
+		;アンデルセンの逸話
+		CASE 1
+			PRINTFORML 「――それからと言うもの、ハンスの枕元には死んでませんと言うメモが置かれているのでした。」
+		;テンプレートな海外の童話
+		CASE 2
+			PRINTFORML 「――と言う事で、白馬の王子様はお姫様と幸せに暮らしましたとさ……。」
+	ENDSELECT
+	PRINTFORML 
+	IF TFLAG:193 == -1
+		PRINTFORML 「つまんなーい！　ねえーほかのー！」
+	ELSEIF TFLAG:193 == 0
+		PRINTFORML 「ほかのもほかのも！」
+	ELSE
+		PRINTFORML 「もっともっとよんでー！」
+	ENDIF
 
 ENDIF
 RETURN 1
@@ -1642,10 +1676,23 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K32_365_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-
+;	IF TALENT:恋慕
+;			PRINTFORML 「守矢に行きたい？　良いわよ、しっかり捕まってなさい。」
+;			PRINTFORML %CALLNAME:MASTER%はどさくさに紛れて体を思う存分揉みさすった。
+;			PRINTFORML 「もう、仕方ないわね……。」
+;		ELSEIF TALENT:思慕
+;			PRINTFORML 「守矢に行きたい？　しょうがないわね。」
+;			PRINTFORML 「途中で次元の裂け目に落ちないようにしっかり捕まってるのよ？」
+;			PRINTFORML %CALLNAME:MASTER%はおっかなびっくりで神奈子にしがみついた！
+;		ELESE
+			PRINTFORML 「分社じゃなくて守矢の本山で参拝したい？」
+				;守矢ワープって博麗神社から限定だよね？
+			PRINTFORML 「信者の求めには答えてやるか。ほれ、手を握って付いてきなさい。」
+			PRINTFORML %CALLNAME:MASTER%は守矢にワープした！
+;	ENDIF
 ENDIF
 RETURN 1
 ;==================================================
@@ -1723,11 +1770,34 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K32_410_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
-IF LOCAL
-	IF FLAG:70
-	ELSE
+IF LOCAL && !FLAG:70
+	IF FLAG:時間停止
+		PRINTFORML %CALLNAME:MASTER%は時を止めて掃除をするついでに神奈子の様子を見た。
+			PRINTFORML いいお尻をしている……。
+	ELSEIF CFLAG:TARGET:睡眠
+		PRINTFORML %CALLNAME:MASTER%は神奈子が眠っている横で起こさない様に静かに掃除を始めた。
+		PRINTFORMW 神奈子はスヤスヤと穏やかな寝息を立てている。
+	ELSEIF TFLAG:193 == 1
+		;汚れ高
+		IF TFLAG:194 == 3
+				PRINTFORML 「掃除ね、まっかせなさい。意外と家庭的なところを見せたげるわ。」
+				PRINTFORML 自分で意外と言うくらいには自覚があるらしい……。
+				PRINTFORML 「今何か不埒な事考えなかった？」
+		;汚れ中
+		ELSEIF TFLAG:194 == 2
+						PRINTFORML 「掃除する？」
+						PRINTFORML 「まあ私がいるという事は神域も同然だし、綺麗にする分には構わないけど……。」
+						PRINTFORML %CALLNAME:MASTER%は神奈子を半ば無視しつつ掃除を始めた。
+		;あまり汚れていない
+		ELSE
+					PRINTFORML 「え？　掃除？　まだしなくてもいいんじゃない？」
+					PRINTFORML 「物好きね……」
+		ENDIF
+	ELSEIF TFLAG:193 == 0
+		PRINTFORML 「掃除ね、精進しなさい。」
+		PRINTFORMW 神奈子は%CALLNAME:MASTER%の頭を撫でて来た。手伝う気はない様だ……。
 	ENDIF
 ENDIF
 RETURN 1
@@ -1748,6 +1818,7 @@ LOCAL = 0
 IF LOCAL
 
 ENDIF
+
 RETURN 1
 ;==================================================
 ;412,勉強
