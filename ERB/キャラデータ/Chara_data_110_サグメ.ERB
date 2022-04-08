@@ -1,73 +1,51 @@
-﻿@CHARAMOVE_DATA_110(ARG,ARG:2)
+﻿@CHARAMOVE_DATA_110(ARG, ARG:2)
 LOCAL = 110
 SELECTCASE ARG
-	;移動対象メンバーチェック
+	;連動設定（RETURN=依存するキャラ, RESULT:1～3=対等に連動するキャラ）
 	CASE 1
-	;移動確率
-	CASE 2
-	;起床時間帯
+	;特殊生活時間設定（CFLAG:LOCAL:生活時間補正を設定する）
 	CASE 3
-		RETURN 睡眠時間(LOCAL)
-	;移動傾向
+	;移動傾向（±～10=行きやすい/行きにくい, -100=行かない）
 	CASE 4
 		SELECTCASE ARG:2
-			;ひとんちの風呂とかトイレにはいかない
-			CASE 12, 13, 14, 18, 30, 35, 39, 40, 43, 44, 51, 52
-				RETURN -100
-			;私室には入らない
-			CASE 15, 17, 19, 53, 55
-				SIF FLAG:住み込みキャラ != LOCAL
-					RETURN -100
 			;夢幻館には行かない
-			CASE 450
-				RETURN -10
-			CASE 450 TO 466
+			CASE P450玄関 TO P466庭
 				RETURN -100
 			;他人の家には入らない
-			CASE 432, 437, 439, 440, 442, 443, 445
-				RETURN -100
-			;物置,倉庫,地下室は行かない
-			CASE 424, 427, 430
+			CASE P432影狼の家, P437メディスンの家, P439ラルバの家, P443ミスティアの家, P445妹紅の家
 				RETURN -100
 			;縁側,居間によく居る
-			CASE 409, 416
+			CASE P409縁側, P416居間
 				RETURN 5
+
 			;静かの海の方へは行かない
-			CASE 1016, 1060 TO 1072
+			CASE P1016入り江, P1060純狐邸・玄関 TO P1072ヘカーティア私室
 				RETURN -100
-			;空き家には行かない
-			CASE 1007
+			;ドレミー宅には行かない
+			CASE P1050ドレミー宅・居間 TO P1055ドレミー宅・トイレ
 				RETURN -100
 			;詰め所、食料庫は行かない
-			CASE 1023 TO 1025, 1028
+			CASE P1023門番詰め所 TO P1025玉兎詰め所, P1028食料庫
 				RETURN -100
 			;玉兎街方面はあまり行かない
-			CASE 1003, 1004, 1010 TO 1013
-				RETURN -5
-			;月の都によく居る
-			CASE 1002
+			CASE P1003玉兎街, P1004広場, P1010食事処 TO P1013八百屋
 				RETURN 5
-		ENDSELECT
-	;仕事時間帯
-	CASE 5
-	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
-	CASE 6
-		SELECTCASE ARG:2
-			CASE 10
-				RETURN 1
-			CASEELSE
-				RETURN 0
+			;月の都によく居る
+			CASE P1002月の都
+				RETURN 5
 		ENDSELECT
 	;出現場所
 	CASE 7
 		SELECTCASE ARG:2
-			CASE 101, 105 TO 108
+			CASE 槐安通路, 月の都, 綿月亭, 玉兎の街, 桃林～砂浜
 				RETURN 1
-			CASEELSE
-				RETURN 0
+			CASE 永遠亭, 永遠亭奥ノ院
+				RETURN 1
 		ENDSELECT
+	;引力設定（CFLAG:LOCAL:引力点を設定する）
+	CASE 8
 ENDSELECT
-;FileName_MOVEMENT.ERB ----------------------------- Rev1.00
+
 @EXIST_キャラデータ110
 #LOCALSIZE 1
 #LOCALSSIZE 1

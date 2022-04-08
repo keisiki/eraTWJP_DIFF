@@ -1,65 +1,177 @@
 ﻿;--------------------------------------------------
-;	マップ内移動処理拡張パッチ付属
-;	命蓮寺MAP用関数
+;地点名変更関数
 ;--------------------------------------------------
 @MAP_PLACENAME_8(ARG)
 #FUNCTIONS
-
 IF GET_MAPID(ARG) == MAIN_MAP
 	SELECTCASE ARG
-		CASE 1 TO (MAXROOM - 1)
+		CASE P823空室
+			IF CFLAG:MASTER:初期位置 == ARG
+				RETURNF CALLNAME:MASTER + "私室"
+			ELSE
+				RETURNF "空室"
+			ENDIF
+		CASE SUMIKOMI_ROOM
+			;※このマップでは未実装
+			IF FLAG:住み込みキャラ
+				RETURNF CALLNAME:(FLAG:住み込みキャラ) + "の部屋"
+			ELSE
+				RETURNF "空き部屋"
+			ENDIF
+		CASE MINROOM() TO (MAXROOM - 1)
 			RETURNF STR:(ARG + 8000)
-		CASE 898
+		CASE OMANEKIBEYA()
 			RETURNF OMANEKI_PLACE()
-		CASE 899
+		CASE SUKIMA()
 			RETURNF "スキマ空間"
 		CASE MAXROOM
-			RETURNF "道の向こう"
+			RETURNF "山の麓"
 		CASEELSE
 			RETURNF "不明"
 	ENDSELECT
 ELSE
-	RETURNF "不明"
+	RETURNF "山頂の外"
 ENDIF
 
-@MAP_VIEWING_8(AA,COLOR)
-#DIMS REF AA, 0
-#DIMS REF COLOR, 0
-IF !TFLAG:マップ切り替え
-	SELECTCASE CFLAG:MASTER:現在位置
-		CASE 830, 832, 833
-			TFLAG:マップ切り替え = 3
-		CASE 811 TO 826
-			TFLAG:マップ切り替え = 2
-		CASE 831, 834 TO 842
-			TFLAG:マップ切り替え = 4
-		CASEELSE
-			TFLAG:マップ切り替え = 1
-	ENDSELECT
-ENDIF
-CALL DRAW_INFORMATIONLINE(@"%MAPNAME:(TFLAG:マップ切り替え)%")
-PRINTFORML 
-IF RECOLOREDMAPS
-TRYCCALLFORM COLOREDMAP_SUMMIT_{TFLAG:マップ切り替え}(AA,COLOR)
-CATCH
-RECOLOREDMAPS = 0
-CALL DRAW_MAP
-RECOLOREDMAPS = 1
-RETURN
-ENDCATCH
-ELSE
-TRYCALLFORM MAP_SUMMIT_{TFLAG:マップ切り替え}(AA)
-ENDIF
-
-@MAP_CAN_MOVE_8(ARG, ARG:1)
+;--------------------------------------------------
+;場所ARGがどのエリアにあるか
+;表示するマップの番号と連動（TFLAG:マップ切り替え）
+;ARG     場所ID
+;--------------------------------------------------
+@MAP_AREASELECT_8(ARG)
 #FUNCTION
-RETURNF 1
-
-
-@MAP_CANNOT_WORD_8(ARG)
-SELECTCASE TFLAG:移動不能メッセージ
+SELECTCASE ARG
+	;天界
+	CASE P830玄雲海, P832有頂天街, P833桃園
+		RETURNF 3
+	;守矢神社
+	CASE P811境内 TO P826廊下
+		RETURNF 2
+	;比那名居邸
+	CASE P831比那名居邸前, P834比那名居邸土間 TO P842比那名居邸物置
+		RETURNF 4
+	;妖怪の山・山頂
+	CASEELSE
+		RETURNF 1
 ENDSELECT
 
+;--------------------------------------------------
+;内部構造がある場所の内部の判定
+;TFLAG:マップ切り替え  内部察知が必要なマップ番号
+;                P_ID  表示ボタンの場所ID
+;                Q_ID  判定する内部の場所ID,必ずP_IDと一致した数値も含める
+;--------------------------------------------------
+@GETMAP_BUILDING_8(P_ID, Q_ID)
+#FUNCTION
+#DIM P_ID
+#DIM Q_ID
+IF TFLAG:マップ切り替え == 1
+	SELECTCASE P_ID
+		;天界
+		CASE P830玄雲海
+			SELECTCASE Q_ID
+			CASE P830玄雲海 TO P842比那名居邸物置
+				RETURNF 1
+			ENDSELECT
+		;守矢神社
+		CASE P811境内
+			SELECTCASE Q_ID
+			CASE P811境内 TO P826廊下
+				RETURNF 1
+			ENDSELECT
+	ENDSELECT
+ELSEIF TFLAG:マップ切り替え == 3
+	SELECTCASE P_ID
+		;比那名居邸
+		CASE P831比那名居邸前
+			SELECTCASE Q_ID
+			CASE P831比那名居邸前, P834比那名居邸土間 TO P842比那名居邸物置
+				RETURNF 1
+			ENDSELECT
+	ENDSELECT
+ENDIF
+RETURNF 0
+
+;--------------------------------------------------
+;移動制限設定
+;ARG    場所ID
+;CHARA  移動するキャラID
+;RETURNF 1=移動できる,0=移動できない
+;TFLAG:移動不能メッセージ   ↓の@MAP_CANNOT_WORD用の設定
+;--------------------------------------------------
+@MAP_CAN_MOVE_8(ARG, CHARA)
+#FUNCTION
+#DIM CHARA
+SELECTCASE ARG
+	;誰かが住んでないと入れない
+	CASE P823空室
+		IF !PRIVATEROOM:(ARG % 100) && CFLAG:MASTER:初期位置 != ARG
+			TFLAG:移動不能メッセージ = 999
+			RETURNF 0
+		ENDIF
+ENDSELECT
+RETURNF 1
+
+;--------------------------------------------------
+;移動不能時に表示されるメッセージ
+;--------------------------------------------------
+@MAP_CANNOT_WORD_8(ARG)
+RETURN
+SELECTCASE TFLAG:移動不能メッセージ
+	CASE 1
+		PRINTFORMW ※ここにメッセージを入れる。行数+1のCLEARLINEをする
+		CLEARLINE 2
+ENDSELECT
+REUSELASTLINE
+
+;-----------------------------------------
+;拠点専用の情景描写
+;WAITはかけないように
+;-----------------------------------------
+@MAP_UNIQUEMESSAGE_8
+IF WITH_MOB()
+	RETURN 1
+ELSE
+	SELECTCASE CFLAG:MASTER:現在位置
+		;索道駅
+		CASE P803索道駅
+			IF INRANGE(TIME, 540, 1020)
+				PRINTFORML 見るからにやる気のなさそうな河童が索道の受付をしている
+			ELSE
+				PRINTFORML 索道駅は閉まっている
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+
+;-----------------------------------------
+;拠点の場所IDをお出かけマップ上の場所IDに置換する関数
+;ARG      対象の場所ID（拠点マップ）
+;RETURNF  差し替え場所ID（お出かけマップ）
+;-----------------------------------------
+@MAP_SEARCH_REPLACEMENT_8(ARG)
+#FUNCTION
+SELECTCASE ARG
+	CASE P830玄雲海 TO P842比那名居邸物置
+		RETURNF 天界
+	CASE P801山頂入り口, P802橋, P803索道駅, P806滝の裏 TO P809はたて宅
+		RETURNF 九天の滝
+	CASE P805頂上, P851久侘歌の小屋 TO P854龍宅
+		RETURNF 絶景の丘
+	CASE P814湖畔
+		RETURNF 山の湖
+	CASE P804守矢神社鳥居, P811境内, P813社務所, P815庭
+		RETURNF 守矢神社境内
+	CASE P855虹龍洞, P856百々世の住処
+		RETURNF 虹龍洞
+	CASEELSE
+		RETURNF 守矢神社本殿
+ENDSELECT
+RETURNF 0
+
+;--------------------------------------------------
+;マップの紹介文
+;--------------------------------------------------
 @マップ紹介_8
 ;とりあえず5行
 PRINTFORML 守矢神社を中心に天狗の住居や天界までを含むマップ。

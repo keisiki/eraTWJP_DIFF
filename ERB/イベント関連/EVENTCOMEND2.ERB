@@ -69,7 +69,20 @@ ENDIF
 ;食事
 SIF SELECTCOM == 414 || SELECTCOM == 415
 	CALL RESET_DISH
-	
+
+;デート道中の進行
+IF TFLAG:デート道中 > 1000
+	;開始時は+1000して設定値に戻すだけ
+	TFLAG:デート道中 -= 1000
+ELSEIF TFLAG:デート道中
+	TFLAG:デート道中 = TFLAG:デート道中 - TIME_PROGRESS(TIME:1)
+	IF TFLAG:デート道中 <= 0
+		PRINTFORMW %DATENAME_PLACE()%に到着しました
+		TFLAG:デート道中 = 0
+		CFLAG:MASTER:現在位置 = GET_ENTRANCE(CFLAG:MASTER:デート中)
+		CFLAG:(FLAG:デート相手):現在位置 = CFLAG:MASTER:現在位置
+	ENDIF
+ENDIF
 
 
 ;調教履歴を1ターン保存

@@ -1,60 +1,172 @@
 ﻿;--------------------------------------------------
-;	マップ内移動処理拡張パッチ付属
-;	命蓮寺MAP用関数
+;地点名変更関数
 ;--------------------------------------------------
-
 @MAP_PLACENAME_1(ARG)
 #FUNCTIONS
-#DIM PLACEID
-#DIMS MYORENNAME, 23 = "山門","境内","本堂","講堂","経堂","裏庭","土間","居間","客間","縁側","台所","風呂","ナズーリン私室","ムラサ私室","星私室","一輪私室","ぬえ私室","白蓮私室","離れ","物置","墓地","梵鐘堂"
-#DIMS DOJONAME, 12 = "霊廟大門","霊廟広場","屠自古部屋","道場","布都私室","神子私室","客間","廊下","枯山水","調薬室","湯殿","蔵"
 IF GET_MAPID(ARG) == MAIN_MAP
-	PLACEID = ARG % 100
-	SELECTCASE PLACEID
-		CASE 1 TO 22
-			RETURNF MYORENNAME:(PLACEID - 1)
-		CASE 23 TO 34
-			RETURNF DOJONAME:(PLACEID - 23)
-		CASE 98
+	SELECTCASE ARG
+		CASE SUMIKOMI_ROOM
+			;※このマップでは未実装
+			IF FLAG:住み込みキャラ
+				RETURNF CALLNAME:(FLAG:住み込みキャラ) + "の部屋"
+			ELSE
+				RETURNF "空き部屋"
+			ENDIF
+		CASE MINROOM() TO (MAXROOM - 1)
+			RETURNF STR:(ARG + 8000)
+		CASE OMANEKIBEYA()
 			RETURNF OMANEKI_PLACE()
-		CASE 99
+		CASE SUKIMA()
 			RETURNF "スキマ空間"
-		CASEELSE
+		CASE MAXROOM
 			RETURNF "参道の向こう"
-	ENDSELECT
-ELSE
-	RETURNF "不明"
-ENDIF
-
-@MAP_VIEWING_1(AA,COLOR)
-#DIMS REF AA, 0
-#DIMS REF COLOR, 0
-IF !TFLAG:マップ切り替え
-	SELECTCASE CFLAG:MASTER:現在位置
-		CASE 101 TO 122
-			TFLAG:マップ切り替え = 1
 		CASEELSE
-			TFLAG:マップ切り替え = 2
+			RETURNF "不明"
 	ENDSELECT
-ENDIF
-CALL DRAW_INFORMATIONLINE(@"%MAPNAME:(TFLAG:マップ切り替え)%")
-PRINTFORML 
-IF RECOLOREDMAPS
-TRYCCALLFORM COLOREDMAP_TEMPLE_{TFLAG:マップ切り替え}(AA,COLOR)
-CATCH
-RECOLOREDMAPS = 0
-CALL DRAW_MAP
-RECOLOREDMAPS = 1
-RETURN
-ENDCATCH
 ELSE
-TRYCALLFORM MAP_TEMPLE_{TFLAG:マップ切り替え}(AA)
+	RETURNF "道の向こう"
 ENDIF
 
-@MAP_CAN_MOVE_1(ARG, ARG:1)
+;--------------------------------------------------
+;場所ARGがどのエリアにあるか
+;表示するマップの番号と連動（TFLAG:マップ切り替え）
+;ARG     場所ID
+;--------------------------------------------------
+@MAP_AREASELECT_1(ARG)
 #FUNCTION
+SELECTCASE ARG
+	CASE P140お地蔵通り
+		RETURNF 1
+	;命蓮寺
+	CASE P101山門 TO P122梵鐘楼, P135廊下 TO P137マミゾウの棲家
+		RETURNF 1
+	;神霊廟
+	CASEELSE
+		RETURNF 2
+ENDSELECT
+
+;--------------------------------------------------
+;内部構造がある場所の内部の判定
+;TFLAG:マップ切り替え  内部察知が必要なマップ番号
+;                P_ID  表示ボタンの場所ID
+;                Q_ID  判定する内部の場所ID,必ずP_IDと一致した数値も含める
+;--------------------------------------------------
+@GETMAP_BUILDING_1(P_ID, Q_ID)
+#FUNCTION
+#DIM P_ID
+#DIM Q_ID
+IF TFLAG:マップ切り替え == 1
+	SELECTCASE P_ID
+		;神霊廟
+		CASE P123霊廟大門
+			SELECTCASE Q_ID
+			CASE P123霊廟大門 TO P134蔵, P138鐘楼, P139邪仙楼
+				RETURNF 1
+			ENDSELECT
+	ENDSELECT
+ELSEIF TFLAG:マップ切り替え == 2
+	SELECTCASE P_ID
+		;命蓮寺
+		CASE P101山門
+			SELECTCASE Q_ID
+			CASE P101山門 TO P122梵鐘楼, P135廊下 TO P137マミゾウの棲家
+				RETURNF 1
+			ENDSELECT
+	ENDSELECT
+ENDIF
+RETURNF 0
+
+;--------------------------------------------------
+;移動制限設定
+;ARG    場所ID
+;CHARA  移動するキャラID
+;RETURNF 1=移動できる,0=移動できない
+;TFLAG:移動不能メッセージ   ↓の@MAP_CANNOT_WORD用の設定
+;--------------------------------------------------
+@MAP_CAN_MOVE_1(ARG, CHARA)
+#FUNCTION
+#DIM CHARA
+SELECTCASE ARG
+	;誰かが住んでないと入れない
+	CASE P119離れ
+		IF !PRIVATEROOM:(ARG % 100) && CFLAG:MASTER:初期位置 != ARG
+			TFLAG:移動不能メッセージ = 999
+			RETURNF 0
+		ENDIF
+ENDSELECT
 RETURNF 1
 
+;--------------------------------------------------
+;移動不能時に表示されるメッセージ
+;--------------------------------------------------
+@MAP_CANNOT_WORD_1(ARG)
+RETURN
+SELECTCASE TFLAG:移動不能メッセージ
+	CASE 1
+		PRINTFORMW ※ここにメッセージを入れる。行数+1のCLEARLINEをする
+		CLEARLINE 2
+ENDSELECT
+REUSELASTLINE
+
+;-----------------------------------------
+;拠点専用の情景描写
+;WAITはかけないように
+;-----------------------------------------
+@MAP_UNIQUEMESSAGE_1
+VARSET LOCAL
+SELECTCASE CFLAG:MASTER:現在位置
+	CASE P104講堂
+		PRINTFORML 大きな木魚が置かれている
+		RETURN 1
+	CASE P129客間
+		PRINTFORML 木彫りの熊が置かれている
+		RETURN 1
+	CASE P110縁側
+		PRINTFORML 軒先に大根が吊るされている
+		RETURN 1
+	CASE P119離れ
+		FOR LOCAL, 1, CHARANUM
+			IF CFLAG:LOCAL:現在位置 == P112風呂
+				LOCAL:1 = LOCAL
+				LOCAL:2 ++
+			ENDIF
+		NEXT
+		IF !LOCAL:2
+			PRINTFORML 居ながらにして風呂を覗ける秘密装置がある
+		ELSE
+			PRINTFORML 秘密装置を通じて入浴中の%CALLNAME:(LOCAL:1)%\@ LOCAL:2 > 1? たち# \@が見える
+			PRINTFORML 絶景かな！
+		ENDIF
+		RETURN 1
+	CASEELSE
+ENDSELECT
+
+;-----------------------------------------
+;拠点の場所IDをお出かけマップ上の場所IDに置換する関数
+;ARG      対象の場所ID（拠点マップ）
+;RETURNF  差し替え場所ID（お出かけマップ）
+;-----------------------------------------
+@MAP_SEARCH_REPLACEMENT_1(ARG)
+#FUNCTION
+SELECTCASE ARG
+	CASE P140お地蔵通り
+		RETURNF お地蔵通り
+	CASE P101山門 TO P106裏庭, P119離れ, P120物置, P122梵鐘楼, P137マミゾウの棲家
+		RETURNF 命蓮寺境内
+	CASE P121墓地
+		RETURNF 墓地
+	CASE P123霊廟大門, P124霊廟広場, P138鐘楼, P139邪仙楼
+		RETURNF 神霊廟広場
+	CASE P125屠自古私室 TO P134蔵
+		RETURNF 神霊廟道場
+	CASEELSE
+		RETURNF 命蓮寺方丈
+ENDSELECT
+RETURNF 0
+
+;--------------------------------------------------
+;マップの紹介文
+;--------------------------------------------------
 @マップ紹介_1
 ;とりあえず5行
 PRINTFORML ※紹介文募集中※

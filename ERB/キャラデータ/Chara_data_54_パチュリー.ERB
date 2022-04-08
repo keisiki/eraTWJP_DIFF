@@ -1,50 +1,42 @@
-﻿@CHARAMOVE_DATA_54(ARG,ARG:2)
+﻿@CHARAMOVE_DATA_54(ARG, ARG:2)
 LOCAL = 54
 SELECTCASE ARG
+	;連動設定（RETURN=依存するキャラ, RESULT:1～3=対等に連動するキャラ）
 	CASE 1
-	;移動確率
-	CASE 2
-	;起床時間帯
+	;特殊生活時間設定（CFLAG:LOCAL:生活時間補正を設定する）
 	CASE 3
-		RETURN 睡眠時間(LOCAL)
-	;移動傾向
+	;移動傾向（±～10=行きやすい/行きにくい, -100=行かない）
 	CASE 4
 		SELECTCASE ARG:2
-			;ひとんちの風呂とかトイレにはいかない
-			CASE 12, 13, 14, 18, 30, 35, 39, 40, 43, 44, 51, 52
-				RETURN -100
-			;私室には入らない
-			CASE 15, 17, 19, 53, 55
-				SIF FLAG:15 != LOCAL
-					RETURN -100
 			;納屋と屋敷外には出ない
-			CASE 305, 334 TO 348
+			CASE P305納屋, P334廃洋館・入り口 TO P348霧の湖・湖底
 				RETURN -100
 			;外にも二階にもあまり行かない
-			CASE 302, 313, 314, 315, 317, 318
+			CASE P302庭, P319二階廊下 TO P327小バルコニー
 				RETURN -5
 			;いつも図書館
-			CASE 310
-				RETURN 10
-		ENDSELECT
-	;仕事時間帯
-	CASE 5
-	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
-	CASE 6
-		SELECTCASE ARG:2
-			CASE 3
-				RETURN 1
-			CASEELSE
-				RETURN 0
+			CASE P310図書館
+				RETURN 5
 		ENDSELECT
 	;出現場所
 	CASE 7
 		SELECTCASE ARG:2
-			CASE 34 TO 38
+			CASE 正門, 広間, 食堂, 大図書館, 地下室
 				RETURN 1
-			CASEELSE
-				RETURN 0
 		ENDSELECT
+	;引力設定（CFLAG:LOCAL:引力点を設定する）
+	CASE 8
+		;ごくまれに動く
+		IF CFLAG:LOCAL:今日の運勢 % 100 == 0 && INRANGE(TIME, 720, 960)
+			SELECTCASE DAY % 3
+			CASE 1
+				TCVAR:LOCAL:引力点 = P302庭
+			CASE 2
+				TCVAR:LOCAL:引力点 = P324大バルコニー
+			CASEELSE
+				TCVAR:LOCAL:引力点 = P314食堂
+			ENDSELECT
+		ENDIF
 ENDSELECT
 
 @EXIST_キャラデータ54

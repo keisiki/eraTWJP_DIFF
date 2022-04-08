@@ -1,49 +1,47 @@
-﻿@CHARAMOVE_DATA_26(ARG,ARG:2)
+﻿@CHARAMOVE_DATA_26(ARG, ARG:2)
 LOCAL = 26
 SELECTCASE ARG
-	;移動対象メンバーチェック
+	;連動設定（RETURN=依存するキャラ, RESULT:1～3=対等に連動するキャラ）
 	CASE 1
-	;移動確率
-	CASE 2
-	;起床時間帯
+	;特殊生活時間設定（CFLAG:LOCAL:生活時間補正を設定する）
 	CASE 3
-		RETURN 睡眠時間(LOCAL)
-	;移動傾向
+	;移動傾向（±～10=行きやすい/行きにくい, -100=行かない）
 	CASE 4
 		SELECTCASE ARG:2
-			;藍,橙の私室
-			CASE 635, 638
+			;神社の居間
+			CASE P9居間
+				RETURN 5
+			;藍,橙の私室はあまり入らない
+			CASE P635橙私室, P638藍私室
 				RETURN -5
-			;是非曲直庁、畜生界は行かない（入り口部分は出る時用）
-			CASE 610, 613, 640, 641
-				RETURN -10
-			CASE 610 TO 618, 640 TO 652
+			;是非曲直庁、畜生界は行かない
+			CASE P610是非曲直庁ホール TO P618空き部屋, P640異界の関所 TO P655尤魔宅の風呂
 				RETURN -100
 			;他人の家には入らない
-			CASE 608, 609
+			CASE P608潤美の家, P609瓔花の家
 				RETURN -100
-			;とくになし
-			CASEELSE
-				RETURN 0
-		ENDSELECT
-	;仕事時間帯
-	CASE 5
-	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
-	CASE 6
-		SELECTCASE ARG:2
-			CASE 0, 2, 3, 5, 6, 7
-				RETURN 1
-			CASEELSE
-				RETURN 0
 		ENDSELECT
 	;出現場所
 	CASE 7
 		SELECTCASE ARG:2
-			CASE 1,2,3,4, 21,22,23, 35,36,37, 51 TO 57, 61,62,63,65,66, 71,72,73,74
+			CASE 桜並木の鳥居, 神社境内, 神社本堂, 神社縁側
 				RETURN 1
-			CASEELSE
-				RETURN 0
+			CASE 広場, 商家町, 呑屋小道
+				RETURN 1
+			CASE 広間 , 食堂, 大図書館
+				RETURN 1
+			CASE 森の入り口, 香霖堂, 古木の大樹, 霧雨魔法店, 人形の洋館, 再思の道, 無縁塚
+				RETURN 1
+			CASE 中有の道, 三途の川, マヨヒガ, 白玉楼庭, 白玉楼
+				RETURN 1
+			CASE 守矢神社境内, 守矢神社本殿
+				RETURN 1
 		ENDSELECT
+	;引力設定（CFLAG:LOCAL:引力点を設定する）
+	CASE 8
+		;土曜の夜は白玉楼へ遊びに行く
+		SIF YOUBI_MATCH(DAY, "土") && INRANGE(TIME, 960, 1200)
+			TCVAR:LOCAL:引力点 = P628居間
 ENDSELECT
 
 @EXIST_キャラデータ26

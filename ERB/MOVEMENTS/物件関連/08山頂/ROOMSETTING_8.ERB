@@ -1,68 +1,265 @@
-﻿@ROOMSETTING_8
+﻿;＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+;地点の属性設定
+;場所_ワンルーム   家主が不在のとき鍵がかかる,布団・屋内・厨房・勉強・休憩・飲食・プライベートが自動で付与
+;場所_布団         休憩が自動で付与
+;場所_洋室         屋内だけど靴を履いたまま,屋内が自動で付与
+;場所_屋内         
+;場所_屋根         屋外だけど屋根がある場所,屋内でも屋根でも無い場合は野外判定（旧青天井）
+;場所_広い         
+;場所_月見         屋内や屋根があっても月が見える場所
+;場所_休憩         
+;場所_風呂         
+;場所_トイレ       
+;場所_厨房         つまみ食いが自動で付与
+;場所_訓練         
+;場所_勉強         
+;場所_天の声       
+;場所_菜園         
+;場所_水汲み       
+;場所_身体測定     
+;場所_物干し       風景描写用
+;場所_飲食         自由行動用
+;場所_つまみ食い   自由行動用
+;場所_留まらない   あまりキャラが留まらない（移動しやすい）
+;場所_過疎         あまりキャラが立ち入らない（移動されにくい）
+;場所_プライベート 節度のあるキャラは入ってこない,主に私室と風呂・トイレ
+;場所_炬燵         自由行動用
+;場所_公共の場     押し倒してこない
+;＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+@ROOMSETTING_8
+#DIM ROOM
 VARSET ROOMDATA
-FOR LOCAL,1,100
-	SIF GROUPMATCH(LOCAL,7,8,9,10,17,18,20,23,39,40,41)
-		ROOMDATA:LOCAL |= 場所_布団
-	SIF GROUPMATCH(LOCAL,3,6,7,8,9,10,13,16,17,18,19,20,21,22,23,24,25,26,34,35,36,37,38,39,40,41,842)
-		ROOMDATA:LOCAL |= 場所_屋内
-	SIF GROUPMATCH(LOCAL,25,37)
-		ROOMDATA:LOCAL |= 場所_風呂
-	SIF GROUPMATCH(LOCAL,7,8,9,10,22,36)
-		ROOMDATA:LOCAL |= 場所_厨房
-	SIF GROUPMATCH(LOCAL,14,15,30)
-		ROOMDATA:LOCAL |= 場所_訓練
-	SIF GROUPMATCH(LOCAL,7,8,9,10,17,18,19,20,23,38,39,40,41)
-		ROOMDATA:LOCAL |= 場所_勉強
-	SIF GROUPMATCH(LOCAL,3,7,8,9,10,16,17,18,19,20,23,35,38,39,40,41)
-		ROOMDATA:LOCAL |= 場所_休憩
+MAXROOM = 857
+ENTRANCE = P801山頂入り口
+避難先 = P824トイレ
 
-	SIF GROUPMATCH(LOCAL,1,2,4,5,11,12,14,15,30,31,32,33)
-		ROOMDATA:LOCAL |= 場所_青天井
-	SIF GROUPMATCH(LOCAL,1,2,4,5,11,12,14,15,16,30,31,32,33)
-		ROOMDATA:LOCAL |= 場所_月見
-	SIF GROUPMATCH(LOCAL,12)
-		ROOMDATA:LOCAL |= 場所_天の声
-	SIF GROUPMATCH(LOCAL,15)
-		ROOMDATA:LOCAL |= 場所_菜園
-	SIF GROUPMATCH(LOCAL,6,14)
-		ROOMDATA:LOCAL |= 場所_水汲み
-;	SIF GROUPMATCH(LOCAL,1,2,5,11,14,15,30)
-;		ROOMDATA:LOCAL |= 場所_見通し
-;	SIF GROUPMATCH(LOCAL,6,24,42)
-;		ROOMDATA:LOCAL |= 場所_狭い
-	SIF GROUPMATCH(LOCAL,7,8,9,10,17,18,19,20,23,38,39,40,41)
-		ROOMDATA:LOCAL |= 場所_うたた寝_可能
-	SIF GROUPMATCH(LOCAL,25,37)
-		ROOMDATA:LOCAL |= 場所_身体測定
-	SIF GROUPMATCH(LOCAL,1,2,30,42)
-		ROOMDATA:LOCAL |= 場所_留まらない
-	SIF GROUPMATCH(LOCAL,7,8,9)
-		ROOMDATA:LOCAL |= 場所_ワンルーム
-	SIF GROUPMATCH(LOCAL,6,42)
-		ROOMDATA:LOCAL |= 場所_過疎
-	SIF GROUPMATCH(LOCAL,7,8,9,10,17,18,20,40,41)
-		ROOMDATA:LOCAL |= 場所_プライベート
-	SIF GROUPMATCH(LOCAL,32)
-		ROOMDATA:LOCAL |= 場所_公共の場
-	SIF GROUPMATCH(LOCAL,16,19,35,38)
-		ROOMDATA:LOCAL |= 場所_居間
-NEXT
-;狭いと見通しはサボった
-
-MAXROOM = 843
-ENTRANCE = 801
-避難先 = 824
-
-拠点_大家 = 32
 SIF GET_MAPID(拠点_酒虫) != MAIN_MAP
-	拠点_酒虫 = 822
+	拠点_酒虫 = P822台所
 MAP_PAGES = 4
 MAPNAME:1 = 妖怪の山・山頂
 MAPNAME:2 = 守矢神社
 MAPNAME:3 = 天界
 MAPNAME:4 = 比那名居邸
 
+;月の住民は湖畔から来る
+FOR LOCAL, 1, CHARANUM
+	SIF GROUPMATCH(GET_MAPID(CFLAG:LOCAL:自宅位置), 10)
+		CFLAG:LOCAL:(450 + MAIN_MAP) = P814湖畔
+NEXT
 
+FOR LOCAL, MINROOM(), MAXROOM
+	ROOM = LOCAL % 100
+	SELECTCASE LOCAL
+	;布団・屋内・厨房・勉強・休憩・飲食・プライベートが自動で付与
+	CASE P807椛宅, P808文宅, P809はたて宅, P851久侘歌の小屋, P852駒草の小屋, P853魅須丸の小屋
+		ROOMDATA:ROOM |= 場所_ワンルーム
+	;龍宅は月見できる
+	CASE P854龍宅
+		ROOMDATA:ROOM |= 場所_ワンルーム
+		ROOMDATA:ROOM |= 場所_月見
+	CASE P856百々世の住処
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_布団
+		ROOMDATA:ROOM |= 場所_飲食
+		ROOMDATA:ROOM |= 場所_プライベート
+	;自室になると布団,勉強,プライベートが付与
+	CASE P810山小屋
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_厨房
+		ROOMDATA:ROOM |= 場所_休憩
+		ROOMDATA:ROOM |= 場所_飲食
+
+	CASE P801山頂入り口
+		ROOMDATA:ROOM |= 場所_留まらない
+	CASE P802橋
+		ROOMDATA:ROOM |= 場所_留まらない
+	CASE P803索道駅
+		ROOMDATA:ROOM |= 場所_屋根
+		ROOMDATA:ROOM |= 場所_休憩
+		ROOMDATA:ROOM |= 場所_飲食
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P805頂上
+		ROOMDATA:ROOM |= 場所_広い
+		ROOMDATA:ROOM |= 場所_訓練
+	CASE P806滝の裏
+		ROOMDATA:ROOM |= 場所_屋根
+		ROOMDATA:ROOM |= 場所_月見
+		ROOMDATA:ROOM |= 場所_水汲み
+		ROOMDATA:ROOM |= 場所_過疎
+	CASE P855虹龍洞
+		ROOMDATA:ROOM |= 場所_屋根
+		ROOMDATA:ROOM |= 場所_過疎
+
+	CASE P804守矢神社鳥居
+	CASE P811境内
+		ROOMDATA:ROOM |= 場所_広い
+		ROOMDATA:ROOM |= 場所_訓練
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P812本殿
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_公共の場
+		ROOMDATA:ROOM |= 場所_天の声
+	CASE P813社務所
+		ROOMDATA:ROOM |= 場所_屋根
+		ROOMDATA:ROOM |= 場所_月見
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P814湖畔
+		ROOMDATA:ROOM |= 場所_広い
+		ROOMDATA:ROOM |= 場所_訓練
+		ROOMDATA:ROOM |= 場所_水汲み
+	CASE P815庭
+		ROOMDATA:ROOM |= 場所_広い
+		ROOMDATA:ROOM |= 場所_訓練
+		ROOMDATA:ROOM |= 場所_菜園
+	CASE P816縁側
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_休憩
+		ROOMDATA:ROOM |= 場所_飲食
+		ROOMDATA:ROOM |= 場所_月見
+		ROOMDATA:ROOM |= 場所_物干し
+	CASE P826廊下
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_留まらない
+	CASE P819居間
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_休憩
+		ROOMDATA:ROOM |= 場所_勉強
+		ROOMDATA:ROOM |= 場所_飲食
+		ROOMDATA:ROOM |= 場所_炬燵
+	CASE P817神奈子私室, P818諏訪子私室, P820早苗私室
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_布団
+		ROOMDATA:ROOM |= 場所_勉強
+		ROOMDATA:ROOM |= 場所_プライベート
+		
+	;自室になると勉強,プライベートが付与
+	CASE P823空室
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_布団
+	CASE P821土間
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_留まらない
+	CASE P822台所
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_厨房
+	CASE P824トイレ
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_トイレ
+		ROOMDATA:ROOM |= 場所_プライベート
+	CASE P825風呂
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_風呂
+		ROOMDATA:ROOM |= 場所_身体測定
+		ROOMDATA:ROOM |= 場所_プライベート
+
+	CASE P830玄雲海
+		ROOMDATA:ROOM |= 場所_広い
+		ROOMDATA:ROOM |= 場所_留まらない
+		ROOMDATA:ROOM |= 場所_訓練
+	CASE P831比那名居邸前
+		ROOMDATA:ROOM |= 場所_留まらない
+	CASE P832有頂天街
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P833桃園
+		ROOMDATA:ROOM |= 場所_つまみ食い
+	CASE P834比那名居邸土間
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_留まらない
+	CASE P835比那名居邸応接間
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_休憩
+		ROOMDATA:ROOM |= 場所_飲食
+	CASE P836比那名居邸厨房
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_厨房
+	CASE P837比那名居邸風呂
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_風呂
+		ROOMDATA:ROOM |= 場所_身体測定
+		ROOMDATA:ROOM |= 場所_プライベート
+	CASE P838比那名居邸居間
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_休憩
+		ROOMDATA:ROOM |= 場所_勉強
+		ROOMDATA:ROOM |= 場所_飲食
+		ROOMDATA:ROOM |= 場所_炬燵
+	CASE P839比那名居邸和室
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_布団
+		ROOMDATA:ROOM |= 場所_勉強
+	CASE P840天子私室, P841衣玖私室
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_布団
+		ROOMDATA:ROOM |= 場所_勉強
+		ROOMDATA:ROOM |= 場所_プライベート
+	;自室になると布団,勉強,プライベートが付与
+	CASE P842比那名居邸物置
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_過疎
+	ENDSELECT
+NEXT
+
+;-----------------------------------------
+;デフォルトの初期位置と大家の設定
+;-----------------------------------------
 @DEFAULT_OWNER_8
-デフォルト初期位置 = 810
-拠点_大家 = 32
+デフォルト初期位置 = P810山小屋
+拠点_大家 = [[神奈子]]
+
+;-----------------------------------------
+;お出かけマップの設定
+;ARG   対象の地点
+;ARGS  判定文字引数
+;-----------------------------------------
+@ODEKAKEMAP_SETTING_8(ARG, ARGS)
+#FUNCTION
+;天界→白玉楼庭へ繋がる特殊ワープの条件
+SIF ARGS == "特殊ワープ" && MAIN_MAP != 6 && CFLAG:MASTER:現在位置 == 天界 && (ABL:MASTER:教養 > 1 || ABL:(FLAG:デート相手):教養 > 1)
+	RETURNF 白玉楼庭
+;＼1 2 3 4 5 6 7 8 9 
+;01　　　　　　　　　
+;02　　　９　　　　　
+;03　　　　　　　　　
+;04　　　　　　　　　
+;05　　　　　　　　　
+;06　　　　　　　　　
+;07　６　２　３４５　
+;08　　　　　　　　　
+;09　　　１　　　　　
+SELECTCASE ARG
+CASE 九天の滝
+	SIF ARGS == "座標"
+		RETURNF 49
+	SIF GROUPMATCH(ARGS, "広い", "モブ")
+		RETURNF 1
+CASE 絶景の丘
+	SIF ARGS == "座標"
+		RETURNF 47
+	SIF GROUPMATCH(ARGS, "広い", "お弁当")
+		RETURNF 1
+CASE 山の湖
+	SIF ARGS == "座標"
+		RETURNF 67
+	SIF GROUPMATCH(ARGS, "広い", "訓練", "水汲み", "お弁当")
+		RETURNF 1
+CASE 守矢神社境内
+	SIF ARGS == "座標"
+		RETURNF 77
+	SIF GROUPMATCH(ARGS, "広い", "モブ")
+		RETURNF 1
+CASE 守矢神社本殿
+	SIF ARGS == "座標"
+		RETURNF 87
+	SIF GROUPMATCH(ARGS, "屋根")
+		RETURNF 1
+CASE 虹龍洞
+	SIF ARGS == "座標"
+		RETURNF 27
+	SIF GROUPMATCH(ARGS, "屋内", "月見")
+		RETURNF 1
+CASE 天界
+	SIF ARGS == "座標"
+		RETURNF 42
+	SIF GROUPMATCH(ARGS, "広い", "お弁当", "天の声")
+		RETURNF 1
+ENDSELECT

@@ -1,61 +1,36 @@
-﻿@CHARAMOVE_DATA_94(ARG,ARG:2)
+﻿@CHARAMOVE_DATA_94(ARG, ARG:2)
 LOCAL = 94
 SELECTCASE ARG
-	;移動対象メンバーチェック
+	;連動設定（RETURN=依存するキャラ, RESULT:1～3=対等に連動するキャラ）
 	CASE 1
-		;連動処理（八橋の方が高いときは八橋を参照）
-		IF TALENT:95:恋慕 || (TALENT:95:思慕 && !TALENT:95:思慕)
-			CFLAG:LOCAL:現在位置 = CFLAG:95:遭遇位置 ? CFLAG:95:遭遇位置 # SUKIMA()
-		ELSE
-			CFLAG:LOCAL:現在位置 = CFLAG:94:遭遇位置 ? CFLAG:94:遭遇位置 # SUKIMA()
-		ENDIF
-	;移動確率
-	CASE 2
-	;起床時間帯
+		RESULT:1 = [[弁々]]
+		RESULT:2 = [[八橋]]
+	;特殊生活時間設定（CFLAG:LOCAL:生活時間補正を設定する）
 	CASE 3
-		RETURN 睡眠時間(LOCAL)
-	;移動傾向
+	;移動傾向（±～10=行きやすい/行きにくい, -100=行かない）
 	CASE 4
 		SELECTCASE ARG:2
-			;ひとんちの風呂とかトイレにはいかない
-			CASE 12, 13, 14, 18, 30, 35, 39, 40, 43, 44, 51, 52
-				RETURN -100
-			;私室には入らない
-			CASE 15, 17, 19, 53, 55
-				SIF FLAG:15 != LOCAL
-					RETURN -100
-			;自室,九十九姉妹の部屋,広場
-			CASE 208, 209, 210, 202
+			;付喪神の部屋,広場によく居る
+			CASE P208雷鼓の部屋, P209八橋の部屋, P210弁々の部屋, P202中央広場
 				RETURN 5
-			;あなたの部屋
-			CASE 230
-				IF TALENT:LOCAL:恋慕
-					RETURN 5
-				ELSE
-					RETURN -100
-				ENDIF
-			;行かない
-			CASE 220, 225, 221, 222, 224, 226
+			;私室には行かない
+			CASE P221稗田邸, P224慧音宅, P222寺子屋, P226小鈴私室, P229阿求私室
 				RETURN -100
-		ENDSELECT
-	;仕事時間帯
-	CASE 5
-	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
-	CASE 6
-		SELECTCASE ARG:2
-			CASE 2, 5
-				RETURN 1
-			CASEELSE
-				RETURN 0
+			CASE P226小鈴私室, P229阿求私室
+				RETURN -100
+			CASE P231蛮奇の部屋, P232蓮子の部屋, P233メリーの部屋, P234ユキの部屋, P235マイの部屋, P239美宵の部屋
+				RETURN -100
 		ENDSELECT
 	;出現場所
 	CASE 7
 		SELECTCASE ARG:2
-			CASE 21,22,23, 51,52,53,56,57
+			CASE 広場, 商家町, 呑屋小道, 長屋街
 				RETURN 1
-			CASEELSE
-				RETURN 0
+			CASE 森の入り口, 香霖堂, 古木の大樹, 再思の道, 無縁塚
+				RETURN 1
 		ENDSELECT
+	;引力設定（CFLAG:LOCAL:引力点を設定する）
+	CASE 8
 ENDSELECT
 
 @EXIST_キャラデータ94

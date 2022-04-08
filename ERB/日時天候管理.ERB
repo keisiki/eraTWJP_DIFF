@@ -845,15 +845,17 @@ FOR LOCAL,1,CHARANUM
 		ENDIF
 	ENDIF
 	CALL 遭遇フラグ決定(LOCAL)
-;	CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:遭遇位置
-;	移動前 = %STR:(6000 + CFLAG:LOCAL:前ターン位置 / 10)%
-;	SIF CFLAG:LOCAL:前ターン位置 == SUKIMA()
-;		移動前 = 私室
-;	移動後 = %STR:(6000 + CFLAG:LOCAL:現在位置 / 10)%
-;	SIF CFLAG:LOCAL:現在位置 == SUKIMA()
-;		移動後 = 私室
-;	SIF CFLAG:LOCAL:前ターン位置 != CFLAG:LOCAL:現在位置 && (CFLAG:MASTER:現在位置 / 100 == CFLAG:LOCAL:前ターン位置 / 100) && !AT_HOME() && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
-;		PRINTFORML %CALLNAME:LOCAL%は【%移動前%】から【%移動後%】に移動した
 NEXT
-;キャラを動かしたのでTARGET再設定
-;CALL TARGETSET_CHACK
+;全キャラ決定後、連動キャラを設定する
+FOR LOCAL, 1, CHARANUM
+	VARSET RESULT
+	CALLFORM CHARAMOVE_DATA_{LOCAL}(1)
+	;依存連動
+	IF RESULT
+		CFLAG:LOCAL:遭遇位置 = CFLAG:RESULT:遭遇位置
+	;対等連動
+	ELSEIF RESULT:1
+		;連動設定する
+		CFLAG:LOCAL:遭遇位置 = CFLAG:連動キャラ設定(RESULT:1, RESULT:2, RESULT:3):遭遇位置
+	ENDIF
+NEXT

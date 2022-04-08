@@ -5,29 +5,43 @@
 @DRAW_MAP(ARGS)
 #DIMS AA, 50
 #DIMS COLOR, 50
-#DIM SPOT
 #DIM MODE
 #DIM LOCATION
 
 #DIM LINENUM
 #DIM X_POINT
-#DIM FOUND_INT
 
 ;AAを取得、なければそのまま帰る
 VARSET AA
 VARSET COLOR
+SETFONT "ＭＳ ゴシック"
 ;お出かけマップかどうかの分岐
 IF ARGS == "ODEKAKE"
 	TRYCCALLFORM ODEKAKEMAP_{CFLAG:MASTER:デート中}(AA)
 	CATCH
+		SETFONT
 		RETURN 0
 	ENDCATCH
 ELSE
-	TRYCCALLFORM MAP_VIEWING_{MAIN_MAP}(AA,COLOR)
+	TRYCCALLFORM MAP_VIEWING(MAIN_MAP)
+		CALL DRAW_INFORMATIONLINE(@"%MAPNAME:(TFLAG:マップ切り替え)%")
+		PRINTFORML 
+		IF RECOLOREDMAPS
+			TRYCCALLFORM COLOREDMAP_%RESULTS%_{TFLAG:マップ切り替え}(AA, COLOR)
+			CATCH
+				RECOLOREDMAPS = 0
+				CALL DRAW_MAP
+				RECOLOREDMAPS = 1
+				RETURN
+			ENDCATCH
+		ELSE
+			TRYCALLFORM MAP_%RESULTS%_{TFLAG:マップ切り替え}(AA)
+		ENDIF
 	CATCH
+		SETFONT
 		RETURN 0
 	ENDCATCH
-ENDIF	
+ENDIF
 
 ;-----------------------------------------------------------
 ;描画処理
@@ -46,15 +60,7 @@ FOR LINENUM, 0, VARSIZE("AA")
 		IF ISNUMERIC(RESULTS)
 			;分岐めんどいから必ず2ケタ取る
 			SUBSTRINGU AA:LINENUM, X_POINT, 2
-			FOUND_INT = TOINT(RESULTS)
-			;お出かけマップかどうかの分岐
-			IF ARGS == "ODEKAKE"
-				SPOT = FOUND_INT
-				CALL GETMAP2(SPOT)
-			ELSE
-				SPOT = MAIN_MAP * 100 + FOUND_INT
-				CALL GETMAP(SPOT)
-			ENDIF
+			CALL GETMAP(TOINT(RESULTS), ARGS)
 			X_POINT += 2
 		;記号に意味を持たせる例、これだと#は普通には使えなくなるけどまあいいか
 		ELSEIF RESULTS == "#"
@@ -63,7 +69,7 @@ FOR LINENUM, 0, VARSIZE("AA")
 			IF ARGS == "HIKKOSHI"
 				TRYCALLFORM DRAW_MAP_BG_{MAIN_MAP}(RESULTS)
 			ELSE
-				TRYCALLFORM DRAW_MAP_BG_{CFLAG:MASTER:現在位置 / 100}(RESULTS)
+				TRYCALLFORM DRAW_MAP_BG_{CFLAG:MASTER:デート中}(RESULTS)
 			ENDIF
 			X_POINT += 2
 		;ふつうの文字
@@ -72,16 +78,238 @@ FOR LINENUM, 0, VARSIZE("AA")
 			IF ARGS == "HIKKOSHI"
 				TRYCALLFORM DRAW_MAP_BG_{MAIN_MAP}(RESULTS)
 			ELSE
-				TRYCALLFORM DRAW_MAP_BG_{CFLAG:MASTER:現在位置 / 100}(RESULTS)
+				TRYCALLFORM DRAW_MAP_BG_{CFLAG:MASTER:デート中}(RESULTS)
 			ENDIF
 			X_POINT ++
 		ENDIF
 	WEND
 	PRINTL
 NEXT
+SETFONT
+RESETCOLOR
+;------------------------------------------
+;マップの表示設定
+;ARG    表示するマップのMAPID
+;ARG:1  判定する場所ID（任意）
+;------------------------------------------
+@MAP_VIEWING(ARG, ARG:1)
+SIF !TFLAG:マップ切り替え
+	TFLAG:マップ切り替え = MAP_AREASELECT(ARG, ARG:1)
+RESULTS = %MAP_VIEWING_NAME(ARG)%
 
+;------------------------------------------
+;マップに表示する数字ボタンの描画設定
+;ARG   二桁のボタン数値（場所IDの下二桁）
+;ARGS  "ODEKAKE"=お出かけマップ
+;------------------------------------------
+@GETMAP(ARG, ARGS)
+#DIM P_ID
+#DIM Q_ID
+
+;お出かけマップ
+IF ARGS == "ODEKAKE"
+	P_ID = (ARG * 10) + (CFLAG:MASTER:デート中 * 100)
+;拠点マップ
+ELSE
+	P_ID = ARG + MAIN_MAP * 100
+ENDIF
+;居場所察知
+IF TALENT:MASTER:居場所察知 && (FLAG:察知モード == 1 || ARGS == "ODEKAKE")
+	IF ARGS != "ODEKAKE"
+		;モブは優先度最低
+		SIF ROOMDATA:ARG & 場所_モブ
+			SETCOLOR C_D_PINK
+	ENDIF
+
+	KEHAI = 0
+	FOR LOCAL, 1, CHARANUM
+		;内部構造判定,第三引数は第二と同じにする
+		IF ARGS != "ODEKAKE" && GETMAP_BUILDING(MAIN_MAP, P_ID, P_ID)
+			;内部にあたる場所をすべてチェック
+			FOR Q_ID, MINROOM(), MAXROOM
+				IF GETMAP_BUILDING(MAIN_MAP, P_ID, Q_ID) && CFLAG:LOCAL:現在位置 == Q_ID
+					KEHAI = CHECK_HEHAI(LOCAL)
+					SIF KEHAI > 1
+						BREAK
+				ENDIF
+			NEXT
+		;通常の地点
+		ELSEIF CFLAG:LOCAL:現在位置 == P_ID
+			KEHAI = CHECK_HEHAI(LOCAL)
+		ENDIF
+		;特定の行動優先
+		SIF KEHAI > 1
+			BREAK
+	NEXT
+	CALL SET_KEHAI_COLOR(KEHAI)
+;汚部屋察知,お出かけマップ時は使わない
+ELSEIF TALENT:MASTER:汚部屋察知 && FLAG:察知モード == 2 && ARGS != "ODEKAKE"
+	SELECTCASE YOGORE:P_ID
+		CASE IS < 1000
+			SETCOLOR C_CREAM
+		CASE IS < 2000
+			SETCOLOR C_YELLOW
+		CASE IS < 5000
+			SETCOLOR C_V_PINK
+		CASEELSE
+			SETCOLOR C_RED
+	ENDSELECT
+ENDIF
+
+;MASTERは優先度最高
+SIF CFLAG:MASTER:現在位置 == P_ID
+	SETCOLOR C_GREEN
+;マッププレビュー時（SHOP画面か初期状態）
+IF CFLAG:MASTER:睡眠 || (DAY == 1 && TIME == 0)
+	SIF P_ID == デフォルト初期位置 || CMATCH(CFLAG:大家候補, P_ID, 1, CHARANUM)
+		SETCOLOR C_ORANGE
+ENDIF
+
+IF ARGS == "ODEKAKE" && ARG >= 10
+	;特殊ワープ用
+	SETCOLOR C_P_PURPLE
+	PRINTBUTTON "◇", ARG
+ELSE
+	PRINTBUTTON (ARG > 9 ? TOSTR(ARG) # TOFULL(TOSTR(ARG))), ARG
+ENDIF
 RESETCOLOR
 
+;------------------------------------------
+;居場所察知した人物の行動
+;------------------------------------------
+@CHECK_HEHAI(ARG)
+#FUNCTION
+;仕事中
+IF CFLAG:ARG:行動 == 5
+	RETURNF 2
+;睡眠中
+ELSEIF CFLAG:ARG:睡眠
+	RETURNF 3
+;自由行動中
+ELSEIF Activity_Duration:ARG
+	RETURNF 4
+;何もしてない
+ELSE
+	RETURNF 1
+ENDIF
+
+;------------------------------------------
+;居場所察知の着色
+;------------------------------------------
+@SET_KEHAI_COLOR(ARG)
+;何もしてない＠ピンク
+IF ARG == 1
+	SETCOLOR C_H_PINK
+;仕事中＠濃オレンジ
+ELSEIF ARG == 2
+	SETCOLOR C_D_ORANGE
+;睡眠中＠紺色
+ELSEIF ARG == 3
+	SETCOLOR C_N_BLUE
+;自由行動中＠黄色
+ELSEIF ARG == 4
+	SETCOLOR C_YELLOW
+ENDIF
+
+;--------------------------------------------------
+;共通のマップ描画処理
+;ARG      SLICED
+;#a～#d       菜園の描画
+;#e, #o, #p   拠点の外の描画（気配用）
+;--------------------------------------------------
+@MAP_PRINT(ARGS)
+SELECTCASE ARGS
+CASE "#a"
+	IF HATAKE_NAME:0 != ""
+		SETCOLOR C_P_GREEN
+		PRINT VV
+		RESETCOLOR
+	ELSE
+		PRINT 　
+	ENDIF
+CASE "#b"
+	IF HATAKE_NAME:1 != ""
+		SETCOLOR C_P_GREEN
+		PRINT VV
+		RESETCOLOR
+	ELSE
+		PRINT 　
+	ENDIF
+CASE "#c"
+	IF HATAKE_NAME:2 != ""
+		SETCOLOR C_P_GREEN
+		PRINT VV
+		RESETCOLOR
+	ELSE
+		PRINT 　
+	ENDIF
+CASE "#d"
+	IF HATAKE_NAME:3 != ""
+		SETCOLOR C_P_GREEN
+		PRINT VV
+		RESETCOLOR
+	ELSE
+		PRINT 　
+	ENDIF
+CASE "#e"
+	SIF TALENT:MASTER:居場所察知 && COUNTCHARA:(MAXROOM) > 0 && FLAG:察知モード == 1
+		SETCOLOR 255, 100, 200
+	PRINT ↓
+	RESETCOLOR
+CASE "#o"
+	SIF TALENT:MASTER:居場所察知 && COUNTCHARA:(MAXROOM) > 0 && FLAG:察知モード == 1
+		SETCOLOR 255, 100, 200
+	PRINT ←
+	RESETCOLOR
+CASE "#p"
+	SIF TALENT:MASTER:居場所察知 && COUNTCHARA:(MAXROOM) > 0 && FLAG:察知モード == 1
+		SETCOLOR 255, 100, 200
+	PRINT →
+	RESETCOLOR
+;布団
+;┌─┐　#f#j#g
+;└─┘　#h#j#i
+CASE "#f"
+	SETCOLOR C_FUTON
+	PRINT ┌
+	RESETCOLOR
+CASE "#g"
+	SETCOLOR C_FUTON
+	PRINT ┐
+	RESETCOLOR
+CASE "#h"
+	SETCOLOR C_FUTON
+	PRINT └
+	RESETCOLOR
+CASE "#i"
+	SETCOLOR C_FUTON
+	PRINT ┘
+	RESETCOLOR
+CASE "#j"
+	SETCOLOR C_FUTON
+	PRINT ─
+	RESETCOLOR
+;鳥居
+;┳━┳　#l#k#l
+;╋━╋　#n#k#n
+;┃　┃　#m　#m
+CASE "#k"
+	SETCOLOR C_TORII
+	PRINT ━
+	RESETCOLOR
+CASE "#l"
+	SETCOLOR C_TORII
+	PRINT ┳
+	RESETCOLOR
+CASE "#m"
+	SETCOLOR C_TORII
+	PRINT ┃
+	RESETCOLOR
+CASE "#n"
+	SETCOLOR C_TORII
+	PRINT ╋
+	RESETCOLOR
+ENDSELECT
 
 ;===========================================================
 ;場所名表示

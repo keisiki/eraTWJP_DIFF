@@ -1,0 +1,415 @@
+﻿
+;### 関数 ###################################
+;例によって映姫様口上から拝借。説明文は基本オリジナルのままです
+;==================================================
+;人目があるか判定関数＠スカートめくり判定のをまとめただけ
+;人目がある =1 無い =0
+;-------------------------------------------------
+@K139_BE_SEEN()
+#FUNCTION
+SIF GET_TARGETNUM() > 1 || DATE_HITOGOMI(CFLAG:PLAYER:現在位置) || WITH_MOB()
+	RETURNF 1
+RETURNF 0 
+
+;==================================================
+;MASTERの恋人がその場に居るかどうか返す式中関数
+;=-1 典が恋人 =0 元から恋人なし =1 その場に居ない =2 恋人と同席
+;-------------------------------------------------
+@K139_FIND_LOVER()
+#FUNCTION
+SIF TALENT:MASTER:恋人 == 0
+	RETURNF 0
+SIF TALENT:139:恋人
+	RETURNF -1
+SIF CFLAG:(TALENT:MASTER:恋人):現在位置 == CFLAG:MASTER:現在位置
+	RETURNF 2
+RETURNF 1
+
+;==================================================
+;同部屋のキャラを拾う式中関数。探す順位は[恋人]持ち→知り合い→TARGET内ランダム
+;アリス口上の関数お借りして平文化しました。ERHだと動作が速かったり安定するのかな
+;丸コピはあれなので知り合い以外はランダムで選んでIDを返すように。誰もいなければ0を返す
+;-------------------------------------------------
+@K139_FIND_AROUND()
+#FUNCTION
+#DIM 知り合い,6 = 140, 142, 141, 29, 42, 65
+#DIM 総人数
+#DIM 抽選
+#LOCALSIZE 200
+;典の知り合いは6人,龍>百々世>千亦>文>はたて>椛の順に(勝手に)設定
+VARSET LOCAL
+抽選 = 0
+総人数 = GET_TARGETNUM() 
+;部屋に典一人なら当然0
+SIF 総人数 == 1
+	RETURNF 0
+;[恋人]持ちがいたら優先してIDを返す
+SIF K139_FIND_LOVER() == 2
+	RETURNF TALENT:MASTER:恋人
+;知り合い優先度順に現在位置を調べMASTERと同じならIDを返す
+FOR COUNT, 0, 6
+	SIF CFLAG:(知り合い:COUNT):現在位置 == CFLAG:MASTER:現在位置
+		RETURNF 知り合い:COUNT
+NEXT
+;知り合いがいなければ同室のTARGET_ID全部を拾う
+FOR COUNT,1, 総人数 + 1
+	;地獄の断頭台withジェロニモ状態を防ぐため口上主はスキップ
+	SIF TARGET:COUNT == TARGET:0
+		CONTINUE
+	;MASTERと典の現在位置にいなければスキップ
+	SIF (CFLAG:(TARGET:COUNT):現在位置 != CFLAG:MASTER:現在位置) || (CFLAG:(TARGET:COUNT):現在位置 != CFLAG:139:現在位置)
+		CONTINUE
+	;配列のカウントは別で取りながら代入
+	LOCAL:抽選 = TARGET:COUNT
+	抽選 ++
+NEXT
+;この条件でここまで来たのはなんでだろう
+;ともかくエラー出さないためにヨシ！
+SIF 抽選 < 1
+	RETURNF 0
+;抽選してIDを決定
+RETURNF LOCAL:(RAND(抽選))
+
+;==================================================
+;映姫様が他のキャラを呼ぶ式中関数
+;呼び捨て =小町 久侘歌：敬称 =ヘカーティア「様」：他は皆「さん」づけ
+;ARG=0でMASTER 条件付けで呼び名を変える。需要なさそうだけどおにいさんにも対応
+;引数 =1or2をとると行きずりキャラ/MASTER/対象キャラ無し(ARG=0)が指定されたら「だれか」「他の人」と呼ぶ＠セクハラが捗る
+;引数 =3で種族・属性呼び。CSV読みでTALENT分けより雰囲気出る気がするけど、個別で設定しないからやっぱり変なのはある
+;-------------------------------------------------
+@K139_C_NAME(ARG, TYPE = 0)
+#FUNCTIONS
+#DIM TYPE
+#DIM VARIANT
+#DIMS STR_LIST, 10
+VARSET LOCALS
+VARSET STR_LIST
+VARIANT = 0
+SIF TYPE == 3
+	GOTO TRIBE
+IF TYPE && (ARG == RANDOM_CHARANUM || ARG == 0)
+	SIF TYPE == 1
+		RETURNF "だれか"
+	RETURNF "他の人"
+ENDIF
+SELECTCASE ARG
+	;MASTERの呼び名
+	CASE 0
+		RETURNF CALLNAME:MASTER + "さん"
+	;その他
+	CASEELSE
+		RETURNF CALLNAME:ARG + "さん"
+ENDSELECT
+$TRIBE
+;==================================================
+;主人公の呼び名を変更する関数
+;スレで話題にあがってたから、なんとなく入れてみる
+;構文は命OD勢の口上からほぼそのまま持ってきてます
+@K139_SET_C_NAME(ARG)
+#DIMS C_NAM
+;--------------------------------------------------
+;ARG =0:通常の初回入力 =1:恋慕呼び名入力 =2:願掛けからの通常呼び名変更 =3:願掛けからの恋慕呼び名変更
+;--------------------------------------------------
+RESETCOLOR
+PRINTFORMDL 呼び名を入力してください(直接入力するか、ボタンで選択してください)
+IF ARG == 1 || ARG == 3
+	C_NAM = %MASTERNAME:139%
+	SIF ARG == 3 && CSTR:139:80 != ""
+		C_NAM = %CSTR:139:80%
+	PRINTBUTTON "[ご主人様がいい]", "ご主人様"
+	PRINTL 
+	PRINTBUTTON @"[やっぱり%C_NAM%でいい]", @"%C_NAM%"
+	PRINTL
+ELSE
+	C_NAM = %CALLNAME:MASTER%
+	PRINTBUTTON @"[%C_NAM%\@ TALENT:139:恋人 ? # さん \@と呼んでもらう]", @"%C_NAM%"
+	PRINTL
+ENDIF
+$INPUT_LOOP
+RESETCOLOR
+INPUTS
+SETCOLOR 0x337D5C
+;行頭行尾の空白文字削除
+C_NAM = %RESULTS%
+REPLACE C_NAM, "\(\^\\s\+\|\\s\+\$)", ""
+;2文字未満
+IF STRLENS(C_NAM) < 2
+	SIF STRLENS(RESULTS)
+		CLEARLINE 1
+	REUSELASTLINE 「…タイムアタックでもなさっているのですか？」
+	GOTO INPUT_LOOP
+;14文字(全角7文字)超えた
+ELSEIF STRLENS(C_NAM) > 14
+	CLEARLINE 1
+	REUSELASTLINE 「本当にそれがお名前ですか？」
+	GOTO INPUT_LOOP
+;龍
+ELSEIF (FLAG:なりきり != 139 && STRCOUNT(C_NAM, "龍"))
+	CLEARLINE 1
+	REUSELASTLINE 「…またまた、ご冗談を」
+	GOTO INPUT_LOOP
+ENDIF
+;変えるって言ったのに呼び名変えてなかったら戻る
+SIF (C_NAM == CSTR:139:80 && ARG == 3) || (C_NAM == MASTERNAME:139 && ARG == 2)
+	RETURN -1
+;直接入力対応＠響子口上からそのまま拝借。改造したいけど正規表現わかんね
+IF MASTERNAME:139 == "" || ARG == 2
+	IF STRCOUNT(C_NAM, "\(\(御\|ご\)\(主人\|しゅじん\)\(様\|さま\)\)$")
+		CLEARLINE 1
+			REUSELASTLINE 「申し訳ございませんが、そう呼べるのは飯綱丸様だけですので…」
+		GOTO INPUT_LOOP
+	ENDIF
+ENDIF
+IF ARG == 1
+	PRINTFORML 「%C_NAM%…と、貴方を呼びたいのですが、よろしいですか？」
+ELSEIF ARG == 3
+	PRINTFORML 「%C_NAM%…とお呼びすればよろしいですか？」
+ELSE
+	PRINTFORML 「%C_NAM%\@ TALENT:139:恋人 ? # さん \@、ですね」
+ENDIF
+RESETCOLOR
+CALL ASK_YN
+IF !RESULT
+	IF MASTERNAME:139 == "" || ARG == 2
+		MASTERNAME:139 = %C_NAM%
+	ELSE
+		CSTR:139:80 = %C_NAM%
+	ENDIF
+ELSE
+	PRINTFORMDL 呼び名を入力してください
+	GOTO INPUT_LOOP
+ENDIF
+SETCOLOR 0x337D5C
+RETURN 1
+
+;==================================================
+;典の服が濡れる関数
+;-------------------------------------------------
+@K139_AMANURE
+	;雨の日に屋外にいるなら服が濡れて透ける。チャイナドレス限定
+	IF OUTROOF(CFLAG:139:現在位置) && GROUPMATCH(TIME:5, 4, 5, 6, 7)
+		SELECTCASE TIME:5
+		CASE 5
+			TCVAR:355 += 7
+		CASEELSE
+			TCVAR:355 += 3
+		ENDSELECT
+	ENDIF
+
+;==================================================
+;典の濡れ透け具合を返す関数
+;-------------------------------------------------
+@K139_NURESUKE()
+	SETCOLOR 0xFF69B4
+	SELECTCASE TCVAR:139:355
+	CASE 0
+		RETURN -1
+	CASE IS > 100
+		PRINTFORML 服は典の肢体に張り付き、体のラインをくっきりと浮かび上がらせている…
+		PRINTFORML 冷たさのせいか、乳首がツンと立っているようだ…
+		IF CFLAG:ノーパン == 1
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 典のヒップラインが浮かび上がっている…
+			CASE 1
+				PRINTFORML 典のすじが浮かび上がっている
+			ENDSELECT
+		ELSE
+			PRINTFORML %PANTSNAME(EQUIP:TARGET:下半身下着２, TARGET)%が透けて見えてしまっている…
+		ENDIF
+	CASE IS > 50
+		IF EQUIP:上半身下着１
+			PRINTFORML %CLOTHNAME(7, EQUIP:139:7)%が透けて浮かび上がっている…
+		ELSEIF EQUIP:上半身下着２
+			PRINTFORML %CLOTHNAME(8, EQUIP:139:8)%が透けて浮かび上がっている…
+		ELSE
+			PRINTFORML 典の服は典の肢体に張り付き、桜色の乳首をうっすらと浮かび上がらせている…
+		ENDIF
+	CASE IS > 0
+		PRINTFORML 典の服にポツポツと染みができている…
+	ENDSELECT
+	RESETCOLOR
+
+;==================================================
+;個人情報の「キャラ紹介」の文章を書き換える関数
+;==================================================
+;@CHARA_INFO_KOJO_K139()
+;個人情報の「キャラ紹介」の文章を書き換える
+;これがあれば「CSTR」の20番以降(20～39)に文字列を書き込むだけで書き換わるはず
+;早苗口上、諏訪子口上より引用、改変
+;-----------------------------------------------------------------------------------------------
+@CHARA_INFO_KOJO_K139()
+;===============================================================================================
+;記述例
+;このコメントアウトを外すと「CSTR」の20番以降に文字列を書き込むだけで書き換わるようになる
+;FOR LOCAL,20,40
+;	SIF CSTR:139:(LOCAL) != ""
+;		PRINTFORML %CSTR:139:(LOCAL)%
+;NEXT
+;RETURN 1
+;…とまあ、こんな感じでCSTR20番以降を使えばいいはず
+;===============================================================================================
+;本口上は、書き換わる文章が多いのでCSTRへの保存をせずに直接書き込む
+;現時点で下の2行が書き込まれている
+;PRINTL □ キャラ紹介 □---------------------------------------------------------------------
+;PRINTL 
+
+;##################################################################################
+;①～耳元で囁く邪悪な白狐～　●種族：管狐　●能力：魂の弱い所に入り込む程度の能力をプリント
+;##################################################################################
+CALL M_KOJO_COLOR_K139
+PRINTFORML %CSVCSTR(139, 10)%
+RESETCOLOR
+PRINTL 
+
+;##################################################################################
+;②キャラ紹介文を書き込み
+;##################################################################################
+;共通部
+PRINTFORML 邪悪と噂される管狐
+IF TCVAR:発情
+	IF DAY:2 == 4 && GROUPMATCH(DAY:3,1,2,3,4,5,6,7) 
+		PRINTL 
+		PRINTFORML 厳寒期に雌狐は繁殖期を迎え、発情する
+		PRINTFORML 妖怪である典も、その生態からは逃れられない
+		PRINTFORML 己が意志であろうがなかろうが、子宮は雄の新鮮な精子を求め疼き続ける
+		PRINTL 
+	ENDIF
+ENDIF
+
+IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+	IF TALENT:恋人
+		PRINTL 
+		;あなたから告白
+		IF CFLAG:1013 == 1
+			PRINTFORML %CALLNAME:MASTER%の求愛に、感動で胸が一杯になったお姉ちゃん
+		ELSE
+			PRINTFORML 勇気を出して告白し、%CALLNAME:MASTER%に受け入れられたお姉ちゃん
+		ENDIF
+		PRINTFORML %CALLNAME:MASTER%への愛情もセクハラもますます磨きがかかっているようだ
+		CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのHPH%CALLNAME:MASTER%どのHPH%CALLNAME:MASTER%どのHPH%CALLNAME:MASTER%どのHPH」","L" 
+		PRINTL 
+	ELSEIF TALENT:恋慕
+		PRINTL 
+		PRINTFORML お姉ちゃんの、小さい子への愛はとどまることを知らない
+		PRINTFORML %CALLNAME:MASTER%をドキドキさせる「邪悪な囁き」は、もう歯止めが掛からない
+		PRINTL 
+	ELSEIF TALENT:思慕
+		PRINTL 
+		PRINTFORML 小さい子へエッチな悪戯をするだけで満足だったお姉ちゃん
+		PRINTFORML しかし、最近%CALLNAME:MASTER%のことが気になってしまうようだ…
+		PRINTL 
+	ELSE
+		PRINTL 
+		PRINTFORML しかしその実態は、小さい子が大好きで、
+		PRINTFORML エッチなことばかり吹き込むただの危ないお姉さんだった…
+		PRINTL 
+	ENDIF
+	
+	SELECTCASE TALENT:MASTER:形状
+	CASE 6,10;巨根、馬並み
+		PRINTL 
+		PRINTFORML %CALLNAME:MASTER%が愛らしい様子に似合わぬ巨根の持ち主で、
+		PRINTFORML 常に目が離せないようだ…
+		PRINTL 
+	CASE 1,2;粗チン
+		PRINTL 
+		PRINTFORML %CALLNAME:MASTER%が子どもらしいおちんちんであることに、
+		PRINTFORML 興奮が隠し切れない様子だ…
+		PRINTL 
+	CASE 1,2;粗チン
+		PRINTL 
+		PRINTFORML %CALLNAME:MASTER%が凶悪なおちんちんであることに、
+		PRINTFORML 驚きを隠し切れない様子だ…
+		PRINTL 
+	CASEELSE
+		PRINTL 
+		PRINTFORML %CALLNAME:MASTER%が子どもにしては逞しいおちんちんであることに、
+		PRINTFORML 興奮が隠し切れない様子だ…
+		PRINTL 
+	ENDSELECT
+ELSE
+	IF TALENT:恋人
+		PRINTL 
+		;あなたから告白
+		;とある書籍からの一文を引用させていただきました
+		IF CFLAG:1013 == 1
+			PRINTFORML 相手の心の隙間に入り込み、混乱を引き起こす邪悪な狐が、狩人によって追い詰められた
+			PRINTFORML 追い詰めた狩人の名は、愛
+		ELSE
+			PRINTFORML 言葉で人を惑わす管狐
+			PRINTFORML しかし、%CALLNAME:MASTER%を射止めたのは飾り気も何もない、心からの言葉だった
+		ENDIF
+		PRINTFORML 相変わらず%CALLNAME:MASTER%を言葉で惑わせながら、幸せいっぱいの様子だ
+		PRINTL 
+	ELSEIF TALENT:恋慕
+		IF TALENT:140:恋人
+			;龍が先に恋慕
+			IF CFLAG:1000 == 1
+				PRINTL 
+				PRINTFORML すべてが手遅れ
+				PRINTFORML あの人を愛したのも、あの人を射止めるのもあの方の二歩後ろ
+				PRINTFORML 愛しても、愛しても届かない望んだ立ち位置
+				PRINTFORML 間に合わないと分かっているのに、私はまだ後ろを追い続ける
+				PRINTL 
+			;典が先に恋慕
+			ELSEIF CFLAG:1000 == 1
+				PRINTL 
+				PRINTFORML 私が先だったはずなのに
+				PRINTFORML あの人は私の心をこんなにも虜にしてしまったのに
+				PRINTFORML それなのに、あなたは私の腕からするりと逃げて行ってしまった
+				PRINTFORML それでも、無様な狩人は獲物を追い続ける
+				PRINTL 
+			ENDIF
+		ELSE
+			;龍が先に恋慕
+			IF CFLAG:1000 == 1
+				;あなたが龍に好意？
+				IF CFLAG:1004 == 1
+					PRINTL 
+					PRINTFORML 気付いている
+					PRINTFORML 飯綱丸さまと%CALLNAME:MASTER%は相思相愛だということを
+					PRINTFORML それでも、私はあきらめきれない
+					PRINTFORML 相手が天狗であろうと、私は追いついてみせる、追い越してみせる
+					PRINTL 
+				ELSE
+					PRINTL 
+					PRINTFORML 分かっている
+					PRINTFORML %CALLNAME:MASTER%を先に愛したのは飯綱丸さまだということを
+					PRINTFORML それでも、私はあきらめきれない
+					PRINTFORML 相手が天狗であろうと、私は追いついてみせる、追い越してみせる
+					PRINTL 
+				ENDIF
+			;典が先に恋慕
+			ELSEIF CFLAG:1000 == 1
+				;あなたが龍に好意？
+				IF CFLAG:1004 == 1
+					PRINTL 
+					PRINTFORML 気付いている
+					PRINTFORML 飯綱丸さまと%CALLNAME:MASTER%は相思相愛だということを
+					PRINTFORML 飯綱丸さまは素晴らしいお方だ。%CALLNAME:MASTER%が惹かれるのも無理はない
+					PRINTFORML だが、この恋を諦める気などない
+					PRINTFORML 管狐は、貪欲なのだ
+					PRINTL 
+				ELSE
+					PRINTL 
+					PRINTFORML 気付いている
+					PRINTFORML 飯綱丸さまが%CALLNAME:MASTER%を愛していることを
+					PRINTFORML 飯綱丸さまは素晴らしいお方だ。今も昔も変わらず敬愛している
+					PRINTFORML だが、恋となれば話は別だ
+					PRINTFORML たとえ主であろうとも、この恋は譲るつもりはない
+					PRINTL 
+				ENDIF
+			ENDIF
+		ENDIF
+	ENDIF
+
+	;浮気っクス
+	IF CFLAG:1017
+		PRINTL 
+		PRINTFORML %CALLNAME:MASTER%を身体で篭絡した
+		PRINTFORML 愛する相手がいるのに、自分の身体に夢中になっている%CALLNAME:MASTER%に、
+		PRINTFORML 愉悦を感じているようだ…
+		PRINTL 
+	ENDIF
+ENDIF

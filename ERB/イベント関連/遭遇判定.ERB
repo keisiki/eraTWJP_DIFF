@@ -3,119 +3,156 @@
 #DIM 遭遇率
 
 遭遇率 = 0
-FOR LOCAL, 1, CHARANUM
-	;自宅在住キャラなら遭遇しない
-	SIF CFLAG:LOCAL:神社在住 > 0
-		CONTINUE
-;訪問者それぞれの遭遇フラグ初期化
-	CFLAG:LOCAL:遭遇位置 = 0
-NEXT
-LOCAL:2 = CHARANUM
+CVARSET CFLAG, GETNUM(CFLAG, "遭遇位置")
 
-;よく考えたらこの計算何度もしなくていい事に気づいた
-;キャラ数増えるたびに調整するのもなんだし、％で設定した方がいいといい気がしたので変更
-;％と遭遇確率のバランス調整は投げ捨てるもの（作者様にお任せします）
+;出禁人数が多いほど遭遇率は高くなる（あんまり密にならないようにする）
+;※従来は低いほど遭遇しやすかったけど分かりにくいんで直感的％に,全体的にやや上方修正
 SELECTCASE (FLAG:出禁人数 * 100 / CHARANUM)
 	CASE IS >= 60
-		基本遭遇率 = 26
+		基本遭遇率 = 51
 	CASE IS >= 45
-		基本遭遇率 = 28
+		基本遭遇率 = 48
 	CASE IS >= 30
-		基本遭遇率 = 30
+		基本遭遇率 = 45
 	CASE IS >= 15
-		基本遭遇率 = 32
+		基本遭遇率 = 42
 	CASE IS >= 10
-		基本遭遇率 = 34
+		基本遭遇率 = 39
 	CASEELSE
 		基本遭遇率 = 36
 ENDSELECT
 
+;連動設定もあるのでこの処理は出禁キャラも行う
 FOR LOCAL, 1, CHARANUM
-	;自宅在住キャラなら遭遇しない
-	SIF CFLAG:LOCAL:神社在住 > 0
+	;自宅在住キャラは遭遇しない
+	SIF CFLAG:LOCAL:神社在住
+		CONTINUE
+	SIF TALENT:LOCAL:行きずり
 		CONTINUE
 	IF !(CFLAG:LOCAL:拠点来訪 && CFLAG:LOCAL:宴会参加)
-		;10以下になればデフォルト設定だと確定で遭遇フラグが立つだけなので（0以下でなければ）問題なし
-		遭遇率 = 基本遭遇率 - (TALENT:LOCAL:思慕 + TALENT:LOCAL:恋慕 * 2)
-		SIF CFLAG:LOCAL:依頼状況
-			遭遇率 -= 3
-		SELECTCASE LOCAL
-			;キャラ別に遭遇率を変える場合はCASEを加える・デフォルトは10/(基本遭遇率)
-			CASEELSE
-				SIF RAND:遭遇率 + 1 <= 10
-					CALL 遭遇フラグ決定(LOCAL)
-		ENDSELECT
+		遭遇率 = 基本遭遇率 + TALENT:LOCAL:思慕 * 3 + TALENT:LOCAL:恋慕 * 6 + CFLAG:LOCAL:依頼状況 * 6
+		SIF 遭遇率 > RAND:100
+			CALL 遭遇フラグ決定(LOCAL)
 	ENDIF
-	SIF CFLAG:LOCAL:現在位置 == SUKIMA() && CFLAG:LOCAL:神社在住
-		CFLAG:LOCAL:現在位置 = CFLAG:LOCAL:神社在住
 NEXT
 
-@遭遇フラグ決定(ARG)
-;CFLAG:ARG:遭遇位置 = ARGの遭遇地点
-;LOCAL = 算出された仮地点（遭遇地点/10）
-;LOCAL:1 = ランダムに決められた地域
+;全キャラ決定後、連動キャラを設定する
+FOR LOCAL, 1, CHARANUM
+	VARSET RESULT
+	CALLFORM CHARAMOVE_DATA_{LOCAL}(1)
+	;依存連動
+	IF RESULT
+		CFLAG:LOCAL:遭遇位置 = CFLAG:RESULT:遭遇位置
+	;対等連動
+	ELSEIF RESULT:1
+		;連動設定する
+		CFLAG:LOCAL:遭遇位置 = CFLAG:連動キャラ設定(RESULT:1, RESULT:2, RESULT:3):遭遇位置
+	ENDIF
+NEXT
+[IF_DEBUG]
+	PRINTL 【今日の遭遇位置】※デバッグ用
+	FOR LOCAL, 1, CHARANUM
+		IF CFLAG:LOCAL:遭遇位置
+			PRINTFORM %CALLNAME:LOCAL, 18, LEFT%%NAME_FROM_PLACE(CFLAG:LOCAL:遭遇位置)%
+			VARSET RESULT
+			CALLFORM CHARAMOVE_DATA_{LOCAL}(1)
+			IF RESULT
+				PRINTFORM （依存連動）
+			ELSEIF RESULT:1
+				PRINTFORM （対等連動）
+			ENDIF
+			PRINTL 
+		ENDIF
+	NEXT
+	WAIT
+[ENDIF]
+;-----------------------------------------------------------
+;キャラの遭遇位置を設定する関数
+;-----------------------------------------------------------
+@遭遇フラグ決定(CHARA)
+#DIM CHARA
+#DIM P_ID
+#DIM LPCOUNT
+VARSET LOCAL
+;最初に出現タイプを決定,他のタイプになったらその位置には出現しないように
+;自宅位置：よく行く地域：その他＝１：２：１
+WHILE !LOCAL
+	SELECTCASE RAND:1000
+	CASE IS < 250
+		;自宅位置はそのまま決定
+		IF CFLAG:CHARA:自宅位置
+			LOCAL = 1
+			CFLAG:CHARA:遭遇位置 = CFLAG:CHARA:自宅位置
+			RETURN
+		ENDIF
+	CASE IS < 750
+		SIF CFLAG:CHARA:よく行く地域 >= 0 && CFLAG:CHARA:よく行く地域 != MAIN_MAP
+			LOCAL = 2
+	CASEELSE
+		LOCAL = 3
+	ENDSELECT
+WEND
 
-;25%で自宅に出現。自宅が未解禁の場合はスキップ
-;この後自宅になる可能性もあるので実際はもっと高い
-IF !RAND:4 && INRANGE(CFLAG:ARG:自宅位置 , 100 , 1100)
-	CFLAG:ARG:遭遇位置 = CFLAG:ARG:自宅位置
-;33%(自宅がある場合約25%)でよく行く地域。よく行く地域が未設定の場合はスキップ
-;この後よく行く地域になる可能性もあるので実際はもっと高い
-ELSEIF !RAND:2 && CFLAG:ARG:よく行く地域 >= 0 && CFLAG:ARG:よく行く地域 != MAIN_MAP
-	CALL FISHER_YATES_SHAFFLE(9)
-	;1～10の数字をシャッフルして順番に引いてチェック、最大10回の判定で終わるはず。
-	FOR LOCAL:10 , 0 , 9
-		LOCAL = CFLAG:ARG:よく行く地域 * 10 + SHAFFLE_ARRAY:(LOCAL:10) + 1
-		;出現場所かチェック
-		CALLFORM CHARAMOVE_DATA_{ARG}(7,LOCAL)
-		;出現場所じゃなければ再抽選（出現場所が設定されていないと遭遇位置が変更されないので注意）
-		SIF !RESULT
+LPCOUNT = 0
+;遭遇位置の決定
+WHILE 1
+	LPCOUNT ++
+	P_ID = RANDOM_ODEKAKE()
+	;よく行く地域に自宅しかない、よく行く地域しか行かない場合は無限ループになるので100で妥協する
+	IF LPCOUNT < 100
+		;自宅位置はなるべく行かない
+		IF P_ID == CFLAG:CHARA:自宅位置
 			CONTINUE
-		;出現場所に設定
-		BREAK
-	NEXT
-	;場所を設定
-	;万が一よく行く地域内に出現場所が設定されていなかった場合、最後に引いた場所が入るように
-	CFLAG:ARG:遭遇位置 = LOCAL * 10
-;よく行く地域がある場合66%・自宅もある場合約50%・自宅だけある場合75%・何もない場合100%
-;自宅・よく行く地域も含んで選出
-ELSE
-	CALL FISHER_YATES_SHAFFLE(11)
-	FOR LOCAL:10 , 0 , 11
-		;ランダムに地域選択
-		LOCAL:1 = SHAFFLE_ARRAY:(LOCAL:10)
-		;拠点マップなら再抽選
-		SIF LOCAL:1 == MAIN_MAP
-			CONTINUE
-		;CHARAMOVEを参照して行かない地域だったら再抽選
-		RESULT = 0
-		CALLFORM CHARAMOVE_DATA_{ARG}(6,LOCAL:1)
-		SIF !RESULT
-			CONTINUE
-		BREAK
-	NEXT
-	;行く地域が設定されていなかった場合、最後に引いた地域に行く
-	
-	CALL FISHER_YATES_SHAFFLE(9)
-	FOR LOCAL:10 , 0 , 9
-		;ランダムに場所を選択
-		LOCAL = LOCAL:1 * 10 + SHAFFLE_ARRAY:(LOCAL:10) + 1
-		;CHARAMOVEを参照して行かない地域だったら再抽選
-		RESULT = 0
-		CALLFORM CHARAMOVE_DATA_{ARG}(7,LOCAL)
-		SIF !RESULT
-			CONTINUE
-		SIF STR:(6000 + LOCAL) == ""
-			CONTINUE
-		BREAK
-	NEXT
-	;出現場所に設定
-	;万が一出現場所が設定されていなかった場合、最後に引いた場所が入るように
-	CFLAG:ARG:遭遇位置 = LOCAL * 10
-ENDIF
+		;よく行く地域の場合,よく行く地域以外には行かない
+		ELSEIF LOCAL == 2
+			SIF GET_MAPID(P_ID) != CFLAG:CHARA:よく行く地域
+				CONTINUE
+		;その他の地域の場合,よく行く地域にはなるべく行かない
+		ELSE
+			SIF GET_MAPID(P_ID) == CFLAG:CHARA:よく行く地域
+				CONTINUE
+		ENDIF
+	ENDIF
+	;出現場所かチェック
+	RESULT = 0
+	CALLFORM CHARAMOVE_DATA_{CHARA}(7, P_ID)
+	SIF !RESULT
+		CONTINUE
+	CFLAG:CHARA:遭遇位置 = P_ID
+	BREAK
+WEND
+RETURN
 
-@出現状態(ARG)
+;-----------------------------------------------------------
+;キャラが他のキャラに依存した挙動をするのを設定する
+;暫定3人まで。遭遇位置でのみ使用されている
+;暫定恋慕と思慕のみ（遭遇率に影響があるので）
+;同列なら小さい方が優先
+;CHARA:1～3  この三人（二人）のうちもっとも評価が高いキャラに依存する
+;-----------------------------------------------------------
+@連動キャラ設定(CHARA:1, CHARA:2, CHARA:3)
+#FUNCTION
+#DIM CHARA, 4
+FOR LOCAL, 1, 4
+	SIF !CHARA:LOCAL
+		BREAK
+	SIF TALENT:(CHARA:LOCAL):恋慕
+		RETURNF CHARA:LOCAL
+NEXT
+FOR LOCAL, 1, 4
+	SIF !CHARA:LOCAL
+		BREAK
+	SIF TALENT:(CHARA:LOCAL):思慕
+		RETURNF CHARA:LOCAL
+NEXT
+;すべて無いならCHARA:1で決定
+RETURNF CHARA:1
+
+;-----------------------------------------------------------
+;キャラの出現フラグを判定する関数
 ;=1拠点には来ない =2来る =3 住んでる
+;-----------------------------------------------------------
+@出現状態(ARG)
 #FUNCTION
 IF CFLAG:ARG:出禁 || TALENT:ARG:行きずり
 	RETURNF 0
@@ -134,3 +171,73 @@ ELSEIF CFLAG:ARG:遭遇位置
 ELSE
 	RETURNF 0
 ENDIF
+
+;-----------------------------------------------------------
+;OPTIONから呼ばれるキャラの出現場所リスト
+;-----------------------------------------------------------
+@SHOW_APPEAR_LIST
+#DIM LPCOUNT
+#DIM LPCOUNT2
+#DIM LPCOUNT3
+#DIM P_ID
+#DIM MAPID
+#DIM メイン保管
+メイン保管 = MAIN_MAP
+MAIN_MAP = MAXHOME
+LPCOUNT3 = 0
+SIF FLAG:並び替え
+	CALL CHARASORT_EX
+FOR LPCOUNT, 1, EX_CHARANUM
+	IF FLAG:並び替え
+		LOCAL = RESULT:LPCOUNT
+		SIF LOCAL < 0
+			CONTINUE
+	ELSE
+		LOCAL = LPCOUNT
+		SIF LOCAL >= CHARANUM
+			BREAK
+	ENDIF
+	SIF TALENT:LOCAL:行きずり
+		BREAK
+	LPCOUNT3 ++
+	SIF LPCOUNT3 % 10 == 1
+		PRINTFORML 　　 %" ", 18, LEFT% 移率 節度　博　寺　里　湖　竹　森　冥　山　守　地　月　自宅位置
+	PRINTFORM [{LOCAL,3 }] %CALLNAME:LOCAL, 18, LEFT% {CFLAG:LOCAL:移動率補正, 2} 　
+	IF CFLAG:LOCAL:移動節度 > 0
+		PRINTFORM +{ABS(CFLAG:LOCAL:移動節度), 2, LEFT}　
+	ELSEIF CFLAG:LOCAL:移動節度 < 0
+		PRINTFORM -{ABS(CFLAG:LOCAL:移動節度), 2, LEFT}　
+	ELSE
+		PRINTFORM  0 　
+	ENDIF
+	FOR MAPID, 0, MAXHOME
+		IF MAPID == GET_MAPID(CFLAG:LOCAL:自宅位置) && CFLAG:LOCAL:自宅位置 && CFLAG:LOCAL:自宅位置 != 99
+			PRINT ☆
+		ELSEIF MAPID == CFLAG:LOCAL:よく行く地域
+			PRINT ◎
+		ELSE
+			FOR LPCOUNT2, 1, 10
+				P_ID = MAPID * 100 + LPCOUNT2 * 10
+				CALLFORM CHARAMOVE_DATA_{LOCAL}(7, P_ID)
+				IF RESULT
+					PRINT ○
+					BREAK
+				ELSEIF LPCOUNT2 == 9
+					PRINT －
+					BREAK
+				ENDIF
+			NEXT
+		ENDIF
+		PRINT 　
+	NEXT
+	PRINTFORM %NAME_FROM_PLACE(CFLAG:LOCAL:自宅位置)%
+	PRINTL 
+NEXT
+MAIN_MAP = メイン保管
+DRAWLINE
+PRINTL 全キャラの出現地域です。選択は光らせる為で何も起きません。条件によって変化するキャラもいます。
+PRINTL 移率：拠点にいる時の移動しやすさ
+PRINTL 節度：拠点にいる時にプライベートに配慮する度合い
+PRINTL ☆：自宅地域　◎：よく行く地域　○：出現する地域　－：出現しない地域
+PRINTL [  0] 戻る
+INPUT

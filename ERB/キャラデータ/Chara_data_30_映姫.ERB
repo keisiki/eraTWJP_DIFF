@@ -1,55 +1,36 @@
-﻿@CHARAMOVE_DATA_30(ARG,ARG:2)
+﻿@CHARAMOVE_DATA_30(ARG, ARG:2)
 LOCAL = 30
 SELECTCASE ARG
-	;移動対象メンバーチェック
+	;連動設定（RETURN=依存するキャラ, RESULT:1～3=対等に連動するキャラ）
 	CASE 1
-	;移動確率
-	CASE 2
-	;起床時間帯
+	;特殊生活時間設定（CFLAG:LOCAL:生活時間補正を設定する）
 	CASE 3
-		RETURN 睡眠時間(LOCAL)
-	;移動傾向
+	;移動傾向（±～10=行きやすい/行きにくい, -100=行かない）
 	CASE 4
 		SELECTCASE ARG:2
-			;ひとんちの風呂とかトイレにはいかない
-			CASE 12, 13, 14, 18, 30, 35, 39, 40, 43, 44, 51, 52
-				RETURN -100
-			;私室には入らない
-			CASE 15, 17, 19, 53, 55
-				SIF FLAG:15 != LOCAL
-					RETURN -100
-			;小町の私室
-			CASE 616
+			;小町の私室はあまり入らない
+			CASE P616小町の部屋
 				RETURN -5
-			;八雲邸、畜生界は行かない（入り口部分は出る時用）
-			CASE 630, 631, 640, 641
-				RETURN -10
-			CASE 630 TO 639, 640 TO 652
+			;八雲邸、畜生界は行かない
+			CASE P630八雲邸玄関 TO P655尤魔宅の風呂
 				RETURN -100
 			;他人の家、他宅の私室等には入らない
-			CASE 608, 609, 623, 624, 627
+			CASE P608潤美の家, P609瓔花の家, P623幽々子私室, P624妖夢私室, P627風呂
 				RETURN -100
-		ENDSELECT
-	;仕事時間帯
-	CASE 5
-	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
-	CASE 6
-		SELECTCASE ARG:2
-			CASE 1, 2, 6
-				RETURN 1
-			CASEELSE
-				RETURN 0
 		ENDSELECT
 	;出現場所
 	CASE 7
 		SELECTCASE ARG:2
-			CASE 11,12,13, 21,22,23,27, 61,62,64,65,66,67
+			CASE お地蔵通り, 枝垂れ柳の下, 命蓮寺境内
 				RETURN 1
-			CASEELSE
-				RETURN 0
+			CASE 広場, 商家町, 呑屋小道, 長屋街
+				RETURN 1
+			CASE 中有の道, 三途の川, 彼岸, 白玉楼庭, 白玉楼, 地獄
+				RETURN 1
 		ENDSELECT
+	;引力設定（CFLAG:LOCAL:引力点を設定する）
+	CASE 8
 ENDSELECT
-;FileName_MOVEMENT.ERB ----------------------------- Rev1.00
 @EXIST_キャラデータ30
 #LOCALSIZE 1
 #LOCALSSIZE 1

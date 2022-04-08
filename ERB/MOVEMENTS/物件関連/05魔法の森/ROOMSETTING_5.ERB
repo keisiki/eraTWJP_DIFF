@@ -1,69 +1,222 @@
-﻿@ROOMSETTING_5
+﻿;＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+;地点の属性設定
+;場所_ワンルーム   家主が不在のとき鍵がかかる,布団・屋内・厨房・勉強・休憩・飲食・プライベートが自動で付与
+;場所_布団         休憩が自動で付与
+;場所_洋室         屋内だけど靴を履いたまま,屋内が自動で付与
+;場所_屋内         
+;場所_屋根         屋外だけど屋根がある場所,屋内でも屋根でも無い場合は野外判定（旧青天井）
+;場所_広い         
+;場所_月見         屋内や屋根があっても月が見える場所
+;場所_休憩         
+;場所_風呂         
+;場所_トイレ       
+;場所_厨房         つまみ食いが自動で付与
+;場所_訓練         
+;場所_勉強         
+;場所_天の声       
+;場所_菜園         
+;場所_水汲み       
+;場所_身体測定     
+;場所_物干し       風景描写用
+;場所_飲食         自由行動用
+;場所_つまみ食い   自由行動用
+;場所_留まらない   あまりキャラが留まらない（移動しやすい）
+;場所_過疎         あまりキャラが立ち入らない（移動されにくい）
+;場所_プライベート 節度のあるキャラは入ってこない,主に私室と風呂・トイレ
+;場所_炬燵         自由行動用
+;場所_公共の場     押し倒してこない
+;＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+@ROOMSETTING_5
+#DIM ROOM
 VARSET ROOMDATA
-FOR LOCAL,1,100
-	SIF GROUPMATCH(LOCAL,12,21,22,23,35,41,42,43,44)
-		ROOMDATA:LOCAL |= 場所_布団
-	SIF GROUPMATCH(LOCAL,2)
-		ROOMDATA:LOCAL |= 場所_屋内
-	SIF INRANGE(LOCAL,10,15) || INRANGE(LOCAL,21,31) || INRANGE(LOCAL,34,37)|| INRANGE(LOCAL,41,44)
-		ROOMDATA:LOCAL |= 場所_屋内
-	SIF GROUPMATCH(LOCAL,14,26,37)
-		ROOMDATA:LOCAL |= 場所_風呂
-	SIF GROUPMATCH(LOCAL,11,25,34)
-		ROOMDATA:LOCAL |= 場所_厨房
-	SIF GROUPMATCH(LOCAL,8)
-		ROOMDATA:LOCAL |= 場所_訓練
-	SIF GROUPMATCH(LOCAL,13, 21, 22, 23, 24, 34, 41, 44)
-		ROOMDATA:LOCAL |= 場所_勉強
-	SIF GROUPMATCH(LOCAL,11,12,15,21,22,23,25,34,41,42,43,44)
-		ROOMDATA:LOCAL |= 場所_休憩
-	;SIF GROUPMATCH(LOCAL,36)
-	;	ROOMDATA:LOCAL |= 場所_トイレ
-	SIF GROUPMATCH(LOCAL,1,3,4,5,6,7,8,9,29,40)
-		ROOMDATA:LOCAL |= 場所_青天井
-	SIF GROUPMATCH(LOCAL,1,3,4,5,6,7,8,9,29,40)
-		ROOMDATA:LOCAL |= 場所_月見
-	;SIF GROUPMATCH(LOCAL,)
-	;	ROOMDATA:LOCAL |= 場所_天の声
-	SIF GROUPMATCH(LOCAL,8)
-		ROOMDATA:LOCAL |= 場所_菜園
-	SIF GROUPMATCH(LOCAL,3,20,34)
-		ROOMDATA:LOCAL |= 場所_水汲み
-	SIF GROUPMATCH(LOCAL,1,6,8)
-		ROOMDATA:LOCAL |= 場所_見通し
-	SIF GROUPMATCH(LOCAL,15)
-		ROOMDATA:LOCAL |= 場所_狭い
-	SIF GROUPMATCH(LOCAL,12,21,22,23,35,41,42,43,44)
-		ROOMDATA:LOCAL |= 場所_うたた寝_可能
-	SIF GROUPMATCH(LOCAL,1,3)
-		ROOMDATA:LOCAL |= 場所_留まらない
-	SIF GROUPMATCH(LOCAL,14,26,37)
-		ROOMDATA:LOCAL |= 場所_身体測定
-	SIF GROUPMATCH(LOCAL,41,42,43,44)
-		ROOMDATA:LOCAL |= 場所_ワンルーム
-	SIF GROUPMATCH(LOCAL,6,9,15,28,31,36)
-		ROOMDATA:LOCAL |= 場所_過疎
-	SIF GROUPMATCH(LOCAL,11,12,13,14,15,21,22,23,24,25,26,28,29,30,31,35,36,37,41,42,43,44)
-		ROOMDATA:LOCAL |= 場所_プライベート
-	SIF GROUPMATCH(LOCAL,2)
-		ROOMDATA:LOCAL |= 場所_公共の場
-	SIF GROUPMATCH(LOCAL,11,25,29)
-		ROOMDATA:LOCAL |= 場所_居間
-NEXT
-
 MAXROOM = 546
-ENTRANCE = 501
-避難先 = 506
+ENTRANCE = P501魔法の森入り口
+避難先 = P506無縁塚
 
 SIF GET_MAPID(拠点_酒虫) != MAIN_MAP
-	拠点_酒虫 = 511
+	拠点_酒虫 = P511魔理沙宅・居間
 MAP_PAGES = 4
 MAPNAME:1 = 魔法の森
 MAPNAME:2 = 人形の洋館
 MAPNAME:3 = 魔理沙宅
 MAPNAME:4 = ふわふわエレンの店
 
+FOR LOCAL, MINROOM(), MAXROOM
+	ROOM = LOCAL % 100
+	SELECTCASE LOCAL
+	;布団・屋内・厨房・勉強・休憩・飲食・プライベートが自動で付与
+	CASE P541朱鷺子の棲み処, P542リグルの棲み処, P543ルーミアの棲み処, P544成美の小屋
+		ROOMDATA:ROOM |= 場所_ワンルーム
+	CASE P501魔法の森入り口
+		ROOMDATA:ROOM |= 場所_広い
+		ROOMDATA:ROOM |= 場所_留まらない
+	CASE P502香霖堂
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P503分かれ道
+		ROOMDATA:ROOM |= 場所_水汲み
+		ROOMDATA:ROOM |= 場所_留まらない
+	CASE P506無縁塚
+		ROOMDATA:ROOM |= 場所_広い
+		ROOMDATA:ROOM |= 場所_過疎
+	CASE P507キノコ群生地
+	CASE P508魔法の広場
+		ROOMDATA:ROOM |= 場所_広い
+		ROOMDATA:ROOM |= 場所_訓練
+		ROOMDATA:ROOM |= 場所_菜園
+	CASE P509再思の道
+		ROOMDATA:ROOM |= 場所_過疎
+	CASE P510霧雨魔法店
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P511魔理沙宅・居間
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_休憩
+		ROOMDATA:ROOM |= 場所_厨房
+		ROOMDATA:ROOM |= 場所_飲食
+		ROOMDATA:ROOM |= 場所_炬燵
+	CASE P512魔理沙宅・寝室
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_布団
+		ROOMDATA:ROOM |= 場所_プライベート
+	CASE P513魔理沙宅・研究部屋
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_勉強
+	CASE P514魔理沙宅・風呂
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_風呂
+		ROOMDATA:ROOM |= 場所_身体測定
+		ROOMDATA:ROOM |= 場所_プライベート
+	;自室になると布団,勉強,プライベートが付与
+	CASE P515魔理沙宅・倉庫
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_過疎
 
+	CASE P520人形の館前
+		ROOMDATA:ROOM |= 場所_屋根
+		ROOMDATA:ROOM |= 場所_水汲み
+	CASE P521人形の館・アリスの部屋, P522人形の館・神綺の部屋, P523人形の館・夢子の部屋
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_布団
+		ROOMDATA:ROOM |= 場所_勉強
+		ROOMDATA:ROOM |= 場所_プライベート
+	CASE P524人形の館・研究室
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_勉強
+	CASE P525人形の館・リビング
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_休憩
+		ROOMDATA:ROOM |= 場所_厨房
+		ROOMDATA:ROOM |= 場所_飲食
+		ROOMDATA:ROOM |= 場所_炬燵
+	CASE P526人形の館・風呂
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_風呂
+		ROOMDATA:ROOM |= 場所_身体測定
+		ROOMDATA:ROOM |= 場所_プライベート
+	CASE P528人形の館・倉庫
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_過疎
+	CASE P529人形の館・バルコニー
+		ROOMDATA:ROOM |= 場所_屋根
+		ROOMDATA:ROOM |= 場所_飲食
+		ROOMDATA:ROOM |= 場所_月見
+		ROOMDATA:ROOM |= 場所_物干し
+	CASE P530人形の館・二階
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_留まらない
+	;自室になると勉強,プライベートが付与
+	CASE P531人形の館・空き部屋
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_布団
+
+	CASE P534ふわふわエレン魔法の店
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_休憩
+		ROOMDATA:ROOM |= 場所_厨房
+		ROOMDATA:ROOM |= 場所_勉強
+		ROOMDATA:ROOM |= 場所_水汲み
+		ROOMDATA:ROOM |= 場所_飲食
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P535エレン宅・寝室
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_布団
+		ROOMDATA:ROOM |= 場所_プライベート
+	;自室になると勉強,プライベートが付与
+	CASE P536エレン宅・倉庫
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_過疎
+	CASE P537エレン宅・風呂
+		ROOMDATA:ROOM |= 場所_洋室
+		ROOMDATA:ROOM |= 場所_風呂
+		ROOMDATA:ROOM |= 場所_身体測定
+		ROOMDATA:ROOM |= 場所_プライベート
+
+	CASE P540古木の大樹
+	ENDSELECT
+NEXT
+
+;-----------------------------------------
+;デフォルトの初期位置と大家の設定
+;-----------------------------------------
 @DEFAULT_OWNER_5
-デフォルト初期位置 = 515
-拠点_大家 = 11
+デフォルト初期位置 = P515魔理沙宅・倉庫
+拠点_大家 = [[魔理沙]]
+
+;-----------------------------------------
+;お出かけマップの設定
+;ARG   対象の地点
+;ARGS  判定文字引数
+;-----------------------------------------
+@ODEKAKEMAP_SETTING_5(ARG, ARGS)
+#FUNCTION
+;無縁塚→彼岸へ繋がる特殊ワープの条件
+SIF ARGS == "特殊ワープ" &&  MAIN_MAP != 6 && CFLAG:MASTER:現在位置 == 無縁塚 && (ABL:MASTER:教養 > 1 || ABL:(FLAG:デート相手):教養 > 1)
+	RETURNF 彼岸
+;＼1 2 3 4 5 6 7 8 9 
+;01　　　　　　　　　
+;02　　　　　　　　　
+;03　　　　　　　　　
+;04　　　　　　７　　
+;05　　　　　６　　　
+;06　　４３　　　　　
+;07　　　　５　　　　
+;08　　２　　　　　　
+;09　　１　　　　　　
+SELECTCASE ARG
+CASE 森の入り口
+	SIF ARGS == "座標"
+		RETURNF 39
+	SIF GROUPMATCH(ARGS, "")
+		RETURNF 1
+CASE 香霖堂
+	SIF ARGS == "座標"
+		RETURNF 38
+	SIF GROUPMATCH(ARGS, "屋内")
+		RETURNF 1
+CASE 古木の大樹
+	SIF ARGS == "座標"
+		RETURNF 46
+	SIF GROUPMATCH(ARGS, "お弁当")
+		RETURNF 1
+CASE 霧雨魔法店
+	SIF ARGS == "座標"
+		RETURNF 36
+	SIF GROUPMATCH(ARGS, "屋内", "洋室")
+		RETURNF 1
+CASE 人形の洋館
+	SIF ARGS == "座標"
+		RETURNF 57
+	SIF GROUPMATCH(ARGS, "屋内", "洋室")
+		RETURNF 1
+CASE 再思の道
+	SIF ARGS == "座標"
+		RETURNF 65
+	SIF GROUPMATCH(ARGS, "")
+		RETURNF 1
+CASE 無縁塚
+	SIF ARGS == "座標"
+		RETURNF 74
+	SIF GROUPMATCH(ARGS, "")
+		RETURNF 1
+ENDSELECT

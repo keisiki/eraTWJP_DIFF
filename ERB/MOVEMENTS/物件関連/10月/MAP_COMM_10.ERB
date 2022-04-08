@@ -1,29 +1,34 @@
 ﻿;--------------------------------------------------
-;	マップ内移動処理拡張パッチ付属
-;	命蓮寺MAP用関数
+;地点名変更関数
 ;--------------------------------------------------
 @MAP_PLACENAME_10(ARG)
 #FUNCTIONS
-
 IF GET_MAPID(ARG) == MAIN_MAP
 	SELECTCASE ARG
-		CASE 1033, 1063
+		CASE P1033綿月亭・空き部屋, P1063純狐邸・空き部屋
 			IF CFLAG:MASTER:初期位置 == ARG
-				RETURNF "あなた私室"
+				RETURNF CALLNAME:(FLAG:住み込みキャラ) + "私室"
 			ELSE
 				RETURNF "空き部屋"
 			ENDIF
-		CASE 1007
+		CASE P1007空き家
 			IF CFLAG:MASTER:初期位置 == ARG
 				RETURNF "あなたの家"
 			ELSE
 				RETURNF "空き家"
 			ENDIF
-		CASE 1 TO (MAXROOM - 1)
+		CASE SUMIKOMI_ROOM
+			;※このマップでは未実装
+			IF FLAG:住み込みキャラ
+				RETURNF CALLNAME:(FLAG:住み込みキャラ) + "の部屋"
+			ELSE
+				RETURNF "空き部屋"
+			ENDIF
+		CASE MINROOM() TO (MAXROOM - 1)
 			RETURNF STR:(ARG + 8000)
-		CASE 1098
+		CASE OMANEKIBEYA()
 			RETURNF OMANEKI_PLACE()
-		CASE 1099
+		CASE SUKIMA()
 			RETURNF "スキマ空間"
 		CASE MAXROOM
 			RETURNF "夢の向こう"
@@ -31,101 +36,133 @@ IF GET_MAPID(ARG) == MAIN_MAP
 			RETURNF "不明"
 	ENDSELECT
 ELSE
-	RETURNF "不明"
+	RETURNF "月の外"
 ENDIF
 
-@MAP_VIEWING_10(AA,COLOR)
-#DIMS REF AA, 0
-#DIMS REF COLOR, 0
-IF !TFLAG:マップ切り替え
-	SELECTCASE CFLAG:MASTER:現在位置
-		CASE 1020 TO 1049
-			TFLAG:マップ切り替え = 2
-		CASE 1050 TO 1059
-			TFLAG:マップ切り替え = 3
-		CASE 1060 TO 1072
-			TFLAG:マップ切り替え = 4
-		CASEELSE
-			TFLAG:マップ切り替え = 1
-	ENDSELECT
-ENDIF
-CALL DRAW_INFORMATIONLINE(@"%MAPNAME:(TFLAG:マップ切り替え)%")
-PRINTFORML 
-IF RECOLOREDMAPS
-TRYCCALLFORM COLOREDMAP_TUKI_{TFLAG:マップ切り替え}(AA,COLOR)
-CATCH
-RECOLOREDMAPS = 0
-CALL DRAW_MAP
-RECOLOREDMAPS = 1
-RETURN
-ENDCATCH
-ELSE
-TRYCALLFORM MAP_TUKI_{TFLAG:マップ切り替え}(AA)
-ENDIF
-
-@MAP_CAN_MOVE_10(ARG, ARG:1)
+;--------------------------------------------------
+;場所ARGがどのエリアにあるか
+;表示するマップの番号と連動（TFLAG:マップ切り替え）
+;ARG     場所ID
+;--------------------------------------------------
+@MAP_AREASELECT_10(ARG)
 #FUNCTION
 SELECTCASE ARG
-	;サグメ宅,ワンルームの設定そのまま
-	CASE 1005, 1006
+	;綿月亭
+	CASE P1020綿月亭・門 TO 1049
+		RETURNF 2
+	;ドレミー宅
+	CASE P1050ドレミー宅・居間 TO 1059
+		RETURNF 3
+	;純狐邸
+	CASE P1060純狐邸・玄関 TO P1072ヘカーティア私室
+		RETURNF 4
+	;月の世界
+	CASEELSE
+		RETURNF 1
+ENDSELECT
+
+;--------------------------------------------------
+;内部構造がある場所の内部の判定
+;TFLAG:マップ切り替え  内部察知が必要なマップ番号
+;                P_ID  表示ボタンの場所ID
+;                Q_ID  判定する内部の場所ID,必ずP_IDと一致した数値も含める
+;--------------------------------------------------
+@GETMAP_BUILDING_10(P_ID, Q_ID)
+#FUNCTION
+#DIM P_ID
+#DIM Q_ID
+IF TFLAG:マップ切り替え == 1
+	SELECTCASE P_ID
+		;綿月亭
+		CASE P1020綿月亭・門
+			SELECTCASE Q_ID
+			CASE P1020綿月亭・門 TO 1049
+				RETURNF 1
+			ENDSELECT
+		;ドレミー宅
+		CASE P1050ドレミー宅・居間
+			SELECTCASE Q_ID
+			CASE P1050ドレミー宅・居間 TO 1059
+				RETURNF 1
+			ENDSELECT
+		;純狐邸
+		CASE P1060純狐邸・玄関
+			SELECTCASE Q_ID
+			CASE P1060純狐邸・玄関 TO P1072ヘカーティア私室
+				RETURNF 1
+			ENDSELECT
+	ENDSELECT
+ENDIF
+RETURNF 0
+
+;--------------------------------------------------
+;移動制限設定
+;ARG    場所ID
+;CHARA  移動するキャラID
+;RETURNF 1=移動できる,0=移動できない
+;TFLAG:移動不能メッセージ   ↓の@MAP_CANNOT_WORD用の設定
+;--------------------------------------------------
+@MAP_CAN_MOVE_10(ARG, CHARA)
+#FUNCTION
+#DIM CHARA
+SELECTCASE ARG
+	CASE P1005サグメ宅・居間, P1006サグメ宅・寝室
 		;除外
-		SIF GROUPMATCH(ARG:1, [[依姫]], [[豊姫]], [[サグメ]], [[永琳]])
+		SIF GROUPMATCH(CHARA, [[依姫]], [[豊姫]], [[サグメ]], [[永琳]])
 			RETURNF 1
 		;中からは動ける
-		SIF INRANGE(CFLAG:(ARG:1):現在位置, 1005, 1006)
+		SIF INRANGE(CFLAG:CHARA:現在位置, P1005サグメ宅・居間, P1006サグメ宅・寝室)
 			RETURNF 1
 		;あなた
-		IF ARG:1 == MASTER
+		IF CHARA == MASTER
 			;同行か恋慕なら入れる（家主睡眠中も可
 			IF CFLAG:[[サグメ]]:同行 || TALENT:[[サグメ]]:恋慕
 				RETURNF 1
 			;家主がいて起きてる
-			ELSEIF INRANGE(CFLAG:[[サグメ]]:現在位置, 1005, 1006)
-				SIF !CFLAG:[[サグメ]]:睡眠 && !CFLAG:[[サグメ]]:添い寝中 && !TCVAR:[[サグメ]]:泥酔 && !CFLAG:[[サグメ]]:衰弱
-					RETURNF 1
+			ELSEIF INRANGE(CFLAG:[[サグメ]]:現在位置, P1005サグメ宅・居間, P1006サグメ宅・寝室) && SHIRAHU([[サグメ]])
+				RETURNF 1
 			;家主以外の誰かがいる,この人物は寝てたりしても良い
-			ELSEIF IN_ROOM_NUMBER(1005) || IN_ROOM_NUMBER(1006)
+			ELSEIF IN_ROOM_NUMBER( P1005サグメ宅・居間) || IN_ROOM_NUMBER(P1006サグメ宅・寝室)
 				RETURNF 1
 			ELSE
 				TFLAG:移動不能メッセージ = 999
 				RETURNF 0
 			ENDIF
 		;部下
-		ELSEIF GROUPMATCH(ARG:1, [[レイセン]], [[清蘭]], [[鈴瑚]], [[鈴仙]])
+		ELSEIF GROUPMATCH(CHARA, [[レイセン]], [[清蘭]], [[鈴瑚]], [[鈴仙]])
 			;誰かがいる,この人物は寝てたりしても良い
-			IF IN_ROOM_NUMBER(1005) || IN_ROOM_NUMBER(1006)
+			IF IN_ROOM_NUMBER( P1005サグメ宅・居間) || IN_ROOM_NUMBER(P1006サグメ宅・寝室)
 				RETURNF 1
 			ELSE
 				RETURNF 0
 			ENDIF
-		;それ以外
+		;それ以外は入れない
 		ELSE
 			RETURNF 0
 		ENDIF
-	;ドレミー宅,入り口から近いせいであまりにも人が来るので入室制限をする
-	CASE 1050
+	;入り口から近いせいであまりにも人が来るので入室制限をする
+	CASE P1050ドレミー宅・居間 TO 1059
 		;除外
-		SIF GROUPMATCH(ARG:1, [[ドレミー]], [[菫子]], [[サグメ]])
+		SIF GROUPMATCH(CHARA, [[ドレミー]], [[菫子]], [[サグメ]])
 			RETURNF 1
 		;中からは動ける
-		SIF INRANGE(CFLAG:(ARG:1):現在位置, 1050, 1059)
+		SIF INRANGE(CFLAG:CHARA:現在位置, P1050ドレミー宅・居間, 1059)
 			RETURNF 1
 		;あなたは関係なし
-		SIF ARG:1 == MASTER
+		SIF CHARA == MASTER
 			RETURNF 1
 		;家主がいて起きてる
-		IF INRANGE(CFLAG:[[ドレミー]]:現在位置, 1050, 1059)
-			SIF !CFLAG:[[ドレミー]]:睡眠 && !CFLAG:[[ドレミー]]:添い寝中 && !TCVAR:[[ドレミー]]:泥酔 && !CFLAG:[[ドレミー]]:衰弱
-				RETURNF 1
+		IF INRANGE(CFLAG:[[ドレミー]]:現在位置, P1050ドレミー宅・居間, 1059) && SHIRAHU([[ドレミー]])
+			RETURNF 1
 		ENDIF
+		;それ以外は入れない
 		RETURNF 0
-	;宝物庫
-	CASE 1031
+	CASE P1031宝物庫
 		;除外
-		SIF GROUPMATCH(ARG:1, [[依姫]], [[豊姫]], [[サグメ]], [[永琳]], [[青娥]])
+		SIF GROUPMATCH(CHARA, [[依姫]], [[豊姫]], [[サグメ]], [[永琳]], [[青娥]])
 			RETURNF 1
 		;あなた
-		IF ARG:1 == MASTER
+		IF CHARA == MASTER
 			;信頼度1000以上
 			IF CFLAG:[[依姫]]:信頼度 >= 1000 || CFLAG:[[豊姫]]:信頼度 >= 1000
 				RETURNF 1
@@ -133,18 +170,67 @@ SELECTCASE ARG
 				TFLAG:移動不能メッセージ = 999
 				RETURNF 0
 			ENDIF
-		;それ以外
+		;それ以外は入れない
 		ELSE
+			RETURNF 0
+		ENDIF
+	;誰かが住んでないと入れない
+	CASE P1033綿月亭・空き部屋, P1063純狐邸・空き部屋, P1007空き家
+		IF !PRIVATEROOM:(ARG % 100) && CFLAG:MASTER:初期位置 != ARG
+			TFLAG:移動不能メッセージ = 999
 			RETURNF 0
 		ENDIF
 ENDSELECT
 RETURNF 1
 
-
+;--------------------------------------------------
+;移動不能時に表示されるメッセージ
+;--------------------------------------------------
 @MAP_CANNOT_WORD_10(ARG)
+RETURN
 SELECTCASE TFLAG:移動不能メッセージ
+	CASE 1
+		PRINTFORMW ※ここにメッセージを入れる。行数+1のCLEARLINEをする
+		CLEARLINE 2
 ENDSELECT
+REUSELASTLINE
 
+;-----------------------------------------
+;拠点専用の情景描写
+;WAITはかけないように
+;-----------------------------------------
+@MAP_UNIQUEMESSAGE_10
+IF WITH_MOB()
+	CALL MOB_MESSAGE_10
+ENDIF
+RETURN 1
+
+;-----------------------------------------
+;拠点の場所IDをお出かけマップ上の場所IDに置換する関数
+;ARG      対象の場所ID（拠点マップ）
+;RETURNF  差し替え場所ID（お出かけマップ）
+;-----------------------------------------
+@MAP_SEARCH_REPLACEMENT_10(ARG)
+#FUNCTION
+SELECTCASE ARG
+	CASE P1001槐安通路, P1050ドレミー宅・居間 TO 1059
+		RETURNF 槐安通路
+	CASE P1002月の都, P1005サグメ宅・居間 TO P1007空き家
+		RETURNF 月の都
+	CASE P1020綿月亭・門 TO 1049
+		RETURNF 綿月亭
+	CASE P1014桃林, P1015砂浜
+		RETURNF 桃林～砂浜
+	CASE P1016入り江, P1060純狐邸・玄関 TO P1072ヘカーティア私室
+		RETURNF 静かの海
+	CASEELSE
+		RETURNF 玉兎の街
+ENDSELECT
+RETURNF 0
+
+;--------------------------------------------------
+;マップの紹介文
+;--------------------------------------------------
 @マップ紹介_10
 ;とりあえず5行
 PRINTFORML 槐安通路～月の都、綿月亭、ドレミー宅、純狐邸の四つのMAPで構成されている

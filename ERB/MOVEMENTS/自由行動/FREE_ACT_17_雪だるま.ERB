@@ -24,49 +24,16 @@ CASE "経過時間"
 ;	CALLF MAKE_INT(V_NAME, 0)
 ENDSELECT
 
-@自由行動内容_17(CHARA, ARGS, 時間係数, CHAIN)
+@自由行動内容_17(CHARA, ARGS, 時間係数, CHAIN=0)
 #DIM CHARA
 #DIM CHAIN
 #DIM 現在地
 #DIM メッセージ表示
 #DIM 時間係数
 #DIM 経過時間
+#DIMS 作品
 現在地 = CFLAG:CHARA:現在位置
 メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
-IF GROUPMATCH(CHARA, [[瓔花]])
-	LOCALS = 超多段雪だるま
-	LOCAL = 90
-ELSEIF GROUPMATCH(CHARA, [[幽香]])
-	LOCALS = アイスフラワー
-	LOCAL = 40
-ELSEIF GROUPMATCH(CHARA, [[ぬえ]])
-	LOCALS = 雪宇宙人
-ELSEIF GROUPMATCH(CHARA, [[マミゾウ]])
-	LOCALS = 雪だぬき
-ELSEIF GROUPMATCH(CHARA, [[ミケ]])
-	LOCALS = 雪まねきねこ
-ELSEIF GROUPMATCH(CHARA, [[魅須丸]])
-	LOCALS = 陰陽雪玉
-ELSEIF GROUPMATCH(CHARA, [[磨弓]], [[袿姫]])
-	LOCALS = 雪はにわ
-	LOCAL = 40
-ELSEIF GROUPMATCH(CHARA, [[里香]])
-	LOCALS = 雪戦車
-	LOCAL = 60
-;ウサミミ
-ELSEIF TALENT:CHARA:動物耳 == 2
-	LOCALS = 雪うさぎ
-;月人
-ELSEIF GET_TRIBENAME(CHARA, GETNUM(TALENT, "人間")) == "月人"
-	LOCALS = 雪うさぎ
-;教養3以上
-ELSEIF CSVABL(CHARA, GETNUM(ABL, "教養")) >= 3
-	LOCALS = 雪うさぎ
-ELSE
-	LOCALS = 雪だるま
-ENDIF
-SIF !LOCAL
-	LOCAL = 30
 SELECTCASE ARGS
 	CASE "発生"
 		;冬の屋外で訓練できる場所
@@ -86,22 +53,41 @@ SELECTCASE ARGS
 			RETURN 0
 		SIF FLAG:異常気象 == 10
 			RETURN 0
-		SIF メッセージ表示
-			PRINTFORMW %CALLNAME:CHARA%は\@ CHAIN ? %CALLNAME:CHAIN%を手伝い始めた。# %LOCALS%を作り始めた。\@
-		RETURN LOCAL + RAND:30
+		;連鎖でない場合は先に作ってあったらダメ
+		SIF !CHAIN && FA17_OBJ:(現在地 % 100)
+			RETURN 0
+			
+		;ここから作成決定後の処理
+		;連鎖でない場合、作成位置と作成者を記録
+		IF !CHAIN
+			CALL FA17_OBJNAME(CHARA)
+			FA17_OBJ:(現在地 % 100) = CHARA
+			作品 = %RESULTS%
+		ENDIF
+		IF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は\@ CHAIN ? %CALLNAME:CHAIN%を手伝い始めた。# %作品%を作り始めた。\@
+			FA17_EXIST:(現在地 % 100) += 10
+		ENDIF
+		RESULT = CHAIN ? 1 # RESULT
+		RETURN RESULT
 	CASE "行動中"
 		;ちょっとだけ掃除される
 		YOGORE:(現在地) = MAX(YOGORE:(現在地) -50 * TIME_PROGRESS(TIME:1) / 5, 0)
 		IF メッセージ表示
 			PRINTFORMW %CALLNAME:CHARA%は%TEXTR("雪を集めている/雪を固めている/形を整えている")%。
+			FA17_EXIST:(現在地 % 100) += 10
 		ENDIF
 	CASE "完了"
-		SIF メッセージ表示
-			PRINTFORMW %CALLNAME:CHARA%は%LOCALS%を完成させて満足したようだ。
+		IF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は%作品%を完成させて満足したようだ。
+			FA17_EXIST:(現在地 % 100) += 10
+		ENDIF
+		;作成完了のフラグ
+		FA17_OBJ:(現在地 % 100) += 1000
 	CASE "中断"
 		;中断メッセージはうふふ突入時等でも表示されてしまうので表示しない
 	CASE "付き合う"
-		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の%LOCALS%作りを手伝った
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%の%作品%作りを手伝った
 	CASE "ソース"
 		;遊びに付き合うと一緒
 		DOWNBASE:MASTER:体力 += 40 * 時間係数
@@ -113,3 +99,55 @@ SELECTCASE ARGS
 		SOURCE:征服 = (100 + (ABL:サドっ気 * 100)) * 時間係数
 		TFLAG:98 = 1
 ENDSELECT
+
+@FA17_OBJNAME(CHARA)
+#DIM CHARA
+#DIM 作成者
+LOCAL = 30
+作成者 = CHARA > 1000 ? CHARA % 1000 # CHARA
+RESULTS:1 = が飾ってある
+SELECTCASE 作成者
+	CASE [[瓔花]]
+		RESULTS = 超多段雪だるま
+		RESULTS:1 = がそびえ立っている
+		LOCAL = 90
+	CASE [[幽香]]
+		RESULTS = アイスフラワー
+		LOCAL = 40
+	CASE [[ぬえ]]
+		RESULTS = 雪宇宙人
+		RESULTS:1 = がこちらを見ている…
+	CASE [[マミゾウ]]
+		RESULTS = 雪だぬき
+		RESULTS:1 = に葉っぱが乗せてある
+	CASE [[ミケ]]
+		RESULTS = 雪まねきねこ
+	CASE [[魅須丸]]
+		RESULTS = 陰陽雪玉
+		RESULTS:1 = がふわふわ浮いている
+	CASE [[磨弓]], [[袿姫]]
+		RESULTS = 雪はにわ
+		RESULTS:1 = が%\@ CHARA == [[磨弓]] ? 並んでいる # 動き回っている… \@%
+		LOCAL = 40
+	CASE [[里香]]
+		RESULTS = 雪戦車
+		RESULTS:1 = が置いてある
+		LOCAL = 60
+	CASEELSE
+		;ウサミミ
+		IF TALENT:作成者:動物耳 == 2
+			RESULTS = 雪うさぎ
+		;月人
+		ELSEIF GET_TRIBENAME(作成者, GETNUM(TALENT, "人間")) == "月人"
+			RESULTS = 雪うさぎ
+		;教養3以上
+		ELSEIF CSVABL(作成者, GETNUM(ABL, "教養")) >= 3
+			RESULTS = 雪うさぎ
+		ELSE
+			RESULTS = 雪だるま
+			RESULTS:1 = が立っている
+		ENDIF
+		SIF CHARA > 1000
+			RESULTS = %\@ RESULTS == "雪だるま" ? 大きな # 可愛らしい \@%%RESULTS%
+ENDSELECT
+RETURN LOCAL + RAND:30

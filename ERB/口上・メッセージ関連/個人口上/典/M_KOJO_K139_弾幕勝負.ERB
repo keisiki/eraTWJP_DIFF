@@ -1,0 +1,418 @@
+﻿;==================================================
+;弾幕勝負
+;==================================================
+;
+@M_KOJO_MESSAGE_COM_K139_DANMAKU(ARGS, 相手残機)
+#DIM 相手残機
+;全体の流れ
+;①【戦闘前】→②ダイスロールとプレイヤー選択肢、ハンデをつけた場合は【ハンデ口上】→③対応スキルが発動した場合【スキル口上】→④被弾判定、キャラが被弾したなら【被弾口上】→
+;どちらかの残機が0になっていなければ②に戻る→⑤【戦闘後口上】
+
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+SIF FLAG:口上色
+	TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;戦闘前
+	HANDICAP_FIXED = 0
+	HANDICAP_RAND = 0
+	;ハンデをつけることができ、数値が大きいほどあなたが不利になる　数値が負ならあなたが有利に
+	;キャラの能力に関わらずクッソ強くしたり弱くしたりできる
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘前"
+		IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+			PRINTFORML 「%CALLNAME:MASTER%どの、お姉ちゃん、お願いがあるのですが」
+			PRINTFORML 「ほら、%CALLNAME:MASTER%どのってとっても強いじゃないですか」
+			PRINTFORML 「一方的な勝負になっちゃってもつまらないし、%CALLNAME:MASTER%どのは弱い者いじめとかしないよね？」
+			PRINTFORML 「だから、お姉ちゃんにちょっとだけ手加減してくれないかな…♪」
+		ELSE
+			PRINTFORML 「%CALLNAME:MASTER%どの。私は所詮つまらぬ管狐でございます」
+			PRINTFORML 「そのような弱い相手に全力を振るうおつもりですか？」
+			PRINTFORML 「弱い相手をいたぶるなど、%CALLNAME:MASTER%どのの戦歴が傷付くというもの」
+			PRINTFORML 「どうでしょう？　ここはひとつ、手心を加えていただけませんか？」
+			PRINTW 
+		ENDIF
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;ハンデ
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "ハンデ"
+		;ハンデつけなかったら表示されないので無記入でよい
+		HANDICAP_FIXED += ABL:MASTER:戦闘能力 * 50
+		IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+			PRINTFORML 「嬉しい♪　%CALLNAME:MASTER%どのはお姉ちゃんに優しいですねぇ♪」
+			IF ABL:MASTER:戦闘能力 >= 3
+				PRINTFORML (\@ ABL:MASTER:戦闘能力 > 4 ? 飯綱丸さま # 私 \@より強いこの子に本気なんて出されたらひとたまりもないですからね…）
+			ELSE
+				PRINTFORML （うまくいきました…♪）
+				;生意気か反抗的持ち
+				IF (TALENT:MASTER:応答 == 1 || TALENT:MASTER:態度 == 1)
+					PRINTFORML （ハンデがあれば、素直じゃないこの子を分からせてあげられそうですね…♪）
+					PRINTFORML （跳ねっかえりもそれはそれで可愛いですが、たまにはお姉ちゃんの言うことは聞いてもらわないと…♪）
+				ELSE
+					PRINTFORML （負かした暁には、言葉攻めにしてプライドを粉々にした後、デロデロに甘やかしてあげるのです…♪）
+					PRINTFORML （そして、私に依存させる作戦…完璧です♪）
+				ENDIF
+			ENDIF
+		ELSE
+			PRINTFORML 「さすがは%CALLNAME:MASTER%どの。真に強き者は示威せぬものです」
+			PRINTFORML （ちょろいですねぇ…扱いやすくて、本当に助かります♪）
+			PRINTW 
+		ENDIF
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中TARGET被弾時口上
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "被弾" 
+		;別に一律で「やられたー」だけでもいいよ
+		SELECTCASE 相手残機
+			;残り残機3が表示されるのは【洽覧深識】持ちのみ
+			CASE 3
+				PRINTFORML 
+			CASE 2
+				PRINTFORML 「むむむ、さすがは%CALLNAME:MASTER%どのですね」
+				PRINTW 
+			CASE 1
+				PRINTFORML 「これはお強い。典めは、もう風前の灯でございます」
+				IF HANDICAP_FIXED > 0
+					PRINTFORML （おかしい、確かに%CALLNAME:MASTER%は手を抜いているのに）
+					PRINTFORML （私のほうが押されてるなんて）
+				ENDIF
+			CASE 0
+				IF HANDICAP_FIXED > 0
+					PRINTFORML 「負けた！？　そんな…」
+					PRINTFORML （こんな、こんなはずでは！？）
+					PRINTFORML （手加減されてなお、力の差は歴然だったというの！？）
+					PRINTW 
+				ELSE
+					IF ABL:MASTER:戦闘能力 > 2
+						PRINTFORML 「完敗でございます。お見事ですね」
+						IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+							IF TALENT:恋慕 || TALENT:恋人
+								PRINTFORML 「しかし、%CALLNAME:MASTER%どののその強さ…」
+								IF FLAG:周回数
+									PRINTFORML （なんというか…この子の魂…霊格は普通の子供と比較にならないんですよね）
+									PRINTFORML （まさか、輪廻転生を繰り返しているとか？）
+									PRINTFORML （それこそまさか、ね。能力を保ったまま転生するなんて、大衆向け芝居じゃあるまいし）
+									PRINTFORML 「ああ、なんでもございません。お姉ちゃんの独り言ですよ」
+								ELSE
+									IF TALENT:MASTER:動物耳
+										IF (TALENT:MASTER:妖狐 || TALENT:MASTER:狐)
+											PRINTFORML 「実は…八雲の九尾様のご血縁とか…」
+										ELSE
+											PRINTFORML 「私みたいに獣の耳も生えているし…案外名のある妖怪の血が流れているのか…」
+											PRINTFORML 「まあ、私みたいな管狐ではないんでしょうけどねぇ」
+											PRINTW 
+											PRINTFORML （ああでも…）
+											PRINTFORML （各地に75匹の眷属を持ち、憑りつくことにかけては右に出る者のいない「同族」がいましたね…確か、名は…）
+										ENDIF
+									ELSE
+										IF (TALENT:MASTER:妖狐 || TALENT:MASTER:狐)
+											PRINTFORML 「明らかに妖怪の血は混じってるんですよねぇ…それも強力な」
+											PRINTFORML %CALLNAME:MASTER%の瞳を覗き込みながら典が言った
+											PRINTFORML 顔が近いと抗議すると、「またまた、照れちゃって～♪」とハグされてしまった…
+										ELSE
+											PRINTFORM 「どこからどう見ても
+											IF (TALENT:MASTER:応答 == 1 || TALENT:MASTER:態度 == 1)
+												PRINTFORML 生意気盛りの人間の子供なんですけどねぇ」
+												PRINTFORML どさくさに紛れて抱き付くなと抗議する
+												PRINTFORML 「いいじゃないですかー♪　\@ TALENT:恋人 ? 恋人同士なんですから～♪ # 好きな人に抱き付くくらい～ \@」
+												PRINTW 
+											ELSE
+												PRINTFORML 可愛い子供なんですけどねぇ」
+												PRINTFORML 抱きつかれたら恥ずかしいと抗議する
+												PRINTFORML 「いいじゃないですかー♪　\@ TALENT:恋人 ? 恋人同士なんですから～♪ # 好きな人に抱き付くくらい～ \@」
+												PRINTW 
+											ENDIF
+										ENDIF
+									ENDIF
+								ENDIF
+							;ショタ恋慕・恋人なし
+							ELSE
+								PRINTFORML 「一体この小さな身体のどこにこんな力が…」
+								IF TALENT:MASTER:動物耳
+									IF (TALENT:MASTER:妖狐 || TALENT:MASTER:狐)
+										PRINTFORML 「実は…八雲の九尾様のご血縁とか…」
+									ELSE
+										PRINTFORML 「私みたいに獣の耳も生えているし…案外名のある妖怪の血が流れているのか…」
+									ENDIF
+								ELSE
+									IF (TALENT:MASTER:妖狐 || TALENT:MASTER:狐)
+										PRINTFORML 「明らかに妖怪の血は混じってるんですよねぇ…それも強力な」
+										PRINTFORML %CALLNAME:MASTER%の瞳を覗き込みながら典が言った
+										PRINTFORML 顔が近いと抗議すると、「またまた、照れちゃって～♪」とハグされてしまった…
+									ELSE
+										PRINTFORM 「どこからどう見ても
+										IF (TALENT:MASTER:応答 == 1 || TALENT:MASTER:態度 == 1)
+											PRINTFORML 生意気盛りの人間の子供なんですけどねぇ」
+											PRINTFORML どさくさに紛れて抱き付くなと抗議する
+											PRINTFORML 「いいじゃないですかー♪　お姉ちゃん、クタクタで何かに寄り掛からないとしんどいんですよ～」
+											PRINTW 
+										ELSE
+											PRINTFORML 可愛い子供なんですけどねぇ」
+											PRINTFORML 抱きつかれたら恥ずかしいと抗議する
+											PRINTFORML 「いいじゃないですかー♪　お姉ちゃん、クタクタで何かに寄り掛からないとしんどいんですよ～」
+											PRINTW 
+										ENDIF
+									ENDIF
+								ENDIF
+							ENDIF
+						;大人・戦闘能力3以上
+						ELSE
+							IF TALENT:恋慕 || TALENT:恋人
+								PRINTFORML （強い方は…好きです%UNICODE(0x2665) *1%）
+								PRINTW 
+								PRINTFORML 「もはや私では勝負になりませんから、強さを極めたいのであれば、同程度の強さの方を相手にされるといいでしょう」
+								PRINTFORML 「%CALLNAME:MASTER%どのの場合は…そうですね…」
+								SELECTCASE ABL:MASTER:戦闘能力
+								CASE 6
+									PRINTFORML 「地獄の女神であるヘカーティア様、神霊をその身に下ろせるという月人の綿月依姫様…この二人でしょうか」
+									PRINTFORML 「このお二人に勝てれば、名実ともに%CALLNAME:MASTER%が幻想郷で最強でしょうね」
+									PRINTFORML 「…実際は幻想郷どころの話ではないとは思いますけど」
+								CASE 5
+									PRINTFORML 「幻想郷の閻魔様であらせられる四季映姫様、地獄に棲む鬼の四天王の一人、星熊勇儀様などなど…」
+									PRINTFORML 「文字通り『神に喧嘩を売る』レベルですね。天上人の戦いなど、典にはもはや皆目見当もつきません」
+									PRINTFORML 「飯綱丸さまのご友人の百々世さまもこのあたりでしょうね。あの方、なんだかんだで強いですから」
+									PRINTFORML 「さらにこの上の次元の戦いがあるそうですが…いやはや」
+								CASE 4
+									PRINTFORML 「我が主の飯綱丸さま、いつぞやの異変で私共と手を組んだ千亦様、守矢神社の神様などなど…」
+									PRINTFORML 「だんだん対戦相手が人間離れしてきましたね。まあ当然ですが」
+									PRINTFORML 「%CALLNAME:MASTER%どのがお望みでしたら、飯綱丸さまに稽古をつけていただけるよう、私がとりなしましょうか？」
+								CASE 3
+									PRINTFORML 「射命丸どのや姫海棠どの、犬走どの、守矢の緑ピーマ…コホン、巫女どのあたりが適任でしょうかねぇ」
+									PRINTFORML 「とはいえ、天狗たちは一癖も二癖もありそうですが…巫女どのもまだ底が知れませんし」
+									PRINTFORML 「さしあたっては、真面目な犬走どのとまず対戦されてみてはいかがですか？」
+								ENDSELECT
+								PRINTW 
+							ELSE
+								PRINTFORML （くぅっ、やはり戦力差は歴然でしたかっ）
+								PRINTW 
+								PRINTFORML 「%CALLNAME:MASTER%どのは私のような低級妖怪などより、もっと骨のある方を相手にされてはいかがですか？」
+								PRINTFORML 「それこそ我が主や百々世様のような…」
+								SIF CFLAG:140:弾幕勝負勝利 == 1
+									PRINTFORML 「……そういえば、主にはもう勝利なされてたんでしたね」
+								SIF CFLAG:142:弾幕勝負勝利 == 1
+									PRINTFORML 「……ああ、百々世様もでしたか」
+								IF CFLAG:98:弾幕勝負勝利 == 1 && CFLAG:113:弾幕勝負勝利 == 1
+									PRINTFORML 「んんん、じゃあ、幻想郷でも最強と名高いヘカーティア様と綿月依姫様…にも勝ってるじゃないですかー！　やだー！」
+									PRINTFORML 「なんだかあほらしくなってきました…」
+									PRINTFORML 「おやめになったらどうですか？　狂犬みたいに弾幕勝負吹っ掛けるのは」
+								ENDIF
+								PRINTFORML 「こんなにお強い方が、なぜ典の相手をするのか不思議でなりません…」
+							ENDIF
+							PRINTW 
+						ENDIF
+						PRINTW 
+					;あなたの戦闘能力2以下
+					ELSE
+						PRINTFORML 「いや、見事な戦いぶりでした」
+						IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+							IF TALENT:恋慕 || TALENT:恋人
+								PRINTFORML 「さすがはお姉ちゃんが見初めた%CALLNAME:MASTER%どのだけのことはありますっ♪」
+								PRINTFORML 「こんなに強くなられて、お姉ちゃんは嬉しいですよ♪　んーちゅっ♪」
+									PRINTFORM どさくさに典にキスされ、
+									IF (TALENT:MASTER:応答 == 1 || TALENT:MASTER:態度 == 1)
+										PRINTFORML %CALLNAME:MASTER%はガチガチに固まった
+									ELSE
+										PRINTFORML %CALLNAME:MASTER%は頬を赤らめた
+									ENDIF
+									PRINTW 
+							ELSE
+								IF TALENT:MASTER:性別 == 2
+									PRINTFORML 「『男子三日会わざれば刮目してみよ』とはいいますが…」
+									PRINTFORML 「強くなりましたね。もうお姉ちゃんでは敵わないかもしれません」
+									PRINTFORM 典にくしゃりと頭を撫でられ
+									IF (TALENT:MASTER:応答 == 1 || TALENT:MASTER:態度 == 1)
+										PRINTFORML たが、%CALLNAME:MASTER%はその手を払いのけたりはしなかった
+									ELSE
+										PRINTFORML 、%CALLNAME:MASTER%は照れたような笑みを浮かべた
+									ENDIF
+								ELSE
+									PRINTFORML 「私程度の妖怪であれば、油断しなければもう負けないでしょうね」
+									PRINTFORML 「でもでもっ、強さだけではなく狡猾な妖怪だっているんですから、まだまだお姉ちゃんの指導が必要ですねっ」
+								ENDIF
+								PRINTW 
+							ENDIF
+						ELSE
+							IF TALENT:恋慕 || TALENT:恋人
+								PRINTFORML （さすがは私が惚れた方…%UNICODE(0x2665) *1%）
+								PRINTW 
+								PRINTFORML 「ですが、油断はしないでくださいね」
+								PRINTFORML 「典の力は、妖怪の中では下の下。下から数えた方が早いくらいです」
+								PRINTFORML 「もっと強い妖怪がいること、そして%CALLNAME:MASTER%どのより弱い妖怪の中にも、狡猾な奴がいること」
+								PRINTFORML 「慢心されず、精進なさってください。典も、微力ながらお手伝いいたします」
+							ELSE
+								PRINTFORML （こいつっ、私より弱いと思っていたのにっ）
+								PRINTFORML （やっぱり、私って肉体労働は向いてないわね）
+							ENDIF
+							PRINTW 
+						ENDIF
+					ENDIF
+				ENDIF
+		ENDSELECT
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【残忍酷薄】発動時: 相手の被弾からの復帰時のボム数が-1される
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "残忍酷薄"
+		SELECTCASE RAND:3
+		CASE 0
+			PRINTFORML 「『ソレ』を使われるのは厄介ですからね…封じさせてもらいました」
+			PRINTW 
+		CASE 1
+			PRINTFORML 「相手の退路は封じる。戦闘の基本ですよね」
+			PRINTW 
+		CASE 2
+			PRINTFORML 「ふふふ…させませんよ」
+			PRINTW 
+		ENDSELECT
+		PRINTW 
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【乾坤一擲】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "乾坤一擲"
+		
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【怪力乱神】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "怪力乱神"
+		
+	ENDIF
+	
+	;-------------------------------------------------
+	;戦闘後
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘後" 
+		PRINTFORML 
+		;残り残機4が表示されうるのは【洽覧深識】持ちのみ
+		;残機が1以上ならあなたの負け、0の場合はあなたの勝利
+		SELECTCASE 相手残機
+			CASE 4
+				PRINTFORML 
+			CASE 3
+				;ハンデ付き負け。ここぞとばかりに煽られる
+				;あなたの素質で煽り内容が変化（増加）
+				IF HANDICAP_FIXED > 0
+					CALL HPH_PRINT,@"「ざぁこHPH　ざぁこHPH」","L"
+					CALL HPH_PRINT,@"「調子にのってハンデをつけて、管狐にすら完敗HPH」","L"
+					SIF TALENT:MASTER:非童貞 == 0
+						CALL HPH_PRINT,@"「童貞HPH」","L"
+					SIF (TALENT:MASTER:形状 == 1 || TALENT:MASTER:形状 == 2)
+						CALL HPH_PRINT,@"「短小HPH　包茎HPH」","L"
+					SIF TALENT:MASTER:応答 == -1
+						CALL HPH_PRINT,@"「コミュ障HPH」","L"
+					SIF TALENT:MASTER:度胸 == -1
+						CALL HPH_PRINT,@"「甲斐性なしHPH　強い相手にはすぐ下手に出るHPH」","L"
+					SIF ABL:MASTER:話術技能 < 1
+						CALL HPH_PRINT,@"「自分の好きなことだけ饒舌HPH　話題のレパートリーが乏しいHPH」","L"
+					SIF ABL:MASTER:料理技能 < 1
+						CALL HPH_PRINT,@"「作れないくせにすぐレシピを無視して料理を不味くするHPH」","L"
+					SIF ABL:MASTER:音楽技能 < 1
+						CALL HPH_PRINT,@"「形から入って楽器の持ち腐れHPH」","L"
+					SIF (TALENT:MASTER:酒耐性 == -2 || TALENT:MASTER:形状 == -1)
+						CALL HPH_PRINT,@"「お酒を飲んだら顔がすぐ真っ赤HPH」","L"
+					CALL HPH_PRINT,@"「ほんと、救いようがない雑魚ですねぇHPH」","L"
+					SIF TALENT:恋慕
+						CALL HPH_PRINT,@"「でも大好きHPH」","L"
+					
+					;自虐用
+					;CALL HPH_PRINT,@"「ざぁこHPH　ざこ口上作者HPH」","L"
+					;CALL HPH_PRINT,@"「仕様を理解してないのにすぐ新しい機能を使いたがるHPH」","L"
+					;CALL HPH_PRINT,@"「そのくせデバッグはユーザー任せHPH」","L"
+					;CALL HPH_PRINT,@"「空欄埋めなきゃ病に罹ってるくせに好きな部分と温度差が激しすぎるHPH」","L"
+					;CALL HPH_PRINT,@"「スレで感想がないと『自分の口上って、実は需要ない…？』ってすぐ落ち込むHPH」","L"
+					
+				ELSE
+					IF ABL:MASTER:戦闘能力 > 2
+						CALL HPH_PRINT,@"「あれぇHPH　どうしたんですかぁHPH　調子が悪かったんですかぁHPH」","L"
+						CALL HPH_PRINT,@"「私が言った通り、ハンデを付けておけば言い訳もできたのにHPH」","L"
+						CALL HPH_PRINT,@"「どうしてハンデを付けなかったんですかぁHPH　プライドってやつですかぁHPH」","L"
+						CALL HPH_PRINT,@"「でも格下に負けちゃったらプライドも何もないですねぇHPH」","L"
+						PRINTW 
+						CALL HPH_PRINT,@"「あれぇ、顔真っ赤ですよHPH　どうしたんですかHPH」","L"
+						CALL HPH_PRINT,@"「まさか勝負に負けて八つ当たりとかしないですよねHPH　格上ともあろうものがHPH」","L"
+						CALL HPH_PRINT,@"「今のあなたのこと、何て言うか、知ってます？HPH　言ってほしいですかぁ？HPH」","L"
+						PRINTW 
+						CALL HPH_PRINT,@"「ざぁこHPH　ざぁこHPH　ざこ%CALLNAME:MASTER%HPH」","L"
+						PRINTW 
+					ELSE
+						CALL HPH_PRINT,@"「ざぁこHPH　ざぁこHPH　ざこ%CALLNAME:MASTER%HPH」","L"
+						CALL HPH_PRINT,@"「あなたみたいな雑魚が私を相手にしようなんて百年早いですHPH」","L"
+						CALL HPH_PRINT,@"「残念でしたねぇHPH　もし私に勝てたら、とっても気持ちいいことしてあげようと思ったのにHPH」","L"
+						CALL HPH_PRINT,@"「雑魚のくせに悔しがるんですかHPH　安いプライドだけは一人前ですねHPH」","L"
+						PRINTW 
+					ENDIF
+					
+					IF TALENT:恋慕 || TALENT:恋人
+						PRINTFORML 「えぇと…真に受けたらいけませんよ…？」
+						PRINTFORML 「負けたら罵ってほしいって仰ったの、%CALLNAME:MASTER%どのじゃないですかぁ～」
+						PRINTW 
+						PRINTFORML 「もう、メンタルよわよわ%CALLNAME:MASTER%どのなんですから…%UNICODE(0x2665) *1%」
+						CALL HPH_PRINT,@"「ほーら、いーこ、いーこHPH」","L"
+						CALL HPH_PRINT,@"「弾幕勝負頑張ってえらいえらいHPH」","L"
+						CALL HPH_PRINT,@"「本当はつよつよなんだよねHPH　\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@のために手加減してくれたんだよねHPH」","L"
+						CALL HPH_PRINT,@"「はい\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@にぎゅーってしてHPH　泣き止んでえらいえらいHPH」","L"
+						CALL HPH_PRINT,@"「本当に%CALLNAME:MASTER%どのは、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@がいないと駄目なんですから…HPH」","L"
+					ENDIF
+				ENDIF
+			CASE 2
+				IF HANDICAP_FIXED > 0
+					PRINTFORML 「おやおやぁ～？　自信満々のご様子でしたが～？」
+					PRINTFORML 「典、強すぎてごめんなさいー♪」
+				ELSE
+					PRINTFORML 「%CALLNAME:MASTER%どのは手の内を見せすぎです♪」
+					PRINTFORML 「弱い私でも、戦い方によってはこれだけやれるのですよ♪」
+				ENDIF
+			CASE 1
+				PRINTFORML 「いやいや、危ないところでした…」
+			CASE 0
+				IF HANDICAP_FIXED > 0
+					PRINTFORML 「完敗です…ぐうの音も出ません」
+					PRINTFORML （悔しい～ハンデを付けて油断していたところをコテンパンにして、煽ってやるはずだったのに～）
+					PRINTW 
+				ELSE
+					IF ABL:MASTER:戦闘能力 > 2
+						PRINTFORML 「私ごときでは%CALLNAME:MASTER%どのに勝てるはずもありませんよね…」
+						PRINTFORML （少しは手加減くらいしなさいよね、この脳筋…！）
+						PRINTW 
+					ELSE
+						PRINTFORML 「いやはや…%CALLNAME:MASTER%どのを見くびっていたようです。参りました」
+						PRINTFORML （%CALLNAME:MASTER%がこんなに強いなんて…人を見る目には自信があったのに）
+						PRINTW 
+					ENDIF
+				ENDIF
+		ENDSELECT
+	ENDIF
+RESETCOLOR
+ENDIF
+RETURN 1
+

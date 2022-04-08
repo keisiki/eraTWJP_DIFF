@@ -1,46 +1,38 @@
-﻿@CHARAMOVE_DATA_64(ARG,ARG:2)
+﻿@CHARAMOVE_DATA_64(ARG, ARG:2)
 LOCAL = 64
 SELECTCASE ARG
-	;移動対象メンバーチェック
+	;連動設定（RETURN=依存するキャラ, RESULT:1～3=対等に連動するキャラ）
 	CASE 1
-	;移動確率
-	CASE 2
-	;起床時間帯
+	;特殊生活時間設定（CFLAG:LOCAL:生活時間補正を設定する）
 	CASE 3
-		RETURN 睡眠時間(LOCAL)
-	;移動傾向
+	;移動傾向（±～10=行きやすい/行きにくい, -100=行かない）
 	CASE 4
 		SELECTCASE ARG:2
-			;行かない
-			CASE 901 TO 930, 935, 937, 939, 940, 941, 942, 943
+			;地霊殿には行かない
+			CASE P901地霊殿前 TO P930旧血の池地獄
 				RETURN -100
 			;酒場と鬼の溜まり場に行きやすい
-			CASE 933, 938
-				RETURN 100
-			
-		ENDSELECT
-	;仕事時間帯
-	CASE 5
-	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
-	CASE 6
-		SELECTCASE ARG:2
-			CASE 9
-				RETURN 1
-			CASE 2, 7
-				SIF DAY:2 == 1 || DAY:2 == 3
-					RETURN 1
-				RETURN 0
-			CASEELSE
-				RETURN 0
+			CASE P933酒場, P938鬼の溜まり場
+				RETURN 5
 		ENDSELECT
 	;出現場所
 	CASE 7
 		SELECTCASE ARG:2
-			CASE 23, 71,72,73, 91,92,93,96
+			;春と秋だけ
+			CASE 呑屋小道
+				SIF GROUPMATCH(DAY:2, 1, 3)
+					RETURN 1
+			CASE 麓の樹海, 玄武の沢, 大蝦蟇の池
+				SIF GROUPMATCH(DAY:2, 1, 3)
+					RETURN 1
+			CASE 幻想風穴, 地獄の深道, 旧地獄街道
 				RETURN 1
-			CASEELSE
-				RETURN 0
 		ENDSELECT
+	;引力設定（CFLAG:LOCAL:引力点を設定する）
+	CASE 8
+		;夜はよく酒場
+		SIF CFLAG:LOCAL:今日の運勢 % 4 == 0 && INRANGE(TIME, 1200, 1440)
+			TCVAR:LOCAL:引力点 = P933酒場
 ENDSELECT
 
 @EXIST_キャラデータ64
@@ -101,3 +93,25 @@ CASE "感性：嫌い"
 	CALLF MAKE_STR(V_NAME, "精神/ポップ/繊細/知的/ロリータ/" + "刃物/弾/書物/機械/" * 3 + "河童の/天狗の/" * 10)
 ENDSELECT
 
+;IMAGE_I64_差分(CHARA)-----------------------------------------------------------------------
+;キャラクター特有の差分表示条件
+;裸やエフェクトを共有しない画像はこちら
+;使用時注意点:
+;	RESULTSに差分を格納すること
+;	書式は {CHARA}%差分% 適宜"_"等入れること
+;-------------------------------------------------------------------------------------------
+@IMAGE_I64_差分(CHARA)
+#DIM CHARA
+VARSET RESULTS
+
+IF CFLAG:CHARA:差し替え適用
+	;差し替え画像
+	IF FLAG:立ち絵種類
+		;顔絵
+	ELSE
+		;立ち絵
+	ENDIF
+ELSE
+	SIF CFLAG:CHARA:1001
+		RESULTS = _黄昏
+ENDIF

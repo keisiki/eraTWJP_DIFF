@@ -1,9 +1,17 @@
-﻿@OTHERREGIONS
+﻿;-----------------------------------------------------------
+;おでかけ関数
+;ARGS    呼び出し元の関数,"出掛ける"or"散策する"
+;-----------------------------------------------------------
+@OTHERREGIONS(ARGS)
 #DIM 現在地点
 #DIM 所要時間
 #DIM 現在地MAPID
-#DIM GOAL
+#DIM 目的地MAPID
 #DIM ANIMATION_SEED
+#DIM 仮デート相手
+#DIM 時間停止ジャンプ
+;拠点のマップ表示をリセットしておく
+TFLAG:マップ切り替え = 0
 
 ANIMATION_SEED = 0
 
@@ -18,41 +26,39 @@ IF RECOLOREDMAPS
 ELSE
 	CALL FIELDMAP
 ENDIF
+;先にデート相手だけ決定しておく,三人以上には対応してません
+仮デート相手 = 0
+FOR LOCAL, 1, CHARANUM
+	IF CFLAG:LOCAL:同行
+		仮デート相手 = LOCAL
+		BREAK
+	ENDIF
+NEXT
 
 PRINTL どこに向かいますか？
 現在地MAPID = GET_MAPID(CFLAG:MASTER:現在位置)
-;	// 神社が表示されないのはちょっと寂しいので
-PRINTFORM [ 0] - %"博麗神社", 18, LEFT%
-IF 現在地MAPID == 0
-	SETCOLOR 0 , 255, 0
-	PRINTFORM 現在地\@ FLAG:70 ? %"   "% # %" "% \@
-	RESETCOLOR
-ELSEIF FLAG:70
-	PRINTFORM 片道 {TIME_REQUIRED(現在地MAPID, 0) * 3, 3, RIGHT}TSP  
-ELSE
-	PRINTFORM 片道 {TIME_REQUIRED(現在地MAPID, 0), 3, RIGHT}分  
-ENDIF
-PRINTL
-;	// ここまで神社表示
-FOR LOCAL, 5001, 5011
-	IF LOCAL == 現在地MAPID + 5000
-		PRINTFORM [{現在地MAPID, 2, RIGHT}] - 
-		PRINTFORM %NAME_FROM_PLACE(LOCAL), 21, LEFT%
-		SETCOLOR 0 , 255, 0
-		PRINTFORM 現在地\@ FLAG:70 ? %"    "% # %"  "% \@
-		RESETCOLOR
-		SIF !(LOCAL % 2)
-			PRINTL
-		CONTINUE
+FOR 目的地MAPID, 0, MAXHOME
+	IF 目的地MAPID == 現在地MAPID
+		PRINTPLAINFORM [{目的地MAPID, 3}] - %GET_MAPNAME(目的地MAPID), 18, LEFT%
+		CALL COLORMESSAGE(@"　現在地　　", C_GREEN, 3)
+	ELSE
+		IF FLAG:時間停止 || (GETBIT(FLAG:瞬間移動, 0) && !FLAG:デート相手 && !仮デート相手)
+			所要時間 = TIME_REQUIRED(現在地MAPID, 目的地MAPID) * 3
+			LOCALS = TSP%" "%
+		ELSE
+			所要時間 = TIME_REQUIRED(現在地MAPID, 目的地MAPID)
+			LOCALS = 分　
+		ENDIF
+		PRINTFORM [{目的地MAPID, 3}] - %GET_MAPNAME(目的地MAPID), 18, LEFT%片道{所要時間, 3} %LOCALS%
 	ENDIF
-	PRINTFORM [{LOCAL - 5000, 2, RIGHT}] - 
-	PRINTFORM %NAME_FROM_PLACE(LOCAL), 18, LEFT%
-	PRINTFORM 片道 \@ FLAG:70 ? {TIME_REQUIRED(現在地MAPID,LOCAL - 5000) * 3, 3, RIGHT}TSP # {TIME_REQUIRED(現在地MAPID,LOCAL - 5000), 3, RIGHT}分 \@ 
-	SIF !(LOCAL % 2)
-		PRINTL
+	SIF 目的地MAPID % 2 == 0
+		PRINTL 
 NEXT
+SIF 目的地MAPID % 2 == 1
+	PRINTL 
 PRINT [100] - 戻る
-$LOOP
+SIF 同行人数() == 0
+	PRINT 　　　　　　　　　　　　　[ 99] - 時間停止
 ;Map Animation Code
 IF ANIMATERECOLOREDMAPS && !FLAG:70
 	CURRENTREDRAW
@@ -66,123 +72,71 @@ ENDIF
 ;戻る
 IF RESULT == 100
 	RETURN RESULT
-;時間停止発動
-ELSEIF RESULT == 101
-	
-ELSEIF RESULT == 現在地MAPID
-	;全体マップからも移動できるけど余計に時間かかる,おまけ機能なので
-	LOCAL:1 = 1
-	現在地点 = (CFLAG:MASTER:現在位置 - (CFLAG:MASTER:デート中 * 100)) / 10
-	所要時間 = ABS(現在地点 - 0) * 3
-	FOR LOCAL,0,CHARANUM
-		SIF CHK_DATENOW(CFLAG:LOCAL:デート中) 
-			CFLAG:LOCAL:現在位置 = (CFLAG:LOCAL:デート中 * 100) + (LOCAL:1 * 10)
-	NEXT
-	IF FLAG:70 == 1
-		BASE:MASTER:TSP -= 所要時間 * 2
-		IF TFLAG:運搬
-			BASE:MASTER:TSP -= 所要時間 / 3
-			CFLAG:(TFLAG:運搬):現在位置 = CFLAG:MASTER:現在位置
-		ENDIF
-	ELSEIF GETBIT(FLAG:瞬間移動, 0) && BASE:MASTER:TSP > 10  && !FLAG:デート相手
-		BASE:MASTER:TSP -= 所要時間 * 2
+;時間停止
+ELSEIF RESULT == 99 && 同行人数() == 0
+	IF FLAG:時間停止
+		FLAG:時間停止 = 0
+		RESETBGCOLOR
 	ELSE
-		TIME += 所要時間
-		IF CHK_DATENOW(CFLAG:93:デート中) && !GETBIT (FLAG:プール, 0)
-			TIME += 所要時間 / 2
-			BASE:MASTER:体力 = MAX(BASE:MASTER:体力 - 50,500)
-		ENDIF
+		FLAG:時間停止 = 1
+		SETBGCOLOR C_THE_WORLD
 	ENDIF
-	RETURN RESULT
+;帰宅
 ELSEIF RESULT == MAIN_MAP
-	IF FLAG:70 && FLAG:デート相手
+	IF FLAG:時間停止 && FLAG:デート相手
 		PRINTFORMW 帰るなら時間停止を解除してからにしよう
-		RETURN 100
+	ELSE
+		CALL 外出先から帰宅
+		RETURN MAIN_MAP
 	ENDIF
-	CALL 外出先から帰宅
-	RETURN MAIN_MAP
 ELSEIF RESULT == 1234
 	REDRAW 0
 	CLEARLINE LINECOUNT - LINESTART
 	GOTO MAPANIMATION
-ELSE
-	GOAL = RESULT
-	所要時間 = TIME_REQUIRED(現在地MAPID, GOAL)
-	;100分の道中はないんです…
-	IF FLAG:デート相手 > 0 && 所要時間 >= 100
-		PRINTW 遠すぎて一度には行けない
-		CLEARLINE 2
-		GOTO LOOP
-	;自宅から出発する処理
-	ELSEIF GET_MAPID(CFLAG:MASTER:現在位置) == MAIN_MAP
-		LOCAL:1 = 0
-		FOR LOCAL,1,CHARANUM
-			SIF CFLAG:(LOCAL):同行
-				LOCAL:1 ++
-		NEXT
-		IF LOCAL:1 == 1
-			;100分の道中はないんです…
-			IF 所要時間 >= 100
-				PRINTW 遠すぎて一度には行けない
-				CLEARLINE 2
-				RETURN 100
-			ENDIF
-			PRINTL デートに出掛けます
-			FOR LOCAL,1,CHARANUM
-				IF CFLAG:(LOCAL):同行
-					CALL SET_DATE(GOAL,LOCAL)
-				ENDIF
-			NEXT
-		;複数人デート処理（未設定）
-		ELSEIF LOCAL:1 > 1
-		;一人
-		ELSE
-			IF FLAG:70 && GETBIT(FLAG:瞬間移動, 0) && BASE:MASTER:TSP >= 所要時間 * 3
-				RESULT = 1
-			ELSE		
+ELSEIF INRANGE(RESULT, 0, MAXHOME - 1) && RESULT != 現在地MAPID
+	目的地MAPID = RESULT
+	所要時間 = TIME_REQUIRED(現在地MAPID, 目的地MAPID)
+	時間停止ジャンプ = 0
+	IF ARGS == "出掛ける"
+		;一人でお出掛け
+		IF 同行人数() == 0
+			IF (FLAG:時間停止 || GETBIT(FLAG:瞬間移動, 0)) && BASE:MASTER:TSP >= 所要時間 * 3
+				時間停止ジャンプ = 1
+			ELSE
 				PRINTL TSPを消費して、時間経過なしで移動できます。
 				PRINTL TSPを使いますか？
-				CALL ASK_M("いいえ", 1, @"はい（TSP{所要時間 * 3}消費）", BASE:MASTER:TSP >= 所要時間 * 3)
+				CALL ASK_M("いいえ", 1, @"はい（消費TSP {所要時間 * 3}）", BASE:MASTER:TSP >= 所要時間 * 3)
+				SIF RESULT == 1
+					時間停止ジャンプ = 1
 			ENDIF
-			IF RESULT == 0
-				FLAG:70 = 0
-				TIME += 所要時間
-			ELSEIF RESULT == 1
-				BASE:MASTER:TSP -= 所要時間 * 3
-			ENDIF
-			CALL SET_DATE(GOAL,0)
-			RETURN GOAL
-		ENDIF
-		RETURN GOAL
-	ELSEIF FLAG:デート相手 > 0
-		PRINTFORML %GET_MAPNAME(GOAL)%へ向かいます
-		CALL SET_DATE(GOAL,(FLAG:デート相手))
-		RETURN GOAL
-	ELSEIF GETBIT(FLAG:瞬間移動, 0) && BASE:MASTER:TSP > 所要時間 * 3 && !FLAG:デート相手
-		BASE:MASTER:TSP -= 所要時間 * 3
-	ELSEIF FLAG:70
-		IF BASE:MASTER:TSP < 所要時間 * 3
-			PRINTW TSPが足りません
-			CLEARLINE 2
-			GOTO LOOP
+			CALL SET_DATE(目的地MAPID, 0, 所要時間, 時間停止ジャンプ)
+			RETURN 目的地MAPID
+		;二人でデート
+		ELSEIF 同行人数() == 1
+			PRINTFORML %GET_MAPNAME(目的地MAPID)%へデートに出掛けます
+			CALL SET_DATE(目的地MAPID, 仮デート相手, 所要時間)
+			RETURN 目的地MAPID
+		;三人以上※未実装
 		ELSE
-			BASE:MASTER:TSP -= 所要時間 * 3
 		ENDIF
-	ELSE
-		TIME += 所要時間
-		IF CHK_DATENOW(CFLAG:93:デート中) && !GETBIT (FLAG:プール, 0)
-			TIME += 所要時間 / 2
-			BASE:MASTER:体力 = MAX(BASE:MASTER:体力 - 5 * (所要時間),500)
+	ELSEIF ARGS == "散策する"
+		IF FLAG:デート相手
+			PRINTFORML %GET_MAPNAME(目的地MAPID)%へ向かいます
+		ELSEIF FLAG:時間停止
+			IF BASE:MASTER:TSP < 所要時間 * 3
+				PRINTW TSPが足りません
+				RESTART
+			ELSE
+				時間停止ジャンプ = 1
+			ENDIF
+		ELSEIF GETBIT(FLAG:瞬間移動, 0) && BASE:MASTER:TSP >= 所要時間 * 3
+			時間停止ジャンプ = 1
 		ENDIF
+		CALL SET_DATE(目的地MAPID, FLAG:デート相手, 所要時間, 時間停止ジャンプ)
+		RETURN 目的地MAPID
 	ENDIF
-	FOR LOCAL,0,CHARANUM
-		IF CHK_DATENOW(CFLAG:LOCAL:デート中)
-			CFLAG:LOCAL:現在位置 = GET_ENTRANCE(GOAL)
-			CFLAG:LOCAL:デート中 = GOAL
-		ENDIF
-	NEXT
-	RETURN GOAL
 ENDIF
+RESTART
 
 @HappenToChild
 #DIM YOME

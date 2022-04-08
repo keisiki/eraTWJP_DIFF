@@ -172,7 +172,7 @@ SIF !TFLAG:100
 SIF GLOBAL_COMABLE(436)
 	RETURN RESULT
 ;デート道中
-SIF (CFLAG:現在位置 % 100) % 10 && CFLAG:MASTER:現在位置 != OMANEKIBEYA() && !AT_HOME(MASTER)
+SIF TFLAG:デート道中
 	RETURN 0
 ;添い寝中
 SIF CFLAG:MASTER:添い寝中
@@ -205,55 +205,53 @@ RETURN 1
 ;外にいる場合、拠点用のPLACE_IDに置換
 IF !IN_HOME(PLACE_ID)
 	SELECTCASE PLACE_ID
-		CASE 60
-			PLACE_ID = 49
+		CASE 夢幻遺跡 
+			PLACE_ID = P49夢幻遺跡・研究室
 		CASE 命蓮寺境内
-			PLACE_ID = 105
-		CASE 聖徳道場
-			PLACE_ID = 126
+			PLACE_ID = P105経蔵
+		CASE 神霊廟道場
+			PLACE_ID = P126道場
 		CASE 商家町
-			PLACE_ID = 213
+			PLACE_ID = P213鈴奈庵
 		CASE 寺子屋
-			PLACE_ID = 222
+			PLACE_ID = P222寺子屋
 		CASE 長屋街
-			PLACE_ID = 221
+			PLACE_ID = P221稗田邸
 		CASE 大図書館
-			PLACE_ID = 310
+			PLACE_ID = P310図書館
 		CASE 永遠亭奥ノ院
-			PLACE_ID = 414
+			PLACE_ID = P414輝夜私室
 		CASE 霧雨魔法店
-			PLACE_ID = 513
+			PLACE_ID = P513魔理沙宅・研究部屋
 		CASE 人形の洋館
-			PLACE_ID = 524
+			PLACE_ID = P524人形の館・研究室
 		CASE マヨヒガ
-			PLACE_ID = 633
+			PLACE_ID = P633紫私室
 		CASE 白玉楼
-			PLACE_ID = 623
+			PLACE_ID = P623幽々子私室
 		CASE 仙人の屋敷
-			PLACE_ID = 724
+			PLACE_ID = P724仙人の屋敷・書斎
 		CASE 天界
-			PLACE_ID = 842
+			PLACE_ID = P842比那名居邸物置
 		CASE 地霊殿
-			PLACE_ID = 920
+			PLACE_ID = P920書斎
 		CASE 綿月亭
-			PLACE_ID = 1043
+			PLACE_ID = P1043書斎
 		CASE 静かの海
-			PLACE_ID = 1065
+			PLACE_ID = P1065物置
+		CASEELSE
+			RETURNF 0
 	ENDSELECT
 ENDIF
 ;PLACE_IDを返す
 SELECTCASE PLACE_ID
-	;夢幻遺跡・第一資料室, 夢幻遺跡・研究室, 夢幻遺跡・第二資料室
-	CASE 48, 49, 50
+	CASE P48夢幻遺跡・第一資料室, P49夢幻遺跡・研究室, P50夢幻遺跡・第二資料室
 		RETURNF PLACE_ID
-	;経堂, 道場
-	CASE 105, 126
+	CASE P105経蔵, P126道場
 		RETURNF PLACE_ID
-	;鈴奈庵, 寺子屋
-	CASE 213, 222
+	CASE P213鈴奈庵, P222寺子屋
 		RETURNF PLACE_ID
-	;稗田邸
-	CASE 221
+	CASE P221稗田邸
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/思慕/恋慕で開放
@@ -261,8 +259,7 @@ SELECTCASE PLACE_ID
 			RETURNF PLACE_ID
 		SIF TALENT:[[阿求]]:恋慕 || TALENT:[[阿求]]:思慕
 			RETURNF PLACE_ID
-	;慧音宅
-	CASE 224
+	CASE P224慧音宅
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/信頼度30以上同室で許可
@@ -270,11 +267,9 @@ SELECTCASE PLACE_ID
 			RETURNF PLACE_ID
 		SIF CFLAG:[[慧音]]:同室 && CFLAG:[[慧音]]:信頼度 >= 30
 			RETURNF PLACE_ID
-	;図書館
-	CASE 310
+	CASE P310図書館
 		RETURNF PLACE_ID
-	;輝夜私室
-	CASE 414
+	CASE P414輝夜私室
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/思慕以上同室で許可
@@ -282,8 +277,7 @@ SELECTCASE PLACE_ID
 			RETURNF PLACE_ID
 		SIF CFLAG:[[輝夜]]:同室 && (TALENT:[[輝夜]]:恋慕 || TALENT:[[輝夜]]:思慕)
 			RETURNF PLACE_ID
-	;物置, 倉庫
-	CASE 424, 427
+	CASE P424物置, P427倉庫
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/同室で許可
@@ -291,8 +285,7 @@ SELECTCASE PLACE_ID
 			RETURNF PLACE_ID
 		SIF CFLAG:[[鈴仙]]:同室 || CFLAG:[[てゐ]]:同室 || CFLAG:[[輝夜]]:同室 || CFLAG:[[永琳]]:同室
 			RETURNF PLACE_ID
-	;魔理沙宅・研究部屋
-	CASE 513
+	CASE P513魔理沙宅・研究部屋
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/信頼度30以上同室で許可
@@ -300,8 +293,7 @@ SELECTCASE PLACE_ID
 			RETURNF PLACE_ID
 		SIF CFLAG:[[魔理沙]]:同室 && CFLAG:[[魔理沙]]:信頼度 >= 30
 			RETURNF PLACE_ID
-	;人形の館・研究室
-	CASE 524
+	CASE P524人形の館・研究室
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/住んでる/思慕以上同室で許可
@@ -311,8 +303,7 @@ SELECTCASE PLACE_ID
 			RETURNF PLACE_ID
 		SIF (CFLAG:[[アリス]]:同室 || CFLAG:[[神綺]]:同室) && (TALENT:[[アリス]]:恋慕 || TALENT:[[アリス]]:思慕 || TALENT:[[神綺]]:恋慕 || TALENT:[[神綺]]:思慕)
 			RETURNF PLACE_ID
-	;幽々子私室
-	CASE 623
+	CASE P623幽々子私室
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/思慕以上同室で許可
@@ -320,8 +311,7 @@ SELECTCASE PLACE_ID
 			RETURNF PLACE_ID
 		SIF CFLAG:[[幽々子]]:同室 && (TALENT:[[幽々子]]:恋慕 || TALENT:[[幽々子]]:思慕)
 			RETURNF PLACE_ID
-	;紫私室
-	CASE 633
+	CASE P633紫私室
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/思慕以上同室で許可
@@ -329,8 +319,7 @@ SELECTCASE PLACE_ID
 			RETURNF PLACE_ID
 		SIF CFLAG:[[紫]]:同室 && (TALENT:[[紫]]:恋慕 || TALENT:[[紫]]:思慕)
 			RETURNF PLACE_ID
-	;仙人の屋敷・書斎
-	CASE 724
+	CASE P724仙人の屋敷・書斎
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/住んでる/思慕以上同室で許可
@@ -340,8 +329,7 @@ SELECTCASE PLACE_ID
 			RETURNF PLACE_ID
 		SIF CFLAG:[[華扇]]:同室 && (TALENT:[[華扇]]:恋慕 || TALENT:[[華扇]]:思慕)
 			RETURNF PLACE_ID
-	;比那名居邸物置
-	CASE 842
+	CASE P842比那名居邸物置
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/住んでる/同室で許可
@@ -351,8 +339,7 @@ SELECTCASE PLACE_ID
 			RETURNF PLACE_ID
 		SIF CFLAG:[[天子]]:同室 || CFLAG:[[衣玖]]:同室
 			RETURNF PLACE_ID
-	;地霊殿書斎
-	CASE 920
+	CASE P920書斎
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/住んでる/思慕以上同室で許可,ただし信頼度50未満はダメ
@@ -365,7 +352,7 @@ SELECTCASE PLACE_ID
 		SIF CFLAG:[[さとり]]:同室 && (TALENT:[[さとり]]:恋慕 || TALENT:[[さとり]]:思慕)
 			RETURNF PLACE_ID
 	;綿月亭書斎
-	CASE 1043
+	CASE P1043書斎
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/住んでるで許可
@@ -374,7 +361,7 @@ SELECTCASE PLACE_ID
 		SIF INRANGE(CFLAG:MASTER:初期位置, 1020, 1049)
 			RETURNF PLACE_ID
 	;純狐邸物置
-	CASE 1050
+	CASE P1050ドレミー宅・居間
 		SIF PERMISSION
 			RETURNF PLACE_ID
 		;なりきり/住んでる/思慕以上同室で許可,ただし信頼度50未満はダメ
@@ -412,7 +399,7 @@ IF GET_MAPID(PLACE_ID) == MAIN_MAP
 			PLACE_LIBRARY = PLACE_ID
 	CASE "命連寺"
 	;MAP_命連寺、寺/道場ともに頼めば資料を見せてくれそう
-		SIF GROUPMATCH(NAME_FROM_PLACE(PLACE_ID), "経堂", "道場")
+		SIF GROUPMATCH(NAME_FROM_PLACE(PLACE_ID), "経蔵", "道場")
 			PLACE_LIBRARY = PLACE_ID
 	CASE "人間の里"
 	;MAP_人里、貸本屋と個人宅
@@ -448,7 +435,7 @@ ELSE
 	CASE "命蓮寺"
 		SIF STR:(6000 + PLACE_ID / 10) == "命蓮寺境内"
 			PLACE_LIBRARY = 105
-		SIF STR:(6000 + PLACE_ID / 10) == "聖徳道場"
+		SIF STR:(6000 + PLACE_ID / 10) == "神霊廟道場"
 			PLACE_LIBRARY = 126
 	CASE "人間の里"
 		SIF STR:(6000 + PLACE_ID / 10) == "商家町"
@@ -514,7 +501,7 @@ SELECTCASE PLACE_ID
 ;夢幻遺跡は素通し
 CASE 48, 49, 50
 	RETURNF PLACE_ID
-;寺と聖徳道場は素通し
+;寺と神霊廟道場は素通し
 CASE 105, 126
 	RETURNF PLACE_ID
 ;鈴奈庵と寺子屋は素通し

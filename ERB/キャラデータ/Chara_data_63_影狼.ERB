@@ -1,52 +1,41 @@
-﻿@CHARAMOVE_DATA_63(ARG,ARG:2)
+﻿@CHARAMOVE_DATA_63(ARG, ARG:2)
 LOCAL = 63
 SELECTCASE ARG
-	;移動対象メンバーチェック
+	;連動設定（RETURN=依存するキャラ, RESULT:1～3=対等に連動するキャラ）
 	CASE 1
-	;移動確率
-	CASE 2
-	;起床時間帯
+		;水曜日は連動
+		SIF YOUBI_MATCH(DAY, "水")
+			RETURN [[わかさぎ姫]]
+	;特殊生活時間設定（CFLAG:LOCAL:生活時間補正を設定する）
 	CASE 3
-		RETURN 睡眠時間(LOCAL)
-	;移動傾向
+	;移動傾向（±～10=行きやすい/行きにくい, -100=行かない）
 	CASE 4
 		SELECTCASE ARG:2
-			;ひとんちの風呂とかトイレにはいかない
-			CASE 12, 13, 14, 18, 30, 35, 39, 40, 51
-				RETURN -100
 			;夢幻館には行かない
-			CASE 450
-				RETURN -10
-			CASE 450 TO 466
+			CASE P450玄関 TO P466庭
 				RETURN -100
 			;永遠亭の奥には行かない
-			CASE 405, 407 TO 430
+			CASE P405調剤室, P407廊下 TO P430地下室
 				RETURN -100
 			;他人の家には入らない
-			CASE 437, 439, 440, 442, 443, 445
+			CASE P437メディスンの家, P439ラルバの家, P443ミスティアの家, P445妹紅の家
 				RETURN -100
 			;自宅,斜角の竹林,迷いの小道,夜雀の屋台,竹林入口によく居る
-			CASE 432, 433, 434, 444, 447
+			CASE P432影狼の家, P433斜角の竹林, P434迷いの小道, P444夜雀の屋台, P447竹林入口
 				RETURN 5
-		ENDSELECT
-	;仕事時間帯
-	CASE 5
-	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
-	CASE 6
-		SELECTCASE ARG:2
-			CASE 2, 3, 4, 5, 7
-				RETURN 1
-			CASEELSE
-				RETURN 0
 		ENDSELECT
 	;出現場所
 	CASE 7
 		SELECTCASE ARG:2
-			CASE 21,22,23, 31, 41,42,43,46,47
+			CASE 広場, 商家町, 呑屋小道
 				RETURN 1
-			CASEELSE
-				RETURN 0
+			CASE 霧の湖
+				RETURN 1
+			CASE 竹林入り口, 迷いの小道, 斜角の竹林
+				RETURN 1
 		ENDSELECT
+	;引力設定（CFLAG:LOCAL:引力点を設定する）
+	CASE 8
 ENDSELECT
 
 @EXIST_キャラデータ63

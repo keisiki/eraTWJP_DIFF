@@ -1,49 +1,38 @@
-﻿@CHARAMOVE_DATA_133(ARG,ARG:2)
+﻿@CHARAMOVE_DATA_133(ARG, ARG:2)
 LOCAL = 133
 SELECTCASE ARG
-	;移動対象メンバーチェック
+	;連動設定（RETURN=依存するキャラ, RESULT:1～3=対等に連動するキャラ）
 	CASE 1
-	;移動確率
-	CASE 2
-	;起床時間帯
+	;特殊生活時間設定（CFLAG:LOCAL:生活時間補正を設定する）
 	CASE 3
-		RETURN 睡眠時間(LOCAL)
-	;移動傾向
+	;移動傾向（±～10=行きやすい/行きにくい, -100=行かない）
 	CASE 4
 		SELECTCASE ARG:2
 			;是非曲直庁、冥界、八雲邸には行かない（入り口部分は出る時用）
-			CASE 610, 613, 620, 621, 630, 631
-				RETURN -10
-			CASE 610 TO 639
+			CASE P612法廷 TO P639八雲邸居間
 				RETURN -100
 			;他人の家には入らない
-			CASE 608, 609
+			CASE P608潤美の家, P609瓔花の家
 				RETURN -100
 			;霊長園には行かない
-			CASE 642 TO 645
+			CASE P642霊長園 TO P645磨弓の部屋
 				RETURN -100
-			;とくになし
-			CASEELSE
-				RETURN 0
-		ENDSELECT
-	;仕事時間帯
-	CASE 5
-	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
-	CASE 6
-		SELECTCASE ARG:2
-			CASE 6, 7, 8
-				RETURN 1
-			CASEELSE
-				RETURN 0
+			;他所の風呂には行かない
+			CASE P646八千慧宅の風呂, P655尤魔宅の風呂
+				RETURN -100
 		ENDSELECT
 	;出現場所
 	CASE 7
 		SELECTCASE ARG:2
-			CASE 61, 62, 64, 67, 68, 71, 72, 73, 75, 81, 82, 83, 84, 85
+			CASE 中有の道, 三途の川, 彼岸, 地獄, 畜生界
 				RETURN 1
-			CASEELSE
-				RETURN 0
+			CASE 麓の樹海, 玄武の沢, 大蝦蟇の池
+				RETURN 1
+			CASE 九天の滝, 絶景の丘, 山の湖, 守矢神社境内
+				RETURN 1
 		ENDSELECT
+	;引力設定（CFLAG:LOCAL:引力点を設定する）
+	CASE 8
 ENDSELECT
 
 @EXIST_キャラデータ133
@@ -103,7 +92,7 @@ CASE "料理：助手効果"
 	CALLF MAKE_STR(V_NAME, "畜生流/得意料理＊豪快＊/")
 ;贈り物関連
 CASE "感性：好き"
-	CALLF MAKE_STR(V_NAME, "黒/赤/混沌/かっこいい/シンプル/パワフル/壮大/" + "ウマの/ワシの/天馬の/スカーフ/" * 5)
+	CALLF MAKE_STR(V_NAME, "黒/赤/混沌/かっこいい/シンプル/パワフル/壮大/" + "ウマの/オオカミの/天馬の/スカーフ/" * 5)
 CASE "感性：嫌い"
 	CALLF MAKE_STR(V_NAME, "秩序/繊細/知的/" + "神霊/書物/機械/" * 3 + "はにわの/カワウソの/ワシの/カメの/龍の/はにわ/" * 10)
 ENDSELECT

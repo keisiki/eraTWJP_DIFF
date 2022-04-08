@@ -24,9 +24,9 @@ RETURNF STR:(CFLAG:MASTER:デート中 + 5000)
 #FUNCTIONS
 SIF CHK_DATENOW(CFLAG:MASTER:デート中) == 0
 	RETURNF ""
-SIF CFLAG:MASTER:現在位置 % 100 / 10 == 0
+SIF TFLAG:デート道中
 	RETURNF "道中"
-RETURNF NAME_FROM_PLACE(CFLAG:MASTER:現在位置 / 10 + 6000)
+RETURNF NAME_FROM_PLACE(CFLAG:MASTER:現在位置)
 
 ;FileName_DATE_CMN.ERB ----------------------------- Rev1.00
 ;デート地点番号取得関数
@@ -40,17 +40,6 @@ RETURNF NAME_FROM_PLACE(CFLAG:MASTER:現在位置 / 10 + 6000)
 RETURNF CFLAG:MASTER:現在位置 % 100 / 10
 
 ;FileName_DATE_CMN.ERB ----------------------------- Rev1.00
-;デート先到着残り時間取得関数
-;CALL		USER
-;ARG		VOID
-;RETURN		デート地点NO
-;COMMENT	
-;-----------------------------------------------------------
-@DATE_REMAINTIME()
-#FUNCTION
-RETURNF ((CFLAG:MASTER:現在位置 % 100) % 10) * 10
-
-;FileName_DATE_CMN.ERB ----------------------------- Rev1.00
 ;デート先アルバイト可否
 ;CALL		USER
 ;ARG		現在位置
@@ -59,6 +48,9 @@ RETURNF ((CFLAG:MASTER:現在位置 % 100) % 10) * 10
 ;-----------------------------------------------------------
 @DATE_PARTTIME(ARG)
 #FUNCTION
+RETURNF ODEKAKEMAP_SETTING(ARG, "アルバイト")
+
+;お金稼ぎが封印中なのでここも封印
 SELECTCASE ARG
 	;特殊バイト先
 	CASE 240,450,520,540,650,830
@@ -70,107 +62,6 @@ SELECTCASE ARG
 	CASE 350,410,430,440,510,530,630,710,810
 		RETURNF 1
 ENDSELECT
-RETURNF 0
-
-;FileName_DATE_CMN.ERB ----------------------------- Rev1.00
-;デート先モブ存在判定
-;CALL		USER
-;ARG		現在位置
-;RETURN		人通りが多ければ1
-;COMMENT	MASTERの目に見える範囲にモブキャラ(少女限定)が歩いてる（であろう）場所か否か
-;-----------------------------------------------------------
-@DATE_HITOGOMI(ARG)
-#FUNCTION
-SIF !ARG
-	ARG = CFLAG:PLAYER:現在位置
-IF !AT_HOME(MASTER)
-	SELECTCASE ARG
-		;モブがいる（と勝手に想像している場所
-		;地底（街道、温泉、地霊殿）妖怪の山山頂（守矢神社本殿、境内、九天の滝）妖怪の山山麓（無し）三途の川～冥界（中有の道）魔法の森（無し）迷いの竹林（永遠亭）紅魔館（広間、食堂、大図書館）人間の里（連れ込み宿以外）命蓮寺（お地蔵通り、枝垂れ柳の下、命蓮寺境内、命蓮寺本堂）
-		CASE 960,940,930,850,840,810,610,450,370,360,350,270,250,240,230,220,210,140,130,120,110
-			RETURNF 1
-	ENDSELECT
-ENDIF
-RETURNF 0
-
-;FileName_DATE_CMN.ERB ----------------------------- Rev1.00
-;デート先モブ種類存在判定
-;CALL		USER
-;ARG		現在位置
-;RETURN		
-;COMMENT	MASTERの目に見える範囲にモブキャラ（少女限定）が歩いてる（であろう）場所か否か、男はガン無視、ホフゴブリンは紳士なので少女が集まってキャッキャしてるところには近寄りません
-;-----------------------------------------------------------
-@DATE_HITOGOMI_SYUBETU(ARG)
-#FUNCTIONS
-VARSET LOCALS
-SIF !ARG
-	ARG = CFLAG:PLAYER:現在位置
-SELECTCASE GET_MAPID(ARG)
-	;モブの種類
-	;地底（街道、温泉、地霊殿）(街道と温泉では鬼も出てくる
-	CASE 9
-		IF ARG != 960 && !RAND:3
-			LOCALS += "鬼"
-		ELSE
-			LOCALS += "妖怪"
-		ENDIF
-	;妖怪の山山頂（守矢神社本殿、境内、九天の滝）（守矢神社境内のみ希に人間
-	CASE 8
-		IF !RAND:5 && ARG == 840
-			LOCALS += "人間"
-		ELSE
-			LOCALS += "妖怪"
-		ENDIF
-	;妖怪の山山麓（無し）
-	;三途の川～冥界（中有の道）(死神、妖怪、希に人間
-	CASE 6
-		IF !RAND:5
-			LOCALS += "人間"
-		ELSEIF !RAND:3
-			LOCALS += "妖怪"
-		ELSE
-			LOCALS += "死神"
-		ENDIF
-	;魔法の森（無し）
-	;迷いの竹林（永遠亭）(妖怪ウサギ、希に人間(患者）
-	CASE 4
-		IF RAND:5
-			LOCALS += "妖怪兎"
-		ELSE
-			LOCALS += "人間"
-		ENDIF
-	;紅魔館（広間、食堂、大図書館）（広間食堂は妖精メイド、大図書館は小悪魔にしたいけど、個別キャラ化してるので妖精メイド
-	CASE 3
-		LOCALS +=  "妖精メイド"
-	;人間の里（連れ込み宿以外）（基本人間、希に妖怪
-	CASE 2
-		IF RAND:5
-			LOCALS += "人間"
-		ELSE
-			LOCALS += "妖怪"
-		ENDIF
-	;命蓮寺（お地蔵通り、枝垂れ柳の下、命蓮寺境内、命蓮寺本堂）（人間と妖怪
-	CASE 1
-		IF !RAND:2
-			LOCALS += "人間"
-		ELSE
-			LOCALS += "妖怪"
-		ENDIF
-ENDSELECT
-LOCALS += "の少女"
-
-RETURNF LOCALS
-
-
-;FileName_DATE_CMN.ERB ------------------------------- Rev1.00
-;デートの道中かどうか
-;CALL		USER
-;ARG		現在位置
-;-----------------------------------------------------------
-@HALFWAY()
-#FUNCTION
-SIF CHK_DATENOW(CFLAG:MASTER:デート中) && GET_DATE_PLACE(CFLAG:MASTER:現在位置) && CFLAG:MASTER:デート中 != MAIN_MAP + 1 && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
-	RETURNF 1
 RETURNF 0
 
 ;FileName_DATE_CMN.ERB ----------------------------- Rev1.01

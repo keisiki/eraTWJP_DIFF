@@ -1,52 +1,36 @@
-﻿@CHARAMOVE_DATA_89(ARG,ARG:2)
+﻿@CHARAMOVE_DATA_89(ARG, ARG:2)
 LOCAL = 89
 SELECTCASE ARG
-	;移動対象メンバーチェック
+	;連動設定（RETURN=依存するキャラ, RESULT:1～3=対等に連動するキャラ）
 	CASE 1
-		RETURN 0
-	;移動確率
-	CASE 2
-		;悪天候時、外なら移動しやすく
-		SIF OUTROOF(CFLAG:(NO:89):現在位置) && ((TIME:5 & 4) || (TIME:5 & 8))
-			RETURN 10
-		RETURN 110
-	;起床時間帯
+	;特殊生活時間設定（CFLAG:LOCAL:生活時間補正を設定する）
 	CASE 3
-		RETURN 睡眠時間(LOCAL)
-	;移動傾向
+	;移動傾向（±～10=行きやすい/行きにくい, -100=行かない）
 	CASE 4
 		SELECTCASE ARG:2
-			;命蓮寺メンバーの私室（経堂と物置除く）
-			CASE 113, 114, 115, 116, 118
+			;命蓮寺メンバーの私室は入らない
+			CASE P113ナズーリン私室, P114ムラサ私室, P115星私室, P116一輪私室, P117ぬえ私室, P118白蓮私室, P109女苑私室, P136響子私室
 				RETURN -100
-			;神霊廟メンバーの私室
-			CASE 125, 127, 128
-				RETURN -100
-			;離れ
-			CASE 119
+			;神霊廟メンバーの私室は入らない
+			CASE P125屠自古私室, P127布都私室, P128神子私室
 				RETURN -100
 			;墓地によく居る
-			CASE 121
+			CASE P121墓地
 				RETURN 5
-		ENDSELECT
-	;仕事時間帯
-	CASE 5
-	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
-	CASE 6
-		SELECTCASE ARG:2
-			CASE 1
-				RETURN 1
-			CASEELSE
-				RETURN 0
 		ENDSELECT
 	;出現場所
 	CASE 7
 		SELECTCASE ARG:2
-			CASE 11,12,13,15,16
+			CASE お地蔵通り, 枝垂れ柳の下, 墓地, 神霊廟広場
 				RETURN 1
-			CASEELSE
-				RETURN 0
+			CASE 再思の道, 無縁塚
+				RETURN 1
 		ENDSELECT
+	;引力設定（CFLAG:LOCAL:引力点を設定する）
+	CASE 8
+		;よく墓地に行く
+		SIF CFLAG:LOCAL:今日の運勢 % 4 == 0 && INRANGE(TIME, 0, 360)
+			TCVAR:LOCAL:引力点 = P121墓地
 ENDSELECT
 
 @EXIST_キャラデータ89

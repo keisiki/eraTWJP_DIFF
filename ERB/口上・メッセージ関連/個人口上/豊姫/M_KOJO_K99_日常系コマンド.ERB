@@ -207,7 +207,7 @@ IF LOCAL
 						;はい
 						CASE 0
 							CALL M_KOJO_COLOR_K99
-							PRINTFORMW 「よかった♪ また聞きたくなったらいつでも教えてあげるからね」
+							PRINTFORMW 「よかった♪ また聞きたくなったらいつでも教えてあげるわね」
 							RESETCOLOR
 							TCVAR:99:350 = 0
 						;いいえ
@@ -1423,6 +1423,17 @@ IF LOCAL
 				PRINTFORML 「……というのは冗談だけど」
 				PRINTFORMW 「ごめんなさい。貴方と交わることはできません」
 		ENDSELECT
+	;攻守交替
+	ELSEIF TCVAR:99:399
+		SELECTCASE RAND:3
+			CASE 0
+				CALL HPH_PRINT,@"「今度は貴方が気持ち良くしてくれるのね……HPH」","L"
+			CASE 1
+				CALL HPH_PRINT,@"「それじゃあ、貴方に任せるわね……HPH」","L"
+			CASE 2
+				CALL HPH_PRINT,@"「ふふっ、気持ち良くしてね……HPH」","L"
+		ENDSELECT
+		PRINTFORMDW %CALLNAME:MASTER%は豊姫と攻守を交代した
 	;妊娠中
 	ELSEIF TALENT:妊娠
 		SELECTCASE RAND:3
@@ -1509,6 +1520,8 @@ IF LOCAL
 					PRINTFORMW 「あの子、きっと凄く怒るから」
 			ENDSELECT
 		ENDIF
+		;押し倒し口上切り替え用のTCVAR
+		TCVAR:99:399 = 1
 	ENDIF
 ENDIF
 RETURN 1
@@ -1550,12 +1563,12 @@ RETURN 1
 ;成否判定
 ;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
 
-;豊姫に恋慕が無いまたは依姫が恋慕の場合強制失敗
-IF !TALENT:恋慕 || TALENT:98:恋慕
-	TFLAG:192 =-1
-;豊姫が恋慕かつ依姫に恋慕が無い場合成功
-ELSEIF TALENT:恋慕 && !TALENT:98:恋慕
+;豊姫が恋慕かつ依姫に恋慕が無いなら告白成功
+IF TALENT:恋慕 && !TALENT:98:恋慕
 	TFLAG:192 =1
+;上記の条件を満たさない場合は強制失敗
+ELSE
+	TFLAG:192 =-1
 ENDIF
 
 @M_KOJO_MESSAGE_COM_K99_352
@@ -1572,7 +1585,7 @@ IF LOCAL
 CALL M_KOJO_COLOR_K99
 	;成功
 	IF TFLAG:193 == 1
-		PRINTFORMW 「ぇ……なんて……」
+		PRINTFORMW 「ぁ……………」
 		PRINTFORMDW %CALLNAME:MASTER%は豊姫の目を真っ直ぐに見つめ、もう一度想いを伝えた
 		PRINTFORMW 「………ふふっ、そっか」
 		PRINTFORMW 「ちゃんと両想いだったのね。私達」
@@ -1581,7 +1594,7 @@ CALL M_KOJO_COLOR_K99
 		PRINTFORMDW %CALLNAME:MASTER%の期待を裏切るかのように豊姫がそう続ける
 		PRINTFORMW 「私は月の使者のリーダーで貴方は地上の人間」
 		PRINTFORMW 「地上という牢獄を監視する者と、そこに住まう罪人」
-		PRINTFORMW 「だから……ぁッ！？」
+		PRINTFORMW 「だから……きゃっ！？」
 		PRINTFORMDW 『それでも貴女のことが好きだ』
 		PRINTFORMDW %CALLNAME:MASTER%は豊姫を強く抱き締め、何度も何度も想いをぶつけた
 		PRINTFORMW 「……………」
@@ -4240,7 +4253,7 @@ CALL M_KOJO_COLOR_K99
 		PRINTFORMDW ゆっくりと舌を挿入し口内を舐め回すと、豊姫は無意識に舌を絡ませてきた……
 	;押し倒され
 	ELSEIF CFLAG:うふふ == 2
-		CALL TRAIN_MESSAGE
+		CALL M_KOJO_MESSAGE_COM_K99_312_1
 		RETURN 1
 	;通常
 	ELSE

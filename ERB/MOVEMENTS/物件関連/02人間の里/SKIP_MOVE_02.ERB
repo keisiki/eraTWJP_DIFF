@@ -1,187 +1,137 @@
-﻿@SKIP_MOVE_2(ARG:0,ARG:1)
-#DIM CONST 人里の門 = 201
-#DIM CONST 中央広場 = 202
-#DIM CONST 南通り = 203
-#DIM CONST 東通り = 204
-#DIM CONST 北通り = 205
-#DIM CONST 西通り = 206
-#DIM CONST 龍神像 = 207
-
-#DIM CONST 雷鼓の部屋 = 208
-#DIM CONST 八橋の部屋 = 209
-#DIM CONST 弁々の部屋 = 210
-
-
-#DIM CONST 酒屋 = 211
-#DIM CONST カフェ = 212
-#DIM CONST 鈴奈庵 = 213
-#DIM CONST 長屋前 = 214
-#DIM CONST 花屋 = 215
-#DIM CONST 食料品店 = 216
-#DIM CONST 甘味所 = 217
-#DIM CONST 小料理屋 = 218
-#DIM CONST 集会所 = 219
-#DIM CONST 物見櫓 = 220
-#DIM CONST 稗田邸 = 221
-#DIM CONST SPT寺子屋 = 222
-#DIM CONST 銭湯 = 223
-#DIM CONST 慧音宅 = 224
-#DIM CONST SPT連れ込み宿 = 225
-#DIM CONST 小鈴私室 = 226
-#DIM CONST 八百屋 = 227
-#DIM CONST 貸切浴場 = 228
-#DIM CONST 阿求私室 = 229
-
-#DIM CONST あなたの部屋 = 230
-#DIM CONST 蛮奇の部屋 = 231
-#DIM CONST 蓮子の部屋 = 232
-#DIM CONST メリーの部屋 = 233
-#DIM CONST ユキの部屋 = 234
-#DIM CONST マイの部屋 = 235
-#DIM CONST 共同便所 = 236
-#DIM CONST 共同井戸 = 237
-
-#DIM CONST 鯢呑亭 = 238
-#DIM CONST 美宵の部屋 = 239
-#DIM CONST 長屋空き部屋 = 241
-
-;LOCAL一覧
-;0	現在の位置
-
+﻿;-----------------------------------------------------------
+;遠距離移動の設定
+;ARG     目的地
+;ARG:1   現在地
+;RETURN  次の目的地
+;-----------------------------------------------------------
+@SKIP_MOVE_2(ARG, ARG:1)
+#DIM 現在の位置
 ;現在位置取得
-LOCAL = CFLAG:MASTER:現在位置
-SIF ARG:1
-	LOCAL = ARG:1
-
-;暫定目的地に直接移動できる場合
-IF CAN_MOVE(LOCAL, ARG) & 1
-	;そこに移動
-	RETURN ARG
+IF ARG:1
+	現在の位置 = ARG:1
+ELSE
+	現在の位置 = CFLAG:MASTER:現在位置
 ENDIF
 
+;目的地に直接移動できる場合そこに移動
+SIF CAN_MOVE(現在の位置, ARG) & 1
+	RETURN ARG
+
 ;袋小路から行ける場所は固定なので、そこを目指す
-SELECTCASE LOCAL
-CASE 人里の門
-	RETURN 南通り
-CASE 酒屋, カフェ, 小料理屋
-	RETURN 南通り
-CASE 甘味所
-	RETURN 東通り
-CASE SPT連れ込み宿
-	RETURN 西通り
-CASE 小鈴私室
-	RETURN 鈴奈庵
-CASE 阿求私室
-	RETURN 稗田邸
-CASE 貸切浴場
-	RETURN 銭湯
-CASE あなたの部屋 TO 共同井戸, 雷鼓の部屋 TO 弁々の部屋, 長屋空き部屋
-	RETURN 長屋前
-CASE 美宵の部屋
-	RETURN 鯢呑亭
+SELECTCASE 現在の位置
+CASE P201人里の門
+	RETURN P203南通り
+CASE P211酒屋, P212カフェ, P218小料理屋
+	RETURN P203南通り
+CASE P217甘味所
+	RETURN P204東通り
+CASE P225連れ込み宿
+	RETURN P206西通り
+CASE P226小鈴私室
+	RETURN P213鈴奈庵
+CASE P229阿求私室
+	RETURN P221稗田邸
+CASE P228貸切浴場
+	RETURN P223銭湯
+CASE P230空き部屋 TO P237共同井戸, P208雷鼓の部屋 TO P210弁々の部屋, P241空き部屋
+	RETURN P214長屋前
+CASE P239美宵の部屋
+	RETURN P238鯢呑亭
 ENDSELECT
 
-;PRINTFORML LOCALは{LOCAL}
-
 ;直接移動できない場合、1つ近い位置を暫定目的地に設定し直してループ
-;地点追加時要フォロー（全ケース修正すること）
+;基本的に最短で行けるコースを設定する
+;現在地によってコースが変わることも考慮して対応する
 SELECTCASE ARG
-	CASE 人里の門, 酒屋, カフェ, 小料理屋
-		RETURN 南通り
-	CASE 中央広場
-		SELECTCASE LOCAL
-		CASE 鈴奈庵, 甘味所, 銭湯
-			RETURN 東通り
-		CASE 集会所, SPT寺子屋, 慧音宅
-			RETURN 北通り
-		CASE 長屋前, 稗田邸, 阿求私室, SPT連れ込み宿, 鯢呑亭
-			RETURN 西通り
+	CASE P201人里の門, P211酒屋, P212カフェ, P218小料理屋
+		RETURN P203南通り
+	CASE P202中央広場
+		SELECTCASE 現在の位置
+		CASE P213鈴奈庵, P217甘味所, P223銭湯
+			RETURN P204東通り
+		CASE P219集会所, P222寺子屋, P224慧音宅
+			RETURN P205北通り
+		CASE P214長屋前, P221稗田邸, P229阿求私室, P225連れ込み宿, P238鯢呑亭
+			RETURN P206西通り
 		CASEELSE
-			RETURN 南通り
+			RETURN P203南通り
 		ENDSELECT
-	CASE 南通り
-		SELECTCASE LOCAL
-		CASE 集会所, SPT寺子屋, 慧音宅
-			RETURN 東通り
+	CASE P203南通り
+		SELECTCASE 現在の位置
+		CASE P219集会所, P222寺子屋, P224慧音宅
+			RETURN P204東通り
 		CASEELSE
-			RETURN 中央広場
+			RETURN P202中央広場
 		ENDSELECT
-	CASE 東通り
-		SELECTCASE LOCAL
-		CASE 長屋前
-			RETURN 南通り
-		CASE 稗田邸, 阿求私室
-			RETURN 北通り
+	CASE P204東通り
+		SELECTCASE 現在の位置
+		CASE P214長屋前
+			RETURN P203南通り
+		CASE P221稗田邸, P229阿求私室
+			RETURN P205北通り
 		CASEELSE
-			RETURN 中央広場
+			RETURN P202中央広場
 		ENDSELECT
-	CASE 北通り
-		RETURN 中央広場
-	CASE 西通り
-		SELECTCASE LOCAL
-		CASE 集会所, SPT寺子屋, 慧音宅
-			RETURN 北通り
+	CASE P205北通り
+		RETURN P202中央広場
+	CASE P206西通り
+		SELECTCASE 現在の位置
+		CASE P219集会所, P222寺子屋, P224慧音宅
+			RETURN P205北通り
 		CASEELSE
-			RETURN 中央広場
+			RETURN P202中央広場
 		ENDSELECT
-	CASE 龍神像
-		SELECTCASE LOCAL
-		CASE 集会所, 稗田邸, 阿求私室, SPT寺子屋, 慧音宅
-			RETURN 北通り
+	CASE P207龍神像
+		SELECTCASE 現在の位置
+		CASE P219集会所, P221稗田邸, P229阿求私室, P222寺子屋, P224慧音宅
+			RETURN P205北通り
 		CASEELSE
-			RETURN 中央広場
+			RETURN P202中央広場
 		ENDSELECT
-	CASE 鈴奈庵, 甘味所, 銭湯
-		RETURN 東通り
-	CASE 長屋前
-		SELECTCASE LOCAL
-		CASE 東通り
-			RETURN 南通り
+	CASE P213鈴奈庵, P217甘味所, P223銭湯
+		RETURN P204東通り
+	CASE P214長屋前
+		SELECTCASE 現在の位置
+		CASE P204東通り
+			RETURN P203南通り
 		CASEELSE
-			RETURN 西通り
+			RETURN P206西通り
 		ENDSELECT
-	CASE 花屋, 食料品店, 物見櫓
-		RETURN 中央広場
-	CASE 集会所, SPT寺子屋, 慧音宅
-		SELECTCASE LOCAL
-		CASE 西通り, 龍神像, 稗田邸, 阿求私室
-			RETURN 北通り
+	CASE P215花屋, P216食料品店, P220物見櫓
+		RETURN P202中央広場
+	CASE P219集会所, P222寺子屋, P224慧音宅
+		SELECTCASE 現在の位置
+		CASE P206西通り, P207龍神像, P221稗田邸, P229阿求私室
+			RETURN P205北通り
 		CASEELSE
-			RETURN 東通り
+			RETURN P204東通り
 		ENDSELECT
-	CASE 稗田邸
-		SELECTCASE LOCAL
-		CASE 龍神像, 集会所, SPT寺子屋, 慧音宅
-			RETURN 北通り
+	CASE P221稗田邸
+		SELECTCASE 現在の位置
+		CASE P207龍神像, P219集会所, P222寺子屋, P224慧音宅
+			RETURN P205北通り
 		CASEELSE
-			RETURN 西通り
+			RETURN P206西通り
 		ENDSELECT
-	CASE SPT寺子屋, 慧音宅
-		SELECTCASE LOCAL
-		CASE 稗田邸, 阿求私室, 龍神像
-			RETURN 北通り
+	CASE P225連れ込み宿, P238鯢呑亭
+		RETURN P206西通り
+	CASE P226小鈴私室
+		RETURN P213鈴奈庵
+	CASE P229阿求私室
+		RETURN P221稗田邸
+	CASE P227八百屋
+		SELECTCASE 現在の位置
+		CASE P219集会所, P222寺子屋, P224慧音宅
+			RETURN P204東通り
 		CASEELSE
-			RETURN 東通り
+			RETURN P202中央広場
 		ENDSELECT
-	CASE SPT連れ込み宿, 鯢呑亭
-		RETURN 西通り
-	CASE 小鈴私室
-		RETURN 鈴奈庵
-	CASE 阿求私室
-		RETURN 稗田邸
-	CASE 八百屋
-		SELECTCASE LOCAL
-		CASE 集会所, SPT寺子屋, 慧音宅
-			RETURN 東通り
-		CASEELSE
-			RETURN 中央広場
-		ENDSELECT
-	CASE 貸切浴場
-		RETURN 銭湯
-	CASE あなたの部屋 TO 共同井戸, 雷鼓の部屋 TO 弁々の部屋, 長屋空き部屋
-		RETURN 長屋前
-	CASE 美宵の部屋
-		RETURN 鯢呑亭
+	CASE P228貸切浴場
+		RETURN P223銭湯
+	CASE P230空き部屋 TO P237共同井戸, P208雷鼓の部屋 TO P210弁々の部屋, P241空き部屋
+		RETURN P214長屋前
+	CASE P239美宵の部屋
+		RETURN P238鯢呑亭
 	CASEELSE
-		RETURN 人里の門
+		RETURN P201人里の門
 ENDSELECT

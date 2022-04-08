@@ -1,338 +1,162 @@
-﻿
-;地点関連性応答処理
+﻿;-----------------------------------------------------------
+;地点の接続設定
+;ARG    基準の地点
+;ARG:1  対象の地点
+;RETURNF 0=移動できない,見えない
+;        1=移動できる,見えない
+;        2=移動できない,見える
+;        3=移動できる,見える（直通）
 ;-----------------------------------------------------------
 @CAN_MOVE_1(ARG, ARG:1)
 #FUNCTION
 SELECTCASE ARG
-	;山門
-	CASE 101
-		;境内直通
-		SIF ARG:1 == 102
+	CASE P101山門
+		SIF GROUPMATCH(ARG:1, P102境内, P140お地蔵通り)
 			RETURNF 3
-		;霊廟大門移動可
-		SIF ARG:1 == 123
+	CASE P102境内
+		SIF GROUPMATCH(ARG:1, P104講堂, P105経蔵, P107土間, P119離れ, P121墓地, P137マミゾウの棲家)
 			RETURNF 1
-		SIF ARG:1 == MAXROOM
+		SIF GROUPMATCH(ARG:1, P101山門, P122梵鐘楼)
+			RETURNF 3
+	CASE P103本堂
+		SIF GROUPMATCH(ARG:1, P104講堂)
+			RETURNF 3
+	CASE P104講堂
+		SIF GROUPMATCH(ARG:1, P102境内)
+			RETURNF 1
+		SIF GROUPMATCH(ARG:1, P103本堂)
+			RETURNF 3
+	CASE P105経蔵
+		SIF GROUPMATCH(ARG:1, P102境内)
+			RETURNF 1
+	CASE P106裏庭
+		SIF GROUPMATCH(ARG:1, P120物置, P121墓地)
+			RETURNF 1
+		SIF GROUPMATCH(ARG:1, P110縁側)
+			RETURNF 3
+	CASE P107土間
+		SIF GROUPMATCH(ARG:1, P102境内, P108居間, P112風呂)
+			RETURNF 1
+	CASE P108居間
+		SIF GROUPMATCH(ARG:1, P107土間, P109女苑私室, P135廊下)
+			RETURNF 1
+		SIF GROUPMATCH(ARG:1, P111台所)
+			RETURNF 3
+	CASE P109女苑私室
+		SIF GROUPMATCH(ARG:1, P108居間, P118白蓮私室, P135廊下)
+			RETURNF 1
+	CASE P110縁側
+		SIF GROUPMATCH(ARG:1, P113ナズーリン私室, P115星私室)
+			RETURNF 1
+		SIF GROUPMATCH(ARG:1, P106裏庭, P135廊下)
+			RETURNF 3
+	CASE P111台所
+		SIF GROUPMATCH(ARG:1, P108居間)
+			RETURNF 3
+	CASE P112風呂
+		SIF GROUPMATCH(ARG:1, P107土間)
+			RETURNF 1
+	CASE P113ナズーリン私室
+		SIF GROUPMATCH(ARG:1, P110縁側, P116一輪私室, P135廊下)
+			RETURNF 1
+	CASE P114ムラサ私室
+		SIF GROUPMATCH(ARG:1, P116一輪私室, P117ぬえ私室, P135廊下)
+			RETURNF 1
+	CASE P115星私室
+		SIF GROUPMATCH(ARG:1, P110縁側, P118白蓮私室, P135廊下)
+			RETURNF 1
+	CASE P116一輪私室
+		SIF GROUPMATCH(ARG:1, P113ナズーリン私室, P114ムラサ私室, P135廊下)
+			RETURNF 1
+	CASE P117ぬえ私室
+		SIF GROUPMATCH(ARG:1, P114ムラサ私室, P136響子私室, P135廊下)
+			RETURNF 1
+	CASE P118白蓮私室
+		SIF GROUPMATCH(ARG:1, P109女苑私室, P115星私室, P135廊下)
+			RETURNF 1
+	CASE P119離れ
+		SIF GROUPMATCH(ARG:1, P102境内)
+			RETURNF 1
+		SIF GROUPMATCH(ARG:1, P112風呂)
 			RETURNF 2
-	;境内
-	CASE 102
-		;山門直通
-		SIF ARG:1 == 101
+	CASE P120物置
+		SIF GROUPMATCH(ARG:1, P106裏庭)
+			RETURNF 1
+	CASE P121墓地
+		SIF GROUPMATCH(ARG:1, P102境内, P106裏庭)
+			RETURNF 1
+	CASE P122梵鐘楼
+		SIF GROUPMATCH(ARG:1, P102境内)
 			RETURNF 3
-		;講堂移動可
-		SIF ARG:1 == 104
-			RETURNF 1
-		;経蔵移動可
-		SIF ARG:1 == 105
-			RETURNF 1
-		;裏庭移動可
-		SIF ARG:1 == 106
-			RETURNF 1
-		;土間移動可
-		SIF ARG:1 == 107
-			RETURNF 1
-		;墓地移動可
-		SIF ARG:1 == 121
-			RETURNF 1
-		;梵鐘堂直通
-		SIF ARG:1 == 122
+
+	CASE P123霊廟大門
+		SIF GROUPMATCH(ARG:1, P124霊廟広場, P140お地蔵通り)
 			RETURNF 3
-	;本堂
-	CASE 103
-		;講堂移動可
-		SIF ARG:1 == 104
+	CASE P124霊廟広場
+		SIF GROUPMATCH(ARG:1, P126道場, P133湯殿, P134蔵, P138鐘楼, P139邪仙楼)
 			RETURNF 1
-		;裏庭移動不可
-		SIF ARG:1 == 106
-			RETURNF 2
-	;講堂
-	CASE 104
-		;境内移動可
-		SIF ARG:1 == 102
-			RETURNF 1
-		;本堂移動可
-		SIF ARG:1 == 103
-			RETURNF 1
-		;梵鐘堂移動可
-		SIF ARG:1 == 122
-			RETURNF 1
-	;経蔵
-	CASE 105
-		;境内移動可
-		SIF ARG:1 == 102
-			RETURNF 1
-;		;土間移動可
-;		SIF ARG:1 == 107
-;			RETURNF 1
-	;裏庭
-	CASE 106
-		;境内移動可
-		SIF ARG:1 == 102
-			RETURNF 1
-		;縁側直通
-		SIF ARG:1 == 110
+		SIF GROUPMATCH(ARG:1, P123霊廟大門)
 			RETURNF 3
-		;MASTER私室移動可
-		SIF ARG:1 == 119
+	CASE P125屠自古私室
+		SIF GROUPMATCH(ARG:1, P130廊下)
 			RETURNF 1
-		;物置移動可
-		SIF ARG:1 == 120
+	CASE P126道場
+		SIF GROUPMATCH(ARG:1, P124霊廟広場, P130廊下)
 			RETURNF 1
-		;墓地直通
-		SIF ARG:1 == 121
+	CASE P127布都私室
+		SIF GROUPMATCH(ARG:1, P130廊下)
+			RETURNF 1
+	CASE P128神子私室
+		SIF GROUPMATCH(ARG:1, P130廊下)
+			RETURNF 1
+	CASE P129客間
+		SIF GROUPMATCH(ARG:1, P130廊下)
+			RETURNF 1
+		SIF GROUPMATCH(ARG:1, P131枯山水)
 			RETURNF 3
-	;土間
-	CASE 107
-		;境内移動可
-		SIF ARG:1 == 102
+	CASE P130廊下
+		SIF GROUPMATCH(ARG:1, P126道場, P125屠自古私室, P127布都私室, P128神子私室, P129客間, P132調薬室)
 			RETURNF 1
-;		;講堂移動可
-;		SIF ARG:1 == 104
-;			RETURNF 1
-;		;経蔵移動可
-;		SIF ARG:1 == 105
-;			RETURNF 1
-		;居間直通
-		SIF ARG:1 == 108
+		SIF GROUPMATCH(ARG:1, P131枯山水)
 			RETURNF 3
-		;台所移動可
-		SIF ARG:1 == 111
-			RETURNF 1
-		;風呂場移動可
-		SIF ARG:1 == 112
-			RETURNF 1
-	;居間
-	CASE 108
-		;客間移動可
-		SIF ARG:1 == 109
-			RETURNF 1
-		;土間直通
-		SIF ARG:1 == 107
+	CASE P131枯山水
+		SIF GROUPMATCH(ARG:1, P129客間, P130廊下)
 			RETURNF 3
-		;台所直通
-		SIF ARG:1 == 111
-			RETURNF 3
-		;ムラサ私室移動可
-		SIF ARG:1 == 114
+	CASE P132調薬室
+		SIF GROUPMATCH(ARG:1, P130廊下)
 			RETURNF 1
-		;星私室移動可
-		SIF ARG:1 == 115
+	CASE P133湯殿
+		SIF GROUPMATCH(ARG:1, P124霊廟広場)
 			RETURNF 1
-		;ぬえ私室移動可
-		SIF ARG:1 == 117
-			RETURNF 1
-		;白蓮私室移動可
-		SIF ARG:1 == 118
-			RETURNF 1
-	;客間
-	CASE 109
-		;境内移動不可
-		SIF ARG:1 == 102
-			RETURNF 1
-		;居間移動可
-		SIF ARG:1 == 108
-			RETURNF 1
-		;縁側移動可
-		SIF ARG:1 == 110
-			RETURNF 1
-	;縁側
-	CASE 110
-		;裏庭直通
-		SIF ARG:1 == 106
-			RETURNF 3
-		;客間移動可
-		SIF ARG:1 == 109
-			RETURNF 1
-		;ナズーリン私室移動可
-		SIF ARG:1 == 113
-			RETURNF 1
-		;一輪私室移動可
-		SIF ARG:1 == 116
-			RETURNF 1
-	;台所
-	CASE 111
-		;土間直通
-		SIF ARG:1 == 107
-			RETURNF 3
-		;居間直通
-		SIF ARG:1 == 108
-			RETURNF 3
-	;浴場
-	CASE 112
-		;土間移動可
-		SIF ARG:1 == 107
-			RETURNF 1
-	;ナズーリン私室
-	CASE 113
-		;縁側移動可
-		SIF ARG:1 == 110
-			RETURNF 1
-		;一輪私室移動可
-		SIF ARG:1 == 116
-			RETURNF 1
-	;ムラサ私室
-	CASE 114
-		;居間移動可
-		SIF ARG:1 == 108
-			RETURNF 1
-		;ぬえ私室移動可
-		SIF ARG:1 == 117
-			RETURNF 1
-	;星私室
-	CASE 115
-		;居間移動可
-		SIF ARG:1 == 108
-			RETURNF 1
-		;白蓮私室移動可
-		SIF ARG:1 == 118
-			RETURNF 1
-	;一輪私室
-	CASE 116
-		;縁側移動可
-		SIF ARG:1 == 110
-			RETURNF 1
-		;ナズーリン私室移動可
-		SIF ARG:1 == 113
-			RETURNF 1
-	;ぬえ私室
-	CASE 117
-		;居間移動可
-		SIF ARG:1 == 108
-			RETURNF 1
-		;ムラサ私室移動可
-		SIF ARG:1 == 114
-			RETURNF 1
-	;白蓮私室
-	CASE 118
-		;居間移動可
-		SIF ARG:1 == 108
-			RETURNF 1
-		;星私室移動可
-		SIF ARG:1 == 115
-			RETURNF 1
-	;離れ（あなた私室）
-	CASE 119
-		;裏庭移動可
-		SIF ARG:1 == 106
+	CASE P134蔵
+		SIF GROUPMATCH(ARG:1, P124霊廟広場)
 			RETURNF 1
 
-		;物置移動可
-		SIF ARG:1 == 120
+	CASE P135廊下
+		SIF GROUPMATCH(ARG:1, P108居間, P109女苑私室, P113ナズーリン私室, P114ムラサ私室, P115星私室, P116一輪私室, P117ぬえ私室, P118白蓮私室, P136響子私室)
 			RETURNF 1
-	;物置き
-	CASE 120
-		;裏庭移動可
-		SIF ARG:1 == 106
-			RETURNF 1
-		;離れ移動可
-		SIF ARG:1 == 119
-			RETURNF 1
-	;墓地
-	CASE 121
-		;境内移動可
-		SIF ARG:1 == 102
-			RETURNF 1
-		;裏庭直通
-		SIF ARG:1 == 106
+		SIF GROUPMATCH(ARG:1, P110縁側)
 			RETURNF 3
-		;梵鐘堂直通
-		SIF ARG:1 == 122
+	CASE P136響子私室
+		SIF GROUPMATCH(ARG:1, P117ぬえ私室, P135廊下)
+			RETURNF 1
+	CASE P137マミゾウの棲家
+		SIF GROUPMATCH(ARG:1, P102境内)
+			RETURNF 1
+	CASE P138鐘楼
+		SIF GROUPMATCH(ARG:1, P124霊廟広場)
+			RETURNF 1
+	CASE P139邪仙楼
+		SIF GROUPMATCH(ARG:1, P124霊廟広場)
+			RETURNF 1
+	CASE P140お地蔵通り
+		SIF ARG:1 == MAXROOM
+			RETURNF 2
+		SIF GROUPMATCH(ARG:1, P101山門, P123霊廟大門)
 			RETURNF 3
-	;梵鐘堂
-	CASE 122
-		;境内直通
-		SIF ARG:1 == 102
-			RETURNF 3
-		;講堂移動可
-		SIF ARG:1 == 104
-			RETURNF 1
-		;墓場直通
-		SIF ARG:1 == 121
-			RETURNF 3
-	;霊廟大門
-	CASE 123
-		;山門移動可
-		SIF ARG:1 == 101
-			RETURNF 1
-		;霊廟広場直通
-		SIF ARG:1 == 124
-			RETURNF 3
-	;霊廟広場
-	CASE 124
-		;霊廟大門直通
-		SIF ARG:1 == 123
-			RETURNF 3
-		;道場直通
-		SIF ARG:1 == 126
-			RETURNF 3
-		SIF ARG:1 == 133
-			RETURNF 1
-		SIF ARG:1 == 134
-			RETURNF 1
-	CASE 125
-		SIF ARG:1 == 130
-			RETURNF 1
-	;道場
-	CASE 126
-		SIF ARG:1 == 124
-			RETURNF 3
-		SIF ARG:1 == 130
-			RETURNF 1
-	CASE 127
-		SIF ARG:1 == 130
-			RETURNF 1
-		SIF ARG:1 == 131
-			RETURNF 3
-	;神子部屋
-	CASE 128
-		SIF ARG:1 == 130
-			RETURNF 3
-	;客間
-	CASE 129
-		SIF ARG:1 == 130
-			RETURNF 3
-		SIF ARG:1 == 131
-			RETURNF 3
-	;廊下
-	CASE 130
-		SIF ARG:1 == 126
-			RETURNF 1
-		SIF ARG:1 == 125
-			RETURNF 1
-		SIF ARG:1 == 127
-			RETURNF 1
-		SIF ARG:1 == 128
-			RETURNF 3
-		SIF ARG:1 == 129
-			RETURNF 3
-		SIF ARG:1 == 131
-			RETURNF 1
-		SIF ARG:1 == 132
-			RETURNF 1
-	;枯山水
-	CASE 131		
-		SIF ARG:1 == 127
-			RETURNF 3
-		SIF ARG:1 == 129
-			RETURNF 3
-		SIF ARG:1 == 130
-			RETURNF 1
-	;調薬室
-	CASE 132
-		SIF ARG:1 == 130
-			RETURNF 1
-	;湯殿
-	CASE 133
-		SIF ARG:1 == 124
-			RETURNF 1
-	;蔵
-	CASE 134
-		SIF ARG:1 == 124
-			RETURNF 1
-	;参道の向こう
-	;参道へのみ一方通行、EXキャラ待機用
+
 	CASE MAXROOM
-		SIF ARG:1 == 101
+		SIF ARG:1 == P140お地蔵通り
 			RETURNF 1
 ENDSELECT
 RETURNF 0

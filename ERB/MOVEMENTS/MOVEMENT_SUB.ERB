@@ -71,20 +71,6 @@ IF !FLAG:70
 ENDIF
 
 ;----------------------------
-;キャラが睡眠時間帯かどうかを取得 ※昼寝なども含む
-;@睡眠時間(ARG)とは挙動が異なるので注意
-;----------------------------
-@キャラ別就寝判定(ARG)
-TRYCCALLFORM CHARAMOVE_DATA_{ARG}(3, ARG)
-;対象のキャラデータ参照出来無いならデフォルト処理
-CATCH
-	;AM1～AM7まで睡眠
-	RETURN TIME > 60 && TIME < 420
-ENDCATCH
-RETURN RESULT
-
-
-;----------------------------
 ;同行中のキャラをあなたに合わせて移動させる
 ;----------------------------
 @同行処理(ARG)
@@ -132,9 +118,8 @@ SIF FLAG:時間停止 || CFLAG:ARG:衰弱 || TCVAR:ARG:泥酔
 	RETURN
 SIF CFLAG:ARG:うふふ && CFLAG:ARG:溜まってる度 > 0
 	RETURN
-CALL キャラ別就寝判定(ARG)
 ;睡眠時間帯の場合
-IF RESULT
+IF 睡眠時間(ARG)
 	;起きてたら寝かせる
 	IF !CFLAG:ARG:睡眠
 		;デート中なら昼寝は無視する
@@ -216,8 +201,6 @@ IF VISIT(ARG) && !CFLAG:ARG:休日移動済
 	;全員共通の処理
 	CFLAG:ARG:現在位置 = CFLAG:ARG:遭遇位置 ? CFLAG:ARG:遭遇位置 # SUKIMA()
 	CFLAG:ARG:同行 = 0
-	;連動や例外があるキャラ用の処理
-	TRYCALLFORM CHARAMOVE_DATA_{ARG}(1,ARG)
 	IF CFLAG:ARG:現在位置 != CFLAG:MASTER:現在位置 && LOCAL
 		PRINTFORMW %CALLNAME:ARG%はどこかへ出掛けたようだ
 	ENDIF
@@ -299,6 +282,9 @@ IF CFLAG:ARG:現在位置 == CFLAG:MASTER:現在位置 && !CHK_DATENOW(CFLAG:ARG
 ELSE
 	IF CFLAG:ARG:(450 + MAIN_MAP)
 		CFLAG:ARG:現在位置 = CFLAG:ARG:(450 + MAIN_MAP)
+	;後戸組特殊処理
+	ELSEIF GROUPMATCH(ARG, [[舞]], [[里乃]], [[隠岐奈]]) && AT_HOME(MASTER) && MAP_CAN_MOVE(CFLAG:MASTER:現在位置, ARG) && !CFLAG:MASTER:うふふ
+		CFLAG:ARG:現在位置 = CFLAG:MASTER:現在位置
 	ELSE
 		CFLAG:ARG:現在位置 = MAXROOM
 	ENDIF

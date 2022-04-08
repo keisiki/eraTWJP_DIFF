@@ -1,299 +1,153 @@
-﻿;
-;	入力した場所IDが自宅内部ならば0-99に差し替える関数
-;
-;	FLAG:(XXX + 自宅場所ID)にFLAG:(XXX + CHK_INHOME(自宅場所ID))といった形で使用している
-;
-;ARG,場所ID
-@CHK_INHOME(ARG)
-#FUNCTION
-SIF MAIN_MAP == GET_MAPID(ARG)
-	RETURNF (ARG) % 100
-RETURNF ARG
-;
-;	場所についての判定を関数化できないかと作ったもの。
-;
-@CHK_PLACE(ARG, ARGS, ARG:1 = 0, MAPID = -1)
-#FUNCTION
-#DIM MAPID
-#DIM TARGET_INHOME
-IF MAPID == -1
-	MAPID = GET_MAPID(ARG:1)
-ENDIF
-IF MAPID == MAIN_MAP
-	TARGET_INHOME = CFLAG:ARG:現在位置 % 100
-ELSE
-	TARGET_INHOME = -1
-ENDIF
-
-IF ARGS == "MASTER"
-	SIF CFLAG:ARG:現在位置 == CFLAG:MASTER:現在位置
-		RETURNF 1
-ELSEIF ARGS == "ADDRESS"
-	SIF CFLAG:ARG:現在位置 == ARG:1 + MAPID * 100 && CFLAG:ARG:現在位置 != 1000
-		RETURNF 1
-ELSEIF ARGS == "FLAG"
-	SIF CFLAG:ARG:現在位置 == FLAG:(ARG:1)
-		RETURNF 1
-ENDIF
-RETURNF 0
-
-;
-;	場所についての入力を関数化できないかと作ったもの
-;
-@SET_PLACE(ARG, ARGS, ARG:1 = 0, MAPID = -1)
-#DIM MAPID
-#DIM TARGET_INHOME
-IF MAPID == -1
-	MAPID = GET_MAPID(ARG:1)
-ENDIF
-
-IF ARGS == "MASTER"
-	CFLAG:ARG:現在位置 = CFLAG:MASTER:現在位置
-ELSEIF ARGS == "ADDRESS"
-	CFLAG:ARG:現在位置 = ARG:1 + MAPID * 100
-ELSEIF ARGS == "FLAG"
-	CFLAG:ARG:現在位置 = FLAG:(ARG:1)
-ENDIF
-;-------------------------------------------------
-;
-;	入力したMAPIDがMAIN_MAPと一致する場合に0を返す関数
-;	IF CFLAG:キャラ:デート中 の類ではかならず使うこと
-;	
-;	入力:MAIN_MAP, 0, 1, ... , MAIN_MAP-1, MAIN_MAP+1, ...
-;	出力:             0, 1, 2, ... ,    MAIN_MAP, MAIN_MAP+1, ...
-;MAPID_DATE, 基本CFLAG:～:デート中を中に入れる
-;-------------------------------------------------
-@CHK_DATENOW(MAPID_DATE)
+﻿;-----------------------------------------------------------
+;デート中かどうか判定する関数
+;現在はCFLAG:デート中が現在位置のMAPIDとして使われている為、デート中の判定が別途必要になった
+;ARG      CFLAG:X:デート中（MAPID)
+;RETURNF  0=デートしてない,1=デートしてる
+;-----------------------------------------------------------
+@CHK_DATENOW(ARG)
 #FUNCTION
 #DIM MAPID_DATE
-SIF MAPID_DATE < MAIN_MAP
-	RETURNF MAPID_DATE + 1
-SIF MAPID_DATE == MAIN_MAP
+IF ARG == MAIN_MAP
 	RETURNF 0
-SIF MAPID_DATE > MAIN_MAP
-	RETURNF MAPID_DATE
+ELSE
+	RETURNF 1
+ENDIF
 
-;-------------------------------------------------
-;場所IDが属するMAPIDを返す関数
-;ARG, 場所ID
-;-------------------------------------------------
+;-----------------------------------------------------------
+;場所ARGのMAPIDを返す関数
+;ARG      場所ID
+;RETURNF  MAPID
+;-----------------------------------------------------------
 @GET_MAPID(ARG)
 #FUNCTION
 RETURNF ARG / 100
 
-@GET_DATE_PLACE(ARG)
-#FUNCTION
-RETURNF ARG % 100 % 10
 ;-------------------------------------------------
 ;いわゆるROUND関数判定
 ;ARG <= ARG:1 <= ARG:2ならば1を、そうでなければ0を返す
 ;-------------------------------------------------
 @CHK_FOCUS(ARG, ARG:1, ARG:2)
 #FUNCTION
-;SIF CALC_FOCUS(ARG, ARG:1, ARG:2) != ARG:1
-;	RETURNF 0
-;RETURNF 1
 SIF INRANGE(ARG:1, ARG:0, ARG:2)
 	RETURNF 1
 SIF ARG > ARG:2
 	PRINT ARG:0 > ARG:2 エラー
 RETURNF 0
-;-------------------------------------------------
-;いわゆるROUND関数出力
-;-------------------------------------------------
-@CALC_FOCUS(ARG, ARG:1, ARG:2)
-#FUNCTION
-SIF ARG >= ARG:1
-	RETURNF ARG
-SIF ARG	:1 >= ARG:2
-	RETURNF ARG:2
-RETURNF ARG:1 
 
-
-;-------------------------------------------------
+;-----------------------------------------------------------
 ;在宅判定
-;CALL		USER
-;ARG		キャラ番号
-;RETURN		0=拠点にいない、1=拠点にいる、2=参道の向こう
-;COMMENT	指定キャラが拠点にいるか判定
+;キャラARGが拠点にいるか判定
+;ARG        キャラ番号
+;RETURN     0=拠点にいない、1=拠点にいる、2=拠点の外
 ;-----------------------------------------------------------
 @AT_HOME(ARG)
 #FUNCTION
 RETURNF IN_HOME(CFLAG:ARG:現在位置)
 
-;-------------------------------------------------
+;-----------------------------------------------------------
 ;拠点判定
-;CALL		USER
-;ARG		場所ID
-;RETURN		0=拠点ではない、1=拠点、2=参道の向こう
-;COMMENT	指定キャラが拠点にいるか判定
+;場所ARGが拠点の中か判定
+;ARG        場所ID
+;RETURN     0=拠点ではない、1=拠点の中、2=拠点の外
 ;-----------------------------------------------------------
 @IN_HOME(ARG)
 #FUNCTION
-LOCAL = MAXROOM
-IF ARG == LOCAL
+IF ARG == MAXROOM
 	RETURNF 2
-ELSEIF CHK_FOCUS(MINROOM(), ARG, LOCAL)
+ELSEIF INRANGE(ARG, MINROOM(), MAXROOM)
 	RETURNF 1
 ELSE
 	RETURNF 0
 ENDIF
 
-;-------------------------------------------------
-;地域区分判定関数
-;博麗神社マップにおける「博麗神社」「三妖精の家」「夢幻遺跡」のような地域区分
-;地点ID→AREA→MAP→幻想郷全体、みたいな
-;おでかけMAPのスポットよりも若干おおざっぱです（待ち合わせ場所の指定には使えない程度？）
-;MAIN_MAPを参照して拠点マップ判定/おでかけマップ判定を切り替えている点に注意
-;博麗神社在住時に博麗神社のおでかけマップ上での番号を渡しても上手く動作しない
-;-------------------------------------------------
-@MAP_AREANAME(PLACE_ID)
+;------------------------------------------
+;拠点（お出掛け先）の出入り口となる地点の場所IDを返す
+;------------------------------------------
+@GET_ENTRANCE(MAPID)
+#FUNCTION
+#DIM MAPID
+;拠点
+IF MAPID == MAIN_MAP
+	RETURNF ENTRANCE
+;お出掛け先
+ELSE
+	RETURNF MAPID * 100 + 10
+ENDIF
+
+;------------------------------------------
+;場所IDがMAPIDの参道（出入り口）か判定する
+;MAPIDを省略した場合はMAPIDにARGの所属MAPを代入する
+;ARG:場所ID
+;MAPID：対象MAP
+;------------------------------------------
+@CHK_ENTRANCE(ARG, MAPID = 999)
+#FUNCTION
+#DIM MAPID
+;	// MAPIDが省略された場合
+SIF MAPID == 999
+	MAPID = GET_MAPID(ARG)
+;	//ODEKAKEMAP使用時
+SIF ARG == GET_ENTRANCE(MAPID)
+	RETURNF 1
+;出発専用のエントランス(裏口),何かのために区別できるよう2にしておく
+SIF MAPID == MAP山麓 && ARG == P732山頂への道
+	RETURNF 2
+RETURNF 0
+
+;------------------------------------------
+;お招き部屋の名前文字列を返す。招かれる前はTARGETのお招き部屋文字列を返す
+;呼び出し元:NAME_FROM_PLACE()
+;ARG  家主
+;------------------------------------------
+@OMANEKI_PLACE(ARG)
 #FUNCTIONS
-#LOCALSIZE 1
-#LOCALSSIZE 1
-#DIM PLACE_ID
-SIF PLACE_ID == OMANEKIBEYA()
-	RETURNF "私室"
-SIF PLACE_ID == SUKIMA()
-	RETURNF "スキマ空間"
-SELECTCASE GET_MAPID(PLACE_ID)
-CASE 0
-	RETURNF MAP0_AREANAME(PLACE_ID)
-CASE 1
-	RETURNF MAP1_AREANAME(PLACE_ID)
-CASE 2
-	RETURNF MAP2_AREANAME(PLACE_ID)
-CASE 3
-	RETURNF MAP3_AREANAME(PLACE_ID)
-CASE 4
-	RETURNF MAP4_AREANAME(PLACE_ID)
-CASE 5
-	RETURNF MAP5_AREANAME(PLACE_ID)
-CASE 6
-	RETURNF MAP6_AREANAME(PLACE_ID)
-CASE 7
-	RETURNF MAP7_AREANAME(PLACE_ID)
-CASE 8
-	RETURNF MAP8_AREANAME(PLACE_ID)
-CASE 9
-	RETURNF MAP9_AREANAME(PLACE_ID)
-CASE 10
-	RETURNF MAP10_AREANAME(PLACE_ID)
-ENDSELECT
-
-;-------------------------------------------------
-;ROOMDATAを参照して施設の有無を表示する関数
-;ARG	MAP_ID
-;-------------------------------------------------
-@物件データ(ARG)
-#DIM MAPDATA
-VARSET MAPDATA
-VARSET LOCAL
-PRINT 施設：
-;マップデータの参照
-FOR LOCAL, 1, 100
-	SIF (ROOMDATA:LOCAL & 場所_風呂) != 0
-		MAPDATA |= 場所_風呂
-	SIF (ROOMDATA:LOCAL & 場所_厨房) != 0
-		MAPDATA |= 場所_厨房
-	SIF (ROOMDATA:LOCAL & 場所_訓練) != 0
-		MAPDATA |= 場所_訓練
-	SIF (ROOMDATA:LOCAL & 場所_勉強) != 0
-		MAPDATA |= 場所_勉強
-	SIF (ROOMDATA:LOCAL & 場所_菜園) != 0
-		MAPDATA |= 場所_菜園
-	SIF (ROOMDATA:LOCAL & 場所_天の声) != 0
-		MAPDATA |= 場所_天の声
-NEXT
-FONTBOLD
-CALL COLORMESSAGE(@"【風呂】", (MAPDATA & 場所_風呂) ? C_WHITE # C_GRAY, 0)
-CALL COLORMESSAGE(@"【厨房】", (MAPDATA & 場所_厨房) ? C_WHITE # C_GRAY, 0)
-CALL COLORMESSAGE(@"【訓練】", (MAPDATA & 場所_訓練) ? C_WHITE # C_GRAY, 0)
-CALL COLORMESSAGE(@"【勉強】", (MAPDATA & 場所_勉強) ? C_WHITE # C_GRAY, 0)
-CALL COLORMESSAGE(@"【菜園】", (MAPDATA & 場所_菜園) ? C_WHITE # C_GRAY, 0)
-CALL COLORMESSAGE(@"【天の声】", (MAPDATA & 場所_天の声) ? C_WHITE # C_GRAY, 0)
-FONTREGULAR
-
-;地点の参照
-FOR LOCAL, MINROOM(), MAXROOM
-	SIF FISHING_SPOT(LOCAL)
-		LOCAL:1 = 1
-	SIF IS_LIBRARY(LOCAL, 1)
-		LOCAL:2 = 1
-	SIF GATHERING_SPOT(LOCAL)
-		LOCAL:3 = 1
-	SIF PHARMACY_SPOT(LOCAL) == 2
-		LOCAL:4 = 1
-	SIF STALL_SPOT(LOCAL)
-		LOCAL:5 = 1
-	SIF PLACE_SENTO(LOCAL)
-		LOCAL:6 = 1
-	SIF OMIKUJI_SPOT(LOCAL)
-		LOCAL:7 = 1
-	SIF MORIYA_OMIKUJI(LOCAL)
-		LOCAL:8 = 1
-	SIF KAIDASHI_SHOP(LOCAL)
-		LOCAL:9 = 1
-	SIF FLOWER_SHOP(LOCAL)
-		LOCAL:10 = 1
-	SIF SAKE_SHOP(LOCAL)
-		LOCAL:11 = 1
-	SIF BOOK_RENTAL(LOCAL)
-		LOCAL:12 = 1
-	SIF YASAI_SHOP(LOCAL)
-		LOCAL:13 = 1
-	SIF CASINO_SPOT(LOCAL)
-		LOCAL:14 = 1
-	SIF HUNTING_SPOT(LOCAL)
-		LOCAL:15 = 1
-NEXT
-FOR LOCAL, 1, 20
-	IF LOCAL:LOCAL
-		SELECTCASE LOCAL
-		CASE 1
-			PRINTFORM 【釣り】
-		CASE 2
-			PRINTFORM 【読書】
-		CASE 3
-			PRINTFORM 【採集】
-		CASE 4
-			PRINTFORM 【調合】
-		CASE 5
-			PRINTFORM 【露店】
-		CASE 6
-			PRINTFORM 【銭湯】
-		CASE 7
-			PRINTFORM 【おみくじ】
-		CASE 8
-			PRINTFORM 【守矢くじ】
-		CASE 9
-			PRINTFORM 【食料品店】
-		CASE 10
-			PRINTFORM 【花屋】
-		CASE 11
-			PRINTFORM 【酒屋】
-		CASE 12
-			PRINTFORM 【貸本屋】
-		CASE 13
-			PRINTFORM 【八百屋】
-		CASE 14
-			PRINTFORM 【カジノ】
-		CASE 15
-			PRINTFORM 【罠猟】
-		ENDSELECT
+#DIMS PNAME
+#DIM OMANEKI_TARGET
+IF ARG
+	OMANEKI_TARGET = ARG
+ELSE
+	IF CFLAG:MASTER:お招き
+		OMANEKI_TARGET = CFLAG:MASTER:お招き
+	ELSE
+		OMANEKI_TARGET = TARGET
 	ENDIF
-NEXT
-PRINTL
-PRINT 住人：
-;キャラクター表示
-FOR LOCAL, 1, CHARANUM
-	IF MAP_住人(MAIN_MAP, LOCAL)
-		SIF LOCAL:21
-			PRINTFORM 、
-		RESULT = 0
-		TRYCALLFORM M_KOJO_K{LOCAL}
-		PRINTFORM \@ LOCAL:20 ? 、 # \@\@ RESULT ? * # \@%CALLNAME:LOCAL%
-		LOCAL:21 ++
+ENDIF
+
+PNAME = %CALLNAME:(OMANEKI_TARGET)%
+
+IF TEQUIP:お風呂場プレイ
+	IF TFLAG:泡風呂
+		PNAME = %PNAME%の個室風呂
+	ELSE
+		PNAME = %PNAME%のお風呂
 	ENDIF
-NEXT
-PRINTL 
+ELSE
+	SELECTCASE OMANEKI_TARGET
+		CASE [[阿求]]
+				PNAME = 稗田邸
+		CASEELSE
+			IF OUTROOF(CFLAG:OMANEKI_TARGET:自宅位置)
+				PNAME = %PNAME%の住まい
+			ELSE
+				PNAME = %PNAME%の部屋
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURNF PNAME
+
+;-----------------------------------------------------------
+;おでかけ地点をランダムに出力する関数
+;拠点ごとに等分の確率で出す（地点が多いほど確率が高くなったりしない）
+;-----------------------------------------------------------
+@RANDOM_ODEKAKE
+#FUNCTION
+#DIM MAPID
+#DIM P_ID
+MAPID = RAND:MAXHOME
+SIF MAPID == MAIN_MAP
+	RESTART
+P_ID = 0
+WHILE NAME_FROM_PLACE(P_ID) == "" || P_ID == 0
+	P_ID = MAPID * 100 + RAND:10 * 10
+WEND
+RETURNF P_ID

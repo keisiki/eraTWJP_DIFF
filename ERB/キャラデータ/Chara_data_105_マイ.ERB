@@ -1,28 +1,27 @@
-﻿@CHARAMOVE_DATA_105(ARG,ARG:2)
+﻿@CHARAMOVE_DATA_105(ARG, ARG:2)
 LOCAL = 105
 SELECTCASE ARG
-	;移動対象メンバーチェック
+	;連動設定（RETURN=依存するキャラ, RESULT:1～3=対等に連動するキャラ）
 	CASE 1
-	;移動確率
-	CASE 2
-	;起床時間帯
+		;たまに連動
+		IF FLAG:日替わりイベント % 10 == 0
+			RESULT:1 = [[ユキ]]
+			RESULT:2 = [[マイ]]
+		ENDIF
+	;特殊生活時間設定（CFLAG:LOCAL:生活時間補正を設定する）
 	CASE 3
-		RETURN 睡眠時間(LOCAL)
-	;移動傾向
+	;移動傾向（±～10=行きやすい/行きにくい, -100=行かない）
 	CASE 4
 		SELECTCASE ARG:2
-			;自室,ユキの部屋,広場
-			CASE 234, 235, 202
+			;ユキマイの部屋,広場
+			CASE P234ユキの部屋, P235マイの部屋, P202中央広場
 				RETURN 5
-			;あなたの部屋
-			CASE 230
-				IF TALENT:LOCAL:恋慕
-					RETURN 5
-				ELSE
-					RETURN -100
-				ENDIF
-			;行かない
-			CASE 220, 225, 221, 222, 224, 226
+			;私室には行かない
+			CASE P221稗田邸, P224慧音宅, P222寺子屋, P226小鈴私室, P229阿求私室
+				RETURN -100
+			CASE P208雷鼓の部屋, P209八橋の部屋, P210弁々の部屋
+				RETURN -100
+			CASE P231蛮奇の部屋, P232蓮子の部屋, P233メリーの部屋, P239美宵の部屋
 				RETURN -100
 		ENDSELECT
 	;仕事時間帯
@@ -38,11 +37,13 @@ SELECTCASE ARG
 	;出現場所
 	CASE 7
 		SELECTCASE ARG:2
-			CASE 21,22,23,27, 51,52,53,56,57
-				RETURN 1 
-			CASEELSE
-				RETURN 0
+			CASE 広場, 商家町, 呑屋小道, 長屋街
+				RETURN 1
+			CASE 森の入り口, 古木の大樹, 再思の道, 無縁塚
+				RETURN 1
 		ENDSELECT
+	;引力設定（CFLAG:LOCAL:引力点を設定する）
+	CASE 8
 ENDSELECT
 
 @EXIST_キャラデータ105

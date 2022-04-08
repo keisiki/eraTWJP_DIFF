@@ -525,28 +525,6 @@ NEXT
 [SKIPEND]
 
 
-
-
-
-;FileName_COMMON.ERB ------------------------------- Rev1.00
-;デート道中進行
-;CALL		USER
-;ARG		進める時間（10分単位）
-;RETURN		VOID
-;COMMENT	
-;-----------------------------------------------------------
-@DATE_GOES_ON(ARG)
-IF (CFLAG:MASTER:現在位置 % 100) % 10 && !AT_HOME(MASTER) && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
-	IF (CFLAG:MASTER:現在位置 % 100 % 10) - ARG < 0
-		LOCAL:1 = CFLAG:MASTER:現在位置 - (CFLAG:MASTER:現在位置 % 100 % 10)
-	ELSE
-		LOCAL:1 = CFLAG:現在位置 - ARG
-	ENDIF
-	FOR LOCAL,0,CHARANUM
-		SIF CHK_DATENOW(CFLAG:LOCAL:デート中)
-			CFLAG:LOCAL:現在位置 = LOCAL:1
-	NEXT
-ENDIF
 ;====================================================
 @性技補正(ARG)
 #FUNCTION
@@ -797,11 +775,48 @@ IF !INRANGE(WAKEUPTIME - SLEEPTIME, 120, 840)
 		RESTART
 	;設定がおかしい
 	ELSE
-		;チェックのためTHROWしておく
-		THROW
+		[IF_DEBUG]
+			;チェックのためTHROWしておく,モブ子は許可,一時的に守矢くじ対策,あとで修正,THROWはアレなのでデバッグ用に
+			SIF ARG != [[モブ子]] && CFLAG:ARG:起床時間 != CFLAG:ARG:就寝時間
+				THROW
+		[ENDIF]
 	ENDIF
 ENDIF
 RETURNF WAKEUPTIME - SLEEPTIME
+
+;-------------------------------------------------
+;キャラの生活時間を設定する関数
+;一日の始まりに設定する
+;-------------------------------------------------
+@生活時間設定(CHARA)
+#DIM CHARA
+CALLFORM CHARAMOVE_DATA_{CHARA}(3)
+CFLAG:CHARA:起床時間 = 時刻計算(CSVCFLAG(CHARA, GETNUM(CFLAG, "起床時間")) + CFLAG:CHARA:生活時間補正)
+CFLAG:CHARA:来訪時間 = 時刻計算(CSVCFLAG(CHARA, GETNUM(CFLAG, "来訪時間")) + CFLAG:CHARA:生活時間補正)
+CFLAG:CHARA:帰宅時間 = 時刻計算(CSVCFLAG(CHARA, GETNUM(CFLAG, "帰宅時間")) + CFLAG:CHARA:生活時間補正)
+CFLAG:CHARA:就寝時間 = 時刻計算(CSVCFLAG(CHARA, GETNUM(CFLAG, "就寝時間")) + CFLAG:CHARA:生活時間補正)
+;大晦日はみんな夜ふかし
+IF FESTIVAL() == "大晦日"
+	IF INRANGE(CFLAG:CHARA:帰宅時間, 900 , 1440) || INRANGE(CFLAG:CHARA:帰宅時間, 0 , 59) || INRANGE(CFLAG:CHARA:就寝時間, 900 , 1440) || INRANGE(CFLAG:CHARA:就寝時間, 0 , 119)
+		CFLAG:CHARA:帰宅時間 = 60
+		CFLAG:CHARA:就寝時間 = 120
+	ENDIF
+ENDIF
+;-------------------------------------------------
+;時刻の計算
+;時刻X+Yを時刻で返す
+;-------------------------------------------------
+@時刻計算(ARG)
+#FUNCTION
+LOCAL = ARG
+WHILE LOCAL > 1440
+	LOCAL -= 1440
+WEND
+WHILE LOCAL < 0
+	LOCAL += 1440
+WEND
+RETURNF LOCAL
+
 ;-------------------------------------------------
 ;関数名:子供の睡眠時間
 ;概　要:キャラARGの子供が寝てるかどうかを返す関数
@@ -877,10 +892,13 @@ UFUFU_START_TIME = 0
 UFUFU_START_DAY = 0
 ;時間停止中は服装セットしない
 ;睡眠中分岐などはすべてリセット処理側にあります
-SIF !FLAG:70
+SIF !FLAG:時間停止
 	CALL CHANGE_CLOTHES(ARG, "衣装リセット")
 ;服装をTEQUIPへ
 CALL CLOTHES_SETTING_TRAIN(ARG)
+
+;MASTERとの接触位置をリセット
+CALL TOUCH_SET(0, 0, 0, 1)
 
 ;ウフフ時系装備リセット
 ;TEQUIP:ARG:10-TEQUIP:ARG:149を初期化する
@@ -931,7 +949,7 @@ IF CFLAG:睡眠
 		CFLAG:ARG:手に精液 = 0
 	ENDIF
 ENDIF
-IF !FLAG:70
+IF !FLAG:時間停止
 	TFLAG:運搬 = 0
 	IF CFLAG:ARG:口に精液
 		PRINTFORML %CALLNAME:ARG%は口の中に残っていた精液を\@ ABL:ARG:精液中毒 > 2 ? 飲み干した # 吐き出した \@
@@ -1875,10 +1893,10 @@ RETURNF 1
 @GETOUT(ARG)
 TCVAR:ARG:追い出され時刻 = TIME
 TCVAR:ARG:追い出され地点 = CFLAG:ARG:現在位置
-FOR LOCAL,MINROOM(),MAXROOM
+FOR LOCAL, MINROOM(), MAXROOM
 	;全くもってスマートでないが、番号の関係上幽香私室からはバルコニーに追い出されてしまうため個別処理する
-	IF CFLAG:ARG:現在位置 == 463
-		CFLAG:ARG:現在位置 = 465
+	IF CFLAG:ARG:現在位置 == P463幽香私室
+		CFLAG:ARG:現在位置 = P465ホール
 		BREAK
 	ENDIF
 	IF CAN_MOVE(CFLAG:ARG:現在位置, LOCAL) & 1
@@ -1945,31 +1963,6 @@ IF GET_MAPID(PLACE_ID) == MAIN_MAP
 ELSE
 	RETURNF STR:(6000 + GET_MAP_REPLACEMENT(PLACE_ID) / 10)
 ENDIF
-
-;----------------------------------------------------------------------------------------------------
-;初期位置の地域名取得関数
-;未設定ならとりあえず"不明"で
-;----------------------------------------------------------------------------------------------------
-@AREANAME_CHARA_HOME(C_ID)
-#FUNCTIONS
-#LOCALSIZE 1
-#LOCALSSIZE 1
-#DIM C_ID
-#DIM HOME_ID
-HOME_ID = GET_CHARAHOME(C_ID)
-SIF HOME_ID <= 0
-	RETURNF "不明"
-RETURNF MAP_AREANAME(HOME_ID)
-
-;----------------------------------------------------------------------------------------------------
-;現在位置の地域名取得関数
-;----------------------------------------------------------------------------------------------------
-@AREANAME_CHARA_NOW(C_ID)
-#FUNCTIONS
-#LOCALSIZE 1
-#LOCALSSIZE 1
-#DIM C_ID
-RETURNF MAP_AREANAME(CFLAG:C_ID:現在位置)
 
 ;----------------------------------------------------------------------------------------------------
 ;配列抽選F関数
@@ -2582,6 +2575,7 @@ RESULT:121 = [[典]]
 RESULT:122 = [[龍]]
 RESULT:123 = [[千亦]]
 RESULT:124 = [[百々世]]
+RESULT:125 = [[尤魔]]
 
 RESULT:201 = [[魅魔]]
 RESULT:202 = [[里香]]

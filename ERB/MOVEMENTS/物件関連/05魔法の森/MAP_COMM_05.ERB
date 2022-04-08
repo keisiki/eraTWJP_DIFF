@@ -1,19 +1,28 @@
 ﻿;--------------------------------------------------
-;	マップ内移動処理拡張パッチ付属
-;	命蓮寺MAP用関数
+;地点名変更関数
 ;--------------------------------------------------
-
 @MAP_PLACENAME_5(ARG)
 #FUNCTIONS
-#DIM PLACEID
-
 IF GET_MAPID(ARG) == MAIN_MAP
 	SELECTCASE ARG
-		CASE 501 TO (MAXROOM - 1)
+		CASE P531人形の館・空き部屋
+			IF CFLAG:MASTER:初期位置 == ARG
+				RETURNF "人形の館・" + CALLNAME:MASTER + "の部屋"
+			ELSE
+				RETURNF "人形の館・空き部屋"
+			ENDIF
+		CASE SUMIKOMI_ROOM
+			;※このマップでは未実装
+			IF FLAG:住み込みキャラ
+				RETURNF CALLNAME:(FLAG:住み込みキャラ) + "の部屋"
+			ELSE
+				RETURNF "空き部屋"
+			ENDIF
+		CASE MINROOM() TO (MAXROOM - 1)
 			RETURNF STR:(ARG + 8000)
-		CASE 598
+		CASE OMANEKIBEYA()
 			RETURNF OMANEKI_PLACE()
-		CASE 599
+		CASE SUKIMA()
 			RETURNF "スキマ空間"
 		CASE MAXROOM
 			RETURNF "森の外"
@@ -21,60 +30,144 @@ IF GET_MAPID(ARG) == MAIN_MAP
 			RETURNF "不明"
 	ENDSELECT
 ELSE
-	RETURNF "不明"
+	RETURNF "森の外"
 ENDIF
 
-@MAP_VIEWING_5(AA,COLOR)
-#DIMS REF AA, 0
-#DIMS REF COLOR, 0
-IF !TFLAG:マップ切り替え
-	SELECTCASE CFLAG:MASTER:現在位置
-		CASE 510 TO 515
-			TFLAG:マップ切り替え = 3
-		CASE 521 TO 533
-			TFLAG:マップ切り替え = 2
-		CASE 534 TO 537
-			TFLAG:マップ切り替え = 4
-		CASEELSE
-			TFLAG:マップ切り替え = 1
+;--------------------------------------------------
+;場所ARGがどのエリアにあるか
+;表示するマップの番号と連動（TFLAG:マップ切り替え）
+;ARG     場所ID
+;--------------------------------------------------
+@MAP_AREASELECT_5(ARG)
+#FUNCTION
+SELECTCASE ARG
+	;魔理沙宅
+	CASE P510霧雨魔法店 TO P515魔理沙宅・倉庫
+		RETURNF 3
+	;人形の洋館
+	CASE P521人形の館・アリスの部屋 TO P531人形の館・空き部屋
+		RETURNF 2
+	;ふわふわエレンの店
+	CASE P534ふわふわエレン魔法の店 TO P537エレン宅・風呂
+		RETURNF 4
+	;魔法の森
+	CASEELSE
+		RETURNF 1
+ENDSELECT
+
+;--------------------------------------------------
+;内部構造がある場所の内部の判定
+;TFLAG:マップ切り替え  内部察知が必要なマップ番号
+;                P_ID  表示ボタンの場所ID
+;                Q_ID  判定する内部の場所ID,必ずP_IDと一致した数値も含める
+;--------------------------------------------------
+@GETMAP_BUILDING_5(P_ID, Q_ID)
+#FUNCTION
+#DIM P_ID
+#DIM Q_ID
+IF TFLAG:マップ切り替え == 1
+	SELECTCASE P_ID
+		;魔理沙宅
+		CASE P510霧雨魔法店
+			SELECTCASE Q_ID
+			CASE P510霧雨魔法店 TO P514魔理沙宅・風呂
+				RETURNF 1
+			ENDSELECT
+		;人形の館
+		CASE P525人形の館・リビング
+			SELECTCASE Q_ID
+			CASE P521人形の館・アリスの部屋 TO P531人形の館・空き部屋
+				RETURNF 1
+			ENDSELECT
+		;エレン宅
+		CASE P534ふわふわエレン魔法の店
+			SELECTCASE Q_ID
+			CASE P534ふわふわエレン魔法の店 TO P537エレン宅・風呂
+				RETURNF 1
+			ENDSELECT
 	ENDSELECT
 ENDIF
-CALL DRAW_INFORMATIONLINE(@"%MAPNAME:(TFLAG:マップ切り替え)%")
-PRINTFORML 
-IF RECOLOREDMAPS
-TRYCCALLFORM COLOREDMAP_FOREST_{TFLAG:マップ切り替え}(AA,COLOR)
-CATCH
-RECOLOREDMAPS = 0
-CALL DRAW_MAP
-RECOLOREDMAPS = 1
-RETURN
-ENDCATCH
-ELSE
-TRYCALLFORM MAP_FOREST_{TFLAG:マップ切り替え}(AA)
-ENDIF
+RETURNF 0
 
-@MAP_CAN_MOVE_5(ARG, ARG:1)
+;--------------------------------------------------
+;移動制限設定
+;ARG    場所ID
+;CHARA  移動するキャラID
+;RETURNF 1=移動できる,0=移動できない
+;TFLAG:移動不能メッセージ   ↓の@MAP_CANNOT_WORD用の設定
+;--------------------------------------------------
+@MAP_CAN_MOVE_5(ARG, CHARA)
 #FUNCTION
-#DIM 在宅
+#DIM CHARA
 SELECTCASE ARG
-	;こーりんどー
-	CASE 502
-		IF !INRANGE(TIME,600,1080)
-			TFLAG:移動不能メッセージ = ARG
+	;香霖堂,10時～18時
+	CASE P502香霖堂
+		IF !INRANGE(TIME, 600, 1080)
+			TFLAG:移動不能メッセージ = 1
 			RETURNF 0
 		ENDIF
 ENDSELECT
 RETURNF 1
 
-
-
+;--------------------------------------------------
+;移動不能時に表示されるメッセージ
+;--------------------------------------------------
 @MAP_CANNOT_WORD_5(ARG)
 SELECTCASE TFLAG:移動不能メッセージ
-	CASE 502
+	CASE 1
 		PRINTFORMW 営業時間外だ
-	CASEELSE
+		CLEARLINE 2
+ENDSELECT
+REUSELASTLINE
+
+;-----------------------------------------
+;拠点専用の情景描写
+;WAITはかけないように
+;-----------------------------------------
+@MAP_UNIQUEMESSAGE_5
+SELECTCASE CFLAG:MASTER:現在位置
+	CASE P502香霖堂
+		PRINTFORML 雑多な品が所狭しと並んでいる
+		PRINTFORML 「非売品」の表示がやたらと多い……
+	CASE P503分かれ道
+		PRINTFORML 魔理沙の家の裏口と井戸が見える
+;	CASE 520
+;		PRINTFORML 「新築祝い」と書かれた大きな花輪が並んでいる
+	CASE P524人形の館・研究室
+		PRINTFORML 棚に薬瓶と人形が並んでいる
+	CASE P543ルーミアの棲み処
+		PRINTFORML 隅には得体の知れない骨が散らばっている
 ENDSELECT
 
+RETURN 1
+;-----------------------------------------
+;非自宅時に差し替える場所IDを返す関数
+;ARG,対象ID
+;RETURNF,差し替え済み対象ID
+;-----------------------------------------
+@MAP_SEARCH_REPLACEMENT_5(ARG)
+#FUNCTION
+SELECTCASE ARG
+	CASE P502香霖堂
+		RETURNF 香霖堂
+	CASE P540古木の大樹 TO P544成美の小屋
+		RETURNF 古木の大樹
+	CASE P510霧雨魔法店 TO P515魔理沙宅・倉庫
+		RETURNF 霧雨魔法店
+	CASE P520人形の館前 TO P531人形の館・空き部屋
+		RETURNF 人形の洋館
+	CASE P506無縁塚
+		RETURNF 無縁塚
+	CASE P509再思の道
+		RETURNF 再思の道
+	CASEELSE
+		RETURNF 森の入り口
+ENDSELECT
+RETURNF 0
+
+;--------------------------------------------------
+;マップの紹介文
+;--------------------------------------------------
 @マップ紹介_5
 ;とりあえず5行
 PRINTFORML 魔理沙宅や人形の館、ふわふわエレンの店を中心としたエリア。

@@ -1,17 +1,21 @@
 ﻿;--------------------------------------------------
-;	マップ内移動処理拡張パッチ付属
-;		地底MAP用関数
+;地点名変更関数
 ;--------------------------------------------------
 @MAP_PLACENAME_9(ARG)
 #FUNCTIONS
-#DIM PLACEID
 IF GET_MAPID(ARG) == MAIN_MAP
 	SELECTCASE ARG
-		CASE 901 TO (MAXROOM - 1)
+		CASE SUMIKOMI_ROOM
+			IF FLAG:住み込みキャラ
+				RETURNF CALLNAME:(FLAG:住み込みキャラ) + "の小屋"
+			ELSE
+				RETURNF "空き小屋"
+			ENDIF
+		CASE MINROOM() TO (MAXROOM - 1)
 			RETURNF STR:(ARG + 8000)
-		CASE 998
+		CASE OMANEKIBEYA()
 			RETURNF OMANEKI_PLACE()
-		CASE 999
+		CASE SUKIMA()
 			RETURNF "スキマ空間"
 		CASE MAXROOM
 			RETURNF "地上"
@@ -19,70 +23,145 @@ IF GET_MAPID(ARG) == MAIN_MAP
 			RETURNF "不明"
 	ENDSELECT
 ELSE
-	RETURNF "不明"
+	RETURNF "地底の外"
 ENDIF
 
-;@MAP_VIEWING_9
-;
-;SIF CHK_FOCUS(927,CFLAG:MASTER:現在位置,930)
-;	CALL MAP_OLD_HELL
-;SIF CHK_FOCUS(902,CFLAG:MASTER:現在位置,926)
-;	CALL MAP_TIREIDEN
-;SIF (CFLAG:MASTER:現在位置 == 901) || CHK_FOCUS(931,CFLAG:MASTER:現在位置,948)
-;	CALL MAP_OLD_CITY
-;RETURN 1
-
-@MAP_VIEWING_9(AA,COLOR)
-#DIMS REF AA, 0
-#DIMS REF COLOR, 0
-IF !TFLAG:マップ切り替え
-	IF CHK_FOCUS(927,CFLAG:MASTER:現在位置,930)
-		TFLAG:マップ切り替え = 3
-	ELSEIF (CFLAG:MASTER:現在位置 == 901) || CHK_FOCUS(931,CFLAG:MASTER:現在位置,948)
-		TFLAG:マップ切り替え = 2
-	ELSE
-		TFLAG:マップ切り替え = 1
-	ENDIF
-ENDIF
-CALL DRAW_INFORMATIONLINE(@"%MAPNAME:(TFLAG:マップ切り替え)%")
-PRINTFORML 
-IF RECOLOREDMAPS
-TRYCCALLFORM COLOREDMAP_CHIREIDEN_{TFLAG:マップ切り替え}(AA,COLOR)
-CATCH
-RECOLOREDMAPS = 0
-CALL DRAW_MAP
-RECOLOREDMAPS = 1
-RETURN
-ENDCATCH
-ELSE
-TRYCALLFORM MAP_CHIREIDEN_{TFLAG:マップ切り替え}(AA)
-ENDIF
-
-
-@MAP_CAN_MOVE_9(ARG, ARG:1)
+;--------------------------------------------------
+;場所ARGがどのエリアにあるか
+;表示するマップの番号と連動（TFLAG:マップ切り替え）
+;ARG     場所ID
+;--------------------------------------------------
+@MAP_AREASELECT_9(ARG)
 #FUNCTION
-#DIM 在宅
 SELECTCASE ARG
-	;旧西階段、東階段、噴水、地蔵
-	CASE 907, 908, 924, 947
-		RETURNF 0
-	;ラブホ,あなた以外は入らない
-	CASE 935
-		SIF ARG:1 != MASTER
-			RETURNF 0
+	;旧地獄
+	CASE P928灼熱地獄跡 TO P930旧血の池地獄
+		RETURNF 3
+	;旧都
+	CASE P901地霊殿前, P931大通り TO P948縦穴の底
+		RETURNF 2
+	;地霊殿
 	CASEELSE
 		RETURNF 1
 ENDSELECT
+
+;--------------------------------------------------
+;内部構造がある場所の内部の判定
+;TFLAG:マップ切り替え  内部察知が必要なマップ番号
+;                P_ID  表示ボタンの場所ID
+;                Q_ID  判定する内部の場所ID,必ずP_IDと一致した数値も含める
+;--------------------------------------------------
+@GETMAP_BUILDING_9(P_ID, Q_ID)
+#FUNCTION
+#DIM P_ID
+#DIM Q_ID
+IF TFLAG:マップ切り替え == 1
+	SELECTCASE P_ID
+		;旧地獄
+		CASE P928灼熱地獄跡
+			SELECTCASE Q_ID
+			CASE P928灼熱地獄跡 TO P930旧血の池地獄
+				RETURNF 1
+			ENDSELECT
+	ENDSELECT
+ELSEIF TFLAG:マップ切り替え == 2
+	SELECTCASE P_ID
+		;地霊殿
+		CASE P905一階廊下
+			SELECTCASE Q_ID
+			CASE P904大広間 TO P930旧血の池地獄
+				RETURNF 1
+			ENDSELECT
+	ENDSELECT
+ENDIF
+RETURNF 0
+
+;--------------------------------------------------
+;移動制限設定
+;ARG    場所ID
+;CHARA  移動するキャラID
+;RETURNF 1=移動できる,0=移動できない
+;TFLAG:移動不能メッセージ   ↓の@MAP_CANNOT_WORD用の設定
+;--------------------------------------------------
+@MAP_CAN_MOVE_9(ARG, CHARA)
+#FUNCTION
+#DIM CHARA
+SELECTCASE ARG
+	CASE P935ラブホ
+		;あなた以外は入らない
+		SIF CHARA != MASTER
+			RETURNF 0
+	;誰かが住んでないと入れない
+	CASE P937空き屋
+		IF !PRIVATEROOM:(ARG % 100) && CFLAG:MASTER:初期位置 != ARG
+			TFLAG:移動不能メッセージ = 999
+			RETURNF 0
+		ENDIF
+ENDSELECT
 RETURNF 1
 
+;--------------------------------------------------
+;移動不能時に表示されるメッセージ
+;--------------------------------------------------
 @MAP_CANNOT_WORD_9(ARG)
+RETURN
 SELECTCASE TFLAG:移動不能メッセージ
+	CASE 1
+		PRINTFORMW ※ここにメッセージを入れる。行数+1のCLEARLINEをする
+		CLEARLINE 2
 ENDSELECT
-;PRINTW 工事中
-;CLEARLINE 2
-;REUSELASTLINE 
-;RETURN
+REUSELASTLINE
 
+;-----------------------------------------
+;拠点専用の情景描写
+;WAITはかけないように
+;-----------------------------------------
+@MAP_UNIQUEMESSAGE_9
+IF WITH_MOB()
+	CALL MOB_MESSAGE_9
+	RETURN 1
+ELSE
+	SELECTCASE CFLAG:MASTER:現在位置
+		CASE P944通り, P946橋
+			PRINTFORML 繁華街の喧騒が聞こえてくる　その向こうには地霊殿が見える
+		CASE P948縦穴の底
+			PRINTFORML 道の端には小さな地蔵が見える
+	ENDSELECT
+ENDIF
+IF INRANGE(CFLAG:MASTER:現在位置, P944通り, P948縦穴の底)
+	SIF CFLAG:[[パルスィ]]:行動 == 5
+		PRINTFORML 橋の上ではパルスィが通行者がこないか見張っている
+ENDIF
+RETURN 1
+
+;-----------------------------------------
+;拠点の場所IDをお出かけマップ上の場所IDに置換する関数
+;ARG      対象の場所ID（拠点マップ）
+;RETURNF  差し替え場所ID（お出かけマップ）
+;-----------------------------------------
+@MAP_SEARCH_REPLACEMENT_9(ARG)
+#FUNCTION
+SELECTCASE ARG
+	CASE P941ヤマメの家, P942キスメの家, P948縦穴の底
+		RETURNF 幻想風穴
+	CASE P934温泉
+		RETURNF 旧地獄温泉
+	CASE P935ラブホ
+		RETURNF ラブホ
+	CASE P931大通り TO P939路地裏
+		RETURNF 旧地獄街道
+	CASE P901地霊殿前 TO P926中庭
+		RETURNF 地霊殿
+	CASE P928灼熱地獄跡 TO P930旧血の池地獄
+		RETURNF 灼熱地獄跡
+	CASEELSE
+		RETURNF 地獄の深道
+ENDSELECT
+RETURNF 0
+
+;--------------------------------------------------
+;マップの紹介文
+;--------------------------------------------------
 @マップ紹介_9
 ;とりあえず5行
 PRINTFORML 封じられた妖怪の棲まう地底マップ。

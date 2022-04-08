@@ -273,8 +273,7 @@ IF FORCE_STOP
 	RETURN 0
 ENDIF
 ;通常遭遇
-;こちらからも見える位置にいる、もしくは同室
-IF !CFLAG:ARG:睡眠 && (!NOZOKI || CAN_SEE(ARG)) && !FLAG:70 && !CHK_DATENOW(CFLAG:ARG:デート中) && TIME != TIME:3 && !GETBIT(FLAG:潜伏,0)
+IF !CFLAG:ARG:睡眠 && (!NOZOKI || CFLAG:ARG:現在位置 == CFLAG:MASTER:現在位置) && !FLAG:時間停止 && !CHK_DATENOW(CFLAG:ARG:デート中) && TIME != TIME:3 && !GETBIT(FLAG:潜伏,0)
 	;デート中に偶然遭遇
 	IF CHK_DATENOW(CFLAG:MASTER:デート中)
 		IF !CFLAG:(NO:ARG):面識 && TALENT:ARG:行きずり
@@ -456,7 +455,7 @@ IF TALENT:ARG:恋慕 && !RAND:5 && !CFLAG:ARG:宴会参加
 		CFLAG:MASTER:同行 = 60
 		CFLAG:ARG:同行 = 60
 		TFLAG:デート前好感度 = CFLAG:ARG:2
-		CALL SET_DATE(目的地,ARG)
+		CALL SET_DATE(目的地, ARG, TIME_REQUIRED(CFLAG:MASTER:デート中, 目的地) - 1000)
 		CALL TARGETSET_CHACK
 		RETURN 1
 	ELSE

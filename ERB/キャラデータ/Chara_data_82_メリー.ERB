@@ -1,76 +1,45 @@
-﻿@CHARAMOVE_DATA_82(ARG,ARG:2)
+﻿@CHARAMOVE_DATA_82(ARG, ARG:2)
 LOCAL = 82
 SELECTCASE ARG
-	;移動対象メンバーチェック
+	;連動設定（RETURN=依存するキャラ, RESULT:1～3=対等に連動するキャラ）
 	CASE 1
-		;連動処理（蓮子と一緒）
-		IF TALENT:82:恋慕 || (TALENT:82:思慕 && !TALENT:81:思慕)
-			CFLAG:LOCAL:現在位置 = CFLAG:82:遭遇位置 ? CFLAG:82:遭遇位置 # SUKIMA()
-		ELSE
-			CFLAG:LOCAL:現在位置 = CFLAG:81:遭遇位置 ? CFLAG:81:遭遇位置 # SUKIMA()
-		ENDIF
-	;移動確率
-	CASE 2
-	;起床時間帯
+		RESULT:1 = [[蓮子]]
+		RESULT:2 = [[メリー]]
+	;特殊生活時間設定（CFLAG:LOCAL:生活時間補正を設定する）
 	CASE 3
-		RETURN 睡眠時間(LOCAL)
-	;移動傾向
+	;移動傾向（±～10=行きやすい/行きにくい, -100=行かない）
 	CASE 4
 		SELECTCASE ARG:2
-			;ひとんちの風呂とかトイレにはいかない
-			CASE 12, 13, 14, 18, 30, 35, 39, 40, 43, 44, 51, 52
-				RETURN -100
-			;私室には入らない
-			CASE 15, 17, 19, 53, 55
-				SIF FLAG:15 != LOCAL
-					RETURN -100
-			;物置等を漁りたい
-			CASE 6, 17, 19, 51, 53
-				RETURN 5
-			;ボロ小屋の時はむしろ行く
-			CASE 16
-				SIF FLAG:15 == 82
-					RETURN 5
-				SIF FLAG:15 == 81
-					RETURN 0
-				SIF FLAG:15
-					RETURN -100
-				RETURN 5
 			;遺跡によく行く
-			CASE 26 TO 51
+			CASE P36夢幻遺跡前 TO P51夢幻遺跡・倉庫
 				RETURN 5
-			;自室,蓮子の部屋,広場
-			CASE 232, 233, 202
+			;蓮メリの部屋,広場
+			CASE P232蓮子の部屋, P233メリーの部屋, P202中央広場
 				RETURN 5
-			;あなたの部屋
-			CASE 230
-				IF TALENT:LOCAL:恋慕
-					RETURN 5
-				ELSE
-					RETURN -100
-				ENDIF
-			;行かない
-			CASE 220, 225, 221, 222, 224, 226
+			;私室には行かない
+			CASE P221稗田邸, P224慧音宅, P222寺子屋, P226小鈴私室, P229阿求私室
 				RETURN -100
-		ENDSELECT
-	;仕事時間帯
-	CASE 5
-	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
-	CASE 6
-		SELECTCASE ARG:2
-			CASE 0, 1, 2, 4, 6
-				RETURN 1
-			CASEELSE
-				RETURN 0
+			CASE P208雷鼓の部屋, P209八橋の部屋, P210弁々の部屋
+				RETURN -100
+			CASE P231蛮奇の部屋, P234ユキの部屋, P235マイの部屋, P239美宵の部屋
+				RETURN -100
 		ENDSELECT
 	;出現場所
 	CASE 7
 		SELECTCASE ARG:2
-			CASE 1,2,3,4,6, 12,13,15, 21,22,23,27, 41,42,43, 61,62
+			CASE 桜並木の鳥居, 神社境内, 神社本堂, 神社縁側, 夢幻遺跡
 				RETURN 1
-			CASEELSE
-				RETURN 0
+			CASE お地蔵通り, 枝垂れ柳の下, 命蓮寺境内, 墓地, 神霊廟広場
+				RETURN 1
+			CASE 広場, 商家町, 呑屋小道, 長屋街
+				RETURN 1
+			CASE 竹林入り口, 迷いの小道, 斜角の竹林, 兎の洞穴, 無名の丘, 太陽の畑
+				RETURN 1
+			CASE 中有の道, 三途の川
+				RETURN 1
 		ENDSELECT
+	;引力設定
+	CASE 8
 ENDSELECT
 
 @EXIST_キャラデータ82

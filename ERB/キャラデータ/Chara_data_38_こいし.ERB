@@ -1,56 +1,52 @@
-﻿@CHARAMOVE_DATA_38(ARG,ARG:2)
+﻿@CHARAMOVE_DATA_38(ARG, ARG:2)
 LOCAL = 38
 SELECTCASE ARG
-	;移動対象メンバーチェック
+	;連動設定（RETURN=依存するキャラ, RESULT:1～3=対等に連動するキャラ）
 	CASE 1
-	;移動確率
-	CASE 2
-	;起床時間帯
+	;特殊生活時間設定（CFLAG:LOCAL:生活時間補正を設定する）
 	CASE 3
-		RETURN 睡眠時間(LOCAL)
-	;移動傾向
+	;移動傾向（±～10=行きやすい/行きにくい, -100=行かない）
 	CASE 4
 		SELECTCASE ARG:2
-			;人工太陽にはいかない
-			CASE 930
-				RETURN -100
-		ENDSELECT
-	;仕事時間帯
-	CASE 5
-	;行く地域(0=博1=寺2=里3=湖4=竹5=森6=冥7=山8=守9=地10=月）
-	CASE 6
-		SELECTCASE ARG:2
-			CASE 1, 2, 3, 8, 9
-				RETURN 1
-			CASEELSE
-				RETURN 0
+			;旧血の池地獄まではあんまり行かない
+			CASE P930旧血の池地獄
+				RETURN -10
 		ENDSELECT
 	;出現場所
 	CASE 7
 		SELECTCASE ARG:2
-			CASE 11 TO 16, 21,22,23,27, 35,36,37,38, 84,85, 91,92,93,96
+			CASE お地蔵通り, 枝垂れ柳の下, 命蓮寺境内, 命蓮寺方丈, 墓地, 神霊廟広場, 神霊廟道場
 				RETURN 1
-			CASEELSE
-				RETURN 0
+			CASE 広場, 商家町, 呑屋小道, 長屋街
+				RETURN 1
+			CASE 広間, 食堂, 大図書館, 地下室
+				RETURN 1
+			CASE 山の湖, 守矢神社境内, 守矢神社本殿
+				RETURN 1
+			CASE 幻想風穴, 地獄の深道, 旧地獄街道, 地霊殿
+				RETURN 1
 		ENDSELECT
 	;引力設定
 	CASE 8
-		;ほぼ毎ターン呼ばれるので開始時間がより不安定に,最大20時まで
-		IF INRANGE(TIME, 600 + RAND:120, 700 + (CFLAG:LOCAL:今日の運勢 / 2))
-			SELECTCASE CFLAG:LOCAL:今日の運勢 % 6
-			CASE 1
-				TCVAR:LOCAL:引力点 = 925
-			CASE 2
-				TCVAR:LOCAL:引力点 = 929
-			CASE 3
-				TCVAR:LOCAL:引力点 = 933
-			CASE 4
-				TCVAR:LOCAL:引力点 = 939
-			CASE 5
-				TCVAR:LOCAL:引力点 = 945
-			CASEELSE
-				TCVAR:LOCAL:引力点 = 0
-			ENDSELECT
+		;まれにお姉ちゃんにくっつく
+		IF YOUBI_MATCH(DAY, "土日") && CFLAG:LOCAL:今日の運勢 % 10 == 0 && !CFLAG:[[さとり]]:うふふ && SHIRAHU([[さとり]])
+			TCVAR:LOCAL:引力点 = CFLAG:[[さとり]]:現在位置
+		ELSE
+			;ほぼ毎ターン呼ばれるので動き出す時間がより不安定に,最大14時前まで
+			IF INRANGE(TIME, 600 + RAND:60, 700 + (CFLAG:LOCAL:今日の運勢 / 8))
+				SELECTCASE CFLAG:LOCAL:今日の運勢 % 6
+				CASE 1
+					TCVAR:LOCAL:引力点 = P925バラ園
+				CASE 2
+					TCVAR:LOCAL:引力点 = P929地獄の人工太陽
+				CASE 3
+					TCVAR:LOCAL:引力点 = P933酒場
+				CASE 4
+					TCVAR:LOCAL:引力点 = P945川岸
+				CASEELSE
+					TCVAR:LOCAL:引力点 = 0
+				ENDSELECT
+			ENDIF
 		ENDIF
 ENDSELECT
 

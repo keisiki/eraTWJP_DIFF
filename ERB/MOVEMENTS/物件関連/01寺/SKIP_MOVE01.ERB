@@ -1,423 +1,162 @@
-﻿@SKIP_MOVE_1(ARG,ARG:1)
-#DIM スタート地点
-
+﻿;-----------------------------------------------------------
+;遠距離移動の設定
+;ARG     目的地
+;ARG:1   現在地
+;RETURN  次の目的地
+;-----------------------------------------------------------
+@SKIP_MOVE_1(ARG, ARG:1)
+#DIM 現在の位置
 ;現在位置取得
-スタート地点 = CFLAG:MASTER:現在位置
-SIF ARG:1
-	スタート地点 = ARG:1
-
-;暫定目的地に直接移動できる場合
-IF CAN_MOVE(スタート地点, ARG) & 1
-	;そこに移動
-	RETURN ARG
+IF ARG:1
+	現在の位置 = ARG:1
+ELSE
+	現在の位置 = CFLAG:MASTER:現在位置
 ENDIF
 
+;目的地に直接移動できる場合そこに移動
+SIF CAN_MOVE(現在の位置, ARG) & 1
+	RETURN ARG
+
 ;袋小路から行ける場所は固定なので、そこを目指す
-SELECTCASE スタート地点
-;	CASE 101
-;		RETURN 102
-	CASE 103
-		RETURN 104
-	CASE 112
-		RETURN 107
-	CASE 125,128,132
-		RETURN 130
-	CASE 133,134
-		RETURN 124
-	CASE MAXROOM
-		RETURN 101
+SELECTCASE 現在の位置
+	CASE P103本堂
+		RETURN P104講堂
+	CASE P105経蔵, P119離れ, P122梵鐘楼, P137マミゾウの棲家
+		RETURN P102境内
+	CASE P111台所
+		RETURN P108居間
+	CASE P112風呂
+		RETURN P107土間
+	CASE P120物置
+		RETURN P106裏庭
+	CASE P125屠自古私室, P127布都私室, P128神子私室, P132調薬室
+		RETURN P130廊下
+	CASE P133湯殿, P134蔵, P138鐘楼, P139邪仙楼
+		RETURN P124霊廟広場
 ENDSELECT
 
 ;直接移動できない場合、1つ近い位置を暫定目的地に設定し直してループ
-;地点追加時要フォロー（全ケース修正すること）
+;基本的に最短で行けるコースを設定する
+;現在地によってコースが変わることも考慮して対応する
 SELECTCASE ARG
-CASE 101
-;山門
-	;寺からは境内を目指す
-	IF CHK_FOCUS(103,スタート地点,122)
-	RETURN 102
-	;霊廟からは大門を目指す
-	ELSEIF CHK_FOCUS(124,スタート地点,132)
-	RETURN 123
-	ENDIF
-CASE 102
-;境内
-	;3からは4を目指す
-	IF (スタート地点 == 103)
-		RETURN 104
-	;10.19.20からは6を目指す
-	ELSEIF (スタート地点 == 110) || (スタート地点 == 119) || (スタート地点 == 120)
-		RETURN 106
-	;11.12からは7を目指す
-	ELSEIF (スタート地点 == 111) || (スタート地点 == 112)
-		RETURN 107
-	;13.16からは10を目指す
-	ELSEIF (スタート地点 == 109) || (スタート地点 == 113) || (スタート地点 == 116)
-		RETURN 110
-	;8からは11を目指す
-	ELSEIF (スタート地点 == 108)
-		RETURN 111
-	;霊廟からは山門を目指す
-	ELSEIF CHK_FOCUS(123,スタート地点,132)
-		RETURN 101
-	ELSE
-	;それ以外の(直接行けない)場所からは、8を目指す
-		RETURN 108
-	ENDIF
-CASE 103
-;本堂
-	;2からは4を目指す
-	IF (スタート地点 == 102)
-		RETURN 104
-	;10.19.20からは6を目指す
-	ELSEIF (スタート地点 == 110) || (スタート地点 == 119) || (スタート地点 == 120)
-		RETURN 106
-	;5.6.7.21.22からは2を目指す
-	ELSEIF (スタート地点 == 105) || (スタート地点 == 106) || (スタート地点 == 107) || (スタート地点 == 121) || (スタート地点 == 122)
-		RETURN 102
-	;11.12からは7を目指す
-	ELSEIF (スタート地点 == 111) || (スタート地点 == 112)
-		RETURN 107
-	;9.13.16からは10を目指す
-	ELSEIF (スタート地点 == 109) || (スタート地点 == 113) || (スタート地点 == 116)
-		RETURN 110
-	;8からは11を目指す
-	ELSEIF (スタート地点 == 108)
-		RETURN 111
-	;霊廟からは講堂を目指す
-	ELSEIF CHK_FOCUS(123,スタート地点,132)
-		RETURN 104
-	ELSE
-	;それ以外の場所からは、8を目指す
-		RETURN 108
-	ENDIF
-CASE 104
-;講堂
-	;6からは3を目指す
-	IF (スタート地点 == 106)
-		RETURN 103
-	;5.7.21からは2を目指す
-	ELSEIF (スタート地点 == 105) || (スタート地点 == 107) || (スタート地点 == 121)
-		RETURN 102
-	;10.19.20からは6を目指す
-	ELSEIF (スタート地点 == 110) || (スタート地点 == 119) || (スタート地点 == 120)
-		RETURN 106
-	;9.13.16からは10を目指す
-	ELSEIF (スタート地点 == 109) || (スタート地点 == 113) || (スタート地点 == 116)
-		RETURN 110
-	;11.12からは7を目指す
-	ELSEIF (スタート地点 == 111) || (スタート地点 == 112)
-		RETURN 107
-	;8からは11を目指す
-	ELSEIF (スタート地点 == 108)
-		RETURN 111
-	;霊廟からは境内を目指す
-	ELSEIF CHK_FOCUS(123,スタート地点,132)
-		RETURN 102
-	ELSE
-	;それ以外の場所からは、8を目指す
-		RETURN 108
-	ENDIF
-CASE 105
-;経堂
-	;11.12からは7を目指す
-	IF (スタート地点 == 111) || (スタート地点 == 112)
-		RETURN 107
-	;1.4.6.21.22からは2を目指す
-	ELSEIF GROUPMATCH(スタート地点,101,104,106,107,121,122)
-		RETURN 102
-	;3からは4を目指す
-	ELSEIF (スタート地点 == 103)
-		RETURN 104
-	;10.19.20からは6を目指す
-	ELSEIF (スタート地点 == 110) || (スタート地点 == 119) || (スタート地点 == 120)
-		RETURN 106
-	;9.13.16からは10を目指す
-	ELSEIF (スタート地点 == 109) || (スタート地点 == 113) || (スタート地点 == 116)
-		RETURN 110
-	;8からは11を目指す
-	ELSEIF (スタート地点 == 108)
-		RETURN 111
-	;霊廟からは境内を目指す
-	ELSEIF CHK_FOCUS(123,スタート地点,132)
-		RETURN 102
-	;それ以外の場所からは、8を目指す
-	ELSE
-		RETURN 108
-	ENDIF
-CASE 106
-;裏庭
-	;1.4.5.7.22からは2を目指す
-	IF GROUPMATCH(スタート地点,101,103,104,105,107,122)
-		RETURN 102
-	;11.12からは7を目指す
-	ELSEIF (スタート地点 == 111) || (スタート地点 == 112)
-		RETURN 107
-	;9.13.16からは10を目指す
-	ELSEIF (スタート地点 == 109) || (スタート地点 == 113) || (スタート地点 == 116)
-		RETURN 110
-	;8からは11を目指す
-	ELSEIF (スタート地点 == 108)
-		RETURN 109
-	;霊廟からは境内を目指す
-	ELSEIF CHK_FOCUS(123,スタート地点,132)
-		RETURN 102
-	;それ以外の場所からは、8を目指す
-	ELSE
-		RETURN 108
-	ENDIF
-CASE 107
-;土間
-	;8からは11を目指す
-	IF (スタート地点 == 108)
-		RETURN 111
-	;1.4.5.6.21.22からは2を目指す
-	ELSEIF (スタート地点 == 101) || (スタート地点 == 104) || (スタート地点 == 105) || (スタート地点 == 106) || (スタート地点 == 121) || (スタート地点 == 122)
-		RETURN 102
-	;3からは4を目指す
-	ELSEIF (スタート地点 == 103)
-		RETURN 104
-	;13.16からは10を目指す
-	ELSEIF (スタート地点 == 113) || (スタート地点 == 116)
-		RETURN 110
-	;10からは9を目指す
-	ELSEIF (スタート地点 == 110)
-		RETURN 109
-	;19.20からは6を目指す
-	ELSEIF (スタート地点 == 119) || (スタート地点 == 120)
-		RETURN 106
-	;霊廟からは境内を目指す
-	ELSEIF CHK_FOCUS(123,スタート地点,132)
-		RETURN 102
-	;それ以外の場所からは、8を目指す
-	ELSE
-		RETURN 108
-	ENDIF
-CASE 108
-;居間
-	;10からは9を目指す
-	IF (スタート地点 == 110)
-		RETURN 109
-	;6.13.16からは10を目指す
-	ELSEIF (スタート地点 == 106) || (スタート地点 == 113) || (スタート地点 == 116)
-		RETURN 110
-	;19.20.21からは6を目指す
-	ELSEIF GROUPMATCH(スタート地点, 119, 120, 121)
-		RETURN 106
-	;1.4.22からは2を目指す
-	ELSEIF (スタート地点 == 101) || (スタート地点 == 104) || (スタート地点 == 122)
-		RETURN 102
-	;2.5.12からは7を目指す
-	ELSEIF (スタート地点 == 102) || (スタート地点 == 105) || (スタート地点 == 112)
-		RETURN 107
-	;7からは11を目指す
-	ELSEIF (スタート地点 == 107)
-		RETURN 111
-	;霊廟からは土間を目指す
-	ELSEIF CHK_FOCUS(123,スタート地点,132)
-		RETURN 107
-	;それ以外の場所からは、9を目指す
-	ELSE
-		RETURN 109
-	ENDIF
-CASE 109
-;客間
-	;6.13.16.19.20からは10を目指す
-	IF (スタート地点 == 106) || (スタート地点 == 113) || (スタート地点 == 116) || (スタート地点 == 119) || (スタート地点 == 120)
-		RETURN 110
-	;2.21からは6を目指す
-	ELSEIF (スタート地点 == 102) || (スタート地点 == 121)
-		RETURN 106
-	;1.4.5.22からは2を目指す
-	ELSEIF (スタート地点 == 101) || (スタート地点 == 104) || (スタート地点 == 105) || (スタート地点 == 122)
-		RETURN 102
-	;12からは7を目指す
-	ELSEIF (スタート地点 == 112)
-		RETURN 107
-	;7からは11を目指す
-	ELSEIF (スタート地点 == 107)
-		RETURN 111
-	;霊廟からは裏庭を目指す
-	ELSEIF CHK_FOCUS(123,スタート地点,132)
-		RETURN 106
-	;それ以外の場所からは、8を目指す
-	ELSE
-		RETURN 108
-	ENDIF
-CASE 110
-;縁側
-	;8からは9を目指す
-	IF (スタート地点 == 108)
-		RETURN 109
-	;2.21からは6を目指す
-	ELSEIF (スタート地点 == 102) || (スタート地点 == 121)
-		RETURN 106
-	;3からは4を目指す
-	ELSEIF (スタート地点 == 103)
-		RETURN 104
-	;1.4.5.22からは2を目指す
-	ELSEIF (スタート地点 == 101) || (スタート地点 == 104) || (スタート地点 == 105) || (スタート地点 == 122)
-		RETURN 102
-	;12からは7を目指す
-	ELSEIF (スタート地点 == 112)
-		RETURN 107
-	;7からは11を目指す
-	ELSEIF (スタート地点 == 107)
-		RETURN 111
-	;霊廟からは裏庭を目指す
-	ELSEIF CHK_FOCUS(123,スタート地点,132)
-		RETURN 106
-	;それ以外の場所からは、8を目指す
-	ELSE
-		RETURN 108
-	ENDIF
-CASE 111
-;台所
-	;2.5.12からは7を目指す
-	IF (スタート地点 == 102) || (スタート地点 == 105) || (スタート地点 == 112)
-		RETURN 107
-	;1.4.6.22からは2を目指す
-	ELSEIF (スタート地点 == 101) || (スタート地点 == 104) || (スタート地点 == 106) || (スタート地点 == 122)
-		RETURN 102
-	;19.20.21からは6を目指す
-	ELSEIF (スタート地点 == 119) || (スタート地点 == 120) || (スタート地点 == 121)
-		RETURN 106
-	;10からは9を目指す
-	ELSEIF (スタート地点 == 110)
-		RETURN 109
-	;13.16からは10を目指す
-	ELSEIF (スタート地点 == 113) || (スタート地点 == 116)
-		RETURN 110
-	;3からは4を目指す
-	ELSEIF (スタート地点 == 103)
-		RETURN 104
-	;霊廟からは土間を目指す
-	ELSEIF CHK_FOCUS(123,スタート地点,132)
-		RETURN 107
-	;それ以外の場所からは、8を目指す
-	ELSE
-		RETURN 108
-	ENDIF
-CASE 112
-;風呂
-	;3からは4を目指す
-	IF (スタート地点 == 3)
-		RETURN 4
-	;1.4.22からは2を目指す
-	ELSEIF (スタート地点 == 101) || (スタート地点 == 104) || (スタート地点 == 122)
-		RETURN 102
-	;21からは6を目指す
-	ELSEIF (スタート地点 == 121)
-		RETURN 106
-	;2.5.11からは7を目指す
-	ELSEIF (スタート地点 == 102) || (スタート地点 == 105) || (スタート地点 == 111)
-		RETURN 107
-	;6.13.16.19.20からは10を目指す
-	ELSEIF (スタート地点 == 106) || (スタート地点 == 113) || (スタート地点 == 116) || (スタート地点 == 119) || (スタート地点 == 120)
-		RETURN 110
-	;10からは9を目指す
-	ELSEIF (スタート地点 == 110)
-		RETURN 109
-	;8からは11を目指す
-	ELSEIF (スタート地点 == 108)
-		RETURN 111
-	;霊廟からは土間を目指す
-	ELSEIF CHK_FOCUS(123,スタート地点,132)
-		RETURN 107
-	;それ以外の場所からは、8を目指す
-	ELSE
-		RETURN 108
-	ENDIF
-CASE 113
-	;ナズーリン私室に直接行けない場合、10を目指す
-	RETURN 110
-CASE 114
-	;ムラサ私室に直接行けない場合、8を目指す
-	RETURN 108
-CASE 115
-	;星私室に直接行けない場合、8を目指す
-	RETURN 108
-CASE 116
-	;一輪私室に直接行けない場合、10を目指す
-	RETURN 110
-CASE 117
-	;ぬえ私室に直接行けない場合、8を目指す
-	RETURN 108
-CASE 118
-	;白蓮私室に直接行けない場合、8を目指す
-	RETURN 108
-CASE 119
-	;あなた私室に直接行けない場合、6を目指す
-	RETURN 106
-CASE 120
-	;物置に直接行けない場合、06を目指す
-	RETURN 106
-CASE 121
-	;墓地に直接行けない場合、6を目指す
-	RETURN 106
-CASE 122
-	;梵鐘堂に直接行けない場合、2を目指す
-	RETURN 102
-CASE 123
-	;山門以外の寺からは、山門を目指す
-	IF CHK_FOCUS(102,スタート地点,122)
-		RETURN 101
-	ELSEIF スタート地点 == 126
-		RETURN 124
-	ELSEIF スタート地点 == 130
-		RETURN 126
-	ELSEIF GROUPMATCH(スタート地点,125,127,128,128,129,131,132)
-			RETURN 130
-	ELSE
-		RETURN 101
-	ENDIF
-CASE 124
-	;寺からは、霊廟正門を目指す
-	IF CHK_FOCUS(101,スタート地点,122)
-		RETURN 123
-	ELSEIF スタート地点 == 130
-		RETURN 126
-	ELSEIF GROUPMATCH(スタート地点,125,127,128,128,129,131,132)
-		RETURN 130
-	ELSE
-		RETURN 126
-	ENDIF
-CASE 125
-	RETURN 130
-CASE 126
-	;寺からは、霊廟広場を目指す
-	IF CHK_FOCUS(101,スタート地点,122)
-		RETURN 124
-	ELSEIF スタート地点 == 123
-		RETURN 124
-	ELSEIF GROUPMATCH(スタート地点,125,127,128,128,129,131,132)
-		RETURN 130
-	ELSE
-		RETURN 130
-	ENDIF
-CASE 127
-	RETURN 130
-CASE 128
-	RETURN 130
-CASE 129
-	RETURN 130
-CASE 130
-	;寺からは、道場を目指す
-	IF CHK_FOCUS(101,スタート地点,122)
-		RETURN 126
-	ELSEIF スタート地点 == 123
-		RETURN 126
-	ELSEIF スタート地点 == 124
-		RETURN 126
-	ELSE
-		RETURN 126
-	ENDIF
-CASE 131
-	RETURN 130
-CASE 132
-	RETURN 130
-CASE 133
-	RETURN 124
-CASE 134
-	RETURN 124
+	CASE P101山門
+		SELECTCASE 現在の位置
+		CASE P123霊廟大門 TO P134蔵, P138鐘楼, P139邪仙楼
+			RETURN P140お地蔵通り
+		CASEELSE
+			RETURN P102境内
+		ENDSELECT
+	CASE P102境内
+		SELECTCASE 現在の位置
+		CASE P123霊廟大門 TO P134蔵, P138鐘楼, P139邪仙楼, P140お地蔵通り
+			RETURN P101山門
+		CASE P106裏庭, P110縁側, P120物置
+			RETURN P121墓地
+		CASEELSE
+			RETURN P107土間
+		ENDSELECT
+	CASE P103本堂
+		RETURN P104講堂
+	CASE P104講堂, P105経蔵, P119離れ, P122梵鐘楼, P137マミゾウの棲家
+		RETURN P102境内
+	CASE P106裏庭
+		SELECTCASE 現在の位置
+		CASE P108居間 TO P111台所, P113ナズーリン私室 TO P118白蓮私室, P135廊下, P136響子私室
+			RETURN P110縁側
+		CASEELSE
+			RETURN P121墓地
+		ENDSELECT
+	CASE P107土間
+		SELECTCASE 現在の位置
+		CASE P106裏庭, P109女苑私室 TO P118白蓮私室, P120物置, P135廊下, P136響子私室
+			RETURN P108居間
+		CASEELSE
+			RETURN P102境内
+		ENDSELECT
+	CASE P108居間
+		SELECTCASE 現在の位置
+		CASE P106裏庭, P110縁側, P113ナズーリン私室 TO P118白蓮私室, P120物置, P136響子私室
+			RETURN P135廊下
+		CASEELSE
+			RETURN P107土間
+		ENDSELECT
+	CASE P109女苑私室
+		SELECTCASE 現在の位置
+		CASE P106裏庭, P110縁側, P113ナズーリン私室 TO P118白蓮私室, P120物置, P136響子私室
+			RETURN P135廊下
+		CASEELSE
+			RETURN P108居間
+		ENDSELECT
+	CASE P110縁側
+		SELECTCASE 現在の位置
+		CASE P107土間 TO P118白蓮私室, P136響子私室
+			RETURN P135廊下
+		CASEELSE
+			RETURN P106裏庭
+		ENDSELECT
+	CASE P111台所
+		RETURN P108居間
+	CASE P112風呂
+		RETURN P107土間
+	CASE P113ナズーリン私室, P115星私室
+		SELECTCASE 現在の位置
+		CASE P109女苑私室 TO P118白蓮私室, P136響子私室
+			RETURN P135廊下
+		CASEELSE
+			RETURN P110縁側
+		ENDSELECT
+	CASE P114ムラサ私室, P116一輪私室, P117ぬえ私室, P118白蓮私室, P136響子私室
+		RETURN P135廊下
+	CASE P120物置
+		RETURN P106裏庭
+	CASE P121墓地
+		SELECTCASE 現在の位置
+		CASE P109女苑私室, P110縁側, P113ナズーリン私室 TO P118白蓮私室, P120物置, P135廊下, P136響子私室
+			RETURN P106裏庭
+		CASEELSE
+			RETURN P102境内
+		ENDSELECT
+
+	CASE P123霊廟大門
+		SELECTCASE 現在の位置
+		CASE P125屠自古私室 TO P132調薬室
+			RETURN P124霊廟広場
+		CASEELSE
+			RETURN P140お地蔵通り
+		ENDSELECT
+	CASE P124霊廟広場
+		SELECTCASE 現在の位置
+		CASE P125屠自古私室 TO P132調薬室
+			RETURN P126道場
+		CASEELSE
+			RETURN P123霊廟大門
+		ENDSELECT
+	CASE P125屠自古私室, P127布都私室, P128神子私室, P132調薬室, P129客間, P131枯山水
+		RETURN P130廊下
+	CASE P126道場
+		SELECTCASE 現在の位置
+		CASE P125屠自古私室 TO P132調薬室
+			RETURN P130廊下
+		CASEELSE
+			RETURN P124霊廟広場
+		ENDSELECT
+	CASE P130廊下
+		RETURN P126道場
+	CASE P133湯殿, P134蔵, P138鐘楼, P139邪仙楼
+		RETURN P124霊廟広場
+
+	CASE P135廊下
+		SELECTCASE 現在の位置
+		CASE P106裏庭, P110縁側, P120物置, P121墓地
+			RETURN P110縁側
+		CASEELSE
+			RETURN P108居間
+		ENDSELECT
+	CASE P140お地蔵通り
+		SELECTCASE 現在の位置
+		CASE P123霊廟大門 TO P134蔵, P138鐘楼, P139邪仙楼
+			RETURN P123霊廟大門
+		CASEELSE
+			RETURN P101山門
+		ENDSELECT
 ENDSELECT

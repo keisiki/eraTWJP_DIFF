@@ -1,16 +1,17 @@
-﻿@GET_EXISTMAP(ARG)
+﻿;-----------------------------------------------------------
+;拠点マップの存在判定
+;現在は0～10まで全て揃ったのであまり意味はない
+;-----------------------------------------------------------
+@GET_EXISTMAP(ARG)
 #FUNCTION
-SIF GROUPMATCH(ARG, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10)
+SIF GROUPMATCH(ARG, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 	RETURNF 1
 
-;------------------------------------------
+;-----------------------------------------------------------
 ;対象マップの呼び名文字列を返す
-;COMF410_掃除.ERB、呼び出し元
-;要参照MAP_COMM_0.ERB
-;ARG,MAPID
-;ARG:1,キャラID
-;------------------------------------------
-@GET_MAPNAME(ARG, ARG:1 = 0)
+;ARG     MAPID
+;-----------------------------------------------------------
+@GET_MAPNAME(ARG)
 #FUNCTIONS
 #DIMS PNAME
 SELECTCASE ARG
@@ -41,58 +42,23 @@ SELECTCASE ARG
 ENDSELECT
 RETURNF PNAME
 
-;FileName_COMMON.ERB ------------------------------- Rev1.00
-;風呂を追い出される先
-;CALL		USER
-;ARG		VOID
-;RETURN		脱出先の場所
-;COMMENT	場所を変更した場合、RETURNFを変更の事
 ;-----------------------------------------------------------
-@KICKOUT(ARG)
+;拠点内の場所ARGへCHARAが移動できるかを返す関数
+;鍵や危険地帯・幻影地帯など
+;ARG    場所ID
+;CHARA  キャラID,省略すると0=MASTER,現状キャラ移動以外では使いません
+;-----------------------------------------------------------
+@MAP_CAN_MOVE(ARG, CHARA)
 #FUNCTION
-IF MAIN_MAP == GET_MAPID(CFLAG:MASTER:現在位置)
-	SELECTCASE MAIN_MAP
-		CASE 0
-			RETURNF KICKOUT_0()
-		CASE 1
-			RETURNF KICKOUT_1()
-		CASE 2
-			RETURNF KICKOUT_2()
-		CASE 3
-			RETURNF KICKOUT_3()
-		CASE 4
-			RETURNF KICKOUT_4()
-		CASE 5
-			RETURNF KICKOUT_5()
-		CASE 6
-			RETURNF KICKOUT_6()
-		CASE 7
-			RETURNF KICKOUT_7()
-		CASE 8
-			RETURNF KICKOUT_8()
-		CASE 9
-			RETURNF KICKOUT_9()
-		CASE 10
-			RETURNF KICKOUT_10()
-	ENDSELECT
-ENDIF
-RETURNF CFLAG:MASTER:前ターン位置
-
-;------------------------------------------
-;マップごとに移動できない状況がある場合に呼び出す（温泉に人がいる、鍵を締めている　など）
-;要参照COMF400_移動.ERB
-;ARG,場所ID
-;ARG:1,キャラID,省略すると0=MASTER,現状キャラ移動以外では使いません
-;------------------------------------------
-@MAP_CAN_MOVE(ARG, ARG:1)
-#FUNCTION
+#DIM CHARA
 #DIM 家主
 #DIM 在宅
+;ワンルーム共通処理
 IF ROOMDATA:(ARG % 100) & 場所_ワンルーム
 	家主 = PRIVATEROOM:(ARG % 100)
 	在宅 = 0
 	;あなた
-	IF ARG:1 == MASTER
+	IF CHARA == MASTER
 		;自宅なら可能
 		IF ARG == デフォルト初期位置
 			RETURNF 1
@@ -100,19 +66,17 @@ IF ROOMDATA:(ARG % 100) & 場所_ワンルーム
 		ELSEIF CFLAG:家主:同行 || TALENT:家主:恋慕
 			在宅 = 1
 		;家主がいて起きてる
-		ELSEIF CFLAG:家主:現在位置 == ARG
-			IF !CFLAG:家主:睡眠 && !CFLAG:家主:添い寝中 && !TCVAR:家主:泥酔 && !CFLAG:家主:衰弱
-				在宅 = 1
-			ENDIF
+		ELSEIF CFLAG:家主:現在位置 == ARG && SHIRAHU(CHARA)
+			在宅 = 1
 		;家主以外の誰かがいる,この人物は寝てたりしても良い
 		ELSEIF IN_ROOM_NUMBER(ARG)
 			在宅 = 1
 		ENDIF
 	;家主は入れる
-	ELSEIF ARG:1 == 家主
+	ELSEIF CHARA == 家主
 		在宅 = 1
 	;そうでないキャラは相性が100を超えていないとダメ
-	ELSEIF RELATION:家主:(ARG:1) > 100
+	ELSEIF RELATION:家主:CHARA > 100
 		在宅 = 1
 	ENDIF
 	IF !在宅
@@ -121,80 +85,85 @@ IF ROOMDATA:(ARG % 100) & 場所_ワンルーム
 	ENDIF
 ENDIF
 
-IF !MAIN_MAP
-	SIF STR:ARG == ""
-	RETURNF 0
-ELSEIF STR:(8000 + ARG) == ""
+;未登録地点
+IF STR:(8000 + ARG) == ""
+	TFLAG:移動不能メッセージ = 998
 	RETURNF 0
 ENDIF
+;自室施錠
+SIF FLAG:自室施錠 && ARG == CFLAG:MASTER:初期位置 && CHARA != MASTER && ARG != CFLAG:CHARA:初期位置
+	RETURNF 0
+;以降は拠点ごとに設定
 SELECTCASE MAIN_MAP
 	CASE 0
-		RETURNF MAP_CAN_MOVE_0(ARG, ARG:1)
+		RETURNF MAP_CAN_MOVE_0(ARG, CHARA)
 	CASE 1
-		RETURNF MAP_CAN_MOVE_1(ARG, ARG:1)
+		RETURNF MAP_CAN_MOVE_1(ARG, CHARA)
 	CASE 2
-		RETURNF MAP_CAN_MOVE_2(ARG, ARG:1)
+		RETURNF MAP_CAN_MOVE_2(ARG, CHARA)
 	CASE 3
-		RETURNF MAP_CAN_MOVE_3(ARG, ARG:1)
+		RETURNF MAP_CAN_MOVE_3(ARG, CHARA)
 	CASE 4
-		RETURNF MAP_CAN_MOVE_4(ARG, ARG:1)
+		RETURNF MAP_CAN_MOVE_4(ARG, CHARA)
 	CASE 5
-		RETURNF MAP_CAN_MOVE_5(ARG, ARG:1)
+		RETURNF MAP_CAN_MOVE_5(ARG, CHARA)
 	CASE 6
-		RETURNF MAP_CAN_MOVE_6(ARG, ARG:1)
+		RETURNF MAP_CAN_MOVE_6(ARG, CHARA)
 	CASE 7
-		RETURNF MAP_CAN_MOVE_7(ARG, ARG:1)
+		RETURNF MAP_CAN_MOVE_7(ARG, CHARA)
 	CASE 8
-		RETURNF MAP_CAN_MOVE_8(ARG, ARG:1)
+		RETURNF MAP_CAN_MOVE_8(ARG, CHARA)
 	CASE 9
-		RETURNF MAP_CAN_MOVE_9(ARG, ARG:1)
+		RETURNF MAP_CAN_MOVE_9(ARG, CHARA)
 	CASE 10
-		RETURNF MAP_CAN_MOVE_10(ARG, ARG:1)
+		RETURNF MAP_CAN_MOVE_10(ARG, CHARA)
 ENDSELECT
 RETURNF 1
 
-;------------------------------------------
-;地点関連性応答処理
-;要参照MOVEMENT_CAN_MOVE_0.ERB
-;ARG,現在地点
-;ARG:1,比較先地点
-;------------------------------------------
+;-----------------------------------------------------------
+;地点の接続設定
+;ARG    基準の地点
+;ARG:1  対象の地点
+;RETURNF 0=移動できない,見えない
+;        1=移動できる,見えない
+;        2=移動できない,見える
+;        3=移動できる,見える（直通）
+;-----------------------------------------------------------
 @CAN_MOVE(ARG, ARG:1)
 #FUNCTION
 
 IF MAIN_MAP == GET_MAPID(ARG)
-SELECTCASE MAIN_MAP
-	CASE 0
-		RETURNF CAN_MOVE_0(ARG, ARG:1)
-	CASE 1
-		RETURNF CAN_MOVE_1(ARG, ARG:1)
-	CASE 2
-		RETURNF CAN_MOVE_2(ARG, ARG:1)
-	CASE 3
-		RETURNF CAN_MOVE_3(ARG, ARG:1)
-	CASE 4
-		RETURNF CAN_MOVE_4(ARG, ARG:1)
-	CASE 5
-		RETURNF CAN_MOVE_5(ARG, ARG:1)
-	CASE 6
-		RETURNF CAN_MOVE_6(ARG, ARG:1)
-	CASE 7
-		RETURNF CAN_MOVE_7(ARG, ARG:1)
-	CASE 8
-		RETURNF CAN_MOVE_8(ARG, ARG:1)
-	CASE 9
-		RETURNF CAN_MOVE_9(ARG, ARG:1)
-	CASE 10
-		RETURNF CAN_MOVE_10(ARG, ARG:1)
-ENDSELECT
+	SELECTCASE MAIN_MAP
+		CASE 0
+			RETURNF CAN_MOVE_0(ARG, ARG:1)
+		CASE 1
+			RETURNF CAN_MOVE_1(ARG, ARG:1)
+		CASE 2
+			RETURNF CAN_MOVE_2(ARG, ARG:1)
+		CASE 3
+			RETURNF CAN_MOVE_3(ARG, ARG:1)
+		CASE 4
+			RETURNF CAN_MOVE_4(ARG, ARG:1)
+		CASE 5
+			RETURNF CAN_MOVE_5(ARG, ARG:1)
+		CASE 6
+			RETURNF CAN_MOVE_6(ARG, ARG:1)
+		CASE 7
+			RETURNF CAN_MOVE_7(ARG, ARG:1)
+		CASE 8
+			RETURNF CAN_MOVE_8(ARG, ARG:1)
+		CASE 9
+			RETURNF CAN_MOVE_9(ARG, ARG:1)
+		CASE 10
+			RETURNF CAN_MOVE_10(ARG, ARG:1)
+	ENDSELECT
 ENDIF
 RETURNF 0
-;------------------------------------------
-;場所IDの名前文字列を返す
-;要参照ステータス表示関連/INFO.ERB、COMF400_移動.ERB、呼び出し元
-;要参照MAP_COMM_0.ERB
-;ARG,場所ID
-;------------------------------------------
+
+;-----------------------------------------------------------
+;場所IDの名前文字列を返す関数
+;ARG  場所ID
+;-----------------------------------------------------------
 @NAME_FROM_PLACE(ARG)
 #FUNCTIONS
 #DIM MAPID
@@ -204,14 +173,12 @@ MAPID = GET_MAPID(ARG)
 IF TFLAG:妄想中 == 1
 	PNAME =素敵空間
 ELSEIF ARG == OMANEKIBEYA()
-;	お招き部屋の名前処理
+	;お招き部屋の名前処理
 	RETURNF OMANEKI_PLACE()
-ELSEIF ARG == SUMIKOMI_ROOM && FLAG:住み込みキャラ && MAPID == MAIN_MAP
-	PNAME = %CALLNAME:(FLAG:住み込みキャラ)%の%SUMIKOMI_PN%
+ELSEIF ARG == ROAD_TO(MAPID)
+	PNAME = %GET_MAPNAME(MAPID)%への道中
 ELSEIF MAPID == MAIN_MAP
-;
-;	物件マップ内の名前処理
-;
+	;物件マップ内の名前処理
 	SELECTCASE MAPID
 		CASE 0
 			PNAME = %MAP_PLACENAME_0(ARG)%
@@ -238,29 +205,18 @@ ELSEIF MAPID == MAIN_MAP
 	ENDSELECT
 ELSEIF ARG < 2000
 	;おでかけマップの方
-	PNAME = %STR:(6000 + (ARG / 10))%
+	PNAME = %STR:(6000 + ARG / 10)%
 ELSE
-;
-;	道中他、その他範囲
-;
+	;道中他、その他範囲
 	PNAME = %STR:(ARG)%
 ENDIF
 RETURNF PNAME
 
-@MAP_住人(ARG,ARG:1)
-#FUNCTION
-;CSVの初期位置を取得
-LOCAL = CSVCFLAG(ARG:1,311)
-SIF LOCAL == 99 || !LOCAL
-	RETURNF 0
-SIF LOCAL / 100 == ARG
-	RETURNF 1
-
-;-----------------------------------------
-;非自宅時に差し替える場所IDを返す関数
-;ARG,対象ID
-;RETURNF,差し替え済み対象ID
-;-----------------------------------------
+;-----------------------------------------------------------
+;拠点の場所IDをお出かけマップ上の場所IDに置換する関数
+;ARG      対象の場所ID（拠点マップ）
+;RETURNF  差し替え場所ID（お出かけマップ）
+;-----------------------------------------------------------
 @GET_MAP_REPLACEMENT(ARG)
 #FUNCTION
 #DIM 対象マップ
@@ -300,14 +256,148 @@ ENDSELECT
 SIF OUTID > 0
 	RETURNF OUTID
 
-;そのキャラがあなたから見える位置にいるか
-@CAN_SEE(ARG)
+;-----------------------------------------------------------
+;お出かけ先のマップ設定を返す関数
+;ARG   対象の地点
+;ARGS  判定文字引数
+;-----------------------------------------------------------
+@ODEKAKEMAP_SETTING(ARG, ARGS)
 #FUNCTION
-SIF CFLAG:MASTER:現在位置 == CFLAG:ARG:現在位置
-	RETURNF 1
-SIF CAN_MOVE(CFLAG:MASTER:現在位置, CFLAG:ARG:現在位置) == 2
-	RETURNF 1
-RETURNF 0
+;お招き部屋とスキマはスルー,0もスルー
+SIF GROUPMATCH(ARG, OMANEKIBEYA(), SUKIMA(), 0)
+	RETURNF 0
+;MAIN_MAPを対象にしていた場合はエラーを吐く
+SIF GET_MAPID(ARG) == MAIN_MAP
+	THROW
+;文字引数を省いた場合もエラー
+SIF ARGS == ""
+	THROW
+SELECTCASE GET_MAPID(ARG)
+	CASE 0
+		RETURNF ODEKAKEMAP_SETTING_0(ARG, ARGS)
+	CASE 1
+		RETURNF ODEKAKEMAP_SETTING_1(ARG, ARGS)
+	CASE 2
+		RETURNF ODEKAKEMAP_SETTING_2(ARG, ARGS)
+	CASE 3
+		RETURNF ODEKAKEMAP_SETTING_3(ARG, ARGS)
+	CASE 4
+		RETURNF ODEKAKEMAP_SETTING_4(ARG, ARGS)
+	CASE 5
+		RETURNF ODEKAKEMAP_SETTING_5(ARG, ARGS)
+	CASE 6
+		RETURNF ODEKAKEMAP_SETTING_6(ARG, ARGS)
+	CASE 7
+		RETURNF ODEKAKEMAP_SETTING_7(ARG, ARGS)
+	CASE 8
+		RETURNF ODEKAKEMAP_SETTING_8(ARG, ARGS)
+	CASE 9
+		RETURNF ODEKAKEMAP_SETTING_9(ARG, ARGS)
+	CASE 10
+		RETURNF ODEKAKEMAP_SETTING_10(ARG, ARGS)
+	CASEELSE
+		THROW
+ENDSELECT
+
+;-----------------------------------------------------------
+;マップのエリア番号を返す関数,エリア番号はTFLAG:マップ切り替えのマップ番号
+;ARG    MAPID
+;ARG:1  判定する場所ID（0ならMASTERの現在位置）
+;-----------------------------------------------------------
+@MAP_AREASELECT(ARG, ARG:1)
+#FUNCTION
+SIF !ARG:1
+	ARG:1 = CFLAG:MASTER:現在位置
+SELECTCASE ARG
+	CASE 0
+		RETURNF MAP_AREASELECT_0(ARG:1)
+	CASE 1
+		RETURNF MAP_AREASELECT_1(ARG:1)
+	CASE 2
+		RETURNF MAP_AREASELECT_2(ARG:1)
+	CASE 3
+		RETURNF MAP_AREASELECT_3(ARG:1)
+	CASE 4
+		RETURNF MAP_AREASELECT_4(ARG:1)
+	CASE 5
+		RETURNF MAP_AREASELECT_5(ARG:1)
+	CASE 6
+		RETURNF MAP_AREASELECT_6(ARG:1)
+	CASE 7
+		RETURNF MAP_AREASELECT_7(ARG:1)
+	CASE 8
+		RETURNF MAP_AREASELECT_8(ARG:1)
+	CASE 9
+		RETURNF MAP_AREASELECT_9(ARG:1)
+	CASE 10
+		RETURNF MAP_AREASELECT_10(ARG:1)
+ENDSELECT
+
+;-----------------------------------------------------------
+;描画するマップの関数名を返す関数
+;MAP_X.ERB参照
+;ARG    MAPID
+;-----------------------------------------------------------
+@MAP_VIEWING_NAME(ARG)
+#FUNCTIONS
+SELECTCASE ARG
+	CASE 0
+		RETURNF MAP_VIEWING_NAME_0()
+	CASE 1
+		RETURNF MAP_VIEWING_NAME_1()
+	CASE 2
+		RETURNF MAP_VIEWING_NAME_2()
+	CASE 3
+		RETURNF MAP_VIEWING_NAME_3()
+	CASE 4
+		RETURNF MAP_VIEWING_NAME_4()
+	CASE 5
+		RETURNF MAP_VIEWING_NAME_5()
+	CASE 6
+		RETURNF MAP_VIEWING_NAME_6()
+	CASE 7
+		RETURNF MAP_VIEWING_NAME_7()
+	CASE 8
+		RETURNF MAP_VIEWING_NAME_8()
+	CASE 9
+		RETURNF MAP_VIEWING_NAME_9()
+	CASE 10
+		RETURNF MAP_VIEWING_NAME_10()
+ENDSELECT
+
+;-----------------------------------------------------------
+;内部構造がある場所の内部の判定
+;表示するマップ（TFLAG:マップ切り替え）によって変化するので注意
+;ARG    MAPID
+;ARG:1  表示場所ID
+;ARG:2  内部場所ID
+;-----------------------------------------------------------
+@GETMAP_BUILDING(ARG, ARG:1, ARG:2)
+#FUNCTION
+SELECTCASE ARG
+	CASE 0
+		RETURNF GETMAP_BUILDING_0(ARG:1, ARG:2)
+	CASE 1
+		RETURNF GETMAP_BUILDING_1(ARG:1, ARG:2)
+	CASE 2
+		RETURNF GETMAP_BUILDING_2(ARG:1, ARG:2)
+	CASE 3
+		RETURNF GETMAP_BUILDING_3(ARG:1, ARG:2)
+	CASE 4
+		RETURNF GETMAP_BUILDING_4(ARG:1, ARG:2)
+	CASE 5
+		RETURNF GETMAP_BUILDING_5(ARG:1, ARG:2)
+	CASE 6
+		RETURNF GETMAP_BUILDING_6(ARG:1, ARG:2)
+	CASE 7
+		RETURNF GETMAP_BUILDING_7(ARG:1, ARG:2)
+	CASE 8
+		RETURNF GETMAP_BUILDING_8(ARG:1, ARG:2)
+	CASE 9
+		RETURNF GETMAP_BUILDING_9(ARG:1, ARG:2)
+	CASE 10
+		RETURNF GETMAP_BUILDING_10(ARG:1, ARG:2)
+ENDSELECT
 
 ;-----------------------------------------
 ;私室に最も近い共用風呂を判定する関数
@@ -317,7 +407,10 @@ RETURNF 0
 ;-----------------------------------------
 @NEAR_BATH(ARG = 0)
 #FUNCTION
+RETURNF 0
 
+;とりあえず凍結
+[SKIPSTART]
 ;拠点でなければ判定しない
 SIF !IN_HOME(CFLAG:MASTER:現在位置) && ARG == 0
 	RETURNF 0
@@ -330,7 +423,7 @@ SELECTCASE CFLAG:MASTER:初期位置
 		RETURNF 13
 	CASE 108, 109, 113 TO 120;命蓮寺・離れ　ほか命蓮寺内私室→112浴室
 		RETURNF 112
-	CASE 134, 125, 127, 128;聖徳道場・蔵　ほか道場内私室→133湯殿
+	CASE 134, 125, 127, 128;神霊廟・蔵　ほか道場内私室→133湯殿
 		RETURNF 133
 	CASE 230, 226, 221, 224, 225, 231 TO 235;人里・あなたの部屋　ほか私室→228貸切浴場
 		RETURNF 228
@@ -381,3 +474,4 @@ SELECTCASE CFLAG:MASTER:初期位置
 	CASEELSE
 		RETURNF 0
 ENDSELECT
+[SKIPEND]

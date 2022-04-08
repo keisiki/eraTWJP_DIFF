@@ -1,0 +1,88 @@
+﻿@EXIST_FreeAct18
+#LOCALSIZE 1
+#LOCALSSIZE 1
+
+;オブジェクト本体
+@FreeAct18(ARG, O_DATA, V_NAME)
+#FUNCTION
+#LOCALSIZE 1
+#LOCALSSIZE 1
+#DIMS O_DATA
+#DIMS V_NAME
+#DIM 経過時間
+経過時間 = Activity_Duration:TARGET
+SELECTCASE O_DATA
+;自由行動に付き合うコマンドの名称
+CASE "名称"
+	CALLF MAKE_STR(V_NAME, "炬燵でくつろぐ")
+CASE "CHAIN"
+;他キャラに連鎖しない場合コメントアウトすること
+	CALLF MAKE_INT(V_NAME, 1)
+CASE "経過時間"
+;自由行動に付き合うコマンドでの経過時間
+;0だと30分か残り時間すべての小さい方
+	CALLF MAKE_INT(V_NAME, 0)
+ENDSELECT
+
+@自由行動内容_18(CHARA, ARGS, 時間係数, CHAIN)
+#DIM CHARA
+#DIM CHAIN
+#DIM 現在地
+#DIM メッセージ表示
+#DIM 時間係数
+#DIM 経過時間
+現在地 = CFLAG:CHARA:現在位置
+メッセージ表示 = 現在地 == CFLAG:MASTER:現在位置 ? 1 # 0
+SELECTCASE ARGS
+	CASE "発生"
+		;冬の炬燵がある場所で発生
+		SIF !炬燵発生可(CHARA, 現在地)
+			RETURN 0
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は\@ CHAIN ? %CALLNAME:CHAIN%に釣られて炬燵に入った。# 炬燵でまったりし始めた。\@
+		;猫耳
+		IF TALENT:CHARA:動物耳 == 4
+			RETURN 120 + RAND:60
+		;それ以外の動物耳
+		ELSEIF TALENT:CHARA:動物耳
+			RETURN 90 + RAND:45
+		ELSE
+			RETURN 60 + RAND:30
+		ENDIF
+	CASE "行動中"
+		IF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は炬燵に入って%TEXTR("温まっている/丸くなっている/ぬくぬくしている/あくびをしている/くつろいでいる")%。
+		ENDIF
+	CASE "完了"
+		SIF メッセージ表示
+			PRINTFORMW %CALLNAME:CHARA%は%TEXTR("意を決して炬燵から這い出た/十分温まって炬燵から出た/暑くなってきたので炬燵から出た/ハッとして炬燵から出た")%。
+	CASE "中断"
+	CASE "付き合う"
+		;自由行動に付き合ったとき用メッセージ
+		PRINTFORML %CALLNAME:PLAYER%は%CALLNAME:TARGET%と一緒に炬燵で%TEXTR("温まって/丸くなって/暖を取って")%%TEXTR("ぼーっとした/ダラダラした/のんびりした/くつろいだ")%…
+	CASE "ソース"
+		;付き合うコマンド選択時の入手ソース、時間係数は付き合った時間の1/10
+		;のんびりすると同じ
+		CALL RECOVER_PERMIL(MASTER, 30, "体力", 1)
+		CALL RECOVER_PERMIL(MASTER, 80, "気力", 1)
+		CALL RECOVER_PERMIL(TARGET, 50, "体力", 1)
+		CALL RECOVER_PERMIL(TARGET, 100, "気力", 1)
+		SOURCE:歓楽 = (100 + ((ABL:親密 + 好感度係数(TARGET)) * 10)) * 時間係数
+		SOURCE:受動 = (50 + ((ABL:従順 + 好感度係数(TARGET)) * 5)) * 時間係数
+ENDSELECT
+
+;炬燵発生条件
+;ARG  現在位置
+@炬燵発生可(CHARA, ARG)
+#FUNCTION
+#DIM CHARA
+;冬のみ
+SIF GET_MONTH() != "冬の月"
+	RETURNF 0
+;炬燵のある場所のみ
+SIF !炬燵のある場所(ARG)
+	RETURNF 0
+;水棲と氷精はダメ
+SIF TALENT:CHARA:水棲 || TALENT:CHARA:氷精
+	RETURNF 0
+RETURNF 1

@@ -1,67 +1,182 @@
-﻿@ROOMSETTING_2
+﻿;＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+;地点の属性設定
+;場所_ワンルーム   家主が不在のとき鍵がかかる,布団・屋内・厨房・勉強・休憩・飲食・プライベートが自動で付与
+;場所_布団         休憩が自動で付与
+;場所_洋室         屋内だけど靴を履いたまま,屋内が自動で付与
+;場所_屋内         
+;場所_屋根         屋外だけど屋根がある場所,屋内でも屋根でも無い場合は野外判定（旧青天井）
+;場所_広い         
+;場所_月見         屋内や屋根があっても月が見える場所
+;場所_休憩         
+;場所_風呂         
+;場所_トイレ       
+;場所_厨房         つまみ食いが自動で付与
+;場所_訓練         
+;場所_勉強         
+;場所_天の声       
+;場所_菜園         
+;場所_水汲み       
+;場所_身体測定     
+;場所_物干し       風景描写用
+;場所_飲食         自由行動用
+;場所_つまみ食い   自由行動用
+;場所_留まらない   あまりキャラが留まらない（移動しやすい）
+;場所_過疎         あまりキャラが立ち入らない（移動されにくい）
+;場所_プライベート 節度のあるキャラは入ってこない,主に私室と風呂・トイレ
+;場所_炬燵         自由行動用
+;場所_公共の場     押し倒してこない
+;＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+@ROOMSETTING_2
+#DIM ROOM
 VARSET ROOMDATA
-FOR LOCAL,1,100
-	SIF GROUPMATCH(LOCAL,08,09,10,26,21,24,25,29,30,31,32,33,34,35,39,41)
-		ROOMDATA:LOCAL |= 場所_布団
-	SIF GROUPMATCH(LOCAL,08,09,10,11,12,13,15,16,17,18,19,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,38,39,41)
-		ROOMDATA:LOCAL |= 場所_屋内
-	SIF GROUPMATCH(LOCAL,28)
-		ROOMDATA:LOCAL |= 場所_風呂
-	SIF GROUPMATCH(LOCAL,08,09,10,21,24,30,31,32,33,34,35,41)
-		ROOMDATA:LOCAL |= 場所_厨房
-	SIF GROUPMATCH(LOCAL,2)
-		ROOMDATA:LOCAL |= 場所_訓練
-	SIF GROUPMATCH(LOCAL,19, 21, 22)
-		ROOMDATA:LOCAL |= 場所_勉強
-	SIF GROUPMATCH(LOCAL,08,09,10,13,19, 21, 22,24,26,29,30,31,32,33,34,35,39,41)
-		ROOMDATA:LOCAL |= 場所_休憩
-	SIF GROUPMATCH(LOCAL,36)
-		ROOMDATA:LOCAL |= 場所_トイレ
-	SIF GROUPMATCH(LOCAL,1,2,3,4,5,6,7,14,20,36,37)
-		ROOMDATA:LOCAL |= 場所_青天井
-	SIF GROUPMATCH(LOCAL,1,2,3,4,5,6,7,14,20,36,37)
-		ROOMDATA:LOCAL |= 場所_月見
-	SIF GROUPMATCH(LOCAL,7)
-		ROOMDATA:LOCAL |= 場所_天の声
-;	SIF GROUPMATCH(LOCAL,)
-;		ROOMDATA:LOCAL |= 場所_菜園
-	SIF GROUPMATCH(LOCAL,37)
-		ROOMDATA:LOCAL |= 場所_水汲み
-	SIF GROUPMATCH(LOCAL,1,2,3,4,5,6,7,20)
-		ROOMDATA:LOCAL |= 場所_見通し
-	SIF GROUPMATCH(LOCAL,08,09,10,21,26,29,30,31,32,33,34,35,39,41)
-		ROOMDATA:LOCAL |= 場所_狭い
-	SIF GROUPMATCH(LOCAL,08,09,10,19, 21, 22,26,29,30,31,32,33,34,35,39,41)
-		ROOMDATA:LOCAL |= 場所_うたた寝_可能
-	SIF GROUPMATCH(LOCAL,19,22,23)
-		ROOMDATA:LOCAL |= 場所_身体測定
-	SIF GROUPMATCH(LOCAL,08,09,10,24,31,32,33,34,35,41)
-		ROOMDATA:LOCAL |= 場所_ワンルーム
-	SIF GROUPMATCH(LOCAL,1,3,4,5,6)
-		ROOMDATA:LOCAL |= 場所_留まらない
-;	SIF GROUPMATCH(LOCAL,)
-;		ROOMDATA:LOCAL |= 場所_過疎
-	SIF GROUPMATCH(LOCAL,08,09,10,21,24,26,29,30,31,32,33,34,35,36,37,39,41)
-		ROOMDATA:LOCAL |= 場所_プライベート
-	SIF GROUPMATCH(LOCAL,1,2,3,4,5,6,7,11,12,14,15,16,17,18,19,23,27,38)
-		ROOMDATA:LOCAL |= 場所_公共の場
-	SIF GROUPMATCH(LOCAL,11,12,17,18,38)
-		ROOMDATA:LOCAL |= 場所_居間
-NEXT
-
 MAXROOM = 242
-ENTRANCE = 201
-SUMIKOMI_ROOM = 241
-SUMIKOMI_PN = 部屋
-避難先 = 220
+ENTRANCE = P201人里の門
+SUMIKOMI_ROOM = P241空き部屋
+避難先 = P220物見櫓
 SIF GET_MAPID(拠点_酒虫) != MAIN_MAP
-	拠点_酒虫 = 230
+	拠点_酒虫 = P230空き部屋
 MAP_PAGES = 4
 MAPNAME:1 = 人里
 MAPNAME:2 = 長屋
 MAPNAME:3 = 鈴奈庵
 MAPNAME:4 = 鯢呑亭
 
+FOR LOCAL, MINROOM(), MAXROOM
+	ROOM = LOCAL % 100
+	SELECTCASE LOCAL
+	;布団・屋内・厨房・勉強・休憩・飲食・プライベートが自動で付与
+	CASE P208雷鼓の部屋, P209八橋の部屋, P210弁々の部屋, P224慧音宅, P231蛮奇の部屋, P232蓮子の部屋, P233メリーの部屋, P234ユキの部屋, P235マイの部屋, P241空き部屋
+		ROOMDATA:ROOM |= 場所_ワンルーム
+	;ワンルームだけ付いてない
+	CASE P230空き部屋
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_布団
+		ROOMDATA:ROOM |= 場所_厨房
+		ROOMDATA:ROOM |= 場所_勉強
+		ROOMDATA:ROOM |= 場所_休憩
+		ROOMDATA:ROOM |= 場所_飲食
+		ROOMDATA:ROOM |= 場所_プライベート
+	CASE P201人里の門
+		ROOMDATA:ROOM |= 場所_留まらない
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P202中央広場
+		ROOMDATA:ROOM |= 場所_広い
+		ROOMDATA:ROOM |= 場所_訓練
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P203南通り, P204東通り, P205北通り, P206西通り
+		ROOMDATA:ROOM |= 場所_広い
+		ROOMDATA:ROOM |= 場所_公共の場
+		ROOMDATA:ROOM |= 場所_留まらない
+	CASE P207龍神像
+		ROOMDATA:ROOM |= 場所_天の声
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P211酒屋, P212カフェ, P217甘味所, P218小料理屋, P238鯢呑亭
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_飲食
+		ROOMDATA:ROOM |= 場所_つまみ食い
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P213鈴奈庵, P215花屋, P216食料品店, P227八百屋
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P214長屋前, P220物見櫓
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P219集会所, P222寺子屋
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_休憩
+		ROOMDATA:ROOM |= 場所_勉強
+		ROOMDATA:ROOM |= 場所_身体測定
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P221稗田邸
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_休憩
+		ROOMDATA:ROOM |= 場所_厨房
+		ROOMDATA:ROOM |= 場所_勉強
+		ROOMDATA:ROOM |= 場所_炬燵
+	CASE P223銭湯
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_身体測定
+		ROOMDATA:ROOM |= 場所_公共の場
+	CASE P225連れ込み宿
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_布団
+	CASE P226小鈴私室, P229阿求私室
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_布団
+		ROOMDATA:ROOM |= 場所_勉強
+		ROOMDATA:ROOM |= 場所_プライベート
+	CASE P228貸切浴場
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_風呂
+	CASE P236共同便所
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_トイレ
+	CASE P237共同井戸
+		ROOMDATA:ROOM |= 場所_水汲み
+	CASE P239美宵の部屋
+		ROOMDATA:ROOM |= 場所_屋内
+		ROOMDATA:ROOM |= 場所_布団
+		ROOMDATA:ROOM |= 場所_プライベート
+	ENDSELECT
+NEXT
+
+;-----------------------------------------
+;デフォルトの初期位置と大家の設定
+;-----------------------------------------
 @DEFAULT_OWNER_2
-デフォルト初期位置 = 230
-拠点_大家 = 80
+デフォルト初期位置 = P230空き部屋
+拠点_大家 = [[阿求]]
+
+;-----------------------------------------
+;お出かけマップの設定
+;ARG   対象の地点
+;ARGS  判定文字引数
+;-----------------------------------------
+@ODEKAKEMAP_SETTING_2(ARG, ARGS)
+#FUNCTION
+;＼1 2 3 4 5 6 7 8 9 
+;01　　　　　　　　　
+;02　　　　　　　　　
+;03　　　　　　４　　
+;04　６　　　　　　　
+;05　　　　１　２　　
+;06　　　　　　　　　
+;07　　７　３　５　　
+;08　　　　　　　　　
+;09　　　　　　　　　
+SELECTCASE ARG
+CASE 広場
+	SIF ARGS == "座標"
+		RETURNF 55
+	SIF GROUPMATCH(ARGS, "広い", "モブ")
+		RETURNF 1
+CASE 商家町
+	SIF ARGS == "座標"
+		RETURNF 75
+	SIF GROUPMATCH(ARGS, "屋根", "月見", "モブ")
+		RETURNF 1
+CASE 呑屋小道
+	SIF ARGS == "座標"
+		RETURNF 57
+	SIF GROUPMATCH(ARGS, "屋根", "月見", "モブ")
+		RETURNF 1
+CASE 寺子屋
+	SIF ARGS == "座標"
+		RETURNF 73
+	SIF GROUPMATCH(ARGS, "屋内", "月見", "休憩", "勉強", "モブ")
+		RETURNF 1
+CASE 大衆浴場
+	SIF ARGS == "座標"
+		RETURNF 77
+	SIF GROUPMATCH(ARGS, "屋内", "風呂", "身体測定", "モブ")
+		RETURNF 1
+CASE 連れ込み宿
+	SIF ARGS == "座標"
+		RETURNF 24
+	SIF GROUPMATCH(ARGS, "布団", "屋内", "休憩")
+		RETURNF 1
+CASE 長屋街
+	SIF ARGS == "座標"
+		RETURNF 37
+	SIF GROUPMATCH(ARGS, "屋内", "月見", "厨房", "モブ")
+		RETURNF 1
+ENDSELECT

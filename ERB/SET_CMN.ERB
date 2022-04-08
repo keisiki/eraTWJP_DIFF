@@ -190,63 +190,70 @@ SIF CHARA == MASTER || CFLAG:CHARA:睡眠
 TCVAR:CHARA:疲労度 += VALUE
 
 
-;----------------------------------
-;デートフラグセット CFLAG:12SET
-;呼び出し時の整合性を判定し渡された場所へのデートフラグをセットする
-;ARG=デート先 
-;デートでの行き先定義はちょっと特殊
-;XXYZ	XX=デート先NO Y=デート先派生場所 Z=移動所要時間（X*10min)
-;----------------------------------
-@SET_DATE(ARG, C_ID)
+;-----------------------------------------------------------
+;デートフラグセットという名のお出掛けセット関数
+;（現在はCFLAG:デート中は現在位置のMAPIDとして使われている）
+;呼び出し時の整合性を判定し、P_IDへの各種お出掛けフラグを設定する
+;P_ID              お出掛け先のMAPID,MAXHOME以上だと帰宅
+;C_ID              同行するキャラID
+;所要時間          道中にかかる時間
+;時間停止ジャンプ  時間停止でお出掛け（FLAG:時間停止を使わない）
+;-----------------------------------------------------------
+@SET_DATE(P_ID, C_ID, 所要時間, 時間停止ジャンプ)
+#DIM P_ID
 #DIM C_ID
-;FLAG_OFF
-IF ARG == 99 || ARG == 9999
-;デート終了
-;神社は派生場所が6までなので大丈夫なはず。これでだめならARG == 10000にする
+#DIM 所要時間
+#DIM 時間停止ジャンプ
+#DIM 現在地MAPID
+;お出掛け終了
+IF P_ID >= MAXHOME
 	;整合性チェック
 	IF CHK_DATENOW(CFLAG:C_ID:デート中)
-		CFLAG:C_ID:デート中 = MAIN_MAP
 		CFLAG:MASTER:デート中 = MAIN_MAP
 		FLAG:デート相手 = 0
 		TFLAG:デート前好感度 = 0
-		SIF !AT_HOME(C_ID)
+		CFLAG:MASTER:現在位置 = GET_ENTRANCE(MAIN_MAP)
+		TFLAG:デート道中 = 0
+		IF C_ID
+			CFLAG:C_ID:デート中 = MAIN_MAP
 			CFLAG:C_ID:現在位置 = GET_ENTRANCE(MAIN_MAP)
-		SIF !AT_HOME(MASTER)
-			CFLAG:MASTER:現在位置 = GET_ENTRANCE(MAIN_MAP)
-		IF ARG == 9999
-			CFLAG:MASTER:現在位置 = 台所
-			CFLAG:C_ID:現在位置 = 台所
 		ENDIF
 	ENDIF
-;FLAG_ON
+;お出掛け開始
 ELSE
 	;整合性チェック
-	;衰弱中なら処理を行わない
-	;SIF CHK_DATENOW(CFLAG:C_ID:デート中) || CFLAG:C_ID:衰弱
-	SIF CFLAG:C_ID:衰弱
+	SIF BASE:MASTER:気力 <= 0
 		RETURN
-	;気力が無いとデートは行けない
-	SIF BASE:MASTER:気力 <= 0 || BASE:C_ID:気力 <= 0
-		RETURN
-
-	CFLAG:C_ID:デート中 = ARG
-	CFLAG:MASTER:デート中 = ARG
-	FLAG:デート相手 = C_ID
-	TFLAG:デート前好感度 = CFLAG:C_ID:好感度
-	IF C_ID == 0
-		CFLAG:MASTER:現在位置 = GET_ENTRANCE(ARG)
-	ELSE
-		IF ARG == 2
+	IF C_ID
+		SIF CFLAG:C_ID:衰弱
+			RETURN
+		SIF BASE:C_ID:気力 <= 0
+			RETURN
+	ENDIF
+	CFLAG:MASTER:デート中 = P_ID
+	現在地MAPID = GET_MAPID(CFLAG:MASTER:現在位置)
+	;C_IDとデート
+	IF C_ID
+		FLAG:デート相手 = C_ID
+		CFLAG:C_ID:デート中 = P_ID
+		TFLAG:デート前好感度 = CFLAG:C_ID:好感度
+		;人里デート専用処理
+		IF P_ID == 2
 			CALL EX_COSTUME(C_ID, "人里デート")
 			SIF RESULT
 				PRINTFORMW %CALLNAME:C_ID%は人里向きの服に着替えました
 		ENDIF
-		CFLAG:C_ID:現在位置 = (ARG * 100) + (TIME_REQUIRED(CFLAG:MASTER:現在位置 / 100, ARG) / 10)
-		CFLAG:MASTER:現在位置 = (ARG * 100) + (TIME_REQUIRED(CFLAG:MASTER:現在位置 / 100, ARG) / 10)
-		;神社マップが0番なので苦肉の策の例外処理
-		IF !ARG
-			CFLAG:C_ID:現在位置 += 1100
-			CFLAG:MASTER:現在位置 += 1100
+		CFLAG:MASTER:現在位置 = ROAD_TO(P_ID)
+		CFLAG:C_ID:現在位置 = ROAD_TO(P_ID)
+		;開始時は+1000する
+		TFLAG:デート道中 = 所要時間 + 1000
+	;一人でお出掛け
+	ELSE
+		CFLAG:MASTER:現在位置 = GET_ENTRANCE(P_ID)
+		IF 時間停止ジャンプ
+			BASE:MASTER:TSP -= 所要時間 * 3
+		ELSE
+			TIME += 所要時間
 		ENDIF
 	ENDIF
 	CALL HappenToChild

@@ -2513,7 +2513,16 @@ IF LOCAL
 			PRINTFORML 
 		ENDIF
 	CASE 17
-		;▼雪だるま作り
+		;▼雪だるま作り（～は雪を集めている）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 18
+		;▼炬燵でのんびり（～は炬燵に入って温まっている）
 		IF !ARG:1
 			;行動中
 			PRINTFORML 
@@ -3048,3 +3057,43 @@ CASE "チーム戦：負け"
 ENDSELECT
 SIF RESULTS != ""
 	RETURN 1
+
+;==================================================
+;引力操作
+;TCVAR:引力点に場所IDを入れるとその地点に引っ張られていきます
+;場所IDと同じ拠点マップでしか効果はありません（博麗神社の境内なら拠点が博麗神社のときだけ）
+;条件を付けないと永久に引っ張られ続けるので注意
+;RANDは基本的に使えません。CFLAG:今日の運勢にその日のランダム数値（0～999）が入っているのでこれを使うと良いです
+;==================================================
+@M_KOJO_XXX_VENT_KX_GRAVITY(ARG)
+
+SIF 0
+	TCVAR:引力点 = 0
+
+;▼共通設定で使われているサンプル
+[SKIPSTART]
+	;平日の昼間はランダムで遊びに行く
+	IF YOUBI_MATCH(DAY, "月火水木金") && INRANGE(TIME, 600, 960)
+		SELECTCASE CFLAG:今日の運勢 % 5
+		CASE 1
+			TCVAR:引力点 = P2境内
+		CASE 2
+			TCVAR:引力点 = P10縁側
+		CASE 3
+			TCVAR:引力点 = P11庭
+		CASE 4
+			TCVAR:引力点 = P25鎮守の森
+		CASEELSE
+			TCVAR:引力点 = 0
+		ENDSELECT
+	ENDIF
+	;水木曜日に2分の1の確率で遊びに行く
+	SIF YOUBI_MATCH(DAY, "水木") && INRANGE(TIME, 720, 1020) && CFLAG:今日の運勢 % 2 == 0
+		TCVAR:引力点 = P213鈴奈庵
+	;特定の人物が特定の場所にいるとそこへ引っ張られる
+		SIF CFLAG:[[白蓮]]:現在位置 == P103本堂 && !CFLAG:[[白蓮]]:うふふ && SHIRAHU([[白蓮]])
+			TCVAR:引力点 = P103本堂
+	;土日に10分の1の確率で特定の人物にくっついてまわる
+	SIF YOUBI_MATCH(DAY, "土日") && CFLAG:今日の運勢 % 10 == 0 && !CFLAG:[[さとり]]:うふふ && SHIRAHU([[さとり]])
+		TCVAR:引力点 = CFLAG:[[さとり]]:現在位置
+[SKIPEND]
