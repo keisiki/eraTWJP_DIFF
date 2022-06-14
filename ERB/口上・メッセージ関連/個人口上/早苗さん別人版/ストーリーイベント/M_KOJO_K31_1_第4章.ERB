@@ -1,0 +1,130 @@
+﻿@K31_ストーリー_第4章_あらすじ(ARG)
+;ユーザ関数のCHARA_INFO_KOJOで呼び出される紹介文
+
+	PRINTL
+	FONTSTYLE 1
+	CALL M_KOJO_早苗追加_COLOR_K31
+	PRINTFORML ◆第4章◆
+	RESETCOLOR
+	FONTREGULAR
+		
+	PRINTFORML パンツ泥棒の一件はひとまず解決したようだ
+	
+
+;2節以上ある場合で、あらすじを適宜変更追加する際に利用
+	PRINTFORML 
+	IF ARG >= 2
+		;PRINTFORML 1節を含むあらすじ
+	ENDIF
+	IF ARG >= 3
+		;PRINTFORML 
+	ENDIF
+	PRINTL
+	
+;ヒント表示
+	FONTSTYLE 1
+	CALL M_KOJO_早苗追加_COLOR_K31
+	PRINTFORML ◆ヒント◆
+	RESETCOLOR
+	FONTREGULAR
+	
+	SELECTCASE ARG
+		CASE 1 
+			PRINTFORML なぜか弾幕勝負をしなければいけないような気がする…
+		CASE 2 
+			PRINTFORML FIN
+		CASEELSE 
+			;PRINTFORML 	想定外の分岐先です　ストーリー進行処理に問題が発生した可能性があります
+	ENDSELECT
+	PRINTFORML 
+
+RETURN 1
+
+
+@K31_ストーリー_第4章_第1節_表示条件(ARGS)
+;IFの条件がストーリ表示条件
+;ARGSはコマンドの名前（口上の各コマンド部分で引数として手動で持ってきてるので注意）（←ガバガバコーディング）
+;RETURN1で表示フラグON
+	IF ARGS == "弾幕勝負"
+	;IF ARGS == "会話"
+		RETURN 1
+	ENDIF
+RETURN 0
+
+
+@K31_ストーリー_第4章_第1節_出力
+;ストーリーはここにゴリゴリ書く
+
+	IF CFLAG:31:1411 == 0
+		CFLAG:31:1411 = 1
+		CALL K31_ストーリー_第4章_第1節_出力_開始時
+		RETURN 1
+	ELSE
+		CALL K31_ストーリー_第4章_第1節_出力_終了後
+		CFLAG:31:1411 = 2
+	ENDIF
+
+RETURN 1
+
+@K31_ストーリー_第4章_第1節_出力_開始時
+;ストーリーはここにゴリゴリ書く
+	FONTSTYLE 1
+	PRINTFORMDW 　　◆第4章 第1節◆「弾幕勝負開始」
+	PRINTL 
+	FONTREGULAR
+	
+	PRINTFORMW 「弾幕勝負ですね、良いですよ♪」
+	;PRINTL
+	;PRINTFORMDW なんだかやけにノリノリのような…？
+	;PRINTL
+	PRINTFORMW 「パンツ泥棒の%CALLNAME:MASTER%さんにはしっかり　お　仕　置　き　をしないといけませんからね」
+	PRINTL
+	PRINTFORMDW なぜそれを……
+	PRINTL
+	PRINTFORMW 「本気を出しますから覚悟してください」ﾆｯｺﾘ
+	PRINTFORMW 「しっかり反省してくださいねっ♪」
+	IF CFLAG:31:1099 == 0
+		CALL K31_MASTER逆転刻印取得チェック("取得")
+	ENDIF
+
+RETURN 1
+
+@K31_ストーリー_第4章_第1節_出力_終了後
+;ストーリーはここにゴリゴリ書く
+	FONTSTYLE 1
+	PRINTFORMDW 　　◆第4章 第1節◆「弾幕勝負終了」
+	PRINTL 
+	FONTREGULAR
+	
+	IF CFLAG:31:1412 == 1
+		;まさかの勝利
+		PRINTFORMDW パンツ収集に並々ならぬこだわりを持つ%CALLNAME:PLAYER%は必死に戦った…
+		PRINTFORMDW 能力を惜しみなく使いついに勝利したのである
+		PRINTL
+		PRINTFORMW 「ま、負けた……！？　信じられません………」
+		PRINTFORMW 「本当に人間ですか……？」
+		PRINTL
+		PRINTFORMW 「ぐぬぬ……あっ！？ちょっ！？引っ張らないで……！」
+		PRINTL
+		PRINTFORMDW 勝利者として早苗をさんざん辱める%CALLNAME:PLAYER%であった…
+		CFLAG:31:1412 = 0
+		RETURN 1
+	ENDIF
+	
+	PRINTFORMDL 本気を出した早苗にしっかりと　お　仕　置　き　されてしまった……
+	CALL K31_MASTER逆転刻印取得チェック("取得")
+	IF CFLAG:31:1099 < 3
+		CALL K31_MASTER逆転刻印取得チェック("取得")
+	ENDIF
+	
+	IF TALENT:TARGET:処女 == 0 && ABL:TARGET:親密 > 8
+		PRINTFORML 「追加でお仕置きしてあげます%UNICODE(0x2665) *1%」
+		CFLAG:TARGET:溜まってる度 += 500
+		TCVAR:TARGET:発情 = 1
+		CFLAG:MASTER:うふふ = 2
+		CFLAG:うふふ = 2
+		TFLAG:COMABLE管理 = 3
+		TCVAR:31:26 = 0
+	ENDIF
+
+RETURN 1

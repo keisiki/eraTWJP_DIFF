@@ -20,14 +20,21 @@
 
 ;### 口上存在判定 ###################################
 @M_KOJO_K93(ARG)
-;口上存在判定です、けしてコメントアウトしないでください
-RETURN 1
+;ここでRESULTSを設定すると他の同キャラ口上を突っ込まれても正常動作する。
 
-;### 口上基本フラグ設定 #############################
-@M_KOJO_FLAGSETTING_K93
-;基本フラグ設定はここで行ってください
-;共通の口上フラグは必要な箇所のコメントアウトを外してご利用ください
-;口上専用フラグはご自由に
+;RESULTS = _TEST_
+
+;と設定すると、"EVENT"系イベントだと
+;M_KOJO_TEST_EVENT_KX_1() とかで呼ばれる…はず。（未テスト機能）
+
+;ここでCFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります
+
+;コメントアウトを外して眠姦口上有、時間停止口上有に1を入れると、それぞれ時間停止時、眠姦時、なりきり時にコマンド口上が読み込まれるように
+;入れないと時間停止時、眠姦時、なりきり時は一切喋りません
+
+;破瓜キャンセル口上有に1を入れると、@M_KOJO_EVENT_KX_LOST_VIRGIN_STOPでキャンセルの成否を操作できます
+;口上内抱き寄せ判定_初回と口上内抱き寄せ判定_通常に1を入れるとM_KOJO_EVENT_KX_PERMISSIONで押し倒しの成否を操作できます
+
 ;Xにはキャラ番号を入れてください
 
 ;CFLAG:X:眠姦口上有 = 0
@@ -45,7 +52,8 @@ RETURN 1
 ;	CFLAG:X:押し倒し禁止 = 0
 ;ENDIF
 
-
+;口上存在判定です、けしてコメントアウトしないでください
+RETURN 1
 ;### 口上色判定 ###################################
 @M_KOJO_COLOR_K93
 SETCOLOR 0x3D85C6
@@ -74,16 +82,6 @@ SETCOLOR 0x3D85C6
 		PRINTFORML 如果对g内容感到不适的，建议关闭
 	ENDIF
 	PRINTFORMDL 请问是否启用「梦境」口上（暂时无用，因为还没写）
-	WAIT
-	PRINTFORML ～以下本体作者による仮訳～
-	PRINTFORML えー、プレイヤーの皆さんこんにちは。
-	PRINTFORML わかさぎ姫口上作者の灵鸠伊凛です、0910と呼んでくださっても結構です。
-	PRINTFORML 質問があればフォーラムで聞いてください、フォーラムでも灵鸠伊凛って名前です。
-	PRINTFORML readmeにtwitterアカウントも載せてあるんでそっちでもいいです。
-	PRINTFORMW 自己紹介終わり。本題入ります。
-	PRINTFORML この口上には「梦境」フラグというものがあります。
-	PRINTFORML R18Gに対してご不快になる方はオフにしておくことをおすすめします。
-	PRINTFORML 「梦境」フラグをオンにしますか？（現在未実装のため無意味です）
 	CALL ASK_YN
 	IF !RESULT
 		CFLAG:93:1005 = 1
@@ -180,16 +178,16 @@ CALLFORM M_KOJO_COLOR_K93
 ;初見
 	PRINTFORML 「你好」
 	PRINTFORMDL %MASTERNAME:93%顺着声音望去，看见一个身穿和服的人正在朝他这边说话
-	PRINTFORML 「你好陌生人，我是住在雾之湖里的人鱼，我的名字是若鹭姬，请问你是？」
+	PRINTFORML 「你好陌生人，我是住在雾之湖里的人鱼，我的名字是%CALLNAME:TARGET%，请问你是？」
 	PRINTFORMDL 你好，我叫%MASTERNAME:93%
-	PRINTFORMDL 回答完若鹭姬的问题后，%MASTERNAME:93%开始上下打量着这位名叫若鹭姬的人鱼。
+	PRINTFORMDL 回答完%CALLNAME:TARGET%的问题后，%MASTERNAME:93%开始上下打量着这位名叫%CALLNAME:TARGET%的人鱼。
 	PRINTFORMDL 顾名思义，她的下半身是鱼尾，上半身则是正常的人类身体。
 	PRINTFORMDL 身穿一身绿色带花边的和服，腰间束着带子
 	PRINTFORMDL 向脸望去，有一双蔚蓝色的眼睛，看起来很漂亮
 	PRINTFORMDL 不像人类那样，耳朵的那部分由鱼鳍所替代
 	PRINTFORMDL 有着一头蔚蓝色的头发，从总体上看，漂亮极了
 	PRINTFORMDL 「喂，你还好吗」
-	PRINTFORMDL %MASTERNAME:93%被若鹭姬的声音打断了思考，回过神来望着若鹭姬
+	PRINTFORMDL %MASTERNAME:93%被%CALLNAME:TARGET%的声音打断了思考，回过神来望着%CALLNAME:TARGET%
 	PRINTFORML 「你刚才怎么了，喊了你这么久才有反应，是想到了什么吗？」
 	PRINTFORMDL ……
 	PRINTFORML 「嘛，你没事就好，看样子你像是个外来人，你能和我说说你去过的地方吗？」
@@ -200,21 +198,21 @@ CALLFORM M_KOJO_COLOR_K93
 	INPUT
 	IF RESULT == 0
 		PRINTFORML 「好，那我们找个舒服点的地方坐着，然后请你慢慢的说说你到过的地方吧」
-		PRINTFORMDL 若鹭姬坐在一片空地上招呼着%MASTERNAME:93%过来一起坐。
+		PRINTFORMDL %CALLNAME:TARGET%坐在一片空地上招呼着%MASTERNAME:93%过来一起坐。
 		PRINTFORMDL （one hours later）
 		PRINTFORML 「哇~你说的那些地方都听起来好美啊，我希望我也有机会去你所说的地方看一看」
-		PRINTFORMDL %MASTERNAME:93%也向若鹭姬保证以后有机会会带她一起出去看看
+		PRINTFORMDL %MASTERNAME:93%也向%CALLNAME:TARGET%保证以后有机会会带她一起出去看看
 		PRINTFORML 「谢谢你，要是有机会的话，就请你带我去其他地方看看了」
 		TIME += 60
 		CFLAG:93:好感度 += 20
 		CFLAG:93:4 += 5
 	ELSEIF RESULT == 1
 		PRINTFORML ：「啊，这样啊，那好吧」
-		PRINTFORML 若鹭姬失望的低下了头，鱼鳍也跟着垂了下去
-		PRINTFORMDL %MASTERNAME:93%急忙向若鹭姬保证有机会就带她出去看看
+		PRINTFORML %CALLNAME:TARGET%失望的低下了头，鱼鳍也跟着垂了下去
+		PRINTFORMDL %MASTERNAME:93%急忙向%CALLNAME:TARGET%保证有机会就带她出去看看
 		PRINTFORML 「谢谢你的好意%MASTERNAME:93%，没事的」
 		PRINTFORML 「虽然有些许失落，但如果你能像你保证的那样，带我去你所去过的地方的话，我还是会很开心的」
-		PRINTFORMDL 若鹭姬抬起头，向%MASTERNAME:93%露出了微笑
+		PRINTFORMDL %CALLNAME:TARGET%抬起头，向%MASTERNAME:93%露出了微笑
 	ELSE
 		PRINTFORMDL 别乱写啊，报错你来修
 		GOTO INPUT_LOOP_ENCOUNTER_K93
@@ -245,34 +243,34 @@ IF LOCAL
 		SELECTCASE RAND:2
 		CASE 0
 			PRINTFORML 「%MASTERNAME:93%，等一下好吗」
-			PRINTFORMDL 若鹭姬拉住了%MASTERNAME:93%的手，让他停了下来
-			PRINTFORMDL %MASTERNAME:93%转过头来看着若鹭姬，发现她满脸通红地看着自己
+			PRINTFORMDL %CALLNAME:TARGET%拉住了%MASTERNAME:93%的手，让他停了下来
+			PRINTFORMDL %MASTERNAME:93%转过头来看着%CALLNAME:TARGET%，发现她满脸通红地看着自己
 			PRINTFORMDL 手也不自觉的握紧了
 			PRINTFORML 「说出来可能有点尴尬……」
 			PRINTFORML 「嗯……我想……」
-			PRINTFORMDL 看着脸红的若鹭姬，%MASTERNAME:93%完全不知道她想做什么
+			PRINTFORMDL 看着脸红的%CALLNAME:TARGET%，%MASTERNAME:93%完全不知道她想做什么
 			PRINTFORML 「算了，直接用行动表达吧」
-			PRINTFORMDL 说完，若鹭姬就直接吻上去了
-			PRINTFORMDL 被吓了一跳的%MASTERNAME:93%，很快就明白了若鹭姬想要什么
-			PRINTFORMDL 反手把若鹭姬抱住，吻了起来
+			PRINTFORMDL 说完，%CALLNAME:TARGET%就直接吻上去了
+			PRINTFORMDL 被吓了一跳的%MASTERNAME:93%，很快就明白了%CALLNAME:TARGET%想要什么
+			PRINTFORMDL 反手把%CALLNAME:TARGET%抱住，吻了起来
 			TIME += 10
 			PRINTFORMDL 不知道过了多久，两个人终于分开了
-			PRINTFORMDL 若鹭姬舔了舔嘴唇，脸红了起来
+			PRINTFORMDL %CALLNAME:TARGET%舔了舔嘴唇，脸红了起来
 			PRINTFORML 「虽……虽然是我主动吻上去的，但不知道为何，感觉你更主动一点」
 			PRINTFORML 「谢谢你%MASTERNAME:93%，我今天很开心」
 			PRINTFORML 「希望以后还有机会出来一起玩」
-			PRINTFORMDL 若鹭姬对%MASTERNAME:93%俏皮地眨了眨眼，笑了起来
+			PRINTFORMDL %CALLNAME:TARGET%对%MASTERNAME:93%俏皮地眨了眨眼，笑了起来
 			PRINTFORML 「那么，我们回去吧」
 		CASE 1
 			PRINTFORML 「可以等一下吗%MASTERNAME:93%？」
 			PRINTFORML 「我有件事想和你说」
-			PRINTFORMDL 听到若鹭姬那么说，%MASTERNAME:93%随即停下了脚步，回头看向了她
-			PRINTFORMDL 在夕阳下，若鹭姬红着脸深情地看着%MASTERNAME:93%
+			PRINTFORMDL 听到%CALLNAME:TARGET%那么说，%MASTERNAME:93%随即停下了脚步，回头看向了她
+			PRINTFORMDL 在夕阳下，%CALLNAME:TARGET%红着脸深情地看着%MASTERNAME:93%
 			PRINTFORMDL 嘴唇一张一合，像是要说什么一样
 			PRINTFORMDL 等了好一会儿，还是什么也没说
 			PRINTFORML 「呜，还是说不出口啊……」
-			PRINTFORMDL 看着害羞的若鹭姬，%MASTERNAME:93%心中有了一个肯定的答案
-			PRINTFORMDL 随后抱住了若鹭姬，亲了上去
+			PRINTFORMDL 看着害羞的%CALLNAME:TARGET%，%MASTERNAME:93%心中有了一个肯定的答案
+			PRINTFORMDL 随后抱住了%CALLNAME:TARGET%，亲了上去
 			PRINTFORML 「嗯，啾，啾」
 			PRINTFORMDL 过了好一会儿，两个人才舍得分开
 			TIME += 10
@@ -280,7 +278,7 @@ IF LOCAL
 			PRINTFORML 「唉？猜的嘛？没想到啊……」
 			PRINTFORML 「不过，我还是感觉好开心」
 			PRINTFORML 「谢谢你%MASTERNAME:93%」
-			PRINTFORMDL 若鹭姬红着脸对%MASTERNAME:93%笑了笑，抱住了他
+			PRINTFORMDL %CALLNAME:TARGET%红着脸对%MASTERNAME:93%笑了笑，抱住了他
 			PRINTFORMDL %MASTERNAME:93%也顺势摸了摸她的头
 			PRINTFORML 「以后有机会的话，再带我一起出来玩吧」
 			PRINTFORML 「今天就先这样了，我们回去吧~」
@@ -288,16 +286,16 @@ IF LOCAL
 	ELSEIF TALENT:恋慕
 		SELECTCASE RAND:2
 		CASE 0
-			PRINTFORMDL 若鹭姬跟在%MASTERNAME:93%身后，走一步停一下，不知道在犹豫什么
+			PRINTFORMDL %CALLNAME:TARGET%跟在%MASTERNAME:93%身后，走一步停一下，不知道在犹豫什么
 			PRINTFORMDL （嗯？她这是怎么了，有什么想问的吗？）
-			PRINTFORMDL 看着若鹭姬犹豫的样子，%MASTERNAME:93%对此感到奇怪
+			PRINTFORMDL 看着%CALLNAME:TARGET%犹豫的样子，%MASTERNAME:93%对此感到奇怪
 			PRINTFORML 「嗯……%MASTERNAME:93%……我想……」
 			PRINTFORML 「哎呀，还是说不出口啊……」
-			PRINTFORMDL 犹豫了半天，若鹭姬终于是鼓起勇气，说了出来
+			PRINTFORMDL 犹豫了半天，%CALLNAME:TARGET%终于是鼓起勇气，说了出来
 			PRINTFORML 「我想亲你，可以吗？」
 			PRINTFORMDL 还没等%MASTERNAME:93%做出回答，她就已经亲了上去了
 			PRINTFORML 「嗯，嗯……」
-			PRINTFORMDL 过了一会，若鹭姬才依依不舍地分开了
+			PRINTFORMDL 过了一会，%CALLNAME:TARGET%才依依不舍地分开了
 			TIME += 5
 			PRINTFORML 「あれ……我亲你这件事，你可别告诉影狼啊……」
 			PRINTFORML 「嗯嗯，不要让她知道我亲你了」
@@ -309,14 +307,14 @@ IF LOCAL
 		CASE 1
 			PRINTFORML 「停一停好吗%MASTERNAME:93%」
 			PRINTFORML 「我有件事想和你说一下」
-			PRINTFORMDL 若鹭姬拉住了%MASTERNAME:93%的衣服，试图让他停下来
-			PRINTFORMDL 不明情况的%MASTERNAME:93%，随着若鹭姬的力度停下了脚步
-			PRINTFORMDL 在%MASTERNAME:93%的期待下，若鹭姬慢慢地把原因说了出来
+			PRINTFORMDL %CALLNAME:TARGET%拉住了%MASTERNAME:93%的衣服，试图让他停下来
+			PRINTFORMDL 不明情况的%MASTERNAME:93%，随着%CALLNAME:TARGET%的力度停下了脚步
+			PRINTFORMDL 在%MASTERNAME:93%的期待下，%CALLNAME:TARGET%慢慢地把原因说了出来
 			PRINTFORML 「是这样的，我有个问题想问你」
 			PRINTFORML 「我每次都麻烦你过来陪我玩，你会不会觉得我很烦啊……」
 			PRINTFORML 「嗯，我想知道答案，能告诉我吗？」
 			PRINTFORML 「拜托了……」
-			PRINTFORMDL 看着若鹭姬一脸担心的样子，以及感受到她的手因不安而加大的力量
+			PRINTFORMDL 看着%CALLNAME:TARGET%一脸担心的样子，以及感受到她的手因不安而加大的力量
 			PRINTFORMDL 思考片刻后，%MASTERNAME:93%给出了一个答案
 			PRINTFORMDL 「しないよ」
 			PRINTFORMDL 「我喜欢和你在一起的感觉」
@@ -327,11 +325,11 @@ IF LOCAL
 			PRINTFORMDL 「所以说，我怎么会嫌你烦呢？」
 			PRINTFORMDL 「和你玩的那段时间里，我还觉得挺开心的」
 			PRINTFORML 「这么说，你不讨厌我是吧」
-			PRINTFORMDL 若鹭姬听到%MASTERNAME:93%肯定地回答后，松了一口气
+			PRINTFORMDL %CALLNAME:TARGET%听到%MASTERNAME:93%肯定地回答后，松了一口气
 			PRINTFORMDL 随后抱住了他，亲了上去
 			PRINTFORML 「啾，嗯，啾」
 			TIME += 5
-			PRINTFORMDL 过了一会儿，若鹭姬才舍得分开
+			PRINTFORMDL 过了一会儿，%CALLNAME:TARGET%才舍得分开
 			PRINTFORML 「这是奖励，奖励来的，不要误会了啊」
 			PRINTFORML 「嗯……天色不晚了，我们回去吧」
 			PRINTFORML 「下次有机会的时候再一起出来玩」
@@ -340,32 +338,32 @@ IF LOCAL
 		SELECTCASE RAND:2
 		CASE 0
 			PRINTFORML 「%MASTERNAME:93%，稍微停一下好吗」
-			PRINTFORMDL 若鹭姬轻轻地抓住了%MASTERNAME:93%的手，不让他继续向前走
+			PRINTFORMDL %CALLNAME:TARGET%轻轻地抓住了%MASTERNAME:93%的手，不让他继续向前走
 			PRINTFORMDL %MASTERNAME:93%一脸疑惑的停在了原地
-			PRINTFORMDL 很好奇若鹭姬为什么这个时候拉住他，不让他继续往前走
+			PRINTFORMDL 很好奇%CALLNAME:TARGET%为什么这个时候拉住他，不让他继续往前走
 			PRINTFORML 「这个……あれ……」
-			PRINTFORMDL 说着说着，若鹭姬的脸红了起来
+			PRINTFORMDL 说着说着，%CALLNAME:TARGET%的脸红了起来
 			PRINTFORML 「啾~」
-			PRINTFORMDL 若鹭姬亲了一下%MASTERNAME:93%的嘴后，立刻飞开了
-			PRINTFORMDL 不明所以的%MASTERNAME:93%突然被若鹭姬的行为吓了一跳
+			PRINTFORMDL %CALLNAME:TARGET%亲了一下%MASTERNAME:93%的嘴后，立刻飞开了
+			PRINTFORMDL 不明所以的%MASTERNAME:93%突然被%CALLNAME:TARGET%的行为吓了一跳
 			PRINTFORMDL 呆在原地久久不能忘怀
 			PRINTFORMDL 不自觉的舔了一下嘴唇
 			PRINTFORML 「走了走了，时候不早了，该回家了」
 			PRINTFORML 「再不走的话，就留你一个人在这了哦」
-			PRINTFORMDL %MASTERNAME:93%望着若鹭姬的背影笑了起来
-			PRINTFORMDL 于是加快了步伐，追上了若鹭姬
+			PRINTFORMDL %MASTERNAME:93%望着%CALLNAME:TARGET%的背影笑了起来
+			PRINTFORMDL 于是加快了步伐，追上了%CALLNAME:TARGET%
 		CASE 1
 			PRINTFORML 「停一下好吗%MASTERNAME:93%」
-			PRINTFORMDL 若鹭姬抓住%MASTERNAME:93%的手臂，不让他继续往前走
+			PRINTFORMDL %CALLNAME:TARGET%抓住%MASTERNAME:93%的手臂，不让他继续往前走
 			PRINTFORML 「请你看向我，我有件事想和你说一下」
-			PRINTFORMDL 当%MASTERNAME:93%转过头的瞬间，若鹭姬一把抱住了他
-			PRINTFORMDL 与此同时，若鹭姬飞到了和%MASTERNAME:93%同一高度
+			PRINTFORMDL 当%MASTERNAME:93%转过头的瞬间，%CALLNAME:TARGET%一把抱住了他
+			PRINTFORMDL 与此同时，%CALLNAME:TARGET%飞到了和%MASTERNAME:93%同一高度
 			PRINTFORMDL 对着%MASTERNAME:93%亲了下去
 			PRINTFORML 「啾，啾，啾」
-			PRINTFORMDL 亲了几下后，若鹭姬就害羞地飞走了
+			PRINTFORMDL 亲了几下后，%CALLNAME:TARGET%就害羞地飞走了
 			PRINTFORML 「我先走了！你赶紧跟上来啊！」
 			PRINTFORML 「哎呀，害羞死了，希望他不会介意吧」
-			PRINTFORMDL %MASTERNAME:93%舔了舔刚才被若鹭姬亲过的嘴唇，笑了起来
+			PRINTFORMDL %MASTERNAME:93%舔了舔刚才被%CALLNAME:TARGET%亲过的嘴唇，笑了起来
 			PRINTFORMDL （没想到啊，她还有这么可爱的一面）
 			PRINTFORMDL （以前和她一起玩的时候，怎么就没发现呢？）
 		ENDSELECT
@@ -486,7 +484,7 @@ IF LOCAL
 				ENDSELECT
 			PRINTFORML 「好，那我们回家吧」
 			PRINTFORML 「时候也不早了」
-			PRINTFORMDL 若鹭姬一边哼着歌一边走到了%MASTERNAME:93%的前面
+			PRINTFORMDL %CALLNAME:TARGET%一边哼着歌一边走到了%MASTERNAME:93%的前面
 		ELSE
 			PRINTFORML 「今天真是开心啊~」
 			PRINTFORML 「希望以后还有机会可以和你一起出去玩」
@@ -515,7 +513,7 @@ IF LOCAL
 				ENDSELECT
 			PRINTFORML 「我们加快脚步吧，这时间有点晚了」
 			PRINTFORML 「再不赶紧回去的话，我怕会因为太黑而找不到回家的路」
-			PRINTFORMDL 若鹭姬推着%MASTERNAME:93%，让他走快点
+			PRINTFORMDL %CALLNAME:TARGET%推着%MASTERNAME:93%，让他走快点
 		ENDIF
 			RETURN 1
 	ENDIF
@@ -528,7 +526,7 @@ IF LOCAL
 		PRINTFORML 「哼，这次就先原谅你了」
 		PRINTFORML 「以后要是再有那样的事的话」
 		PRINTFORML 「短时间内别想再和我玩了」
-		PRINTFORMDL 若鹭姬盯了一眼%MASTERNAME:93%
+		PRINTFORMDL %CALLNAME:TARGET%盯了一眼%MASTERNAME:93%
 		PRINTFORMDL 摆了摆手，表示之前的事一笔勾销了
 		RETURN 1
 	ENDIF
@@ -542,7 +540,7 @@ IF LOCAL
 		PRINTFORML 「那次的事，实在是太过分了」
 		PRINTFORML 「看你带我出来玩，就暂时先不和你计较这件事了」
 		PRINTFORML 「如果还有下次，就不只是生气那么简单了」
-		PRINTFORMDL 若鹭姬对%MASTERNAME:93%威胁道
+		PRINTFORMDL %CALLNAME:TARGET%对%MASTERNAME:93%威胁道
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -552,13 +550,13 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
 		PRINTFORML 「……」
-		PRINTFORMDL 若鹭姬沉默不语，只是冷冷的看了一眼%MASTERNAME:93%
+		PRINTFORMDL %CALLNAME:TARGET%沉默不语，只是冷冷的看了一眼%MASTERNAME:93%
 		PRINTFORML 「虽然我还是很生气，但你带我出去玩了」
 		PRINTFORML 「我就稍微原谅一下你好了」
 		PRINTFORML 「如果下次我还看到你做那些过分的事的话」
 		PRINTFORML 「虽然我打不死你，但也能从内心折磨死你」
 		PRINTFORML 「明白了吗？」
-		PRINTFORMDL %MASTERNAME:93%连忙点了点头，生怕若鹭姬突然反悔
+		PRINTFORMDL %MASTERNAME:93%连忙点了点头，生怕%CALLNAME:TARGET%突然反悔
 		PRINTFORML 「那你就赶紧走开吧，我现在还不是很想看到你」
 		RETURN 1
 	ENDIF
@@ -595,7 +593,7 @@ IF LOCAL
 				IF FIRSTTIME("初次进入")
 					IF TALENT:恋人 || TALENT:恋慕 || TALENT:思慕
 						PRINTFORML 「都过了这么久了，才带你来我的房间，真是抱歉啊」
-						PRINTFORMDL 若鹭姬尴尬的笑了起来
+						PRINTFORMDL %CALLNAME:TARGET%尴尬的笑了起来
 						PRINTFORML 「作为补偿，我带你参观一下吧」
 						PRINTFORMDL ……
 						PRINTFORML 「怎么样，我的房间是不是很漂亮啊」
@@ -618,7 +616,7 @@ IF LOCAL
 							PRINTFORML 「算了算了，不和你计较这么多」
 							PRINTFORML 「你是我的客人，我怎么会做对客人无理的事呢」
 							PRINTFORML 「是吧%MASTERNAME:93%」
-							PRINTFORMDL 若鹭姬的笑容令%MASTERNAME:93%不寒而栗
+							PRINTFORMDL %CALLNAME:TARGET%的笑容令%MASTERNAME:93%不寒而栗
 							PRINTFORML 「好了好了，参观完了。」
 							PRINTFORML 「%MASTERNAME:93%，你还有什么想参观的地方吗」
 						ELSEIF RESULT == 910
@@ -663,7 +661,7 @@ IF LOCAL
 							CFLAG:93:好感度 += 100
 						ELSEIF RESULT == 1
 							PRINTFORML 「哼！」
-							PRINTFORMDL 若鹭姬愤愤的看着%MASTERNAME:93%，看样子是很生气
+							PRINTFORMDL %CALLNAME:TARGET%愤愤的看着%MASTERNAME:93%，看样子是很生气
 							PRINTFORML 「算了算了，你到了我房间就是我的客人了，我是不会做对客人无理的事的」
 							PRINTFORML 「嗯，%MASTERNAME:93%，你还有哪里想去的呢」
 						ELSE
@@ -676,34 +674,34 @@ IF LOCAL
 						IF TALENT:恋人 || TALENT:恋慕
 							PRINTFORML 「哎嗨，%MASTERNAME:93%你终于过来了」
 							PRINTFORML 「我在这已经等你很久了，来这边坐」
-							PRINTFORMDL 若鹭姬飞到%MASTERNAME:93%面前，抱了一下
+							PRINTFORMDL %CALLNAME:TARGET%飞到%MASTERNAME:93%面前，抱了一下
 							PRINTFORMDL 随后拉着%MASTERNAME:93%的手飞到了床边
 							PRINTFORMDL 坐了下去
 							PRINTFORML 「嘻嘻，%MASTERNAME:93%，你能和我说说外面有什么有意思的故事吗」
 							PRINTFORML 「我很期待你能分享一些开心的事情」
 						ELSEIF TALENT:思慕
 							PRINTFORML 「%MASTERNAME:93%你好，我在这等你很久了」
-							PRINTFORMDL 若鹭姬开心的飞到了%MASTERNAME:93%身边
+							PRINTFORMDL %CALLNAME:TARGET%开心的飞到了%MASTERNAME:93%身边
 							PRINTFORMDL 并握住了他的手
 							PRINTFORML 「我想听你讲讲外面的故事，可以吗？」
-							PRINTFORMDL 若鹭姬用期待的眼神看着%MASTERNAME:93%
+							PRINTFORMDL %CALLNAME:TARGET%用期待的眼神看着%MASTERNAME:93%
 						ELSE
 							PRINTFORML 「%MASTERNAME:93%晚上好」
 							PRINTFORML 「你今天在外面有遇到什么好玩的事吗」
 							PRINTFORML 「和我讲讲好不好」
-							PRINTFORMDL 若鹭姬一脸期待的望着%MASTERNAME:93%
+							PRINTFORMDL %CALLNAME:TARGET%一脸期待的望着%MASTERNAME:93%
 						ENDIF
 					ELSE
 						IF TALENT:恋人 || TALENT:恋慕
 							PRINTFORML 「%MASTERNAME:93%你终于来了，我等你很久了」
 							PRINTFORML 「快来快来，我想听你讲外面有趣的事了」
-							PRINTFORMDL 若鹭姬向%MASTERNAME:93%招了招手，示意他来到床边
+							PRINTFORMDL %CALLNAME:TARGET%向%MASTERNAME:93%招了招手，示意他来到床边
 						ELSEIF TALENT:思慕
 							PRINTFORML 「哎嗨，%MASTERNAME:93%你来了啊，过得怎么样了」
-							PRINTFORMDL 若鹭姬对着%MASTERNAME:93%笑了笑
+							PRINTFORMDL %CALLNAME:TARGET%对着%MASTERNAME:93%笑了笑
 						ELSE
 							PRINTFORML 「嗯？%MASTERNAME:93%你好啊，你是来找我的吗？」
-							PRINTFORMDL 若鹭姬一脸兴奋的看着%MASTERNAME:93%
+							PRINTFORMDL %CALLNAME:TARGET%一脸兴奋的看着%MASTERNAME:93%
 						ENDIF
 					ENDIF
 				ENDIF
@@ -712,88 +710,1273 @@ IF LOCAL
 				PRINTFORML 「哎！这……这」
 				PRINTFORML 「%MASTERNAME:93%你怎么不和我说一声就过来了啊…」
 				PRINTFORML 「虽然我感到很开心，但更多的是羞愧」
-				PRINTFORMDL 若鹭姬看着周围的环境，尴尬的说道
+				PRINTFORMDL %CALLNAME:TARGET%看着周围的环境，尴尬的说道
 				PRINTFORML 「如果你早点跟我说你要过来的话，我就收拾好房间等你过来了」
 				PRINTFORML 「现在这个样子，虽然我们关系这么好你不会介意。但…」
-				PRINTFORMDL 若鹭姬脸越来越红，头也越来越低了
+				PRINTFORMDL %CALLNAME:TARGET%脸越来越红，头也越来越低了
 				PRINTFORMDL （呜，太丢人了，没想到%MASTERNAME:93%突然来到我的房间）
 				PRINTFORMDL （还看到我的房间这么乱）
 				PRINTFORMDL （虽然我们已经是那种关系了，但我还是怕他以后拿这件事笑话我）
 				PRINTFORMDL （呜，真的太丢人了）
-				PRINTFORMDL 若鹭姬想着想着，蹲在了地上
+				PRINTFORMDL %CALLNAME:TARGET%想着想着，蹲在了地上
 				ELSEIF TALENT:思慕
 				PRINTFORML 「哎！%MASTERNAME:93%你怎么这个时候过来了」
 				PRINTFORML 「这……」
-				PRINTFORMDL 若鹭姬看了一下周围的环境，羞愧的把头低下去了
+				PRINTFORMDL %CALLNAME:TARGET%看了一下周围的环境，羞愧的把头低下去了
 				PRINTFORML 「可否……请你下次再来」
 				PRINTFORML 「现在房间这么乱……我不好意思接待你啊」
 				PRINTFORML 「呜……」
-				PRINTFORMDL 若鹭姬说着说着蹲了下来，看样子，是害羞极了
+				PRINTFORMDL %CALLNAME:TARGET%说着说着蹲了下来，看样子，是害羞极了
 				PRINTFORMDL （完蛋了，被%MASTERNAME:93%看光了，以后他会不会拿这件事嘲笑我啊）
 				PRINTFORMDL （嘲笑我也就算了，但我最怕的是他嫌弃我不爱干净）
 				PRINTFORML 「呜」
-				PRINTFORMDL 若鹭姬想着想着，脸又红了起来
+				PRINTFORMDL %CALLNAME:TARGET%想着想着，脸又红了起来
 				ELSE
 				PRINTFORML 「哎！%MASTERNAME:93%你怎么来了」
-				PRINTFORMDL 若鹭姬一脸惊讶的看着%MASTERNAME:93%
+				PRINTFORMDL %CALLNAME:TARGET%一脸惊讶的看着%MASTERNAME:93%
 				PRINTFORMDL 不一会儿，就红着脸把头低下去了
 				PRINTFORML 「能…能请你下次再来我的房间吗…」
 				PRINTFORML 「现在这个样子，我不好意思接待你啊……」
-				PRINTFORMDL 若鹭姬的说话声越来越小，直至听不见
+				PRINTFORMDL %CALLNAME:TARGET%的说话声越来越小，直至听不见
 				ENDIF
 			ENDIF
 		ELSE
-			IF TALENT:恋人 || TALENT:恋慕
-				PRINTFORMDL 若鹭姬一看到%MASTERNAME:93%，二话不说就飞到%MASTERNAME:93%的怀里蹭了起来
-				PRINTFORML 「我在这等你好久了%MASTERNAME:93%，你可算是来了」
-			ELSEIF TALENT:思慕
-				IF MARK:93:反発刻印 == 3 ;思慕+反发三
-					PRINTFORML 「去死吧！色狼！」
-					PRINTFORMDL 随着若鹭姬的一声怒吼，无数弹幕朝着%MASTERNAME:93%飞了过去，%MASTERNAME:93%被打的到处逃窜。自知理亏也不敢还手，因此%MASTERNAME:93%只好躲在一颗树后面等待着若鹭姬停手。
-					PRINTFORMDL 一段时间后，若鹭姬的弹幕攻击停止了。坐在地上用仇视的眼神望着%MASTERNAME:93%的位置。%MASTERNAME:93%从树后出来，也不敢招惹若鹭姬，只好一点一点挪到若鹭姬的面前
-				ELSEIF MARK:93:反発刻印 == 2;思慕+反发二
-					PRINTFORML 「走开走开，不然就别怪我不客气了！」
-					PRINTFORMDL 若鹭姬举起双手，对准%MASTERNAME:93%，一幅随时都要进行攻击的样子，%MASTERNAME:93%只好和若鹭姬保持一定的距离，以免若鹭姬真的发射弹幕对他进行攻击
-				ELSEIF MARK:93:反発刻印 == 1;思慕+反发一
-					PRINTFORML 「呜，讨厌鬼，请你离我远一点，我不想动手打你。」
-					PRINTFORMDL 若鹭姬一脸警惕的看着%MASTERNAME:93%，但并没有直接动手。%MASTERNAME:93%也担心若鹭姬二话不说就用弹幕赶他走，只好慢慢的靠近她，并思考着如何取得她的原谅
-				ELSEIF TALENT:93:機嫌 == 1 ;思慕+开心
-					PRINTFORML 「哼哼哼~?」
-					PRINTFORMDL %MASTERNAME:93%跟随歌声走去，看到若鹭姬正坐在不远处的空地上开心的哼着歌。就在%MASTERNAME:93%想着要不要去打扰时，若鹭姬就停下了歌声，开心的跳到%MASTERNAME:93%身边。
-					PRINTFORML 「你怎么现在才来啊，我等你很久了」
-					PRINTFORMDL 若鹭姬抱着%MASTERNAME:93%的手臂摇了摇。%MASTERNAME:93%看向若鹭姬，她那灿烂的笑容出现在了%MASTERNAME:93%的眼前。
-					PRINTFORML 「嘛，没有关系啦，我今天遇到了一件令我很开心的事，我想和你分享这份喜悦。」
-				ELSEIF TALENT:93:機嫌 == -1 ;思慕+生气
-					PRINTFORML 「呜，你怎么现在才来啊，我有些事想和你说一下，可以吗？」
-					PRINTFORMDL 若鹭姬露出了不满的表情，看样子应该是遇到了一件令她很生气的事了
-					PRINTFORMDL %MASTERNAME:93%也没多想，就走到了若鹭姬的身边
-				ELSE
-					PRINTFORML 「%MASTERNAME:93%你来了啊，太好了」
-					PRINTFORMDL 若鹭姬一蹦一跳的来到%MASTERNAME:93%身边，开心的用手抱着%MASTERNAME:93%的手臂
-				ENDIF
+			IF DAY:2 == 1;春
+				SELECTCASE DAY:3;春天包含的节日
+				CASE 1;元旦
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASE 3;女儿节
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASE 11;母亲节
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASE 14;白色情人节
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASE 25;例大祭
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASEELSE
+					IF TALENT:恋人
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ELSEIF TALENT:恋慕
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ELSEIF TALENT:思慕
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ELSE
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ENDIF
+				ENDSELECT
+			ELSEIF DAY:2 == 2;夏
+				SELECTCASE DAY:3;夏天包含的节日
+				CASE 7;七夕节
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASE 14;盂兰盆节
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASEELSE
+					IF TALENT:恋人
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ELSEIF TALENT:恋慕
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ELSEIF TALENT:思慕
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ELSE
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ENDIF
+				ENDSELECT
+			ELSEIF DAY:2 == 3;秋
+				SELECTCASE DAY:3;秋天包含的节日
+				CASE 1;風神「二百十日」
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASE 15;十五夜
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASE 27;收获季
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASE 30;万圣节
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASEELSE
+					IF TALENT:恋人
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ELSEIF TALENT:恋慕
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ELSEIF TALENT:思慕
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ELSE
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ENDIF
+				ENDSELECT
 			ELSE
-				IF MARK:93:反発刻印 == 3 ;反发三
-					PRINTFORML 「……没什么好说的了，快走，走的越远越好，不然……」
-					PRINTFORMDL 若鹭姬一边说一边在手中凝聚着弹幕，打向%MASTERNAME:93%脚边。%MASTERNAME:93%明白了若鹭姬的意思，并下意识离她远远的
-				ELSEIF MARK:93:反発刻印 == 2;反发二
-					PRINTFORML 「请你离我远一点，不然我随时都会对你动手了」
-					PRINTFORMDL 若鹭姬举起双手，威胁着%MASTERNAME:93%并让他赶紧离开
-				ELSEIF MARK:93:反発刻印 == 1;反发一
-					PRINTFORML 「请你不要离我太近，我现在对你很生气，你要是贸然靠近的话，别怪我不客气了。」
-					PRINTFORMDL 若鹭姬一边说一边与%MASTERNAME:93%拉开距离，并用很生气的眼神看着%MASTERNAME:93%
-				ELSEIF TALENT:93:機嫌 == 1;开心
-					PRINTFORML 「哼~哼~」
-					PRINTFORMDL %MASTERNAME:93%寻着欢快的歌声，走去。看到若鹭姬整坐在不远处抱着鱼尾开心的哼着歌，鱼鳍也跟着上下摆动起来。看样子，像是遇到了什么好事
-					PRINTFORMDL %MASTERNAME:93%还在想要不要去打扰若鹭姬时，若鹭姬就先一步停下了歌声，望着%MASTERNAME:93%。
-					PRINTFORML 「啊，不好意思啊%MASTERNAME:93%，刚才哼得太开心了，没注意你的到来」
-					PRINTFORMDL %MASTERNAME:93%也不在意，慢慢的走到了若鹭姬身边。
-				ELSEIF TALENT:93:機嫌 == -1;生气
-					PRINTFORML 「啊，%MASTERNAME:93%你能来听一下我的牢骚吗，虽然有些失礼，但我还是想找人倾诉一下」
-					PRINTFORMDL 若鹭姬边说边飞到%MASTERNAME:93%身边
-				ELSE
-					PRINTFORML 「你好，%MASTERNAME:93%，我们又见面了」
-					PRINTFORMDL 若鹭姬向%MASTERNAME:93%挥了挥手
-				ENDIF
+				SELECTCASE DAY:3;冬天包含的节日
+				CASE 3;节分
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASE 14;情人节
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASE 24;平安夜
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASE 25;圣诞节
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASE 31;大晦日
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 
+						CASE 1
+							PRINTFORML 
+						ENDSELECT
+					ENDIF
+				CASEELSE
+					IF TALENT:恋人
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ELSEIF TALENT:恋慕
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ELSEIF TALENT:思慕
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ELSE
+						IF MARK:93:反発刻印 == 3
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 2
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSEIF MARK:93:反発刻印 == 1
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ELSE
+							IF TALENT:93:機嫌 == 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSEIF TALENT:93:機嫌 == -1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ENDIF
+						ENDIF
+					ENDIF
+				ENDSELECT
 			ENDIF
 		ENDIF
 	PRINTFORMW
@@ -806,63 +1989,122 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
-		IF FIRSTTIME("若鹭姬初次进入MASTER的房间")
-			IF TALENT:恋人 || TALENT:恋慕
-				PRINTFORML 「哇，这就是%MASTERNAME:93%的房间吗，感觉好大啊」
-				PRINTFORMDL 若鹭姬好奇的望着房间里的装饰
-				PRINTFORMDL %MASTERNAME:93%则是在一旁微笑的看着她
-				PRINTFORML 「%MASTERNAME:93%，这本书写的是什么，能读给我听一下吗」
-				PRINTFORMDL 若鹭姬拿着一本书走到了%MASTERNAME:93%面前
-				PRINTFORMDL 看了一眼，はい%MASTERNAME:93%的笔记本
-				PRINTFORMDL 把笔记本接过去之后，又放回了原处
-				PRINTFORML 「不读吗……你是不是在里面写了什么不可告人的秘密啊」
-				PRINTFORML 「还是说，你这本书是空的，什么也没写呢」
-				PRINTFORMDL 若鹭姬戳了戳%MASTERNAME:93%的手臂，一脸坏笑的说道
-				PRINTFORML 「嘛，既然你不愿意念的话，那我也不会说什么」
-				PRINTFORML 「毕竟，我无论怎么说你都还是不会去念的」
-			ELSEIF TALENT:思慕
-				PRINTFORML 「哎，这房间好大啊，是你的房间吗%MASTERNAME:93%」
-				PRINTFORMDL 若鹭姬一脸好奇的看着%MASTERNAME:93%，想知道是不是他的房间
-				PRINTFORMDL %MASTERNAME:93%点了点头，随后把头扭到了一旁
-				PRINTFORML 「好啊，这么久都不带我来这里玩，是不是有什么问题」
-				PRINTFORMDL 听着若鹭姬在那边一直说她自己的猜测，%MASTERNAME:93%只能一脸无奈地站在旁边听着
-				PRINTFORML 「嗯~算了，说这么多只会显得我十分的小气」
-				PRINTFORML 「那为了惩罚你一下，带我在房间里面转转吧」
-				PRINTFORMDL 若鹭姬捏了捏%MASTERNAME:93%的脸，调皮地说道
+		IF CFLAG:93:300 == CFLAG:0:311
+			IF FIRSTTIME("若鹭姬初次进入MASTER的房间")
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「哇，这就是%MASTERNAME:93%的房间吗，感觉好大啊」
+					PRINTFORMDL %CALLNAME:TARGET%好奇的望着房间里的装饰
+					PRINTFORMDL %MASTERNAME:93%则是在一旁微笑的看着她
+					PRINTFORML 「%MASTERNAME:93%，这本书写的是什么，能读给我听一下吗」
+					PRINTFORMDL %CALLNAME:TARGET%拿着一本书走到了%MASTERNAME:93%面前
+					PRINTFORMDL 看了一眼，はい%MASTERNAME:93%的笔记本
+					PRINTFORMDL 把笔记本接过去之后，又放回了原处
+					PRINTFORML 「不读吗……你是不是在里面写了什么不可告人的秘密啊」
+					PRINTFORML 「还是说，你这本书是空的，什么也没写呢」
+					PRINTFORMDL %CALLNAME:TARGET%戳了戳%MASTERNAME:93%的手臂，一脸坏笑的说道
+					PRINTFORML 「嘛，既然你不愿意念的话，那我也不会说什么」
+					PRINTFORML 「毕竟，我无论怎么说你都还是不会去念的」
+				ELSEIF TALENT:思慕
+					PRINTFORML 「哎，这房间好大啊，是你的房间吗%MASTERNAME:93%」
+					PRINTFORMDL %CALLNAME:TARGET%一脸好奇的看着%MASTERNAME:93%，想知道是不是他的房间
+					PRINTFORMDL %MASTERNAME:93%点了点头，随后把头扭到了一旁
+					PRINTFORML 「好啊，这么久都不带我来这里玩，是不是有什么问题」
+					PRINTFORMDL 听着%CALLNAME:TARGET%在那边一直说她自己的猜测，%MASTERNAME:93%只能一脸无奈地站在旁边听着
+					PRINTFORML 「嗯~算了，说这么多只会显得我十分的小气」
+					PRINTFORML 「那为了惩罚你一下，带我在房间里面转转吧」
+					PRINTFORMDL %CALLNAME:TARGET%捏了捏%MASTERNAME:93%的脸，调皮地说道
+				ELSE
+					PRINTFORML 「嗯？我进来了哦」
+					PRINTFORMDL %CALLNAME:TARGET%敲了敲门，看%MASTERNAME:93%点了点头后，就进来了
+					PRINTFORML 「哇，这个房间好大啊」
+					PRINTFORML 「在这住了多久了，一个人住这么大一间房间舒服吗」
+					PRINTFORMDL 面对%CALLNAME:TARGET%的各种问题，%MASTERNAME:93%都只是耸了耸肩膀
+					PRINTFORML 「嗯……既然你不想说的话，我就不问了」
+				ENDIF
 			ELSE
-				PRINTFORML 「嗯？我进来了哦」
-				PRINTFORMDL 若鹭姬敲了敲门，看%MASTERNAME:93%点了点头后，就进来了
-				PRINTFORML 「哇，这个房间好大啊」
-				PRINTFORML 「在这住了多久了，一个人住这么大一间房间舒服吗」
-				PRINTFORMDL 面对若鹭姬的各种问题，%MASTERNAME:93%都只是耸了耸肩膀
-				PRINTFORML 「嗯……既然你不想说的话，我就不问了」
+				IF YOGORE:(CFLAG:MASTER:現在位置) <= 5000
+					IF TALENT:恋人 || TALENT:恋慕
+						PRINTFORML 「嗯哼，我进来了哦」
+						PRINTFORML 「过了这么久，还是一样的好看啊~」
+						PRINTFORMDL %CALLNAME:TARGET%走到%MASTERNAME:93%的床上坐了下来
+						PRINTFORML 「%MASTERNAME:93%，你最近有看到什么好玩的东西吗」
+						PRINTFORML 「不介意的话，能拿出来让我看一下吗？」
+					ELSEIF TALENT:思慕
+						PRINTFORMDL %CALLNAME:TARGET%象征性的敲了两下门
+						PRINTFORMDL 告诉%MASTERNAME:93%她过来玩了
+						PRINTFORML 「%MASTERNAME:93%你好，听说你最近捡到了一些好玩的东西」
+						PRINTFORML 「可以拿出来让我看看吗」
+						PRINTFORMDL %CALLNAME:TARGET%笑了笑，很是期待%MASTERNAME:93%会拿出什么好玩的东西出来
+					ELSE
+						PRINTFORML 「あれ，%MASTERNAME:93%我想进来一下，介意吗」
+						PRINTFORMDL %CALLNAME:TARGET%站在门外如此说道
+						PRINTFORMDL %MASTERNAME:93%也没想什么，点了点头，示意%CALLNAME:TARGET%进来
+						PRINTFORML 「谢谢，那我进来了哦」
+						PRINTFORMDL %CALLNAME:TARGET%飞了进来，坐到了床上
+						PRINTFORML 「不管来了多少次，还是感觉房间好大啊」
+						PRINTFORML 「最近有什么开心的事吗，我想听你讲讲」
+					ENDIF
+				ELSE
+					IF TALENT:恋人
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML
+						CASE 1
+							PRINTFORML
+						ENDSELECT
+					ELSEIF TALENT:恋慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML
+						CASE 1
+							PRINTFORML
+						ENDSELECT
+					ELSEIF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML
+						CASE 1
+							PRINTFORML
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML
+						CASE 1
+							PRINTFORML
+						ENDSELECT
+					ENDIF
+				ENDIF
 			ENDIF
 		ELSE
-			IF YOGORE:(CFLAG:MASTER:現在位置) <= 5000
-				IF TALENT:恋人 || TALENT:恋慕
-					PRINTFORML 「嗯哼，我进来了哦」
-					PRINTFORML 「过了这么久，还是一样的好看啊~」
-					PRINTFORMDL 若鹭姬走到%MASTERNAME:93%的床上坐了下来
-					PRINTFORML 「%MASTERNAME:93%，你最近有看到什么好玩的东西吗」
-					PRINTFORML 「不介意的话，能拿出来让我看一下吗？」
-				ELSEIF TALENT:思慕
-					PRINTFORMDL 若鹭姬象征性的敲了两下门
-					PRINTFORMDL 告诉%MASTERNAME:93%她过来玩了
-					PRINTFORML 「%MASTERNAME:93%你好，听说你最近捡到了一些好玩的东西」
-					PRINTFORML 「可以拿出来让我看看吗」
-					PRINTFORMDL 若鹭姬笑了笑，很是期待%MASTERNAME:93%会拿出什么好玩的东西出来
-				ELSE
-					PRINTFORML 「あれ，%MASTERNAME:93%我想进来一下，介意吗」
-					PRINTFORMDL 若鹭姬站在门外如此说道
-					PRINTFORMDL %MASTERNAME:93%也没想什么，点了点头，示意若鹭姬进来
-					PRINTFORML 「谢谢，那我进来了哦」
-					PRINTFORMDL 若鹭姬飞了进来，坐到了床上
-					PRINTFORML 「不管来了多少次，还是感觉房间好大啊」
-					PRINTFORML 「最近有什么开心的事吗，我想听你讲讲」
-				ENDIF
+			IF TALENT:恋人
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML
+				CASE 1
+					PRINTFORML
+				ENDSELECT
+			ELSEIF TALENT:恋慕
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML
+				CASE 1
+					PRINTFORML
+				ENDSELECT
+			ELSEIF TALENT:思慕
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML
+				CASE 1
+					PRINTFORML
+				ENDSELECT
 			ELSE
-				IF TALENT:恋人 || TALENT:恋慕
-				ENDIF
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML
+				CASE 1
+					PRINTFORML
+				ENDSELECT
 			ENDIF
 		ENDIF
 		PRINTFORMW
@@ -876,21 +2118,21 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 3
 		IF TALENT:恋人 || TALENT:恋慕
 			PRINTFORML 「嗯？%MASTERNAME:93%你在里面吗」
-			PRINTFORMDL 若鹭姬敲了敲门
+			PRINTFORMDL %CALLNAME:TARGET%敲了敲门
 			PRINTFORML 「不介意我进来一起洗吧」
-			PRINTFORMDL %MASTERNAME:93%打开了门，让若鹭姬进来了
+			PRINTFORMDL %MASTERNAME:93%打开了门，让%CALLNAME:TARGET%进来了
 			PRINTFORML 「谢谢」
-			PRINTFORMDL 若鹭姬用热水擦了一下身体后，就泡了进去了
+			PRINTFORMDL %CALLNAME:TARGET%用热水擦了一下身体后，就泡了进去了
 			PRINTFORML 「虽然我每天都泡在水里，但自从我可以到陆地上走了之后」
 			PRINTFORML 「我就感觉这种水温还是挺舒服的」
-			PRINTFORMDL 注视到满脸笑意的%MASTERNAME:93%，若鹭姬就这样安逸的躺在清净的水流中感受着彼此的温暖，恰时的氛围
+			PRINTFORMDL 注视到满脸笑意的%MASTERNAME:93%，%CALLNAME:TARGET%就这样安逸的躺在清净的水流中感受着彼此的温暖，恰时的氛围
 		ELSE
 			PRINTFORML 「我进来了哦，不介意吧」
-			PRINTFORMDL 若鹭姬红着脸看了一眼%MASTERNAME:93%，就坐到了水池里
+			PRINTFORMDL %CALLNAME:TARGET%红着脸看了一眼%MASTERNAME:93%，就坐到了水池里
 			PRINTFORML 「嗯……」
-			PRINTFORMDL 若鹭姬刚想说什么，啪踏一下身体打了个激灵，直溜溜地沉了下去
+			PRINTFORMDL %CALLNAME:TARGET%刚想说什么，啪踏一下身体打了个激灵，直溜溜地沉了下去
 			PRINTFORMDL 仅保持着微蓝的发丝浮晃在水面
-			PRINTFORMDL 无论%MASTERNAME:93%说什么，若鹭姬一点反应都没有
+			PRINTFORMDL 无论%MASTERNAME:93%说什么，%CALLNAME:TARGET%一点反应都没有
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -901,7 +2143,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 4
 		PRINTFORML 「我先出去了，再见」
-		PRINTFORMDL 若鹭姬红着脸飞出去了
+		PRINTFORMDL %CALLNAME:TARGET%红着脸飞出去了
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -911,12 +2153,12 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 5
 		PRINTFORML 「……」
-		PRINTFORMDL 若鹭姬和%MASTERNAME:93%四目相对
-		PRINTFORMDL 过了好一会之后，若鹭姬才有了反应
+		PRINTFORMDL %CALLNAME:TARGET%和%MASTERNAME:93%四目相对
+		PRINTFORMDL 过了好一会之后，%CALLNAME:TARGET%才有了反应
 		PRINTFORML 「呵呵……被看光了……」
 		PRINTFORML 「现在赶紧给我出去！」
-		PRINTFORMDL 随着若鹭姬的一声怒吼，大量的弹幕飞向了%MASTERNAME:93%
-		PRINTFORMDL %MASTERNAME:93%被若鹭姬的弹幕赶出了浴室
+		PRINTFORMDL 随着%CALLNAME:TARGET%的一声怒吼，大量的弹幕飞向了%MASTERNAME:93%
+		PRINTFORMDL %MASTERNAME:93%被%CALLNAME:TARGET%的弹幕赶出了浴室
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -942,10 +2184,1976 @@ IF LOCAL
 	;在主要地图的第一次相遇
 	;注、このあと通常の遭遇口上、ARG==1 OR ARG==2に接続します
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 8
-		PRINTFORML 
+		IF DAY:2 == 1;春
+			SELECTCASE DAY:3;春天包含的节日
+			CASE 1;元旦
+				IF TALENT:恋人
+					IF FIRSTTIME("第一次过元旦")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+						CASE 1
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("第一次过元旦")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+						CASE 1
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("第一次过元旦")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+						CASE 1
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("第一次过元旦")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASE 3;女儿节
+				IF TALENT:恋人
+					IF FIRSTTIME("第一次过女儿节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("第一次过女儿节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("第一次过女儿节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("第一次过女儿节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASE 11;母亲节
+				IF TALENT:恋人
+					IF FIRSTTIME("第一次过母亲节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("第一次过母亲节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("第一次过母亲节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("第一次过母亲节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASE 14;白色情人节
+				IF TALENT:恋人
+					IF FIRSTTIME("第一次过白色情人节")
+						CALL WAKASAGIHIME_BAISEQINGRENJIE
+						SELECTCASE RESULT
+						CASE 0;棉花糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 1;水果软糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 2;曲奇饼干
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 3;手帕
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 4;马卡龙
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 5;黑雷神巧克力
+							IF ITEM:120 >= 1
+								ITEM:120 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 6;巧克力
+							IF ITEM:121 >= 1
+								ITEM:121 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 7;高级巧克力
+							IF ITEM:122 >= 1
+								ITEM:122 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 8;本命巧克力
+							IF ITEM:123 >= 1
+								ITEM:123 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 9;糖果
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 10;什么也不做
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ENDSELECT
+					ELSE
+						CALL WAKASAGIHIME_BAISEQINGRENJIE
+						SELECTCASE RESULT
+						CASE 0;棉花糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 1;水果软糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 2;曲奇饼干
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 3;手帕
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 4;马卡龙
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 5;黑雷神巧克力
+							IF ITEM:120 >= 1
+								ITEM:120 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 6;巧克力
+							IF ITEM:121 >= 1
+								ITEM:121 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 7;高级巧克力
+							IF ITEM:122 >= 1
+								ITEM:122 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 8;本命巧克力
+							IF ITEM:123 >= 1
+								ITEM:123 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 9;糖果
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 10;什么也不做
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("第一次过白色情人节")
+						CALL WAKASAGIHIME_BAISEQINGRENJIE
+						SELECTCASE RESULT
+						CASE 0;棉花糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 1;水果软糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 2;曲奇饼干
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 3;手帕
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 4;马卡龙
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 5;黑雷神巧克力
+							IF ITEM:120 >= 1
+								ITEM:120 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 6;巧克力
+							IF ITEM:121 >= 1
+								ITEM:121 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 7;高级巧克力
+							IF ITEM:122 >= 1
+								ITEM:122 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 8;本命巧克力
+							IF ITEM:123 >= 1
+								ITEM:123 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 9;糖果
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 10;什么也不做
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ENDSELECT
+					ELSE
+						CALL WAKASAGIHIME_BAISEQINGRENJIE
+						SELECTCASE RESULT
+						CASE 0;棉花糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 1;水果软糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 2;曲奇饼干
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 3;手帕
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 4;马卡龙
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 5;黑雷神巧克力
+							IF ITEM:120 >= 1
+								ITEM:120 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 6;巧克力
+							IF ITEM:121 >= 1
+								ITEM:121 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 7;高级巧克力
+							IF ITEM:122 >= 1
+								ITEM:122 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 8;本命巧克力
+							IF ITEM:123 >= 1
+								ITEM:123 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 9;糖果
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 10;什么也不做
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("第一次过白色情人节")
+						CALL WAKASAGIHIME_BAISEQINGRENJIE
+						SELECTCASE RESULT
+						CASE 0;棉花糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 1;水果软糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 2;曲奇饼干
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 3;手帕
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 4;马卡龙
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 5;黑雷神巧克力
+							IF ITEM:120 >= 1
+								ITEM:120 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 6;巧克力
+							IF ITEM:121 >= 1
+								ITEM:121 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 7;高级巧克力
+							IF ITEM:122 >= 1
+								ITEM:122 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 8;本命巧克力
+							IF ITEM:123 >= 1
+								ITEM:123 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 9;糖果
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 10;什么也不做
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ENDSELECT
+					ELSE
+						CALL WAKASAGIHIME_BAISEQINGRENJIE
+						SELECTCASE RESULT
+						CASE 0;棉花糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 1;水果软糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 2;曲奇饼干
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 3;手帕
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 4;马卡龙
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 5;黑雷神巧克力
+							IF ITEM:120 >= 1
+								ITEM:120 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 6;巧克力
+							IF ITEM:121 >= 1
+								ITEM:121 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 7;高级巧克力
+							IF ITEM:122 >= 1
+								ITEM:122 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 8;本命巧克力
+							IF ITEM:123 >= 1
+								ITEM:123 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 9;糖果
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 10;什么也不做
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("第一次过白色情人节")
+						CALL WAKASAGIHIME_BAISEQINGRENJIE
+						SELECTCASE RESULT
+						CASE 0;棉花糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 1;水果软糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 2;曲奇饼干
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 3;手帕
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 4;马卡龙
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 5;黑雷神巧克力
+							IF ITEM:120 >= 1
+								ITEM:120 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 6;巧克力
+							IF ITEM:121 >= 1
+								ITEM:121 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 7;高级巧克力
+							IF ITEM:122 >= 1
+								ITEM:122 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 8;本命巧克力
+							IF ITEM:123 >= 1
+								ITEM:123 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 9;糖果
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 10;什么也不做
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ENDSELECT
+					ELSE
+						CALL WAKASAGIHIME_BAISEQINGRENJIE
+						SELECTCASE RESULT
+						CASE 0;棉花糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 1;水果软糖
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 2;曲奇饼干
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 3;手帕
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 4;马卡龙
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 5;黑雷神巧克力
+							IF ITEM:120 >= 1
+								ITEM:120 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 6;巧克力
+							IF ITEM:121 >= 1
+								ITEM:121 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 7;高级巧克力
+							IF ITEM:122 >= 1
+								ITEM:122 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 8;本命巧克力
+							IF ITEM:123 >= 1
+								ITEM:123 -= 1
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								PRINTDW 
+								CALL WAKASAGIHIME_BAISEQINGRENJIE
+							ENDIF
+						CASE 9;糖果
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						CASE 10;什么也不做
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 
+							CASE 1
+								PRINTFORML 
+							ENDSELECT
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASE 25;例大祭
+				IF TALENT:恋人
+					IF FIRSTTIME("第一次过例大祭")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("第一次过例大祭")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("第一次过例大祭")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("第一次过例大祭")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL
+						CASE 1
+							PRINTL
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASEELSE
+				IF TALENT:恋人
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ELSEIF TALENT:恋慕
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ELSEIF TALENT:思慕
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ELSE
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ENDIF
+			ENDSELECT
+		ELSEIF DAY:2 == 2;夏
+			SELECTCASE DAY:3;夏天包含的节日
+			CASE 7;七夕节
+				IF TALENT:恋人
+					IF FIRSTTIME("初次过七夕")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("初次过七夕")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("初次过七夕")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("初次过七夕")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASE 14;盂兰盆节
+				IF TALENT:恋人
+					IF FIRSTTIME("初次过七夕")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("初次过七夕")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("初次过七夕")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("初次过七夕")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASEELSE
+				IF TALENT:恋人
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ELSEIF TALENT:恋慕
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ELSEIF TALENT:思慕
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ELSE
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ENDIF
+			ENDSELECT
+		ELSEIF DAY:2 == 3;秋
+			SELECTCASE DAY:3;秋天包含的节日
+			CASE 1;風神「二百十日」
+				IF TALENT:恋人
+					IF FIRSTTIME("初次过風神「二百十日」")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("初次过風神「二百十日」")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("初次过風神「二百十日」")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("初次过風神「二百十日」")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASE 15;十五夜
+				IF TALENT:恋人
+					IF FIRSTTIME("初次过十五夜")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("初次过十五夜")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("初次过十五夜")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("初次过十五夜")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASE 27;收获季
+				IF TALENT:恋人
+					IF FIRSTTIME("初次过收获季")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("初次过收获季")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("初次过收获季")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("初次过收获季")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASE 30;万圣节
+				IF TALENT:恋人
+					IF FIRSTTIME("初次过万圣节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("初次过万圣节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("初次过万圣节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("初次过万圣节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASEELSE
+				IF TALENT:恋人
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ELSEIF TALENT:恋慕
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ELSEIF TALENT:思慕
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ELSE
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ENDIF
+			ENDSELECT
+		ELSE
+			SELECTCASE DAY:3;冬天包含的节日
+			CASE 3;节分
+				IF TALENT:恋人
+					IF FIRSTTIME("初次过节分")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("初次过节分")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("初次过节分")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("初次过节分")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASE 14;情人节
+				IF TALENT:恋人
+					IF FIRSTTIME("初次过情人节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("初次过情人节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("初次过情人节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("初次过情人节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASE 24;平安夜
+				IF TALENT:恋人
+					IF FIRSTTIME("初次过平安夜")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("初次过平安夜")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("初次过平安夜")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("初次过平安夜")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASE 25;圣诞节
+				IF TALENT:恋人
+					IF FIRSTTIME("初次过圣诞节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("初次过圣诞节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("初次过圣诞节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("初次过圣诞节")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASE 31;大晦日
+				IF TALENT:恋人
+					IF FIRSTTIME("初次过大晦日")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:恋慕
+					IF FIRSTTIME("初次过大晦日")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSEIF TALENT:思慕
+					IF FIRSTTIME("初次过大晦日")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF FIRSTTIME("初次过大晦日")
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTL 
+						CASE 1
+							PRINTL 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			CASEELSE
+				IF TALENT:恋人
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ELSEIF TALENT:恋慕
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ELSEIF TALENT:思慕
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ELSE
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTL
+					CASE 1
+						PRINTL
+					ENDSELECT
+				ENDIF
+			ENDSELECT
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -1003,17 +4211,17 @@ IF LOCAL
 				IF YOGORE:(CFLAG:MASTER:現在位置) <= 5000
 					IF TALENT:恋人 || TALENT:恋慕
 						PRINTFORML 「欢迎~%MASTERNAME:93%回家~」
-						PRINTFORMDL 若鹭姬飞到了%MASTERNAME:93%面前，亲了一下%MASTERNAME:93%的脸
-						PRINTFORMDL 随后若鹭姬就拉着%MASTERNAME:93%的手到床边坐下
+						PRINTFORMDL %CALLNAME:TARGET%飞到了%MASTERNAME:93%面前，亲了一下%MASTERNAME:93%的脸
+						PRINTFORMDL 随后%CALLNAME:TARGET%就拉着%MASTERNAME:93%的手到床边坐下
 						PRINTFORML 「可以和我说说外面的事吗，我想听你讲讲」
 					ELSEIF TALENT:思慕
 						PRINTFORML 「おかえりなさいませ%MASTERNAME:93%，今天玩得怎么样了」
-						PRINTFORMDL 若鹭姬对刚回来的%MASTERNAME:93%笑了笑
+						PRINTFORMDL %CALLNAME:TARGET%对刚回来的%MASTERNAME:93%笑了笑
 						PRINTFORMDL %MASTERNAME:93%也笑了笑，没说什么，就径直走到了床边坐下
 						PRINTFORML 「要是不介意的话，和我说说外面的事吧」
 					ELSE
 						PRINTFORML 「%MASTERNAME:93%你回来了啊，在外面玩的怎么样了」
-						PRINTFORMDL 若鹭姬开心的说道
+						PRINTFORMDL %CALLNAME:TARGET%开心的说道
 						PRINTFORML 「要是可以的话，和我说说吧」
 					ENDIF
 				ELSE
@@ -1031,7 +4239,7 @@ IF LOCAL
 							PRINTFORMDL （一段时间后）
 							TIME += 10
 							PRINTFORML 「呼，终于是打扫干净了，好累啊」
-							PRINTFORMDL 若鹭姬坐在床上感叹道
+							PRINTFORMDL %CALLNAME:TARGET%坐在床上感叹道
 							PRINTFORML 「给，%MASTERNAME:93%」
 							PRINTFORML 「为了感谢你帮我打扫卫生，我把这些东西送给你」
 								SELECTCASE RAND:10
@@ -1062,14 +4270,14 @@ IF LOCAL
 						ELSEIF RESULT == 1
 							PRINTFORML 「行，都听你的，那就先休息一下吧」
 							PRINTFORML 「记得等会帮我打扫一下房间卫生哦」
-							PRINTFORMDL 若鹭姬对%MASTERNAME:93%笑了笑
+							PRINTFORMDL %CALLNAME:TARGET%对%MASTERNAME:93%笑了笑
 						ELSE
 							PRINTFORMDL 谁乱写我打死谁
 							GOTO INPUT_LOOP_打扫卫生_1
 						ENDIF
 					ELSEIF TALENT:思慕
 						PRINTFORML 「啊，おかえりなさいませ」
-						PRINTFORMDL 若鹭姬正在对着周围的环境发愁
+						PRINTFORMDL %CALLNAME:TARGET%正在对着周围的环境发愁
 						PRINTFORML 「唉，这么久都没打扫过卫生了」
 						PRINTFORML 「%MASTERNAME:93%，可以帮我打扫一下卫生吗」
 						PRINTFORML 「我一个人忙不过来啊」
@@ -1112,7 +4320,7 @@ IF LOCAL
 							ELSEIF RESULT == 1
 								PRINTFORML 「嗯……那好吧」
 								PRINTFORML 「那就先休息一下，等会再说这件事吧」
-								PRINTFORMDL 若鹭姬坐在床上对周围环境发愁
+								PRINTFORMDL %CALLNAME:TARGET%坐在床上对周围环境发愁
 							ELSE
 								PRINTFORMDL 乱写报错自行动手，别找我
 								GOTO INPUT_LOOP_打扫卫生_2
@@ -1120,7 +4328,7 @@ IF LOCAL
 					ELSE
 						PRINTFORML 「啊，好乱啊，多久没打扫了」
 						PRINTFORML 「喂，不要用这种眼神看着我，不然我会很生气的」
-						PRINTFORMDL 若鹭姬气鼓鼓的望着%MASTERNAME:93%
+						PRINTFORMDL %CALLNAME:TARGET%气鼓鼓的望着%MASTERNAME:93%
 						PRINTFORML 「嗯…既然房间这么乱，不如我们打扫一下吧」
 						PRINTFORML 「这个房间是我们两个一起住的，一起打扫一下卫生吧」
 						PRINTFORML 「好吗」
@@ -1162,7 +4370,7 @@ IF LOCAL
 							CFLAG:93:好感度 += 50
 						ELSEIF RESULT == 1
 							PRINTFORML 「那好吧，既然你不想现在帮忙的话」
-							PRINTFORMDL 若鹭姬摆了摆手，表示并不在意
+							PRINTFORMDL %CALLNAME:TARGET%摆了摆手，表示并不在意
 							PRINTFORML 「那我只好自己动手打扫卫生了」
 						ELSE
 							PRINTFORMDL 报错自行解决，概不负责
@@ -1175,7 +4383,7 @@ IF LOCAL
 						IF TALENT:恋人 || TALENT:恋慕
 							PRINTFORML 「哎？%MASTERNAME:93%你回来了啊」
 							PRINTFORML 「我有些事想和你说一下，介意吗」
-							PRINTFORMDL 若鹭姬顿了顿，接着说了下去
+							PRINTFORMDL %CALLNAME:TARGET%顿了顿，接着说了下去
 							PRINTFORML 「要是介意的话……那就算了」
 						ELSEIF TALENT:思慕
 							PRINTFORML 「你回来了啊……」
@@ -1184,7 +4392,7 @@ IF LOCAL
 							PRINTFORML 「可以向喜欢的人倾诉，会让我感觉不再难受」
 						ELSE
 							PRINTFORML 「啊啊？%MASTERNAME:93%你回来了啊……」
-							PRINTFORMDL 若鹭姬突然顿了一下，又把头扭了过去
+							PRINTFORMDL %CALLNAME:TARGET%突然顿了一下，又把头扭了过去
 							PRINTFORML 「对了，我有些事想和你说一下，介意吗」
 							PRINTFORML 「要是介意的话，我就不说了……」
 						ENDIF
@@ -1194,12 +4402,12 @@ IF LOCAL
 							PRINTFORML 「没……没什么，只是好奇你回来找什么而已」
 							PRINTFORML 「要是回来听我发牢骚的话……」
 							PRINTFORML 「不不，没什么，你继续找吧」
-							PRINTFORMDL 若鹭姬有气无力的笑了笑
+							PRINTFORMDL %CALLNAME:TARGET%有气无力的笑了笑
 						ELSEIF TALENT:思慕
 							PRINTFORML 「嗯？%MASTERNAME:93%你还有什么事吗」
 							PRINTFORML 「还是说……你愿意来听我倾诉了？」
 							PRINTFORML 「要是这样的话，那太好了」
-							PRINTFORMDL 若鹭姬有气无力的笑了笑
+							PRINTFORMDL %CALLNAME:TARGET%有气无力的笑了笑
 						ELSE
 							PRINTFORML 「嗯……」
 							PRINTFORML 「我有些事想和你说，你现在介意吗」
@@ -1214,39 +4422,39 @@ IF LOCAL
 							PRINTFORML 「哎，你回来了啊」
 							PRINTFORML 「今天在外面有遇到什么好玩的事吗？」
 							PRINTFORML 「我很想听你讲讲外面的故事」
-							PRINTFORMDL 若鹭姬眨了眨眼，很是期待的样子
+							PRINTFORMDL %CALLNAME:TARGET%眨了眨眼，很是期待的样子
 							PRINTFORML 「快讲嘛，快讲嘛」
 							PRINTFORML 「我可是期待了很久了」
 						ELSEIF TALENT:思慕
 							PRINTFORML 「啦啦啦~」
 							PRINTFORML 「%MASTERNAME:93%你好啊~在外面玩的怎么样了」
 							PRINTFORML 「我的话，过的很开心啊~」
-							PRINTFORMDL 若鹭姬笑了笑
+							PRINTFORMDL %CALLNAME:TARGET%笑了笑
 							PRINTFORML 「不介意的话，可以讲讲你在外面遇到了什么好玩的事吗？」
 							PRINTFORML 「我对此可是很期待的哦」
-							PRINTFORMDL 若鹭姬俏皮的眨了眨眼睛
+							PRINTFORMDL %CALLNAME:TARGET%俏皮的眨了眨眼睛
 						ELSE
 							PRINTFORML 「哼哼~」
 							PRINTFORML 「おかえりなさいませ%MASTERNAME:93%在外面玩的开心吗？」
 							PRINTFORML 「不介意的话，和我说一下吧」
-							PRINTFORMDL 若鹭姬开心的笑了起来
+							PRINTFORMDL %CALLNAME:TARGET%开心的笑了起来
 						ENDIF
 					ELSE
 						IF TALENT:恋人 || TALENT:恋慕
 							PRINTFORML 「还有什么事吗%MASTERNAME:93%？」
 							PRINTFORML 「还是说，你是回来带我出去玩的？」
 							PRINTFORML 「如果是这样的话，那就太好了」
-							PRINTFORMDL 若鹭姬用手挡住了嘴，笑了起来
+							PRINTFORMDL %CALLNAME:TARGET%用手挡住了嘴，笑了起来
 							PRINTFORMDL 鱼鳍也在上下摆动着
 						ELSEIF TALENT:思慕
 							PRINTFORML 「还有什么是吗%MASTERNAME:93%」
 							PRINTFORML 「如果是来找我一起出去玩的话，我一定会来的」
-							PRINTFORMDL 若鹭姬开心的笑了起来，鱼鳍也跟着动了起来
+							PRINTFORMDL %CALLNAME:TARGET%开心的笑了起来，鱼鳍也跟着动了起来
 							PRINTFORML 「我对此可是非常的期待的哦」
 						ELSE
 							PRINTFORML 「是回来带我出去玩的吗？」
 							PRINTFORML 「嗯哼~」
-							PRINTFORMDL 若鹭姬眨了眨眼
+							PRINTFORMDL %CALLNAME:TARGET%眨了眨眼
 							PRINTFORMDL 很是期待%MASTERNAME:93%将带她去哪里玩
 						ENDIF
 					ENDIF
@@ -1256,64 +4464,64 @@ IF LOCAL
 					IF CFLAG:93:1002 == 1
 						IF MARK:93:反発刻印 == 3
 							IF TALENT:恋人 || TALENT:恋慕
-								PRINTFORMDL 若鹭姬一看到%MASTERNAME:93%
+								PRINTFORMDL %CALLNAME:TARGET%一看到%MASTERNAME:93%
 								PRINTFORMDL 就对准%MASTERNAME:93%发射了一个弹幕
 								PRINTFORMDL %MASTERNAME:93%用了他的时停能力躲过了这颗弹幕
 								PRINTFORML 「哎，说了很多次了，你的能力不是这样浪费的」
 								PRINTFORML 「算了，你做什么事都与我无关，我不想看到你」
 								PRINTFORML 「请你走开，不然我就继续对你发射弹幕了」
-								PRINTFORMDL 若鹭姬一脸冷漠的看着%MASTERNAME:93%
+								PRINTFORMDL %CALLNAME:TARGET%一脸冷漠的看着%MASTERNAME:93%
 							ELSEIF TALENT:思慕
-								PRINTFORMDL %MASTERNAME:93%刚进门口就被若鹭姬一发弹幕打飞了出去
+								PRINTFORMDL %MASTERNAME:93%刚进门口就被%CALLNAME:TARGET%一发弹幕打飞了出去
 								PRINTFORML 「出去，别进来，不然…」
-								PRINTFORMDL 若鹭姬手上蓄势待发的弹幕令%MASTERNAME:93%害怕不已
+								PRINTFORMDL %CALLNAME:TARGET%手上蓄势待发的弹幕令%MASTERNAME:93%害怕不已
 								PRINTFORML 「刚才的弹幕仅仅只是一个警告」
 								PRINTFORML 「要是再敢进来的话，我就动手了」
-								PRINTFORMDL %MASTERNAME:93%用了特殊的方法把若鹭姬手中的弹幕消掉了
+								PRINTFORMDL %MASTERNAME:93%用了特殊的方法把%CALLNAME:TARGET%手中的弹幕消掉了
 								PRINTFORMDL 然后进到了她的房间
 								PRINTFORML 「哎？我的弹幕呢，怎么不见了」
 								PRINTFORML 「哼，算了，我不想看到你，快点走开」
-								PRINTFORMDL 说完，若鹭姬就回到床上背对着%MASTERNAME:93%了
+								PRINTFORMDL 说完，%CALLNAME:TARGET%就回到床上背对着%MASTERNAME:93%了
 							ELSE
-								PRINTFORMDL 刚踏入门口，若鹭姬就立刻对准%MASTERNAME:93%发射了弹幕
+								PRINTFORMDL 刚踏入门口，%CALLNAME:TARGET%就立刻对准%MASTERNAME:93%发射了弹幕
 								PRINTFORML 「赶紧给我出去，我不想看到你！」
 								PRINTFORML 「现在！立刻！马上！给我出去！」
-								PRINTFORMDL 若鹭姬一边吼一边发射弹幕
+								PRINTFORMDL %CALLNAME:TARGET%一边吼一边发射弹幕
 								PRINTFORMDL %MASTERNAME:93%怕被打中就立刻跑出了门口
 								PRINTFORMDL 过了一会儿之后，又回到了房间
-								PRINTFORMDL 这次若鹭姬只是生气的看了%MASTERNAME:93%一眼，就回到了床上
+								PRINTFORMDL 这次%CALLNAME:TARGET%只是生气的看了%MASTERNAME:93%一眼，就回到了床上
 								PRINTFORML 「无论说什么我都不会原谅你的，你太过分了！」
 							ENDIF
 						ELSEIF MARK:93:反発刻印 == 2
 							IF TALENT:恋人 || TALENT:恋慕
 								PRINTFORML 「出去出去出去，我不想看到你，也不想花费力气打你」
-								PRINTFORMDL %MASTERNAME:93%看着躺在床上，说着赶他走的若鹭姬
+								PRINTFORMDL %MASTERNAME:93%看着躺在床上，说着赶他走的%CALLNAME:TARGET%
 								PRINTFORMDL 感到十分的抱歉，但又不知道该怎么解释
 								PRINTFORML 「……请你出去，好吗？」
 								PRINTFORML 「如果你实在不听的话，那我也做不了什么了」
 							ELSEIF TALENT:思慕
 								PRINTFORML 「你怎么还敢过来，赶紧给我出去！」
-								PRINTFORMDL 随着若鹭姬的怒吼，无数的弹幕打向了%MASTERNAME:93%
+								PRINTFORMDL 随着%CALLNAME:TARGET%的怒吼，无数的弹幕打向了%MASTERNAME:93%
 								PRINTFORMDL %MASTERNAME:93%连忙逃窜，躲到了房间外面
-								PRINTFORMDL 过了一会儿，又回到了若鹭姬的房间里
-								PRINTFORMDL 这时的若鹭姬已经躺在床上了，看都不看%MASTERNAME:93%一眼
+								PRINTFORMDL 过了一会儿，又回到了%CALLNAME:TARGET%的房间里
+								PRINTFORMDL 这时的%CALLNAME:TARGET%已经躺在床上了，看都不看%MASTERNAME:93%一眼
 								PRINTFORML 「赶紧走开，我不想看到你，也不想花费力气把你赶出去」
 								PRINTFORML 「所以，快点走开」
 							ELSE
 								PRINTFORML 「赶紧！给我！出去！」
-								PRINTFORMDL 伴随着若鹭姬的怒吼，一发发弹幕正往%MASTERNAME:93%飞去
-								PRINTFORMDL %MASTERNAME:93%被若鹭姬打的上蹿下跳，最后跑出了房间
-								PRINTFORMDL 若鹭姬看到%MASTERNAME:93%离开她的房间后，就躺在床上喘大气了
+								PRINTFORMDL 伴随着%CALLNAME:TARGET%的怒吼，一发发弹幕正往%MASTERNAME:93%飞去
+								PRINTFORMDL %MASTERNAME:93%被%CALLNAME:TARGET%打的上蹿下跳，最后跑出了房间
+								PRINTFORMDL %CALLNAME:TARGET%看到%MASTERNAME:93%离开她的房间后，就躺在床上喘大气了
 								PRINTFORMDL 过了一会
-								PRINTFORMDL %MASTERNAME:93%又走进了若鹭姬房间
-								PRINTFORMDL 这次若鹭姬没有了教训他的力气，撇了一眼之后，就把眼睛闭上了
+								PRINTFORMDL %MASTERNAME:93%又走进了%CALLNAME:TARGET%房间
+								PRINTFORMDL 这次%CALLNAME:TARGET%没有了教训他的力气，撇了一眼之后，就把眼睛闭上了
 							ENDIF
 						ELSE
 							IF MARK:93:反発刻印 == 1
 								IF TALENT:恋人 || TALENT:恋慕
 									PRINTFORML 「嗯……」
 									PRINTFORML 「请你出去，谢谢，我现在不想见到你」
-									PRINTFORMDL %MASTERNAME:93%看着若鹭姬欲言又止的样子
+									PRINTFORMDL %MASTERNAME:93%看着%CALLNAME:TARGET%欲言又止的样子
 									PRINTFORMDL 也不敢再继续惹她生气
 									PRINTFORMDL 上次的那件事，是真的见识到她生气是有多么的可怕了
 									PRINTFORMDL %MASTERNAME:93%为了不继续惹她生气，只好和她保持一定的距离了
@@ -1321,11 +4529,11 @@ IF LOCAL
 									PRINTFORML 「出去，快点出去」
 									PRINTFORML 「我现在不想见到你，请你快点走开」
 									PRINTFORML 「不然别怪我不客气了」
-									PRINTFORMDL 看着若鹭姬生气的样子，%MASTERNAME:93%在想该如何取得她的原谅
+									PRINTFORMDL 看着%CALLNAME:TARGET%生气的样子，%MASTERNAME:93%在想该如何取得她的原谅
 								ELSE
 									PRINTFORML 「出去出去出去，赶紧给我出去」
 									PRINTFORML 「你要是不出去的话，我就直接用武力赶人了」
-									PRINTFORMDL 若鹭姬恶恶的威胁着%MASTERNAME:93%，让他赶紧离开房间
+									PRINTFORMDL %CALLNAME:TARGET%恶恶的威胁着%MASTERNAME:93%，让他赶紧离开房间
 								ENDIF
 							ENDIF
 						ENDIF
@@ -1335,36 +4543,36 @@ IF LOCAL
 								PRINTFORML 「你怎么还过来啊」
 								PRINTFORML 「快点出去，我现在不想看到你」
 								PRINTFORML 「赶紧的，不然我就动手赶人了」
-								PRINTFORMDL 若鹭姬对%MASTERNAME:93%摆了摆手，让他赶紧出去
-								PRINTFORMDL 当然，%MASTERNAME:93%是不会听若鹭姬的警告的
+								PRINTFORMDL %CALLNAME:TARGET%对%MASTERNAME:93%摆了摆手，让他赶紧出去
+								PRINTFORMDL 当然，%MASTERNAME:93%是不会听%CALLNAME:TARGET%的警告的
 							ELSEIF TALENT:思慕
 								PRINTFORML 「……」
-								PRINTFORMDL 无论%MASTERNAME:93%怎么和若鹭姬说话，她都没有任何反应
+								PRINTFORMDL 无论%MASTERNAME:93%怎么和%CALLNAME:TARGET%说话，她都没有任何反应
 								PRINTFORMDL %MASTERNAME:93%不禁感觉到一丝头疼
-								PRINTFORMDL 仍在想如何获得若鹭姬的原谅
+								PRINTFORMDL 仍在想如何获得%CALLNAME:TARGET%的原谅
 							ELSE
 								PRINTFORML 「あなた……你怎么还敢过来！」
-								PRINTFORMDL 若鹭姬从床上坐了起来，向%MASTERNAME:93%发射了一发弹幕
+								PRINTFORMDL %CALLNAME:TARGET%从床上坐了起来，向%MASTERNAME:93%发射了一发弹幕
 								PRINTFORMDL 但%MASTERNAME:93%很轻松的就躲开了
 								PRINTFORML 「赶紧走开，别来烦我」
 								PRINTFORML 「不然我就继续用弹幕攻击你了！」
 							ENDIF
 						ELSEIF MARK:93:反発刻印 == 2
 							IF TALENT:恋人 || TALENT:恋慕
-								PRINTFORMDL 若鹭姬看到%MASTERNAME:93%进来后，也没说什么
+								PRINTFORMDL %CALLNAME:TARGET%看到%MASTERNAME:93%进来后，也没说什么
 								PRINTFORMDL 直接一头扎进了枕头里，装作看不见的样子
 								PRINTFORMDL 这让%MASTERNAME:93%该如何是好啊~
 							ELSEIF TALENT:思慕
 								PRINTFORML 「出去，我不想再说第二遍」
 								PRINTFORML 「赶紧给我出去，快点」
-								PRINTFORMDL 若鹭姬面无表情的看着%MASTERNAME:93%
+								PRINTFORMDL %CALLNAME:TARGET%面无表情的看着%MASTERNAME:93%
 								PRINTFORMDL 并不停的重复着相同的话
-								PRINTFORMDL %MASTERNAME:93%明白，如果不好好和若鹭姬道歉的话
+								PRINTFORMDL %MASTERNAME:93%明白，如果不好好和%CALLNAME:TARGET%道歉的话
 								PRINTFORMDL 就会一直保持这个样子
 							ELSE
 								PRINTFORML 「你怎么还过来我房间，是不是想再被我打一顿」
-								PRINTFORMDL 看着若鹭姬气的牙痒痒的样子，%MASTERNAME:93%也不敢说什么
-								PRINTFORMDL 而是下意识和若鹭姬拉开了距离
+								PRINTFORMDL 看着%CALLNAME:TARGET%气的牙痒痒的样子，%MASTERNAME:93%也不敢说什么
+								PRINTFORMDL 而是下意识和%CALLNAME:TARGET%拉开了距离
 								PRINTFORML 「赶紧给我出去，不然我就动手把你赶出去了！」
 							ENDIF
 						ELSE
@@ -1372,15 +4580,15 @@ IF LOCAL
 								IF TALENT:恋人 || TALENT:恋慕
 									PRINTFORML 「あなた……你怎么又来了，快点走开」
 									PRINTFORML 「呜~快走开」
-									PRINTFORMDL 若鹭姬看到%MASTERNAME:93%感觉很难受，但又舍不得赶他出去
-									PRINTFORMDL %MASTERNAME:93%看着若鹭姬这样样子，也感到很难受
+									PRINTFORMDL %CALLNAME:TARGET%看到%MASTERNAME:93%感觉很难受，但又舍不得赶他出去
+									PRINTFORMDL %MASTERNAME:93%看着%CALLNAME:TARGET%这样样子，也感到很难受
 								ELSEIF TALENT:思慕
 									PRINTFORML 「……」
-									PRINTFORMDL 若鹭姬看了%MASTERNAME:93%一眼，什么也没说
-									PRINTFORMDL %MASTERNAME:93%还在想该怎么取得若鹭姬的原谅
+									PRINTFORMDL %CALLNAME:TARGET%看了%MASTERNAME:93%一眼，什么也没说
+									PRINTFORMDL %MASTERNAME:93%还在想该怎么取得%CALLNAME:TARGET%的原谅
 								ELSE
 									PRINTFORML 「你怎么还来，真不怕我用弹幕把你赶出去吗？」
-									PRINTFORMDL 看着%MASTERNAME:93%满不在乎的样子，若鹭姬感到很生气
+									PRINTFORMDL 看着%MASTERNAME:93%满不在乎的样子，%CALLNAME:TARGET%感到很生气
 									PRINTFORML 「快走快走快走，我不想看到你，你说什么我都不会听的」
 								ENDIF
 							ENDIF
@@ -1390,31 +4598,31 @@ IF LOCAL
 						IF CFLAG:93:1003 == 1
 							IF TALENT:恋人 || TALENT:恋慕
 								PRINTFORML 「不管是谁，赶紧离开我的房间，不然就别怪我不客气了！」
-								PRINTFORMDL 若鹭姬看都不看门口的%MASTERNAME:93%一眼
+								PRINTFORMDL %CALLNAME:TARGET%看都不看门口的%MASTERNAME:93%一眼
 								PRINTFORMDL 就用被子把自己的头盖上，谁也不见的样子
-								PRINTFORMDL 看着这么生气的若鹭姬，%MASTERNAME:93%走到床边打算安慰一下她
-								PRINTFORMDL 当%MASTERNAME:93%走到床边的时候，就被若鹭姬的一发弹幕给击飞到了门口
+								PRINTFORMDL 看着这么生气的%CALLNAME:TARGET%，%MASTERNAME:93%走到床边打算安慰一下她
+								PRINTFORMDL 当%MASTERNAME:93%走到床边的时候，就被%CALLNAME:TARGET%的一发弹幕给击飞到了门口
 								PRINTFORML 「出去！快点给我出去！」
 								PRINTFORML 「真的要逼我动手吗？」
-								PRINTFORMDL %MASTERNAME:93%站在门口，什么也不说，就这样捂着肚子看着若鹭姬
+								PRINTFORMDL %MASTERNAME:93%站在门口，什么也不说，就这样捂着肚子看着%CALLNAME:TARGET%
 								PRINTFORMDL 过了好一会之后
-								PRINTFORMDL 若鹭姬以为人已经走了，就从床上起来，看了一眼门口
+								PRINTFORMDL %CALLNAME:TARGET%以为人已经走了，就从床上起来，看了一眼门口
 								PRINTFORMDL 发现%MASTERNAME:93%正捂着肚子站在门口
 								PRINTFORMDL 身上有被弹幕打中的痕迹
-								PRINTFORMDL 若鹭姬也顾不上说什么，立马飞到了%MASTERNAME:93%身边
+								PRINTFORMDL %CALLNAME:TARGET%也顾不上说什么，立马飞到了%MASTERNAME:93%身边
 								PRINTFORML 「对不起，对不起……」
-								PRINTFORMDL 说着说着，若鹭姬就哭了出来
+								PRINTFORMDL 说着说着，%CALLNAME:TARGET%就哭了出来
 								PRINTFORML 「对不起，我应该看清楚了再发脾气的」
 								PRINTFORML 「呜呜呜……」
-								PRINTFORMDL %MASTERNAME:93%抱住了若鹭姬，安慰她说没事
+								PRINTFORMDL %MASTERNAME:93%抱住了%CALLNAME:TARGET%，安慰她说没事
 								PRINTFORML 「谢谢，我现在感觉好多了」
 								PRINTFORML 「作为赔偿，我把这个石头送给你」
 								ITEM:530 += 1
 							ELSEIF TALENT:思慕
 								PRINTFORML 「请你出去，谢谢」
 								PRINTFORML 「我现在谁都不想见」
-								PRINTFORMDL %MASTERNAME:93%看着正躺在床上的若鹭姬，感到十分的痛心
-								PRINTFORMDL 没听若鹭姬的话，就走到了她的床边坐了下去
+								PRINTFORMDL %MASTERNAME:93%看着正躺在床上的%CALLNAME:TARGET%，感到十分的痛心
+								PRINTFORMDL 没听%CALLNAME:TARGET%的话，就走到了她的床边坐了下去
 								PRINTFORML 「出去！赶紧给我出……」
 								PRINTFORMDL 原本还想用武力把人赶出门口的
 								PRINTFORMDL 没想到竟然是%MASTERNAME:93%进来了
@@ -1424,8 +4632,8 @@ IF LOCAL
 								PRINTFORML 「嗯，就几句」
 							ELSE
 								PRINTFORML 「我现在心情不好，请你赶紧离开这里」
-								PRINTFORMDL 当%MASTERNAME:93%走到若鹭姬身边的时候
-								PRINTFORMDL 若鹭姬突然骂了起来
+								PRINTFORMDL 当%MASTERNAME:93%走到%CALLNAME:TARGET%身边的时候
+								PRINTFORMDL %CALLNAME:TARGET%突然骂了起来
 								PRINTFORML 「赶紧给我出去！不然……」
 								PRINTFORML 「哎，怎么是你啊%MASTERNAME:93%，我……」
 								PRINTFORML 「对不起，让你见到我现在这个样子，请你不要放在心上」
@@ -1433,21 +4641,21 @@ IF LOCAL
 						ELSE
 							IF TALENT:恋人 || TALENT:恋慕
 								PRINTFORML 「嗯……%MASTERNAME:93%你好」
-								PRINTFORMDL 若鹭姬有气无力向%MASTERNAME:93%问好
+								PRINTFORMDL %CALLNAME:TARGET%有气无力向%MASTERNAME:93%问好
 								PRINTFORMDL 随后又把脸埋到了枕头里
 								PRINTFORML 「有什么事吗，如果没事的话，请回吧」
 								PRINTFORML 「我想自己单独待一会」
 								PRINTFORML 「要是你能听我发几句牢骚的话，也好」
-								PRINTFORMDL 说到这，若鹭姬又精神了起来
+								PRINTFORMDL 说到这，%CALLNAME:TARGET%又精神了起来
 							ELSEIF TALENT:思慕
 								PRINTFORML 「嗯……%MASTERNAME:93%有什么事吗」
 								PRINTFORML 「如果没事的话，能让我一个人呆在这个房间吗」
 								PRINTFORML 「让我静静……」
-								PRINTFORMDL 说完，若鹭姬又把脸埋在了枕头里，一动不动
+								PRINTFORMDL 说完，%CALLNAME:TARGET%又把脸埋在了枕头里，一动不动
 							ELSE
 								PRINTFORML 「是你啊%MASTERNAME:93%」
 								PRINTFORML 「有什么事吗，我现在心情还是很不好…」
-								PRINTFORMDL 若鹭姬一脸抱歉的看着%MASTERNAME:93%
+								PRINTFORMDL %CALLNAME:TARGET%一脸抱歉的看着%MASTERNAME:93%
 								PRINTFORMDL %MASTERNAME:93%想安慰她却不知道该怎么安慰她
 							ENDIF
 						ENDIF
@@ -1457,10 +4665,10 @@ IF LOCAL
 							IF TALENT:恋人 || TALENT:恋慕
 								PRINTFORML 「哼哼哼~」
 								PRINTFORML 「%MASTERNAME:93%你好，你是过来玩吗？「
-								PRINTFORMDL 若鹭姬对着%MASTERNAME:93%笑了起来，鱼鳍也在不停的摆动着
+								PRINTFORMDL %CALLNAME:TARGET%对着%MASTERNAME:93%笑了起来，鱼鳍也在不停的摆动着
 								PRINTFORML 「我最近学了一首新歌，坐在床上听我唱歌吧」
 								PRINTFORML 「我很期待你的称赞的，嘻嘻」
-								PRINTFORMDL 说着，若鹭姬就唱起了歌
+								PRINTFORMDL 说着，%CALLNAME:TARGET%就唱起了歌
 								PRINTFORMDL 过了一段时间后
 								PRINTFORML 「呼，唱完了，怎么样，嘻嘻」
 								PRINTFORML 「这首歌是不是很好听啊」
@@ -1470,12 +4678,12 @@ IF LOCAL
 								PRINTFORML 「啦啦啦~」
 								PRINTFORML 「%MASTERNAME:93%你可算来了」
 								PRINTFORML 「我等你很久了，快来坐吧」
-								PRINTFORMDL 若鹭姬拍了拍床边，示意%MASTERNAME:93%坐下
+								PRINTFORMDL %CALLNAME:TARGET%拍了拍床边，示意%MASTERNAME:93%坐下
 								PRINTFORML 「来听下我说的故事，可以吗，我可是想了好久了」
 								PRINTFORML 「别问，问就是因为出不去雾之湖」
 								PRINTFORML 「所以呆在家里想故事」
 								PRINTFORML 「所以，来听我讲讲故事吧」
-								PRINTFORMDL 若鹭姬嘻嘻的笑了起来
+								PRINTFORMDL %CALLNAME:TARGET%嘻嘻的笑了起来
 								PRINTFORML 「毕竟，我现在很开心啊」
 								TIME += 10
 								PRINTFORML 「呼，讲完了，好听吗？」
@@ -1484,28 +4692,28 @@ IF LOCAL
 							ELSE
 								PRINTFORML 「哼哼哼~」
 								PRINTFORML 「%MASTERNAME:93%你来了啊，过来坐吧」
-								PRINTFORMDL 若鹭姬把%MASTERNAME:93%拉到桌子旁坐了下来
+								PRINTFORMDL %CALLNAME:TARGET%把%MASTERNAME:93%拉到桌子旁坐了下来
 								PRINTFORML 「陪我聊聊天，好吗？」
 								PRINTFORML 「我想分享一下今天遇到的事」
-								PRINTFORMDL 若鹭姬对%MASTERNAME:93%笑了起来
+								PRINTFORMDL %CALLNAME:TARGET%对%MASTERNAME:93%笑了起来
 							ENDIF
 						ELSE
 							IF TALENT:恋人 || TALENT:恋慕
 								PRINTFORML 「嗯哼，%MASTERNAME:93%你又来了」
 								PRINTFORML 「这次有什么好玩的事要分享给我吗？」
 								PRINTFORML 「我可是特别期待的哦」
-								PRINTFORMDL 若鹭姬对%MASTERNAME:93%笑了笑，然后哼起了歌
+								PRINTFORMDL %CALLNAME:TARGET%对%MASTERNAME:93%笑了笑，然后哼起了歌
 							ELSEIF TALENT:思慕
 								PRINTFORML 「嗯哼？还有什么事吗？」
 								PRINTFORML 「还是说，你刚遇到了什么好玩的事然后过来和我说嘛？」
-								PRINTFORMDL 若鹭姬嘻嘻的笑了起来，鱼鳍也在不停的摆动着
+								PRINTFORMDL %CALLNAME:TARGET%嘻嘻的笑了起来，鱼鳍也在不停的摆动着
 								PRINTFORML 「要是真的遇上什么好玩的事的话，和我说一下吧」
 							ELSE
 								PRINTFORML 「%MASTERNAME:93%你又来了啊，有什么事吗？」
 								PRINTFORML 「还是说，你也有开心的事要和我分享？」
 								PRINTFORML 「如果是这样的话，那真的是太好了」
-								PRINTFORMDL 若鹭姬动了动鱼鳍，开心的笑了起来
-								PRINTFORMDL %MASTERNAME:93%也没吊若鹭姬的胃口，和他说了一点好玩的事
+								PRINTFORMDL %CALLNAME:TARGET%动了动鱼鳍，开心的笑了起来
+								PRINTFORMDL %MASTERNAME:93%也没吊%CALLNAME:TARGET%的胃口，和他说了一点好玩的事
 							ENDIF
 						ENDIF
 					ENDIF
@@ -1523,7 +4731,7 @@ IF LOCAL
 			IF TALENT:恋人
 				PRINTFORML 「终于醒了吗？」
 				PRINTFORML 「我在这等你好久了，快点起来了」
-				PRINTFORMDL 若鹭姬坐在床上看着正在起床的%MASTERNAME:93%
+				PRINTFORMDL %CALLNAME:TARGET%坐在床上看着正在起床的%MASTERNAME:93%
 				PRINTFORMDL 轻轻的笑了起来
 				PRINTFORML 「好了好了，赶紧起来吧」
 				PRINTFORML 「今天我们一起出去玩吧」
@@ -1531,7 +4739,7 @@ IF LOCAL
 				PRINTFORML 「嗯哼，终于起来了吗」
 				PRINTFORML 「起来起来，这都几点了」
 				PRINTFORML 「再不起来的话，太阳就要晒屁股了」
-				PRINTFORMDL 若鹭姬坐在床边捏了捏%MASTERNAME:93%的脸，笑了起来
+				PRINTFORMDL %CALLNAME:TARGET%坐在床边捏了捏%MASTERNAME:93%的脸，笑了起来
 				PRINTFORML 「今天我们一起出去走走吧」
 				PRINTFORML 「我还是很期待你带我出去玩的哦」
 			ENDIF
@@ -1551,32 +4759,32 @@ IF LOCAL
 			IF CFLAG:93:1001 >= 1 && CFLAG:93:1001 < 4
 				IF TALENT:恋人 || TALENT:恋慕
 					PRINTFORML 「起床啦，%MASTERNAME:93%快起床啦」
-					PRINTFORMDL %MASTERNAME:93%听到若鹭姬在他的身边喊的声音
-					PRINTFORMDL 就从床上起来伸了个懒腰，看向了若鹭姬
-					PRINTFORMDL 被看的不自然的若鹭姬把头扭开了，红着脸什么也不说
-					PRINTFORMDL 过了一会后，若鹭姬才开口说话
+					PRINTFORMDL %MASTERNAME:93%听到%CALLNAME:TARGET%在他的身边喊的声音
+					PRINTFORMDL 就从床上起来伸了个懒腰，看向了%CALLNAME:TARGET%
+					PRINTFORMDL 被看的不自然的%CALLNAME:TARGET%把头扭开了，红着脸什么也不说
+					PRINTFORMDL 过了一会后，%CALLNAME:TARGET%才开口说话
 					PRINTFORML 「あれ……早上好啊，现在该起床了，你睡太久了」
 					PRINTFORML 「嗯，既然你起来了，那我就先走了」
-					PRINTFORMDL 若鹭姬说完后就立刻离开了%MASTERNAME:93%身边
+					PRINTFORMDL %CALLNAME:TARGET%说完后就立刻离开了%MASTERNAME:93%身边
 					PRINTFORMDL 看样子，是害羞极了
 				ELSEIF TALENT:思慕
 					PRINTFORML 「起床了起床了」
-					PRINTFORMDL %MASTERNAME:93%听到若鹭姬的声音，醒了过来
-					PRINTFORMDL 看到若鹭姬正站在床边一动不动的盯着他看
+					PRINTFORMDL %MASTERNAME:93%听到%CALLNAME:TARGET%的声音，醒了过来
+					PRINTFORMDL 看到%CALLNAME:TARGET%正站在床边一动不动的盯着他看
 					PRINTFORML 「快点快点，快点起床了，这都几点了」
 					PRINTFORML 「希望你下次可以早点醒来，不要赖床」
 					PRINTFORMDL %MASTERNAME:93%也没有说什么，就赶紧从床上起来了
 				ELSE
 					PRINTFORML 「起床了起床了，再不起床我就把你打醒了」
-					PRINTFORMDL %MASTERNAME:93%一醒来就听到若鹭姬那充满威胁的语句
+					PRINTFORMDL %MASTERNAME:93%一醒来就听到%CALLNAME:TARGET%那充满威胁的语句
 					PRINTFORMDL 吓得直抖擞，然后从床上蹦了起来
 					PRINTFORML 「下次我可不喊你起床了，而是直接把你打醒了」
 				ENDIF
 			ELSE
 				IF TALENT:恋人 || TALENT:恋慕
 					PRINTFORML 「%MASTERNAME:93%，你又睡懒觉，快起床啦」
-					PRINTFORMDL 若鹭姬拖着%MASTERNAME:93%的手，试图把%MASTERNAME:93%从床上拉起来
-					PRINTFORMDL 被拉着的%MASTERNAME:93%感到十分的不舒服，又听到若鹭姬的声音
+					PRINTFORMDL %CALLNAME:TARGET%拖着%MASTERNAME:93%的手，试图把%MASTERNAME:93%从床上拉起来
+					PRINTFORMDL 被拉着的%MASTERNAME:93%感到十分的不舒服，又听到%CALLNAME:TARGET%的声音
 					PRINTFORMDL 只好不情不愿的从床上起来了
 					PRINTFORML 「这都几点了，现在才起床，是要把人家饿倒吗」
 					PRINTFORML 「不管怎么说，你终于是起来了」
@@ -1584,7 +4792,7 @@ IF LOCAL
 				ELSEIF TALENT:思慕
 					PRINTFORML 「快点！给我！起来！」
 					PRINTFORMDL %MASTERNAME:93%一个激灵直接从床上蹦了起来
-					PRINTFORMDL 看着非常生气的若鹭姬，%MASTERNAME:93%感到十分的尴尬
+					PRINTFORMDL 看着非常生气的%CALLNAME:TARGET%，%MASTERNAME:93%感到十分的尴尬
 					PRINTFORML 「说了多少次了！别赖床别赖床，你还是在赖床」
 					PRINTFORML 「是不是真的要我给你一点教训你才肯听我的话」
 					PRINTFORMDL %MASTERNAME:93%感觉后背冷汗直冒，不敢说一句话
@@ -1592,10 +4800,10 @@ IF LOCAL
 				ELSE
 					PRINTFORML 「起来起来快起来！」
 					PRINTFORML 「%MASTERNAME:93%你看看，这都几点了，还不快起来！」
-					PRINTFORMDL %MASTERNAME:93%一大早就被若鹭姬吵醒了
+					PRINTFORMDL %MASTERNAME:93%一大早就被%CALLNAME:TARGET%吵醒了
 					PRINTFORML 「说过多少次了，让你早点起来，你次次都睡到这个时候」
 					PRINTFORML 「真的是想让我把你打醒吗！」
-					PRINTFORMDL 看着一脸生气的若鹭姬，%MASTERNAME:93%不敢说一句话
+					PRINTFORMDL 看着一脸生气的%CALLNAME:TARGET%，%MASTERNAME:93%不敢说一句话
 					PRINTFORML 「要是再被我看到你这样，别怪我不客气了」
 				ENDIF
 			ENDIF
@@ -1620,11 +4828,11 @@ IF LOCAL
 					PRINTFORML 「稍微打扫一下就行，谢谢」
 				ELSE
 					PRINTFORML 「起床了，起床了」
-					PRINTFORMDL %MASTERNAME:93%被若鹭姬推醒了
+					PRINTFORMDL %MASTERNAME:93%被%CALLNAME:TARGET%推醒了
 					PRINTFORMDL 然后半睡半醒之间又趴回了床上
 					PRINTFORML 「喂，快起来，这都几点了」
 					PRINTFORML 「再不起来别怪我不客气了」
-					PRINTFORMDL 若鹭姬锲而不舍的推着%MASTERNAME:93%
+					PRINTFORMDL %CALLNAME:TARGET%锲而不舍的推着%MASTERNAME:93%
 					PRINTFORMDL 没有办法，只好起床了
 					PRINTFORML 「终于是起床了，喊你很久了」
 					PRINTFORML 「对了，%MASTERNAME:93%，可以帮我打扫一下房间卫生吗」
@@ -1634,7 +4842,7 @@ IF LOCAL
 			ELSE
 				IF TALENT:恋人 || TALENT:恋慕
 					PRINTFORMDL 「疼疼疼，快住手」
-					PRINTFORMDL %MASTERNAME:93%被若鹭姬扯耳朵扯起来了
+					PRINTFORMDL %MASTERNAME:93%被%CALLNAME:TARGET%扯耳朵扯起来了
 					PRINTFORML 「说了这么多次，你还是这么晚才起」
 					PRINTFORML 「要不是心疼你，不把你推下床」
 					PRINTFORML 「你还这么晚起床，别怪我把你扯起来了」
@@ -1644,7 +4852,7 @@ IF LOCAL
 					PRINTFORML 「啪！」
 					PRINTFORMDL %MASTERNAME:93%脸上突然挨了一下，吓得他立刻从床上跳了起来
 					PRINTFORML 「终于起来了，喊你很久了」
-					PRINTFORMDL 看着若鹭姬生气的样子
+					PRINTFORMDL 看着%CALLNAME:TARGET%生气的样子
 					PRINTFORMDL %MASTERNAME:93%下意识的咽了咽口水
 					PRINTFORML 「说了这么多次，你还是这么晚起床」
 					PRINTFORML 「你以后每晚起一次，我就打你一次」
@@ -1654,11 +4862,11 @@ IF LOCAL
 					PRINTFORML 「这是惩罚哦」
 				ELSE
 					PRINTFORML 「快点！起床了！」
-					PRINTFORMDL %MASTERNAME:93%被若鹭姬的吼叫给吓醒了
+					PRINTFORMDL %MASTERNAME:93%被%CALLNAME:TARGET%的吼叫给吓醒了
 					PRINTFORML 「你又睡懒觉，我说了多少次了，早点起床，你就是不听」
 					PRINTFORML 「这次我忍不了了，把你喊醒已经很好了」
 					PRINTFORML 「已经忍住不动手把你打醒了」
-					PRINTFORMDL 看着若鹭姬生气的样子，%MASTERNAME:93%不敢说一句话
+					PRINTFORMDL 看着%CALLNAME:TARGET%生气的样子，%MASTERNAME:93%不敢说一句话
 					PRINTFORML 「既然这样，我就罚你帮我把房间卫生打扫一下」
 					PRINTFORML 「不然，别怪我打你了」
 				ENDIF
@@ -1678,21 +4886,21 @@ IF LOCAL
 				PRINTFORML 「%MASTERNAME:93%，我想请你做点好吃的，好不好~」
 				PRINTFORML 「真的吗？那太好了，谢谢你%MASTERNAME:93%」
 				PRINTFORML 「唔姆唔姆，真好吃」
-				PRINTFORMDL %MASTERNAME:93%刚从床上起来就听到若鹭姬在说梦话，笑了起来
-				PRINTFORMDL 亲了亲若鹭姬的脸之后，就起床准备新一天的计划了
-				PRINTFORMDL 若鹭姬像是察觉到了什么，一把抱住了%MASTERNAME:93%
+				PRINTFORMDL %MASTERNAME:93%刚从床上起来就听到%CALLNAME:TARGET%在说梦话，笑了起来
+				PRINTFORMDL 亲了亲%CALLNAME:TARGET%的脸之后，就起床准备新一天的计划了
+				PRINTFORMDL %CALLNAME:TARGET%像是察觉到了什么，一把抱住了%MASTERNAME:93%
 				PRINTFORMDL 蹭了蹭%MASTERNAME:93%的手后，又躺在床上睡着了
 			ELSEIF TALENT:思慕
 				PRINTFORML 「zzz……」
 				PRINTFORML 「好吃的，给我留点~」
-				PRINTFORMDL %MASTERNAME:93%看着正在说梦话的若鹭姬，无奈的笑了起来
-				PRINTFORMDL 亲了亲若鹭姬的额头后，就起床准备新一天的计划了
-				PRINTFORMDL 若鹭姬像是察觉到了什么，笑了起来
+				PRINTFORMDL %MASTERNAME:93%看着正在说梦话的%CALLNAME:TARGET%，无奈的笑了起来
+				PRINTFORMDL 亲了亲%CALLNAME:TARGET%的额头后，就起床准备新一天的计划了
+				PRINTFORMDL %CALLNAME:TARGET%像是察觉到了什么，笑了起来
 			ELSE
 				PRINTFORML 「zzz…」
-				PRINTFORMDL %MASTERNAME:93%看了一眼正在睡觉的若鹭姬，又看了一眼时间
+				PRINTFORMDL %MASTERNAME:93%看了一眼正在睡觉的%CALLNAME:TARGET%，又看了一眼时间
 				PRINTFORMDL 笑了起来，%MASTERNAME:93%也没多想什么
-				PRINTFORMDL 在不打扰若鹭姬的前提下，从床上起来了
+				PRINTFORMDL 在不打扰%CALLNAME:TARGET%的前提下，从床上起来了
 			ENDIF
 		ELSE
 			IF TALENT:恋人 || TALENT:恋慕
@@ -1700,23 +4908,23 @@ IF LOCAL
 				PRINTFORML 「%MASTERNAME:93%，这次我们去哪里玩好啊，我已经有些迫不及待了」
 				PRINTFORML 「真的吗？那太好了」
 				PRINTFORML 「我们现在就出发吧~」
-				PRINTFORMDL 睡梦中的若鹭姬笑了笑
-				PRINTFORMDL %MASTERNAME:93%看了下正在做美梦的若鹭姬，笑了起来
+				PRINTFORMDL 睡梦中的%CALLNAME:TARGET%笑了笑
+				PRINTFORMDL %MASTERNAME:93%看了下正在做美梦的%CALLNAME:TARGET%，笑了起来
 				PRINTFORMDL 并亲了一下她的额头
 				PRINTFORMDL %MASTERNAME:93%看了看周围的环境，感到十分的无奈
-				PRINTFORMDL 抱怨着自己为什么不和若鹭姬一起打扫干净房间
+				PRINTFORMDL 抱怨着自己为什么不和%CALLNAME:TARGET%一起打扫干净房间
 			ELSEIF TALENT:思慕
 				PRINTFORML 「zzz……」
 				PRINTFORML 「别走，再陪我一会吧，zzz……」
-				PRINTFORMDL %MASTERNAME:93%从床上坐了起来，摸了摸若鹭姬的头，笑了起来
+				PRINTFORMDL %MASTERNAME:93%从床上坐了起来，摸了摸%CALLNAME:TARGET%的头，笑了起来
 				PRINTFORMDL 起床伸懒腰的同时，看了看周围的环境，无奈的笑了起来
 				PRINTFORMDL 因为…太脏了
 				PRINTFORMDL 抱怨自己为什么不打扫干净房间卫生再去玩
 			ELSE
 				PRINTFORML 「zzz…」
-				PRINTFORMDL %MASTERNAME:93%看了一眼还在睡梦中的若鹭姬，笑了起来
+				PRINTFORMDL %MASTERNAME:93%看了一眼还在睡梦中的%CALLNAME:TARGET%，笑了起来
 				PRINTFORMDL 又看了看周围，瞬间苦恼了起来
-				PRINTFORMDL 想怎么解决房间的卫生问题，同时抱怨自己和若鹭姬玩的太开心
+				PRINTFORMDL 想怎么解决房间的卫生问题，同时抱怨自己和%CALLNAME:TARGET%玩的太开心
 				PRINTFORMDL 没有好好打扫房间卫生
 			ENDIF
 		ENDIF
@@ -1740,19 +4948,19 @@ IF LOCAL
 				PRINTFORML 「睡得可真舒服啊~」
 				PRINTFORML 「哎，%MASTERNAME:93%你来了啊，今天你又要去什么地方呢？」
 				PRINTFORML 「我想和你一起去，可以吗？」
-				PRINTFORMDL 若鹭姬一边起床一边和%MASTERNAME:93%说话，用充满期待的眼神望着%MASTERNAME:93%，希望%MASTERNAME:93%可以带她一起出去
+				PRINTFORMDL %CALLNAME:TARGET%一边起床一边和%MASTERNAME:93%说话，用充满期待的眼神望着%MASTERNAME:93%，希望%MASTERNAME:93%可以带她一起出去
 			ELSEIF TALENT:恋慕
 				PRINTFORML 「睡得可真舒服啊~」
 				PRINTFORML 「哎，%MASTERNAME:93%你来了啊，今天你又要去什么地方呢？」
 				PRINTFORML 「我想和你一起去，可以吗？」
-				PRINTFORMDL 若鹭姬一边起床一边和%MASTERNAME:93%说话，用充满期待的眼神望着%MASTERNAME:93%，希望%MASTERNAME:93%可以带她一起出去
+				PRINTFORMDL %CALLNAME:TARGET%一边起床一边和%MASTERNAME:93%说话，用充满期待的眼神望着%MASTERNAME:93%，希望%MASTERNAME:93%可以带她一起出去
 			ELSEIF TALENT:思慕
 				PRINTFORML 「啊~睡得好舒服啊。%MASTERNAME:93%你来了啊。
 				PRINTFORML 早上好，今天你又要去哪里玩呢，记得回来的时候和我说一下你在外面遇到了什么令你很开心的事哦「
-				PRINTFORMDL 若鹭姬一边起床一边和%MASTERNAME:93%说话，鱼鳍不停的上下摇摆着，很是期待%MASTERNAME:93%回来的时候能讲述一下他所遇到的趣事
+				PRINTFORMDL %CALLNAME:TARGET%一边起床一边和%MASTERNAME:93%说话，鱼鳍不停的上下摇摆着，很是期待%MASTERNAME:93%回来的时候能讲述一下他所遇到的趣事
 			ELSE
 				PRINTFORML 「嗯~，%MASTERNAME:93%早上好」
-				PRINTFORMDL 若鹭姬一边起床一边和%MASTERNAME:93%打招呼
+				PRINTFORMDL %CALLNAME:TARGET%一边起床一边和%MASTERNAME:93%打招呼
 				PRINTFORML 「不过，下次如果要来我的房间的话，记得和我说一声哦
 				PRINTFORML 这样闯进别人的房间，是很不礼貌的」
 			ENDIF
@@ -1792,7 +5000,7 @@ IF LOCAL
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
-	;自室に帰る（定時になって寝る）
+	;回到自己的房间（准时睡觉）
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
 	;-------------------------------------------------
@@ -1802,7 +5010,7 @@ IF LOCAL
 			CASE 0
 				PRINTFORML 「啊~呜」
 				PRINTFORML 「都这个时间点了，我先回去了啊」
-				PRINTFORMDL 若鹭姬可爱的打了个哈欠，又用手挠了挠她那微蓝的头发
+				PRINTFORMDL %CALLNAME:TARGET%可爱的打了个哈欠，又用手挠了挠她那微蓝的头发
 				PRINTFORML 「有什么事的话，明天再说吧」
 				PRINTFORML 「明天见%MASTERNAME:93%」
 			CASE 1
@@ -1811,7 +5019,7 @@ IF LOCAL
 				PRINTFORML 「啊？你想和我一起回房间吗？」
 				PRINTFORML 「不用了不用了，我自己一个人就可以了」
 				PRINTFORML 「再见了%MASTERNAME:93%」
-				PRINTFORMDL 若鹭姬摸了摸她那发烫的脸，飞走了
+				PRINTFORMDL %CALLNAME:TARGET%摸了摸她那发烫的脸，飞走了
 			ENDSELECT
 		ELSEIF TALENT:恋慕
 			SELECTCASE RAND:2
@@ -1822,13 +5030,13 @@ IF LOCAL
 				PRINTFORML 「哎，你也想和我一起回去吗？」
 				PRINTFORML 「虽然我很想，但还是算了」
 				PRINTFORML 「我先回去了，再见」
-				PRINTFORMDL 若鹭姬向%MASTERNAME:93%摇了摇手，就回去了
+				PRINTFORMDL %CALLNAME:TARGET%向%MASTERNAME:93%摇了摇手，就回去了
 			CASE 1
 				PRINTFORML 「啊啊，%MASTERNAME:93%，现在几点了」
-				PRINTFORMDL 若鹭姬看了看周围，发现已经完全黑下来了
+				PRINTFORMDL %CALLNAME:TARGET%看了看周围，发现已经完全黑下来了
 				PRINTFORMDL %MASTERNAME:93%看了看时间，已经{TIME/60}了
 				PRINTFORML 「那那，那我先回去了，明天再见！」
-				PRINTFORMDL 若鹭姬匆匆忙忙的赶回家去了
+				PRINTFORMDL %CALLNAME:TARGET%匆匆忙忙的赶回家去了
 				PRINTFORMDL 看样子，应该是到睡觉时间了
 			ENDSELECT
 		ENDIF
@@ -1837,15 +5045,15 @@ IF LOCAL
 			CASE 0
 				PRINTFORML 「嗯……该回去准备休息了」
 				PRINTFORML 「%MASTERNAME:93%，今天就先到这吧，我们明天再见」
-				PRINTFORMDL 若鹭姬和%MASTERNAME:93%道别后，头也不回的往家里走了
-				PRINTFORMDL %MASTERNAME:93%看着若鹭姬的背影，若有所思
+				PRINTFORMDL %CALLNAME:TARGET%和%MASTERNAME:93%道别后，头也不回的往家里走了
+				PRINTFORMDL %MASTERNAME:93%看着%CALLNAME:TARGET%的背影，若有所思
 			CASE 1
 				PRINTFORML 「哎？到时间了吗？」
-				PRINTFORMDL 若鹭姬看了看周围，已经暗下来了
+				PRINTFORMDL %CALLNAME:TARGET%看了看周围，已经暗下来了
 				PRINTFORML 「呜，时间过的好快啊，不知不觉就到要回家的时间了」
 				PRINTFORML 「那我先走了，%MASTERNAME:93%」
 				PRINTFORML 「明天再见」
-				PRINTFORMDL 若鹭姬向%MASTERNAME:93%摆了摆手，就飞走了
+				PRINTFORMDL %CALLNAME:TARGET%向%MASTERNAME:93%摆了摆手，就飞走了
 			ENDSELECT
 		ELSE
 			SELECTCASE RAND:2
@@ -1854,19 +5062,19 @@ IF LOCAL
 				PRINTFORML 「该回家了啊」
 				PRINTFORML 「明天见%MASTERNAME:93%」
 				PRINTFORML 「希望你明天可以和我说更多有趣的故事」
-				PRINTFORMDL 若鹭姬向%MASTERNAME:93%摆了摆手，就飞回家去了
+				PRINTFORMDL %CALLNAME:TARGET%向%MASTERNAME:93%摆了摆手，就飞回家去了
 			CASE 1
 				PRINTFORML 「%MASTERNAME:93%，这个时间该回家了」
 				PRINTFORML 「我已经习惯了那个作息时间了，有点难改」
-				PRINTFORMDL 若鹭姬挠了挠她那微蓝的头发
+				PRINTFORMDL %CALLNAME:TARGET%挠了挠她那微蓝的头发
 				PRINTFORML 「我先回去了，明天再见」
-				PRINTFORMDL 若鹭姬对%MASTERNAME:93%眨了眨眼睛后
+				PRINTFORMDL %CALLNAME:TARGET%对%MASTERNAME:93%眨了眨眼睛后
 				PRINTFORMDL 就往家的方向飞去了
 			ENDSELECT
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
-	;眠そうにしている
+	;看起来很困
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
 	;-------------------------------------------------
@@ -1876,15 +5084,15 @@ IF LOCAL
 			CASE 0
 				PRINTFORML 「zzz…」
 				PRINTFORML 「啊？%MASTERNAME:93%你刚才有说什么吗」
-				PRINTFORMDL 若鹭姬揉了揉她那睡意朦胧的眼睛，可爱的打了个哈欠
+				PRINTFORMDL %CALLNAME:TARGET%揉了揉她那睡意朦胧的眼睛，可爱的打了个哈欠
 				PRINTFORML 「请继续说吧，我听着呢。」
 				PRINTFORML 「嗯……没问题的」
 			CASE 1
 				PRINTFORML 「啊~嗯……」
-				PRINTFORMDL 若鹭姬挠了挠她那微蓝的头发，可爱的打了个哈欠
+				PRINTFORMDL %CALLNAME:TARGET%挠了挠她那微蓝的头发，可爱的打了个哈欠
 				PRINTFORML 「啊，%MASTERNAME:93%你好，吃过饭了吗？」
-				PRINTFORMDL 看着若鹭姬一脸傻笑的样子，%MASTERNAME:93%忍住了给她的头来一下的冲动
-				PRINTFORMDL 告诉若鹭姬现在已经{TIME/60}
+				PRINTFORMDL 看着%CALLNAME:TARGET%一脸傻笑的样子，%MASTERNAME:93%忍住了给她的头来一下的冲动
+				PRINTFORMDL 告诉%CALLNAME:TARGET%现在已经{TIME/60}
 				PRINTFORML 「啊啊，都这么晚了吗」
 				PRINTFORML 「不好意思啊」
 				PRINTFORML 「那就请你继续说下去吧」
@@ -1894,20 +5102,20 @@ IF LOCAL
 			CASE 0
 				PRINTFORML 「嗯，继续说吧……」
 				PRINTFORML 「zzz……」
-				PRINTFORMDL 若鹭姬又睡过去了
+				PRINTFORMDL %CALLNAME:TARGET%又睡过去了
 				TIME += 10
-				PRINTFORMDL 忍无可忍的%MASTERNAME:93%还是把若鹭姬拍醒了
+				PRINTFORMDL 忍无可忍的%MASTERNAME:93%还是把%CALLNAME:TARGET%拍醒了
 				PRINTFORML 「啊啊，早上好啊%MASTERNAME:93%，吃过饭了吗」
-				PRINTFORMDL 看着%MASTERNAME:93%的脸越来越黑，若鹭姬的声音也越来越小了
+				PRINTFORMDL 看着%MASTERNAME:93%的脸越来越黑，%CALLNAME:TARGET%的声音也越来越小了
 				PRINTFORML 「对……对不起，我不该在你说话的时候睡觉」
 				PRINTFORML 「原谅我吧！」
-				PRINTFORMDL %MASTERNAME:93%也舍不得动手打若鹭姬，只是用手轻轻的拍了拍若鹭姬的头
+				PRINTFORMDL %MASTERNAME:93%也舍不得动手打%CALLNAME:TARGET%，只是用手轻轻的拍了拍%CALLNAME:TARGET%的头
 				PRINTFORML 「哎？原谅我来吗？太好了」
 				PRINTFORML 「稍微有那么点困，但不影响你继续说下去的」
 				PRINTFORML 「请你继续说吧」
 			CASE 1
 				PRINTFORML 「呜，好困啊~」
-				PRINTFORMDL 看着若鹭姬摇摇欲坠的样子，%MASTERNAME:93%把肩膀借给了若鹭姬
+				PRINTFORMDL 看着%CALLNAME:TARGET%摇摇欲坠的样子，%MASTERNAME:93%把肩膀借给了%CALLNAME:TARGET%
 				PRINTFORMDL 让他靠着肩膀休息一下
 				PRINTFORML 「嗯，谢谢你%MASTERNAME:93%」
 				PRINTFORML 「请你继续说吧，我还能坚持一会儿」
@@ -1916,13 +5124,13 @@ IF LOCAL
 			SELECTCASE RAND:2
 			CASE 0
 				PRINTFORML 「嗯？%MASTERNAME:93%你刚才说什么了吗」
-				PRINTFORMDL 若鹭姬揉了揉她那睡意朦胧的眼睛，可爱的打了个哈欠
+				PRINTFORMDL %CALLNAME:TARGET%揉了揉她那睡意朦胧的眼睛，可爱的打了个哈欠
 				PRINTFORML 「有点困了，明天再说好吗」
 				PRINTFORML 「我感觉我有点撑不住了」
 			CASE 1
 				PRINTFORML 「啊~嗯」
 				PRINTFORML 「好困啊~」
-				PRINTFORMDL 看着若鹭姬摇摇欲坠的样子，%MASTERNAME:93%连忙用自己的手支撑着她
+				PRINTFORMDL 看着%CALLNAME:TARGET%摇摇欲坠的样子，%MASTERNAME:93%连忙用自己的手支撑着她
 				PRINTFORML 「嗯……谢谢」
 				PRINTFORML 「有什么事的话，可以明天再说吗」
 				PRINTFORML 「我感觉我有些撑不住了」
@@ -1932,19 +5140,19 @@ IF LOCAL
 			CASE 0
 				PRINTFORML 「呜，好困啊」
 				PRINTFORML 「%MASTERNAME:93%还有什么事要说的吗？」
-				PRINTFORMDL 若鹭姬的眼睛半闭着，似乎随时都要睡着一样
+				PRINTFORMDL %CALLNAME:TARGET%的眼睛半闭着，似乎随时都要睡着一样
 			CASE 1
 				PRINTFORML 「zzz……」
 				PRINTFORML 「啊啊，说完了吗？」
 				PRINTFORML 「如果说完了的话，那我就先回去休息了」
-				PRINTFORMDL 若鹭姬可爱的打了个哈欠
+				PRINTFORMDL %CALLNAME:TARGET%可爱的打了个哈欠
 			ENDSELECT
 		ENDIF
 		PRINTFORMW 
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
-	;睡眠中（起きていないので会話というよりは寝言？）
+	;睡眠中（因为还没醒，所以与其说是对话，不如说是梦话？）
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
 	;-------------------------------------------------
@@ -1956,15 +5164,15 @@ IF LOCAL
 				PRINTFORML 「%MASTERNAME:93%，不要走好吗」
 				PRINTFORML 「留在这里和我一起睡觉吧」
 				PRINTFORML 「zzzz」
-				PRINTFORMDL 看着熟睡的若鹭姬，%MASTERNAME:93%小心翼翼地把被若鹭姬抱住手抽了出来
-				PRINTFORMDL 又亲了一下若鹭姬的脸，说了一声晚安
+				PRINTFORMDL 看着熟睡的%CALLNAME:TARGET%，%MASTERNAME:93%小心翼翼地把被%CALLNAME:TARGET%抱住手抽了出来
+				PRINTFORMDL 又亲了一下%CALLNAME:TARGET%的脸，说了一声晚安
 			CASE 1
 				PRINTFORMDL %MASTERNAME:93%正准备离开的时候
-				PRINTFORMDL 若鹭姬抓住了他的手
+				PRINTFORMDL %CALLNAME:TARGET%抓住了他的手
 				PRINTFORML 「嗯嗯，うまい」
 				PRINTFORML 「%MASTERNAME:93%还有吗，我还想吃」
 				PRINTFORMDL 看样子，是在做吃的美梦啊
-				PRINTFORMDL 看着若鹭姬那可爱的样子，%MASTERNAME:93%亲了一下她的脸
+				PRINTFORMDL 看着%CALLNAME:TARGET%那可爱的样子，%MASTERNAME:93%亲了一下她的脸
 				PRINTFORMDL 又小心翼翼的把手从她的怀里抽了出来，摸了摸头，说了一声晚安
 			ENDSELECT
 		ELSEIF TALENT:思慕
@@ -1972,26 +5180,26 @@ IF LOCAL
 			CASE 0
 				PRINTFORML 「嗯嗯，好吃的」
 				PRINTFORML 「影狼，你做的东西可真好吃啊」
-				PRINTFORMDL 若鹭姬在床上说着梦话，又舔了舔手指
+				PRINTFORMDL %CALLNAME:TARGET%在床上说着梦话，又舔了舔手指
 				PRINTFORMDL 看样子，是在做吃的美梦啊
 			CASE 1
 				PRINTFORML 「今天我们玩什么啊，影狼？」
 				PRINTFORMDL 远在竹林里的影狼突然打了下喷嚏
-				PRINTFORMDL %MASTERNAME:93%看着正在说梦话的若鹭姬，突然笑了起来
-				PRINTFORMDL 「好好睡吧，若鹭姬」
+				PRINTFORMDL %MASTERNAME:93%看着正在说梦话的%CALLNAME:TARGET%，突然笑了起来
+				PRINTFORMDL 「好好睡吧，%CALLNAME:TARGET%」
 				PRINTFORMDL %MASTERNAME:93%如此说道
 			ENDSELECT
 		ELSE
 			SELECTCASE RAND:2
 			CASE 0
 				PRINTFORML 「嗯哼~嗯哼~」
-				PRINTFORMDL 若鹭姬像是察觉到了什么，用手挠了下脸
-				PRINTFORMDL 看着若鹭姬睡觉的样子，%MASTERNAME:93%不免感到十分可爱
+				PRINTFORMDL %CALLNAME:TARGET%像是察觉到了什么，用手挠了下脸
+				PRINTFORMDL 看着%CALLNAME:TARGET%睡觉的样子，%MASTERNAME:93%不免感到十分可爱
 			CASE 1
 				PRINTFORML 「嗯~真好吃啊~」
-				PRINTFORMDL 若鹭姬像是闻到了什么，傻笑了起来
-				PRINTFORMDL 看着若鹭姬熟睡的样子，不禁笑了起来
-				PRINTFORMDL 「晚安若鹭姬，明天见」
+				PRINTFORMDL %CALLNAME:TARGET%像是闻到了什么，傻笑了起来
+				PRINTFORMDL 看着%CALLNAME:TARGET%熟睡的样子，不禁笑了起来
+				PRINTFORMDL 「晚安%CALLNAME:TARGET%，明天见」
 				PRINTFORMDL %MASTERNAME:93%如此说道
 			ENDSELECT
 		ENDIF
@@ -2027,49 +5235,49 @@ IF LOCAL
 				PRINTFORML 「呜，好累啊」
 				PRINTFORML 「%MASTERNAME:93%，我们先休息一下吧」
 				PRINTFORML 「我有点累的喘不上气了」
-				PRINTFORMDL 若鹭姬一下子坐到了地上，不停的在喘气
+				PRINTFORMDL %CALLNAME:TARGET%一下子坐到了地上，不停的在喘气
 			CASE 1
 				PRINTFORML 「呼哈呼哈」
 				PRINTFORML 「好累啊，我有点站不住了」
-				PRINTFORMDL 若鹭姬一个没站稳，差点摔倒在了地上
-				PRINTFORMDL 幸好%MASTERNAME:93%眼疾手快，把快要摔倒的若鹭姬扶了起来
+				PRINTFORMDL %CALLNAME:TARGET%一个没站稳，差点摔倒在了地上
+				PRINTFORMDL 幸好%MASTERNAME:93%眼疾手快，把快要摔倒的%CALLNAME:TARGET%扶了起来
 				PRINTFORML 「谢谢你%MASTERNAME:93%，我们先休息一下吧，我觉得好累啊」
 			ENDSELECT
 		ELSEIF TALENT:恋慕
 			SELECTCASE RAND:2
 			CASE 0
 				PRINTFORML 「哎哎哎，要摔了要摔了」
-				PRINTFORMDL 在若鹭姬摔倒的前一刻，%MASTERNAME:93%把若鹭姬扶了起来
+				PRINTFORMDL 在%CALLNAME:TARGET%摔倒的前一刻，%MASTERNAME:93%把%CALLNAME:TARGET%扶了起来
 				PRINTFORML 呼，谢谢你%MASTERNAME:93%
 				PRINTFORML 「要不是你扶了我一下，我可能已经摔伤了」
 				PRINTFORML 「用这个来当做礼物送给你或许会更好」
-				PRINTFORMDL 若鹭姬亲了一下%MASTERNAME:93%的脸，随后开心的走开了
+				PRINTFORMDL %CALLNAME:TARGET%亲了一下%MASTERNAME:93%的脸，随后开心的走开了
 				PRINTFORMDL 摸了摸被亲过的脸颊，%MASTERNAME:93%的嘴角不由自主的上扬了
 			CASE 1
 				PRINTFORML 「不行了，站不住了」
 				PRINTFORML 「我需要先休息一下，等会再说吧%MASTERNAME:93%」
-				PRINTFORMDL 若鹭姬随即坐到了地上，闭上眼睛休息了
+				PRINTFORMDL %CALLNAME:TARGET%随即坐到了地上，闭上眼睛休息了
 			ENDSELECT
 		ELSEIF TALENT:思慕
 			SELECTCASE RAND:2
 			CASE 0
 				PRINTFORML 「呼，好累啊」
 				PRINTFORML 「稍微休息一下吧」
-				PRINTFORMDL 说完，若鹭姬就坐到了地上
+				PRINTFORMDL 说完，%CALLNAME:TARGET%就坐到了地上
 			CASE 1
 				PRINTFORML 「呜，好累啊」
 				PRINTFORML 「休息一下，休息一下」
-				PRINTFORMDL 若鹭姬一下子坐到了地上
+				PRINTFORMDL %CALLNAME:TARGET%一下子坐到了地上
 				PRINTFORMDL 随后闭上了眼睛，不知道在想什么
 			ENDSELECT
 		ELSE
 			SELECTCASE RAND:2
 			CASE 0
 				PRINTFORML 「我先休息一下了，等会再说吧」
-				PRINTFORMDL 说完，若鹭姬就坐在地上休息了
+				PRINTFORMDL 说完，%CALLNAME:TARGET%就坐在地上休息了
 			CASE 1
 				PRINTFORML 「呼，休息一下，等会再说吧」
-				PRINTFORMDL 说完，若鹭姬就坐在了地上
+				PRINTFORMDL 说完，%CALLNAME:TARGET%就坐在了地上
 			ENDSELECT
 		ENDIF
 		PRINTFORMW 
@@ -2090,12 +5298,12 @@ IF LOCAL
 				PRINTFORML 「那我送你回房间吧」
 				PRINTFORML 「哎呀，别这么客气了，我们可是恋人哦」
 				PRINTFORML 「是同甘共苦的存在哦」
-				PRINTFORMDL %MASTERNAME:93%明白，若鹭姬无论如何都会把他扶回房间
-				PRINTFORMDL 于是老老实实的让若鹭姬把他背回去
+				PRINTFORMDL %MASTERNAME:93%明白，%CALLNAME:TARGET%无论如何都会把他扶回房间
+				PRINTFORMDL 于是老老实实的让%CALLNAME:TARGET%把他背回去
 				PRINTFORMDL 感觉有点丢人啊~
 			CASE 1
 				PRINTFORML 「怎么了，是累了吗？」
-				PRINTFORMDL 若鹭姬看着坐在地上的%MASTERNAME:93%，感到有些担心
+				PRINTFORMDL %CALLNAME:TARGET%看着坐在地上的%MASTERNAME:93%，感到有些担心
 				PRINTFORML 「嗯……要不我送你回房间吧」
 				PRINTFORML 「哎呀，不用客气啦」
 				PRINTFORML 「互帮互助不是很正常吗」
@@ -2106,18 +5314,18 @@ IF LOCAL
 			SELECTCASE RAND:2
 			CASE 0
 				PRINTFORML 「小心点，%MASTERNAME:93%」
-				PRINTFORMDL 若鹭姬一把扶住了差点摔倒的%MASTERNAME:93%
+				PRINTFORMDL %CALLNAME:TARGET%一把扶住了差点摔倒的%MASTERNAME:93%
 				PRINTFORML 「还好扶住了，不然这么一摔，就摔伤了」
 				PRINTFORML 「我扶你回房间休息一下吧」
 				PRINTFORML 「哎呀，既然累了你就说嘛，不要藏着掖着」
 				PRINTFORML 「我们都已经是这种关系了，不要怕麻烦我」
 				PRINTFORML 「回去之后，要好好休息哦，不然我会很生气的哦」
-				PRINTFORMDL 若鹭姬拍了拍%MASTERNAME:93%的背，笑了起来
+				PRINTFORMDL %CALLNAME:TARGET%拍了拍%MASTERNAME:93%的背，笑了起来
 			CASE 1
 				PRINTFORML 「呼，累了吗」
-				PRINTFORMDL 若鹭姬看着坐在地上的%MASTERNAME:93%，不禁问道
+				PRINTFORMDL %CALLNAME:TARGET%看着坐在地上的%MASTERNAME:93%，不禁问道
 				PRINTFORML 「嗯~我背你回去吧，很快的」
-				PRINTFORMDL %MASTERNAME:93%还想站起来拒绝若鹭姬的好意
+				PRINTFORMDL %MASTERNAME:93%还想站起来拒绝%CALLNAME:TARGET%的好意
 				PRINTFORMDL 但一下子没站稳，摔倒在了地上
 				PRINTFORML 「没事吧」
 				PRINTFORML 「不要逞强了，让我背你回去吧」
@@ -2161,7 +5369,7 @@ IF LOCAL
 							PRINTFORML 「先坐下来吧，我去泡点茶给你喝」
 							TIME += 5
 							PRINTFORML 「试试我泡的茶怎么样吧」
-							PRINTFORMDL 若鹭姬在%MASTERNAME:93%的对面坐了下来
+							PRINTFORMDL %CALLNAME:TARGET%在%MASTERNAME:93%的对面坐了下来
 							PRINTFORMDL 拿起茶杯喝了起来
 							PRINTFORML 「呼，还不错吧」
 							PRINTFORML 「对了，过来找我有什么事吗」
@@ -2174,7 +5382,7 @@ IF LOCAL
 							PRINTFORML 「你怎么来我房间了」
 							PRINTFORML 「不不不，倒不是说不让你来我房间」
 							PRINTFORML 「只是有些好奇，你怎么会来我的房间」
-							PRINTFORMDL 若鹭姬挠了挠她那微蓝的头发，不知道为什么%MASTERNAME:93%会来找她
+							PRINTFORMDL %CALLNAME:TARGET%挠了挠她那微蓝的头发，不知道为什么%MASTERNAME:93%会来找她
 						CASE 1
 							PRINTFORML 「嗯哼，你来了啊%MASTERNAME:93%」
 							PRINTFORML 「今天又有什么事来找我吗？」
@@ -2191,7 +5399,7 @@ IF LOCAL
 							PRINTFORML 「今天来找我有什么事吗？」
 							PRINTFORML 「如果是来找我一起出去玩的话」
 							PRINTFORML 「乐意至极」
-							PRINTFORML 若鹭姬眨了眨眼睛，笑了起来
+							PRINTFORML %CALLNAME:TARGET%眨了眨眼睛，笑了起来
 						CASE 1
 							PRINTFORML 「哎？%MASTERNAME:93%你怎么来了」
 							PRINTFORML 「不不不，我只是好奇你怎么会在我的房间里」
@@ -2219,12 +5427,12 @@ IF LOCAL
 						CASE 0
 							PRINTFORML 「嗯哼？%MASTERNAME:93%你还有什么事要和我说吗」
 							PRINTFORML 「不急不急，坐下来慢慢说」
-							PRINTFORMDL 若鹭姬指了指对面的座位，示意%MASTERNAME:93%坐下
+							PRINTFORMDL %CALLNAME:TARGET%指了指对面的座位，示意%MASTERNAME:93%坐下
 							PRINTFORML 「所以，有什么事吗？」
 						CASE 1
 							PRINTFORML 「%MASTERNAME:93%你好啊，还有什么是要告诉我吗？」
 							PRINTFORML 「先坐下来吧，不急的」
-							PRINTFORMDL 若鹭姬指了指对面的座位，示意%MASTERNAME:93%坐下来慢慢说
+							PRINTFORMDL %CALLNAME:TARGET%指了指对面的座位，示意%MASTERNAME:93%坐下来慢慢说
 							PRINTFORML 「所以，有什么事要来和我说吗」
 						ENDSELECT
 					ELSEIF TALENT:恋慕
@@ -2282,12 +5490,12 @@ IF LOCAL
 					PRINTFORML 「好累啊~」
 					PRINTFORML 「我先休息了，如果有什么事的话，明天再说」
 					PRINTFORML 「我就先睡了，明天见~」
-					PRINTFORMDL 若鹭姬可爱的打了个哈欠后，就睡下了
+					PRINTFORMDL %CALLNAME:TARGET%可爱的打了个哈欠后，就睡下了
 				CASE 1
 					PRINTFORML 「呜，好困啊」
 					PRINTFORML 「我先休息了，我已经撑不住了」
 					PRINTFORML 「明天再见~」
-					PRINTFORMDL 若鹭姬躺在床上已经有些睁不开眼了
+					PRINTFORMDL %CALLNAME:TARGET%躺在床上已经有些睁不开眼了
 					PRINTFORMDL 没过一会，就睡着了
 				ENDSELECT
 			ELSEIF TALENT:恋慕
@@ -2295,11 +5503,11 @@ IF LOCAL
 				CASE 0
 					PRINTFORML 「我先去休息了，有什么事明天再说吧」
 					PRINTFORML 「哈呜~好累啊」
-					PRINTFORMDL 若鹭姬揉了揉眼睛，躺在床上就睡着了
+					PRINTFORMDL %CALLNAME:TARGET%揉了揉眼睛，躺在床上就睡着了
 				CASE 1
 					PRINTFORML 「嗯……%MASTERNAME:93%你还有什么事要说吗」
 					PRINTFORML 「没有的话我先去休息了」
-					PRINTFORMDL 若鹭姬可爱的打了个哈欠
+					PRINTFORMDL %CALLNAME:TARGET%可爱的打了个哈欠
 					PRINTFORML 「玩了一天了，你也早点休息吧」
 					PRINTFORML 「我先睡了，明天见」
 				ENDSELECT
@@ -2337,9 +5545,9 @@ IF LOCAL
 					PRINTFORML 「请你出去一下」
 					PRINTFORML 「有什么事等会再说」
 					PRINTFORML 「现在我有事要做，请你快点离开这里」
-					PRINTFORMDL 若鹭姬把%MASTERNAME:93%推出了房间
+					PRINTFORMDL %CALLNAME:TARGET%把%MASTERNAME:93%推出了房间
 				CASE 1
-					PRINTFORMDL 若鹭姬看到%MASTERNAME:93%后
+					PRINTFORMDL %CALLNAME:TARGET%看到%MASTERNAME:93%后
 					PRINTFORMDL 二话不说，把%MASTERNAME:93%推出了房间
 					PRINTFORML 「有什么事等会再说，我现在还有事要做」
 				ENDSELECT
@@ -2348,31 +5556,31 @@ IF LOCAL
 				CASE 0
 					PRINTFORML 「出去出去出去」
 					PRINTFORML 「我现在忙着呢，等会再过来吧」
-					PRINTFORMDL 若鹭姬半推半请的把%MASTERNAME:93%请出了房间
+					PRINTFORMDL %CALLNAME:TARGET%半推半请的把%MASTERNAME:93%请出了房间
 				CASE 1
 					PRINTFORML 「快出去，不要进来！」
-					PRINTFORMDL 若鹭姬直接把%MASTERNAME:93%推出了房间
+					PRINTFORMDL %CALLNAME:TARGET%直接把%MASTERNAME:93%推出了房间
 					PRINTFORML 「我还有事要做，请你等会再来我的房间」
 				ENDSELECT
 			ELSEIF TALENT:思慕
 				SELECTCASE RAND:2
 				CASE 0
 					PRINTFORML 「请你！给我！出去！」
-					PRINTFORMDL 若鹭姬直接下了逐客令，把%MASTERNAME:93%赶出了房间
+					PRINTFORMDL %CALLNAME:TARGET%直接下了逐客令，把%MASTERNAME:93%赶出了房间
 					PRINTFORML 「有什么事等会再来说！我现在正忙着呢！」
 				CASE 1
-					PRINTFORMDL 若鹭姬看到%MASTERNAME:93%进来，二话不说就把他赶了出去
+					PRINTFORMDL %CALLNAME:TARGET%看到%MASTERNAME:93%进来，二话不说就把他赶了出去
 					PRINTFORML 「等会再来吧，我有事要做」
 				ENDSELECT
 			ELSE
 				SELECTCASE RAND:2
 				CASE 0
-					PRINTFORMDL 若鹭姬什么也没说，直接把%MASTERNAME:93%推出了房间
+					PRINTFORMDL %CALLNAME:TARGET%什么也没说，直接把%MASTERNAME:93%推出了房间
 					PRINTFORML 「请你等会再来，我现在还有事要做」
 				CASE 1
 					PRINTFORML 「出去出去出去，赶紧的」
 					PRINTFORML 「我现在有事要做，请你等会再来」
-					PRINTFORMDL 若鹭姬把%MASTERNAME:93%赶出去之后，又开始忙东忙西了
+					PRINTFORMDL %CALLNAME:TARGET%把%MASTERNAME:93%赶出去之后，又开始忙东忙西了
 				ENDSELECT
 			ENDIF
 			RETURN 1
@@ -2387,7 +5595,7 @@ IF LOCAL
 				SELECTCASE RAND:2
 				CASE 0
 					PRINTFORML 「别做这些事了，快点睡觉吧」
-					PRINTFORMDL 若鹭姬揉了揉她那睡意朦胧的眼睛，可爱的打了个哈欠
+					PRINTFORMDL %CALLNAME:TARGET%揉了揉她那睡意朦胧的眼睛，可爱的打了个哈欠
 					PRINTFORML 「你要是想做，我什么时候拒绝过你啊~」
 					PRINTFORML 「先睡觉吧，等醒了再说」
 				CASE 1
@@ -2411,7 +5619,7 @@ IF LOCAL
 				SELECTCASE RAND:2
 				CASE 0
 					PRINTFORML 「现在是睡觉时间，明天再做，可以吗？」
-					PRINTFORMDL 若鹭姬用手轻轻拍了下%MASTERNAME:93%的脸后，又睡着了
+					PRINTFORMDL %CALLNAME:TARGET%用手轻轻拍了下%MASTERNAME:93%的脸后，又睡着了
 				CASE 1
 					PRINTFORML 「呜，好好睡觉可以吗%MASTERNAME:93%？」
 					PRINTFORML 「明天还有事要做呢，这些事先放下，以后再做也不迟啊」
@@ -2452,7 +5660,7 @@ IF LOCAL
 				PRINTFORML 「zzzz」
 			CASE 1
 				PRINTFORML 「%MASTERNAME:93%，休息一下吧，已经很晚了」
-				PRINTFORMDL 若鹭姬侧着身子望向%MASTERNAME:93%，稍微揉了揉眼睛
+				PRINTFORMDL %CALLNAME:TARGET%侧着身子望向%MASTERNAME:93%，稍微揉了揉眼睛
 				PRINTFORML 「有什么事明天再说吧，我现在只想睡觉」
 				PRINTFORML 「我先睡了，明天见」
 				PRINTFORML 「zzzz」
@@ -2466,7 +5674,7 @@ IF LOCAL
 				PRINTFORML 「我先睡了」
 			CASE 1
 				PRINTFORML 「嗯？有什么事吗？」
-				PRINTFORMDL 若鹭姬看了看放在旁边的闹钟，又看了看%MASTERNAME:93%
+				PRINTFORMDL %CALLNAME:TARGET%看了看放在旁边的闹钟，又看了看%MASTERNAME:93%
 				PRINTFORML 「都已经这么晚了，还不去休息吗」
 				PRINTFORML 「是吗……那我就不打扰你了，我先睡觉了」
 				PRINTFORML 「明天见」
@@ -2519,11 +5727,11 @@ IF LOCAL
 				SELECTCASE RAND:2
 				CASE 0
 					PRINTFORML ………………
-					PRINTFORMDL 看到%MASTERNAME:93%停了下来，若鹭姬什么也没说
+					PRINTFORMDL 看到%MASTERNAME:93%停了下来，%CALLNAME:TARGET%什么也没说
 					PRINTFORMDL 只是冷冷地看了他一眼，就扭过头去了
 					PRINTFORMDL （需要怎么做才能让她原谅我呢？）
 				CASE 1
-					PRINTFORMDL （若鹭姬还是一如既往的冷眼对我啊）
+					PRINTFORMDL （%CALLNAME:TARGET%还是一如既往的冷眼对我啊）
 					PRINTFORMDL （怎么做才能恢复我们以前的关系呢？）
 				ENDSELECT
 			ELSEIF TALENT:恋慕
@@ -2631,11 +5839,11 @@ IF LOCAL
 			ELSEIF TALENT:恋慕
 				SELECTCASE RAND:2
 				CASE 0
-					PRINTFORMDL 若鹭姬看了一眼%MASTERNAME:93%后，就把头扭了过去了
+					PRINTFORMDL %CALLNAME:TARGET%看了一眼%MASTERNAME:93%后，就把头扭了过去了
 					PRINTFORML 「请你离开这里，谢谢」
 					PRINTFORML 「我现在不想见到你」
 				CASE 1
-					PRINTFORMDL 若鹭姬冷冷地看着%MASTERNAME:93%，一句话也没说
+					PRINTFORMDL %CALLNAME:TARGET%冷冷地看着%MASTERNAME:93%，一句话也没说
 					PRINTFORMDL （唉，不知道什么时候她才会原谅我呢？）
 					PRINTFORMDL %MASTERNAME:93%如此想道
 				ENDSELECT
@@ -2643,9 +5851,9 @@ IF LOCAL
 				SELECTCASE RAND:2
 				CASE 0
 					PRINTFORML ……………………
-					PRINTFORMDL 意识到%MASTERNAME:93%的到来，若鹭姬一句话也没说
+					PRINTFORMDL 意识到%MASTERNAME:93%的到来，%CALLNAME:TARGET%一句话也没说
 					PRINTFORMDL 只是把身体转了过去。
-					PRINTFORMDL 看样子，若鹭姬还是很生气啊~
+					PRINTFORMDL 看样子，%CALLNAME:TARGET%还是很生气啊~
 				CASE 1
 					PRINTFORML 「嗯……」
 					PRINTFORML 「能请你，离开这里吗？」
@@ -2656,7 +5864,7 @@ IF LOCAL
 				SELECTCASE RAND:2
 				CASE 0
 					PRINTFORML 「请你离开这里，谢谢」
-					PRINTFORMDL 说完，若鹭姬就扭过头去，看都不看%MASTERNAME:93%一眼
+					PRINTFORMDL 说完，%CALLNAME:TARGET%就扭过头去，看都不看%MASTERNAME:93%一眼
 					PRINTFORMDL （这样的日子什么时候才能结束啊……）
 				CASE 1
 					PRINTFORMDL （什么也没说啊……看来她还是很生气）
@@ -2683,7 +5891,7 @@ IF LOCAL
 					PRINTFORML 「那好吧」
 				CASE 1
 					PRINTFORML 「怎么了%MASTERNAME:93%，有事来找我吗？」
-					PRINTFORMDL 若鹭姬一脸疑惑地看着%MASTERNAME:93%
+					PRINTFORMDL %CALLNAME:TARGET%一脸疑惑地看着%MASTERNAME:93%
 				ENDSELECT
 			ELSEIF TALENT:思慕
 				SELECTCASE RAND:2
@@ -2719,11 +5927,11 @@ IF LOCAL
 			IF TALENT:恋人
 				SELECTCASE RAND:2
 				CASE 0
-					PRINTFORMDL 若鹭姬看了一眼后，把头扭了过去
+					PRINTFORMDL %CALLNAME:TARGET%看了一眼后，把头扭了过去
 					PRINTFORMDL （唉，什么时候能回到以前呢？）
 					PRINTFORMDL （希望用不了多久，她就会消气了）
 				CASE 1
-					PRINTFORML 若鹭姬什么也没说，只是冷冷地看着%MASTERNAME:93%
+					PRINTFORML %CALLNAME:TARGET%什么也没说，只是冷冷地看着%MASTERNAME:93%
 					PRINTFORML （好冷，被盯着有点难受啊）
 					PRINTFORML （希望她消气之后，不再用这种眼神看着我）
 				ENDSELECT
@@ -2734,8 +5942,8 @@ IF LOCAL
 					PRINTFORML 「快点离开我的视野啊！」
 				CASE 1
 					PRINTFORML 「快走吧！我不想见到你！」
-					PRINTFORMDL 看着若鹭姬那生气的神情，%MASTERNAME:93%也不敢在此逗留太久
-					PRINTFORMDL 匆匆地离开了若鹭姬的视野里
+					PRINTFORMDL 看着%CALLNAME:TARGET%那生气的神情，%MASTERNAME:93%也不敢在此逗留太久
+					PRINTFORMDL 匆匆地离开了%CALLNAME:TARGET%的视野里
 				ENDSELECT
 			ELSEIF TALENT:思慕
 				SELECTCASE RAND:2
@@ -2745,7 +5953,7 @@ IF LOCAL
 					PRINTFORMDL （得想个办法让她消消气才行）
 					PRINTFORMDL （不然以后有的我好受的了）
 				CASE 1
-					PRINTFORMDL 若鹭姬看都不看%MASTERNAME:93%一眼，自顾自的在那边哼歌
+					PRINTFORMDL %CALLNAME:TARGET%看都不看%MASTERNAME:93%一眼，自顾自的在那边哼歌
 					PRINTFORMDL （又不理我了，看来她还是对我很生气啊）
 					PRINTFORMDL （有什么办法能让她消消气呢？）
 					PRINTFORMDL （带她出去玩玩？可能会好点）
@@ -2753,7 +5961,7 @@ IF LOCAL
 			ELSE
 				SELECTCASE RAND:2
 				CASE 0
-					PRINTFORMDL （哎？若鹭姬怎么看都不看我一眼啊）
+					PRINTFORMDL （哎？%CALLNAME:TARGET%怎么看都不看我一眼啊）
 					PRINTFORMDL （看来她还是对之前那件事很生气啊……）
 					PRINTFORMDL （以现在的关系，她也不会跟我出去玩……）
 				CASE 1
@@ -2771,7 +5979,7 @@ IF LOCAL
 					PRINTFORMDL （看来还是对之前的事生气啊）
 					PRINTFORMDL （不过态度比之前好了，加油吧！%MASTERNAME:93%）
 				CASE 1
-					PRINTFORMDL （哎？若鹭姬好像看了我一眼唉）
+					PRINTFORMDL （哎？%CALLNAME:TARGET%好像看了我一眼唉）
 					PRINTFORMDL （看来她对之前的事没那么生气了）
 					PRINTFORMDL （用不了多久，她就会消气了！）
 					PRINTFORMDL （加油！）
@@ -2815,7 +6023,7 @@ IF LOCAL
 					PRINTFORMDL （希望她早点消气吧）
 				CASE 1
 					PRINTFORML 「看什么看，快点离开这边吧！」
-					PRINTFORMDL 若鹭姬恶狠狠地看了眼%MASTERNAME:93%，随后把头扭过去了
+					PRINTFORMDL %CALLNAME:TARGET%恶狠狠地看了眼%MASTERNAME:93%，随后把头扭过去了
 					PRINTFORMDL （哎？怎么又生气了，之前不还好好的吗？）
 					PRINTFORMDL （她的脾气，好奇怪啊）
 					PRINTFORMDL （希望她早点消气吧）
@@ -2845,7 +6053,7 @@ IF LOCAL
 					PRINTFORML 「我不应该生气地把他赶走吗？」
 					PRINTFORML 「这是怎么回事啊……」
 				CASE 1
-					PRINTFORMDL 若鹭姬也跟着点了点头
+					PRINTFORMDL %CALLNAME:TARGET%也跟着点了点头
 					PRINTFORML 「慢着，我怎么也跟着点头了」
 					PRINTFORML 「我不是对他很生气吗？」
 					PRINTFORML 「我怎么会和他打招呼呢？」
@@ -2861,7 +6069,7 @@ IF LOCAL
 					PRINTFORMDL （希望早点可以消气吧）
 				CASE 1
 					PRINTFORML 「走吧走吧走吧，我不想和你说话」
-					PRINTFORMDL 若鹭姬摆了摆手，扭过头去了
+					PRINTFORMDL %CALLNAME:TARGET%摆了摆手，扭过头去了
 					PRINTFORMDL （还是生气啊……）
 					PRINTFORMDL （希望我最近所做的那些事）
 					PRINTFORMDL （能让她早点消气吧）
@@ -2935,7 +6143,7 @@ IF LOCAL
 					PRINTFORML 「不要出现在我的面前了！」
 					PRINTFORML 「我讨厌你！」
 				CASE 1
-					PRINTFORMDL 若鹭姬也不看%MASTERNAME:93%一眼，
+					PRINTFORMDL %CALLNAME:TARGET%也不看%MASTERNAME:93%一眼，
 					PRINTFORMDL 只不过原本欢快的曲子也随之消失不见了
 				ENDSELECT
 			ELSEIF TALENT:恋慕
@@ -2945,7 +6153,7 @@ IF LOCAL
 					PRINTFORML 「我不想见到你！」
 					PRINTFORML 「见到你我就心烦！」
 				CASE 1
-					PRINTFORMDL 若鹭姬还想向%MASTERNAME:93%扔一块石头以表示不满的
+					PRINTFORMDL %CALLNAME:TARGET%还想向%MASTERNAME:93%扔一块石头以表示不满的
 					PRINTFORMDL 不过后来想了想，有可能会砸到其他人
 					PRINTFORMDL 就没有动手了
 				ENDSELECT
@@ -2954,15 +6162,15 @@ IF LOCAL
 				CASE 0
 					PRINTFORML 「祝你，玩！得！开！こころ！」
 					PRINTFORMDL 最后一个字整整持续吼了有一分钟那么久
-					PRINTFORMDL 说明了若鹭姬到现在都还在对%MASTERNAME:93%所作所为感到生气
+					PRINTFORMDL 说明了%CALLNAME:TARGET%到现在都还在对%MASTERNAME:93%所作所为感到生气
 				CASE 1
-					PRINTFORMDL 若鹭姬向%MASTERNAME:93%丢了一小块石头
+					PRINTFORMDL %CALLNAME:TARGET%向%MASTERNAME:93%丢了一小块石头
 					PRINTFORMDL 但距离太远，并没有打到
 				ENDSELECT
 			ELSE
 				SELECTCASE RAND:2
 				CASE 0
-					PRINTFORMDL 若鹭姬仅仅只是看了一眼%MASTERNAME:93%的背影
+					PRINTFORMDL %CALLNAME:TARGET%仅仅只是看了一眼%MASTERNAME:93%的背影
 					PRINTFORMDL 就有了一种想冲上去打他的冲动了
 					PRINTFORMDL 不过她附近有好几个人看着
 					PRINTFORMDL 只好按捺住性子，继续坐在原地哼歌了
@@ -2978,7 +6186,7 @@ IF LOCAL
 				CASE 0
 					PRINTFORML 「哼，快走吧」
 					PRINTFORML 「我怕我还是忍不住打你」
-					PRINTFORMDL 若鹭姬对%MASTERNAME:93%的背影挥了挥拳头
+					PRINTFORMDL %CALLNAME:TARGET%对%MASTERNAME:93%的背影挥了挥拳头
 				CASE 1
 					PRINTFORML 「快点离开这里吧！」
 					PRINTFORML 「不然我就动手打你了哦！」
@@ -2986,7 +6194,7 @@ IF LOCAL
 			ELSEIF TALENT:恋慕
 				SELECTCASE RAND:2
 				CASE 0
-					PRINTFORMDL 若鹭姬只是冷冷地看了%MASTERNAME:93%一眼
+					PRINTFORMDL %CALLNAME:TARGET%只是冷冷地看了%MASTERNAME:93%一眼
 					PRINTFORMDL 随后又哼起了歌
 				CASE 1
 					PRINTFORML 「哼，懒得说什么了」
@@ -2996,20 +6204,20 @@ IF LOCAL
 			ELSEIF TALENT:思慕
 				SELECTCASE RAND:2
 				CASE 0
-					PRINTFORMDL 若鹭姬也看都不看%MASTERNAME:93%一眼
+					PRINTFORMDL %CALLNAME:TARGET%也看都不看%MASTERNAME:93%一眼
 					PRINTFORMDL 只是在原地哼起了歌，但歌声变得有种生气的意味
 				CASE 1
 					PRINTFORML 「哦，祝你玩的开心，再见」
-					PRINTFORMDL 若鹭姬冷冷地对着%MASTERNAME:93%的背影说
+					PRINTFORMDL %CALLNAME:TARGET%冷冷地对着%MASTERNAME:93%的背影说
 				ENDSELECT
 			ELSE
 				SELECTCASE RAND:2
 				CASE 0
 					PRINTFORML 「哼，走吧走吧，不要来找我了！」
-					PRINTFORMDL 若鹭姬生气地把头扭了过去，看都不看%MASTERNAME:93%一眼
-					PRINTFORMDL 看来，短时间内都很难让若鹭姬消气了
+					PRINTFORMDL %CALLNAME:TARGET%生气地把头扭了过去，看都不看%MASTERNAME:93%一眼
+					PRINTFORMDL 看来，短时间内都很难让%CALLNAME:TARGET%消气了
 				CASE 1
-					PRINTFORMDL 若鹭姬朝%MASTERNAME:93%的背影丢了块石头
+					PRINTFORMDL %CALLNAME:TARGET%朝%MASTERNAME:93%的背影丢了块石头
 					PRINTFORMDL 不过没扔中，只能愤愤地看着他离开
 				ENDSELECT
 			ENDIF
@@ -3033,7 +6241,7 @@ IF LOCAL
 					PRINTFORML 「我已经没有什么想说的了」
 					PRINTFORML 「你爱怎么做就怎么做吧」
 				CASE 1
-					PRINTFORMDL 若鹭姬轻轻地拍了一下%MASTERNAME:93%
+					PRINTFORMDL %CALLNAME:TARGET%轻轻地拍了一下%MASTERNAME:93%
 					PRINTFORMDL 单纯只是表达自己的不满，并没有伤害他
 					PRINTFORML 「记得早点回来和我解释清楚啊……」
 				ENDSELECT
@@ -3049,7 +6257,7 @@ IF LOCAL
 			ELSE
 				SELECTCASE RAND:2
 				CASE 0
-					PRINTFORMDL 若鹭姬看着%MASTERNAME:93%的背影，低下了头
+					PRINTFORMDL %CALLNAME:TARGET%看着%MASTERNAME:93%的背影，低下了头
 					PRINTFORMDL 不知道她现在到底在想什么呢？
 				CASE 1
 					PRINTFORML 「祝你玩的开心……」
@@ -3068,7 +6276,7 @@ IF LOCAL
 				CASE 1
 					PRINTFORML 「记得早点回来哦」
 					PRINTFORML 「我还想听你和我讲故事的」
-					PRINTFORMDL 若鹭姬向%MASTERNAME:93%的背影摆了摆手
+					PRINTFORMDL %CALLNAME:TARGET%向%MASTERNAME:93%的背影摆了摆手
 				ENDSELECT
 			ELSEIF TALENT:恋慕
 				SELECTCASE RAND:2
@@ -3077,7 +6285,7 @@ IF LOCAL
 					PRINTFORML 「算了算了，估计是有什么重要的事要先去处理吧」
 				CASE 1
 					PRINTFORML 「喂~记得早点回来哦~」
-					PRINTFORMDL 听到若鹭姬在他背后大喊的声音，不禁笑了起来
+					PRINTFORMDL 听到%CALLNAME:TARGET%在他背后大喊的声音，不禁笑了起来
 					PRINTFORMDL 向后摆了摆手，表示会早点回来的
 				ENDSELECT
 			ELSEIF TALENT:思慕
@@ -3096,7 +6304,7 @@ IF LOCAL
 					PRINTFORMDL %MASTERNAME:93%摆了摆手
 				CASE 1
 					PRINTFORML 「呜，怎么看都不看我一眼啊」
-					PRINTFORMDL 若鹭姬失落地低下了头
+					PRINTFORMDL %CALLNAME:TARGET%失落地低下了头
 				ENDSELECT
 			ENDIF
 		ENDIF
@@ -3156,9 +6364,9 @@ IF LOCAL
 					PRINTFORML 「还好啦，因为有%MASTERNAME:93%在这里和我玩」
 					PRINTFORMDL 「挺好的挺好的，%MASTERNAME:93%你好啊」
 					PRINTFORMDL 「今天天气这么好，我们一起出去玩好不好」
-					PRINTFORMDL 看着影狼光明正大地约%MASTERNAME:93%出去，若鹭姬突然感到醋意上头了
+					PRINTFORMDL 看着影狼光明正大地约%MASTERNAME:93%出去，%CALLNAME:TARGET%突然感到醋意上头了
 				CASE 1
-					PRINTFORMDL 「若鹭姬，最近过的怎么样啊」
+					PRINTFORMDL 「%CALLNAME:TARGET%，最近过的怎么样啊」
 					PRINTFORML 「挺好的，因为有%MASTERNAME:93%陪我玩」
 					PRINTFORMDL 「嗯？%MASTERNAME:93%现在在哪啊，我刚寻着他的气味来找他的」
 					PRINTFORML 「就在你旁边啊，你不会一直都没注意吧」
@@ -3166,7 +6374,7 @@ IF LOCAL
 					PRINTFORMDL 「别笑了别笑了」
 					PRINTFORMDL 影狼不好意思的挠了挠头发
 					PRINTFORMDL 「一起出去玩吗？好久没和你一起出去玩过了」
-					PRINTFORMDL 听到这，%MASTERNAME:93%看了一眼若鹭姬，发现若鹭姬红着脸，直愣愣地盯着他看
+					PRINTFORMDL 听到这，%MASTERNAME:93%看了一眼%CALLNAME:TARGET%，发现%CALLNAME:TARGET%顔を赤らめている，直愣愣地盯着他看
 					PRINTFORMDL 像是吃醋了一样，可爱极了
 				ENDSELECT
 			ELSE
@@ -3216,11 +6424,11 @@ IF LOCAL
 					PRINTFORMDL 「和你做朋友这么久了，怎么可能会不和你一起玩呢」
 					PRINTFORMDL 「对了，%MASTERNAME:93%在哪啊，我来找他玩了」
 					PRINTFORML 「还说不是来找他玩的，哼」
-					PRINTFORMDL 影狼看着生气的若鹭姬，也就呵呵一笑，不敢说话了
+					PRINTFORMDL 影狼看着生气的%CALLNAME:TARGET%，也就呵呵一笑，不敢说话了
 					PRINTFORML 「算了算了，既然你都这么说了，那%MASTERNAME:93%，我们去哪里玩？」
 				CASE 1
 					PRINTFORML 「影狼，你还是来找%MASTERNAME:93%的吗」
-					PRINTFORMDL 被若鹭姬盯得满身不自在的影狼，尴尬地摇了摇尾巴
+					PRINTFORMDL 被%CALLNAME:TARGET%盯得满身不自在的影狼，尴尬地摇了摇尾巴
 					PRINTFORMDL 「嘿嘿，别这么说嘛鹭鹭，虽然是来找%MASTERNAME:93%的，但也不会把你忘了」
 					PRINTFORMDL 「做了这么久的朋友，什么时候来找你是不和你玩的」
 					PRINTFORML 「算了算了，念在朋友一场，就不找你麻烦了」
@@ -3274,7 +6482,7 @@ IF LOCAL
 						PRINTFORML 「有啊，他在那边，有事找他吗？」
 						PRINTFORMDL 「有点，想问一下他的意见」
 						PRINTFORMDL 「哎，%MASTERNAME:93%你来了啊」
-						PRINTFORMDL 影狼一把抱住了%MASTERNAME:93%，在旁边的若鹭姬感到十分的羡慕
+						PRINTFORMDL 影狼一把抱住了%MASTERNAME:93%，在旁边的%CALLNAME:TARGET%感到十分的羡慕
 						PRINTFORML 「原来你们已经是这种关系了啊，好羡慕啊」
 						PRINTFORML 「我什么时候才能有这么好的朋友呢」
 						PRINTFORMDL 「现在你不就有了吗？来鹭鹭，我们一起去玩吧」
@@ -3304,7 +6512,7 @@ IF LOCAL
 					PRINTFORML 「哎？影狼你要和%MASTERNAME:93%去哪玩？带我一个」
 					PRINTFORMDL 「肯定带的啦，那%MASTERNAME:93%，我们去玩吗？」
 					PRINTFORMDL 影狼走到%MASTERNAME:93%身边，抱住了他的其中一个手臂
-					PRINTFORMDL 此时此景，若鹭姬感觉像是吃醋了一样，恨恨地看着%MASTERNAME:93%
+					PRINTFORMDL 此时此景，%CALLNAME:TARGET%感觉像是吃醋了一样，恨恨地看着%MASTERNAME:93%
 				CASE 1
 					PRINTFORML 「影狼，好久不见，过得怎么样了？」
 					PRINTFORMDL 「还好还好，和以前差不多，看你的样子，最近过的还不错哦」
@@ -3324,7 +6532,7 @@ IF LOCAL
 					PRINTFORMDL 「啊？其实我是想问一下%MASTERNAME:93%什么时候来我家里玩」
 					PRINTFORMDL 「已经有一段时间没看到他来我家玩了」
 					PRINTFORML 「是吗，%MASTERNAME:93%，现在方便吗，过来一下」
-					PRINTFORMDL 在不远处看着湖面的%MASTERNAME:93%，听到若鹭姬的呼喊声后，拍了拍屁股，过去了
+					PRINTFORMDL 在不远处看着湖面的%MASTERNAME:93%，听到%CALLNAME:TARGET%的呼喊声后，拍了拍屁股，过去了
 					PRINTFORML 「我就不打扰你们了，你们说吧，我坐在一旁看着就行了」
 					PRINTFORMDL 「那……好吧」
 				CASE 1
@@ -3371,7 +6579,7 @@ IF LOCAL
 					PRINTFORMDL 「哎呀，你别问这个了，快说一下%MASTERNAME:93%在哪吧」
 					PRINTFORML 「别晃了别晃了，要晕了，快住手！」
 					PRINTFORMDL 「啊，对不起啊鹭鹭，是我太着急了」
-					PRINTFORMDL 若鹭姬晕倒在了地上，晃了晃脑袋，才清醒了过来
+					PRINTFORMDL %CALLNAME:TARGET%晕倒在了地上，晃了晃脑袋，才清醒了过来
 					PRINTFORML 「他就在那边，去吧」
 					PRINTFORMDL 「谢谢鹭鹭了，再见」
 				CASE 1
@@ -3413,7 +6621,7 @@ IF LOCAL
 					PRINTFORML 「对了，话说你还有什么事要找%MASTERNAME:93%的吗？」
 					PRINTFORML 「刚才还说事已经说完了」
 					PRINTFORMDL 「哎呀，别管这么多啦，找他肯定是有事的，我现在过来了」
-					PRINTFORMDL 影狼匆匆地往若鹭姬的方向赶去
+					PRINTFORMDL 影狼匆匆地往%CALLNAME:TARGET%的方向赶去
 				CASE 1
 					PRINTFORMDL 「鹭鹭你好啊，我想问一下，你有看到%MASTERNAME:93%吗？」
 					PRINTFORMDL 「我有事想要和他说一下」
@@ -3494,7 +6702,7 @@ IF LOCAL
 				CASE 1
 					PRINTFORMDL 「鹭鹭~你在哪啊鹭鹭~」
 					PRINTFORML 「我就在你旁边，你在喊什么啊」
-					PRINTFORMDL 若鹭姬用手拍了拍影狼的屁股，没好气的说道
+					PRINTFORMDL %CALLNAME:TARGET%用手拍了拍影狼的屁股，没好气的说道
 					PRINTFORMDL 「嘿嘿，别在意这些细节啦」
 					PRINTFORMDL 「那鹭鹭来玩吗？%MASTERNAME:93%也是，来玩吗」
 					PRINTFORML 「当然，走走走%MASTERNAME:93%，我们去玩啦」
@@ -3669,7 +6877,7 @@ IF LOCAL
 					PRINTFORML 「哼哼哼~」
 					PRINTFORMDL 「鹭鹭，我来找你玩了，你在做什么啊」
 					PRINTFORMDL 「哎哎，%MASTERNAME:93%，鹭鹭在唱什么啊，好好听啊（小声）」
-					PRINTFORMDL %MASTERNAME:93%听着若鹭姬的歌声，表示这首歌是他教的
+					PRINTFORMDL %MASTERNAME:93%听着%CALLNAME:TARGET%的歌声，表示这首歌是他教的
 					PRINTFORMDL 「挺好听的啊，没想到%MASTERNAME:93%你这么多才多艺啊」
 					PRINTFORMDL 「下次教我好吗，我也想学」
 					PRINTFORML 「影狼，你来玩了啊」
@@ -3814,7 +7022,7 @@ IF LOCAL
 					PRINTFORMDL 「听我解释啊鹭鹭」
 					PRINTFORMDL 影狼慌慌张张地和%MASTERNAME:93%分开了
 				CASE 1
-					PRINTFORMDL 若鹭姬什么也不说，直勾勾地盯着%MASTERNAME:93%
+					PRINTFORMDL %CALLNAME:TARGET%什么也不说，直勾勾地盯着%MASTERNAME:93%
 					PRINTFORMDL 旁边的影狼
 					PRINTFORMDL 「鹭鹭，你听我解释，事情不说你想的那样」
 					PRINTFORML 「我懂得，你又发情期了，为了解决私欲，就来找%MASTERNAME:93%了」
@@ -3830,7 +7038,7 @@ IF LOCAL
 					PRINTFORML 「没有理由了是吗，再见！」
 					PRINTFORMDL 「哎哎哎，鹭鹭你等等啊！」
 					PRINTFORMDL 「我只是还没想好该怎么和你说而已，等等啊！」
-					PRINTFORMDL 看到若鹭姬离开，影狼立马从地上蹦了起来，硬是把若鹭姬拉了回来
+					PRINTFORMDL 看到%CALLNAME:TARGET%离开，影狼立马从地上蹦了起来，硬是把%CALLNAME:TARGET%拉了回来
 					PRINTFORMDL 「给我几分钟时间，我想好了会和你说的」
 				CASE 1
 					PRINTFORMDL 「哎？鹭鹭你怎么过来了……」
@@ -3839,30 +7047,30 @@ IF LOCAL
 					PRINTFORMDL 「鹭鹭，你听我解释！」
 					PRINTFORML 「不听！我走了，随便你们！」
 					PRINTFORMDL 「别走啊！快回来啊！」
-					PRINTFORMDL 最终若鹭姬在影狼和%MASTERNAME:93%的拉扯下，留了下来
-					PRINTFORMDL 他们二人也不敢继续在若鹭姬面前做那些事了
+					PRINTFORMDL 最终%CALLNAME:TARGET%在影狼和%MASTERNAME:93%的拉扯下，留了下来
+					PRINTFORMDL 他们二人也不敢继续在%CALLNAME:TARGET%面前做那些事了
 				ENDSELECT
 			ELSEIF TALENT:63:恋人 && TALENT:思慕
 				SELECTCASE RAND:2
 				CASE 0
 					PRINTFORMDL 「哎？鹭鹭，あなた……」
-					PRINTFORMDL 影狼刚回过头，就看到若鹭姬正死死地盯着%MASTERNAME:93%和她自己
+					PRINTFORMDL 影狼刚回过头，就看到%CALLNAME:TARGET%正死死地盯着%MASTERNAME:93%和她自己
 					PRINTFORML 「我？我怎么了，是不是在想我是怎么过来的？」
 					PRINTFORML 「呵呵……呵呵，没想到啊，你们竟然背着我做这样的事」
-					PRINTFORML 「我今天不给你们一点教训我就不叫若鹭姬！」
-					PRINTFORMDL 若鹭姬也不管形象的问题，直接扑到了影狼身上
+					PRINTFORML 「我今天不给你们一点教训我就不叫%CALLNAME:TARGET%！」
+					PRINTFORMDL %CALLNAME:TARGET%也不管形象的问题，直接扑到了影狼身上
 					PRINTFORMDL 「鹭鹭，冷静啊，%MASTERNAME:93%快来拉住鹭鹭！我要撑不住了！」
 					TIME += 10
 					PRINTFORMDL （过了一段时间后）
-					PRINTFORMDL 在影狼和%MASTERNAME:93%相互劝说下，若鹭姬才冷静了下来
+					PRINTFORMDL 在影狼和%MASTERNAME:93%相互劝说下，%CALLNAME:TARGET%才冷静了下来
 				CASE 1
 					PRINTFORML 「你们继续，不用在意我的」
-					PRINTFORMDL 若鹭姬靠着门边一直看着%MASTERNAME:93%和影狼，一句话也不说
+					PRINTFORMDL %CALLNAME:TARGET%靠着门边一直看着%MASTERNAME:93%和影狼，一句话也不说
 					PRINTFORMDL 「鹭鹭，你怎么不说话啊，你这样子，让我有点害怕啊」
 					PRINTFORML 「你怕什么，继续啊？你们不是做的好好的吗？」
 					PRINTFORMDL 「哎，鹭鹭，你别生气了，我们不做就是了」
 					PRINTFORML 「生气？生气什么，继续啊」
-					PRINTFORMDL 看到这样子的若鹭姬，%MASTERNAME:93%和影狼也不好继续进行下去了
+					PRINTFORMDL 看到这样子的%CALLNAME:TARGET%，%MASTERNAME:93%和影狼也不好继续进行下去了
 				ENDSELECT
 			ELSE
 				IF TALENT:63:恋人
@@ -3877,7 +7085,7 @@ IF LOCAL
 						PRINTFORML 「我都认识你多久了，我还不知道你会怎么回答我吗」
 						PRINTFORML 「不理你了，再见！」
 						PRINTFORMDL 「鹭鹭，你别走啊！听我解释啊！」
-						PRINTFORMDL 在影狼的半拖半扯下，若鹭姬才留下来听她解释
+						PRINTFORMDL 在影狼的半拖半扯下，%CALLNAME:TARGET%才留下来听她解释
 					CASE 1
 						PRINTFORML 「啊！好羞耻啊！」
 						PRINTFORMDL 「鹭鹭等等！快回来！」
@@ -3897,10 +7105,10 @@ IF LOCAL
 					PRINTFORMDL 「哎，不是，你听我解释啊」
 					PRINTFORML 「不听不听！我走了，再见！」
 					PRINTFORMDL 「鹭鹭快回来啊！听我解释！」
-					PRINTFORMDL 影狼急忙追了出去，过了好一会才把若鹭姬拉了回来
+					PRINTFORMDL 影狼急忙追了出去，过了好一会才把%CALLNAME:TARGET%拉了回来
 				CASE 1
 					PRINTFORMDL 「鹭鹭，あなた……怎么过来了」
-					PRINTFORMDL 若鹭姬一言不发地看着影狼和%MASTERNAME:93%
+					PRINTFORMDL %CALLNAME:TARGET%一言不发地看着影狼和%MASTERNAME:93%
 					PRINTFORMDL 「有什么事吗鹭鹭，别这样了好吗？」
 					PRINTFORML 「嗯哼？你还有什么要说的吗？」
 					PRINTFORML 「没了吧，那行，我也不说什么」
@@ -3908,7 +7116,7 @@ IF LOCAL
 					PRINTFORML 「再见！」
 					PRINTFORMDL 「鹭鹭！别走啊！快回来！」
 					PRINTFORML 「放开我，让我离开这里！」
-					PRINTFORMDL 在影狼和%MASTERNAME:93%的软磨硬泡下，若鹭姬才留了下来
+					PRINTFORMDL 在影狼和%MASTERNAME:93%的软磨硬泡下，%CALLNAME:TARGET%才留了下来
 				ENDSELECT
 			ELSEIF TALENT:63:恋慕 && TALENT:恋慕
 				SELECTCASE RAND:2
@@ -3923,7 +7131,7 @@ IF LOCAL
 					PRINTFORML 「啊……啊」
 					PRINTFORML 「不好意思，打扰了，再见！」
 					PRINTFORMDL 「鹭鹭快回来啊，听我解释！」
-					PRINTFORMDL 过了一会，若鹭姬被影狼拉了回来
+					PRINTFORMDL 过了一会，%CALLNAME:TARGET%被影狼拉了回来
 				ENDSELECT
 			ELSEIF TALENT:63:恋慕 && TALENT:思慕
 				SELECTCASE RAND:2
@@ -3941,7 +7149,7 @@ IF LOCAL
 					PRINTFORMDL 「鹭鹭你怎么来了，这……」
 					PRINTFORML 「不好意思！我现在就走！我什么都没看到！」
 					PRINTFORMDL 「鹭鹭！别走！听我解释啊！」
-					PRINTFORMDL 过了几分钟后，若鹭姬被影狼从外面拉了回来
+					PRINTFORMDL 过了几分钟后，%CALLNAME:TARGET%被影狼从外面拉了回来
 				ENDSELECT
 			ELSE
 				IF TALENT:63:恋慕
@@ -3950,7 +7158,7 @@ IF LOCAL
 						PRINTFORML 「啊，额，好像看到了什么不得了的东西」
 						PRINTFORML 「我就不打扰你们了，我先走了，拜拜」
 						PRINTFORMDL %MASTERNAME:93%和影狼看了一眼对方，就冲出了房间
-						PRINTFORMDL 不一会儿，把若鹭姬拉了回来
+						PRINTFORMDL 不一会儿，把%CALLNAME:TARGET%拉了回来
 						PRINTFORMDL 「鹭鹭啊，听我解释解释吧，先别走」
 						PRINTFORML 「啊？那你说吧」
 					CASE 1
@@ -3967,13 +7175,13 @@ IF LOCAL
 			SELECTCASE RAND:2
 			CASE 0
 				PRINTFORML 「……我不想说什么了，自生自灭吧」
-				PRINTFORMDL 若鹭姬狠狠地看了%MASTERNAME:93%后，扭头就走了
+				PRINTFORMDL %CALLNAME:TARGET%狠狠地看了%MASTERNAME:93%后，扭头就走了
 				PRINTFORMDL 意识到不对劲的%MASTERNAME:93%立刻从%CALLNAME:ARG%身边离开，追了上去
-				PRINTFORMDL 在%MASTERNAME:93%的劝说下，若鹭姬才回到了房间里
+				PRINTFORMDL 在%MASTERNAME:93%的劝说下，%CALLNAME:TARGET%才回到了房间里
 			CASE 1
 				PRINTFORML 「あなた……算了，好きなようにさせる，我先走了」
 				PRINTFORML 「有什么事以后再说」
-				PRINTFORMDL %MASTERNAME:93%感觉到了若鹭姬的悲伤之情，于是和%CALLNAME:ARG%拉开了一点距离
+				PRINTFORMDL %MASTERNAME:93%感觉到了%CALLNAME:TARGET%的悲伤之情，于是和%CALLNAME:ARG%拉开了一点距离
 				PRINTFORML 「你做就是了，不用在意我的，呵呵……呵呵……」
 			ENDSELECT
 		ELSEIF TALENT:恋慕
@@ -3982,13 +7190,13 @@ IF LOCAL
 				PRINTFORML 「%MASTERNAME:93%我来找你……」
 				PRINTFORML 「不好意思打扰了，我先走了，再见！」
 				PRINTFORMDL %MASTERNAME:93%立刻和%CALLNAME:ARG%分开，追了上去
-				PRINTFORMDL 过了一会，把若鹭姬拉回了房间里
+				PRINTFORMDL 过了一会，把%CALLNAME:TARGET%拉回了房间里
 			CASE 1
 				PRINTFORML 「我来啦！」
-				PRINTFORMDL 坐在地上的两位看到进来的若鹭姬，感到十分的尴尬
-				PRINTFORMDL 若鹭姬本人也感到非常的尴尬
+				PRINTFORMDL 坐在地上的两位看到进来的%CALLNAME:TARGET%，感到十分的尴尬
+				PRINTFORMDL %CALLNAME:TARGET%本人也感到非常的尴尬
 				PRINTFORML 「啊，打扰了，你们继续吧」
-				PRINTFORMDL 刚准备转身离开，%MASTERNAME:93%就冲了上去，拉住了若鹭姬
+				PRINTFORMDL 刚准备转身离开，%MASTERNAME:93%就冲了上去，拉住了%CALLNAME:TARGET%
 			ENDSELECT
 		ELSEIF TALENT:思慕
 			SELECTCASE RAND:2
@@ -3996,25 +7204,25 @@ IF LOCAL
 				PRINTFORML 「我要进来了哦~」
 				PRINTFORML 「额，我是不是走错房间了，没走错啊」
 				PRINTFORML 「……」
-				PRINTFORMDL 若鹭姬呆呆地站在原地，一动不动
-				PRINTFORMDL %MASTERNAME:93%和%CALLNAME:ARG%看了眼天然呆的若鹭姬，随后互相拉开了距离
+				PRINTFORMDL %CALLNAME:TARGET%呆呆地站在原地，一动不动
+				PRINTFORMDL %MASTERNAME:93%和%CALLNAME:ARG%看了眼天然呆的%CALLNAME:TARGET%，随后互相拉开了距离
 			CASE 1
 				PRINTFORML 「%MASTERNAME:93%你在这啊，在做什……」
 				PRINTFORML 「对不起，我什么也没看到，你继续，我先走了」
-				PRINTFORMDL 说完，若鹭姬就一溜烟的跑了
-				PRINTFORMDL 为了避免被若鹭姬误会，%MASTERNAME:93%冲了出去，把若鹭姬拉了回来
+				PRINTFORMDL 说完，%CALLNAME:TARGET%就一溜烟的跑了
+				PRINTFORMDL 为了避免被%CALLNAME:TARGET%误会，%MASTERNAME:93%冲了出去，把%CALLNAME:TARGET%拉了回来
 			ENDSELECT
 		ELSE
 			SELECTCASE RAND:2
 			CASE 0
 				PRINTFORML 「%MASTERNAME:93%，你在做什么……」
-				PRINTFORMDL 一听到若鹭姬的声音，%MASTERNAME:93%立刻和%CALLNAME:ARG%拉开了距离
+				PRINTFORMDL 一听到%CALLNAME:TARGET%的声音，%MASTERNAME:93%立刻和%CALLNAME:ARG%拉开了距离
 				PRINTFORML 「你怎么在冒冷汗啊%MASTERNAME:93%，是在害怕我么？」
 				PRINTFORML 「我不会到处说的啦，除了影狼」
 				PRINTFORML 「嘿嘿，想让我不说的话，就来陪我玩吧」
 			CASE 1
 				PRINTFORML 「额，我就先走了，你们继续吧」
-				PRINTFORMDL 若鹭姬刚准备离开，就被%MASTERNAME:93%拉了回来
+				PRINTFORMDL %CALLNAME:TARGET%刚准备离开，就被%MASTERNAME:93%拉了回来
 				PRINTFORML 「你怕什么呢，我又不会到处乱说」
 				PRINTFORML 「嗯……你陪我玩，我就不和其他人说，可以吗？」
 				PRINTFORMDL %MASTERNAME:93%看了一眼身边的%CALLNAME:ARG%，点了点头
@@ -4026,7 +7234,7 @@ IF LOCAL
 	;-------------------------------------------------
 	;負けじと参加（馴れ合い度:高）
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG:1 == 2
 		IF CFLAG:MASTER:現在位置 == CFLAG:63:現在位置
@@ -4046,7 +7254,7 @@ IF LOCAL
 					PRINTFORML 「做这样的事……」
 					PRINTFORMDL 「等下鹭鹭，你听我解释啊」
 					PRINTFORML 「竟然不带我一个，太坏了」
-					PRINTFORMDL 若鹭姬凑到了%MASTERNAME:93%身边，一把抓住了%MASTERNAME:93%的手
+					PRINTFORMDL %CALLNAME:TARGET%凑到了%MASTERNAME:93%身边，一把抓住了%MASTERNAME:93%的手
 					PRINTFORML 「请务必带上我来一起做这些舒服的事」
 				ENDSELECT
 			ELSEIF TALENT:63:恋人 && TALENT:恋慕
@@ -4055,14 +7263,14 @@ IF LOCAL
 					PRINTFORML 「影狼~你们在做什么啊~」
 					PRINTFORML 「带我一个好不好~」
 					PRINTFORMDL 「额，这你要问问%MASTERNAME:93%了」
-					PRINTFORMDL 若鹭姬凑到了%MASTERNAME:93%，像是撒娇一样地靠在了%MASTERNAME:93%的肩膀上
+					PRINTFORMDL %CALLNAME:TARGET%凑到了%MASTERNAME:93%，像是撒娇一样地靠在了%MASTERNAME:93%的肩膀上
 					PRINTFORML 「我也想来，带我一个吧」
 				CASE 1
 					PRINTFORML 「%MASTERNAME:93%，我来找你玩了~」
 					PRINTFORML 「嗯？你们竟然不叫我一起，太坏了！」
 					PRINTFORMDL 「鹭鹭，你也想来一起吗？」
 					PRINTFORML 「那当然，我也想和%MASTERNAME:93%一起做那些舒服的事」
-					PRINTFORMDL 若鹭姬飞到了%MASTERNAME:93%身边，用脸蹭了蹭他的手臂
+					PRINTFORMDL %CALLNAME:TARGET%飞到了%MASTERNAME:93%身边，用脸蹭了蹭他的手臂
 					PRINTFORML 「来一起吧~」
 				ENDSELECT
 			ELSE
@@ -5164,7 +8372,7 @@ CFLAG:93:1008 += 1
 				PRINTFORML 周围只有也没其他人啊，就%MASTERNAME:93%在我旁边
 				PRINTFORML 难不成……
 				PRINTFORML 不行，我不能说出来，不然就太丢脸了
-				PRINTFORMDL 若鹭姬红着脸，捂着下面的样子，感觉好可爱
+				PRINTFORMDL %CALLNAME:TARGET%顔を赤らめている，捂着下面的样子，感觉好可爱
 			ELSEIF TALENT:恋慕
 				PRINTFORML 怎么感觉下面这么凉快
 				PRINTFORML 哎？我的内裤怎么不见了？
@@ -5197,7 +8405,7 @@ CFLAG:93:1008 += 1
 			ELSEIF TALENT:恋慕
 				PRINTFORML 呜，我的内裤呢，怎么又被偷了
 				PRINTFORML 咦，怎么感觉有人在盯着我的和服看
-				PRINTFORMDL 若鹭姬狐疑地看了看四周，只看到%MASTERNAME:93%的笑脸
+				PRINTFORMDL %CALLNAME:TARGET%狐疑地看了看四周，只看到%MASTERNAME:93%的笑脸
 				PRINTFORML 错觉吗，怎么感觉%MASTERNAME:93%的笑容这么奇怪
 				PRINTFORML 应该是他偷的吧……
 				PRINTFORML 再观察一段时间吧
@@ -5250,56 +8458,58 @@ CFLAG:93:1008 += 1
 				IF TALENT:恋人
 					PRINTFORML 「呵呵……呵呵……」
 					PRINTFORML 「上次是你把我的内裤偷了吧……」
-					PRINTFORML 「还装？虽然人们常说，要讲证据」
-					PRINTFORML 「可这除了你以外，还有谁会偷我的内裤呢？」
+					PRINTFORML 「别装了，我都已经知道了」
+					PRINTFORML 「好好接受惩罚吧，说不定我会下手轻一点呢？」
 					PRINTFORML 「所以……接受惩罚吧！」
 					CFLAG:93:好感度 -= 100
 					CFLAG:93:4 -= 50
-					BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 800 , MAXBASE:MASTER:体力)
-					BASE:MASTER:気力 -= 500
+					BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 80 , MAXBASE:MASTER:体力)
+					BASE:MASTER:気力 -= 50
 					PRINTFORMDL 好感度-100
-					PRINTFORMDL 信頼度-50
-					PRINTFORMDL 体力-800
-					PRINTFORMDL 气力-500
+					PRINTFORMDL 信赖度-50
+					PRINTFORMDL 体力-80
+					PRINTFORMDL 气力-50
 				ELSEIF TALENT:恋慕
-					PRINTFORML 「不用怀疑了，这次一定是你干的了！」
-					PRINTFORML 「什么？不是你干的？你觉得我还会信你说的话吗！」
-					PRINTFORML 「算上这次！你总共偷了我四次内裤！」
-					PRINTFORML 「受死吧！」
+					PRINTFORML 「哎，现在已经不得不怀疑到你的身上了」
+					PRINTFORML 「什么？不是你干的？除了你，还有谁会做这种事呢？」
+					PRINTFORML 「难道你要说影狼她们吗？」
+					PRINTFORML 「别狡辩了，乖乖受罚吧」
+					PRINTFORML 「说不定我会下手轻一点，让你少受点罪呢？」
 					CFLAG:93:好感度 -= 200
 					CFLAG:93:4 -= 90
-					BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 1000 , MAXBASE:MASTER:体力)
-					BASE:MASTER:気力 -= 800
+					BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 100 , MAXBASE:MASTER:体力)
+					BASE:MASTER:気力 -= 80
 					PRINTFORMDL 好感度-200
-					PRINTFORMDL 信頼度-90
-					PRINTFORMDL 体力-1000
-					PRINTFORMDL 气力-800
+					PRINTFORMDL 信赖度-90
+					PRINTFORMDL 体力-100
+					PRINTFORMDL 气力-80
 				ELSEIF TALENT:思慕
 					PRINTFORML 「这回你总跑不了了吧」
-					PRINTFORML 「真的吗？按照你之前所做过的事」
-					PRINTFORML 「你觉得我还会信你说的话吗！」
-					PRINTFORML 「受罚吧！」
+					PRINTFORML 「真的吗？可是你之前做过那样的事」
+					PRINTFORML 「我现在还怎么信得过你啊」
+					PRINTFORML 「接受惩罚吧，我会下手轻一点的」
 					CFLAG:93:好感度 -= 300
 					CFLAG:93:4 -= 150
-					BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 2000 , MAXBASE:MASTER:体力)
-					BASE:MASTER:気力 -= 1400
+					BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 200 , MAXBASE:MASTER:体力)
+					BASE:MASTER:気力 -= 140
 					PRINTFORMDL 好感度-300
-					PRINTFORMDL 信頼度-150
-					PRINTFORMDL 体力-2000
-					PRINTFORMDL 气力-1400
+					PRINTFORMDL 信赖度-150
+					PRINTFORMDL 体力-200
+					PRINTFORMDL 气力-140
 				ELSE
-					PRINTFORML 「%MASTERNAME:93%！是你干的吧！」
-					PRINTFORML 「还说不是？周围就你一个男的，不是你是谁！」
-					PRINTFORML 「你可是有前科的！别狡辩了！」
-					PRINTFORML 「受罚吧！」
+					PRINTFORML 「%MASTERNAME:93%啊，这次是你干的吧」
+					PRINTFORML 「哎？不是吗？真的吗？」
+					PRINTFORML 「我手上可是有你之前偷内裤的证据的哦」
+					PRINTFORML 「嗯哼，别狡辩了」
+					PRINTFORML 「你就老老实实受罚吧，我可能会下手轻一点的哦」
 					CFLAG:93:好感度 -= 400
 					CFLAG:93:4 -= 200
-					BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 3000 , MAXBASE:MASTER:体力)
-					BASE:MASTER:気力 -= 1800
+					BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 300 , MAXBASE:MASTER:体力)
+					BASE:MASTER:気力 -= 180
 					PRINTFORMDL 好感度-400
-					PRINTFORMDL 信頼度-200
-					PRINTFORMDL 体力-3000
-					PRINTFORMDL 气力-1800
+					PRINTFORMDL 信赖度-200
+					PRINTFORMDL 体力-300
+					PRINTFORMDL 气力-180
 				ENDIF
 			ELSE
 			CFLAG:93:1014 += 1
@@ -5334,173 +8544,193 @@ CFLAG:93:1008 += 1
 					IF TALENT:恋人
 						PRINTFORML 「原本我还不想怀疑你的」
 						PRINTFORML 「可上次我发现了你所做的事后」
-						PRINTFORML 「我就觉得，我太蠢了，竟然会相信你不会做这种龌蹉的事」
+						PRINTFORML 「我就感觉，我对你太过信任了」
+						PRINTFORML 「以至于这么明显的事到现在才发现」
 						PRINTFORML 「所以……接受我对你的惩罚吧！」
 						CFLAG:93:好感度 -= 100
 						CFLAG:93:4 -= 50
-						BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 800 , MAXBASE:MASTER:体力)
-						BASE:MASTER:気力 -= 500
+						BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 200 , MAXBASE:MASTER:体力)
+						BASE:MASTER:気力 -= 50
 						PRINTFORMDL 好感度-100
-						PRINTFORMDL 信頼度-50
-						PRINTFORMDL 体力-800
-						PRINTFORMDL 气力-500
+						PRINTFORMDL 信赖度-50
+						PRINTFORMDL 体力-200
+						PRINTFORMDL 气力-50
 					ELSEIF TALENT:恋慕
 						PRINTFORML 「……是你偷的吗？」
 						PRINTFORML 「可是这附近就你一个人会偷我的内裤」
 						PRINTFORML 「你让我怎么信你说的话呢？」
-						PRINTFORML 「别狡辩了，乖乖接受惩罚吧！」
+						PRINTFORML 「我手上可是有你偷过内裤的证据的哦」
+						PRINTFORML 「别狡辩了，乖乖接受惩罚吧」
+						PRINTFORML 「我下手会很轻的，你放心好了」
+						PRINTFORMDL （指用弹幕机关枪打一遍）
 						CFLAG:93:好感度 -= 200
 						CFLAG:93:4 -= 90
-						BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 1000 , MAXBASE:MASTER:体力)
-						BASE:MASTER:気力 -= 800
+						BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 250 , MAXBASE:MASTER:体力)
+						BASE:MASTER:気力 -= 70
 						PRINTFORMDL 好感度-200
-						PRINTFORMDL 信頼度-90
-						PRINTFORMDL 体力-1000
-						PRINTFORMDL 气力-800
+						PRINTFORMDL 信赖度-90
+						PRINTFORMDL 体力-250
+						PRINTFORMDL 气力-70
 					ELSEIF TALENT:思慕
-						PRINTFORML 「哼！我早就怀疑是你干的了！」
-						PRINTFORML 「嗯？不是你偷的？但这附近除了你以外」
-						PRINTFORML 「还有谁会偷我的内裤呢？」
-						PRINTFORML 「你可是有前科的！乖乖受罚吧！」
+						PRINTFORML 「哎，怎么说呢」
+						PRINTFORML 「%MASTERNAME:93%啊，你承不承认是你偷的内裤呢？」
+						PRINTFORML 「啊，没什么，只是单纯问问而已」
+						PRINTFORML 「毕竟，我可是要动手惩罚你了哦」
+						PRINTFORML 「证据吗？嗯……」
+						PRINTFORML 「没有，但是你可是有前科的哦」
+						PRINTFORML 「接受惩罚吧%MASTERNAME:93%！」
 						CFLAG:93:好感度 -= 400
 						CFLAG:93:4 -= 200
-						BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 3000 , MAXBASE:MASTER:体力)
-						BASE:MASTER:気力 -= 1800
+						BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 300 , MAXBASE:MASTER:体力)
+						BASE:MASTER:気力 -= 100
 						PRINTFORMDL 好感度-400
-						PRINTFORMDL 信頼度-200
-						PRINTFORMDL 体力-3000
-						PRINTFORMDL 气力-1800
+						PRINTFORMDL 信赖度-200
+						PRINTFORMDL 体力-300
+						PRINTFORMDL 气力-100
 					ELSE
-						PRINTFORML 「受罚吧！」
-						PRINTFORML 「原因吗？那是因为你偷了我的内裤啊」
-						PRINTFORML 「证据？额，嗯……」
-						PRINTFORML 「没有，但这附近除了你会做这种事以外」
-						PRINTFORML 「还有谁会偷呢？」
-						PRINTFORML 「所以，受罚吧！」
+						PRINTFORML 「%MASTERNAME:93%！接受我的惩罚吧！」
+						PRINTFORML 「哎？你问原因吗？那当然是你偷了我的内裤啊」
+						PRINTFORML 「你要证据？额，嗯……」
+						PRINTFORML 「没有，但这附近除了你以外」
+						PRINTFORML 「还有谁会做这样的事呢？」
+						PRINTFORML 「何况你之前有做过这样的事」
+						PRINTFORML 「别狡辩了，接受我对你的惩罚吧！」
 						CFLAG:93:好感度 -= 400
 						CFLAG:93:4 -= 200
-						BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 3000 , MAXBASE:MASTER:体力)
-						BASE:MASTER:気力 -= 1800
+						BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 400 , MAXBASE:MASTER:体力)
+						BASE:MASTER:気力 -= 150
 						PRINTFORMDL 好感度-400
-						PRINTFORMDL 信頼度-200
-						PRINTFORMDL 体力-3000
-						PRINTFORMDL 气力-1800
+						PRINTFORMDL 信赖度-200
+						PRINTFORMDL 体力-400
+						PRINTFORMDL 气力-150
 					ENDIF
 				ELSE
 					IF TALENT:恋人
 						SELECTCASE RAND:2
 						CASE 0
-							PRINTFORML 「嗯？你还偷？」
-							PRINTFORML 「是不是上次教训的还不够？」
-							PRINTFORML 「还想被我打一顿吗？」
-							PRINTFORML 「那……我就要为民除害了！」
+							PRINTFORML 「嗯？你还偷敢我的内裤啊？」
+							PRINTFORML 「虽然我们是这种关系了」
+							PRINTFORML 「但我还是要惩罚你」
+							PRINTFORML 「就是因为我们已经是这种关系」
+							PRINTFORML 「为了防止别人说我包庇你，还是稍微惩罚你一下比较好」
 							CFLAG:93:好感度 -= 100
 							CFLAG:93:4 -= 50
-							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 1000 , MAXBASE:MASTER:体力)
-							BASE:MASTER:気力 -= 800
+							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 200 , MAXBASE:MASTER:体力)
+							BASE:MASTER:気力 -= 50
 							PRINTFORMDL 好感度-100
-							PRINTFORMDL 信頼度-50
-							PRINTFORMDL 体力-1000
-							PRINTFORMDL 气力-800
+							PRINTFORMDL 信赖度-50
+							PRINTFORMDL 体力-200
+							PRINTFORMDL 气力-50
 						CASE 1
 							PRINTFORML 「怎么又不见了？」
 							PRINTFORML 「是你偷的吧%MASTERNAME:93%」
 							PRINTFORML 「可你说得话，我是一点都不信啊」
 							PRINTFORML 「附近的人我基本认识，她们才不会做这种事」
 							PRINTFORML 「而且她们也不屑于做这些事」
-							PRINTFORML 「是你没错了，受罚吧！」
+							PRINTFORML 「是你没错了，承认了吧」
+							PRINTFORML 「稍微惩罚你一下而已，不用害怕的」
+							PRINTFORML 「这也算是我维护自己的名声吧」
 							CFLAG:93:好感度 -= 100
 							CFLAG:93:4 -= 50
-							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 1000 , MAXBASE:MASTER:体力)
-							BASE:MASTER:気力 -= 800
+							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 200 , MAXBASE:MASTER:体力)
+							BASE:MASTER:気力 -= 50
 							PRINTFORMDL 好感度-100
-							PRINTFORMDL 信頼度-50
-							PRINTFORMDL 体力-1000
-							PRINTFORMDL 气力-1200
+							PRINTFORMDL 信赖度-50
+							PRINTFORMDL 体力-200
+							PRINTFORMDL 气力-50
 						ENDSELECT
 					ELSEIF TALENT:恋慕
 						SELECTCASE RAND:2
 						CASE 0
 							PRINTFORML 「我的内裤是不是又被你偷走了！」
 							PRINTFORML 「哼，我不信，你上次都做了那样的事了」
-							PRINTFORML 「我已经信不过你了」
-							PRINTFORML 「接受惩罚吧！」
+							PRINTFORML 「这个借口你已经用过很多次了吧」
+							PRINTFORML 「那我就像之前那样，好好惩罚你一下吧」
 							CFLAG:93:好感度 -= 300
 							CFLAG:93:4 -= 150
-							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 2000 , MAXBASE:MASTER:体力)
-							BASE:MASTER:気力 -= 1200
+							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 250 , MAXBASE:MASTER:体力)
+							BASE:MASTER:気力 -= 70
 							PRINTFORMDL 好感度-300
-							PRINTFORMDL 信頼度-150
-							PRINTFORMDL 体力-2000
-							PRINTFORMDL 气力-1200
+							PRINTFORMDL 信赖度-150
+							PRINTFORMDL 体力-250
+							PRINTFORMDL 气力-70
 						CASE 1
-							PRINTFORML 「又偷我内裤是吧！」
-							PRINTFORML 「站住！让我打你一顿！」
-							PRINTFORML 「站住！」
+							PRINTFORML 「又是把我内裤偷了是吧！」
+							PRINTFORML 「站住！别跑！」
+							PRINTFORML 「这次无论说什么！」
+							PRINTFORML 「我都要好好地惩罚你！」
 							CFLAG:93:好感度 -= 300
 							CFLAG:93:4 -= 150
-							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 2000 , MAXBASE:MASTER:体力)
-							BASE:MASTER:気力 -= 1200
+							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 250 , MAXBASE:MASTER:体力)
+							BASE:MASTER:気力 -= 70
 							PRINTFORMDL 好感度-300
-							PRINTFORMDL 信頼度-150
-							PRINTFORMDL 体力-2000
-							PRINTFORMDL 气力-1200
+							PRINTFORMDL 信赖度-150
+							PRINTFORMDL 体力-250
+							PRINTFORMDL 气力-70
 						ENDSELECT
 					ELSEIF TALENT:思慕
 						SELECTCASE RAND:2
 						CASE 0
-							PRINTFORML 「你又偷我内裤！」
-							PRINTFORML 「这次无论说什么都要把你打一顿！」
-							PRINTFORML 「别跑！给我站住！」
+							PRINTFORML 「你又偷我内裤了是吧」
+							PRINTFORML 「你跑什么呢？我又没说要打你」
+							PRINTFORML 「哎？你竟然知道啊」
+							PRINTFORML 「那我就直接动手了哦」
+							PRINTFORML 「接受惩罚吧！」
 							CFLAG:93:好感度 -= 450
 							CFLAG:93:4 -= 250
-							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 3000 , MAXBASE:MASTER:体力)
-							BASE:MASTER:気力 -= 1600
+							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 300 , MAXBASE:MASTER:体力)
+							BASE:MASTER:気力 -= 100
 							PRINTFORMDL 好感度-450
-							PRINTFORMDL 信頼度-250
-							PRINTFORMDL 体力-3000
-							PRINTFORMDL 气力-1600
+							PRINTFORMDL 信赖度-250
+							PRINTFORMDL 体力-300
+							PRINTFORMDL 气力-100
 						CASE 1
-							PRINTFORML 「别跑！给我站住！」
-							PRINTFORML 「上次你还没吃够教训是不是！」
-							PRINTFORML 「那我这次就打到你不敢偷为止！」
+							PRINTFORML 「哎，看来是我对你太仁慈了」
+							PRINTFORML 「不长记性啊%MASTERNAME:93%」
+							PRINTFORML 「那我这次就继续让你长长记性吧」
+							PRINTFORML 「以免影狼她们说我在包庇你」
+							PRINTFORML 「站住！别跑！」
 							CFLAG:93:好感度 -= 450
 							CFLAG:93:4 -= 250
-							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 3000 , MAXBASE:MASTER:体力)
-							BASE:MASTER:気力 -= 1600
+							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 300 , MAXBASE:MASTER:体力)
+							BASE:MASTER:気力 -= 100
 							PRINTFORMDL 好感度-450
-							PRINTFORMDL 信頼度-250
-							PRINTFORMDL 体力-3000
-							PRINTFORMDL 气力-1600
+							PRINTFORMDL 信赖度-250
+							PRINTFORMDL 体力-300
+							PRINTFORMDL 气力-100
 						ENDSELECT
 					ELSE
 						SELECTCASE RAND:2
 						CASE 0
-							PRINTFORML 「你还敢偷！」
-							PRINTFORML 「是不是我对你太好了，才让你这么为所欲为！」
-							PRINTFORML 「站住！我今天就要替天行道！」
+							PRINTFORML 「你还敢来偷我的内裤啊」
+							PRINTFORML 「我们关系都还没到那种程度，你就已经这样了」
+							PRINTFORML 「那我们关系好了之后，你岂不是更为所欲为？」
+							PRINTFORML 「不行不行，为了避免这种情况」
+							PRINTFORML 「还是惩罚你一下比较稳妥」
 							CFLAG:93:好感度 -= 600
 							CFLAG:93:4 -= 350
-							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 4000 , MAXBASE:MASTER:体力)
-							BASE:MASTER:気力 -= 2000
+							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 400 , MAXBASE:MASTER:体力)
+							BASE:MASTER:気力 -= 150
 							PRINTFORMDL 好感度-600
-							PRINTFORMDL 信頼度-350
-							PRINTFORMDL 体力-4000
-							PRINTFORMDL 气力-2000
+							PRINTFORMDL 信赖度-350
+							PRINTFORMDL 体力-400
+							PRINTFORMDL 气力-150
 							SIF MARK:93:反発刻印 < 3
 								MARK:93:反発刻印 += 1
 						CASE 1
-							PRINTFORML 「让你偷！让你偷！」
-							PRINTFORML 「这次说什么我都不会原谅你的！」
-							PRINTFORML 「乖乖受罚吧！」
+							PRINTFORML 「你还敢来偷我的是吧！？」
+							PRINTFORML 「你就真的不怕我打你吗？」
+							PRINTFORML 「这么信任我啊，那我就非要好好惩罚你不可」
+							PRINTFORML 「用我的实际行动告诉你」
+							PRINTFORML 「我也是会生气的！」
 							CFLAG:93:好感度 -= 600
 							CFLAG:93:4 -= 350
-							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 4000 , MAXBASE:MASTER:体力)
-							BASE:MASTER:気力 -= 2000
+							BASE:MASTER:体力 = MIN(BASE:MASTER:体力 - 400 , MAXBASE:MASTER:体力)
+							BASE:MASTER:気力 -= 150
 							PRINTFORMDL 好感度-600
-							PRINTFORMDL 信頼度-350
-							PRINTFORMDL 体力-4000
-							PRINTFORMDL 气力-2000
+							PRINTFORMDL 信赖度-350
+							PRINTFORMDL 体力-400
+							PRINTFORMDL 气力-150
 							SIF MARK:93:反発刻印 < 3
 								MARK:93:反発刻印 += 1
 						ENDSELECT
@@ -5921,7 +9151,7 @@ IF LOCAL
 		PRINTFORML 为什么，我为什么会这么在意他的事呢……
 		PRINTFORML 距离上次这么想，已经过去了很久了，那个问题的答案，不是早就已经得出来了吗……
 		PRINTFORML 为什么……这到底是为什么啊，呜，好难受啊
-		PRINTFORMDL 不知道过了多久，若鹭姬睡着了
+		PRINTFORMDL 不知道过了多久，%CALLNAME:TARGET%睡着了
 		PRINTFORMDL 在黑暗望不到边际的梦境中，听到了%MASTERNAME:93%的歌声
 		PRINTFORMDL 「飛べない鳥が一羽　岸辺にとどまる」
 		PRINTFORMDW （无法飞翔的鸟儿在岸边停留）
@@ -5950,21 +9180,21 @@ IF LOCAL
 		PRINTFORMDL 每唱一句，周围的环境就会变化一次。睁眼望去，全是她和%MASTERNAME:93%生活过的点点滴滴
 		PRINTFORMDL 在这一刻，她明白了，%MASTERNAME:93%是她生命的全部，她已经喜欢上了%MASTERNAME:93%
 		PRINTFORMDL 不，这已经不能用‘喜欢’来解释了，换个词，はい‘爱’上了
-		PRINTFORMDL 是的，若鹭姬早已爱上了%MASTERNAME:93%，只是她本人现在才意识到
+		PRINTFORMDL 是的，%CALLNAME:TARGET%早已爱上了%MASTERNAME:93%，只是她本人现在才意识到
 		PRINTFORMDL 唱完整首歌后，场景定格在了月光照射下的雾之湖
-		PRINTFORMDL 在这月光下，%MASTERNAME:93%和若鹭姬深情地对望着
+		PRINTFORMDL 在这月光下，%MASTERNAME:93%和%CALLNAME:TARGET%深情地对望着
 		PRINTFORMDL 时间仿佛禁止了一样，湖面平静得如同一面镜子，毫无波澜
 		PRINTFORMDL 期待着，期待着%MASTERNAME:93%向她表明心意。
 		PRINTFORMDL 让她不安的心平静下来，让她可以不再有任何约束，紧紧地抱住%MASTERNAME:93%
 		PRINTFORML 「%MASTERNAME:93%，你愿意接受我吗，愿意和我一起，在幻想乡里生活下去吗」
 		PRINTFORML 「即使我因为身体原因，不能随便离开雾之湖，即使我不能成为你坚强的后盾」
 		PRINTFORML 「你也愿意接受我吗？愿意留在幻想乡里，和我一直生活下去吗？」
-		PRINTFORMDL 若鹭姬已经不在乎这是现实还是梦境了。
+		PRINTFORMDL %CALLNAME:TARGET%已经不在乎这是现实还是梦境了。
 		PRINTFORMDL 此时的她，只想把心里埋藏的所有话，统统告诉%MASTERNAME:93%，以此表达她对%MASTERNAME:93%的不舍之情
 		PRINTFORMDL 过了好一段时间后，月亮落下了地平线。与之相对，太阳从地平线上升起，照射在了%MASTERNAME:93%的脸上
 		PRINTFORMDL %MASTERNAME:93%笑了笑，把另一只手伸了出去，放在了她的面前
 		PRINTFORMDL 在她用手触碰到%MASTERNAME:93%的手的一瞬间，梦境结束了。
-		PRINTFORMDL 若鹭姬从床上惊醒，看了眼放在床边的闹钟，已经早上五点了
+		PRINTFORMDL %CALLNAME:TARGET%从床上惊醒，看了眼放在床边的闹钟，已经早上五点了
 		PRINTFORML 「嗯，我明白了，谢谢你%MASTERNAME:93%」
 		PRINTFORML 虽然人们常说，人类和妖怪不能相结合
 		PRINTFORML 是因为人类的寿命很短，而妖怪的寿命很长
@@ -5994,7 +9224,7 @@ IF LOCAL
 		PRINTFORML 「嘻嘻，今天真是开心啊，和%MASTERNAME:93%一起出去玩。真希望明天还可以继续和他一起去玩」
 		PRINTFORML 「不过，他明天还会像今天那样，来找我一起出去玩吗……」
 		PRINTFORML 「万一他明天就不在幻想乡呢……」
-		PRINTFORMDL 若鹭姬摇了摇头，试图把这个想法抛开
+		PRINTFORMDL %CALLNAME:TARGET%摇了摇头，试图把这个想法抛开
 		PRINTFORML 「怎么可能会呢，%MASTERNAME:93%怎么可能会抛下我就走了呢，我们的关系可好了」
 		PRINTFORML 「一定是我太困了，才会这么胡思乱想，%MASTERNAME:93%是不会做出这样的事的」
 		PRINTFORML 「不会的，哈哈，早点睡吧，别胡思乱想了」
@@ -7275,6 +10505,8 @@ IF LOCAL
 	CFLAG:93:1007 = 0
 	CFLAG:93:1012 = 0
 	CFLAG:93:1016 = 0
+	CFLAG:93:1017 = 0
+	CFLAG:93:1018 = 0
 	PRINTFORML 每日重置一次~
 ENDIF
 RESETCOLOR

@@ -1313,3 +1313,556 @@ IF TFLAG:193 >= 0
 	PRINTL 
 	CALL COLORMESSAGE("【カットスイカ】ができあがりました。", C_AQUA, 1)
 ENDIF
+;-------------------------------------------------
+;495,空を眺める
+;-------------------------------------------------
+@MESSAGE_COM495
+#DIM 地底
+#DIMS 低気圧位置
+#DIMS 積乱雲位置
+
+地底 = 0
+IF CFLAG:MASTER:デート中 == 9
+	地底 = 1
+ELSEIF CFLAG:MASTER:現在位置 == OMANEKIBEYA() && GROUPMATCH(CFLAG:MASTER:お招き, 36, 37, 38, 49, 60, 64, 83, 84)
+	地底 = 1
+ENDIF
+
+低気圧位置 = %GET_LOCATION_LOW()%
+積乱雲位置 = %GET_LOCATION_CUMULUS()%
+
+[IF_DEBUG]
+	DEBUGPRINTFORML %GET_MONTH()% {DAY:3}日 第{GET_TERM()}ターム %時刻表示(TIME)%
+	IF IS_RAINY_SEASON1:0 == 1 && IS_RAINY_SEASON1:1 == 1
+		DEBUGPRINTFORML 梅雨末期
+	ELSEIF IS_RAINY_SEASON1:0 == 1
+		DEBUGPRINTFORML 梅雨
+	ELSEIF IS_RAINY_SEASON2 == 1
+		DEBUGPRINTFORML 秋雨
+	ENDIF
+	DEBUGPRINTFORML 寒気の強さ {POWER_COLD_AIR}
+	DEBUGPRINTFORML 暖気の強さ {POWER_WARM_AIR}
+	
+	SELECTCASE NOW_WEATHER_CONTROL
+		CASE 1
+			DEBUGPRINTFORML 現在天候傾向 [1 春・秋の天気(基本)]
+		CASE 2
+			DEBUGPRINTFORML 現在天候傾向 [2 春・秋の天気(温暖前線接近時)]
+		CASE 3
+			DEBUGPRINTFORML 現在天候傾向 [3 春・秋の天気(暖域時)]
+		CASE 4
+			DEBUGPRINTFORML 現在天候傾向 [4 春・秋の天気(寒冷前線通過時)]
+		CASE 5
+			DEBUGPRINTFORML 現在天候傾向 [5 春・秋の天気(寒冷渦接近時)]
+		CASE 6
+			DEBUGPRINTFORML 現在天候傾向 [6 夏の天気(基本)]
+		CASE 7
+			DEBUGPRINTFORML 現在天候傾向 [7 夏の天気(夕立接近時)]
+		CASE 8
+			DEBUGPRINTFORML 現在天候傾向 [8 夏の天気(夕立通過後)]
+		CASE 9
+			DEBUGPRINTFORML 現在天候傾向 [9 冬の天気(基本)]
+		CASE 10
+			DEBUGPRINTFORML 現在天候傾向 [10 冬の天気(日本海低気圧接近時)]
+		CASE 11
+			DEBUGPRINTFORML 現在天候傾向 [11 冬の天気(日本海低気圧通過時)]
+		CASE 12
+			DEBUGPRINTFORML 現在天候傾向 [12 冬の天気(南岸低気圧接近時)]
+		CASE 13
+			DEBUGPRINTFORML 現在天候傾向 [13 冬の天気(寒冷渦接近時)]
+		CASE 14
+			DEBUGPRINTFORML 現在天候傾向 [14 梅雨・秋雨の天気(基本)]
+		CASE 15
+			DEBUGPRINTFORML 現在天候傾向 [15 梅雨・秋雨(梅雨末期・秋雨+台風接近)・先駆降雨帯発生時の天気]
+		CASE 16
+			DEBUGPRINTFORML 現在天候傾向 [16 台風接近時の天気(基本)]
+		CASE 17
+			DEBUGPRINTFORML 現在天候傾向 [17 台風接近時の天気(台風の目)]
+		CASE 18
+			DEBUGPRINTFORML 現在天候傾向 [18 霧の天気]
+		CASE 19
+			DEBUGPRINTFORML 現在天候傾向 [19 疑似好天]
+		CASEELSE
+			DEBUGPRINTFORML 現在天候傾向 [エラー]
+	ENDSELECT
+	
+	DEBUGPRINTFORML 現在天気 %GET_WEATHER()%
+	DEBUGPRINTFORML 現在風速 {WIND_VELOCITY}
+	
+	SIF FORBIDDEN_CHANGE_WEATHER == 1
+		DEBUGPRINTFORML 天候変更禁止
+	
+	DEBUGPRINTFORML 低気圧の現況：%GET_LOCATION_LOW()%
+	
+	IF IS_COLD_LOW
+		DEBUGPRINTFORML 寒冷渦発生
+		DEBUGPRINTFORML 　　勢力圏突入 %GET_MONTH(TIME_ENTER_TERRITORY_COLD_LOW:0)% {TIME_ENTER_TERRITORY_COLD_LOW:1}日 %時刻表示(TIME_ENTER_TERRITORY_COLD_LOW:2)%
+		DEBUGPRINTFORML 　　勢力圏通過 %GET_MONTH(TIME_PASSAGE_TERRITORY_COLD_LOW:0)% {TIME_PASSAGE_TERRITORY_COLD_LOW:1}日 %時刻表示(TIME_PASSAGE_TERRITORY_COLD_LOW:2)%
+	ENDIF
+	
+	IF IS_TYPHOON:0
+		DEBUGPRINTFORML 台風発生 勢力{IS_TYPHOON:1} 通過位置{IS_TYPHOON:2}
+		IF IS_TYPHOON:1 >= 3
+			DEBUGPRINTFORML 　　勢力圏突入 　%GET_MONTH(TIME_ENTER_TERRITORY_TYPHOON:0)% {TIME_ENTER_TERRITORY_TYPHOON:1}日 %時刻表示(TIME_ENTER_TERRITORY_TYPHOON:2)%
+			DEBUGPRINTFORML 　　強風域突入　 %GET_MONTH(TIME_ENTER_WIND_ZONE_TYPHOON:0)% {TIME_ENTER_WIND_ZONE_TYPHOON:1}日 %時刻表示(TIME_ENTER_WIND_ZONE_TYPHOON:2)%
+			DEBUGPRINTFORML 　　暴風域突入 　%GET_MONTH(TIME_ENTER_STORM_AREA_TYPHOON:0)% {TIME_ENTER_STORM_AREA_TYPHOON:1}日 %時刻表示(TIME_ENTER_STORM_AREA_TYPHOON:2)%
+			DEBUGPRINTFORML 　　最接近     　%GET_MONTH(TIME_CLOSEST_TYPHOON:0)% {TIME_CLOSEST_TYPHOON:1}日 %時刻表示(TIME_CLOSEST_TYPHOON:2)%
+			DEBUGPRINTFORML 　　台風の目通過 %GET_MONTH(TIME_PASSAGE_EYE_TYPHOON:0)% {TIME_PASSAGE_EYE_TYPHOON:1}日 %時刻表示(TIME_PASSAGE_EYE_TYPHOON:2)%
+			DEBUGPRINTFORML 　　暴風域通過 　%GET_MONTH(TIME_PASSAGE_STORM_AREA_TYPHOON:0)% {TIME_PASSAGE_STORM_AREA_TYPHOON:1}日 %時刻表示(TIME_PASSAGE_STORM_AREA_TYPHOON:2)%
+			DEBUGPRINTFORML 　　強風域通過 　%GET_MONTH(TIME_PASSAGE_WIND_ZONE_TYPHOON:0)% {TIME_PASSAGE_WIND_ZONE_TYPHOON:1}日 %時刻表示(TIME_PASSAGE_WIND_ZONE_TYPHOON:2)%
+		ELSE
+			DEBUGPRINTFORML 　　勢力圏突入 　%GET_MONTH(TIME_ENTER_TERRITORY_TYPHOON:0)% {TIME_ENTER_TERRITORY_TYPHOON:1}日 %時刻表示(TIME_ENTER_TERRITORY_TYPHOON:2)%
+			DEBUGPRINTFORML 　　強風域突入 　%GET_MONTH(TIME_ENTER_WIND_ZONE_TYPHOON:0)% {TIME_ENTER_WIND_ZONE_TYPHOON:1}日 %時刻表示(TIME_ENTER_WIND_ZONE_TYPHOON:2)%
+			DEBUGPRINTFORML 　　最接近     　%GET_MONTH(TIME_CLOSEST_TYPHOON:0)% {TIME_CLOSEST_TYPHOON:1}日 %時刻表示(TIME_CLOSEST_TYPHOON:2)%
+			DEBUGPRINTFORML 　　台風の目通過 %GET_MONTH(TIME_PASSAGE_EYE_TYPHOON:0)% {TIME_PASSAGE_EYE_TYPHOON:1}日 %時刻表示(TIME_PASSAGE_EYE_TYPHOON:2)%
+			DEBUGPRINTFORML 　　強風域通過 　%GET_MONTH(TIME_PASSAGE_WIND_ZONE_TYPHOON:0)% {TIME_PASSAGE_WIND_ZONE_TYPHOON:1}日 %時刻表示(TIME_PASSAGE_WIND_ZONE_TYPHOON:2)%
+		ENDIF
+		SIF IS_TYPHOON:0 && IS_COLD_LOW
+			DEBUGPRINTFORM 　　備考:迷走台風
+		SIF IS_TYPHOON:3 == 1
+			DEBUGPRINTFORM 　　備考:先駆降雨帯発生
+	ENDIF
+	IF IS_SoJ_LOW == 2
+		DEBUGPRINTFORML 二つ玉低気圧発生
+		DEBUGPRINTFORML 　　勢力圏突入 　%GET_MONTH(TIME_ENTER_TERRITORY_SoJ_LOW:0)% {TIME_ENTER_TERRITORY_SoJ_LOW:1}日 %時刻表示(TIME_ENTER_TERRITORY_SoJ_LOW:2)%
+		DEBUGPRINTFORML 　　最接近 　　　%GET_MONTH(TIME_CLOSEST_SoJ_LOW:0)% {TIME_CLOSEST_SoJ_LOW:1}日 %時刻表示(TIME_CLOSEST_SoJ_LOW:2)%
+		DEBUGPRINTFORML 　　疑似好天終了 %GET_MONTH(TIME_PASSAGE_FAKE_FINE:0)% {TIME_PASSAGE_FAKE_FINE:1}日 %時刻表示(TIME_PASSAGE_FAKE_FINE:2)%
+		DEBUGPRINTFORML 　　通過 　　　　%GET_MONTH(TIME_PASSAGE_SoJ_LOW:0)% {TIME_PASSAGE_SoJ_LOW:1}日 %時刻表示(TIME_PASSAGE_SoJ_LOW:2)%
+	ELSEIF IS_SoJ_LOW == 1
+		DEBUGPRINTFORML 日本海低気圧発生
+		DEBUGPRINTFORML 　　勢力圏突入 %GET_MONTH(TIME_ENTER_TERRITORY_SoJ_LOW:0)% {TIME_ENTER_TERRITORY_SoJ_LOW:1}日 %時刻表示(TIME_ENTER_TERRITORY_SoJ_LOW:2)%
+		DEBUGPRINTFORML 　　最接近 　　%GET_MONTH(TIME_CLOSEST_SoJ_LOW:0)% {TIME_CLOSEST_SoJ_LOW:1}日 %時刻表示(TIME_CLOSEST_SoJ_LOW:2)%
+		DEBUGPRINTFORML 　　通過 　　　%GET_MONTH(TIME_PASSAGE_SoJ_LOW:0)% {TIME_PASSAGE_SoJ_LOW:1}日 %時刻表示(TIME_PASSAGE_SoJ_LOW:2)%
+	ENDIF
+	IF IS_SOUTHERN_LOW
+		DEBUGPRINTFORML 南岸低気圧発生
+		DEBUGPRINTFORML 　　勢力圏突入 %GET_MONTH(TIME_ENTER_TERRITORY_SOUTHERN_LOW:0)% {TIME_ENTER_TERRITORY_SOUTHERN_LOW:1}日 %時刻表示(TIME_ENTER_TERRITORY_SOUTHERN_LOW:2)%
+		DEBUGPRINTFORML 　　通過 　　　%GET_MONTH(TIME_PASSAGE_SOUTHERN_LOW:0)% {TIME_PASSAGE_SOUTHERN_LOW:1}日 %時刻表示(TIME_PASSAGE_SOUTHERN_LOW:2)%
+	ENDIF
+	;「TIME_ENTER_TERRITORY_EXTRATROPICAL_LOW:0」が0でないとき温暖低気圧発生中
+	IF TIME_ENTER_TERRITORY_EXTRATROPICAL_LOW:0 > 0
+		DEBUGPRINTFORML 温暖低気圧発生
+		DEBUGPRINTFORML 　　勢力圏突入 　%GET_MONTH(TIME_ENTER_TERRITORY_EXTRATROPICAL_LOW:0)% {TIME_ENTER_TERRITORY_EXTRATROPICAL_LOW:1}日 %時刻表示(TIME_ENTER_TERRITORY_EXTRATROPICAL_LOW:2)%
+		DEBUGPRINTFORML 　　温暖前線通過 %GET_MONTH(TIME_PASSAGE_WARM_FRONT:0)% {TIME_PASSAGE_WARM_FRONT:1}日 %時刻表示(TIME_PASSAGE_WARM_FRONT:2)%
+		DEBUGPRINTFORML 　　寒冷前線通過 %GET_MONTH(TIME_PASSAGE_COLD_FRONT:0)% {TIME_PASSAGE_COLD_FRONT:1}日 %時刻表示(TIME_PASSAGE_COLD_FRONT:2)%
+		DEBUGPRINTFORML 　　通過 　　　　%GET_MONTH(TIME_PASSAGE_EXTRATROPICAL_LOW:0)% {TIME_PASSAGE_EXTRATROPICAL_LOW:1}日 %時刻表示(TIME_PASSAGE_EXTRATROPICAL_LOW:2)%
+	ENDIF
+	SIF CAN_STRATUS
+		DEBUGPRINTFORML 霧予報
+	SELECTCASE CAN_CUMULUS:0
+		CASE 0
+			DEBUGPRINTFORML 積雲未発生
+		CASE 1
+			IF CAN_CUMULUS:1 == 0
+				DEBUGPRINTFORML 積雲遠方
+			ELSE
+				DEBUGPRINTFORML 積雲直撃
+				DEBUGPRINTFORML 　　勢力圏突入 %時刻表示(TIME_ENTER_TERRITORY_CUMULUS)%
+				DEBUGPRINTFORML 　　最接近 　　%時刻表示(TIME_CLOSEST_CUMULUS)%
+				DEBUGPRINTFORML 　　通過 　　　%時刻表示(TIME_PASSAGE_CUMULUS)%
+			ENDIF
+		CASE 2
+			IF CAN_CUMULUS:1 == 0
+				DEBUGPRINTFORML 雄大積雲遠方
+				
+			ELSE
+				DEBUGPRINTFORML 雄大積雲直撃
+				DEBUGPRINTFORML 　　勢力圏突入 %時刻表示(TIME_ENTER_TERRITORY_CUMULUS)%
+				DEBUGPRINTFORML 　　最接近 　　%時刻表示(TIME_CLOSEST_CUMULUS)%
+				DEBUGPRINTFORML 　　通過 　　　%時刻表示(TIME_PASSAGE_CUMULUS)%
+			ENDIF
+		CASE 3
+			IF CAN_CUMULUS:1 == 0
+				DEBUGPRINTFORML 積乱雲(入道雲)遠方
+				
+			ELSE
+				DEBUGPRINTFORML 積乱雲(入道雲)直撃
+				DEBUGPRINTFORML 　　勢力圏突入 %時刻表示(TIME_ENTER_TERRITORY_CUMULUS)%
+				DEBUGPRINTFORML 　　最接近 　　%時刻表示(TIME_CLOSEST_CUMULUS)%
+				DEBUGPRINTFORML 　　通過 　　　%時刻表示(TIME_PASSAGE_CUMULUS)%
+			ENDIF
+		CASE 4
+			IF CAN_CUMULUS:1 == 0
+				DEBUGPRINTFORML 積乱雲(かなとこ雲)遠方
+				
+			ELSE
+				DEBUGPRINTFORML 積乱雲(かなとこ雲)直撃
+				DEBUGPRINTFORML 　　勢力圏突入 %時刻表示(TIME_ENTER_TERRITORY_CUMULUS)%
+				DEBUGPRINTFORML 　　最接近 　　%時刻表示(TIME_CLOSEST_CUMULUS)%
+				DEBUGPRINTFORML 　　通過 　　　%時刻表示(TIME_PASSAGE_CUMULUS)%
+			ENDIF
+		CASE 5
+			IF CAN_CUMULUS:1 == 0
+				DEBUGPRINTFORML 積乱雲(スーパーセル)遠方
+				
+			ELSE
+				DEBUGPRINTFORML 積乱雲(スーパーセル)直撃
+				DEBUGPRINTFORML 　　勢力圏突入 %時刻表示(TIME_ENTER_TERRITORY_CUMULUS)%
+				DEBUGPRINTFORML 　　最接近 　　%時刻表示(TIME_CLOSEST_CUMULUS)%
+				DEBUGPRINTFORML 　　通過 　　　%時刻表示(TIME_PASSAGE_CUMULUS)%
+			ENDIF
+	ENDSELECT
+[ENDIF]
+
+IF 地底 == 1
+	PRINTW 空を眺めた
+	PRINTL ……
+	PRINTW ここから空が見えるはずがない！
+	PRINTL 
+	RETURN
+ELSEIF CFLAG:MASTER:現在位置 == 天界
+	PRINTW 空を眺めた
+	PRINTL ……
+	PRINTW どこまでも青空が広がっている
+	PRINTL 
+	RETURN
+ENDIF
+
+IF OUTROOF(CFLAG:MASTER:現在位置)
+	PRINTW 空を眺めた
+ELSE
+	PRINTW 窓の外を眺めた
+ENDIF
+PRINTL ……
+
+
+SELECTCASE TIME:0
+	;AM4~6　早朝
+	CASE 240 TO 359
+		SELECTCASE TIME:5
+			CASE IS < 3
+				IF 低気圧位置 == "台風最接近"
+					PRINTW 雲が辺りを高速で飛び回っている
+					PRINTL 
+					CALL ASK_DIARY("台風の目に入った")
+				ELSE
+					PRINTW 空が明るんできた
+					PRINTL 
+				ENDIF
+			CASE 6, 7, 11
+				PRINTW 一面霧で真っ白だ
+				PRINTL 
+			CASEELSE
+				IF GET_LOCATION_AREA_TYPHOON() == 1 || 低気圧位置 == "寒冷渦接近"
+					PRINTW 雲の流れが速い
+					PRINTL 
+				ELSE
+					PRINTW 空は一面雲に覆われている
+					PRINTL 
+				ENDIF
+		ENDSELECT
+	;AM6~8　正午前
+	CASE 360 TO 479
+		SELECTCASE TIME:5
+			CASE IS < 3
+				IF 低気圧位置 == "台風勢力圏"
+					PRINTW いつもより赤く鮮やかな朝焼けだ
+					PRINTL 
+				ELSEIF 低気圧位置 == "寒冷渦遠方" || 低気圧位置 == "疑似好天" || 低気圧位置 == "暖域"
+					PRINTW 明け行く空の彼方には壁みたいに連なった雲が見える
+					PRINTL 
+				ELSEIF 低気圧位置 == "寒冷渦接近" || IS_COLD_LOW || 低気圧位置 == "二つ玉低気圧接近" || 低気圧位置 == "日本海低気圧接近" || 低気圧位置 == "南岸低気圧接近" || 低気圧位置 == "温暖前線接近"
+					PRINTW 真っ赤な朝焼けだ
+					PRINTL 
+				ELSEIF 低気圧位置 == "台風最接近"
+					PRINTW 雲が辺りを高速で飛び回っている
+					PRINTL 
+					CALL ASK_DIARY("台風の目に入った")
+				ELSE
+					PRINTW すっかり夜が明けた
+					PRINTL 
+				ENDIF
+			CASE 6, 7, 11
+				PRINTW 一面霧で真っ白だ
+				PRINTL 
+			CASEELSE
+				IF GET_LOCATION_AREA_TYPHOON() == 1 || 低気圧位置 == "寒冷渦接近"
+					PRINTW 雲の流れが速い
+					PRINTL 
+				ELSE
+					PRINTW 空は一面雲に覆われている
+					PRINTL 
+				ENDIF 
+		ENDSELECT
+	;AM8~12　正午前
+	CASE 480 TO 719
+		SELECTCASE TIME:5
+			CASE IS < 3
+				IF DAY:2 == 2
+					IF IS_COLD_LOW || 低気圧位置 == "台風勢力圏"
+						PRINTW 彼方にたくさんの入道雲が見える
+						PRINTL 
+					ELSEIF POWER_WARM_AIR >= 4
+						PRINTW 彼方に綿雲がたくさん浮かんでいる
+						PRINTL 
+					ELSEIF POWER_WARM_AIR <= 1
+						PRINTW すっきりしない空模様だ
+						PRINTL 
+					ELSE
+						PRINTW 青空だ！今日も暑くなりそうだ
+						PRINTL 
+					ENDIF
+				ELSE
+					IF 低気圧位置 == "寒冷渦遠方" || 低気圧位置 == "疑似好天" || 低気圧位置 == "暖域"
+						PRINTW 空の彼方には壁みたいに連なった雲が見える
+						PRINTL 
+					ELSEIF 低気圧位置 == "台風最接近"
+						PRINTW 雲が辺りを高速で飛び回っている
+						PRINTL 
+						CALL ASK_DIARY("台風の目に入った")
+					ELSEIF 低気圧位置 == "二つ玉低気圧接近" || 低気圧位置 == "日本海低気圧接近" || 低気圧位置 == "南岸低気圧接近" || 低気圧位置 == "温暖前線接近"
+						IF TIME:5 == 3
+							PRINTW おぼろ雲が広がってきた
+							PRINTL 
+						ELSE
+							PRINTW うろこ雲が広がってきた
+							PRINTL 
+						ENDIF
+					ELSE
+						PRINTW 穏やかな空だ
+						PRINTL 
+					ENDIF
+				ENDIF
+			CASE 6, 7, 11
+				PRINTW 一面霧で真っ白だ
+				PRINTL 
+			CASEELSE
+				IF GET_LOCATION_AREA_TYPHOON() == 1 || 低気圧位置 == "寒冷渦接近"
+					PRINTW 雲の流れが速い
+					PRINTL 
+				ELSE
+					PRINTW 空は一面雲に覆われている
+					PRINTL 
+				ENDIF 
+		ENDSELECT
+	;PM12~6　昼
+	CASE 720 TO 1079
+		SELECTCASE TIME:5
+			CASE IS < 4
+				IF DAY:2 == 2
+					SELECTCASE 積乱雲位置
+						CASE "積乱雲遠方", "積乱雲未発生"
+							IF IS_COLD_LOW || 低気圧位置 == "台風勢力圏"
+								PRINTW 彼方にたくさんの入道雲が見える
+								PRINTL 
+							ELSEIF POWER_WARM_AIR <= 1
+								PRINTW すっきりしない空模様だ
+								PRINTL 
+							ELSE
+								SELECTCASE CAN_CUMULUS:0
+									CASE 0
+										PRINTW からっとした夏空だ
+										PRINTL 
+									CASE 1
+										PRINTW 彼方には綿雲が浮かんでいる
+										PRINTL 
+									CASE 2, 3
+										PRINTW 彼方には入道雲が浮かんでいる
+										PRINTL 
+									CASE 4
+										PRINTW 彼方にはかなとこ雲が浮かんでいる
+										PRINTL 
+									CASE 5
+										PRINTW 彼方では雲が渦を巻いている
+										PRINTL 
+								ENDSELECT
+							ENDIF
+						CASE "積乱雲視認"
+							SELECTCASE CAN_CUMULUS:0
+								CASE 1
+									PRINTW 綿雲が出てきた
+									PRINTL 
+								CASE 2, 3
+									PRINTW 入道雲がもくもくと成長している
+									PRINTL 
+								CASE 4
+									PRINTW 入道雲の頂上がまったいら かなとこ雲だ！
+									PRINTL 
+								CASE 5
+									PRINTW 遠くで雲の塊が渦を巻いている……
+									PRINTL 
+								CASEELSE
+									PRINTW からっとした夏空だ
+									PRINTL 
+							ENDSELECT
+						CASE "積乱雲接近"
+							SELECTCASE CAN_CUMULUS:0
+								CASE 1
+									PRINTW 綿雲がぷかぷか浮かんでいる
+									PRINTL 
+								CASE 2
+									PRINTW 雲の底が薄暗い
+									PRINTL 
+								CASE 3
+									PRINTW たなびく雲が近づいてきている
+									PRINTL 
+								CASE 4
+									PRINTW 黒いたなびく雲が近づいてきている
+									PRINTL 
+									IF CAN_CUMULUS:2 == 1
+										PRINTW ……よく見ると雲におっぱいが付いている！
+										PRINTL 
+										CALL ASK_DIARY("雲におっぱいが付いていた")
+									ELSEIF CAN_CUMULUS:2 == 2
+										PRINTW ……よく見ると雲からちんちんが生えている！
+										PRINTL 
+										CALL ASK_DIARY("雲からちんちんが生えていた")
+									ENDIF
+								CASE 5
+									PRINTW アーチ型の雲が近づいてきている
+									PRINTL 
+									IF CAN_CUMULUS:2 == 1
+										PRINTW ……よく見ると雲におっぱいが付いている！
+										PRINTL 
+										CALL ASK_DIARY("雲におっぱいが付いていた")
+									ELSEIF CAN_CUMULUS:2 == 2
+										PRINTW ……よく見ると雲からちんちんが生えている！
+										PRINTL 
+										CALL ASK_DIARY("雲からちんちんが生えていた")
+									ENDIF
+								CASEELSE
+									PRINTW からっとした夏空だ
+									PRINTL 
+							ENDSELECT
+						CASEELSE
+							PRINTW 綿雲がぷかぷか浮かんでいる
+							PRINTL 
+					ENDSELECT
+				ELSE
+					IF 低気圧位置 == "寒冷渦遠方" || 低気圧位置 == "疑似好天" || 低気圧位置 == "暖域"
+						PRINTW 空の彼方には壁みたいに連なった雲が見える
+						PRINTL 
+					ELSEIF 低気圧位置 == "台風最接近"
+						PRINTW 雲が辺りを高速で飛び回っている
+						PRINTL 
+						CALL ASK_DIARY("台風の目に入った")
+					ELSEIF 低気圧位置 == "二つ玉低気圧接近" || 低気圧位置 == "日本海低気圧接近" || 低気圧位置 == "南岸低気圧接近" || 低気圧位置 == "温暖前線接近"
+						IF TIME:5 == 3
+							PRINTW おぼろ雲が広がってきた
+							PRINTL 
+						ELSE
+							PRINTW うろこ雲が広がってきた
+							PRINTL 
+						ENDIF
+					ELSE
+						PRINTW 穏やかな空だ
+						PRINTL 
+					ENDIF
+				ENDIF
+			CASE 6, 7, 11
+				PRINTW 一面霧で真っ白だ
+				PRINTL 
+			CASEELSE
+				IF 積乱雲位置 == "積乱雲直下"
+					 SELECTCASE CAN_CUMULUS:0
+					 	CASE IS < 4
+					 		PRINTW 空が薄暗い
+					 		PRINTL 
+					 	CASE 4
+					 		PRINTW 空が真っ暗だ
+					 		PRINTL 
+							IF CAN_CUMULUS:2 == 1
+								PRINTW ……よく見ると雲におっぱいが付いている！
+								PRINTL 
+								CALL ASK_DIARY("雲におっぱいが付いていた")
+							ELSEIF CAN_CUMULUS:2 == 2
+								PRINTW ……よく見ると雲からちんちんが生えている！
+								PRINTL 
+								CALL ASK_DIARY("雲からちんちんが生えていた")
+							ENDIF
+					 	CASE 5
+					 		PRINTW 真っ黒な雲が渦を巻いている
+					 		PRINTL 
+							IF CAN_CUMULUS:2 == 1
+								PRINTW ……よく見ると雲におっぱいが付いている！
+								PRINTL 
+								CALL ASK_DIARY("雲におっぱいが付いていた")
+							ELSEIF CAN_CUMULUS:2 == 2
+								PRINTW ……よく見ると雲からちんちんが生えている！
+								PRINTL 
+								CALL ASK_DIARY("雲からちんちんが生えていた")
+							ENDIF
+					 ENDSELECT
+				ELSEIF GET_LOCATION_AREA_TYPHOON() == 1 || 低気圧位置 == "寒冷渦接近"
+					PRINTW 雲の流れが速い
+					PRINTL 
+				ELSE
+					PRINTW 空は一面雲に覆われている
+					PRINTL 
+				ENDIF 
+		ENDSELECT
+	;PM6~8　夕
+	CASE 1080 TO 1199
+		SELECTCASE TIME:5
+			CASE IS < 3
+				IF 低気圧位置 == "台風勢力圏"
+					PRINTW いつもより赤く鮮やかな夕焼けだ
+					PRINTL 
+				ELSEIF 低気圧位置 == "寒冷渦遠方" || 低気圧位置 == "疑似好天" || 低気圧位置 == "暖域"
+					PRINTW 夕焼け空の彼方には壁みたいに連なった雲が見える
+					PRINTL 
+				ELSEIF 低気圧位置 == "台風遠方" || 低気圧位置 == "台風一過" || 低気圧位置 == "二つ玉低気圧通過" || 低気圧位置 == "日本海低気圧通過" || 低気圧位置 == "南岸低気圧通過" || 低気圧位置 == "温帯低気圧通過" || 低気圧位置 == "低気圧未発生"
+					PRINTW 夕焼けがきれいだ
+					PRINTL 
+				ELSEIF 低気圧位置 == "台風最接近"
+					PRINTW 雲が辺りを高速で飛び回っている
+					PRINTL 
+					CALL ASK_DIARY("台風の目に入った")
+				ELSE
+					PRINTW 日が暮れてきた
+					PRINTL 
+				ENDIF
+			CASE 6, 7, 11
+				PRINTW 一面霧で真っ白だ
+				PRINTL 
+			CASEELSE
+				IF GET_LOCATION_AREA_TYPHOON() == 1 || 低気圧位置 == "寒冷渦接近"
+					PRINTW 雲の流れが速い
+					PRINTL 
+				ELSE
+					PRINTW 空は一面雲に覆われている
+					PRINTL 
+				ENDIF 
+		ENDSELECT
+	;PM8~AM4　夜・深夜
+	CASE 0 TO 239, IS >= 1200
+		SELECTCASE TIME:5
+			CASE IS < 3
+				IF IS_COLD_LOW || 低気圧位置 == "台風勢力圏" || 低気圧位置 == "疑似好天" || WIND_VELOCITY >= 1 || 低気圧位置 == "暖域"
+					PRINTW 星が瞬いている
+					PRINTL 
+				ELSEIF 低気圧位置 == "台風最接近"
+					PRINTW 雲が辺りを高速で飛び回っている
+					PRINTL 
+					CALL ASK_DIARY("台風の目に入った")
+				ELSEIF 低気圧位置 == "二つ玉低気圧接近" || 低気圧位置 == "日本海低気圧接近" || 低気圧位置 == "南岸低気圧接近" || 低気圧位置 == "温暖前線接近"
+					IF TIME:5 == 2 && MOON_WATCH(DAY:3)
+						PRINTW 月が暈をかぶっている
+						PRINTL 
+					ELSEIF TIME:5 == 2
+						PRINTW 薄雲で星にもやがかかっている
+						PRINTL 
+					ENDIF
+				ELSE
+					PRINTW 星がきれいだ
+					PRINTL 
+				ENDIF
+			CASE 6, 7, 11
+				PRINTW 一面霧で真っ白だ
+				PRINTL 
+			CASEELSE
+				IF GET_LOCATION_AREA_TYPHOON() == 1 || 低気圧位置 == "寒冷渦接近"
+					PRINTW 雲の流れが速い
+					PRINTL 
+				ELSEIF 低気圧位置 == "二つ玉低気圧接近" || 低気圧位置 == "日本海低気圧接近" || 低気圧位置 == "南岸低気圧接近" || 低気圧位置 == "温暖前線接近"
+					IF TIME:5 == 3
+						PRINTW 低い雲が星を隠している
+						PRINTL 
+					ENDIF
+				ELSE
+					PRINTW 空は一面雲に覆われている
+					PRINTL 
+				ENDIF 
+		ENDSELECT
+ENDSELECT
+

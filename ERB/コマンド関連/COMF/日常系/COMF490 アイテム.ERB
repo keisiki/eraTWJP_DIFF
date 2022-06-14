@@ -478,6 +478,19 @@ SELECTCASE 使用アイテム
 			CALL RECOVER_PERMIL(対象, ITEM_TASTE(対象, 50, 食品特徴), "精力", 0, "ヤツメ串による回復")
 			LOCAL:1 ++
 		ENDIF
+	;(酒造パッチ)あくまき
+	CASE 576
+		IF !TIME_PROGRESS(TCVAR:対象:空腹時刻)
+			PRINTFORML %CALLNAME:対象%はまだ空腹になってない
+			GOTO LOOP
+		ELSE
+			PRINTFORML %ITEMNAME:使用アイテム%を食べた
+			CALL 満腹度上昇(対象,"主食")
+			食品特徴 = %ITEMNAME:使用アイテム%/和食/米/団子/甘い/もちもち/家庭的/春物/
+			CALL RECOVER(対象, ITEM_TASTE(対象, 150, 食品特徴), "体力", "あくまきによる回復")
+			CALL RECOVER(対象, ITEM_TASTE(対象, 150, 食品特徴), "気力", "あくまきによる回復")
+			LOCAL:1 ++
+		ENDIF
 	CASE 626	;キイチゴ
 		PRINTFORML %ITEMNAME:使用アイテム%を食べた
 		食品特徴 = %ITEMNAME:使用アイテム%/果物/甘い/すっぱい/野趣/
@@ -496,6 +509,25 @@ SELECTCASE 使用アイテム
 		CALL BUFF_BASE(対象, BASE_気力, MAX(MAXBASE:対象:気力 / 10, 500))
 		CALL BUFF_BASE(対象, BASE_精力, MAX(MAXBASE:対象:精力 / 10, 500))
 		LOCAL:1 ++
+	;(酒造パッチ)ヤマブドウ
+	CASE 665
+		PRINTFORML %ITEMNAME:使用アイテム%を食べた
+		食品特徴 = %ITEMNAME:使用アイテム%/果物/甘い/すっぱい/野趣/
+		CALL RECOVER(対象, ITEM_TASTE(対象, 50, 食品特徴), "気力", "ヤマブドウによる回復")
+		LOCAL:1 ++
+	;(酒造パッチ)携帯タコス
+	CASE 669
+		IF !TIME_PROGRESS(TCVAR:対象:空腹時刻)
+			PRINTFORML %CALLNAME:対象%はまだ空腹になってない
+			GOTO LOOP
+		ELSE
+			PRINTFORML %ITEMNAME:使用アイテム%を食べた
+			CALL 満腹度上昇(対象,"軽食")
+			食品特徴 = タマネギ/トマト/キャベツ/洋食/野菜/獣肉/スパイス/チーズ/辛い/ガッツリ/濃厚/機能的/野趣/鮮やか/サクサク/
+			CALL RECOVER(対象, ITEM_TASTE(対象, 120, 食品特徴), "体力", "タコスによる回復")
+			CALL RECOVER(対象, ITEM_TASTE(対象, 120, 食品特徴), "気力", "タコスによる回復")
+			LOCAL:1 ++
+		ENDIF
 	CASEELSE
 		GOTO LOOP
 ENDSELECT
@@ -560,10 +592,11 @@ RETURN 1
 
 SIF CFLAG:MASTER:うふふ && !DRUG(ARG)
 	RETURNF 0
+;(酒造パッチ)あくまきとヤマブドウ、タコス
 SELECTCASE ARG
 	CASE 121 TO 123, 215, 364, 500, 510, 514, 515, 516, 517, 520, 521, 530
 		RETURNF 1
-	CASE 120, 212, 213, 352, 501, 503, 505 TO 509, 511, 512, 550, 626, 628, 630
+	CASE 120, 212, 213, 352, 501, 503, 505 TO 509, 511, 512, 550, 576, 626, 628, 630, 665, 669
 		RETURNF 2
 	CASE 502
 		SIF HAS_PENIS(TARGET)

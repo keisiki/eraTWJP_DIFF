@@ -297,35 +297,59 @@ PRINTFORMW （今月の収穫量：{FLAG:畑仕事の成果}）
 LOCAL = (年貢の評価 - 3) * 5
 SIF LOCAL < 0
 	LOCAL = LOCAL - SQRT(MAX(1, CFLAG:(FLAG:地主):信頼度))
+;(天候パッチ)寒気による作物被害が20を超えたら20毎に冷害判定
+SIF AMOUNT_COLD_CROP_DAMAGE >= 20
+	IS_COLD_CROP_DAMAGE ++
+SIF AMOUNT_COLD_CROP_DAMAGE >= 40
+	IS_COLD_CROP_DAMAGE ++
+SIF AMOUNT_COLD_CROP_DAMAGE >= 60
+	IS_COLD_CROP_DAMAGE ++
 SELECTCASE 年貢の評価
-CASE IS <= 0
-	PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はほぼゼロだ
-	PRINTFORML %CALLNAME:(FLAG:地主)%はこちらを険しい顔で睨んでいる
-CASE 1
-	PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はかなり少ない
-	PRINTFORML %CALLNAME:(FLAG:地主)%は収穫量のあまりの少なさにあからさまにがっかりした様子だ
-CASE 2
-	PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量は少なめだ
-	PRINTFORML %CALLNAME:(FLAG:地主)%は収穫量の少なさに不満気な様子だ
-CASE 3
-	PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はやや少なめだ
-	PRINTFORML %CALLNAME:(FLAG:地主)%は収穫量に多少の物足りなさを感じているようだ
-CASE 4
-	PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はふつうといったところだ
-	PRINTFORML %CALLNAME:(FLAG:地主)%は収穫量に満足してくれたようだ
-CASE 5
-	PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はやや多めだ
-	PRINTFORML %CALLNAME:(FLAG:地主)%は収穫量の多さにご機嫌なご様子だ
-CASE 6
-	PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はかなり多い
-	PRINTFORML %CALLNAME:(FLAG:地主)%は予想以上の収穫量に笑みを浮かべている
-CASEELSE
-	PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はおびただしい量だ！
-	PRINTFORML %CALLNAME:(FLAG:地主)%は想像を絶する収穫量に圧倒されている
+	;(天候パッチ)冷害・風害発生時は態度が軟化
+	CASE IS <= 0
+		IF IS_COLD_CROP_DAMAGE > 0 || IS_STORM_CROP_DAMAGE > 0
+			PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はほぼゼロだ
+			PRINTFORML 天候不順によるあまりの被害に%CALLNAME:(FLAG:地主)%は呆然としている
+		ELSE
+			PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はほぼゼロだ
+			PRINTFORML %CALLNAME:(FLAG:地主)%はこちらを険しい顔で睨んでいる
+		ENDIF
+	CASE 1
+		IF IS_COLD_CROP_DAMAGE > 0 || IS_STORM_CROP_DAMAGE > 0
+			PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はかなり少ない
+			PRINTFORML 天候不順による被害に%CALLNAME:(FLAG:地主)%は肩を落としている
+		ELSE
+			PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はかなり少ない
+			PRINTFORML %CALLNAME:(FLAG:地主)%は収穫量のあまりの少なさにあからさまにがっかりした様子だ
+		ENDIF
+	CASE 2
+		IF IS_COLD_CROP_DAMAGE > 0 || IS_STORM_CROP_DAMAGE > 0
+			PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量は少なめだ
+			PRINTFORML 天候不順による被害に%CALLNAME:(FLAG:地主)%は残念そうにしている
+		ELSE
+			PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量は少なめだ
+			PRINTFORML %CALLNAME:(FLAG:地主)%は収穫量の少なさに不満気な様子だ
+		ENDIF
+	CASE 3
+		PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はやや少なめだ
+		PRINTFORML %CALLNAME:(FLAG:地主)%は収穫量に多少の物足りなさを感じているようだ
+	CASE 4
+		PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はふつうといったところだ
+		PRINTFORML %CALLNAME:(FLAG:地主)%は収穫量に満足してくれたようだ
+	CASE 5
+		PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はやや多めだ
+		PRINTFORML %CALLNAME:(FLAG:地主)%は収穫量の多さにご機嫌なご様子だ
+	CASE 6
+		PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はかなり多い
+		PRINTFORML %CALLNAME:(FLAG:地主)%は予想以上の収穫量に笑みを浮かべている
+	CASEELSE
+		PRINTFORML 今月分の%STR_NOUMIN(FLAG:地主, "作物")%の収穫量はおびただしい量だ！
+		PRINTFORML %CALLNAME:(FLAG:地主)%は想像を絶する収穫量に圧倒されている
 ENDSELECT
 WAIT
 
-IF LOCAL < 0
+;(天候パッチ)冷害・風害発生時は怒らない
+IF LOCAL < 0 && IS_COLD_CROP_DAMAGE <= 0 && IS_STORM_CROP_DAMAGE <= 0
 	PRINTFORMW %CALLNAME:(FLAG:地主)%はあなたに不信感を抱いている
 	CFLAG:(FLAG:地主):信頼度 = MAX(0, CFLAG:(FLAG:地主):信頼度 + LOCAL)
 	IF 年貢の評価 <= 0
@@ -336,7 +360,14 @@ IF LOCAL < 0
 			MARK:(FLAG:地主):反発刻印 ++
 	ENDIF
 ELSEIF LOCAL > 0
-	PRINTFORMW %CALLNAME:(FLAG:地主)%からの信頼度が上がった
+	;(天候パッチ)冷害・風害発生時はより評価される
+	IF IS_COLD_CROP_DAMAGE > 0 || IS_STORM_CROP_DAMAGE > 0
+		PRINTFORM 天候不順にもかかわらず豊作になったので
+		PRINTFORMW %CALLNAME:(FLAG:地主)%からの信頼度がとても上がった
+		LOCAL += ((IS_COLD_CROP_DAMAGE + IS_STORM_CROP_DAMAGE) * 2)
+	ELSE
+		PRINTFORMW %CALLNAME:(FLAG:地主)%からの信頼度が上がった
+	ENDIF
 	CFLAG:(FLAG:地主):信頼度 += LOCAL
 	IF !MARK:(FLAG:地主):反発刻印
 		LOCAL = 年貢の評価 * INT_NOUMIN(FLAG:地主, "報酬")
@@ -355,6 +386,10 @@ CALL REPAY_NOUMIN
 SIF FLAG:農民難易度 > 1
 	CALL COST_NOUMIN
 
+;(天候パッチ)冷害発生回数と風害発生回数をリセット
+IS_COLD_CROP_DAMAGE = 0
+IS_STORM_CROP_DAMAGE = 0
+AMOUNT_COLD_CROP_DAMAGE = 0
 
 
 @REPAY_NOUMIN

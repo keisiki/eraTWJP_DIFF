@@ -29,6 +29,14 @@ VARSET LOCAL
 ;朝1日スタート処理
 ;初期化
 
+;(天候パッチ)現在の天候管理が0であるときは初回プレイであると判断
+IF NOW_WEATHER_CONTROL == 0
+	;(天候パッチ)短期予報を行う
+	CALL WEATHER_FORECAST_1TERM
+	;(天候パッチ)1日予報を行う
+	CALL WEATHER_FORECAST_1DAY
+ENDIF
+
 FLAG:日替わりイベント = RAND:1000
 FLAG:70 = 0
 RESETBGCOLOR
@@ -69,7 +77,12 @@ IF TIME > TIME:3
 	DAY ++
 	DAY:3 ++
 	TIME -= 1440
+	
 	CALL CHANGE_MONTH
+	;(天候パッチ)短期予報を行う
+	CALL WEATHER_FORECAST_1TERM
+	;(天候パッチ)1日予報を行う
+	CALL WEATHER_FORECAST_1DAY
 	;宴会の参加者決定
 	SIF FLAG:3 && FLAG:宴会開催フラグ != 98 && FLAG:宴会開催フラグ != 99 && DAY >= FLAG:開始日
 		CALL ENKAI_ENTRY

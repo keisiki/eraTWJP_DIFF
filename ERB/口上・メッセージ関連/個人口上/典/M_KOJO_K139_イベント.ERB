@@ -146,6 +146,7 @@ ENDIF
 			EXP:139:膣射経験 += 73
 			TALENT:139:処女 = 0
 			TALENT:139:人妻 = 1
+			ABL:腰 = 2
 			CFLAG:139:1998 = 1
 		ELSE
 			PRINTFORML 典は清い体のままです
@@ -153,6 +154,59 @@ ENDIF
 		ENDIF
 	ENDIF
 
+	;あなたがペニスを持っているときのみ発生する選択肢
+	IF TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3
+		IF CFLAG:139:1997 == 0
+			PRINTL 
+			PRINTFORML 典に娘が産まれたとき、娘が性に目覚めるフラグをオンにしますか？
+			PRINTL 
+			PRINTFORML ※娘が一定以上成長するとあなたを性的な目で見るようになります
+			PRINTFORML ※ハードな近親相姦（=挿入行為）はありませんが、意図せず娘と多少なりとも関係を持ってしまいます
+			PRINTFORML ※そういったものに嫌悪感を示される方はオフにしてください
+			PRINTFORML ※誤ってオンにしてもUPDATEですぐオフにできます
+			PRINTL 
+			CALL ASK_M("オンにする", 1,"オンにする（同級生OFF）", 1,"オフのまま保留", 1,"二度と表示させない", 1)
+			SELECTCASE RESULT
+			CASE 0
+				PRINTFORML 娘が性に目覚めるフラグをオンにしました
+				PRINTFORML すべての描写が表示されます
+				PRINTFORML UPDATEでオフにするか再び選択できます
+				CFLAG:139:1997 = 1
+			CASE 1
+				PRINTFORML 娘が性に目覚めるフラグをオンにしました
+				PRINTFORML 同級生との描写はオフになります
+				PRINTFORML UPDATEでオフにするか再び選択できます
+				CFLAG:139:1997 = 3
+			CASE 2
+				PRINTFORML 娘が性に目覚めるフラグはオフのままでです
+				PRINTFORML UPDATEでオンにするか再び選択できます
+			CASE 3
+				PRINTFORML 娘が性に目覚めるフラグをオフのまま、本周回中は選択肢が出ないようにします
+				CFLAG:139:1997 = 2
+			ENDSELECT
+			PRINTL 
+		ELSEIF CFLAG:139:1997 == 1 || CFLAG:139:1997 == 3
+			PRINTL 
+			PRINTFORML 娘が性に目覚めるフラグをオフにしますか？
+			PRINTL 
+			CALL ASK_M("オフにする", 1,"同級生フラグだけオフにする", 1,"同級生フラグをオンにする", 1,"オンのまま", 1)
+			SELECTCASE RESULT
+			CASE 0
+				PRINTFORML 娘が性に目覚めるフラグをオフにしました
+				CFLAG:139:1997 = 0
+			CASE 1
+				PRINTFORML 同級生フラグのみオフにします
+				CFLAG:139:1997 = 1
+			CASE 2
+				PRINTFORML 同級生フラグをオンにします
+				CFLAG:139:1997 = 3
+			CASE 3
+				PRINTFORML 娘が性に目覚めるフラグはオンのままです
+				CFLAG:139:1997 = 1
+			ENDSELECT
+			PRINTL 
+		ENDIF
+	ENDIF
 RETURN 1
 
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
@@ -3226,6 +3280,7 @@ IF LOCAL
 							RESETCOLOR
 							PRINTW 
 							TCVAR:360 = 1
+						;バフかかった後
 						ELSEIF TCVAR:360 >= 1
 							SETCOLOR 0xFF69B4
 							CALL HPH_PRINT,@"「%CALLNAME:MASTER%どの…HPH　おシコり申し上げます…HPH」","L"
@@ -3237,12 +3292,81 @@ IF LOCAL
 							CALL HPH_PRINT,@"「生ハメ子作りセックス以外は禁HPH止HPHと言ったはずでしょうっHPH」典の笑顔が怖い…","L"
 							CALL HPH_PRINT,@"「子宮を埋め尽くすくらい、射していただきますからね…HPH」","L"
 							PRINTW 
+						;妊娠願望なし
 						ELSE
 							SETCOLOR 0xFF69B4
-							CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのぉHPH　セックスHPH　セックスしましょうHPH」","L"
-							CALL HPH_PRINT,@"「典をすっかりその気にさせてしまった責任、その体でとっていただきますからねHPH」","L"
+							SELECTCASE RAND:9
+							CASE 0
+								CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのぉHPH　セックスHPH　セックスしましょうHPH」","L"
+								CALL HPH_PRINT,@"「典をすっかりその気にさせてしまった責任、その体でとっていただきますからねHPH」","L"
+							CASE 1
+								CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのぉ、%CALLNAME:MASTER%どのぉHPH」","L"
+								RESETCOLOR
+								PRINTFORML 典が普段から想像もつかないような膂力で%CALLNAME:MASTER%の両腕を掴み押し倒してきた
+								PRINTW 
+								SETCOLOR 0xFF69B4
+								CALL HPH_PRINT,@"「もう我慢できませんHPH　痛くしたら許してくださいねHPH」","L"
+								CALL HPH_PRINT,@"「１発や２発では満足いたしませんからHPH　獣のようにまぐわいましょうHPH」","L"
+								PRINTW 
+							CASE 2
+								CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのぉHPH　先っちょだけHPH　先っちょだけですからぁHPH」","L"
+								CALL HPH_PRINT,@"「おちんぽ、典のここに挿れさせてくださいHPH」","L"
+								CALL HPH_PRINT,@"「大丈夫ですHPH　最後までシませんからHPH　本当ですからぁHPHHPH」","L"
+								PRINTW 
+							CASE 3
+								CALL HPH_PRINT,@"「%CALLNAME:MASTER%どの、いただきます…HPH」","L"
+								CALL HPH_PRINT,@"「これ以上、お預けは無理ですから…HPH」","L"
+								CALL HPH_PRINT,@"「溜め込んだもの、全部典に吐き出してくださいね…HPH」","L"
+								PRINTW 
+							CASE 4
+								CALL HPH_PRINT,@"「シたくないなんて仰らないですよね？　典はもうすっかり犯る気十分ですHPH」","L"
+								CALL HPH_PRINT,@"「お互い足腰立たなくなるまで、溶けるほど交わりましょうHPH」","L"
+								PRINTW 
+							CASE 5
+								CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのは\@ TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3 ? チンポおっ勃てて # \@天上のシミの数でも数えててくださいHPH」","L"
+								CALL HPH_PRINT,@"「しばらくは終わりませんがいつか終わりますよHPH」","L"
+								PRINTW 
+							CASE 6
+								CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのに鎮めてもらわないと、駄目みたい…HPH」","L"
+								CALL HPH_PRINT,@"「典のこと、好きにしてくださいHPH　典をイキ狂わせてHPH　早くぅHPH」","L"
+								PRINTW 
+							CASE 7
+								IF TALENT:MASTER:恋人 && !TALENT:139:恋人
+									PRINTFORML 「『自分には恋人が』？　そんなの知ったこっちゃないんですよ！！！！！」
+									PRINTFORML 「私は今あなた\@ TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3 ? のチンポ # \@で気持ちよくなりたいんです！！」
+									IF BASE:MASTER:勃起 >= 1000
+										CALL HPH_PRINT,@"「大体ちんぽバキバキにしておいて、説得力がないんですよHPH」","L"
+										CALL HPH_PRINT,@"「金玉を空にするまで諦めてくださいねHPHHPH」","L"
+									ELSE
+										CALL HPH_PRINT,@"「もうこっちは体の芯に火が点いているんですHPH　あきらめてくださいHPHHPH」","L"
+									ENDIF
+									PRINTW 
+								ELSE
+									CALL HPH_PRINT,@"「全部絞りつくして差し上げますからHPH　覚悟してくださいねHPH」","L"
+									CALL HPH_PRINT,@"「管狐の繁殖欲、とくと味わってくださいHPH」","L"
+									PRINTW 
+								ENDIF
+							CASE 8
+								IF TALENT:MASTER:濃厚精液
+									CALL HPH_PRINT,@"「そんな濃厚な精液の臭い漂わせてたら、頭おかしくなるに決まってるでしょう…！HPH」","L"
+									CALL HPH_PRINT,@"「もう限界です…！HPH　全部絞りつくして、臭いを消して差し上げますからHPH」","L"
+									PRINTW 
+								ELSE
+									IF BASE:MASTER:精力 >= MAXBASE:MASTER:精力 / 2
+										CALL HPH_PRINT,@"「まだまだ、出せますよねぇHPH」","L"
+										CALL HPH_PRINT,@"「典が全部出し尽くして差し上げますから、出し惜しみしないでくださいね…HPH」","L"
+										PRINTW 
+									ELSE
+										CALL HPH_PRINT,@"「『もう無理』？　またまた、ご冗談をHPH」","L"
+										CALL HPH_PRINT,@"「この狐の鼻は、精の臭いをしっかりと嗅ぎ分けているんですからHPH」","L"
+										CALL HPH_PRINT,@"「嘘を付いた罰として、空になるまで搾り取りますからね…HPH」","L"
+										PRINTW 
+									ENDIF
+								ENDIF
+							ENDSELECT
 							RESETCOLOR
 						ENDIF
+					;恋慕・恋人なし
 					ELSE
 						SETCOLOR 0xFF69B4
 						CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのぉHPH　セックスHPH　セックスしましょうHPH」","L"

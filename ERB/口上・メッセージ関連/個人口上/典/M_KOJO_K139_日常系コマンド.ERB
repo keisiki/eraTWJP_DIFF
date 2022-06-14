@@ -3126,6 +3126,57 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
+	IF TALENT:恋慕 || TALENT:恋人
+		IF ALCOHOL_FACE(139) == "ぐでぐで"
+			IF TCVAR:発情
+			ELSE
+			ENDIF
+		ELSEIF ALCOHOL_FACE(139) == "酔いどれ"
+		ELSEIF ALCOHOL_FACE(139) == "ほろ酔い"
+			
+		ELSE
+			SELECTCASE RAND:4
+			CASE 0
+				PRINTFORML 「以前は控えていましたけど、私、それなりには飲めるんですよ」
+				PRINTFORML 「…まあ、上司や周囲の方々と比べればお猪口のようなものらしいですが」
+				PRINTW 
+			CASE 1
+				PRINTFORML 「ふふ、典を酔わせてどうするおつもりですかぁ？」
+				PRINTW 
+			CASE 2
+				;でっち上げなんで「俺の知ってる解釈と違う！」とかはあると思います
+				PRINTFORML 「基本的に妖怪は人間の意味でいう飲食を必要としません。そもそも栄養が必要ありませんし、栄養をとれないですしね」
+				PRINTW 
+				PRINTFORML 「ではなぜ酒には酔うのかという話ですが、酒には霊が宿るからです」
+				PRINTFORML 「妖怪は肉体を持ちながら実際は精神が本体に近い。霊の宿る酒はその精神に揺らぎを与える」
+				PRINTW 
+				PRINTFORML 「そして人間ほど娯楽の多くない妖怪は、その揺らぎを楽しんでいるのですよ」
+				PRINTFORML 「天狗や鬼のような妖怪の中でも上位に位置する者たちが酒を好むのは、自分たちが揺るがないからです。純粋な強さにおいても。精神性においても」
+				PRINTFORML 「私は妖怪ですが力も強くないですし、獣としての性質も持ち合わせているので、精々人間の中でも強い部類、という程度ですよ」
+				PRINTW 
+				PRINTFORML 講釈を終えると、典は手元の酒をちびりとやった
+				IF TALENT:MASTER:酒耐性 == 3 && ABL:戦闘能力 >= 6
+					PRINTFORML 「さて、神妖を打ち負かし、天狗や鬼との酒盛りにも渡り合う汝は人なりや？」
+					PRINTFORML 典は空になった盃を%CALLNAME:MASTER%に向け、すいっと目を細めた
+					PRINTW 
+					PRINTFORML 「…………なーんて♪　たまにいるらしいんですよ。人の器に収まりながら人智を超えるような力を持ち合わせる者が」
+					PRINTFORML 「そういった者は『英雄』とか『覇王』なんかといった名で呼ばれたりするみたいですがね」
+					PRINTFORML 「きっと『誰か』の気まぐれが、あなたのような存在を生み出しているんでしょうねぇ」
+					PRINTW 
+					PRINTFORML 「……とはいえ、この助平さんが英雄の器かといいますと…うーん…」
+					PRINTL [0]英雄に対して不敬なるぞ
+					PRINTW 
+					PRINTFORML 「随分と器の小さい英雄様でございますねぇ♪」
+					PRINTFORML 典はケラケラと笑った
+				ENDIF
+				PRINTW 
+			CASE 3
+				PRINTFORML 「飲んでもいいのかって？　今までは立場上深酒をするわけにはいきませんでしたので…」
+				PRINTFORML 「でも、%CALLNAME:MASTER%どのの前ならその必要もなくなりました♪」
+				PRINTW 
+			ENDSELECT
+		ENDIF
+	ENDIF
 	TCVAR:374 += 500
 ENDIF
 RETURN 1
@@ -5468,7 +5519,7 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K139_368_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 	SELECTCASE Activity_Type:TARGET
@@ -6390,8 +6441,13 @@ IF LOCAL
 						[[穣子]], [[メリー]], [[ヤマメ]], [[一輪]], [[屠自古]], [[弁々]], [[雷鼓]], [[豊姫]], [[神綺]], [[夢子]], [[マイ]], 
 						[[純狐]], [[エリー]], [[ネムノ]], [[潤美]], [[美宵]])
  }
- 							PRINTFORML 「胸だけで女の魅力を測るなんて、浅はかな……」
- 							PRINTFORML 「慎ましやかさこそ、女の魅力なのですよ」
+							IF TALENT:TARGET:バストサイズ > 0
+								PRINTFORML 「女性はやはり胸と尻の大きさが重要…」
+								PRINTFORML 「%CALLNAME:MASTER%どのはよく分かっていらっしゃる」
+							ELSE
+	 							PRINTFORML 「胸だけで女の魅力を測るなんて、浅はかな……」
+	 							PRINTFORML 「慎ましやかさこそ、女の魅力なのですよ」
+	 						ENDIF
  						ENDIF
 
  						;ねこみみ
@@ -6557,7 +6613,13 @@ IF LOCAL
 				PRINTW 
 			ELSE
 				IF TCVAR:発情
+					SETCOLOR 0xFF69B4
+					PRINTFORML 「もう…こんな状態の典をおいて出掛けるなんて…」
+					PRINTFORML 典はもじもじと太ももを擦り合わせながら%CALLNAME:MASTER%を見送った
+					RESETCOLOR
 				ELSE
+					PRINTFORML 「お出かけですか？　行ってらっしゃいませ」
+					PRINTW 
 				ENDIF
 			ENDIF
 		ELSE
@@ -11069,10 +11131,140 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K139_604_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-
+	SELECTCASE CFLAG:MASTER:現在位置
+	;- 人間の里 -
+	CASE 大衆浴場
+	CASE 連れ込み宿
+		IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+			IF TALENT:MASTER:無知 == 1 && TALENT:MASTER:非童貞 == 0
+				PRINTFORML 「……えーと、%CALLNAME:MASTER%どの？」
+				PRINTFORML 「ここがどんな場所でどんなときに利用するかご存じですか？」
+				PRINTW 
+				PRINTFORML （あー…何も分かってない、って顔してるわねぇ）
+				PRINTFORML 「それじゃあ、お姉ちゃんと一緒に入って、『お勉強』してみます…？%UNICODE(0x2665) *1%」
+				PRINTW 
+			ELSEIF TALENT:MASTER:非童貞 == 0
+				PRINTFORML 「あれぇ～～～～？　%CALLNAME:MASTER%どのぉ～～～～？」
+				PRINTFORML 「ひょっとして、何か期待しちゃってます？　ん？　ん？」
+				PRINTW 
+			ELSE
+				PRINTFORML 「……おやおや、おやおや♪」
+				PRINTFORML 「%CALLNAME:MASTER%どのってば、おませさんですねぇ♪」
+				PRINTW 
+			ENDIF
+		ELSE
+			IF TALENT:MASTER:非童貞 == 0
+				PRINTFORML 「えぇ～～、どうしよっかなぁ～～♪」
+				PRINTFORML 「典はここに入るのがとても不安なんですが…♪」
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「『何もしないから大丈夫』？　おやおや、ここは何かするところなんですかねぇ…♪」
+				CASE 1
+					PRINTFORML 「何やらあちこちから男と女のむつみ合う声が聞こえてきますが…どういうことでしょうねぇ♪」
+				ENDSELECT
+				PRINTW 
+			ELSE
+				IF TIME:0 > 600 && TIME:0 < 900
+					IF TCVAR:発情
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「おやおや、こんな時間から…典は帰りに歩いて帰れるでしょうか…%UNICODE(0x2665) *1%」
+							PRINTW 
+						CASE 1
+							PRINTFORML 「こんな時間からこんな場所に…%CALLNAME:MASTER%どののス・ケ・ベ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ENDSELECT
+						
+						IF BASE:MASTER:勃起 >= 1000
+							PRINTFORML 「ふふ、もうそこをそんなにして…気が早すぎではないですか%UNICODE(0x2665) *1%」
+							PRINTW 
+						ENDIF
+					ENDIF
+				ELSE
+					IF TALENT:妊娠願望
+						CALL HPH_PRINT,@"「ここなら、誰にも邪魔されず子作りに専念できそうですねぇ…HPH」","L"
+						PRINTW 
+					ELSE
+						CALL HPH_PRINT,@"「朝帰りの言い訳を考えておかないといけませんね…HPH」","L"
+						PRINTW 
+					ENDIF
+				ENDIF
+			ENDIF
+		ENDIF
+	;- 迷いの竹林 -
+	CASE 竹林入り口
+	CASE 永遠亭奥ノ院
+	;- 魔法の森 -
+	CASE 香霖堂
+	CASE 霧雨魔法店
+	CASE 無縁塚
+	;- 地底 -
+	CASE 旧地獄温泉
+	CASE ラブホ
+		IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+			IF TALENT:MASTER:無知 == 1 && TALENT:MASTER:非童貞 == 0
+				PRINTFORML 「……えーと、%CALLNAME:MASTER%どの？」
+				PRINTFORML 「ここがどんな場所でどんなときに利用するかご存じですか？」
+				PRINTW 
+				PRINTFORML （あー…何も分かってない、って顔してるわねぇ）
+				PRINTFORML 「それじゃあ、お姉ちゃんと一緒に入って、『お勉強』してみます…？%UNICODE(0x2665) *1%」
+				PRINTW 
+			ELSEIF TALENT:MASTER:非童貞 == 0
+				PRINTFORML 「あれぇ～～～～？　%CALLNAME:MASTER%どのぉ～～～～？」
+				PRINTFORML 「ひょっとして、何か期待しちゃってます？　ん？　ん？」
+				PRINTW 
+			ELSE
+				PRINTFORML 「……おやおや、おやおや♪」
+				PRINTFORML 「%CALLNAME:MASTER%どのってば、おませさんですねぇ♪」
+				PRINTW 
+			ENDIF
+		ELSE
+			IF TALENT:MASTER:非童貞 == 0
+				PRINTFORML 「えぇ～～、どうしよっかなぁ～～♪」
+				PRINTFORML 「典はここに入るのがとても不安なんですが…♪」
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「『何もしないから大丈夫』？　おやおや、ここは何かするところなんですかねぇ…♪」
+				CASE 1
+					PRINTFORML 「何やらあちこちから男と女のむつみ合う声が聞こえてきますが…どういうことでしょうねぇ♪」
+				ENDSELECT
+				PRINTW 
+			ELSE
+				IF TIME:0 > 600 && TIME:0 < 900
+					IF TCVAR:発情
+						SETCOLOR 0xFF69B4
+						CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのHPH　早く入りましょうHPH」","L"
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「おやおや、こんな時間から…典は帰りに歩いて帰れるでしょうか…%UNICODE(0x2665) *1%」
+							PRINTW 
+						CASE 1
+							PRINTFORML 「こんな時間からこんな場所に…%CALLNAME:MASTER%どののス・ケ・ベ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ENDSELECT
+						
+						IF BASE:MASTER:勃起 >= 1000
+							PRINTFORML 「ふふ、もうそこをそんなにして…気が早すぎではないですか%UNICODE(0x2665) *1%」
+							PRINTW 
+						ENDIF
+					ENDIF
+				ELSE
+					IF TALENT:妊娠願望
+						CALL HPH_PRINT,@"「ここなら、誰にも邪魔されず子作りに専念できそうですねぇ…HPH」","L"
+						PRINTW 
+					ELSE
+						CALL HPH_PRINT,@"「朝帰りの言い訳を考えておかないといけませんね…HPH」","L"
+						PRINTW 
+					ENDIF
+				ENDIF
+			ENDIF
+		ENDIF
+	ENDSELECT
 ENDIF
 RETURN 1
 ;==================================================
@@ -11092,10 +11284,38 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K139_605_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-
+	IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+		SELECTCASE RAND:3
+		CASE 0
+			PRINTFORML 「まあ、目的地にすぐ向かうだけがデートではないですしねぇ」
+			PRINTFORML 「さてさて、どこへ連れて行ってくれるのですか？」
+			PRINTW 
+		CASE 1
+			PRINTFORML 「まったく、子どもは自由ですねぇ」
+			PRINTFORML 典は眉尻を下げて%CALLNAME:MASTER%に微笑んでいる
+			PRINTW 
+		CASE 2
+			PRINTFORML 「はいはい、お姉ちゃんがついていってあげますよ」
+			PRINTW 
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:3
+		CASE 0
+			PRINTFORML 「ひょっとして私、人気のない所へ連れて行かれちゃいますか？」
+			PRINTFORML 「典にひどいことをするおつもりですか？　薄い本みたいに♪　薄い本みたいに♪」
+			PRINTFORML なぜか典は嬉しそうな表情を浮かべている
+			PRINTW 
+		CASE 1
+			PRINTFORML 「気の向くまま、赴くままというのもたまにはよいものですねぇ」
+			PRINTW 
+		CASE 2
+			PRINTFORML 「なんというか、%CALLNAME:MASTER%どのは風来坊ですねぇ」
+			PRINTW 
+		ENDSELECT
+	ENDIF
 ENDIF
 RETURN 1
 

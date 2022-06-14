@@ -207,10 +207,10 @@ IF OUTROOF(CFLAG:ARG:現在位置) && (AT_HOME(ARG) || ARG == MASTER || FLAG:デ
 			CASE 8, 10, 12, 13
 				SIF Lapse && !TFLAG:195 && !CFLAG:ARG:うふふ && !CFLAG:ARG:睡眠
 					PRINTW 雪に包まれて肌寒い
-			;吹雪
+			;大雪
 			CASE 9
 				SIF Lapse && !TFLAG:195 && !CFLAG:ARG:うふふ && !CFLAG:ARG:睡眠
-					PRINTW 吹雪で身体が凍てつくようだ
+					PRINTW 大雪で身体が凍てつくようだ
 		ENDSELECT
 	;あなたが折りたたみ傘を持っていると体力の代わりに傘耐久度が減る
 	ELSEIF ARG == MASTER
@@ -218,15 +218,39 @@ IF OUTROOF(CFLAG:ARG:現在位置) && (AT_HOME(ARG) || ARG == MASTER || FLAG:デ
 			;霧雨、霧雪
 			CASE 6, 12
 				傘ダメージ = 1
+				;(天候パッチ)風速の影響
+				IF WIND_VELOCITY == 1
+					傘ダメージ += 50
+				ELSEIF WIND_VELOCITY == 2
+					傘ダメージ += 200
+				ENDIF
 			;みぞれ
 			CASE 13
 				傘ダメージ = 5
+				;(天候パッチ)風速の影響
+				IF WIND_VELOCITY == 1
+					傘ダメージ += 50
+				ELSEIF WIND_VELOCITY == 2
+					傘ダメージ += 200
+				ENDIF
 			;雨・雪・細雪
 			CASE 4, 6, 8, 10, 12
 				傘ダメージ = 2
+				;(天候パッチ)風速の影響
+				IF WIND_VELOCITY == 1
+					傘ダメージ += 50
+				ELSEIF WIND_VELOCITY == 2
+					傘ダメージ += 200
+				ENDIF
 			;大雨・吹雪
 			CASE 5, 9
 				傘ダメージ = 50
+				;(天候パッチ)風速の影響
+				IF WIND_VELOCITY == 1
+					傘ダメージ += 50
+				ELSEIF WIND_VELOCITY == 2
+					傘ダメージ += 200
+				ENDIF
 			CASEELSE
 				傘ダメージ = 0
 		ENDSELECT
@@ -277,7 +301,7 @@ IF OUTROOF(ARG:1) && EQUIP:ARG:アクセサリ != 6 && !TEQUIP:ARG:相合い傘
 				LOCAL = -2
 			ENDIF
 		;雪・細雪・霧雪・みぞれ
-		CASE 8, 10, 12, 13
+		CASE 8, 10, 11, 12
 			IF TALENT:ARG:氷精
 				LOCAL = 3
 			ELSE
@@ -290,15 +314,22 @@ IF OUTROOF(ARG:1) && EQUIP:ARG:アクセサリ != 6 && !TEQUIP:ARG:相合い傘
 			ELSE
 				LOCAL = -3
 			ENDIF
-		;吹雪
-		CASE 9
+		;吹雪(天候パッチ)あられ
+		CASE 9, 13
 			IF TALENT:ARG:氷精
 				LOCAL = 3
 			ELSE
 				LOCAL = -3
 			ENDIF
 	ENDSELECT
+	;(天候パッチ)風速の影響
+	IF WIND_VELOCITY == 1
+		LOCAL -= 1
+	ELSEIF WIND_VELOCITY == 2
+		LOCAL -= 3
+	ENDIF
 ENDIF
+
 ;吸血鬼と氷精はダメージ2倍,あなたも防衛できるので影響を大きく
 SIF LOCAL < 0 && (TALENT:ARG:吸血鬼 || TALENT:ARG:氷精 || ARG == MASTER)
 	TIMES LOCAL, 2.0

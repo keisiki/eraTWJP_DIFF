@@ -114,6 +114,8 @@ SELECTCASE TIME
 		LOCAL = 7
 ENDSELECT
 
+;(天候パッチ)現在の天候傾向を判定
+CALL CHANGE_WEATHER_SYSTEM
 
 IF LOCAL != TIME:2
 	TIME:2 = LOCAL
@@ -152,7 +154,7 @@ IF FLAG:異常気象
 	RETURNF 表示_異常気象:(FLAG:異常気象)
 ENDIF
 SIF !STRLENS(LOCALS)
-	SPLIT "晴れ/快晴/薄曇/曇り/雨/大雨/霧雨/霧/雪/吹雪/細雪/霧雪/みぞれ/あられ", "/", LOCALS
+	SPLIT "晴れ/快晴/薄曇/曇り/雨/大雨/霧雨/霧/雪/大雪/細雪/霧雪/みぞれ/あられ", "/", LOCALS
 RETURNF LOCALS:(TIME:5)
 
 ;-------------------------------------------------
@@ -264,228 +266,17 @@ ENDIF
 
 SIF FLAG:異常気象
 	RETURN
+
 SIF TIME:5 > 15
 	TIME:5 = 0
-;天候変化確率（標準は50%）
-SELECTCASE TIME:5
-	CASE 5
-		LOCAL = 16
-	CASE 9
-		IF DAY:2 == 2
-			LOCAL = 12
-		ELSE
-			LOCAL = 16
-		ENDIF
-	CASE IS >= 8
-		IF DAY:2 == 4
-			LOCAL = 24
-		ELSEIF DAY:2 == 2
-			LOCAL = 12
-		ELSE
-			LOCAL = 16
-		ENDIF
-	CASEELSE
-		LOCAL = 24
-ENDSELECT
+	
+;(天候パッチ)天候変更禁止ならば処理終了
+SIF FORBIDDEN_CHANGE_WEATHER == 1
+	RETURN
+	
+;(天候パッチ)新しい天候管理システムへ
+TRYCALLFORM CHANGE_WEATHER_SYSTEM_{NOW_WEATHER_CONTROL}
 
-IF RAND:LOCAL + 1 <= 12 && CFLAG:MASTER:現在位置 != 天界
-	;天候変化発生で虹は消える
-	;TIME:7 = 0
-	SELECTCASE TIME:5
-		;晴れの時
-		CASE 0
-			;20%で晴天に移行
-			IF RAND:5 == 0
-				SETBIT TIME:5,0
-			;20%で薄曇に移行
-			ELSEIF RAND:5 == 0
-				SETBIT TIME:5,1
-				SIF !CFLAG:MASTER:うふふ && !地底
-					PRINTW 少し曇ってきた
-			;5%で曇りに移行
-			ELSEIF RAND:20 == 0
-				TIME:5 = 3
-				SIF !CFLAG:MASTER:うふふ && !地底
-					PRINTW 雲が出てきた
-			;上記確率に引っかからなかったら晴れ
-			ELSE
-				TIME:5 = 0
-			ENDIF
-		CASE 1
-			;20%で晴れに移行
-			IF RAND:5 == 0
-				CLEARBIT TIME:5,0
-			;20%で薄曇に移行
-			ELSEIF RAND:5 == 0
-				TIME:5 = 2
-				SIF !CFLAG:MASTER:うふふ && !地底
-					PRINTW 少し曇ってきた
-			ENDIF
-		;曇りの時
-		CASE 2,3
-			;25%で強化or弱体化
-			IF RAND:4 == 0
-				INVERTBIT TIME:5,0
-			ELSE
-				;20%で晴れに移行
-				IF RAND:5 == 0
-					TIME:5 = 0
-					IF !CFLAG:MASTER:うふふ && !地底
-						IF TIME:2 >= 5 && TIME:2 <= 7
-							PRINTW 星が見えてきた
-						ELSE
-							PRINTW 日が射してきた
-						ENDIF
-					ENDIF
-				;薄曇なら10%で雨か雪に移行
-				ELSEIF TIME:5 == 2 && RAND:10 == 0
-					IF DAY:2 == 4 && RAND:5
-						TIME:5 = 8
-						SIF !CFLAG:MASTER:うふふ && !地底
-							PRINTW 雪が降ってきた！
-					ELSE
-						TIME:5 = 4
-						SIF !CFLAG:MASTER:うふふ && !地底
-							PRINTW 雨が降ってきた！
-					ENDIF
-					;更に10%の確率で霧雨,細雪に移行
-					SIF RAND:10 == 0
-						SETBIT TIME:5,1
-				;曇りなら30%で雨に移行
-				ELSEIF TIME:5 == 3 && RAND:10 < 3
-					IF DAY:2 == 4 && RAND:5
-						TIME:5 = 8
-						SIF !CFLAG:MASTER:うふふ && !地底
-							PRINTW 雪が降ってきた！
-					ELSE
-						TIME:5 = 4
-						SIF !CFLAG:MASTER:うふふ && !地底
-							PRINTW 雨が降ってきた！
-					ENDIF
-				ENDIF
-			ENDIF
-		;雨の時
-		CASE 4,5,6,7
-			;25%で強化or弱体化
-			IF RAND:4 == 0
-				INVERTBIT TIME:5,0
-				IF TIME:5 == 5
-					PRINTW 土砂降りになった！
-				ELSE
-					PRINTW 雨が弱まった
-				ENDIF
-			ELSE
-				;25%で曇りに移行
-				IF RAND:4 == 0
-					TIME:5 = 3
-					SIF !CFLAG:MASTER:うふふ && !地底
-						PRINTW 雨があがったようだ
-					;念のため相合い傘を解除
-					FOR LOCAL,0,CHARANUM
-						SIF TEQUIP:LOCAL:201
-							TEQUIP:LOCAL:201 = 0
-					NEXT
-				;雨なら10%で霧雨かみぞれに移行
-				ELSEIF TIME:5 == 4 && RAND:10 == 0
-					IF DAY:2 == 4
-						TIME:5 = 12
-						SIF !CFLAG:MASTER:うふふ && !地底
-							PRINTW 少し雪が混じってきた
-					ELSE
-						TIME:5 = 6
-						SIF !CFLAG:MASTER:うふふ && !地底
-							PRINTW 水滴が細かくなってきた
-					;更に10%の確率で霧,あられに移行
-					SIF RAND:10 == 0
-						SETBIT TIME:5,0
-					ENDIF
-				;10%で晴れに移行
-				ELSEIF RAND:10 == 0
-					TIME:5 = 0
-					IF !CFLAG:MASTER:うふふ && !地底
-						;かもしれないといいつつ確実に見えるのは気分をよくさせる魔法
-						IF TIME:2 >= 5 && TIME:2 <= 7
-							PRINTW 突然星空が広がった！月虹が見えるかもしれない
-						ELSE
-							PRINTW 突然日が射してきた！虹が見えるかもしれない
-						ENDIF
-					FOR LOCAL,0,CHARANUM
-						SIF TEQUIP:LOCAL:201
-							TEQUIP:LOCAL:201 = 0
-					NEXT
-					ENDIF
-					;更に低確率で快晴
-					SIF RAND:100 < 5
-						TIME:5 = 1
-					;雨→晴れを処理したら虹が出る
-					TIME:7 = 1
-					;市場が開かれる
-					FLAG:市場の神 = 1
-				ENDIF
-			ENDIF
-		;雪の時
-		CASE IS >= 8
-			;雪は冬以外降らない
-			IF DAY:2 != 4
-				;雨になる
-				CLEARBIT TIME:5,3
-				SETBIT TIME:5,2
-				SIF !CFLAG:MASTER:うふふ && !地底
-					PRINTW 雪は雨に変わったようだ
-			;10%で強化
-			ELSEIF !GETBIT(TIME:5,0) && RAND:10 == 0
-				SETBIT TIME:5,0
-				PRINTW 吹雪いてきた！
-			;50%の確率で弱体化
-			ELSEIF GETBIT(TIME:5,0) && RAND:2
-				CLEARBIT TIME:5,0
-				PRINTW 吹雪は弱まったようだ
-			
-			ELSE
-				;25%で曇りに移行
-				IF RAND:4 == 0
-					TIME:5 = 3
-					SIF !CFLAG:MASTER:うふふ && !地底
-						PRINTW 雪がやんだようだ
-					FOR LOCAL,0,CHARANUM
-						SIF TEQUIP:LOCAL:201
-							TEQUIP:LOCAL:201 = 0
-					NEXT
-				;雪なら10%で細雪かみぞれに移行
-				ELSEIF TIME:5 == 8 && RAND:10 == 0
-					IF RAND:2
-						TIME:5 = 10
-						SIF !CFLAG:MASTER:うふふ && !地底
-							PRINTW 雪の結晶が細かくなってきた
-					ELSE
-						TIME:5 = 12
-						SIF !CFLAG:MASTER:うふふ && !地底
-							PRINTW 少し雨も混じってきた
-					ENDIF
-					;更に10%の確率で霧雪,あられに移行
-					SIF RAND:10 == 0
-						SETBIT TIME:5,0
-				;10%で晴れに移行
-				ELSEIF RAND:10 == 0
-					TIME:5 = 0
-					IF !CFLAG:MASTER:うふふ && !地底
-						PRINTFORMW \@ TIME:2 >= 5 && TIME:2 <= 7? 突然星空が広がった！# 突然日が射してきた！\@ ダイヤモンドダストが見えるかもしれない
-						FOR LOCAL,0,CHARANUM
-							SIF TEQUIP:LOCAL:201
-								TEQUIP:LOCAL:201 = 0
-						NEXT
-					ENDIF
-					;更に低確率で快晴
-					SIF RAND:100 < 5
-						TIME:5 = 1
-					;雪→晴れを処理したらダイヤモンドダストが出る
-					TIME:7 = 2
-				ENDIF
-			ENDIF
-		CASEELSE
-			TIME:5 = RAND:5
-	ENDSELECT
-ENDIF
 [SKIPSTART]
 @現在気温設定
 ;高低差を５分割

@@ -2,61 +2,159 @@
 ;酒虫の様子を見る
 ;日常系コマンド、レベル1
 ;-------------------------------------------------
+
 @COM450
 #DIM 醸造量
-;FLAG:酒虫 水の種類、50超えると酒のアイテム番号
-
+#DIM 酒ID
 VARSET LOCAL
 
+酒ID = ALC_ID()
+醸造量 = GET_INT(0, "酒データ", 酒ID, "醸造数")
+LOCALS '= @"%VAR_WATER%と入れ替える"
+LOCAL = 1
+IF VAR_WATER == ""
+	LOCALS '= "替えの水も無しにくみ出すわけにはいかない"
+	LOCAL = 0
+ENDIF
+
 PRINTFORML %CALLNAME:MASTER%は酒虫の入っている瓶を覗き込んだ
-PRINTFORML 瓶は%STR:(7000 + FLAG:酒虫)%で満たされている…
+PRINTFORML 瓶は%VAR_FERMENT%で満たされている…
 DRAWLINE
-PRINTFORML [0] 何もしない
-IF TFLAG:水汲み && ITEM:(FLAG:酒虫) < 99
-	PRINTFORML [1] %STR:(TFLAG:水汲み + 7000)%と入れ替える
-ELSE
-	IF ITEM:(FLAG:酒虫) == 99
-		PRINTFORM [1] これ以上%STR:(7000 + FLAG:酒虫)%を持てない
-	ELSE
-		PRINTPLAIN [1] 替えの水も無しにくみ出すわけにはいかない
-	ENDIF
-	PRINTL 
-ENDIF
-SIF ITEM:どぶろく >= 5 && FLAG:酒虫 == 1 && DAY:10 < 3
-	PRINTFORML [2] どぶろくを足す（どぶろくを5消費）
-;それ以上手を加えても中身が変化しない場合は表示させないように
-SIF BASE:MASTER:8 >= 2400 && (FLAG:酒虫 < 51 || FLAG:酒虫 == 51)
-	PRINTFORML [3] 時間操作酒造（TSP2400消費）
-INPUT
-IF RESULT == 1 && TFLAG:水汲み && ITEM:(FLAG:酒虫) < 99
-	PRINTFORML %CALLNAME:MASTER%は%STR:(7000 + FLAG:酒虫)%を汲み出して%STR:(TFLAG:水汲み + 7000)%と入れ替えた
-	;酒ができてた場合
-	IF FLAG:酒虫 > 50
-		醸造量 = 醸造できた量(FLAG:酒虫)
-		PRINTFORML %STR:(7000 + FLAG:酒虫)%を{醸造量}個手に入れた
-		ITEM:(FLAG:酒虫) += 醸造量
-		SIF ITEM:(FLAG:酒虫) > 99
-			ITEM:(FLAG:酒虫) = 99
-	ENDIF
-	DAY:10 = 0
-	FLAG:酒虫 = TFLAG:水汲み
-	TFLAG:水汲み = 0
-ELSEIF RESULT == 2 && ITEM:どぶろく >= 5 && FLAG:酒虫 == 1 && DAY:10 < 3
-	PRINTFORML %CALLNAME:MASTER%は瓶にどぶろくを注ぎ込んだ
-	PRINTFORML これで少し早くできるはずだ…
-	DAY:10 += 3
-	ITEM:どぶろく-= 5
-;それ以上手を加えても中身が変化しない場合は表示させないように
-ELSEIF RESULT == 3 && BASE:MASTER:8 >= 2400 && (FLAG:酒虫 < 51 || FLAG:酒虫 == 51)
-	PRINTFORML %CALLNAME:MASTER%は時間停止能力を応用して強引に瓶の中の時を進めた
-	DAY:10 += 1
-	BASE:MASTER:8 -= 2400
-ELSE
-	RETURN -1
-ENDIF
+{
+CALL ASK_M("何もしない",1,@"%LOCALS%", LOCAL,"時間操作酒造（TSP2400消費）",BASE:MASTER:8 >= 2400,
+"アイテムを足す",1)
+}
+SELECTCASE RESULT
+	CASE 0
+		RETURN -1
+	CASE 1
+		IF ITEM:酒ID >= 99
+			PRINTFORMW これ以上%VAR_FERMENT%を持てない
+			RETURN -1
+		ENDIF
+		PRINTFORML %CALLNAME:MASTER%は%VAR_FERMENT%を汲み出して%VAR_WATER%と入れ替えた
+		IF 醸造量 > 0
+			CALL GET_ITEM(@"%VAR_FERMENT%", 醸造量, 2)
+		ENDIF
+		VAR_FERMENT = %VAR_WATER%
+		VAR_WATER =
+		DAY:10 = 0
+	CASE 2
+		IF GET_STR(0, "酒データ", 酒ID, "変化先") == ""
+			PRINTFORMW %VAR_FERMENT%にはやる意味がない
+			RETURN -1
+		ENDIF
+		PRINTFORML %CALLNAME:MASTER%は時間停止能力を応用して強引に瓶の中の時を進めた
+		BASE:MASTER:8 -= 2400
+		;PRINTFORML デバッグパワーでもっと進めた
+		;DAY:10 += 10
+		CALL 酒造
+	CASE 3
+		CALL COM450_1
+ENDSELECT
 TIME += 5
 RETURN 1
 
+
+
+@COM450_1
+IF LOCAL == 0
+	{
+	CALL ASK_M("イモ＊１０", ITEM:イモ >= 10 && CAN_FERMENT(),
+	"はちみつ＊１０", ITEM:はちみつ >= 10 && CAN_FERMENT(),
+	"キイチゴ＊２０", ITEM:キイチゴ >= 20 && CAN_FERMENT(),
+	"ヤマブドウ＊２０", ITEM:ヤマブドウ >= 20 && CAN_FERMENT(),
+	"かびたブドウ＊２０", ITEM:かびたブドウ >= 20 && CAN_FERMENT(),
+	"次へ",1,
+	"やめる",1)
+	}
+	SELECTCASE RESULT
+		CASE 0
+			CALL LOST_ITEM("イモ", 10, 1)
+			VAR_FERMENT = イモ入り水
+		CASE 1
+			CALL LOST_ITEM("はちみつ", 10, 1)
+			VAR_FERMENT = ハチミツ水
+		CASE 2
+			CALL LOST_ITEM("キイチゴ", 20, 1)
+			VAR_FERMENT = キイチゴ水
+		CASE 3
+			CALL LOST_ITEM("ヤマブドウ", 20, 1)
+			CALL GET_ITEM("ポマース", 1, 1)
+			VAR_FERMENT = ブドウ汁
+		CASE 4
+			CALL LOST_ITEM("かびたブドウ", 20, 1)
+			CALL GET_ITEM("ポマース", 1, 1)
+			VAR_FERMENT = 貴腐ブドウ汁
+		CASE 5
+			LOCAL = 1
+			CLEARLINE 6
+			RESTART
+		CASE 6
+	ENDSELECT
+ENDIF
+IF LOCAL == 1
+	{
+	CALL ASK_M("どぶろく＊５", ITEM:どぶろく >= 5 && VAR_WATER == "ただの水",
+	"甘味材＊１０", ITEM:甘味材 >= 10 && CAN_FERMENT(),
+	"熟成前ラム", ITEM:熟成前ラム && CAN_FERMENT(),
+	"熟成前フランボワーズ", ITEM:熟成前フランボワーズ && CAN_FERMENT(),
+	"蒸留酒", ITEM:蒸留酒 && VAR_FERMENT == "ブドウ汁",
+	"熟成前ブランデー", ITEM:熟成前ブランデー && CAN_FERMENT(),
+	"次へ",1,
+	"やめる",1)
+	}
+	SELECTCASE RESULT
+		CASE 0
+			PRINTFORML %CALLNAME:MASTER%は瓶にどぶろくを注ぎ込んだ
+			PRINTFORML これで少し早くできるはずだ…
+			DAY:10 += 3
+			CALL LOST_ITEM("どぶろく", 5, 1)
+		CASE 1
+			CALL LOST_ITEM("甘味材", 10, 1)
+			VAR_FERMENT = 砂糖水
+		CASE 2
+			CALL LOST_ITEM("熟成前ラム", 1, 1)
+			VAR_FERMENT = 熟成前ラム
+		CASE 3
+			CALL LOST_ITEM("熟成前フランボワーズ", 1, 1)
+			VAR_FERMENT = 熟成前フランボワーズ
+		CASE 4
+			CALL LOST_ITEM("蒸留酒", 1, 1)
+			VAR_FERMENT = ブドウ汁(ALC添加)
+		CASE 5
+			CALL LOST_ITEM("熟成前ブランデー", 1, 1)
+			VAR_FERMENT = 熟成前ブランデー
+		CASE 6
+			LOCAL = 2
+			CLEARLINE 7
+			RESTART
+		CASE 7
+	ENDSELECT
+ENDIF
+
+IF LOCAL == 2
+	{
+	CALL ASK_M("上質食材", ITEM:上質食材 && CAN_FERMENT(),
+	"草木灰", ITEM:草木灰 && VAR_WATER == "どぶろく",
+	"次へ",1,
+	"やめる",1)
+	}
+	SELECTCASE RESULT
+		CASE 0
+			CALL LOST_ITEM("上質食材", 1, 1)
+			VAR_FERMENT = 米こうじ
+		CASE 1
+			CALL LOST_ITEM("草木灰", 1, 1)
+			VAR_FERMENT = 灰持酒
+		CASE 2
+			LOCAL = 0
+			CLEARLINE 3
+			RESTART
+		CASE 3
+	ENDSELECT
+ENDIF
+RETURN
 
 ;酒虫の様子を見る
 @COM_ABLE450
@@ -75,3 +173,12 @@ SIF CFLAG:MASTER:現在位置 != 拠点_酒虫
 SIF CFLAG:うふふ
 	RETURN 0
 RETURN 1
+
+@CAN_FERMENT(ARG)
+#FUNCTION
+SIF DAY:10 >= 3
+	RETURNF 0
+SIF GROUPMATCH(VAR_FERMENT, "ただの水", "霧の湖の水", "地獄温泉の水", "奇跡の水")
+	RETURNF 1
+RETURNF 0
+

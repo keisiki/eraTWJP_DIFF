@@ -258,32 +258,48 @@ SELECTCASE ARG
 						ENDIF
 					ENDIF
 				;雨
+				;(天候パッチ)強風時の文章追加
 				CASE 4
 					IF FLAG:70
 						PRINTL 雨粒が停止している…
+					ELSEIF WIND_VELOCITY >= 1
+						PRINTL 横殴りの雨だ
 					ELSE
 						PRINTL しとしとと雨が降っている…
 					ENDIF
 				;大雨
+				;(天候パッチ)強風時の文章追加
 				CASE 5
 					IF FLAG:70
 						PRINTL 雨粒が停止している…
+					ELSEIF WIND_VELOCITY >= 1
+						PRINTL 息苦しいほど風雨が強い
 					ELSE
 						PRINTL 雨は激しく降りしきっている…
 					ENDIF
+				;霧・霧雨・霧雪
+				;(天候パッチ)濃霧時の文章追加
+				CASE 6, 7, 11
+					PRINTL 霧で一面真っ白だ…
 				;雪
+				;(天候パッチ)強風時の文章追加
 				CASE 8
 					IF FLAG:70
 						PRINTL 雪の結晶が停止している…
+					ELSEIF WIND_VELOCITY >= 1
+						PRINTL 凍えそうな吹雪が吹き荒んでいる…熱い吐息すらも白に塗りつぶされそうだ…
 					ELSE
 						PRINTL 雪がゆっくりと舞い降っている…息が白い…
 					ENDIF
-				;吹雪
+				;大雪
+				;(天候パッチ)強風時の文章追加・大雪に変更
 				CASE 9
 					IF FLAG:70
 						PRINTL 雪の結晶が停止している…
+					ELSEIF WIND_VELOCITY >= 1
+						PRINTL 猛吹雪が吹き付けている…気を付けなければ道を見失いそうだ…
 					ELSE
-						PRINTL 凍えそうな吹雪が吹き荒んでいる…熱い吐息すらも白に塗りつぶされそうだ…
+						PRINTL どか雪だ！前が見えにくい…
 					ENDIF
 				;みぞれ
 				CASE 12
@@ -337,14 +353,43 @@ SELECTCASE ARG
 		ENDIF
 	CASE 8
 		PRINTFORML %CALLNAME:(FLAG:地主)%の%STR_NOUMIN(FLAG:地主, "畑の種類")%がある
+		;(天候パッチ)冷害・風害発生時は表示
 		SELECTCASE FLAG:畑仕事の成果
 			CASE IS < 20
+				IF IS_COLD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1
+					PRINTFORM 相次ぐ冷害と風害の影響で 
+				ELSEIF IS_COLD_CROP_DAMAGE >= 1
+					PRINTFORM 冷害の影響で 
+				ELSEIF IS_STORM_CROP_DAMAGE >= 1
+					PRINTFORM 風害の影響で 
+				ENDIF
 				PRINTFORML %STR_NOUMIN(FLAG:地主, "作物")%はまったくと言っていいほど育っていない
 			CASE 20 TO 60
+				IF IS_COLD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1
+					PRINTFORM 相次ぐ冷害と風害の影響で 
+				ELSEIF IS_COLD_CROP_DAMAGE >= 1
+					PRINTFORM 冷害の影響で 
+				ELSEIF IS_STORM_CROP_DAMAGE >= 1
+					PRINTFORM 風害の影響で 
+				ENDIF
 				PRINTFORML %STR_NOUMIN(FLAG:地主, "作物")%はあんまり育っていない
 			CASE 61 TO 100
+				IF IS_COLD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1
+					PRINTFORM 相次ぐ冷害と風害にもかかわらず 
+				ELSEIF IS_COLD_CROP_DAMAGE >= 1
+					PRINTFORM 冷害にもかかわらず 
+				ELSEIF IS_STORM_CROP_DAMAGE >= 1
+					PRINTFORM 風害にもかかわらず 
+				ENDIF
 				PRINTFORML %STR_NOUMIN(FLAG:地主, "作物")%はそれなりによく育っている
 			CASEELSE
+				IF IS_COLD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1
+					PRINTFORM 相次ぐ冷害と風害にもかかわらず 
+				ELSEIF IS_COLD_CROP_DAMAGE >= 1
+					PRINTFORM 冷害にもかかわらず 
+				ELSEIF IS_STORM_CROP_DAMAGE >= 1
+					PRINTFORM 風害にもかかわらず 
+				ENDIF
 				PRINTFORML %STR_NOUMIN(FLAG:地主, "作物")%が豊かに実っている
 		ENDSELECT
 	CASE 9

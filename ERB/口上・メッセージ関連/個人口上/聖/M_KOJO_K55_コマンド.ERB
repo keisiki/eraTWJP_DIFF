@@ -875,28 +875,226 @@ RETURN 1
 ;TFLAG:8 (1=TARGETがお掃除 2=ASSIがお掃除 3=TARGETとASSIがお掃除)
 ;-------------------------------------------
 @M_KOJO_MESSAGE_PALAMCNG_C_K55
+#DIM GID
+#DIM A_GID
+#DIM L_NUM 
+#DIM 体グラ
+#DIM 顔グラ
+#DIM Ａ顔グラ
+#DIM 素股
+#DIMS 着衣
+#DIMS 差分
+#DIMS 派生
+#DIMS SET_RESOURCE,10
+#DIMS SET_RESOURCE_A, 10
+#DIMS RESOURCE_NAME,2
 CALL PALAM_MESSAGE_C
-;処女喪失
-IF TCVAR:破瓜
-	;正真正銘処女喪失
-	IF TCVAR:破瓜 == 1
-	;再生処女喪失
-	ELSEIF TCVAR:破瓜 == 2
-	;無自覚非処女喪失
-	ELSEIF TCVAR:破瓜 == -1
-	ENDIF
+TCVAR:350 = 0
+SIF !FLAG:画像表示 || !SPRITECREATED("55_中出し0") || CFLAG:1600
+	RETURN
+SIF FLAG:立ち絵種類 || !CFLAG:差し替え適用
+	RETURN
+SIF FLAG:時間停止 || CFLAG:睡眠 || FLAG:潜伏
+	RETURN
+SIF !(TEQUIP:50 == MASTER || GROUPMATCH(SELECTCOM, 83, 84, 330))
+	RETURN
+SIF INRANGE(SELECTCOM, 83, 84) && !NOWEX:MASTER:射精
+	RETURN
+	
+;前回表示リソースの破棄
+IF GID
+	SPRITEDISPOSE RESOURCE_NAME:0
+	GDISPOSE GID
+	SPRITEDISPOSE RESOURCE_NAME:1
+	GDISPOSE A_GID
 ENDIF
+VARSET SET_RESOURCE
+VARSET SET_RESOURCE_A
+差分 =
+着衣 = 裸
+顔グラ = RAND(1, 4)
+Ａ顔グラ = 顔グラ == 3 ? 1 # 顔グラ + 1
+体グラ = 1
 
-;Ａ処女喪失
-IF TCVAR:Ａ破瓜
-	;正真正銘Ａ処女喪失
-	IF TCVAR:Ａ破瓜 == 1
-	;無自覚Ａ処女喪失
-	ELSEIF TCVAR:Ａ破瓜 == -1
-	ENDIF
-ENDIF
+;背景実装に備えレイヤ0は空けておく
+SET_RESOURCE:0 = ダミー
+L_NUM = 3
 
-;フェラで射精後のお掃除
-IF (TCVAR:MASTER:112 == 1 || TCVAR:MASTER:112 == 2) && SELECTCOM == 81
-	PRINTFORMW 
+;性交
+IF TEQUIP:50 == MASTER
+	;ベースの身体表情決定
+	SELECTCASE TEQUIP:体位
+		CASE 1
+			IF TFLAG:193
+				体グラ = 3
+				差分 = A
+			ELSE
+				顔グラ = RAND(1, 4)
+				Ａ顔グラ = RAND(4, 8)
+				SIF BEDROOM()
+					体グラ = 2
+			ENDIF
+		CASE 2
+			IF TFLAG:193 || RAND:2
+				体グラ = RAND(3, 6)
+				顔グラ = RAND(1, 3)
+				Ａ顔グラ = RAND(4, 6)
+				差分 = A
+			ELSEIF BEDROOM()
+				体グラ = 2
+			ENDIF
+		CASE 3
+			IF SELECTCOM == 317 || (CFLAG:うふふ == 1 && RAND:2)
+				体グラ = 2
+			ELSEIF CFLAG:うふふ == 2 || RAND:4
+				体グラ = 3
+				Ａ顔グラ = RAND(1, 6)
+				顔グラ = RAND(1, 6)
+				WHILE Ａ顔グラ == 顔グラ
+					Ａ顔グラ = RAND(1, 6)
+				WEND
+				差分 = A
+			ENDIF
+		CASE 4, 5
+	ENDSELECT
+	SET_RESOURCE:1 = 55_体位{TEQUIP:体位}身体{体グラ}%差分%
+	SET_RESOURCE:2 = 55_体位{TEQUIP:体位}顔{顔グラ}%差分%
+	IF GROUPMATCH(TEQUIP:体位, 1, 3, 5)
+		SET_RESOURCE:L_NUM = 55_体位{TEQUIP:体位}くぱ%\@ TEQUIP:体位 == 3 ? {体グラ} # %差分% \@%
+		L_NUM ++
+	ENDIF
+	;汗/服/チンコ/汁レイヤ決定
+	IF CHECK_SWEAT(55) && UFUFU_START_TIME
+		SET_RESOURCE:L_NUM = 55_体位{TEQUIP:体位}汗{体グラ}
+		L_NUM ++
+	ENDIF
+	IF !CHECK_NUDE(55)
+		SET_RESOURCE:L_NUM = 55_体位{TEQUIP:体位}服{体グラ}
+		着衣 = 服
+		L_NUM ++
+	ENDIF
+	IF !GROUPMATCH(TEQUIP:体位, 2, 3) || (TEQUIP:体位 == 2 && 差分 == "")
+		SET_RESOURCE:L_NUM = 55_体位{TEQUIP:体位}チンコ%差分%
+		L_NUM ++
+	ENDIF
+	IF NOWEX:MASTER:射精 && TEQUIP:体位 != 4
+		SET_RESOURCE:L_NUM = 55_体位{TEQUIP:体位}ナカ%差分%
+		L_NUM ++
+	ENDIF
+	IF K55_UTERUS() > 1 && (TEQUIP:体位 == 4 || (TEQUIP:体位 == 1 && 差分 == ""))
+		SET_RESOURCE:L_NUM = 55_体位{TEQUIP:体位}モレ
+		L_NUM ++
+	ENDIF
+	;マウスオーバー画像用意:表情変更して片方はあなた、もう一方に断面図
+	ARRAYCOPY "SET_RESOURCE", "SET_RESOURCE_A"
+	SET_RESOURCE_A:2 = %REPLACE(SET_RESOURCE:2, @"顔{顔グラ}", @"顔{Ａ顔グラ}")%
+	SET_RESOURCE:L_NUM = 55_体位{TEQUIP:体位}あなた{体グラ}
+	SET_RESOURCE_A:L_NUM = 55_%\@ NOWEX:MASTER:射精 ? 中出し # 挿入 \@%{K55_UTERUS()}
+	L_NUM ++
+	IF BATHCHECK(CFLAG:現在位置)
+		SET_RESOURCE:L_NUM = 55_体位{TEQUIP:体位}もや%差分%
+		SET_RESOURCE_A:L_NUM = 55_体位{TEQUIP:体位}もや%差分%
+		L_NUM ++
+	ENDIF
+;スカートめくり
+ELSEIF SELECTCOM == 330
+	SET_RESOURCE:1 = 55_COM330_身体%\@ K55_SKIRT() ? 2 # 1 \@%
+	SELECTCASE TFLAG:193
+		CASE -5, -3
+			顔グラ = 2
+			差分 = オコ
+		CASE -1, 0
+			顔グラ = 1
+			差分 = アセ
+		CASE 1
+			顔グラ = EQUIP:下半身下着２ ? 4 # 3
+			差分 = テレ2
+			IF !K55_SKIRT()
+				顔グラ = 1
+				差分 = テレ1
+			ENDIF
+	ENDSELECT
+	SET_RESOURCE:2 = 55_COM330_顔{顔グラ}
+	IF 顔グラ > 2 && EQUIP:下半身下着２
+		SET_RESOURCE:L_NUM = 55_COM330_ぱんつ
+		L_NUM ++
+	ENDIF
+	IF K55_SKIRT() == 2 || 顔グラ < 3
+		SET_RESOURCE:L_NUM = 55_COM330_照れ%\@ 顔グラ < 3 ? 1 # 2\@%
+		L_NUM ++
+	ENDIF
+	ARRAYCOPY "SET_RESOURCE", "SET_RESOURCE_A"
+	SET_RESOURCE_A:L_NUM = 55_COM330_%差分%
+	L_NUM ++
+	着衣 = 服
+;素股/泡踊り射精時
+ELSE
+	素股 = (SELECTCOM == 83)
+	差分 = %\@ 素股 ? 3 # 1 \@%
+	派生 = %\@ 素股 ? # A \@%
+	SET_RESOURCE:1 = 55_体位%\@ 素股 ? 3身体2 # 1身体3A \@%
+	SET_RESOURCE:2 = 55_体位%\@ 素股 ? 3顔{顔グラ} # 1顔{顔グラ}A \@%
+	IF CHECK_SWEAT(55) && UFUFU_START_TIME
+		SET_RESOURCE:L_NUM = 55_体位%差分%汗%\@ 素股 ? 2 # 3 \@%
+		L_NUM ++
+	ENDIF
+	IF !CHECK_NUDE(55)
+		SET_RESOURCE:L_NUM = 55_体位%\@ 素股 ? 3服2 # 1服3 \@%
+		着衣 = 服
+		L_NUM ++
+	ENDIF
+	SET_RESOURCE:L_NUM = 55_体位%差分%チンコ外%派生%
+	SET_RESOURCE:(L_NUM + 1) = 55_体位%差分%ソト%派生%
+	L_NUM += 2
+	IF BATHCHECK(CFLAG:現在位置)
+		SET_RESOURCE:L_NUM = 55_体位%差分%もや%派生%
+		L_NUM ++
+	ENDIF
+	ARRAYCOPY "SET_RESOURCE", "SET_RESOURCE_A"
+	SET_RESOURCE_A:2 = %REPLACE(SET_RESOURCE:2, @"顔{顔グラ}", @"顔{Ａ顔グラ}")%
 ENDIF
+;画像合成、立ち絵ウインドウフォームに沿って命名
+GID = 0
+FOR COUNT, 0, L_NUM
+	DEBUGPRINTFORML %SET_RESOURCE:COUNT%
+	CALL 画像合成(GID, SET_RESOURCE:COUNT)
+NEXT
+RESOURCE_NAME:0 = 別立ち_%着衣%_通常_55_コマンド
+SPRITECREATE RESOURCE_NAME:0, GID
+A_GID = 0
+FOR COUNT, 0, L_NUM
+	DEBUGPRINTFORML %SET_RESOURCE_A:COUNT%
+	CALL 画像合成(A_GID, SET_RESOURCE_A:COUNT)
+NEXT
+RESOURCE_NAME:1 = 別立ち_%着衣%_通常２_55_コマンド
+SPRITECREATE RESOURCE_NAME:1, A_GID
+;キャラデータに引き渡す変数
+TCVAR:350 = 1 + CHECK_NUDE(55)
+
+@K55_SKIRT
+;スカートめくり =2:人前で成功　=1:成功　=0:失敗
+#FUNCTION
+SIF TFLAG:193 < 1
+	RETURNF 0
+LOCAL = (GET_TARGETNUM() > 1 || DATE_HITOGOMI(CFLAG:PLAYER:現在位置) || WITH_MOB())
+SIF ABL:露出癖 > 5
+	RETURNF 1 + LOCAL
+SIF !LOCAL
+	RETURNF 1
+RETURNF 0
+
+@K55_UTERUS
+;子宮内差分の閾値決定
+#FUNCTION
+SELECTCASE 充填率(55, 1)
+	CASE IS < 5
+		RETURNF 0
+	CASE IS < 15
+		RETURNF 1
+	CASE IS < 30
+		RETURNF 2
+	CASE IS < 50
+		RETURNF 3
+	CASEELSE
+		RETURNF 4
+ENDSELECT

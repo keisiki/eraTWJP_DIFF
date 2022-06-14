@@ -1478,6 +1478,25 @@ IF LOCAL
 				PRINTFORML 「のぼせないように気を付けないと」
 				PRINTFORMW 「いい？ 眩暈がしたらちゃんと言うのよ？」
 		ENDSELECT
+	;デート中に連れ込み宿orラブホで
+	ELSEIF FLAG:デート相手 == 99 && (CFLAG:MASTER:現在位置 == 連れ込み宿 || CFLAG:MASTER:現在位置 == ラブホ)
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORMDL 豊姫が%CALLNAME:MASTER%の手を取り布団へと引っ張る
+				PRINTFORMDL 覆い被さる格好になった%CALLNAME:MASTER%の首に豊姫が手を回してきた
+				PRINTFORMW 「いっぱい楽しみましょうね……」
+			CASE 1
+				PRINTFORML 「ん……ちゅ……はぁ……っ」
+				PRINTFORMDL 豊姫を抱き締め、キスをしながら布団に倒れ込む
+				PRINTFORMDW 求め合うように舌を絡ませながら、二人は気分を高めていった
+			CASE 2
+				PRINTFORMDL 豊姫は%CALLNAME:MASTER%の手をスルリと抜けると、逆に押し倒してきた
+				PRINTFORML 「ごめんなさい……貴方が美味しそうだから……」
+				PRINTFORMW 「ちゅ……れろ……っ♪ 我慢、できないの……っ♪」
+				;押し倒されモードに突入
+				CFLAG:うふふ = 2
+				CFLAG:MASTER:うふふ = 2
+		ENDSELECT
 	;通常
 	ELSE
 		;恋慕
@@ -1509,11 +1528,11 @@ IF LOCAL
 						PRINTFORMDW 豊姫は%CALLNAME:MASTER%に躰を預け、力を抜いた……
 					CASE 1
 						PRINTFORML 「ふふっ、奇遇ね」
-						PRINTFORML 「丁度私も貴方を誘おうと思っていたところなの……♪」
+						PRINTFORML 「私もちょうど貴方を誘おうと思っていたところなの……♪」
 						PRINTFORMDW %CALLNAME:MASTER%が躰を求めると、豊姫が嬉しそうに抱きついてきた
 					CASE 2
 						PRINTFORML 「さて、今日はどんなことがシたい？」
-						PRINTFORML 「貴方はシたいことなら何でも付き合うわ♪」
+						PRINTFORML 「貴方のシたいことなら何でも付き合うわ♪」
 						PRINTFORMDW 豊姫は両手に大人の玩具を持ちニコニコと笑っている
 				ENDSELECT
 			ENDIF
@@ -1552,12 +1571,15 @@ LOCAL = 1
 IF LOCAL
 	;TARGET連れ出し
 	IF CFLAG:同行 == 60
+		;恋慕
 		IF TALENT:恋慕
 			PRINTFORML 「あら、デートのお誘いかしら？」
 			PRINTFORMDW 豊姫は甘えるように%CALLNAME:MASTER%に寄り添ってきた
+		;思慕
 		ELSEIF TALENT:思慕
 			PRINTFORML 「ええ、行きましょうか」
 			PRINTFORMDW %CALLNAME:MASTER%が誘うと、豊姫は二つ返事でついて来てくれた
+		;それ以外
 		ELSE
 			PRINTFORML 「それで、どこへ行くの？」
 			PRINTFORMDW 豊姫は%CALLNAME:MASTER%の後ろをのんびりとついて来ている
@@ -1783,18 +1805,87 @@ RETURN 1
 ;TCVAR:20(27=谷間を見せる 32=前から抱きつく 35=スカートの中を見せる 53=パイズリ 73=ぱふぱふ 77=乳を吸わせる 85=Ｖ挿入する 86=だいしゅきホールド 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ
 ;==================================================
 @M_KOJO_MESSAGE_COM_K99_360
-CALL TRAIN_MESSAGE
+;CALL TRAIN_MESSAGE
+DRAWLINE
 CALL M_KOJO_MESSAGE_COM_K99_360_1
 RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K99_360_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-
+CALL M_KOJO_COLOR_K99
+	;どのカウンターに対して実行したかで分岐
+	;基本的に全て流用
+	SELECTCASE TCVAR:20
+		;キス
+		CASE 30
+			CALL M_KOJO_MESSAGE_COM_K99_20_1
+		;前から抱きつく
+		CASE 32
+			CALL M_KOJO_MESSAGE_COM_K99_312_1
+		;胸を揉ませる
+		CASE 33
+			CALL M_KOJO_MESSAGE_COM_K99_313_1
+		;スカートの中を見せる
+		CASE 35
+			CALL M_KOJO_MESSAGE_COM_K99_315_1
+		;手淫
+		CASE 50
+			CALL M_KOJO_MESSAGE_COM_K99_80_1
+		;フェラチオ
+		CASE 51
+			CALL M_KOJO_MESSAGE_COM_K99_81_1
+		;素股
+		CASE 52
+			CALL M_KOJO_MESSAGE_COM_K99_83_1
+		;パイズリ
+		CASE 53
+			CALL M_KOJO_MESSAGE_COM_K99_313_1
+		;足コキ
+		CASE 54
+			CALL M_KOJO_MESSAGE_COM_K99_85_1
+		;アナル愛撫,アナル舐め
+		CASE 55, 56
+			PRINTFORMDL %CALLNAME:PLAYER%は頬を赤らめて尻穴に受ける快感を堪能した……
+		;胸愛撫
+		CASE 58
+			PRINTFORMDL %CALLNAME:PLAYER%は%CALLNAME:TARGET%と見つめ合いながら快楽に身を委ねた……
+		;ディープキス
+		CASE 60
+			CALL M_KOJO_MESSAGE_COM_K99_20_1
+		;クンニ強制
+		CASE 70
+			PRINTFORMDL %CALLNAME:MASTER%は豊姫に従い、舌だけを使ってご奉仕した……
+			CALL M_KOJO_MESSAGE_COM_K99_315_1
+		;アナル奉仕
+		CASE 72
+			CALL M_KOJO_MESSAGE_COM_K99_314_1
+		;ぱふぱふ
+		CASE 73
+			CALL M_KOJO_MESSAGE_COM_K99_313_1
+		;乳合わせ
+		CASE 74
+			CALL M_KOJO_MESSAGE_COM_K99_313_1
+		;強制アソコ愛撫
+		CASE 76
+			CALL M_KOJO_MESSAGE_COM_K99_15_1
+		;乳を吸わせる
+		CASE 77
+			CALL M_KOJO_MESSAGE_COM_K99_313_1
+		;85=Ｖ挿入する 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ
+		CASE 85,87 TO 89
+			CALL M_KOJO_MESSAGE_COM_K99_313_1
+		;だいしゅきホールド
+		CASE 86
+			CALL M_KOJO_MESSAGE_COM_K99_313_1
+		CASEELSE
+			PRINTFORMDL %CALLNAME:PLAYER%は%CALLNAME:TARGET%に身を任せた……
+	ENDSELECT
 ENDIF
+RESETCOLOR
 RETURN 1
 ;==================================================
 ;361,抵抗する
@@ -2201,7 +2292,7 @@ CALL M_KOJO_COLOR_K99
 			ELSEIF TALENT:恋慕
 				PRINTFORML 「大丈夫？ 私が居なくても平気？」
 				PRINTFORML 「……そう……早く帰ってきてね？」
-				PRINTFORMDW 母親のように心配する豊姫を宥め、%CALLNAME:MASTER%は目的地へと出掛けた
+				PRINTFORMDW %CALLNAME:MASTER%は豊姫の頭を撫でると、目的地へと出掛けた
 			;思慕
 			ELSEIF TALENT:思慕
 				PRINTFORML 「あら、一人でお出掛け？」
@@ -3448,11 +3539,51 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K99_604_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-
+CALL M_KOJO_COLOR_K99
+	;豊姫とデート中限定
+	IF FLAG:デート相手 == 99
+		PRINTFORML 
+		SELECTCASE CFLAG:MASTER:現在位置
+			CASE 連れ込み宿
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「……ふふっ」
+						PRINTFORML 「そうね。少し休憩していきましょうか」
+						PRINTFORMDW %CALLNAME:MASTER%と豊姫は腕を組みながら連れ込み宿へと入った……
+					CASE 1
+						PRINTFORML 「この部屋みたいね」
+						PRINTFORMDL 鍵に書かれた番号と照らし合わせる。確かにこの部屋のようだ
+						PRINTFORMDW 鍵を開け部屋に入ると、簡素な部屋に布団が敷かれていた……
+					CASE 2
+						PRINTFORML 「ああ、%CALLNAME:MASTER%。待って」
+						PRINTFORML 「ここは私に任せて頂戴」
+						PRINTFORMDW 豊姫が代わりに料金を支払ってくれた
+						MONEY += 3000
+				ENDSELECT
+			CASE ラブホ
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「%CALLNAME:MASTER%……疲れちゃったわ……」
+						PRINTFORML 「ねぇ、ここで少し休んでいきましょう……？」
+						PRINTFORMDL 豊姫がわざとらしく密着し目の前の建物を指差す
+						PRINTFORMDW %CALLNAME:MASTER%は豊姫の肩を抱くと、他のカップルの後に続いて建物の中へと入っていった……
+					CASE 1
+						PRINTFORML 「シャワーもあるのね。先に浴びてこようかしら」
+						PRINTFORML 「それとも……一緒に入りたい？」
+						PRINTFORMDW %CALLNAME:MASTER%が『待ってる』と言うと、豊姫は少し残念そうな顔をした
+					CASE 2
+						PRINTFORML 「色々なものが売ってるのねぇ……」
+						PRINTFORML 「ねぇ%CALLNAME:MASTER%、これ使ってみましょう？」
+						PRINTFORMDW いつの間に買ったのだろう。豊姫は手にローターを持っていた
+						CALL GET_ITEM("ローター", 1, 2)
+				ENDSELECT
+		ENDSELECT
+	ENDIF
 ENDIF
+RESETCOLOR
 RETURN 1
 ;==================================================
 ;605,寄り道する
@@ -3577,7 +3708,7 @@ IF LOCAL
 				;ハンチョウ
 				PRINTFORML 「えっと……それぞれ単品で」
 				PRINTFORML 「コロッケとかきあげ……」
-				PRINTFORML 「えび天に……このほうれん草に温玉のせて小鉢で頂ける？」
+				PRINTFORML 「えび天に……このほうれん草に温玉のせて小鉢でもらえる？」
 				PRINTFORML 「それとあとは……生ビールひとつ。以上で」
 				PRINTFORML 「あ、シメでお蕎麦もお願いね」
 				PRINTFORMDL ……お金、足りるかな……
