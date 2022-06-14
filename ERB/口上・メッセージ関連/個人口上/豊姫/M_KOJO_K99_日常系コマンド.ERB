@@ -218,9 +218,16 @@ IF LOCAL
 							GOTO FEMTOFIBER
 					ENDSELECT
 				CASE 1
-					PRINTFORML 「そうだ、兎達が迷惑をかけていない？」
-					PRINTFORML 「鈍臭くてトロい奴が多いから、少し心配になって」
-					PRINTFORMW 「……言い過ぎって？ 貴方は優しいのね」
+					;依姫と面識が無い
+					IF !CFLAG:98:面識
+						PRINTFORML 「私の妹……依姫にはもう会った？」
+						PRINTFORML 「あの子も偶には海でも眺めて肩の力を抜けばいいのに」
+						PRINTFORMW 「ねぇ、貴方もそう思わない？」
+					;面識がある
+					ELSE
+						PRINTFORML 「ふぅん。大変なのねぇ……」
+						PRINTFORMDW 豊姫は%CALLNAME:MASTER%の話に相槌を打っている
+					ENDIF
 				CASE 2
 					;小説版儚月抄ほぼまんま
 					PRINTFORML 「一年中続く春の暖かさ。夏の活気の良さ。秋の豊かさ。冬の侘しさ」
@@ -241,9 +248,9 @@ IF LOCAL
 					PRINTFORML 「はぁ……最近は何もなくて暇ね」
 					PRINTFORMW 「偶には兎達の稽古にでも顔を出そうかしら」
 				CASE 6
-					PRINTFORML 「私の妹……依姫にはもう会った？」
-					PRINTFORML 「あの子も偶には海でも眺めて肩の力を抜けばいいのに」
-					PRINTFORMW 「ねぇ、貴方もそう思わない？」
+					PRINTFORML 「そうだ、兎達が迷惑をかけていない？」
+					PRINTFORML 「鈍臭くてトロい奴が多いから、少し心配になって」
+					PRINTFORMW 「……言い過ぎって？ 貴方は優しいのね」
 				CASE 7
 					PRINTFORML 「ああそうだ、妖精を見掛けたら私か妹に教えて頂戴」
 					PRINTFORML 「あれは穢れの塊のようなもの。私達月人にとっては毒そのもの」
@@ -958,7 +965,7 @@ CALL M_KOJO_COLOR_K99
 				CASE 1
 					PRINTFORML 「ん、撫でたいの？」
 					PRINTFORML 「……優しくお願いね」
-					PRINTFORMDW 豊姫は帽子を脱いで%CALLNAME:MASTER%に頭を差し出すと、目を瞑った
+					PRINTFORMDW 豊姫は帽子を脱ぐと、%CALLNAME:MASTER%に頭を差し出した
 				CASE 2
 					PRINTFORML 「どう？ 満足したかしら？」
 					PRINTFORML 「それじゃあ今度は私の番ね♪」
@@ -1977,8 +1984,8 @@ LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 CALL M_KOJO_COLOR_K99
-	;睡眠中か衰弱中
-	IF CFLAG:睡眠 || CFLAG:衰弱
+	;お招き部屋で豊姫が恋慕じゃないor豊姫が睡眠中・衰弱中・あなたの部屋にお泊りの場合はこれ
+	IF (!TALENT:恋慕 && CFLAG:MASTER:現在位置 == OMANEKIBEYA()) || (CFLAG:睡眠 || CFLAG:衰弱 || FLAG:一時滞在 == 99)
 		PRINTFORML 「……すぅ……すぅ……」
 		PRINTFORMDW %CALLNAME:MASTER%は豊姫の頭を撫でると、部屋の明かりを消した……
 	;一緒に寝る
@@ -2175,8 +2182,8 @@ CALL M_KOJO_COLOR_K99
 				PRINTFORMDW 豊姫と腕を組んで%CALLNAME:MASTER%はデートに出発した
 			;思慕
 			ELSEIF TALENT:思慕
-				PRINTFORML 「ふふっ、期待しても良いのかしら？」
-				PRINTFORMDW %CALLNAME:MASTER%と豊姫は寄り添いながらデートへと出発した
+				PRINTFORML 「期待しても良いのかしら？」
+				PRINTFORMDW %CALLNAME:MASTER%は豊姫と寄り添いながらデートへと出発した
 			;それ以外
 			ELSE
 				PRINTFORML 「デート？ んー……」
@@ -2186,8 +2193,8 @@ CALL M_KOJO_COLOR_K99
 			ENDIF
 		;お出かけお見送り
 		ELSEIF !CFLAG:MASTER:同行
-			;幼い子供がいる
-			IF CFLAG:99:出産経過日 < CHILD_しつけ
+			;育児中
+			IF TALENT:育児中
 				PRINTFORML 「行ってらっしゃい。気を付けてね」
 				PRINTFORMDW 豊姫は胸に抱いた我が子の手を取り、バイバイと振らせている
 			;恋慕

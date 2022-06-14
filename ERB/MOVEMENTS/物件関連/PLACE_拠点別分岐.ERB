@@ -56,34 +56,7 @@ RETURNF PNAME
 ;ワンルーム共通処理
 IF ROOMDATA:(ARG % 100) & 場所_ワンルーム
 	家主 = PRIVATEROOM:(ARG % 100)
-	在宅 = 0
-	;あなた
-	IF CHARA == MASTER
-		;自宅なら可能
-		IF ARG == デフォルト初期位置
-			RETURNF 1
-		;同行か恋慕なら入れる（家主睡眠中も可
-		ELSEIF CFLAG:家主:同行 || TALENT:家主:恋慕
-			在宅 = 1
-		;家主がいて起きてる
-		ELSEIF CFLAG:家主:現在位置 == ARG
-			SIF SHIRAHU(家主)
-				在宅 = 1
-		;家主以外の誰かがいる,この人物は寝てたりしても良い
-		ELSEIF IN_ROOM_NUMBER(ARG)
-			在宅 = 1
-		ENDIF
-	;家主は入れる
-	ELSEIF CHARA == 家主
-		在宅 = 1
-	;そうでないキャラは相性が100を超えていないとダメ
-	ELSEIF RELATION:家主:CHARA > 100
-		在宅 = 1
-	ENDIF
-	IF !在宅
-		TFLAG:移動不能メッセージ = 999
-		RETURNF 0
-	ENDIF
+	RETURNF MAP_CAN_MOVE_ONEROOM(ARG, CHARA, 家主)
 ENDIF
 
 ;未登録地点
@@ -121,6 +94,44 @@ SELECTCASE MAIN_MAP
 ENDSELECT
 RETURNF 1
 
+@MAP_CAN_MOVE_ONEROOM(ARG, CHARA, 家主)
+#FUNCTION
+#DIM CHARA
+#DIM 家主
+#DIM 在宅
+在宅 = 0
+;あなた
+IF CHARA == MASTER
+	;自宅なら可能
+	IF ARG == デフォルト初期位置
+		RETURNF 1
+	;同行か恋慕なら入れる（家主睡眠中も可
+	ELSEIF CFLAG:家主:同行 || TALENT:家主:恋慕
+		在宅 = 1
+	;家主がいて起きてる
+	ELSEIF CFLAG:家主:現在位置 == ARG
+		SIF SHIRAHU(家主)
+			在宅 = 1
+	;家主以外の誰かがいる,この人物は寝てたりしても良い
+	ELSEIF IN_ROOM_NUMBER(ARG)
+		在宅 = 1
+	ENDIF
+;家主は入れる
+ELSEIF CHARA == 家主
+	在宅 = 1
+;そうでないキャラは相性が100を超えていないとダメ
+ELSEIF RELATION:家主:CHARA > 100
+	在宅 = 1
+ENDIF
+IF !在宅
+	IF FINDCHARA(CFLAG:初期位置, ARG, 1) != -1 && FINDCHARA(CFLAG:初期位置, ARG, 1) != 家主
+		家主 = FINDCHARA(CFLAG:初期位置, ARG, 1)
+		RESTART
+	ENDIF
+	TFLAG:移動不能メッセージ = 999
+	RETURNF 0
+ENDIF
+RETURNF 1
 ;-----------------------------------------------------------
 ;地点の接続設定
 ;ARG    基準の地点

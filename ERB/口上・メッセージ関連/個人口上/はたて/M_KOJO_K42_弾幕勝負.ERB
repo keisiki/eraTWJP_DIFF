@@ -310,9 +310,32 @@ SIF FLAG:口上色
 							PRINTFORML 「目、目は閉じてっ。そのままだよ？　…………んっ」
 							PRINTFORML はたての言葉に従い目をつぶると、唇に柔らかい感触が当たった
 							PRINTW 
+							CALL AddEXP("キス経験", MASTER, 1)
+							CALL AddEXP("キス経験", TARGET, 1)
+							IF TALENT:MASTER:キス未経験
+								CALL SET_FIRSTKISS(MASTER, 42, 0)
+							ENDIF
+							IF TALENT:42:キス未経験
+								CALL SET_FIRSTKISS(42, MASTER, 0)
+							ENDIF
 							PRINTFORML 目を開けると、顔を真っ赤にしたはたてが、困ったような怒ったような、何ともいえない表情でこちらを見つめていた
 							PRINTFORML 「……どーだった？　私のファーストキス」
 							PRINTW 
+							CALL ASK_YN("はたて大好き","よく分からなかったからもう一回")
+							IF !RESULT
+								PRINTFORML 「！　えへへ、私も%MASTERNAME:42%が大好き%UNICODE(0x2665) *1%」
+								PRINTFORML はたては満面の笑みを浮かべた
+								PRINTW 
+							ELSE
+								PRINTFORML 「え、えぇ～～～～っ、どういう意味よぉ～～」
+								PRINTFORML 「……で、でもよく分かんなかったなら、しょーがないなぁ…」
+								PRINTW 
+								PRINTFORML 「も、もう一回だけだよ？　今度はちゃんと確かめてね？」
+								PRINTFORML 再びはたての顔が近づいてきた…
+								PRINTW 
+								CALL AddEXP("キス経験", MASTER, 1)
+								CALL AddEXP("キス経験", TARGET, 1)
+							ENDIF
 						ELSEIF TALENT:思慕
 							PRINTFORML 「うぇっ！？　口付けって…私、頬にキスすら初めてだったんですけど！」
 							PRINTFORML 「そ、それに私たち恋人同士とかじゃないんだけど…」
@@ -333,6 +356,14 @@ SIF FLAG:口上色
 								PRINTFORML （恋人でもないのに、%MASTERNAME:42%に私のファーストキス、あげちゃった…）
 								PRINTFORML （でもなんでだろ、あんまり嫌じゃない、かも…）
 								PRINTW 
+								CALL AddEXP("キス経験", MASTER, 1)
+								CALL AddEXP("キス経験", TARGET, 1)
+								IF TALENT:MASTER:キス未経験
+									CALL SET_FIRSTKISS(MASTER, 42, 0)
+								ENDIF
+								IF TALENT:42:キス未経験
+									CALL SET_FIRSTKISS(42, MASTER, 0)
+								ENDIF
 							ELSE
 								PRINTFORML 「～～～～～～、駄目、やっぱ駄目！」
 								PRINTFORML 「私の一生に一度のものなんだから、こんな形でなくすのはイヤ」
@@ -373,6 +404,8 @@ SIF FLAG:口上色
 							PRINTFORML 「私が負けたのに、私の方がごほーびもらっちゃったみたい…%UNICODE(0x2665) *1%」
 							PRINTFORML 「%MASTERNAME:42%は、キス、気持ちよかった…？　…%UNICODE(0x2665) *1%　そっかぁ、おんなじだね…%UNICODE(0x2665) *1%」
 							PRINTW 
+								CALL AddEXP("キス経験", MASTER, 10)
+								CALL AddEXP("キス経験", TARGET, 10)
 						ELSEIF TALENT:思慕
 							PRINTFORML 「え、キスしたかったの？」
 							PRINTFORML 「流れでするのと違って、こう改まってするのって、なんか恥ずかしーなぁ」
@@ -391,6 +424,8 @@ SIF FLAG:口上色
 								PRINTFORML 「やだもー！　ナニ言わせんのよー！　きゃー\/\/\/」
 								PRINTFORML はたてに照れ隠しでバシバシと肩を叩かれた。痛い
 								PRINTW 
+								CALL AddEXP("キス経験", MASTER, 1)
+								CALL AddEXP("キス経験", TARGET, 1)
 							CASEELSE
 								PRINTFORML 「じゃあ目をつぶってね………………んっ%UNICODE(0x2665) *1%」
 								PRINTFORML 「あっ、びっくりした顔してる♪　えへへー、唇、舐めちゃった♪」
@@ -398,6 +433,8 @@ SIF FLAG:口上色
 								PRINTFORML はたてはおどけてみせるものの、その顔は真っ赤に染まっていた
 								PRINTFORML 「えと…嫌、だった？　嫌じゃない？　そっか、えへへ…\/\/\/」
 								PRINTW 
+								CALL AddEXP("キス経験", MASTER, 1)
+								CALL AddEXP("キス経験", TARGET, 1)
 							ENDSELECT
 						ELSE
 							PRINTFORML 「う～…一回許したらチョーシに乗るんだから…」
@@ -429,7 +466,11 @@ SIF FLAG:口上色
 							PRINTFORML 「！？　いやっ、そんなまじまじ見ないで！？」
 							PRINTFORML 「ううー…そんなもの、何に使うのよー…」
 							PRINTW 
-							PRINTFORML %CALLNAME:MASTER%は、はたての%PANTSNAME(EQUIP:TARGET:下半身下着２, TARGET)%を手に入れた
+							IF EQUIP:TARGET:下半身下着１
+								PRINTFORML %CALLNAME:MASTER%は、はたての%PANTSNAME(EQUIP:TARGET:下半身下着１, TARGET)%を手に入れた
+							ELSEIF EQUIP:TARGET:下半身下着２
+								PRINTFORML %CALLNAME:MASTER%は、はたての%PANTSNAME(EQUIP:TARGET:下半身下着２, TARGET)%を手に入れた
+							ENDIF
 							CALL PANTS_GET(TARGET,"もらう")
 							PRINTW 
 						ELSE
@@ -468,33 +509,54 @@ SIF FLAG:口上色
 						PRINTFORML 「いやいやいやいや。ないないないない！」
 						PRINTFORML 「わ、私の穿いてるパ、パン、ツとか…」
 						PRINTW 
-						PRINTFORML 「大体ここで脱いだら、私どーやって家まで帰るのよ！」
-						PRINTFORML 「私の恥じらう姿を見たいって…筋金入りのヘンタイね」
-						PRINTW 
-						PRINTFORML 「えーと…その…み、見せるだけ、なら…」
-						PRINTFORML 「だ、誰にでも見せたりしないんだから！　そもそも他人に見せるのなんて初めてだし！」
-						PRINTW 
-						PRINTFORML 「じゃ、じゃー見せるわよ…一回だけだからね」
-						PRINTFORML はたては意を決し、スカートの裾をつまんだ
-						PRINTW 
-						PRINTFORML はたてのスカートが上がっていくにつれ、太ももが徐々に露になっていく
-						PRINTFORML 「うぅ、見ないで…」と涙目のはたてがスパイスになり、興奮が増していく
-						PRINTW 
-						PRINTFORML 「ああ、ヤダぁ…\/\/\/」
-						PRINTFORML ついに、はたての下半身が露になった
-						PRINTW 
-						PRINTFORML 「そ、そんなに間近で見ないでよぉ…恥ずかしいからぁ…\/\/\/」
-						IF PALAM:潤滑 >= PALAMLV:1
-							PRINTFORML よく見れば、クロッチの部分が湿っている
-							PRINTFORML ひょっとして、やりとりの中で欲情してしまったのだろうか。それとも、勝負以前から…
+						;はいてる
+						IF EQUIP:TARGET:下半身下着１ || EQUIP:TARGET:下半身下着２
+							PRINTFORML 「大体ここで脱いだら、私どーやって家まで帰るのよ！」
+							PRINTFORML 「私の恥じらう姿を見たいって…筋金入りのヘンタイね」
 							PRINTW 
+							PRINTFORML 「えーと…その…み、見せるだけ、なら…」
+							PRINTFORML 「だ、誰にでも見せたりしないんだから！　そもそも他人に見せるのなんて初めてだし！」
+							PRINTW 
+							PRINTFORML 「じゃ、じゃー見せるわよ…一回だけだからね」
+							PRINTFORML はたては意を決し、スカートの裾をつまんだ
+							PRINTW 
+							PRINTFORML はたてのスカートが上がっていくにつれ、太ももが徐々に露になっていく
+							PRINTFORML 「うぅ、見ないで…」と涙目のはたてがスパイスになり、興奮が増していく
+							PRINTW 
+							PRINTFORML 「ああ、ヤダぁ…\/\/\/」
+							PRINTFORML ついに、はたての下半身が露になった
+							PRINTW 
+							PRINTFORML 「そ、そんなに間近で見ないでよぉ…恥ずかしいからぁ…\/\/\/」
+							IF PALAM:潤滑 >= PALAMLV:1
+								PRINTFORML よく見れば、クロッチの部分が湿っている
+								PRINTFORML ひょっとして、やりとりの中で欲情してしまったのだろうか。それとも、勝負以前から…
+								PRINTW 
+							ENDIF
+							PRINTFORML 「は、はい！　おしまい！　もう見ちゃダメ！」
+							PRINTFORML はたてはスカートから手を離し、前を押さえるとこちらをにらみつけてきた
+							PRINTW 
+							PRINTFORML 「うぅ～～、次は負けないんだからぁ…見てなさいよ！」
+							PRINTFORML 次もぜひ勝たねば、と決意した
+							PRINTW 
+						;はいてない
+						ELSE
+							PRINTFORML 「それに、今は…な、なんでもない！」
+							PRINTFORML 「とにかく、駄目なものは駄目！　絶対駄目だかんね！」
+							PRINTW 
+							IF FLAG:異常気象 == 7 && EQUIP:TARGET:スカート
+								PRINTFORML はたてが叫んだ次の瞬間、二人の間を、一陣の風が走り抜けた
+								PRINTW 
+								PRINTFORML 『あっ』
+								PRINTFORML その瞬間、はたてのスカートが翻り、下着を身に着けていない下半身がさらけ出されてしまった
+								PRINTW 
+								PRINTFORML 「いやぁ～～～～～～！　もぉやだぁ～～～～～～～～！」
+								PRINTFORML はたてが巻き起こした風に吹き飛ばされた。なんて理不尽な！
+								PRINTW 
+							ELSE
+								PRINTFORML 何をそんなに必死なのだろう…と首を捻った
+								PRINTW 
+							ENDIF
 						ENDIF
-						PRINTFORML 「は、はい！　おしまい！　もう見ちゃダメ！」
-						PRINTFORML はたてはスカートから手を離し、前を押さえるとこちらをにらみつけてきた
-						PRINTW 
-						PRINTFORML 「うぅ～～、次は負けないんだからぁ…見てなさいよ！」
-						PRINTFORML 次もぜひ勝たねば、と決意した
-						PRINTW 
 					ELSE
 						PRINTFORML 「は？　いいものって、何よ」
 						PRINTFORML はたてにそっと耳打ちすると、彼女の顔はみるみる真っ赤に染まっていった

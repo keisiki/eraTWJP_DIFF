@@ -223,25 +223,48 @@ RETURNF LOCALS + ARGS:1
 
 ;### 口上存在判定 ###################################
 @M_KOJO_K111(ARG)
-;ここでRESULTSを設定すると他の同キャラ口上を突っ込まれても正常動作する。
+;別人版を作成する際はこのテンプレではなく別人版用口上テンプレをご利用ください
 
-;RESULTS = _TEST_
+;口上存在判定です、けしてコメントアウトしないでください
+;他の処理は一切行わないように
+RETURN 1
 
-;と設定すると、"EVENT"系イベントだと
-;M_KOJO_TEST_EVENT_K111_1() とかで呼ばれる…はず。（未テスト機能）
+;### 口上基本フラグ設定 #############################
+@M_KOJO_FLAGSETTING_K111
+;基本フラグ設定はここで行ってください
+;共通の口上フラグは必要な箇所のコメントアウトを外してご利用ください
+;口上専用フラグはご自由に
+;Xにはキャラ番号を入れてください
 
-;ここでCFLAGやTALENTを利用する場合、キャラ番号が必須です
+;眠姦口上有、時間停止口上有、なりきりに1を入れると、それぞれ時間停止時、眠姦時、なりきり時にコマンド口上が読み込まれるように
+;入れないと時間停止時、眠姦時、なりきり時は一切喋りません
+;CFLAG:X:眠姦口上有 = 0
+;CFLAG:X:時間停止口上有 = 0
+;CFLAG:X:なりきり口上有 = 0
 
-;眠姦口上有に1を入れると、眠姦時にコマンド口上が読み込まれるように
-CFLAG:111:眠姦口上有 = 0
-CFLAG:111:時間停止口上有 = 0
-CFLAG:111:なりきり口上有 = 0
-CFLAG:111:破瓜キャンセル口上有 = 0
+;破瓜キャンセル口上有に1を入れると、@M_KOJO_EVENT_KX_LOST_VIRGIN_STOPでキャンセルの成否を操作できます
+;CFLAG:X:破瓜キャンセル口上有 = 0
+
+;口上内抱き寄せ判定_初回と口上内抱き寄せ判定_通常に1を入れると、M_KOJO_EVENT_KX_PERMISSIONで押し倒しの成否を操作できます
 CFLAG:111:口上内抱き寄せ判定_初回 = 1
 CFLAG:111:口上内抱き寄せ判定_通常 = 1
 
+;押し倒し禁止に1を入れると、自分から押し倒してこなくなります
+;以下は恋慕かセフレがつくまで押し倒してこなくなる使用例
+;IF !TALENT:X:恋慕 && !TALENT:X:セフレ
+;	CFLAG:X:押し倒し禁止 = 1
+;ELSE
+;	CFLAG:X:押し倒し禁止 = 0
+;ENDIF
 
-RETURN 1
+;来訪不能に1を入れると、来訪してこなくなります
+;以下は面識があるまで来訪してこなくなる使用例
+;IF !CFLAG:X:面識
+;	CFLAG:X:来訪不能 = 1
+;ELSE
+;	CFLAG:X:来訪不能 = 0
+;ENDIF
+
 ;### 口上色判定 ###################################
 @M_KOJO_COLOR_K111
 SETCOLOR 0xE86FC7
@@ -269,7 +292,7 @@ ENDIF
 ;口上独自のUPDATE用
 ;ENCOUNTER専用に独自分岐フラグを仕込んだ場合等にどうぞ
 ;UPDATE判定でCFLAGを使う場合、キャラ番号の指定が必要になります
-VERSION = 200
+VERSION = 201
 CALL M_KOJO_COLOR_K111
 IF !TALENT:111:キス未経験 || EXP:111:キス経験
 	SIF FIRSTTIME("ファーストキス", 0, 111)
@@ -4781,6 +4804,42 @@ IF LOCAL
 			;（落ちた側（戦闘能力2～4）,～はすぐに穴から飛び出して周りをキョロキョロ見回している…）
 			;PRINTFORML 
 		ENDIF
+	CASE 17
+		;▼雪だるま作り（～は雪を集めている）
+		IF !ARG:1
+			;行動中
+			SELECTCASE RAND:4
+			CASE 1
+				PRINTFORML 「よいしょ、よいしょ」
+			CASE 2
+				PRINTFORML 「ごろごろ～♪」
+			CASE 3
+				PRINTFORML 「ひゃー、冷たい！」
+			CASEELSE
+				PRINTFORML 「うんしょ、うんしょ」
+			ENDSELECT
+		ELSE
+			;完了時
+			PRINTFORML 「かんせ～い♪」
+		ENDIF
+	CASE 18
+		;▼炬燵でのんびり（～は炬燵に入って温まっている）
+		IF !ARG:1
+			;行動中
+			SELECTCASE RAND:4
+			CASE 1
+				PRINTFORML 「う～ん、ぬくぬく♪」
+			CASE 2
+				PRINTFORML 「ふわぁ～ぁ……」
+			CASE 3
+				PRINTFORML 「ん～あったか～い♪」
+			CASEELSE
+				PRINTFORML 「ほへー……」
+			ENDSELECT
+		ELSE
+;			;完了時
+;			PRINTFORML 
+		ENDIF
 	ENDSELECT
 ENDIF
 RETURN 1
@@ -5418,3 +5477,43 @@ CASE "チーム戦：負け"
 ENDSELECT
 SIF RESULTS != ""
 	RETURN 1
+
+;==================================================
+;引力操作
+;TCVAR:引力点に場所IDを入れるとその地点に引っ張られていきます
+;場所IDと同じ拠点マップでしか効果はありません（博麗神社の境内なら拠点が博麗神社のときだけ）
+;条件を付けないと永久に引っ張られ続けるので注意
+;RANDは基本的に使えません。CFLAG:今日の運勢にその日のランダム数値（0～999）が入っているのでこれを使うと良いです
+;==================================================
+@M_KOJO_EVENT_K111_GRAVITY(ARG)
+
+SIF 0
+	TCVAR:引力点 = 0
+
+;▼共通設定で使われているサンプル
+[SKIPSTART]
+	;平日の昼間はランダムで遊びに行く
+	IF YOUBI_MATCH(DAY, "月火水木金") && INRANGE(TIME, 600, 960)
+		SELECTCASE CFLAG:今日の運勢 % 5
+		CASE 1
+			TCVAR:引力点 = P2境内
+		CASE 2
+			TCVAR:引力点 = P10縁側
+		CASE 3
+			TCVAR:引力点 = P11庭
+		CASE 4
+			TCVAR:引力点 = P25鎮守の森
+		CASEELSE
+			TCVAR:引力点 = 0
+		ENDSELECT
+	ENDIF
+	;水木曜日に2分の1の確率で遊びに行く
+	SIF YOUBI_MATCH(DAY, "水木") && INRANGE(TIME, 720, 1020) && CFLAG:今日の運勢 % 2 == 0
+		TCVAR:引力点 = P213鈴奈庵
+	;特定の人物が特定の場所にいるとそこへ引っ張られる
+		SIF CFLAG:[[白蓮]]:現在位置 == P103本堂 && !CFLAG:[[白蓮]]:うふふ && SHIRAHU([[白蓮]])
+			TCVAR:引力点 = P103本堂
+	;土日に10分の1の確率で特定の人物にくっついてまわる
+	SIF YOUBI_MATCH(DAY, "土日") && CFLAG:今日の運勢 % 10 == 0 && !CFLAG:[[さとり]]:うふふ && SHIRAHU([[さとり]])
+		TCVAR:引力点 = CFLAG:[[さとり]]:現在位置
+[SKIPEND]
