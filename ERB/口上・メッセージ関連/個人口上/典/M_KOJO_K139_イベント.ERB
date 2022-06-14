@@ -126,28 +126,31 @@ IF !CFLAG:139:1999
 	ENDIF
 ENDIF
 
-	PRINTL 
-	PRINTFORML 実は典は過去につがいがいて出産したことが…
-	PRINTFORML （元つがいが本口上内で現れることはありません）
-	PRINTFORML （元夫が現れてＮＴＲ…なんて要素は一切ありません。数字で興奮できる方向け）
-	PRINTL 
-	CALL ASK_YN("管狐だしそりゃもうわんさと","んなわきゃないでしょ")
-	IF !RESULT
-		PRINTFORML 典の[処女]が失われます
-		PRINTFORML 典に[人妻]が付与されます
-		PRINTFORML 典の[出産経験]を73にします
-		PRINTFORML 典の他色々と経験がマシマシになります
-		EXP:139:出産経験 += 73
-		EXP:139:Ｖ経験 += 73
-		EXP:139:Ｖ性交経験 += 73
-		EXP:139:絶頂経験 += 30
-		EXP:139:精液経験 += 150
-		EXP:139:膣射経験 += 73
-		TALENT:139:処女 = 0
-		CFLAG:139:1998 = 1
-	ELSE
-		PRINTFORML 典は清い体のままです
-		PRINTFORML 典はあなたの手で孕ませてあげてください
+	IF CFLAG:139:1998 == 0
+		PRINTL 
+		PRINTFORML 実は典は過去につがいがいて出産したことが…
+		PRINTFORML （元つがいが本口上内で現れることはありません）
+		PRINTFORML （元夫が現れてＮＴＲ…なんて要素は一切ありません。数字で興奮できる方向け）
+		PRINTL 
+		CALL ASK_YN("管狐だしそりゃもうわんさと","んなわきゃないでしょ")
+		IF !RESULT
+			PRINTFORML 典の[処女]が失われます
+			PRINTFORML 典に[人妻]が付与されます
+			PRINTFORML 典の[出産経験]を73にします
+			PRINTFORML 典の他色々と経験がマシマシになります
+			EXP:139:出産経験 += 73
+			EXP:139:Ｖ経験 += 73
+			EXP:139:Ｖ性交経験 += 73
+			EXP:139:絶頂経験 += 30
+			EXP:139:精液経験 += 150
+			EXP:139:膣射経験 += 73
+			TALENT:139:処女 = 0
+			TALENT:139:人妻 = 1
+			CFLAG:139:1998 = 1
+		ELSE
+			PRINTFORML 典は清い体のままです
+			PRINTFORML 典はあなたの手で孕ませてあげてください
+		ENDIF
 	ENDIF
 
 RETURN 1
@@ -353,6 +356,27 @@ PRINTW
 CFLAG:1006 = EXP:MASTER:デート経験
 
 RETURN 1
+
+@K139_BEFORETRAIN
+;一日の開始時、正確には来訪判定時に読み込む関数,使うときはコメントアウトを外すこと
+;ここでCFLAG:XX:翌日来訪を設定して確実に来訪させたりTCVAR:XX:発情で朝っぱらからサカらせることもできる
+;ただし「毎朝例外なく読み込まれる」ため、条件を設定しておくことが望ましい
+	;冬の１～７日は典が必ず発情する
+	IF DAY:2 == 4 && GROUPMATCH(DAY:3,1,2,3,4,5,6,7) 
+		SIF TCVAR:139:発情 == 0
+			TCVAR:139:発情 = 1
+	ENDIF
+	
+	IF TALENT:妊娠願望
+		;妊娠周期が排卵未満なら排卵誘発剤を飲む
+		IF ESTRUS_CYCLE(TARGET) < 100
+			IF FLAG:生理周期可視化 == 1
+				PRINTFORML 典は、%CALLNAME:MASTER%と会う前に排卵誘発剤を飲んできたようだ…
+			ENDIF
+			PRINTW 
+			TCVAR:強制排卵 = 180
+		ENDIF
+	ENDIF
 
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
 ;"SP_EVENT"系イベント
@@ -2265,22 +2289,6 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 8
-	;冬の１～７日は典が必ず発情する
-	IF DAY:2 == 4 && GROUPMATCH(DAY:3,1,2,3,4,5,6,7) 
-		SIF TCVAR:139:発情 == 0
-			TCVAR:139:発情 = 1
-	ENDIF
-	
-	IF TALENT:妊娠願望
-		;妊娠周期が排卵未満なら排卵誘発剤を飲む
-		IF ESTRUS_CYCLE(TARGET) < 100
-			IF FLAG:生理周期可視化 == 1
-				PRINTFORML 典は、%CALLNAME:MASTER%と会う前に排卵誘発剤を飲んできたようだ…
-			ENDIF
-			PRINTW 
-			TCVAR:強制排卵 = 180
-		ENDIF
-	ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -2291,22 +2299,6 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 9
-		;冬の１～７日は典が必ず発情する
-		IF DAY:2 == 4 && GROUPMATCH(DAY:3,1,2,3,4,5,6,7) 
-			SIF TCVAR:139:発情 == 0
-				TCVAR:139:発情 = 1
-		ENDIF
-		
-		IF TALENT:妊娠願望
-			;妊娠周期が排卵未満なら排卵誘発剤を飲む
-			IF ESTRUS_CYCLE(TARGET) < 100
-				IF FLAG:生理周期可視化 == 1
-					PRINTFORML 典は、%CALLNAME:MASTER%と会う前に排卵誘発剤を飲んできたようだ…
-				ENDIF
-				PRINTW 
-				TCVAR:強制排卵 = 180
-			ENDIF
-		ENDIF
 		;ARG:1とデート中
 		IF ARG:1
 		;一人で外出
@@ -3793,7 +3785,7 @@ IF LOCAL
 		;ARG:1=TARGETの欲求不満度（最高1000）
 		;必要ならばこれで分岐を作ってください
 		;
-		IF TCVAR:発情
+		IF TCVAR:発情 && !RAND:2
 			IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
 				SETCOLOR 0xFF69B4
 				CALL HPH_PRINT,@"「%CALLNAME:MASTER%どの…お姉ちゃん、シたくなってきちゃいました…HPH」","L"
@@ -6213,66 +6205,112 @@ IF LOCAL
 			ENDIF
 		;非処女
 		ELSE
-			IF TCVAR:発情
-				SETCOLOR 0xFF69B4
-				CALL HPH_PRINT,@"「ああっHPH　指、とまらないっHPHHPH」","L"
-				CALL HPH_PRINT,@"（きもちいいっHPH　きもちいいけどっHPHHPH）","L"
-				PRINTFORML 
-				CALL HPH_PRINT,@"「ふぅぅ～～～～HPH　うぅぅ～～～HPHHPH」","L"
-				CALL HPH_PRINT,@"（指じゃ、足りないっHPH　ちんぽ、ほしいっHPHHPH）","L"
-				SELECTCASE TALENT:MASTER:形状
-				CASE 6,10;巨根、馬並み
-					CALL HPH_PRINT,@"（%CALLNAME:MASTER%のぶっといちんぽっHPHHPH　あれでゴリゴリしてほしいっHPHHPH）","L"
-				CASE 1,2;粗チン
-					CALL HPH_PRINT,@"（%CALLNAME:MASTER%の粗チンでもいいからっHPH　ちんぽねじ込まれたいっHPHHPH）","L"
-				CASE 5;イボ付き
-					CALL HPH_PRINT,@"（%CALLNAME:MASTER%の凶悪ちんぽっHPH　膣内かき回されたいっHPHHPH）","L"
-				CASEELSE
-					CALL HPH_PRINT,@"（%CALLNAME:MASTER%のちんぽっHPH　あれで届かない所ズボズボしてほしいっHPHHPH）","L"
-				ENDSELECT
-				PRINTW 
-				CALL HPH_PRINT,@"「あぁ～～HPH　ちんぽっHPH　ちんぽほしいよぉっHPHHPH」","L"
-				CALL HPH_PRINT,@"（%CALLNAME:MASTER%のちんぽっHPH　膣内をかき回してっHPHHPH）","L"
-				PRINTFORML 
-				CALL HPH_PRINT,@"「くるっHPH　おおきいのくるっHPHHPH　イクっHPH　イクイクっ、イクぅっHPHHPH」","L"
-				CALL HPH_PRINT,@"（膣内に出してっHPH　典をっHPH　孕ませてっHPHHPH）","L"
-				PRINTW 
-				CALL HPH_PRINT,@"「あHPH　あ、ああぁ、あHPH　あHPH　ぁHPH　ぁHPH　ぁHPH」","L"
-				CALL HPH_PRINT,@"（キちゃうっHPH　キちゃうっっHPHHPH　変なのキちゃうっHPHHPHHPHHPH）","L"
-				PRINTW 
-				CALL HPH_PRINT,@"（くるっHPHHPHHPHHPH）","L"
-				CALL HPH_PRINT,@"「あ゛ぁぁぁあぁぁ～～～～～～～～っHPHHPHHPHHPHHPH」","L"
-				PRINTW 
-				CALL HPH_PRINT,@"「あ゛～～～～HPH　あ゛～～…HPH　あぁ～～…HPH　あっHPH　あっ…HPH」","L"
-				CALL HPH_PRINT,@"（イったぁ…HPH　すっごいイったぁ……HPHHPH）","L"
-				PRINTW 
-				PRINTFORML 「………………」
-				CALL HPH_PRINT,@"「ムラムラ、とまらない…HPH」","L"
-				CALL HPH_PRINT,@"「もう一回、もう一回、だけ…HPH　ふっHPH　ふぅぅぅっHPHHPH」","L"
-				RESETCOLOR
-				PRINTW 
-			ELSE
-				CALL HPH_PRINT,@"「ああっHPH　ここっHPH　擦るの気持ちいいっHPH」","L"
-				CALL HPH_PRINT,@"「んうぅぅぅっHPH　あっあああっHPH」","L"
-				PRINTFORML 
-				CALL HPH_PRINT,@"「わ…指、すごいドロドロ…HPH　糸引いちゃってる…HPH」","L"
-				CALL HPH_PRINT,@"「んむ…HPH　ん、んんんっHPHHPH」","L"
-				PRINTW 
-				CALL HPH_PRINT,@"「あは…HPH　指、三本も入った…HPH」","L"
-				CALL HPH_PRINT,@"「ふぅぅっHPH　わぁ…HPH　グチュグチュ音立ててる…HPH」","L"
-				PRINTFORML 
-				CALL HPH_PRINT,@"「あ、あぁぁっHPH　指、根元まで入ったぁHPHHPH」","L"
-				CALL HPH_PRINT,@"「おまんこHPH　かき回すの気持ちいいっHPHHPH」","L"
-				PRINTW 
-				CALL HPH_PRINT,@"「あHPH　もう少しっHPH　もう少しでいいところっHPH　届くのにぃっHPHHPH」","L"
-				CALL HPH_PRINT,@"「イクHPH　イクっHPH　あっイクっHPHHPH」","L"
-				CALL HPH_PRINT,@"「あっあぁぁああっっっHPHHPHHPHHPH」","L"
-				PRINTW 
-				PRINTFORML 
-				PRINTFORML 
-				CALL HPH_PRINT,@"「はぁ～～HPH　はぁ、はぁ、はぁ…HPH」","L"
-				CALL HPH_PRINT,@"「……気持ちよかったけど…やっぱり、%CALLNAME:MASTER%のちんぽの方がいいかも…HPH」","L"
-				PRINTW 
+			IF CFLAG:1019 == 1
+				IF TCVAR:発情
+					SETCOLOR 0xFF69B4
+					CALL HPH_PRINT,@"「ああっHPH　指、とまらないっHPHHPH」","L"
+					CALL HPH_PRINT,@"（きもちいいっHPH　きもちいいけどっHPHHPH）","L"
+					PRINTFORML 
+					CALL HPH_PRINT,@"「ふぅぅ～～～～HPH　うぅぅ～～～HPHHPH」","L"
+					CALL HPH_PRINT,@"（指じゃ、足りないっHPH　ちんぽ、ほしいっHPHHPH）","L"
+					SELECTCASE TALENT:MASTER:形状
+					CASE 6,10;巨根、馬並み
+						CALL HPH_PRINT,@"（%CALLNAME:MASTER%のぶっといちんぽっHPHHPH　あれでゴリゴリしてほしいっHPHHPH）","L"
+					CASE 1,2;粗チン
+						CALL HPH_PRINT,@"（%CALLNAME:MASTER%の粗チンでもいいからっHPH　ちんぽねじ込まれたいっHPHHPH）","L"
+					CASE 5;イボ付き
+						CALL HPH_PRINT,@"（%CALLNAME:MASTER%の凶悪ちんぽっHPH　膣内かき回されたいっHPHHPH）","L"
+					CASEELSE
+						CALL HPH_PRINT,@"（%CALLNAME:MASTER%のちんぽっHPH　あれで届かない所ズボズボしてほしいっHPHHPH）","L"
+					ENDSELECT
+					PRINTW 
+					CALL HPH_PRINT,@"「あぁ～～HPH　ちんぽっHPH　ちんぽほしいよぉっHPHHPH」","L"
+					CALL HPH_PRINT,@"（%CALLNAME:MASTER%のちんぽっHPH　膣内をかき回してっHPHHPH）","L"
+					PRINTFORML 
+					CALL HPH_PRINT,@"「くるっHPH　おおきいのくるっHPHHPH　イクっHPH　イクイクっ、イクぅっHPHHPH」","L"
+					CALL HPH_PRINT,@"（膣内に出してっHPH　典をっHPH　孕ませてっHPHHPH）","L"
+					PRINTW 
+					CALL HPH_PRINT,@"「あHPH　あ、ああぁ、あHPH　あHPH　ぁHPH　ぁHPH　ぁHPH」","L"
+					CALL HPH_PRINT,@"（キちゃうっHPH　キちゃうっっHPHHPH　変なのキちゃうっHPHHPHHPHHPH）","L"
+					PRINTW 
+					CALL HPH_PRINT,@"（くるっHPHHPHHPHHPH）","L"
+					CALL HPH_PRINT,@"「あ゛ぁぁぁあぁぁ～～～～～～～～っHPHHPHHPHHPHHPH」","L"
+					PRINTW 
+					CALL HPH_PRINT,@"「あ゛～～～～HPH　あ゛～～…HPH　あぁ～～…HPH　あっHPH　あっ…HPH」","L"
+					CALL HPH_PRINT,@"（イったぁ…HPH　すっごいイったぁ……HPHHPH）","L"
+					PRINTW 
+					PRINTFORML 「………………」
+					CALL HPH_PRINT,@"「ムラムラ、とまらない…HPH」","L"
+					CALL HPH_PRINT,@"「もう一回、もう一回、だけ…HPH　ふっHPH　ふぅぅぅっHPHHPH」","L"
+					RESETCOLOR
+					PRINTW 
+				ELSE
+					CALL HPH_PRINT,@"「ああっHPH　ここっHPH　擦るの気持ちいいっHPH」","L"
+					CALL HPH_PRINT,@"「んうぅぅぅっHPH　あっあああっHPH」","L"
+					PRINTFORML 
+					CALL HPH_PRINT,@"「わ…指、すごいドロドロ…HPH　糸引いちゃってる…HPH」","L"
+					CALL HPH_PRINT,@"「んむ…HPH　ん、んんんっHPHHPH」","L"
+					PRINTW 
+					CALL HPH_PRINT,@"「あは…HPH　指、三本も入った…HPH」","L"
+					CALL HPH_PRINT,@"「ふぅぅっHPH　わぁ…HPH　グチュグチュ音立ててる…HPH」","L"
+					PRINTFORML 
+					CALL HPH_PRINT,@"「あ、あぁぁっHPH　指、根元まで入ったぁHPHHPH」","L"
+					CALL HPH_PRINT,@"「おまんこHPH　かき回すの気持ちいいっHPHHPH」","L"
+					PRINTW 
+					CALL HPH_PRINT,@"「あHPH　もう少しっHPH　もう少しでいいところっHPH　届くのにぃっHPHHPH」","L"
+					CALL HPH_PRINT,@"「イクHPH　イクっHPH　あっイクっHPHHPH」","L"
+					CALL HPH_PRINT,@"「あっあぁぁああっっっHPHHPHHPHHPH」","L"
+					PRINTW 
+					PRINTFORML 
+					PRINTFORML 
+					CALL HPH_PRINT,@"「はぁ～～HPH　はぁ、はぁ、はぁ…HPH」","L"
+					CALL HPH_PRINT,@"「……気持ちよかったけど…やっぱり、%CALLNAME:MASTER%のちんぽの方がいいかも…HPH」","L"
+					PRINTW 
+				ENDIF
+			ELSEIF CFLAG:1019 == 0
+				IF TCVAR:発情
+					SETCOLOR 0xFF69B4
+					CALL HPH_PRINT,@"「ああっHPH　指、とまらないっHPHHPH」","L"
+					CALL HPH_PRINT,@"（きもちいいっHPH　きもちいいけどっHPHHPH）","L"
+					PRINTFORML 
+					CALL HPH_PRINT,@"「ふぅぅ～～～～HPH　うぅぅ～～～HPHHPH」","L"
+					CALL HPH_PRINT,@"（指じゃ、足りないっHPH　もっと、奥まで届くもの、ほしいっHPHHPH）","L"
+					PRINTW 
+					CALL HPH_PRINT,@"「あHPH　あ、ああぁ、あHPH　あHPH　ぁHPH　ぁHPH　ぁHPH」","L"
+					CALL HPH_PRINT,@"（あっHPH　イけそうっHPH　ここっHPH　ここ好きっHPHHPH　ここいいっHPHHPH）","L"
+					CALL HPH_PRINT,@"（キちゃうっHPH　キちゃうっっHPHHPH　変なのキちゃうっHPHHPHHPHHPH）","L"
+					PRINTW 
+					CALL HPH_PRINT,@"（くるっHPHHPHHPHHPH）","L"
+					CALL HPH_PRINT,@"「あ゛ぁぁぁあぁぁ～～～～～～～～っHPHHPHHPHHPHHPH」","L"
+					PRINTW 
+					CALL HPH_PRINT,@"「あ゛～～～～HPH　あ゛～～…HPH　あぁ～～…HPH　あっHPH　あっ…HPH」","L"
+					CALL HPH_PRINT,@"（イったぁ…HPH　すっごいイったぁ……HPHHPH）","L"
+					PRINTW 
+					PRINTFORML 「………………」
+					CALL HPH_PRINT,@"「ムラムラ、とまらない…HPH」","L"
+					CALL HPH_PRINT,@"「もう一回、もう一回、だけ…HPH　ふっHPH　ふぅぅぅっHPHHPH」","L"
+					RESETCOLOR
+					PRINTW 
+				ELSE
+					CALL HPH_PRINT,@"「ああっHPH　ここっHPH　擦るの気持ちいいっHPH」","L"
+					CALL HPH_PRINT,@"「んうぅぅぅっHPH　あっあああっHPH」","L"
+					PRINTFORML 
+					CALL HPH_PRINT,@"「わ…指、すごいドロドロ…HPH　糸引いちゃってる…HPH」","L"
+					CALL HPH_PRINT,@"「んむ…HPH　ん、んんんっHPHHPH」","L"
+					PRINTW 
+					CALL HPH_PRINT,@"「あは…HPH　指、二本も入った…HPH」","L"
+					CALL HPH_PRINT,@"「ふぅぅっHPH　わぁ…HPH　グチュグチュ音立ててる…HPH」","L"
+					PRINTFORML 
+					CALL HPH_PRINT,@"「あHPH　ここっHPH　カリカリするとイけそうっHPH　イクっHPH　あっイクっHPHHPH」","L"
+					CALL HPH_PRINT,@"「あっあぁぁああっっっHPHHPHHPHHPH」","L"
+					PRINTW 
+					PRINTFORML 
+					PRINTFORML 
+					CALL HPH_PRINT,@"「はぁ～～HPH　はぁ、はぁ、はぁ…HPH」","L"
+					CALL HPH_PRINT,@"「……オナニーも悪くないけど、久しぶりにちんぽでイきたいわね…HPH」","L"
+					PRINTFORML 「あ～あ、どこかにいい相手いないかなぁ」
+					PRINTW 
+				ENDIF
 			ENDIF
 		ENDIF
 		RETURN 1

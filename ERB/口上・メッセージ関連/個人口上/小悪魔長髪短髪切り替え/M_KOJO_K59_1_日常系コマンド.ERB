@@ -32,6 +32,25 @@ IF LOCAL
 	ELSEIF TCVAR:302
 		PRINTFORML 「私にかまってくれるのは嬉しいのですけども、」
 		PRINTFORMW 「他に退屈しているお方が、きっといると思います」
+	ELSEIF TALENT:恋人
+		SELECTCASE RAND:5
+			CASE 3
+				PRINTFORML 
+				PRINTFORMW 
+			CASE 2
+				PRINTFORML 
+				PRINTFORML 
+				PRINTFORMW 
+			CASE 1
+				PRINTFORML 
+				PRINTFORMW 
+			CASE 0
+				PRINTFORML 
+				PRINTFORMW 
+			CASEELSE
+				PRINTFORML 
+				PRINTFORMW 
+		ENDSELECT
 	ELSEIF TALENT:恋慕
 		SELECTCASE RAND:5
 			CASE 3
@@ -52,8 +71,31 @@ IF LOCAL
 				PRINTFORMW 
 		ENDSELECT
 	ELSEIF TALENT:思慕
-		SELECTCASE RAND:3
+		SELECTCASE RAND:5
+			CASE 3
+				PRINTFORMW 「へぇ、そうなんですか、ふふっ」
+				PRINTDATA 
+					DATAFORM 「他に、他には何かないんですか?もっと聞きたいです」
+					DATAFORM 「あれ?今笑うところではありませんでした?うーん、それは失礼」
+					DATAFORM 「そうそう、私はですね…」
+					DATAFORM 「あ、ちゃんと片付けたっけな、あれ」
+					DATAFORM 「確かに、あれほと美味しいものはないと思いますよ」
+					DATAFORM 「あ、でもそれ私じゃありませんからね。そっくりな悪魔もいるから、間違えないでくださいよ」
+				ENDDATA 
+				PRINTFORMW 
+				PRINTFORMW 小悪魔と、何気ない話が続いた
+			CASE 2
+				PRINTFORMW 「私達、もうお友達みたいなもんですよね。」
+				PRINTFORMW 「いや、もっと前からかな…?こういうの、難しいですね」
 			CASE 1
+				PRINTFORMW %CALLNAME:MASTER%は、ふと小悪魔の%K59_HAIR()%が気になり、眺めている。
+				PRINTDATA 
+					DATAFORM それに気がついた小悪魔は、手櫛をして、%CALLNAME:MASTER%に%K59_HAIR()%を見せつけている
+					DATAFORM それに気がついた小悪魔は、自身の赤の%K59_HAIR()%の美しさを再確認している様子だ。
+					DATAFORM それに気がつかなかった小悪魔は、真剣に考え事を進めている様子だ。
+					DATAFORM それに気がつかなかった小悪魔は、上の空と言った様子だ。
+					DATAFORM それに気がついた小悪魔は、軽く笑顔を%CALLNAME:MASTER%に返した。
+				ENDDATA
 				PRINTFORMW 
 			CASE 0
 				PRINTFORMW 「今まで読んだ事のある本ですか?そうですね…」
@@ -426,7 +468,33 @@ RETURN RESULT
 LOCAL = 0
 ;-------------------------------------------------
 IF LOCAL
-
+	;もう何もかもわかんないのでわかりそうな記述だけ下書き。絶対ELSEIFとかELSEとかENDIFとか色々間違えてるやつ
+	;IF TALENT:恋人
+		;PRINTFORMW %NICKNAME:59%は、じっとお茶を見つめる
+		;PRINTFORMW 「…正直に言ってください。何が入ってますか?」
+		;CALL ASK_YN("正直に言う","言えずに黙り込む")
+			;IF !RESULT
+				;PRINTFORMW %CALLNAME:MASTER%が正直に伝えると、%NICKNAME:59%は平然とお茶を飲みほした
+					;媚薬の場合の分岐
+						;PRINTFORMW 「こんなもの使う必要もないでしょうに、よくわかりませんね」
+						;小悪魔は媚薬を無効化する体質にするべきか、しないべきか。そこも悩んでる
+					;それ以外
+						;PRINTFORMW 「なんでこんな事をするのか理解できませんが、それを求めてるなら、私は%MASTERNAME:59%に従うまでです」
+					;インデントの取り方的にこの辺に色々必要だろうけど、保留
+			;ELSE
+				;PRINTFORML 「…%MASTERNAME:59%を愛する私にだって、すべてを納得できるというわけではありません」
+				;PRINTFORMW %NICKNAME:59%は、お茶を%CALLNAME:MASTER%に返した
+				;TFLAG:192 =-1
+				;この記述で失敗にできるであってるのかな
+			;ENDIF
+		;ELSE
+		;なんかこの記述であってるのか全然自信が持てないぞー!恋人がそれ以外で反応を決めるから多分合ってると思いたいけど、インデント狂ってそう!
+		;PRINTFORMW %NICKNAME:59%は、じっとお茶を見つめる
+		;PRINTFORMW 「…私は遠慮しておきます。%MASTERNAME:59%、そのお茶を自分で飲める自信がありますか?」
+		;PRINTFORMW 「あ、別に実際に飲まなくて結構です。やられて嫌な事を強要したくはありませんからね」
+		;TFLAG:192 =-1
+		;強制失敗にしたいなら、これでいいのかな…?
+	;ENDIF
 ENDIF
 RETURN 1
 ;==================================================
@@ -435,11 +503,12 @@ RETURN 1
 ;TFLAG:194(51=どぶろく 52=清酒 53=鬼殺し)
 ;ALCOHOL_TASTE(TFLAG:194)(15以上=気に入る 9以下=口に合わない)
 ;==================================================
-@M_KOJO_長短髪_MESSAGE_COM_K59_332
+@M_KOJO_長短髪_SUCCESS_COM_K59_332
 ;成否判定
 ;TFLAG:192(-1＝強制失敗、0=COM依存
 TFLAG:192 =0
 
+@M_KOJO_長短髪_MESSAGE_COM_K59_332
 CALL TRAIN_MESSAGE
 CALL M_KOJO_長短髪_MESSAGE_COM_K59_332_1
 RETURN RESULT
@@ -820,6 +889,103 @@ IF LOCAL
 ENDIF
 RETURN 1
 ;==================================================
+;368,自由行動に付き合う 
+;技能系の行動は技能レベルが1以上なら発生
+;==================================================
+@M_KOJO_長短髪_MESSAGE_COM_K59_368
+CALL TRAIN_MESSAGE
+CALL M_KOJO_長短髪_MESSAGE_COM_K59_368_1
+RETURN RESULT
+
+@M_KOJO_長短髪_MESSAGE_COM_K59_368_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE Activity_Type:TARGET
+		CASE 0
+			;▼考え事［なに考えてるの］
+			;TFLAG:193,-1=はぐらかされる
+			;PRINTFORMW 
+		CASE 1
+			;▼遊ぶ［一緒に遊ぶ］
+			;※[幼稚]持ちのみ
+			;TFLAG:193,1=大いに盛り上がる,-1=あまり盛り上がらない
+			;PRINTFORMW 
+		CASE 2
+			;▼食事［一緒に食事する］
+			;TFLAG:193,-1=MASTERはお腹が空いてなかった
+			;PRINTFORMW 
+		CASE 3
+			;▼つまみ食い［一緒につまみ食い］
+			;※[妖精]持ちとルーミア、こいし、幽々子、紫苑のみ
+			;TFLAG:193,-1=MASTERはお腹が空いてなかった
+			;PRINTFORMW 
+		CASE 4
+			;▼掃除［掃除を手伝う］
+			;※[掃除係]持ちまたは汚臭耐性-1以下のみ
+			;PRINTFORMW 
+		CASE 5
+			;▼運動［一緒に運動する］
+			;※[音楽知識]持ちは除く（演奏になる）
+			;PRINTFORMW 
+		CASE 6
+			;▼読書［本の感想を聞く］
+			;TFLAG:193,-1=集中していて返事してくれない
+			;PRINTFORMW 
+		CASE 7
+			;▼料理［料理を手伝う］→［料理を分けてもらう］
+			;TFLAG:193,2=料理を手伝う,0=作った料理を食べる,-1==MASTERはお腹が空いてなかった（食べる時）
+			;PRINTFORMW 
+		CASE 8
+			;▼演奏［セッションする］or［伴奏する］
+			;※[音楽知識]持ちのみ（TALENT:音楽知識で変化）
+			;TALENT:音楽知識,1=演奏してる,2=歌ってる,3=踊ってる
+			;TFLAG:193,1=ノリノリ,0=成功,-1=失敗,-2=楽器がなくて見てるだけ
+			;PRINTFORMW 
+		CASE 9
+			;▼採集［採集を手伝う］
+			;PRINTFORMW 
+		CASE 10
+			;▼釣り［一緒に釣りをする］
+			;TFLAG:193,-1=釣り竿がなくて見てるだけ
+			;PRINTFORMW 
+		CASE 11
+			;▼実験［実験を手伝う］
+			;PRINTFORMW 
+		CASE 12
+			;▼のんびり［一緒にのんびりする］
+			;PRINTFORMW 
+		CASE 13
+			;▼晩酌［晩酌に付き合う］
+			;※酒耐性0以上のみ
+			;PRINTFORMW 
+		CASE 14
+			;▼買い物［買い物を手伝う］
+			;PRINTFORMW 
+		CASE 15
+			;▼説教［様子をうかがう］
+			;※神霊・蓬莱人は除く
+			;TFLAG:193,-1
+			;PRINTFORMW 
+		CASE 16
+			;▼落とし穴［いたずらに付き合う］or［様子をうかがう］
+			;※三月精・チルノ・クラウンピースのみ
+			;それ以外は落ちる側
+			;PRINTFORMW 
+		CASE 17
+			;▼雪だるま作り［一緒に雪作り］
+			;※冬の月のみ
+			;PRINTFORMW 
+		CASE 18
+			;▼炬燵でのんびり［炬燵でくつろぐ］
+			;※冬の月のみ
+			;PRINTFORMW 
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
 ;402,就寝
 ;TFLAG:193(0=通常 1=子供と一緒に川の字で寝る)
 ;==================================================
@@ -900,7 +1066,7 @@ IF LOCAL
 	IF FLAG:70
 	ELSEIF CFLAG:318 == 1
 		PRINTFORMW 
-	ELSEIF TALENT:恋慕
+	ELSEIF TALENT:恋人
 			;------------------------------------------------------------------
 			;条件を満たしている場合1/4で表示
 			;------------------------------------------------------------------
@@ -918,6 +1084,18 @@ IF LOCAL
 			SELECTCASE RAND:3
 				CASE 1
 					PRINTFORML (はぁ…%MASTERNAME:59%…♡)
+					PRINTFORMW %NICKNAME:59%は%CALLNAME:MASTER%に視線を向けながらも、正確に掃除をしている
+				CASE 0
+					PRINTFORML 「これだけ綺麗にしても、私の足元にも及ばない。美しさって罪ですよね」
+					PRINTFORMW 「…おっと、こんな事言ってるところを、罪人を裁く立場の人に聞かれたら大変です!」
+				CASEELSE
+					PRINTFORML 「正直、掃除って面倒くさいですよねー」
+					PRINTFORMW 「でも、綺麗になった時、気分が良いのも事実なんですよねー」
+			ENDSELECT
+	ELSEIF TALENT:恋慕
+			SELECTCASE RAND:3
+				CASE 1
+					PRINTFORML (%MASTERNAME:59%…)
 					PRINTFORMW %NICKNAME:59%は%CALLNAME:MASTER%に視線を向けながらも、正確に掃除をしている
 				CASE 0
 					PRINTFORML 「これだけ綺麗にしても、私の足元にも及ばない。美しさって罪ですよね」
@@ -970,10 +1148,45 @@ RETURN RESULT
 @M_KOJO_長短髪_MESSAGE_COM_K59_411_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-
+;初回反応とか作れた気がするけどどうやるのか忘れた…
+;PRINTFORMW 「戦闘訓練、というと、弾幕勝負は当然として、もっと直接的な対決とか、そういうのもですかね?」
+;PRINTFORMW 「まあ、私の力にもなることですし、付き合いますよ」
+	IF TALENT:恋慕
+		SELECTCASE RAND:3
+			CASE 1
+				PRINTFORMW 
+			CASE 0
+				PRINTFORMW 
+			CASEELSE
+				PRINTFORML 
+				PRINTFORMW 
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:3
+			CASE 1
+				IF ABL:戦闘能力 < ABL:MASTER:戦闘能力
+					PRINTFORML 「はぁ…はぁ…やっぱり強いなぁ。ちょっと加減してくれません?」
+					PRINTFORMW 小悪魔は、疲弊した様子で、そう答える
+				ELSEIF ABL:戦闘能力 > ABL:MASTER:戦闘能力
+					PRINTFORMW 「ほらほら、これをどうにかできないとダメですよ!」
+					PRINTFORMW 「…戦闘を教える立場って、ちょっと楽しいですね」
+				ELSE
+					PRINTFORMW 「はっ、よっ、っと」
+					PRINTFORMW 「対等に攻撃をうちあってるような感覚、最高です」
+				ENDIF
+			CASE 0
+				PRINTFORMW 「正直戦えなくてもいいんじゃないかな。とも思いますけど、鍛えておくには越したことはないですかね?」
+				PRINTFORMW 小悪魔は『門番さんの真似です』と、あまり型のしっかりしてない武術を見せながら、そう語る
+			CASEELSE
+				PRINTFORML 「スペルカード宣言!」
+				PRINTFORMW 「…名称?まだ未定です。宣言した事さえ明確なら、ルールに反しないはずですもの」
+				;そうだった…ような気がする
+				PRINTFORMW 「でも、そのうち決めないといけませんよねー」
+		ENDSELECT
+	ENDIF
 ENDIF
 RETURN 1
 ;==================================================
@@ -1239,6 +1452,127 @@ CALL M_KOJO_長短髪_MESSAGE_COM_K59_445_1
 RETURN RESULT
 
 @M_KOJO_長短髪_MESSAGE_COM_K59_445_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;448,罠を仕掛ける／虫トラップ
+;TFLAG:193,
+;   -1=罠が壊れた
+;    0=罠を仕掛けた
+;    1=獲物が得られた
+;   10=虫トラップを仕掛けた
+;   11=虫トラップを破棄した
+;   12=ムシを捕まえた
+;FLAG:194,獲物の番号
+;ムシの名前は MUSHI_NAME で表示したり判別したりできます
+;==================================================
+@M_KOJO_長短髪_MESSAGE_COM_K59_448
+CALL TRAIN_MESSAGE
+CALL M_KOJO_長短髪_MESSAGE_COM_K59_448_1
+RETURN RESULT
+
+@M_KOJO_長短髪_MESSAGE_COM_K59_448_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;449,虫捕り
+;TFLAG:193,
+;   -2=殺してでもうばいとる（取っ組み合いの末逃がす）
+;   -1=ゆずってくれ！→拒否
+;    0=捕獲失敗
+;    1=MASTERが捕まえた
+;    2=キャラが捕まえたのをMASTERが褒めた
+;    3=ゆずってくれ！→渋々オッケー
+;    4=ゆずってくれ！→オールオッケー
+;TRAINMESSAGEを省略する場合は虫カゴに入れる処理を忘れないように
+;ムシの名前は MUSHI_NAME で表示したり判別したりできます
+;==================================================
+@M_KOJO_長短髪_MESSAGE_COM_K59_449
+CALL TRAIN_MESSAGE
+CALL M_KOJO_長短髪_MESSAGE_COM_K59_449_1
+RETURN RESULT
+
+@M_KOJO_長短髪_MESSAGE_COM_K59_449_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;483,ムシバトル
+;TFLAG:193,
+;    1=１対１の対戦
+;    2=３～４人戦
+;    3=２対２のチーム戦
+;TFLAG:194にMASTERの順位が入っています（MASTERが1ならキャラ負け）
+;バトル中の口上はイベント口上ファイルに入っています
+;==================================================
+@M_KOJO_長短髪_MESSAGE_COM_K59_483
+CALL TRAIN_MESSAGE
+CALL M_KOJO_長短髪_MESSAGE_COM_K59_483_1
+RETURN RESULT
+
+@M_KOJO_長短髪_MESSAGE_COM_K59_483_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;484,スイカ割り
+;TFLAG:193,
+;   -1=失敗
+;    0=成功
+;    1=大成功
+;    2=木刀で大成功（ボーナス点）
+;TFLAG:194
+;    0=正直者
+;    1=ウソつき
+;==================================================
+@M_KOJO_長短髪_MESSAGE_COM_K59_484
+CALL TRAIN_MESSAGE
+CALL M_KOJO_長短髪_MESSAGE_COM_K59_484_1
+RETURN RESULT
+
+@M_KOJO_長短髪_MESSAGE_COM_K59_484_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;490,アイテム
+;TFLAG:193(使用アイテムのID
+;TFLAG:194(対象 0=MASTER,1=TARGET
+;==================================================
+@M_KOJO_XXX_MESSAGE_COM_KX_490
+;アイテムにTRAIN_MESSAGEはない
+CALL M_KOJO_XXX_MESSAGE_COM_KX_490_1
+RETURN RESULT
+
+@M_KOJO_XXX_MESSAGE_COM_KX_490_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
 LOCAL = 0
@@ -1576,8 +1910,9 @@ IF LOCAL
 			PRINTFORMW 「って…私に?本当に?」
 		;この小悪魔は、天使系は大好き。にする予定
 			IF GET_GIFTDATA(TCVAR:59:今日の贈り物, "形容詞") == 1220
-				PRINTFORMW 「%MASTERNAME:59%…これ…天使の…」
+				PRINTFORMW 「って、これ、天使の…じゃないですか」
 				PRINTFORMW %NICKNAME:59%は、%CALLNAME:MASTER%からのプレゼントを、まじまじと見つめる
+				PRINTFORMW 「%MASTERNAME:59%…」
 				IF TALENT:恋慕
 					;あいつ天使の話になると早口になるの。毎回流れるのもあれだから、初回だけ分岐とかも用意した方がいいかな
 					PRINTFORMW 「うんうん!天使のもの、すっごく好きなんですよ♪」
@@ -1588,7 +1923,7 @@ IF LOCAL
 					PRINTFORM ある意味悪魔と近い
 					PRINTFORM いやもしかしたら案外悪魔とも遠いのかもしれないですが
 					PRINTFORM 悪魔と近いと言えば悪魔にだって天使みたいな存在がいるんですよ知ってます?
-					PRINTFORM はい%MASTERNAME:59%その通りです私%NICKNAME:59%の事です
+					PRINTFORM はい%MASTERNAME:59%その通りです私こと%NICKNAME:59%の事です
 					PRINTFORM 天使のような美しさというのは私にも相当するわけでつまり私は悪魔であり天使でも」
 					PRINTFORMW 
 					PRINTFORML 土産屋の店員さんの視線を感じて、%NICKNAME:59%は正気に戻った

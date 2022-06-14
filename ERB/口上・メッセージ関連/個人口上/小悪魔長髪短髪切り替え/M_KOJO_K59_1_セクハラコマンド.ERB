@@ -14,25 +14,6 @@
 ;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
 TFLAG:192 =0
 
-;IF !TALENT:恋慕
-;	SELECTCASE TCVAR:360
-;		CASE 0
-;			PRINTFORML 小悪魔はひらりと身をかわした
-;			PRINTFORMW 「おっとっと、駄目ですよ」
-;			;TFLAG:192 = -2でキャンセルされる
-;			TFLAG:192 = -2
-;		CASE 1
-;			PRINTFORML 小悪魔はひらりと身をかわした
-;			PRINTFORMW 「だから駄目ですってば」
-;			TFLAG:192 = -2
-;		CASEELSE
-;			PRINTFORMW 「なめてるだろお前」
-;			;3回目で強制失敗
-;			TFLAG:192 = -1
-;	ENDSELECT
-;	TCVAR:360 ++
-;ENDIF
-
 @M_KOJO_長短髪_MESSAGE_COM_K59_310
 CALL TRAIN_MESSAGE
 CALL M_KOJO_長短髪_MESSAGE_COM_K59_310_1
@@ -46,7 +27,22 @@ LOCAL = 0
 IF LOCAL
 	IF FLAG:70
 	ELSEIF CFLAG:睡眠
+	;ELSEIF !TALENT:恋慕
 	ELSE
+		SELECTCASE TCVAR:360
+			CASE 0
+				PRINTFORMW 「おや?どうかしましたか?」
+				PRINTFORMW いつの間にか、小悪魔は%CALLNAME:MASTER%の背後に回っていた
+				TFLAG:192 = -2
+			CASE 1
+				PRINTFORML %CALLNAME:MASTER%が手を伸ばそうと思ったその時、小悪魔に腕を掴まれていた
+				PRINTFORMW 「…次はありませんよ」
+				TFLAG:192 = -2
+			CASEELSE
+				PRINTFORMW 「やれやれ…」
+				PRINTFORMW %CALLNAME:MASTER%の執念?に小悪魔はあきれかえっているようだ
+		ENDSELECT
+		TCVAR:360 ++
 	ENDIF
 ENDIF
 RETURN 1
@@ -125,6 +121,7 @@ IF LOCAL
 				;体力マイナス50ぐらい。かなり加減した一撃
 				PRINTFORMW 「なんというか!乙女心がどうとか!そういう問題じゃないですよね!?反省してください!」
 				PRINTFORMW たいそう、お怒りのようだ…
+				BASE:MASTER:体力 -= 50
 			ENDIF
 	ELSEIF TALENT:恋慕
 		SELECTCASE RAND:3
@@ -195,6 +192,7 @@ IF LOCAL
 				;体力マイナス50ぐらい。かなり加減した一撃
 				PRINTFORMW 「なんというか!乙女心がどうとか!そういう問題じゃないですよね!?反省してください!」
 				PRINTFORMW たいそう、お怒りのようだ…
+				BASE:MASTER:体力 -= 50
 			ENDIF
 	ELSEIF TALENT:恋慕
 		SELECTCASE RAND:3

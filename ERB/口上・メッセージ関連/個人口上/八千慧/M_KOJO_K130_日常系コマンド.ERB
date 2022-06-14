@@ -1548,6 +1548,226 @@ IF LOCAL
 ENDIF
 RETURN 1
 ;==================================================
+;368,自由行動に付き合う 
+;技能系の行動は技能レベルが1以上なら発生
+;==================================================
+@M_KOJO_MESSAGE_COM_K130_368
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K130_368_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K130_368_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE Activity_Type:TARGET
+		CASE 0
+			;▼考え事［なに考えてるの］
+			;TFLAG:193,-1=はぐらかされる
+			IF CFLAG:318 == 1
+				PRINTFORMW 「%CALLNAME:MASTER%と話したくありませんが」
+			ELSEIF TFLAG:193 == -1
+				PRINTFORMW 「さて？なんのことやら」
+			ELSEIF TALENT:恋慕
+				IF RAND:3 == 0
+					PRINTFORMW 「%CALLNAME:MASTER%とのデートのことですよ」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「地上にも色々見るべきところがありますね」
+				ELSE
+					PRINTFORMW 「地上でいい店を見つけたんですよ、今度デートしましょうか%UNICODE(0x2665) *1%」
+				ENDIF
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW 「畜生界のシノギも限度がありますねぇ、どうしたものかと」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「人間だから人間の神に忠誠を誓う必要など無いのですよ？」
+				ELSE
+					PRINTFORMW 「地上のシノギに手を出せないものかと……今のは聞かなかったことにしてもらえますか？」
+				ENDIF
+			ENDIF
+		CASE 2
+			;▼食事［一緒に食事する］
+			;TFLAG:193,-1=MASTERはお腹が空いてなかった
+			IF CFLAG:318 == 1
+				PRINTFORMW 「……一緒に食べるとまずいですね」
+				PRINTFORMW 八千慧は怒りながら食事をしている。
+			ELSEIF TALENT:恋慕
+				PRINTFORMW 「%CALLNAME:MASTER%と一緒に食べられるなら何でも美味しいですね」
+			ELSE
+				PRINTFORMW 「美味しいですね」
+			ENDIF
+		CASE 4
+			;▼掃除［掃除を手伝う］
+			;※[掃除係]持ちまたは汚臭耐性-1以下のみ
+			IF CFLAG:318 == 1
+				PRINTFORMW 「貴方が触れると汚くなりますから止めてもらえないですか？」
+			ELSEIF TALENT:恋慕
+				PRINTFORMW 「綺麗好きなんですね、私もですよ」
+			ELSE
+				PRINTFORMW 「掃除はいいですね、汚いと何もかも嫌になります」
+			ENDIF
+		CASE 5
+			;▼運動［一緒に運動する］
+			;※[音楽知識]持ちは除く（演奏になる）
+			IF CFLAG:318 == 1
+				PRINTFORMW 「……はぁ……うぇ……みるな……！」
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW 「ん……私には似合わないですね……」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「運動など……黒駒とすればいいでしょう……！」
+				ELSE
+					PRINTFORMW 「……ふぅ……きつい……！」
+				ENDIF
+			ENDIF
+		CASE 6
+			;▼読書［本の感想を聞く］
+			;TFLAG:193,-1=集中していて返事してくれない
+			IF CFLAG:318 == 1
+				PRINTFORMW 「……静かにしてもらえますか？」
+			ELSEIF TFLAG:193 == -1
+				PRINTFORMW 「……そうですか」
+				PRINTFORMW 八千慧は気のない返事をした。
+			ELSE
+				PRINTFORMW 「地上にはいろいろな本があるのですね、うらやましい」
+			ENDIF
+		CASE 7
+			;▼料理［料理を手伝う］→［料理を分けてもらう］
+			;TFLAG:193,2=料理を手伝う,0=作った料理を食べる,-1==MASTERはお腹が空いてなかった（食べる時）
+			IF TFLAG:193 == 2
+				IF CFLAG:318 == 1
+					PRINTFORMW 「手伝う必要など無いでしょう」
+				ELSEIF TALENT:恋慕
+					PRINTFORMW 「こういう夫婦気取りの関係もいいですね」
+				ELSE
+					PRINTFORMW 「包丁よりドスの方が似合う？失礼ですね」
+				ENDIF
+			ELSE
+				IF CFLAG:318 == 1
+					PRINTFORMW 「……よく食べますね」
+				ELSEIF TALENT:恋慕
+					PRINTFORMW 「恥ずかしいですから、さっさと味わって食べてください」
+				ELSE
+					PRINTFORMW 「毒など入っていませんよ？」
+				ENDIF
+			ENDIF
+		CASE 9
+			;▼採集［採集を手伝う］
+			IF CFLAG:318 == 1
+				PRINTFORMW 「……分け前を寄越せ？嫌ですね」
+			ELSE
+				PRINTFORMW 「ここにあるものは畜生界では見られませんから」
+			ENDIF
+		CASE 10
+			;▼釣り［一緒に釣りをする］
+			;TFLAG:193,-1=釣り竿がなくて見てるだけ
+			IF CFLAG:318 == 1
+				PRINTFORMW 「%CALLNAME:MASTER%に釣られる間抜けもいないでしょうに」
+			ELSE
+				PRINTFORMW 「何が釣れますかね」
+			ENDIF
+		CASE 11
+			;▼実験［実験を手伝う］
+			IF CFLAG:318 == 1
+				PRINTFORMW 「%CALLNAME:MASTER%も何かと合成しましょうか？ヒトデとか宇宙怪獣とか」
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW 「亀の甲羅と合体してみますか？」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「新薬ができればシノギになりますが」
+				ELSE
+					PRINTFORMW 「これでも薬学には詳しいのですよ」
+				ENDIF
+			ENDIF
+		CASE 12
+			;▼のんびり［一緒にのんびりする］
+			IF CFLAG:318 == 1
+				PRINTFORMW 「暇だからって寄りつかないでもらえますか？」
+			ELSEIF TALENT:恋慕
+				IF RAND:3 == 0
+					PRINTFORMW 「こうしてのんびりするなど以前では考えられませんでしたね」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「私も忙しいのですが……まあいいでしょう」
+				ELSE
+					PRINTFORMW 「%CALLNAME:MASTER%も暇ですね、私もですが」
+				ENDIF
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW 「色々考えているとこういう時間も取れなくて」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「日光浴など畜生界ではできませんから、甲羅干しです」
+				ELSE
+					PRINTFORMW 「こうも平和だとむずがゆいですね」
+				ENDIF
+			ENDIF
+		CASE 13
+			;▼晩酌［晩酌に付き合う］
+			;※酒耐性0以上のみ
+			IF CFLAG:318 == 1
+				PRINTFORMW 「……貴方と飲むと酒がまずくなりますね」
+				PRINTFORMW 八千慧は無表情で晩酌している。
+			ELSEIF TALENT:恋慕
+				IF RAND:3 == 0
+					PRINTFORMW 「二人で晩酌としゃれ込みましょうか%UNICODE(0x2665) *1%」
+					PRINTFORMW 八千慧は頬を染めながら晩酌をしている。
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「%CALLNAME:MASTER%とだから飲めるのですよ%UNICODE(0x2665) *1%」
+					PRINTFORMW 八千慧は頬を染めながら晩酌をしている。
+				ELSE
+					PRINTFORMW 「私の杯をあげるのですから、わかりますよね？」
+					PRINTFORMW 八千慧は頬を染めながら晩酌をしている。
+				ENDIF
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW 「さあ、杯を交わしましょうか」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「慣れた物ですが、慣れませんね」
+				ELSE
+					PRINTFORMW 「私と飲むなんてブン屋にすっぱ抜かれるかもしれませんよ？」
+				ENDIF
+			ENDIF
+		CASE 14
+			;▼買い物［買い物を手伝う］
+			IF CFLAG:318 == 1
+				PRINTFORMW 「付きまとわないでもらえますか？」
+				PRINTFORMW 八千慧はぷりぷりと怒りながら買い物をしている。
+			ELSEIF TALENT:恋慕
+				IF RAND:3 == 0
+					PRINTFORMW 「買い出しですが、一緒に買い物しますか？」
+					PRINTFORMW 八千慧は頬を染めながらそう言った。
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「欲しいものがあるのなら、言ってくれればいいのに」
+					PRINTFORMW 八千慧は頬を染めながらそう言った。
+				ELSE
+					PRINTFORMW 「ふふっ、並んでいるとまるでデートですね」
+					PRINTFORMW 八千慧は頬を染めながらそう言った。
+				ENDIF
+			ELSE
+				IF RAND:3 == 0
+					PRINTFORMW 「こっちでできるシノギもありますからね」
+				ELSEIF RAND:2 == 0
+					PRINTFORMW 「何か面白い物でもありますかね」
+				ELSE
+					PRINTFORMW 「買い出しなどカワウソに任せていればいいのに」
+				ENDIF
+			ENDIF
+		CASE 17
+			;▼雪だるま作り［一緒に雪作り］
+			;※冬の月のみ
+			IF CFLAG:318 == 1
+				PRINTFORMW 「何が面白いんだか……」
+				PRINTFORMW 八千慧は怒りながら雪だるまを作っている。
+			ELSEIF TALENT:恋慕
+				PRINTFORMW 「意外とやってみるものですね%UNICODE(0x2665) *1%」
+			ELSE
+				PRINTFORMW 「冷たいのは苦手なんですがね」
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
 ;402,就寝
 ;TFLAG:193(0=通常 1=子供と一緒に川の字で寝る)
 ;==================================================

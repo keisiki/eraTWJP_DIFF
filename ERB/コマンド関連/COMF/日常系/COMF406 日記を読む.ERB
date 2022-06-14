@@ -58,16 +58,23 @@ IF CFLAG:MASTER:現在位置 == CFLAG:MASTER:初期位置
 	{
 	CALL ASK_M("日記をつける",1,"日記を読む",1,@"%LOCALS:0%", TARGET > 0,
 	@"%LOCALS:1%", 同棲 && (!SHIRAHU(TARGET) || TALENT:TARGET:恋慕 ),
+	"日記を保存する",1, "日記を読み取り",1,
 	"何もしない",1)
 	}
 	SELECTCASE RESULT
 		CASE 0
-			PRINTFORML 日記の内容を直接入力してください。<br>を入力すれば改行されます。
-			PRINTFORML システム側で自動記録されるので日付の記入はいりません。
-			PRINTL
-			INPUTS
-			CALL MASTER_DIARY_WRITE,RESULTS
-			PRINTL
+			IF STRCOUNT(SAVESTR:1,"//") >= 100
+				PRINTFORML この日記帳はもういっぱいだ。
+				PRINTFORMW 別の日記帳に取り替えよう。
+			ELSE
+				PRINTFORML 日記の内容を直接入力してください。
+				PRINTFORML システム側で自動記録されるので日付の記入はいりません。
+				PRINTL
+				CALL MASTER_DAIRY_INPUT
+				SIF RESULTS != ""
+					CALL MASTER_DIARY_WRITE,RESULTS
+				PRINTL
+			ENDIF
 		CASE 1
 			CALL READ_MASTER_DIARY
 		CASE 2
@@ -80,6 +87,10 @@ IF CFLAG:MASTER:現在位置 == CFLAG:MASTER:初期位置
 		CASE 3
 			CALL CHARA_DIARY_COM(TARGET)
 		CASE 4
+			CALL WRITE_MASTER_DAIRY_FILE
+		CASE 5
+			CALL READ_MASTER_DAIRY_FILE
+		CASE 6
 	ENDSELECT
 	GOTO SKIP
 ELSEIF TALENT:OWNER:恋慕 && CFLAG:MASTER:現在位置 != CFLAG:MASTER:初期位置

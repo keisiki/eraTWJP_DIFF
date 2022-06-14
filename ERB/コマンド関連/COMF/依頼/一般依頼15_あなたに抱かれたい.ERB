@@ -63,6 +63,8 @@ CASE "依頼発生率"
 	ENDIF
 CASE "依頼発生条件"
 ;セフレor愛欲かつ溜まってる度500以上 or ヤリマン
+	;debug
+	;SIF TALENT:ARG:処女
 	SIF (TALENT:ARG:セフレ && CFLAG:TARGET:溜まってる度 > 500) || (TALENT:ARG:愛欲 && CFLAG:TARGET:溜まってる度 > 500) || TALENT:ARG:ヤリマン
 		CALLF MAKE_INT(V_NAME, 1)
 CASE "依頼受託可能条件"
@@ -87,12 +89,11 @@ ENDSELECT
 #DIMS SCENE
 #DIM  CLIENT_ID
 #DIM 場所
+#DIMS 日記記述
 ;1=対象の自室 2=連れ込み宿・ラブホ 3=紫派生専用 4=その他
-#DIM 注入量
-#DIM 基本注入量
+
 #DIM 好感度上昇量
 #DIM 回数
-#DIM 経験増加数,58
 #DIMS PLACE
 CLIENT_ID = IRAI_ID_TO_CLIENT(IRAI_ID)
 SELECTCASE SCENE
@@ -116,31 +117,6 @@ CASE "依頼実行時"
 ;この依頼は「作業」扱いであり、CLIENTがTARGETになっている時のみ実行できます
 ;
 ;
-VARSET 経験増加数
-回数 = MAX(MIN(ABL:CLIENT_ID:欲望 / 2, 5) + CFLAG:CLIENT_ID:溜まってる度 / 200,1)
-注入量 = 0
-
-経験増加数:0 += 1 + RAND:(回数 * 2) 
-経験増加数:4 += 3 + ABL:CLIENT_ID:Ｍ感覚 * 2
-経験増加数:3 += RAND:(回数 * 2) 
-経験増加数:5 += 経験増加数:0 / 2
-経験増加数:8 += 経験増加数:3 / 2
-経験増加数:10 += 経験増加数:0 / 2
-経験増加数:25 = 経験増加数:4
-経験増加数:27 = 経験増加数:4
-EXP:MASTER:Ｍ経験 += 経験増加数:4
-EXP:MASTER:キス経験 += 経験増加数:4
-EXP:MASTER:口淫経験 += 経験増加数:4
-基本注入量 = (ABL:CLIENT_ID:膣 + 1) * 20 + BASE:MASTER:精力 / 25
-FOR LOCAL,1,回数
-	注入量 += 基本注入量 + RAND:(基本注入量)
-NEXT
-
-注入量 = MIN(注入量, BASE:MASTER:精力)
-
-CALL ADD_SAMEN_V(CLIENT_ID, 注入量)
-
-
 ;以下デフォルト地の文
 
 IF TALENT:CLIENT_ID:無知
@@ -156,7 +132,7 @@ ENDIF
 
 	;場所分岐
 	;そのキャラの自室があるMAPの場合33%で自室に連れ込む
-	IF GET_MAPID(CFLAG:MASTER:現在位置) == GET_MAPID(GET_CHARAHOME(CLIENT_ID)) && RAND:3 ==0
+	IF GET_MAPID(CFLAG:MASTER:現在位置) == GET_MAPID(GET_CHARAHOME(CLIENT_ID)) && RAND:3 == 0
 		PRINTFORMW %CALLNAME:CLIENT_ID%の自室にしけ込んだ
 			IF TALENT:CLIENT_ID:プライド == 1
 				PRINTFORML %CALLNAME:CLIENT_ID%は興奮を悟られないようにつんとした表情を装っているが、
@@ -781,87 +757,22 @@ ENDIF
 			ENDIF
 		ENDSELECT
 		PRINTFORML %TEXTR("子宮口/Ｇスポット/")%を%TEXTR("ねっとりと捏ねるように/ごりごりと力強く/")%突いてやると、
-		PRINTFORM %CALLNAME:CLIENT_ID%はびくびくと背筋を震わせながら絶頂して
-		SELECTCASE RAND:4
-		CASE 0
-			PRINTFORMW 蕩けきった膣肉が%CALLNAME:MASTER%のペニスをきゅうきゅうと締め付けた
-		CASE 1
-			PRINTFORMW だらしないイキ顔を晒した
-		CASE 2
-			PRINTFORMW 快楽にゆるんだ口からだらしなく涎をこぼした
-		CASE 3
-			PRINTFORMW 抑えきれないエクスタシーの声があたりに響いた
-		ENDSELECT
+		{
+		PRINTFORMW %CALLNAME:CLIENT_ID%はびくびくと背筋を震わせながら絶頂して%TEXTR("蕩けきった膣肉でペニスをきゅうきゅうと締め付けた/
+		だらしないイキ顔を晒した/快楽にゆるんだ口からだらしなく涎をこぼした/抑えきれないエクスタシーの声があたりに響いた")%
+		}
 	ELSE
 	ENDIF
-	PRINTFORML ・
-	PRINTFORML ・
-	PRINTFORMW ・
-	PRINTFORM %CALLNAME:MASTER%は
-	IF TALENT:CLIENT_ID:処女
-		PRINTFORM %CALLNAME:CLIENT_ID%の純潔を奪い、
-	ELSE
-		PRINTFORM %CALLNAME:CLIENT_ID%を{回数}度%TEXTR("犯し/抱き/")%、
-	ENDIF
-	PRINTFORMW 子宮に{注入量}の精液を注ぎ込んだ
 
 	;以上デフォルト地の文
+回数 = MAX(MIN(ABL:CLIENT_ID:欲望 / 2, 5) + CFLAG:CLIENT_ID:溜まってる度 / 200,1)
+CALL MAKELOVE(CLIENT_ID, "V", 回数, "逆援交/お金を払って", @"%CALLNAME:CLIENT_ID%に逆援交を持ちかけられ、{回数}回した")
 
-	SIF TALENT:MASTER:キス未経験
-		CALL SET_FIRSTKISS(MASTER, CLIENT_ID, 2)
-	SIF TALENT:CLIENT_ID:キス未経験
-		CALL SET_FIRSTKISS(CLIENT_ID, MASTER, 2, "流されるままに")
-
-IF TALENT:CLIENT_ID:処女 == -1
-	SETCOLOR 247,171,166
-	PRINTFORMW 【無自覚非処女喪失】
-	TALENT:CLIENT_ID:処女 = 0
-ENDIF
-IF TALENT:CLIENT_ID:処女 == 1
-	SETCOLOR 247,171,166
-	PRINTFORMW 【処女喪失】
-	CALL SET_HISTORY_LOST_V(CLIENT_ID, MASTER, "ペニス", "逆援交", "お金を払って")
-ENDIF
-
-SETCOLOR C_YELLOW
-FOR LOCAL,0,58
-	IF 経験増加数:LOCAL
-		PRINTFORML %EXPNAME:LOCAL% ＋{経験増加数:LOCAL}
-		EXP:CLIENT_ID:LOCAL += 経験増加数:LOCAL
-	ENDIF
-NEXT
-RESETCOLOR
-CALL JUEL_UP_SPECIAL(CLIENT_ID,"欲情","欲望",20,1)
-IF TCVAR:CLIENT_ID:破瓜
-	CALL JUEL_UP_SPECIAL(CLIENT_ID,"快Ｖ","Ｖ感覚",100,1)
-ELSE
-	CALL JUEL_UP_SPECIAL(CLIENT_ID,"快Ｖ","Ｖ感覚",15,1)
-ENDIF
-CALL ADD_EXP_LESNIAN(回数 * 5, CLIENT_ID, "PRINT")
 PRINTFORMW …
 PRINTFORMW ……
 PRINTFORMW ………
 
-TIME += 回数 * 20
 EXP:MASTER:清掃経験 ++
-DOWNBASE:MASTER:体力 = 回数 * 100
-DOWNBASE:MASTER:気力 = 回数 * 150
-好感度上昇量 = 回数 * ABL:CLIENT_ID:親密 * 5
-
-CALL CHANGE_CFLAG(2,CLIENT_ID,好感度上昇量)
-CFLAG:CLIENT_ID:溜まってる度 = 0
-TCVAR:CLIENT_ID:破瓜 = 0
-
-;TWあなたは片づけせずにはいられない
-$BYEBYE
-
-SIF GETBIT(TALENT:MASTER:性別, 1)
-	DOWNBASE:MASTER:精力 = 注入量
-	
-;これいる？
-;PRINTFORML 
-;PRINTFORMW 後始末をした%CALLNAME:CLIENT_ID%と%CALLNAME:MASTER%は元の場所に戻った
-
 
 RETURN IRAI_CONST_RESULT("実行して成功")
 
@@ -929,3 +840,127 @@ PRINTFORMW ・
 PRINTFORML 
 PRINTFORM %PLACE%%PRE%%TEXTR("ぐちゅぐちゅと激しい水音/かすかな水音/「ぱんっ、ぱんっ」という破裂音にも似た音")%と
 PRINTFORMW %TEXTR("抑えきれない甘い声/くぐもった嬌声/")%が%POST%
+
+;抱かれたい依頼の経験などの処理を切り出し
+
+@MAKELOVE(C_ID, type, 回数, シチュエーション, 日記記述)
+#DIM  C_ID
+#DIM 注入量
+#DIM 基本注入量
+#DIM 好感度上昇量
+#DIM 回数
+#DIM 経験増加数,58
+#DIMS type
+#DIMS シチュエーション
+#DIMS 日記記述
+VARSET 経験増加数
+SPLIT @"%シチュエーション%", "/", LOCALS
+
+注入量 = 0
+基本注入量 = BASE:MASTER:精力 / 25
+SELECTCASE type
+	CASE "A"
+		基本注入量 += (ABL:C_ID:アナル + ABL:C_ID:腰 + 1) * 10
+	CASE "V"
+		基本注入量 += (ABL:C_ID:膣 + ABL:C_ID:腰 + 1) * 10
+ENDSELECT
+
+FOR LOCAL,1,回数 + 1
+	注入量 += 基本注入量 + RAND:(基本注入量)
+NEXT
+
+注入量 = MIN(注入量, BASE:MASTER:精力)
+
+PRINTFORML ・
+PRINTFORML ・
+PRINTFORMW ・
+PRINTFORM %CALLNAME:MASTER%は
+IF TALENT:C_ID:処女 && type == "V"
+	PRINTFORM %CALLNAME:C_ID%の純潔を奪い、
+ELSE
+	PRINTFORM %CALLNAME:C_ID%を{回数}度%TEXTR("犯し/抱き/")%、
+ENDIF
+PRINTFORMW \@ type == "A"? 尻穴# 子宮\@に{注入量}の精液を注ぎ込んだ
+SIF TALENT:MASTER:キス未経験
+	CALL SET_FIRSTKISS(MASTER, C_ID, 2)
+SIF TALENT:C_ID:キス未経験
+	CALL SET_FIRSTKISS(C_ID, MASTER, 2)
+
+;C
+経験増加数:0 += 1 + RAND:(回数 * 2) 
+経験増加数:5 += 経験増加数:0 / 2
+;B
+経験増加数:3 += RAND:(回数 * 2) 
+経験増加数:8 += 経験増加数:3 / 2
+;M
+経験増加数:4 += 3 + ABL:C_ID:Ｍ感覚 * 2
+;絶頂経験
+経験増加数:10 += 経験増加数:0 / 2
+;口淫経験
+経験増加数:25 = 経験増加数:4
+;キス経験
+経験増加数:27 = 経験増加数:4
+EXP:MASTER:Ｍ経験 += 経験増加数:4
+EXP:MASTER:キス経験 += 経験増加数:4
+EXP:MASTER:口淫経験 += 経験増加数:4
+
+IF type == "A"
+	IF !CFLAG:C_ID:アナル処女喪失記念日
+		SETCOLOR 247,171,166
+		PRINTFORMW 【アナル処女喪失】
+		CALL SET_HISTORY_LOST_A(C_ID, MASTER, "ペニス", @"%LOCALS:0%", @"%LOCALS:1%")
+	ENDIF
+	経験増加数:2 += 回数 * 2 
+	経験増加数:7 += 回数
+	経験増加数:17 += 回数
+	経験増加数:21 += 回数 * 2 
+	CALL ADD_SAMEN_A(C_ID, 注入量)
+ENDIF
+IF type == "V"
+	IF TALENT:C_ID:処女 == -1
+		SETCOLOR 247,171,166
+		PRINTFORMW 【無自覚非処女喪失】
+		TALENT:C_ID:処女 = 0
+	ENDIF
+	IF TALENT:C_ID:処女 == 1
+		SETCOLOR 247,171,166
+		PRINTFORMW 【処女喪失】
+		CALL SET_HISTORY_LOST_V(C_ID, MASTER, "ペニス", @"%LOCALS:0%", @"%LOCALS:1%")
+	ENDIF
+	経験増加数:1 += 回数 * 2 
+	経験増加数:6 += 回数
+	経験増加数:16 += 回数
+	経験増加数:20 += 回数 * 2 
+	CALL ADD_SAMEN_V(C_ID, 注入量)
+ENDIF
+
+SETCOLOR C_YELLOW
+FOR LOCAL,0,58
+	IF 経験増加数:LOCAL
+		PRINTFORML %EXPNAME:LOCAL% ＋{経験増加数:LOCAL}
+		EXP:C_ID:LOCAL += 経験増加数:LOCAL
+	ENDIF
+NEXT
+RESETCOLOR
+CALL JUEL_UP_SPECIAL(C_ID,"欲情","欲望",20,1)
+IF type == "V"
+	IF TCVAR:C_ID:破瓜
+		CALL JUEL_UP_SPECIAL(C_ID,"快Ｖ","Ｖ感覚",100,1)
+	ELSE
+		CALL JUEL_UP_SPECIAL(C_ID,"快Ｖ","Ｖ感覚",15,1)
+	ENDIF
+ELSEIF type == "A"
+	CALL JUEL_UP_SPECIAL(C_ID,"快Ａ","Ａ感覚",100,1)
+ENDIF
+CALL ADD_EXP_LESNIAN(回数 * 5, C_ID, "PRINT")
+TIME += 回数 * 20
+DOWNBASE:MASTER:体力 = 回数 * 100
+DOWNBASE:MASTER:気力 = 回数 * 150
+好感度上昇量 = 回数 * ABL:C_ID:親密 * 5
+
+CALL CHANGE_CFLAG(2,C_ID,好感度上昇量)
+CFLAG:C_ID:溜まってる度 = 0
+TCVAR:C_ID:破瓜 = 0
+SIF GETBIT(TALENT:MASTER:性別, 1)
+	DOWNBASE:MASTER:精力 = 注入量
+CALL ASK_DAIRY(@"%日記記述%")

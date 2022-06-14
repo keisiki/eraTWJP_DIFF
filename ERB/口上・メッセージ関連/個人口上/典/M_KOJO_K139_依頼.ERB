@@ -41,6 +41,12 @@ SELECTCASE IRAI_NO
 	;うまい魚が食べたいなぁ（発生条件：わかさぎ姫以外）
 	CASE 13
 		RETURN 1
+	;あなたに抱かれたい（発生条件：セフレor愛欲かつ溜まってる度700以上 or ヤリマン）
+	CASE 15
+		RETURN 1
+	;お悩み相談（発生条件：MASTERの話術技能が１以上）
+	CASE 16
+		RETURN 1
 	[SKIPSTART]
 	;現状無し
 	CASEELSE
@@ -80,30 +86,56 @@ SELECTCASE SCENE
 CASE "依頼提示時"
 ;●依頼を持ちかけられる時
 ;【W どうやら［彼女］は［あなた］に頼み事があるようだ】
-;【◆口上】
+IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+	PRINTFORML 「お姉ちゃん、%CALLNAME:MASTER%どのにお願いしたいことがあるんですけどね…」
+	PRINTFORML 典は%CALLNAME:MASTER%の肩を揉みながら耳元に唇を寄せた
+ELSE
+	PRINTFORML 「%CALLNAME:MASTER%どの。あなた様にしか頼めないことがありまして…」
+ENDIF
 ;【依頼データ表示】
 ;【INPUT（受託するかY/N）】
 	
 CASE "依頼非受託時"
 ;●内容だけ見て受託しなかった時
 ;【L ［あなた］は丁重にお断りした】
-;【◆口上】
+IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+	PRINTFORML 「あーあ。お姉ちゃん、%CALLNAME:MASTER%どのならお願い聞いてくれると思ったのになぁ。くすん、くすん」
+	PRINTFORML 典はわざとらしい泣きまねをしている…
+ELSE
+	PRINTFORML 「そうでございますか…残念です」
+ENDIF
+
 ;【W ［彼女］は残念そうな顔をしている】
 	
 CASE "依頼受託時"
 ;●依頼を受託した時
 ;【W ［あなた］は［彼女］の依頼を受けた】
-;【◆口上】
+IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+	PRINTFORML 「本当ですか？　だから%CALLNAME:MASTER%どののこと大好きなんです♪」
+	PRINTFORML 典は%CALLNAME:MASTER%に抱きついてきた
+ELSE
+	PRINTFORML 「ありがとうございます。さすがは%CALLNAME:MASTER%どのですね♪」
+ENDIF
 	
 CASE "依頼確認時"
 ;●[366]で依頼内容を依頼人に確認した時
-;【◆口上】
+IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+	PRINTFORML 「よい心掛けですね。記憶に自信がなかったらすぐ確認する。大事なことですよ」
+	PRINTFORML 典は%CALLNAME:MASTER%の頭をくしゃりと撫でた
+ELSE
+	PRINTFORML 「依頼の内容を確認したいのですか？　覚えきれない時は紙か何かに記すとよいですよ」
+ENDIF
 ;【依頼データ表示】
 ;【INPUT（破棄するかY/N）】
 	
 CASE "依頼破棄時"
 ;●受託した依頼を破棄する時
-;【◆口上】
+IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+	PRINTFORML 「あーあ。お姉ちゃん、%CALLNAME:MASTER%どのならお願い聞いてくれると思ったのになぁ。くすん、くすん」
+	PRINTFORML 典はわざとらしい泣きまねをしている…
+ELSE
+	PRINTFORML 「そうでございますか…残念です」
+ENDIF
 ;【W 依頼を破棄しました。】
 	
 CASE "依頼実行直前"
@@ -1013,6 +1045,202 @@ CASE "成功報告時"
 CASE "失敗報告時"
 	
 	RETURN 0
+;CASE "依頼報告不要"
+;＜この依頼にはありません＞
+;	RETURN 0
+ENDSELECT
+
+;==================================================
+;依頼口上・一般依頼15：あなたに抱かれたい
+;とりあえずテストがてらうまい魚をコピペしてみる
+;==================================================
+@M_KOJO_IRAI_15_K139(ROLE, SCENE, CLIENT_ID)
+#DIMS ROLE     ;キャラの立場、依頼者かそうでないか
+#DIMS SCENE    ;セリフの表示されるタイミング
+#DIM  CLIENT_ID;依頼者IDだけ抜き出したもの
+;--------------------------------------------------
+;RETURN 0 の部分は共通の口上が表示されます
+;依頼ごとの口上を表示する部分は RETURN 0 を RETURN 1 にしてください
+;--------------------------------------------------
+SELECTCASE SCENE
+CASE "依頼提示時"
+	IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+		IF CFLAG:1020 == 1
+			PRINTFORML 「%CALLNAME:MASTER%どの…♪　お姉ちゃんとまた『イイこと』しましょ…♪」
+			PRINTFORML 典が自らの下腹部を撫でさすりながら誘ってきた
+			PRINTW 
+		ELSE
+			PRINTFORML 「%CALLNAME:MASTER%どの…お姉ちゃんと『イイこと』しませんか…♪」
+			PRINTFORML 典は%CALLNAME:MASTER%を後ろ抱きにしながら語りかけてきた
+			PRINTW 
+			PRINTFORML 「難しいことじゃありません。お姉ちゃんを気持ちよくしてくれればそれでいいんです…♪」
+			IF TALENT:MASTER:無知
+				PRINTFORML 「……あー、本当に何をすればいいのか分からないって顔してますねぇ…」
+				PRINTFORML 「難しいことじゃありません。お姉ちゃんの指示通り体を撫でさすったり、解したりしてくれればいいんです♪」
+				PRINTFORML 「頑張ったら、たくさんお小遣いあげちゃいます♪」
+			ELSE
+				IF TALENT:MASTER:非童貞 == 0
+					PRINTFORML 「経験はなくても分かりますよね？　お姉ちゃんのお尻とかチラチラ見てますもんね♪」
+					PRINTFORML 典はニヤリと笑い、耳元でそっと囁く
+					SETCOLOR 0xFF69B4
+					CALL HPH_PRINT,@"「お姉ちゃんと、セックスしましょ…HPH」","L"
+					RESETCOLOR
+				ELSE
+					CALL HPH_PRINT,@"「その通り。お姉ちゃんと、セックスしてくれればいいんです…HPH」","L"
+					CALL HPH_PRINT,@"「お姉ちゃんのこと、たくさん気持ちよくしてくれたらお小遣いもあげますHPH」","L"
+					PRINTW 
+					PRINTFORML そう言って、典は額を提示してきた
+					CALL HPH_PRINT,@"「どうですか？　悪い条件ではないと思いますが…HPH」","L"
+					PRINTFORML %CALLNAME:MASTER%のお腹を撫でさすりながら、典は返事を待っている
+				ENDIF
+			ENDIF
+		ENDIF
+	ELSE
+		IF CFLAG:1020 == 1
+			PRINTFORML 「%CALLNAME:MASTER%どの…♪　また\@ (TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3) ? おちんぽ # 体を \@貸していただけませんか♪」
+			PRINTFORML 典が%CALLNAME:MASTER%の下腹部を撫でさすりながら誘ってきた
+			PRINTW 
+			CALL HPH_PRINT,@"「\@ (TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3) ? 中出しし放題HPH # \@　犯し放題HPHの女狐の体の疼き、鎮めてくださいませ…HPH」","L"
+			PRINTW 
+		ELSE
+			PRINTFORML 「%CALLNAME:MASTER%どの、折り入ってお願いが…」
+			PRINTFORML 典は%CALLNAME:MASTER%にしなだれかかり、頬を指でなぞってきた
+			CALL HPH_PRINT,@"「典のこと、抱いていただけませんか…HPH」","L"
+			PRINTW 
+			IF TALENT:MASTER:無知
+				PRINTFORML %CALLNAME:MASTER%は典をそっと抱きしめた
+				PRINTFORML 「わぁ、%CALLNAME:MASTER%どのあったかいです…ってその抱くじゃありませんってば」
+				PRINTFORML 典は少しだけ距離をとると何かを横にどける仕草をした
+				PRINTW 
+				PRINTFORML 「人にしてはいい歳してそういう方向に疎いとか…霞でも食べて生きてるんですか？」
+				PRINTFORML 「まあ食欲まみれの仙人様もいらっしゃるくらいですし、そういう人間がいてもいいのかもしれないですね…」
+				PRINTW 
+				PRINTFORML 「…っと、話が逸れてしまいました」
+				PRINTFORML 「早い話が、典の体の『凝り』を『撫でたり』『揉んだり』して解していただければと…♪」
+				PRINTFORML 「やり方は典から指示いたしますし、もちろん報酬もお支払いいたしますよ♪」
+				PRINTW 
+				PRINTFORML 「どうです？　受けていただけますか？」
+				PRINTW 
+			ELSE
+				PRINTFORML 頬を撫でる手と反対の手は%CALLNAME:MASTER%の股間に延び、五指で巧みに愛撫を加えてくる
+				PRINTFORML まるで、これは自分のものだといわんばかりに
+				PRINTW 
+				CALL HPH_PRINT,@"「仕事柄、色々と気を遣うものでして…たまにはこうやって気晴らしをしませんと、ね…HPH」","L"
+				CALL HPH_PRINT,@"「もちろんタダとは申しません。満足させていただけるなら報酬もお支払いいたしますHPH」","L"
+				PRINTFORML 典の指の動きに熱がこもってくる
+				PRINTW 
+				SETCOLOR 0xFF69B4
+				IF TALENT:恋慕 || TALENT:恋人
+					CALL HPH_PRINT,@"「こんなこと…%CALLNAME:MASTER%どのにしか頼めませんから…どうか…お情けを…HPH」","L"
+				ELSEIF CFLAG:既成事実 & 合意_うふふ
+					CALL HPH_PRINT,@"「知らぬ仲ではないでしょう。また、典を可愛がってくださいませ…HPH」","L"
+				ELSE
+					CALL HPH_PRINT,@"「典が満足した後でも、この身体、存分に味わってくださって構いませんから…HPH」","L"
+				ENDIF
+				RESETCOLOR
+				PRINTFORML 「どうです？　受けていただけますか？」
+				PRINTW 
+			ENDIF
+		ENDIF
+	ENDIF
+	RETURN 1
+CASE "依頼非受託時"
+	
+	RETURN 0
+CASE "依頼受託時"
+	IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+		IF TALENT:MASTER:無知
+			CALL HPH_PRINT,@"「よろしくお願いしますね…HPH」","L"
+			IF TALENT:MASTER:非童貞 == 0
+				CALL HPH_PRINT,@"（ああ…何も知らない子に性の悦びを教えるなんて…HPH）","W"
+				SETCOLOR 0xFF69B4
+				CALL HPH_PRINT,@"（私に逸物が生えていたら、今頃いきり立たせて先端から先走り汁を浅ましく垂らしていることでしょうHPH）","W"
+				PRINTW 
+				CALL HPH_PRINT,@"（早くHPH　早くこの子を犯したいHPHHPH　精液が涸れ果てるまで絞りつくしたいHPHHPH）","L"
+				PRINTW 
+				RESETCOLOR
+			ELSE
+				CALL HPH_PRINT,@"（ああ…いまだ男女の交わりがどういうことか理解していないこの子を私が犯す…HPH）","W"
+				SETCOLOR 0xFF69B4
+				CALL HPH_PRINT,@"（想像しただけで下腹部が疼くHPHHPH　迎えたがっているHPHHPH）","W"
+				PRINTW 
+				CALL HPH_PRINT,@"（早くHPH　早くこの子を犯したいHPHHPH　精液が涸れ果てるまで絞りつくしたいHPHHPH）","L"
+				PRINTW 
+				RESETCOLOR
+			ENDIF
+		ELSE
+			IF TALENT:MASTER:非童貞 == 0
+				CALL HPH_PRINT,@"「ふふ…HPH　お姉ちゃんが優しく手ほどきしてあげますね…HPH」","L"
+				PRINTFORML 典の視線は青臭い臭いを漂わせる%CALLNAME:MASTER%の股間に注がれている…
+				CALL HPH_PRINT,@"（ああ…HPH　服越しでも分かる濃厚な初物の臭い…HPH　早く、早く味わいたい…HPH）","L"
+				PRINTW 
+			ELSE
+				CALL HPH_PRINT,@"「ふふ…HPH　楽しみなのはお姉ちゃんだけじゃないみたいですね…HPH」","L"
+				PRINTFORML 典はねっとりと絡みつくような視線を%CALLNAME:MASTER%の股間に注いでいる…
+				CALL HPH_PRINT,@"（さて、どれだけ私のことを楽しませてくれるかしら…HPH）","L"
+				PRINTW 
+			ENDIF
+		ENDIF
+	ELSE
+		CALL HPH_PRINT,@"「ふふ…HPH　嬉しい…HPH」","L"
+		CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのの金玉に溜め込んだ濃厚な子種、典に全部吐き出してくださいね…HPH」","L"
+		PRINTW 
+	ENDIF
+	RETURN 1
+CASE "依頼確認時"
+	
+	RETURN 0
+CASE "依頼破棄時"
+	
+	RETURN 0
+CASE "依頼実行直前"
+;○この依頼は依頼主がTARGETです
+;【◆口上】
+;【L ［あなた］は［彼女］にうまい魚を渡した】
+;【L 何だか生きる希望がわいてきたよ。】
+;【▼そのまま下の口上へ】
+	
+	RETURN 0
+CASE "依頼実行直後"
+;○この依頼は必ず実行後達成します
+;【▲上の口上から続き】
+;【◆口上】
+;【▼そのまま下の口上へ】
+	
+	RETURN 0
+CASE "成功報告時"
+;報酬：\\20000
+	IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+		CALL HPH_PRINT,@"「%CALLNAME:MASTER%どの、すっごくよかったですよぉ…HPH」","L"
+		CALL HPH_PRINT,@"「お姉ちゃん、たくさん気持ちよくなっちゃいましたぁ…HPH」","L"
+		PRINTW 
+		PRINTFORML 典はまだ余韻が冷めやらぬのか、四肢を絡みつかせながら%CALLNAME:MASTER%の頬や首筋に何度もキスの雨を降らせている…
+		CALL HPH_PRINT,@"「またお小遣いあげますから、お姉ちゃんが『困った』ときは、よろしくお願いしますね…HPH」","L"
+		PRINTFORML 典に下腹部を撫でさすられ、\@ TALENT:MASTER:性別 == 1 ? 子宮がキュンと疼くのを # ペニスがむっくりと鎌首をもたげてくるのを \@感じてしまった…
+		PRINTW 
+	ELSE
+		CALL HPH_PRINT,@"「んっHPH　ちゅるっHPH　ちゅHPH」","L"
+		CALL HPH_PRINT,@"「はぁ…HPH　%CALLNAME:MASTER%どの、素敵でしたぁ…HPH」","L"
+		PRINTFORML 典は%CALLNAME:MASTER%の\@ TALENT:MASTER:性別 == 1 ? ヴァギナ # ペニス \@を舐め清めると、満足げな表情を浮かべた
+		PRINTW 
+		CALL HPH_PRINT,@"「典は性欲を解消できる。%CALLNAME:MASTER%どのはお金が稼げる。まさにwin-winですねHPH」","L"
+		CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのさえよろしければ、これからもご贔屓いたしますよ…HPH」","L"
+		PRINTFORML 典はよほど%CALLNAME:MASTER%がお気に召したのか、股間を絶妙なタッチで撫でさすってきた…
+		PRINTW 
+	ENDIF
+	CFLAG:139:1020 = 1
+	RETURN 0
+CASE "失敗報告時"
+	IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+		PRINTFORML 「う～ん……次はもう少し頑張りましょうね♪」
+		PRINTFORML 典は困ったような笑みを浮かべ、%CALLNAME:MASTER%の頭を優しく撫でてくれている
+		PRINTFORML 逆にその優しさが辛い…
+	ELSE
+		PRINTFORML 「……%CALLNAME:MASTER%どのだけ満足してどうするんですか」
+		PRINTFORML 「こんなの、生殺しじゃないですかぁ～」
+		PRINTFORML 中途半端に性感を高められ、典は恨みがましい表情を%CALLNAME:MASTER%に向けている…
+	ENDIF
+	RETURN 1
 ;CASE "依頼報告不要"
 ;＜この依頼にはありません＞
 ;	RETURN 0

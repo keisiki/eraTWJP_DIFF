@@ -17,6 +17,8 @@ TFLAG:192 = 0
 
 @M_KOJO_MESSAGE_COM_K30_310
 CALL TRAIN_MESSAGE
+TCVAR:30:356 = (TFLAG:193 < 4)
+CALL K30_PRINT_BUTT_IMAGE(SELECTCOM)
 CALL M_KOJO_MESSAGE_COM_K30_310_1
 RETURN RESULT
 
@@ -706,6 +708,7 @@ IF TCVAR:30:364
 ELSE
 	CALL TRAIN_MESSAGE
 ENDIF
+CALL K30_PRINT_BUTT_IMAGE(SELECTCOM)
 CALL M_KOJO_MESSAGE_COM_K30_314_1
 RETURN RESULT
 
@@ -1360,9 +1363,18 @@ RETURN 1
 ;TFLAG:193=1&&ABL:露出癖(5以上=人目のある場所で、自らスカートをまくり上げる 4以下=人目のある場所でめくられるさいに弱い抵抗 3以上=人目のない場所で自らスカートをまくり上げる 3未満=弱い抵抗)
 ;TFLAG:400(1=デート先or地底のモブが反応する)
 ;後ろからピラリ、ではなく、前からペラって感じ（そうじゃなかったら、めくり上げようとするのを止めて即座にビンタとか無理、めくり上げられた後にしかならないしその状況ならビンタ食らうより普通に弾幕で一発ＫＯにならないほうがおかしい
+;人前なのに自分からベロンは趣が足りない気がする。後ろからピラリに固定するため地の文書き換え
 ;==================================================
 @M_KOJO_MESSAGE_COM_K30_330
-CALL TRAIN_MESSAGE
+IF CFLAG:うふふ || FLAG:70 || EQUIP:ズボン
+	CALL TRAIN_MESSAGE
+ELSE
+	CALL K30_D_LINE
+	CALL K30_COM330_TRAIN
+ENDIF
+TCVAR:30:356 = (TFLAG:193 < 0)
+SIF K30_CHECK_HEN_T() && TALENT:機嫌 > -1
+	RETURN 1
 CALL M_KOJO_MESSAGE_COM_K30_330_1
 RETURN RESULT
 
@@ -1373,6 +1385,7 @@ LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 	IF FLAG:70
+		CALL K30_PRINT_BUTT_IMAGE(SELECTCOM)
 	ELSEIF CFLAG:うふふ == 2
 		IF TEQUIP:TARGET:50 == MASTER
 			IF RAND:2 == 1
@@ -1380,7 +1393,7 @@ IF LOCAL
 				PRINTFORMW 「私の、ここが…貴方のを、しっかり飲み込んでるの…♥」
 			ELSE
 				PRINTFORMW 「はっ、はぁっ…♥　%K30_C_NAME(MASTER)%、もっとみて…」
-				PRINTFORMW 「きもちいいところっ♥　入ってるのっ、みてっ♥」
+				PRINTFORMW 「きもちいいところっ♥　入ってるのっ、みてぇ♥」
 			ENDIF
 		ELSEIF TEQUIP:TARGET:51 == MASTER
 			IF RAND:2 == 1
@@ -1412,30 +1425,43 @@ IF LOCAL
 		SELECTCASE TFLAG:193
 			;ビンタ
 			CASE -5
-				PRINTFORMW 「……ふざけてるんですか、貴方」
+				PRINTDATAL
+					DATAFORM 「……これで少しは頭が冷えましたか」
+					DATAFORM 「……ふざけてるんですか、貴方は！？」
+					DATAFORM 「……一体貴方は何を考えているの？」
+				ENDDATA
+				PRINTDATAW
+					DATAFORM 「恥を知りなさい！　恥を！」
+					DATAFORM 「ああ…もう、言いたいことが山のように増えました」
+					DATAFORM 「よくもまあ…閻魔相手にこんなことしでかしますね」
+				ENDDATA
 				CALL K30_LECTURE_CHECK(30 + RAND:10, 1)
 			;つねられる
 			CASE -3
-				PRINTFORMW 「……子供ですか、貴方」
+				PRINTDATAW
+					DATAFORM 「……子供ですか、貴方は」
+					DATAFORM 「……勝手に動くこの手が悪いのですか？」\n「それとも…持ち主の頭が悪いのでしょうか？」
+					DATAFORM 「盗みを働く手は切り落とされる」\n「そんな罰もあったそうですが」\n「自制の効かないこの手には…どういう罰がふさわしいでしょうね？」
+				ENDDATA
 				CALL K30_LECTURE_CHECK(25 + RAND:15, 1)
 			;嫌がる
 			CASE -1
-				SELECTCASE RAND:2
-					CASE 0
-						PRINTFORMW 「積み重ねた善行も……失うのは一瞬ですよ？」
-					CASEELSE
-						PRINTFORMW 「欲望の赴くまま生きるのはきっと後悔しますよ」
-				ENDSELECT
+				PRINTDATAW
+					DATAFORM 「欲望の赴くまま生きるのはきっと後悔しますよ」
+					DATAFORM 「積み重ねた善行も……失うのは一瞬ですよ？」
+					DATAFORM 「人の嫌がることを進んでやるって意味、間違えてませんか？」
+					DATAFORM 「断りもなくこんな事されたら、誰だってイヤですよ？」
+				ENDDATA
 				CALL K30_LECTURE_CHECK(25 + RAND:10, 1)
-			;嫌がる（嬉しげ）
+			;呆れられる
 			CASE 0
-				SELECTCASE RAND:2
-					CASE 0
-						PRINTFORMW 「人の嫌がることを進んでやるって意味、間違えてませんか？」
-					CASEELSE
-						PRINTFORMW 「断りもなくこんな事されたら、誰だってイヤですよ？」
-				ENDSELECT
-			;成功
+				PRINTDATAW
+					DATAFORM 「ああ、もう…そうでした」\n「貴方って人は…こういう人ですよね…」
+					DATAFORM 「自分らしく生きるのは素晴らしいこと、ですが」\n「欲にまみれて生きるのはどうかと思いますよ」
+					DATAFORM 「%K30_C_NAME(MASTER)%にもたくさん良いところはあると思いますが」\n「この一点だけでで色々帳消しですよ…」
+				ENDDATA
+			;成功（ズボン用
+			;人前で自分からズボン下ろすのもたいがいだと思う
 			CASE 1
 				IF K30_BE_SEEN() == 0
 					IF ABL:露出癖 > 3
@@ -1456,7 +1482,6 @@ IF LOCAL
 					ENDIF
 				ELSE
 					IF ABL:露出癖 > 5
-						TCVAR:30:374 = 1
 						;ぱんつはいてる
 						IF TEQUIP:0 > 1
 							PRINTFORMW 「%K30_C_NAME(MASTER)%のお願いだもの…例えこんなことでも、貴方になら…♥」
@@ -1477,6 +1502,36 @@ IF LOCAL
 						ENDSELECT
 					ENDIF
 				ENDIF
+			;成功（スカート用
+			CASE 2
+				PRINTFORMDL 映姫はゆっくりこちらへ振り返り…%CALLNAME:MASTER%の頭を%TEXTR("ぺしんと/ぽこんと")%叩く
+				PRINTFORMDL 驚きと気恥ずかしさで頬が赤く染まっている…
+				PRINTFORMW 
+				IF K30_BE_SEEN()
+					PRINTDATAW
+						DATAFORM 「あの…せめて、誰もいないところで…」\n「%K30_C_NAME(K30_FIND_AROUND(), 2)%、いるじゃないですか…」
+						DATAFORM 「こういうこと…人前では控えてもらえませんか…？」\n「私には威厳や体面といったものが重要なので…」
+						DATAFORM 「百歩譲って、貴方に見せるだけならまだいいですけど」\n「%K30_C_NAME(K30_FIND_AROUND(), 1)%がいるところではちょっと…」
+					ENDDATA
+				ELSE
+					PRINTDATAW
+						DATAFORM 「ああ、もう…」\n「貴方のやることに、いちいち目くじらを立ててもしかたない」\n「わかってはいますけど…」
+						DATAFORM 「まったく…%K30_C_NAME(MASTER)%も子供じゃないんですから」\n「少しは落ち着いてくださいよ…」
+						DATAFORM 「たとえ見せてもいい相手にもですね」\n「こういうのには心構えと言うか、覚悟が必要なんですよ」\n「…わかってます？」
+					ENDDATA
+				ENDIF
+			;バイブデート
+			;デート中はスカートめくれないのでOMANEKIBEYA専用
+			CASE 3
+				PRINTFORMDL 絶え間ない快楽に淫汁を滴らせながら、映姫は無意識のうちに尻を振っている
+				PRINTFORMDL %CALLNAME:MASTER%の手でなぶられるのを今か今かと待ち構えているようだ…
+				PRINTFORMW 
+				STRDATA LOCALS
+					DATAFORM 「%K30_C_NAME(MASTER)%…はやく、ここに…くださいHPH」\n「いますぐで、いいんですよ…HPH」
+					DATAFORM 「見てる、だけ…？」\n「お尻…ほしくて、わたし、もう…がまんが…HPH」
+					DATAFORM 「%K30_C_NAME(MASTER)%…ここですよ、ここHPH」\n「早く、これを抜いて…貴方のを…HPH」
+				ENDDATA
+				CALL HPH_PRINT, LOCALS, "L"
 		ENDSELECT
 		;日記のフラグ
 		SIF DIARY:30:15 == 0
@@ -1484,3 +1539,51 @@ IF LOCAL
 	ENDIF
 ENDIF
 RETURN 1
+;スカートめくり地の文
+@K30_COM330_TRAIN
+IF TCVAR:30:364 > 0
+	TFLAG:193 = 3
+ELSEIF TFLAG:193 == 1
+	TFLAG:193 = 2
+ENDIF
+PRINTFORMDL %CALLNAME:MASTER%は映姫の背後から%SHOW_BOTTOM(TARGET,1)%をめくり上げた！
+PRINTFORMDL 突然のことに映姫は反応ができず、%UNDER_SKIRT_DESCRIPTION(TARGET)%があらわになった…
+CALL K30_PRINT_BUTT_IMAGE(SELECTCOM)
+IF K30_CHECK_HEN_T() && TALENT:機嫌 > -1
+	PRINTFORML 「…………」
+	PRINTFORMDL 映姫はこちらを振り返るが、何も言わずただこちらを見ている
+	PRINTFORMDW 下手に怒られたり叩かれるよりも罪悪感がわいてきた…
+	RETURN
+ENDIF
+SELECTCASE TFLAG:193
+	;ビンタ
+	CASE -5
+		LOCAL = (CFLAG:ブチギレ || MARK:反発刻印 > 1 || (MARK:反発刻印 && TALENT:機嫌 < 0))
+		WAIT
+		PRINTFORMDL 映姫は素早く振り返ると、その勢いのまま平手打ちを放った！！
+		SIF LOCAL && RAND:2
+			PRINTFORMDL つうこんの　いちげき！
+		CALL K30_QUAKE(2 + LOCAL * 2)
+		SIF LOCAL
+			BASE:MASTER:体力 -= 300 
+		PRINTFORMDL めっちゃくちゃ痛い！！！
+		PRINTFORMW 
+	;つねられる
+	CASE -3
+		PRINTFORMDL イタタタタ…！
+		PRINTFORMDL 振り向いた映姫に思い切り手の甲をつねられた
+		PRINTFORMDL ほっそりとした指からは信じられないくらいに力がこもっている…
+		PRINTFORMW 
+	;嫌がる
+	CASE -1
+		PRINTFORMDL 振り向いた映姫はあからさまに嫌そうな顔をしている
+		PRINTFORMDL やはり軽い冗談の通じる相手ではないようだ…
+		PRINTFORMW 
+	;呆れられる
+	CASE 0
+		PRINTFORMDL 振り向いた映姫はジト目でこちらをにらんでいる…
+		PRINTFORMW 
+	;MESSAGE_COMで表示
+	CASE 2
+	CASE 3
+ENDSELECT

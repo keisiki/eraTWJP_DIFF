@@ -2360,6 +2360,10 @@ IF LOCAL
 			;▼雪だるま作り［一緒に雪作り］
 			;※冬の月のみ
 			;PRINTFORMW 
+		CASE 18
+			;▼炬燵でのんびり［炬燵でくつろぐ］
+			;※冬の月のみ
+			;PRINTFORMW 
 		CASEELSE
 			;PRINTFORML 
 	ENDSELECT
@@ -2697,8 +2701,33 @@ IF LOCAL
 			PRINTFORMW 「あれ、それはこの前魔法の研究で使ったわ」
 		ENDSELECT
 	ELSE
-		PRINTFORMW 「……」
-		PRINTFORMDW マイは黙々と勉強している……
+		IF ABL:MASTER:教養 > ABL:教養
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「そっか、そうなるのね」
+				PRINTFORMW 「良く分かったわ……ありがとう」
+				SIF TALENT:思慕
+					PRINTFORMW （こいつ……ふらふらしてるようで、しっかり教養はあるんだ） 
+			CASE 1
+				PRINTFORML 「……え、間違ってる？」
+				PRINTFORMW 「えっと……うん、確かにそうね……」
+				SIF TALENT:思慕
+					PRINTFORMW （な、情けない……教えてあげるくらいのつもりでいたのに） 
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「わたしに、教えてほしいの？」
+				PRINTFORMW 「……まぁ、いいわ……少しなら」
+				SIF TALENT:思慕
+					PRINTFORMW （どれどれ……ちょっと良い所見せちゃおうかな） 
+			CASE 1
+				PRINTFORML 「考え方は……この本の、ここ」
+				PRINTFORMW 「……読めばわかるわ」
+				SIF TALENT:思慕
+					PRINTFORMW （説明もいるかと思ったけど、大丈夫そうね……知識が不足してるだけで、頭は悪くないみたい）
+			ENDSELECT
+		ENDIF
 	ENDIF
 ENDIF
 RETURN 1
@@ -3488,6 +3517,900 @@ IF LOCAL
 	ENDIF
 ENDIF
 RETURN 1
+
+;==================================================
+;446,調合する
+;TFLAG:193(調合物のID)
+;TFLAG:194(今回調合した個数)
+;==================================================
+@M_KOJO_MESSAGE_COM_K105_446
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K105_446_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K105_446_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TCVAR:泥酔 == 1
+		;PRINTFORML 
+	ELSEIF TCVAR:媚薬 || TCVAR:発情
+		;PRINTFORML 
+	ELSEIF FIRSTTIME("調合")
+		IF TALENT:恋人 || TALENT:恋慕
+			PRINTFORMW 「調合の手伝い？　うん、もちろん良いけど」
+			IF TALENT:MASTER:調合Lv < TALENT:105:調合Lv
+				PRINTFORML 「それなりに経験あるから、色々教えられると思うよ」
+				PRINTFORMW 「物によるけど……まぁ、大概何とかなるでしょ」
+			ELSEIF TALENT:MASTER:調合Lv >= TALENT:105:調合Lv
+				PRINTFORML 「ちょっと緊張するかも……%CALLNAME:MASTER%、かなり詳しいみたいだし」
+				PRINTFORMW 「ま、せいぜい足手まといにはならないように頑張ってみようかな」
+			ENDIF
+			PRINTFORMW 　…………
+			PRINTFORML 
+		ELSE
+		;調合では陥落前でもいっぱい喋ってもらうので、その言い訳
+			PRINTFORMDW %CALLNAME:MASTER%はマイに調合の手伝いを頼んでみた……
+			PRINTFORML 「わたしと、調合？」
+			PRINTFORMW 「……」
+			PRINTFORMW 「まぁ、良いわ……何を作るの？」
+			PRINTFORMDL どうやら手伝ってもらえるようだ。
+			PRINTFORMDW %CALLNAME:MASTER%はレシピと想定している手順を簡単に伝えた……
+			PRINTFORML 
+				IF TALENT:MASTER:調合Lv < TALENT:105:調合Lv
+					PRINTFORML 「なるほど」
+					PRINTFORMW 「……材料は良いと思うけど、やり方には少し改善の余地があるかもね」
+					PRINTFORMW 「例えば、最初の部分は……」
+					PRINTFORML 
+					PRINTFORMW 「以前、似たようなものを……」
+					PRINTFORMW 「それで、その後の……」
+					PRINTFORML 
+					PRINTFORMDL マイは手順の問題点や注意すべきポイントについて長々と話し始めた……
+				ELSEIF TALENT:MASTER:調合Lv >= TALENT:105:調合Lv
+					PRINTFORML 「へぇ、こんなやり方が……それに、手順も洗練されてるみたい」
+					PRINTFORMW 「もう少し手間がかかる物だと思ってたけど、これでうまくいくの？」
+					PRINTFORMW 「いくつか質問が……」
+					PRINTFORML 
+					PRINTFORMW 「わたしが前にやった時は……」
+					PRINTFORMW 「それで、その後の……」
+					PRINTFORML 
+					PRINTFORMDL マイは手順について事細かに質問してきた……
+				ENDIF
+			PRINTFORMDW どことなくマイは楽しそうだ。
+			PRINTFORMDW 案外、根は話好きなのかもしれない……だが、普段の振る舞いからは見えてこない姿だ。
+			PRINTFORML 「……？」
+			PRINTFORMW 「あぁ、そっか……」
+			PRINTFORMDW %CALLNAME:MASTER%の訝しげな視線に気づいたのか、マイは話を切って目を逸らした。
+			PRINTFORML 「……別に、喋れないわけじゃないもの」
+			PRINTFORMW 「必要なことは話すわ……」
+			PRINTFORMW 「……」
+			PRINTFORMDL マイは少し気まずそうにしている。
+			PRINTFORMDW ……つまり大人しくしている時は、話す必要が無いと考えているということになる。
+			PRINTFORMDW 他人から話しかけられてもそんな態度というのは、何とも冷たい話だ。
+			PRINTFORMDW 面倒臭がりなのか、それとも極端な合理主義か……
+			PRINTFORML 
+			PRINTFORML 「……調合、するんでしょ」
+			PRINTFORMW 「準備ができたなら、始めましょう」
+			PRINTFORMDW マイがどんな思想を持っていようが、今は重要ではないだろう。
+			PRINTFORMDW 差し当たって作業に協力的であれば何も問題は無い。
+			PRINTFORMDW %CALLNAME:MASTER%は頷くと、マイとともに調合を始めた……
+			PRINTFORMDW …………
+			PRINTFORML 
+			PRINTFORML 
+		ENDIF
+	ENDIF
+
+	IF TCVAR:泥酔 == 1
+		;PRINTFORML 
+	ELSEIF TCVAR:媚薬 || TCVAR:発情
+		;PRINTFORML 
+	ELSE
+		;なんかすごい説明臭くなった…物ごとに分けたのは失敗だったかも
+		SELECTCASE TFLAG:193
+		;失敗時
+		CASE 0
+			IF TALENT:恋人 || TALENT:恋慕
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「……まぁ、こういうこともあるよ」
+					PRINTFORML 「失敗の原因さえわかっていれば、実質成功みたいなものだし」
+					PRINTFORMW 「完成品の有無なんて、些細な事……切り替えていこ」
+				CASE 1
+					PRINTFORML 「うーん……手順を見直したほうが良いかもね」
+					PRINTFORML 「曖昧な所もあるし……レシピには無い、重要なポイントがあるかもしれない」
+					PRINTFORMW 「わたしたち向けに、改良していこうか」
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「……ダメだったか」
+					PRINTFORML 「とりあえず、記録だけはしっかりしておきましょう」
+					PRINTFORMW 「同じ失敗さえしなければ良いわ……」
+				CASE 1
+					PRINTFORML 「あれ……」
+					PRINTFORML 「……レシピは大丈夫？　そう……」
+					PRINTFORMW 「じゃあ、材料か手順か……他には……」
+				ENDSELECT
+			ENDIF
+		;ローション
+		CASE 40
+			IF TALENT:恋人 || TALENT:恋慕
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORMDL マイは出来上がったローションを指先に塗り、様子を見ている。
+					PRINTFORML 「うん、特に刺激とかも無いし……大丈夫そうだね」
+					PRINTFORML 「塗り薬の材料なんかに使ったりもするけど」
+					PRINTFORMW 「%CALLNAME:MASTER%の場合、使い道は……言うまでもないか」
+				CASE 1
+					PRINTFORML 「うーん、ちょっと粘性が強すぎるかも」
+					PRINTFORML 「でも、これはこれでありかもしれないね」
+					PRINTFORMW 「……試してみる？」
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORMDL マイは出来上がったローションを指先に塗り、様子を見ている。
+					PRINTFORML 「……うん、身体に付けても大丈夫」
+					PRINTFORML 「そこの粉と混ぜれば、薬傷なんかの応急処置に使えるわ……」
+					PRINTFORML 「少し作っておこうかな」
+					PRINTFORMDW 真面目な使い方だ……
+				CASE 1
+					PRINTFORML 「出来た……結構な量ね」
+					PRINTFORML 「え……これで、一回分？」
+					PRINTFORMW 「……何に使うの？」
+				ENDSELECT
+			ENDIF
+		;媚薬
+		CASE 41
+			IF CFLAG:105:1002
+				IF TALENT:恋人 || TALENT:恋慕
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「よし、いい出来%UNICODE(0x2665) *1%」
+						PRINTFORML 「これは飛ぶよ……身をもって知ってるから、間違いないわ」
+						PRINTFORMW 「ふふふふ……でも、これくらいじゃないとね」
+					CASEELSE
+						PRINTFORML 「さぁ、わたし特製の媚薬だよ」
+						PRINTFORML 「慣れてない奴には、刺激が強いかも……%UNICODE(0x2665) *1%」
+						IF TALENT:恋人
+							PRINTFORML 「他人にあげたりするなら、その辺注意してあげて」
+							PRINTFORMW 「%CALLNAME:MASTER%は、わたしにしか使っちゃダメだからね？」
+						ELSE
+							PRINTFORML 「まぁ……相手によって、上手く量を調節するといいわ」
+							PRINTFORMW 「何かやらかしても、わたしのせいにしないでね」
+						ENDIF
+					ENDSELECT
+				ELSE ;今のところ無し
+					PRINTFORML 
+				ENDIF
+			ELSE
+				IF TALENT:恋人 || TALENT:恋慕
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「こんなところかな」
+						PRINTFORML 「上手く抽出できていれば……いわゆる、媚薬として使えるだろうね」
+						PRINTFORMW 「こういうの、わたしも興味無いことは無いけど……こっそり盛ったりしないでよ？」
+					CASE 1
+						PRINTFORML 「使い方次第で色んな呼び方ができるだろうけど……%CALLNAME:MASTER%の場合は、媚薬でしょ」
+						PRINTFORML 「作り方は合ってそうだし、量を間違えなければ効くはず」
+						PRINTFORMW 「……わたしも、使ってみようかな……」
+					ENDSELECT
+				ELSE
+					PRINTFORML 「成分からして……経口で、興奮作用があるわ」
+					PRINTFORMW 「……悪用しないように」
+				ENDIF
+			ENDIF
+		;利尿剤
+		CASE 42
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「%CALLNAME:MASTER%が病気するとも思えないし、医療目的ってことは無いよね」
+				PRINTFORML 「他人に飲ませるの？」
+				PRINTFORML 「……」
+				PRINTFORMW 「まぁ、ちょっと興奮するのは……わからなくもない、かも」
+			ELSE
+				PRINTFORML 「ええ……利尿作用があるだろうけど」
+				PRINTFORMW 「……腎臓でも悪いの？」
+			ENDIF
+		;コンドーム
+		CASE 45
+			IF TALENT:105:恋人
+				IF CFLAG:105:生解禁 == 2
+					PRINTFORMW 「%CALLNAME:MASTER%のサイズにぴったりの避妊具」
+					PRINTFORMW 「わたしは、生で良いって言ってるでしょ」
+					PRINTFORMW 「これ、何に使うの？」
+					PRINTFORMW 「ねぇ」
+					PRINTFORMW 「……多少のことには目をつぶるけど」
+					PRINTFORMW 「わたしを一番大事にしてよね……それだけは、よろしく」
+				ELSE
+					PRINTFORMW 「さすがに次々子供ができても困るし、大事だよね」
+					PRINTFORMW 「%CALLNAME:MASTER%のこと、信用してないわけじゃないから……どうしてもって言うなら、わたしは」
+					PRINTFORMW 「……」
+					PRINTFORMW 「……まぁ、今のところはしっかり常備しておこうか」
+				ENDIF
+			ELSEIF TALENT:恋慕
+				IF CFLAG:105:生解禁 == 2
+					PRINTFORML 「避妊具か……最初は、わたしも気にしてたもんだけど」
+					PRINTFORML 「こんなもの、邪魔なだけだよね」
+					PRINTFORML 「持っておくのは悪い事じゃないと思うけど……礼儀として」
+					PRINTFORMW 「使う気が無くてもね……ふふふ……%UNICODE(0x2665) *1%」
+				ELSEIF GETBIT(CFLAG:既成事実 , 1)
+					PRINTFORML 「薄いほうが良いんだろうけど……作るとなると、なかなか難しいね」
+					PRINTFORML 「んー、これはちょっと攻めすぎたかもしれないわ……破れちゃうかも」
+					PRINTFORMW 「……使うなら、わたし以外の奴にして」
+				ELSE
+					PRINTFORML 「ちょっと、これって……」
+					PRINTFORMW 「…………」
+					PRINTFORMW 「%CALLNAME:MASTER%なら、わたし……」
+					PRINTFORMW 「あの……それなりのムードがある時に、ね……」
+				ENDIF
+			ELSE
+				IF GETBIT(CFLAG:既成事実 , 1)
+					PRINTFORML 「……変なもの、作らせないで」
+					PRINTFORML 「必要なものだとは思うけど……」
+					PRINTFORMW 「……はぁ、身体に入るものだし……清潔にしないと」
+				ELSE
+					PRINTFORML 「薄ければ薄いほうが良い……あぁ、そう」
+					PRINTFORML 「強度が心配だけど……」
+					PRINTFORMW 「……まぁ、わたしの知ったことではないか」
+				ENDIF
+			ENDIF
+		;蒸留酒
+		CASE 58
+			IF TALENT:恋人 || TALENT:恋慕
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「蒸留は、各成分の蒸気圧……蒸発しやすさの違いを利用した基本的な分離操作」
+					PRINTFORML 「いろいろ調合をやっていくなら、何かと使うことになると思うよ」
+					PRINTFORMW 「お酒造りをきっかけに、きっちり勉強してみるのも良いかもね」
+				CASEELSE
+					PRINTFORML 「度数を上げるだけなら簡単だけど、お酒としての完成度を考えると難しいね」
+					PRINTFORML 「一旦出来上がったとしても、そのまま飲む以外にも楽しみ方はあるし……」
+					PRINTFORML 「こだわり始めるときりが無いけど、折角だから色々試してみようか」
+					PRINTFORMW 「良いのができたら、一緒に飲もうね」
+				ENDSELECT
+			ELSE
+				PRINTFORML 「蒸留すれば、もちろんアルコール濃度は高くなる……」
+				PRINTFORML 「それだけでお酒として完成かは……詳しくないから、任せるわ」
+				PRINTFORMW 「熟成とか、風味付けとか……何かしたほうが良いんじゃない」
+				PRINTFORMDL 熟成程度なら能力を使えば困ることは無い。
+				PRINTFORMDW 後で軽く手を加えれば、酒として十分成立するだろう。
+			ENDIF
+		;薬酒
+		CASE 59
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「水とアルコールがあれば、かなりの種類の成分が溶かせる」
+				PRINTFORML 「そうして薬草の薬効成分をお酒で抽出したなら、そのまま飲めば分離する手間も省けるし」
+				PRINTFORMW 「お酒に宗教的な価値を見出す文化なら、なおさら都合が良いわ」
+				PRINTFORML 「……なんて、後から理由付けはできるけど」
+				PRINTFORML 「元々は、飲みにくい薬をお酒で流し込んでただけかもね」
+				PRINTFORMW 「効果にこだわり過ぎないで、飲み物としての完成度を高めていくのも面白いかな？」
+			ELSE
+				PRINTFORML 「薬草の成分を、お酒で抽出して飲むのね……」
+				PRINTFORML 「さらに精製したほうが、薬としての効果は高いと思うけど」
+				PRINTFORMW 「飲み物としても楽しみたいのなら、これで完成か……」
+			ENDIF
+		;薬の材料(双)
+		;あんまり趣味じゃないので、ふたなり用分岐を書く予定は無いです
+		;口上は薬使用後に出るけど、マイには使ってないことになってます
+		CASE 71
+			IF FIRSTTIME("調合71")
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「何これ、知らない薬」
+					PRINTFORMW 「レシピがあるんだ……えーと、ある特殊なキノコから抽出した……？」
+					PRINTFORMW 「ホルモンの分泌が……その後……」
+					PRINTFORMW 「んん……？」
+					PRINTFORMW 「え、生えるの？　誰にでも？」
+					PRINTFORMW 「……」
+					PRINTFORML 「あー……面白い薬だとは思うわ」
+					PRINTFORMW 「うん、使いたがる人も世の中にはいるんだろうけど」
+					PRINTFORMW 「とりあえず、わたしは遠慮しておこうかな……なんか、怖いし」
+				ELSE
+					PRINTFORML 「初めて見る薬だわ……用途は何？」
+					PRINTFORMW 「ふむ、女性に……は？」
+					PRINTFORMW 「何言ってるの？　そんなこと、ちょっとした薬なんかで……」
+					PRINTFORMW 「そ、そう……本物なんだ」
+					PRINTFORML 
+					PRINTFORML 「勉強不足だったわ……」
+					PRINTFORMW 「差し当たって、わたしは不要だけど……そういうものがあるっていうのは、覚えておこうかな」
+				ENDIF
+			ELSE
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「ああ、例の……生える薬ね」
+					PRINTFORML 「手伝えと言われれば手伝うけど……作った数だけ、どこかの誰かに……ってことだよね」
+					PRINTFORMW 「なんか、複雑だわ……」
+				ELSE
+					PRINTFORML 「このレシピは……あの薬か」
+					PRINTFORMW 「もしかして、結構需要があるの……？」
+				ENDIF
+			ENDIF
+		;薬の材料(消)
+		CASE 72
+			IF FIRSTTIME("調合72")
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORMW 「はぁ、ふたなりってのを……戻す薬」
+					PRINTFORMW 「生やす方法と、その是非については一旦置いておくとしても」
+					PRINTFORMW 「わざわざ生やしたものを、またしれっと無くしちゃうんだ」
+					PRINTFORMW 「何と言うか……ずいぶん、身体を玩具みたいにして」
+					PRINTFORMW 「怖いもの知らずだね」
+				ELSE
+					PRINTFORMW 「また、よくわからないレシピ……」
+					PRINTFORMW 「んーと……ふたなり？を、もどす……？」
+					PRINTFORMW 「生やすの自体、結構大変なことだと思うんだけど」
+					PRINTFORMW 「なんだか、ちょっとしたできものみたいな扱い……そんなんで良いの？」
+				ENDIF
+			ELSE
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「この薬を考えたの……生やすのが好きな奴と嫌いな奴、どっちだと思う？」
+					PRINTFORML 「消せるから安心して生やせるっていう考え方もあるだろうし」
+					PRINTFORML 「でも……どんな考え方でも、作り方が同じならできるものも同じ」
+					PRINTFORML 「それが、科学ってものなんでしょ？」
+					PRINTFORMW 「性格の良し悪しが価値に関係ないのは、わたしとしては嬉しい所だね」
+				ELSE
+					PRINTFORML 「そう……」
+					PRINTFORML 「何かの間違いで生えてきても、この薬を知っておけば安心」
+					PRINTFORMW 「それはまぁ、良い情報ね……」
+				ENDIF
+			ENDIF
+		;赤いキャンディ
+		CASE 74
+			IF TALENT:恋人 || TALENT:恋慕
+				IF TALENT:処女 == 1
+					PRINTFORML 「ふーん、処女膜再生の薬……」
+					PRINTFORML 「そんなもの使わなくても、ここに天然のがあるけど……」
+					PRINTFORMW 「わたしは、%CALLNAME:MASTER%なら……大丈夫、かもしれないよ」
+				ELSEIF GETBIT(CFLAG:既成事実 , 1)
+				;特に再生処女分岐は無いけれど
+					PRINTFORML 「膜だけ戻したって、事実は変わらないし……無駄に痛いだけじゃないかな」
+					PRINTFORML 「いや、でも……きっちり態度も処女になり切るなら、面白いかも……プレイとして」
+					PRINTFORMW 「やってみようか、思い切って」
+					SIF ABL:マゾっ気 > 2
+						PRINTFORMW 「痛いのも、それはそれでね……ふふふ……%UNICODE(0x2665) *1%」
+				ELSE
+				;結構限定的…
+					PRINTFORML 「事実はともかくとして、形だけでもやり直したいって言うのは……まぁ、あるかもね」
+					PRINTFORMW 「その場合は、良い薬なんじゃない？　この飴だけじゃなく、失敗した経験の方も」
+				ENDIF
+			ELSE
+				PRINTFORML 「処女性を、あくまで形にこだわるのね……」
+				PRINTFORML 「それも考え方としては有りだと思う」
+				PRINTFORMW 「定義の問題ね」
+			ENDIF
+		;茶色のキャンディ
+		CASE 77
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「手づくりのアクセサリとかじゃ、ダメなんだろうね……きっと」
+				PRINTFORML 「%CALLNAME:MASTER%には何が似合うかな」
+				PRINTFORMW 「うーん……案外、うさ耳とか？」
+			ELSE
+				PRINTFORML 「ふむ……耳が生えると言っても、殆ど形だけのものみたい」
+				PRINTFORML 「感覚まで再現されるなら面白そうだけど……」
+				PRINTFORMW 「でも、精神的な効果で聴力が変わる可能性はあるかも……」
+			ENDIF
+		;水色のキャンディ
+		CASE 78
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「こういうものがある以上、身の周りの誰かが本当はどんな姿かなんてわかったものじゃないね」
+				PRINTFORML 「身体的にだけじゃなく、精神的にも言えることかな？」
+				PRINTFORML 「わたしはこれで全開だから、安心してもらって良いけどね」
+				PRINTFORMW 「%CALLNAME:MASTER%も、隠している姿があったりして……ふふ」
+			ELSE
+				PRINTFORML 「妖怪なんかにとっては便利でしょうね……」
+				PRINTFORML 「人間のフリをするだけでなく……種族から、ある程度弱点なんかが推測されることもあるだろうし」
+				PRINTFORML 「わたしも、何も知らない人間の前では翼を隠したりするわ……」
+				PRINTFORMW 「……%CALLNAME:MASTER%には、無駄なようだけど」
+			ENDIF
+		;排卵誘発剤
+		;妊娠関係、いまだに書いてない…
+		CASE 91
+			IF TALENT:105:恋人
+				IF CFLAG:105:生解禁 == 2
+					PRINTFORML 「これ飲むのって、わたし？」
+					PRINTFORML 「まぁ、そうじゃないなんて言わせないけど……」
+					PRINTFORML 「……よし」
+					PRINTFORMW 「じゃあ、頑張ろうね……%UNICODE(0x2665) *1%」
+				ELSE
+					PRINTFORML 「ちょ、ちょっと……まだ、危ない日はだめだからね」
+					PRINTFORML 「まだね、まだ……」
+					PRINTFORMW 「……そのうち、ね%UNICODE(0x2665) *1%」
+				ENDIF
+			ELSEIF TALENT:恋慕
+				IF TALENT:MASTER:恋人
+					PRINTFORML 「恋人がいるんだったよね……不妊にでも悩んでるの？」
+					PRINTFORML 「そうだね……精子のほうに問題があるかもしれないし」
+					PRINTFORML 「数日ゆっくり休んで、体調を整えてみたら？」
+					PRINTFORMW 「運もあるだろうし、気長にね」
+				ELSEIF CFLAG:105:生解禁 == 2
+					PRINTFORML 「%CALLNAME:MASTER%は今のところ、特定の誰かがパートナーって感じじゃないけど」
+					PRINTFORML 「これを飲まされたら、さすがに本命って感じがするよね」
+					PRINTFORMW 「……実際のところ、どうなの？」
+				ELSE
+					PRINTFORML 「へぇ……誰かと、本気で子作りしてるんだ？」
+					PRINTFORML 「%CALLNAME:MASTER%の、子供ね……どっかの誰かとの」
+					PRINTFORML 「見てみたいような、見たくないような……」
+					PRINTFORMW 「まぁ、いずれにせよ薬はちゃんとしたのを作るから」
+				ENDIF
+			ELSE
+				PRINTFORML 「……子供が欲しいなら、好きにしたらいいと思うわ」
+				PRINTFORML 「でも、作るからにはその後もちゃんとして」
+				PRINTFORML 「作るだけ作って、放っておくなんて許されないわ……」
+				PRINTFORMW 「……神様じゃないんだから」
+			ENDIF
+		;こやし
+		CASE 191
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「こんなところまで自作……何か、こだわりがあったりするの？」
+				PRINTFORML 「園芸とかも、やってみたら案外面白いのかな」
+				PRINTFORMW 「%CALLNAME:MASTER%がやってるなら……ちょっとしたものなら、わたしもやってみようかな」
+			ELSE
+				PRINTFORML 「……ああ、肥料にするのね」
+				PRINTFORML 「無駄が無いのは良い事だわ」
+				PRINTFORMW 「調合と呼ぶには……ちょっと、泥くさい気もするけれど」
+			ENDIF
+		;アイス
+		CASE 213
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「シンプルなお菓子だけに、無茶なアレンジも結構許される気がするよね」
+				PRINTFORML 「作る分には……要は、冷やして混ぜればいいわけでしょ」
+				PRINTFORMW 「適当に冷やしておくから、味は%CALLNAME:MASTER%好みにやっちゃって良いよ」
+			ELSE
+				PRINTFORML 「冷やすのは苦手じゃないわ……」
+				PRINTFORMW 「温度管理はするから、他のことはお願い」
+			ENDIF
+		;紅茶
+		CASE 215
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「酸化させることで、紅くしていくわけね」
+				PRINTFORML 「茶葉から準備する事なんて普段は無いし、加減は淹れてみるまでわからないかな……」
+				PRINTFORMW 「そういうわけだから、色んなパターン準備してみて……ティーパーティでもする？　二人で」
+			ELSE
+				PRINTFORML 「緑茶も紅茶も、元をたどれば同じ」
+				PRINTFORMW 「勿論、最終的には成分が違って……それが、見た目に現れているけれど」
+				PRINTFORMW 「表面的な色なんて、重要ではないの」
+			ENDIF
+		;飴
+		CASE 216
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「日頃のちょっとした糖分摂取には、悪くないよね」
+				PRINTFORMW 「ほら、わたし……%CALLNAME:MASTER%といない時は、割と黙ってるし」
+				PRINTFORMW 「しばらく何か口に入っていても、不便ってことは無いわ」
+			ELSE
+				PRINTFORML 「砂糖の塊、と言えばそれまでだけど……それが悪いわけじゃない」
+				PRINTFORMW 「むしろ、大事な物ね……砂糖」
+			ENDIF
+		;惚れ薬
+		CASE 250
+			IF TALENT:恋人
+				PRINTFORML 「とっくに堕ちてるわたしに使っても、最早ほとんど効果ないと思うよ」
+				PRINTFORMW 「誰か他の奴に使うのは……あまり、良い気はしないかな」
+				PRINTFORML 「最悪、誰かを%CALLNAME:MASTER%に惚れさせるまではセーフとしても」
+				PRINTFORML 「%CALLNAME:MASTER%が、他の誰かに惚れるのはダメ」
+				PRINTFORMW 「そこんとこ、よろしくね」 
+			ELSEIF TALENT:恋慕
+				PRINTFORML 「こんなものに頼らず、自分を磨けとか言う奴もいそうだよね」
+				PRINTFORMW 「でも……こうして薬を作るのも、努力の形の一つ」
+				PRINTFORMW 「別に、そんなに悪い事じゃないと思うわ……使われる方はたまったもんじゃないだろうけど」
+				PRINTFORMW 「わたしも使っちゃおうかな、ふふふ……%UNICODE(0x2665) *1%」
+			ELSE
+				PRINTFORML 「需要が高いのか……調べれば、色々な作り方がある」
+				PRINTFORMW 「それぞれの効果のほどはさておき、ね」
+					IF TALENT:思慕
+						PRINTFORML （まさか、わたしに盛ったり……）
+						PRINTFORMW （……いや、考えすぎか……もっと他に、狙ってるのがいるだろうな）
+					ELSE
+						PRINTFORMW 「誰に使うか知らないけど……過信はしすぎないほうが良いわ」
+					ENDIF
+			ENDIF
+		;睡眠薬
+		CASE 252
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「分量からして、ちょっとキツそうな薬ね」
+				PRINTFORML 「入眠を助けるというよりは……邪魔な奴を眠らせるとか、そんな用途向きかな？」
+				PRINTFORMW 「何考えてるか知らないけど……わたしも手伝っちゃったし、悪用するならバレないようにね」
+			ELSE
+				PRINTFORML 「このレシピだと……ちょっと、効果が強すぎるような」
+				PRINTFORMW 「多少のことじゃ起きないくらい深く眠りたいのなら、こんなものだろうけど……」
+			ENDIF
+		;青汁
+		CASE 500
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「不味くても許されそうなのをいいことに、適当に混ぜすぎちゃったかも」
+				PRINTFORMW 「一応、悪い物は入ってないし……少なくとも、気付け位にはなるかな？　不味さで」
+			ELSE
+				PRINTFORML 「我慢して飲むのが前提なら、細かい味は気にせず身体に良さそうなものを入れれば良い……」
+				PRINTFORMW 「……我慢は、身体に悪いと思うけど」
+			ENDIF
+		;栄養ドリンク
+		CASE 501
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「味を維持しつつとなると、効き目を高めるには限界がありそうだね」
+				PRINTFORML 「気持ち効果のあるジュース、くらいが丁度良い落としどころかな」
+				PRINTFORMW 「それとも、変な味の方が好き？　折角自分で作るんだから、多少遊んでも罰は当たらないと思うけど」
+			ELSE
+				PRINTFORML 「突き詰めればもっと効き目は強くできるわ……でも、身体を壊しちゃ本末転倒ってもの」
+				PRINTFORMW 「これは気休め程度の効果しか無さそうだけど、それで十分……」
+			ENDIF
+		;精力剤
+		CASE 502
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「%CALLNAME:MASTER%の場合、精力はありすぎて困るということは無いでしょ」
+				PRINTFORMW 「身体に悪くならない程度に、効き目は強くしちゃおうか%UNICODE(0x2665) *1%」
+			ELSE
+				PRINTFORML 「……わざわざ薬で回復しなきゃならないくらい、使い道があるって事？」
+				PRINTFORMW 「別に、口を出すつもりはないけど……まぁ、頑張って」
+			ENDIF
+		;ギンギンＺ
+		CASE 503
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「とりあえず、これでレシピ通りね……栄養ドリンクとしては、ちょっとキツめかな」
+				PRINTFORML 「あまり無理しないでね？　倒れるくらいなら、飲んだらいいと思うけど」
+				PRINTFORMW 「わたしに何かできることがあるなら、言ってくれれば手伝うからね」
+			ELSE
+				PRINTFORML 「効果はあるだろうけど、負担も大きそう……」
+				PRINTFORMW 「常用はしないほうが良いわ」
+			ENDIF
+		;ギンギラギンＸ
+		CASE 505
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「栄養ドリンクなんて、大なり小なり無理をするための物」
+				PRINTFORML 「どうせなら半端な物を使うより、これくらい振り切った物のほうが良いかもね」
+				PRINTFORMW 「でも、いざって時だけにしてね……他人に使うなら、いくらでも良いけど」
+			ELSE
+				PRINTFORML 「貴重な素材まで使って……これは栄養ドリンクの域を超えてるわ」
+				PRINTFORML 「効果の方もね……少し、強烈すぎる」
+				PRINTFORMW 「少なくとも、わたしは飲みたくないわ……」
+			ENDIF
+		;精力剤『天元凸破』
+		CASE 506
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「あまり身体に良いとは言えないけれど、これで間違いなく精力はつくね」
+				PRINTFORML 「どうしても精子を注ぎ込み足りないって時は使ったら良いんじゃない」
+				IF CFLAG:105:生解禁 == 2
+					PRINTFORML 「……今度、限界まで挑戦してみようか……%UNICODE(0x2665) *1%」
+					PRINTFORMW 「ふふふふ……想像しただけで、ちょっと疼いちゃうかも……%UNICODE(0x2665) *1%」
+				ELSEIF TALENT:恋人
+					PRINTFORML 「今の量でも特に不満は無いし、そこまでしなくても良いと思うけど」
+					PRINTFORMW 「それとも誰か、他の人のため……？」
+					PRINTFORMW 「……念のため、精力剤分も含めてキッチリ搾り取っておいたほうが良いか」
+				ELSE
+					PRINTFORML 「結構強烈な薬だけど……そこまでして、誰か妊娠させたいの？」
+					PRINTFORMW 「ふーん……そう、なんだ……」
+				ENDIF
+			ELSE
+				PRINTFORML 「精力とともに、疲労回復……まさに、性行為のための薬」
+				PRINTFORMW 「こんな強い薬……飲む方もそうだけど、ついてこられる相手の方も大したものね……」
+			ENDIF
+		;ポーション
+		CASE 507
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「これくらいの素材でも、このとおり魔力は抽出できるけど……」
+				PRINTFORML 「手間のわりに効果はいまいちって感じだね」
+				PRINTFORMW 「でもまぁ、気休め程度にはなるでしょ」
+			ELSE
+				PRINTFORML 「魔法薬なんて言っても、身構えることは無いわ……」
+				PRINTFORML 「必要な成分を分離、濃縮しただけ……他の色々な薬品と何も変わらない」
+				PRINTFORMW 「何も知らなければ、そんなことでも魔法に見えるのかもしれないけど」
+			ENDIF
+		;マジックポーション
+		;1本分ボーナス的な…こういうちょっとした贔屓は許してもらえるのか？
+		CASE 508
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「ふふふ、すっごく濃い……%UNICODE(0x2665) *1%」
+				PRINTFORMW 「ほら、%CALLNAME:MASTER%も少し試してみて？」
+				CALL RECOVER(MASTER, 薬の知識(600), "TSP", "マジックポーションによる回復")
+				PRINTFORMW 「美味しい？　腐ったりするもんでもないけど、折角なら出来たてが良いでしょ」
+			ELSE
+				PRINTFORML 「うん、どれも良い素材……これならそれなりの魔力が抽出できる」
+				PRINTFORML 「……でも、%CALLNAME:MASTER%……魔法使いってわけでもないのに、こんなの必要なの？」
+				PRINTFORMDL 魔法使いの言う魔力とTSPが似たような性質であることはわかっている。
+				PRINTFORMDW 魔法薬も、TSPの回復薬として有効に使うことができるだろう。
+			ENDIF
+		;破眠ポーション
+		CASE 509
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「眠るわけにいかないなら、下らない根性論なんかより必要な成分を摂る方が間違いないね」
+				PRINTFORML 「ただもっと言えば、しっかり眠りつつやるべきことをやれる方が理想的」
+				PRINTFORML 「%CALLNAME:MASTER%も、一人でダメなら他人をうまく使えば良い」
+				PRINTFORMW 「この調合作業みたいに……わたしのことも、どんどん使っていいから」
+			ELSE
+				PRINTFORML 「薬で目を覚ましても、睡眠の代わりになるわけじゃない……いずれはその分、寝ることになる」
+				PRINTFORMW 「使える時間は変わらないわ……自分以外の時を止めたりでもしない限り」
+			ENDIF
+		;ウコンドリンク
+		CASE 510
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「これでも飲み会とか行くから、効くならわたしも使ってみようかな」
+				PRINTFORML 「別に酔うのが嫌いなわけじゃないけど、翌日がね……」
+				PRINTFORMW 「はぁ……平気そうにしてる奴を見ると、腹が立つわ」
+			ELSE
+				PRINTFORML 「そもそも、飲みすぎなければいいんだろうけど」
+				PRINTFORML 「皆がそれで済むなら、こんなドリンクのレシピは存在しないわ……」
+				PRINTFORMW 「理想論にこだわっても仕方ない……対策は、あるに越したことは無い」
+			ENDIF
+		;エリクサー
+		CASE 511
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「かなり理想的な薬だね……何か不調があったら、とりあえずこれを飲んでおけば間違いないわ」
+				PRINTFORML 「貴重品だけど、%CALLNAME:MASTER%に何かあるよりはマシでしょ」
+				PRINTFORMW 「少なくとも、薬はまた作れる……取り返しはつくんだから」
+			ELSE
+				PRINTFORML 「完璧な薬だわ……飲むより飾っておいた方が、この薬の価値を適切に表現できそう」
+				PRINTFORMW 「完璧じゃない者が飲んだ瞬間、効果も完璧じゃなくなるから……」
+			ENDIF
+		;仙丹
+		CASE 512
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「この丹……不老不死とまではいかなくとも、それなりに効果はあるみたい」
+				PRINTFORML 「仙人さまの修行ってのも、案外馬鹿にできないのかもね」
+				PRINTFORMW 「……やっちゃおうか、房中術」
+			ELSE
+				PRINTFORML 「材料もレシピも、不老不死になれるようには見えないけど……」
+				PRINTFORMW 「そう感じてしまうことが……わたしの作った丹に不死の効果が無い理由か」
+			ENDIF
+		;一夜のクシナダ
+		CASE 513
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「ふーん……キノコの成分とアルコールで中毒を起こして、無理やり酔わすわけね」
+				PRINTFORML 「この、一夜茸ってキノコ……白いのが、一気に黒くなるんだ」
+				PRINTFORMW 「……悪趣味だね」
+			ELSE
+				PRINTFORML 「一見ただの強いお酒だけど……成程、キノコの成分で中毒を……」
+				PRINTFORMW 「お酒というより、毒薬ね……」
+			ENDIF
+		;仙香玉兎
+		CASE 514
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「このお香、ちょっと……変な気分に……%UNICODE(0x2665) *1%」
+				PRINTFORML 「す、少し換気しようか……こんなんじゃ、手元が狂っちゃうわ」
+				PRINTFORMW 「これ、普通の香じゃないよね？　……焚いて大丈夫なの？」
+				CFLAG:TARGET:溜まってる度 += 50
+			ELSE
+				PRINTFORML 「このお香、確かに香りは悪くないみたいだけど……」
+				PRINTFORMW 「材料からして、それだけじゃ済まないような」
+			ENDIF
+		;国士無双の薬
+		CASE 515
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「参ったわ、どういう薬かあまり良くわからないかも」
+				PRINTFORML 「作り方は単純だけど……安全性は保証できないから、飲むなら注意して」
+				PRINTFORMW 「ちょっとくらいなら、多分大丈夫……？　誰か適当な奴で試すと良いわ」
+			ELSE
+				PRINTFORML 「これは……相当賢い人が考えた薬みたい」
+				PRINTFORML 「仕組みがよくわからないところが多い」
+				PRINTFORMW 「それでも作る分には簡単なのが、また洗練されているわ……」
+			ENDIF
+		;ガシングガーデン
+		CASE 516
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「何処で聞いてきたか知らないけど、随分物騒な材料ばかりだね」
+				PRINTFORMW 「効能は……ええと、図鑑……性欲をあおるようなものが目立つけど」
+				PRINTFORML 「……まぁ、%CALLNAME:MASTER%が何を考えてるかはともかく」
+				PRINTFORMW 「そうだね、量によっては危ない成分も多いから……屋外で使ったほうが良いと思うわ」
+			ELSE
+				PRINTFORML 「精神面への作用が強い植物ばかり……魔力まで込めて」
+				PRINTFORML 「……園芸目的ってわけじゃなさそう」
+				PRINTFORMW 「何を考えてるの……？」
+			ENDIF
+		;ポイズンボディ
+		CASE 517
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「また、よくわからないレシピを……これで飲み薬なんて、信じられないわ」
+				PRINTFORMW 「情報元は信頼できるの？　もし、%CALLNAME:MASTER%に何かあったら……そいつのこと……」
+				PRINTFORMW 「……いや、そもそも何かあったらダメね……とにかく危険なものだから、少量ずつ、様子を見てね」
+			ELSE
+				PRINTFORML 「複雑な薬……それで、この後の手順は？　え……これで、完成？」
+				PRINTFORML 「飲み薬なんでしょう？　まだ、飲むには適さないと思うわ」
+				PRINTFORMW 「……身体にどんな影響が出ても、知らないから」
+			ENDIF
+		;栄養強化剤
+		CASE 518
+			IF TALENT:恋人 || TALENT:恋慕
+				IF ABL:料理技能 < 2
+					PRINTFORML 「あれ……何か、栄養で困ってるの？」
+					PRINTFORML 「バランスの良い食事を作ってあげられれば良かったんだけど……わたし、料理はちょっとね」
+					PRINTFORMW 「まぁ、せめて栄養剤の準備はまた手伝うわ」
+				ELSEIF ABL:料理技能 < 4
+					PRINTFORML 「ふーん……何か、足りない栄養があるってこと」
+					PRINTFORML 「身体に良さそうな食事、わたしが作ってあげても良いけどね」
+					PRINTFORMW 「もちろん、栄養剤を使うのも悪くないと思うけど……頻繁に使うには、ちょっと味がね」
+				ELSE
+					PRINTFORML 「こんなものに頼らなくても、わたしなら%CALLNAME:MASTER%にぴったりの食事を用意できるよ」
+					PRINTFORML 「もちろん、味も栄養も両立して……どう、頼ってみない？」
+					PRINTFORMW 「いつでも良いからね」
+				ENDIF
+			ELSE
+				PRINTFORML 「食事を栄養補給の手段と割り切るなら、有用でしょう」
+				PRINTFORMW 「味は……栄養よりは、誤魔化しが効き易いだろうし」
+			ENDIF
+		;蝦蟇の油
+		CASE 641
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「カエルかぁ……あまり得意じゃないんだけど」
+				PRINTFORML 「油の処理くらいならするから……直接触るところは、任せるわ」
+				PRINTFORMW 「よろしくね」
+			ELSE
+				PRINTFORML 「カエルは……」
+				PRINTFORMW 「……いや、なんでもないわ……手早く済ましましょう」
+			ENDIF
+		;魚粕
+		CASE 642
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「捕まったばっかりに、搾り取られた挙句粉々に粉砕されるわけね」
+				PRINTFORML 「でも、魚からしたら案外……何も残らないくらい粉々にされちゃった方が」
+				PRINTFORMW 「……無様に死体を晒し続けるより、気が楽かもしれないわ」
+			ELSE
+				PRINTFORML 「魚を圧搾、乾燥……ふむ、結構手間のかかる工程」
+				PRINTFORML 「最初からやるなら、時間が……ああ、もう乾燥したのがあるの」
+				PRINTFORMW 「いつの間に……準備が良い」
+			ENDIF
+		;パワフルドラッグ
+		CASE 850
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「爆弾かぁ、手伝うのは良いけど……何に使う気？　危ない事じゃないよね」
+				PRINTFORML 「捕まったりしたら……女を調教洗脳して爆弾を作らせていたとか、滅茶苦茶に報道されるかもよ」
+				PRINTFORMW 「あながち間違ってないかもしれないけど」
+			ELSE
+				PRINTFORML 「爆薬ね……衝撃で応答させても良いけど、調剤次第では時限式にもできそう」
+				PRINTFORMW 「中身はもちろん、瓶が重要だわ……このレシピは、そのあたり結構考えられてるみたい」
+			ENDIF
+		;アイシクルボム
+		CASE 851
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「冷却の魔法ね……結構練習したことあるから、自信あるよ」
+				PRINTFORML 「なんか、似合うかなって思って……こう、クールなイメージで……」
+				PRINTFORMW 「……自分で言うと恥ずかしいわ」
+			ELSE
+				PRINTFORML 「魔法で物を冷やしたいの？」
+				PRINTFORMW 「そう……熱はエネルギーの基本だから、身に着けて損は無いわ」
+			ENDIF
+		;太乙の火種
+		CASE 852
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「戦闘で使う気なんだ……なんというか、無駄なエネルギーが多い気がするかな」
+				PRINTFORML 「派手に魅せる事は効果があるんだろうけど……そこら中燃やすってのがね」
+				PRINTFORMW 「多分、わたしの苦手なタイプの奴ね……」
+			ELSE
+				PRINTFORML 「炎を操ること自体は、覚えておけば有用だと思うわ……」
+				PRINTFORML 「でも……これは少し物騒」
+				PRINTFORMW 「周りに気をつけて使って」
+			ENDIF
+		;魅惑のエサ
+		CASE 853
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「よくわからないエサで、よくわからない生物を引っ張ってくるわけか」
+				PRINTFORML 「なんか、胡散臭いというか掴みどころがないというか……作った奴の性格が知れるね」
+				PRINTFORMW 「%CALLNAME:MASTER%、付き合う相手は考えたほうが良いよ」
+			ELSE
+				PRINTFORML 「これが……餌？　撒くだけで、高速で飛行生物が……」
+				PRINTFORML 「そもそも、生物なのかも疑わしいけど……」
+				PRINTFORMW 「……あまり深入りすると、餌に釣られたのはわたしの方になるか」
+			ENDIF
+		;賢者の石
+		CASE 854
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「多くの属性を組み合わせて、各属性の弱点を隠し合っている」
+				PRINTFORML 「でもそれは、すべての弱点を併せ持っているとも言えるわ」
+				PRINTFORML 「バランスを間違えると、あっさり崩壊するだろうね」
+				PRINTFORMW 「上手く使えるなら……まぁ、賢者と呼ばれても良いんじゃない？」
+			ELSE
+				PRINTFORML 「理論的で秩序立った、綺麗な魔法だわ……」
+				PRINTFORMW 「魔法使いらしい技術……感覚で魔法を使う者には無理な芸当ね」
+			ENDIF
+		;バレットゴーレム
+		CASE 855
+			IF TALENT:恋人 || TALENT:恋慕
+				IF ABL:戦闘能力 >= ABL:MASTER:戦闘能力
+					PRINTFORML 「戦闘の頭数が欲しいなら、わたしがパートナーをやっても良いけどね」
+					PRINTFORMW 「たぶん、足手まといになることは無いと思うよ」
+				ELSE
+					PRINTFORML 「頭数を増やすだけなら、他人を頼る手もあるけど……わたしとか」
+					PRINTFORML 「確かに、%CALLNAME:MASTER%くらい実力があれば自分で作ってしまった方が強力かもね」
+					PRINTFORMW 「わたしも……差し当たって、このゴーレムに軽く勝てるくらいにはならないと」
+				ENDIF
+			ELSE
+				PRINTFORML 「単純なアルゴリズムであれば連携は取りやすいし、相手の注意を削ぐには十分……」
+				PRINTFORMW 「手数を増やすには良い手段だわ……わたしも、考えてみても良いかも」
+			ENDIF
+		;エピタフ
+		CASE 870
+			IF FIRSTTIME("調合870")
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「あれ、これで完成だと思ったんだけど……何これ？」
+					PRINTFORMW 「ごめん……わたし、何か間違ったかな」
+					PRINTFORMDL エピタフは間違いなく完成した……TSPを注ぐことで未来が見えるようになるだろう。
+					PRINTFORMDL 能力の無い者には理解できないだろうが、その方が都合が良い。
+					PRINTFORMDW %CALLNAME:MASTER%はマイに調合が無事に完了したことを伝え、後片付けをすることにした……
+					PRINTFORML 
+					PRINTFORML 「そう、問題ないんだ……なら良いわ」
+					PRINTFORML 「細かいことも、%CALLNAME:MASTER%が言いたくないのなら聞かない」
+					PRINTFORMW 「面倒だもんね、そういうの聞かれると……」
+				ELSE
+					PRINTFORML 「……手順通りにしたはずだけど」
+					PRINTFORML 「何か、変わったの……？」
+					PRINTFORMDL エピタフは間違いなく完成した……TSPを注ぐことで未来が見えるようになるだろう。
+					PRINTFORMDL 能力の無い者には理解できないだろうが、その方が都合が良い。
+					PRINTFORMDW %CALLNAME:MASTER%はマイに調合が無事に完了したことを伝え、後片付けをすることにした……
+					PRINTFORML 
+					PRINTFORML 「これで、完成……そう」
+					PRINTFORMW 「余計な詮索はやめておきましょうか……お互いに」
+				ENDIF
+			ELSE
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「このレシピは……確か、これで完成だったよね」
+					PRINTFORMW 「相変わらず意味は分からないけど、作る分には簡単かな」
+				ELSE
+					PRINTFORML 「また、これか……」
+					PRINTFORML 「手順自体は単純、なのに……物の本質は見えてこない」
+					PRINTFORMW 「……」
+				ENDIF
+			ENDIF
+		;キング・クリムゾン
+		CASE 871
+			IF FIRSTTIME("調合871")
+				PRINTFORMDL 連続する時の速度を操作する事には慣れていたが、それでは対応しきれない場面もあった。
+				PRINTFORMDL このキング・クリムゾンがあれば時の流れを切り取り、そこに身を置くことができるはずだ。
+				PRINTFORMDL すなわち、他者から見れば時間は消し飛ぶことになる。これで戦略の幅が広がるだろう。
+				PRINTFORMDW 調合は問題無く完了した……%CALLNAME:MASTER%は満足すると、後片付けを始めた。
+				PRINTFORML 
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「情けないことに、手順から完成品までさっぱり解らなかったわ……」
+					PRINTFORMW 「でも……%CALLNAME:MASTER%が良いって言うなら、これで良いんだろうね」
+					PRINTFORML 「ちなみに、何を作ったのかは……説明する気があるなら、とっくにしてるか」
+					PRINTFORML 「まぁ、良いわ……%CALLNAME:MASTER%のその得体の知れない所も、実はそんなに嫌いじゃないし」
+					PRINTFORMW 「大体、ちょっとくらい隠し事がある方が普通……むしろ、健全ってものだわ」
+				ELSE
+					PRINTFORML 「材料、手順、完成品……どれをとっても、理解できない」
+					PRINTFORMW 「%CALLNAME:MASTER%は……一体、何者なの……？」
+					PRINTFORMDL そんなことを教える義理は無い。
+					PRINTFORMDL 第一、目の前で作ったのだから理解できないほうが悪いのだ。
+					PRINTFORMDW %CALLNAME:MASTER%は、何の意味も無いオブジェを作ったと適当に誤魔化した……
+					PRINTFORML 
+					PRINTFORMW 「何の意味も無い？　そんなわけが……あぁ……いや、それで良いわ」
+					PRINTFORMW 「その方が、良い……そうだよね」
+				ENDIF
+			ELSE
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「はいはい、これね……覚えてるよ、作り方だけは」
+					PRINTFORMW 「同じようにできてるかは知らないけど」
+				ELSE
+					PRINTFORML 「このレシピ……ええ、覚えてるわ」
+					PRINTFORMW 「……意味の無いオブジェ、でしょ？」
+				ENDIF
+			ENDIF
+		;今後調合アイテムが増えたら出る
+		CASEELSE
+			IF TALENT:恋人 || TALENT:恋慕
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「まぁ、こんなものかな？」
+					PRINTFORMW 「危なげなかったし……特に手順を更新したりする必要もないか」
+				CASE 1
+					PRINTFORML 「%CALLNAME:MASTER%も、なかなか上手いもんだね」
+					PRINTFORMW 「今度はわたしのも手伝ってもらおうかな」
+				CASEELSE
+					PRINTFORML 「よし、じゃあ片付けようか」
+					PRINTFORML 「次に影響が出ないように、丁寧に洗っておかないと」
+					PRINTFORMW 「わたし、適当にやっておくから……どっかで休んでたら？」
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ふぅ、完成……」
+					PRINTFORMW 「まだ、何か作るの？」
+				CASE 1
+					PRINTFORML 「少し手間取ったか……」
+					PRINTFORMW 「物は大丈夫……なら、良いでしょう」
+				CASEELSE
+					PRINTFORML 「これで終わりね……」
+					PRINTFORMW 「じゃあ、こっちは片づけておくから……残りをお願い」
+				ENDSELECT
+			ENDIF
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+
 ;==================================================
 ;448,罠を仕掛ける／虫トラップ
 ;TFLAG:193,

@@ -51,7 +51,15 @@ ENDIF
 ;セットアップ
 CALL SUIKA_SETUP
 WAIT
-;TARGETを変更しておく
+;TARGETが参加していない場合はTARGETを変更しておく
+IF FLAG:デート相手
+	;参加しなくても最優先,そんなひどいことする？
+	TARGET = FLAG:デート相手
+ELSEIF !MATCH(SUIKA_PLAYER, TARGET)
+	;一人目をターゲットに変更
+	TARGET = SUIKA_PLAYER:1
+ENDIF
+
 TARGET = SUIKA_PLAYER:1
 ;ゲーム開始
 CALL SUIKA_SMASHING
@@ -91,6 +99,17 @@ FOR LOCAL, 1, SUIKA_PLAYERNUM + 1
 			TIMES SOURCE:CHARA:受動, 1.20
 			TIMES SOURCE:CHARA:征服, 1.20
 		ENDIF
+	ENDIF
+	;口上用に役職情報を渡しておく
+	SIF CHARA == TARGET && (SUIKA_LIAR:LOCAL || CHARA == [[正邪]])
+		TFLAG:194 = 1
+	;◆口上
+	CALL KOJO_MESSAGE_SEND("SUIKA", 0, CHARA, SUIKA_LIAR:LOCAL, 0, "結果")
+	IF RESULTS != ""
+		PRINTL 
+		PRINTFORML %CALLNAME:CHARA%
+		PRINTFORMW 「%RESULTS%」
+		RESETCOLOR
 	ENDIF
 	;なるべく動かない
 	TCVAR:CHARA:なるべく動かない = 1
@@ -554,7 +573,7 @@ FOR LINENUM, 1, 9
 	ELSE
 		LOCAL = SHAFFLE_ARRAY:(LINENUM - 2) + 1
 		CHARA = SUIKA_PLAYER:LOCAL
-		PRINTPLAINFORM % CHARA ? SUIKA_MESSAGE(CHARA, LOCAL) # "" , 30, LEFT%
+		CALL SUIKA_MESSAGE(CHARA, LOCAL, 1)
 	ENDIF
 	SELECTCASE LINENUM
 	CASE 2
@@ -575,7 +594,7 @@ FOR LINENUM, 1, 9
 	ELSE
 		LOCAL = SHAFFLE_ARRAY:(LINENUM - 1) + 1
 		CHARA = SUIKA_PLAYER:LOCAL
-		PRINTPLAINFORM % CHARA ? SUIKA_MESSAGE(CHARA, LOCAL) # "" , 30,RIGHT%
+		CALL SUIKA_MESSAGE(CHARA, LOCAL, 2)
 	ENDIF
 	PRINTL 
 NEXT
@@ -646,7 +665,7 @@ CASE 2
 	PRINTFORML …………
 	IF SUIKA_OVER(SUIKA_BACK())
 		CALL SUIKA_COLLISION
-		LINENUM_PLUS += 4
+		LINENUM_PLUS += RESULT
 	ELSE
 		PRINTFORMW %CALLNAME:MASTER%は一歩下がった
 		SUIKA_MASTER_P = SUIKA_BACK()
@@ -656,7 +675,7 @@ CASEELSE
 	PRINTFORML …………
 	IF SUIKA_OVER(SUIKA_AIMING())
 		CALL SUIKA_COLLISION
-		LINENUM_PLUS += 4
+		LINENUM_PLUS += RESULT
 	ELSE
 		PRINTFORMW %CALLNAME:MASTER%は一歩前に出た
 		SUIKA_MASTER_P = SUIKA_AIMING()
@@ -670,35 +689,58 @@ RESTART
 ;スイカ割り：衝突メッセージ
 ;-------------------------------------------------
 @SUIKA_COLLISION
+#DIM LINE
+LINE = 4
 LOCAL = SUIKA_PLAYER:(RAND:SUIKA_PLAYERNUM + 1)
 PRINTFORMW ゴツンッ！
 PRINTL 
-;◆口上設定（※未実装）
+;◆口上
+CALL KOJO_MESSAGE_SEND("SUIKA", 0, LOCAL, 0, 0, "衝突")
+IF RESULTS != ""
+	PRINTFORMW 「%RESULTS%」
+	PRINTL 
+	LINE += 2
+ENDIF
+RESETCOLOR
 IF LOCAL == [[萃香]]
 	PRINTFORMW それはスイカではなく萃香だ
 ELSE
 	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:LOCAL%とぶつかってしまった……
 ENDIF
 
+RETURN LINE
+
 ;-------------------------------------------------
 ;スイカ割り：台詞関数１,どんな台詞を言うかの判定
 ;ARG,プレイヤー番号
+;ARG:1,表示位置 1=LEFT,2=RIGHT
 ;-------------------------------------------------
-@SUIKA_MESSAGE(CHARA, ARG)
-#FUNCTIONS
+@SUIKA_MESSAGE(CHARA, ARG, ARG:1)
 #DIM CHARA
 #DIM 客観方向
 #DIMS 主観方向
+#DIM ウソつき
+#DIMS 正直な指示
+#DIMS 指示
+;非表示
+IF !CHARA
+	IF ARG:1 == 1
+		PRINTPLAINFORM %"" , 30, LEFT%
+	ELSE
+		PRINTPLAINFORM %"" , 30, RIGHT%
+	ENDIF
+	RETURN
+ENDIF
 
 ;完全一致
 IF SUIKA_DISTANCE(SUIKA_AIMING(), SUIKA_SUIKA_P) == 0
-	RETURNF SUIKA_MESSAGE_2(CHARA, ARG, "そこだ！")
+	正直な指示 = そこだ！
 ;1マスずれ（2分の1）
 ELSEIF SUIKA_DISTANCE(SUIKA_AIMING(), SUIKA_SUIKA_P) == 1 && !RAND:2
-	RETURNF SUIKA_MESSAGE_2(CHARA, ARG, "そこだ！")
+	正直な指示 = そこだ！
 ;重なっている（1マスずれの漏れ）
 ELSEIF SUIKA_DISTANCE(SUIKA_MASTER_P, SUIKA_SUIKA_P) == 0
-	RETURNF SUIKA_MESSAGE_2(CHARA, ARG, "少し後ろ")
+	正直な指示 = 少し後ろ
 ;それ以外
 ELSE
 	;近さ判定
@@ -720,11 +762,11 @@ ELSE
 	;距離のヒント
 	IF LOCAL:1
 		IF SUIKA_DISTANCE(SUIKA_AIMING(), SUIKA_SUIKA_P) <= 3
-			RETURNF SUIKA_MESSAGE_2(CHARA, ARG, "近い")
+			正直な指示 = 近い
 		ELSEIF SUIKA_DISTANCE(SUIKA_AIMING(), SUIKA_SUIKA_P) >= 8
-			RETURNF SUIKA_MESSAGE_2(CHARA, ARG, "かなり遠い")
+			正直な指示 = かなり遠い
 		ELSE
-			RETURNF SUIKA_MESSAGE_2(CHARA, ARG, "遠い")
+			正直な指示 = 遠い
 		ENDIF
 	;方向のヒント
 	ELSE
@@ -776,19 +818,9 @@ ELSE
 		ENDIF
 		SIF LOCAL:2
 			主観方向 = 少し%主観方向%
-		RETURNF SUIKA_MESSAGE_2(CHARA, ARG, 主観方向)
+		正直な指示 = %主観方向%
 	ENDIF
 ENDIF
-
-;-------------------------------------------------
-;スイカ割り：台詞関数２,実際に喋る台詞
-;ARG,プレイヤー番号
-;-------------------------------------------------
-@SUIKA_MESSAGE_2(CHARA, ARG, ARGS)
-#FUNCTIONS
-#DIM CHARA
-#DIM ウソつき
-#DIMS 指示
 ;正邪は役職を無視して嘘をつく
 IF SUIKA_LIAR:ARG || CHARA == [[正邪]]
 	ウソつき = 1
@@ -796,7 +828,7 @@ ELSE
 	ウソつき = 0
 ENDIF
 IF ウソつき
-	SELECTCASE ARGS
+	SELECTCASE 正直な指示
 	CASE "そこだ！"
 		指示 =%TEXTR("少し後ろ/少し前/少し右/少し左")%
 	CASE "近い"
@@ -823,9 +855,33 @@ IF ウソつき
 		指示 = %TEXTR("少し右/そこだ！")%
 	ENDSELECT
 ELSE
-	指示 = %ARGS%
+	指示 = %正直な指示%
 ENDIF
-;◆口上設定（※未実装）
+;◆口上
+CALL KOJO_MESSAGE_SEND("SUIKA", 0, CHARA, 0, 0, 指示)
+IF RESULTS != ""
+	IF ARG:1 == 1
+		PRINTPLAINFORM %"「" + RESULTS + "」", 30, LEFT%
+	ELSE
+		PRINTPLAINFORM %"「" + RESULTS + "」", 30, RIGHT%
+	ENDIF
+ELSE
+	IF ARG:1 == 1
+		PRINTPLAINFORM %SUIKA_MESSAGE_2(CHARA, ARG, 指示), 30, LEFT%
+	ELSE
+		PRINTPLAINFORM %SUIKA_MESSAGE_2(CHARA, ARG, 指示), 30, RIGHT%
+	ENDIF
+ENDIF
+
+;-------------------------------------------------
+;スイカ割り：台詞関数２,実際に喋る台詞
+;ARG,プレイヤー番号
+;-------------------------------------------------
+@SUIKA_MESSAGE_2(CHARA, ARG, 指示)
+#FUNCTIONS
+#DIM CHARA
+#DIMS 指示
+;汎用台詞
 SELECTCASE 指示
 CASE "そこだ！"
 	SELECTCASE CFLAG:CHARA:口調

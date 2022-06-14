@@ -1,11 +1,13 @@
 ﻿;-------------------------------------------------
-; eraTheWorld 4.831 映姫様口上（キャラクターの名前を入れる、下にコンセプトなど一言あれば入れる）
+; eraTheWorld 4.841 映姫様口上（キャラクターの名前を入れる、下にコンセプトなど一言あれば入れる）
 ;-------------------------------------------------
 ;
 ;「四季様の愛のあるお説教……イイ……！」
 ;
 ;**** FlagManagement **********************************************************
 ;本口上にて使用しているCFLAG・TCVAR等
+;TCVAR:30:355 おしり画像エフェクト制御フラグ
+;TCVAR:30:356 特殊表情COM制御フラグ
 ;TCVAR:30:357 フェラアニメ制御フラグ
 ;TCVAR:30:358 デートのお誘い(=0 あなたから =1 相手から)
 ;TCVAR:30:359 一日一回の会話＠来訪理由
@@ -14,10 +16,10 @@
 ;TCVAR:30:362 強制攻守交代口上フラグ２
 ;TCVAR:30:363 朝うふふフラグ(=TIME 朝フェラした時間 =-1 妊活の為我慢した -1以下 朝うふふ実行)
 ;TCVAR:30:364 バイブ挿入デートフラグ(=1 挿入中 =-1 時間停止中)
+;TCVAR:30:365 ホワイトデー返礼フラグ（暫定）
 ;TCVAR:30:371 映姫様折檻フラグ(=1 怒ってる =2 オオイカリ =3 マジイカリ)
 ;TCVAR:30:372 虫の居所フラグ(=1 @KIGEN_CHANGEで不機嫌になった。MASTERが悪くない)
 ;TCVAR:30:373 おはよう口上フラグ(=1 おはよう口上通した =2 映姫様起きてなかった =3 部屋に乱入された)
-;TCVAR:30:374 スカートめくりコンボフラグ(口上分岐用)
 ;TCVAR:30:375 射精口上分岐フラグ(ダブルフェラ/授乳プレイ)
 ;TCVAR:30:376 押し倒し口上制御フラグ(=1 押し倒し中 =2 押し倒され中)
 ;TCVAR:30:377 詫びおぱんつフラグ(=-1 配送予約済み =2～ 手元のぱんつ種類)
@@ -33,7 +35,7 @@
 ;TCVAR:30:395 口内射精回数
 ;TCVAR:30:396 五重絶頂
 ;TCVAR:30:397 騎乗位の向き(=0 対面 =1 背面)
-;CFLAG:1500 映姫様アニメーションスイッチ（ =1 OFF）
+;CFLAG:1500 映姫様おしり画像＆アニメーションスイッチ（BIT0=アニメON/OFF BIT1=おしり画像ON/OFF）
 ;CFLAG:1501 映姫様マグロスイッチ（ =1 ON）
 ;CFLAG:1502 妊娠願望関連フラグ
 ;(Bit =0 危険日Ｈ解禁 =1 子宝願掛け済 =2 信頼度到達 =3 願望取得済 =4 二人目願望)
@@ -53,7 +55,7 @@
 ;CFLAG:1701 良いお話の累計
 ;CFLAG:1801 映姫様ガードアップフラグ(=1 ガード力アップ)
 ;CFLAG:1802 母乳口上分岐フラグ(=1 授乳期間中)
-;CFLAG:1803 メッセージ抑制フラグ(Bit =0 ガード力アップUPDATE =1 弱み握り =2 呼び名変更 =3 日記UPDATE =4 母乳体質UPDATE =5 特殊デート)
+;CFLAG:1803 メッセージ抑制フラグ(Bit0-ガード力アップUPDATE 1-弱み握り 2-呼び名変更 3-日記UPDATE 4-母乳体質UPDATE 5-特殊デート 6-別絵確認)
 ;CFLAG:1900 日記フラグ(初回遭遇パターン)
 ;CFLAG:1901 日記フラグ(初回遭遇時大家ID)
 ;CFLAG:1910 日記分岐管理
@@ -89,9 +91,8 @@ RETURN 1
 CFLAG:30:時間停止口上有 = 1
 CFLAG:30:眠姦口上有 = 1
 ;CFLAG:X:なりきり口上有 = 0
-
 ;破瓜キャンセル口上有に1を入れると、@M_KOJO_EVENT_KX_LOST_VIRGIN_STOPでキャンセルの成否を操作できます
-;映姫様はお堅いのでオナバレなし崩しックス拒否するよ
+;映姫様はお堅いので処女はなるべく守ろうとするよ
 SIF CFLAG:30:1801 == 1
 	CFLAG:30:破瓜キャンセル口上有 = 1
 
@@ -112,13 +113,21 @@ ELSE
 	CFLAG:30:破瓜キャンセル口上有 = 0
 ENDIF
 
-;来訪不能に1を入れると、来訪してこなくなります
-;以下は面識があるまで来訪してこなくなる使用例
-;IF !CFLAG:X:面識
-;	CFLAG:X:来訪不能 = 1
-;ELSE
-;	CFLAG:X:来訪不能 = 0
-;ENDIF
+;映姫様は意識がちゃんとある時しかキス合意を認めないよ
+SIF CFLAG:30:1801 == 1 && CFLAG:30:1602 == 0
+	CLEARBIT CFLAG:30:既成事実, 0
+	
+;バニー衣装変更でも映姫様は変Ｔから逃げられないよ
+IF CFLAG:30:衣装一時変更 == 55 && !CFLAG:30:うふふ
+	LOCAL = DAY % 7 == 5 ? 62 # 17
+	CALL CTRL_CLOTHES_SET(30, "現在衣装の変更_衣装セット", LOCAL)
+	CALL CLOTHES_SETTING_TRAIN(30)
+ENDIF
+
+;CSV入れ替え済＆現在位置が映姫様と一緒の場合、コマンド待機時のアニメ描画優先度高
+SETANIMETIMER 32627
+SIF SPRITECREATED("K30_ANIME_FLAG") && CFLAG:MASTER:現在位置 == CFLAG:30:現在位置
+	SETANIMETIMER 55
 
 ;バイブデートフォロー
 SIF TCVAR:30:364 >= 0
@@ -127,13 +136,9 @@ SIF CFLAG:30:うふふ
 	RETURN 1
 TEQUIP:30:アナルバイブ = 1
 TCVAR:30:364 = 1
-
+RETURN 1
 ;### 口上色判定 ###################################
 @M_KOJO_COLOR_K30
-;映姫様は意識がちゃんとある時しかキス合意を認めないよ
-;行儀の悪い位置になんかあるのは、毎ターン読みに行きたかったので
-SIF CFLAG:30:1801 == 1 && CFLAG:30:1602 == 0
-	CLEARBIT CFLAG:30:既成事実, 0
 SETCOLOR 0x337D5C
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
 ;"UPDATE判定"
@@ -143,17 +148,7 @@ SETCOLOR 0x337D5C
 ;ENCOUNTER専用に独自分岐フラグを仕込んだ場合等にどうぞ
 ;UPDATE判定でCFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります
 VARSET LOCALS
-IF !GETBIT(CFLAG:30:1803, 4)
-	PRINTFORMDL 
-	PRINTFORMDL 一度限りの質問です
-	PRINTFORMDL 映姫様を恒常的な母乳体質にしますか？
-	CALL ASK_YN
-	IF !RESULT
-		TALENT:30:母乳体質 = 2
-		PRINTFORMDW 変更されました
-	ENDIF
-	SETBIT CFLAG:30:1803, 4
-ENDIF
+SETBIT CFLAG:30:1803, 4
 IF CFLAG:30:面識 && MASTERNAME:30 == ""
 	PRINTFORML
 	PRINTFORML アップデートで映姫様からの呼び名を変更出来るようになりました
@@ -213,14 +208,27 @@ IF GETBIT(CFLAG:30:1803, 0)
 			RETURN 1
 	ENDSELECT
 ENDIF
-PRINTL 映姫様のフェラアニメを…
-PRINTL [0] - 使用する
-PRINTL [1] - 使用しない
-$LOOP_ANIME
+PRINTFORML 
+IF !GETBIT(CFLAG:30:1803, 6)
+	SETBIT CFLAG:30:1803, 6
+	IF !CFLAG:30:差し替え適用 && SPRITECREATED("特別拡張_30")
+		PRINTFORML 映姫様の顔絵を口上推奨の別絵に切替えます
+		PRINTFORML 差し支えあれば[表示設定]から[差分]OFFにしてください
+		PRINTFORML 
+		CFLAG:30:差し替え適用 = 1
+	ENDIF
+ENDIF
+PRINTL 映姫様口上専用画像表示オプション
+PRINTL 
+PRINTL [0] - 表示ON
+PRINTL [1] - おしり画像のみON　　　※若干人を選ぶ表現あり
+PRINTL [2] - フェラアニメのみON　　※描画負荷高め
+PRINTL [3] - 全てOFF
+$LOOP_SELECT
 INPUT
-IF !INRANGE(RESULT, 0, 1)
+IF !INRANGE(RESULT, 0, 3)
 	CLEARLINE 1
-	GOTO LOOP_ANIME
+	GOTO LOOP_SELECT
 ENDIF
 CFLAG:30:1500 = RESULT
 
@@ -243,7 +251,7 @@ CALL M_KOJO_COLOR_K30
 ;白玉楼か是非曲直庁に部屋持ち
 IF MAIN_MAP == 6 && 拠点_大家 != 26
 	;変ＴVer.-冥界住まいで4日間映姫様を避け続ける。たぶん死に分岐
-	IF CFLAG:30:衣装一時変更 == 62
+	IF K30_CHECK_HEN_T()
 		CFLAG:30:1900 = 4
 		PRINTFORMW 「えっ……！？」
 		PRINTFORMDL 声の方へ振り向くとそこには奇妙な格好をした少女が立っていた
@@ -298,7 +306,7 @@ ELSE
 	;此岸住まいで彼岸で対面
 	IF (MAIN_MAP != 6 && INRANGE(CFLAG:MASTER:現在位置, 640, 699)) || (MAIN_MAP == 6 && (INRANGE(CFLAG:MASTER:現在位置, 610, 629) || INRANGE(CFLAG:MASTER:現在位置, 640, 699)))
 		;変Ｔ
-		IF CFLAG:30:衣装一時変更 == 62
+		IF K30_CHECK_HEN_T()
 			CFLAG:30:1900 = 5
 			PRINTFORMW 「誰ですか……！？」
 			PRINTFORMDL 声の方へ振り向くと、そこには奇妙な格好をした少女が立っていた
@@ -331,7 +339,7 @@ ELSE
 	;一般的な遭遇
 	ELSE
 		;変Ｔ
-		IF CFLAG:30:衣装一時変更 == 62
+		IF K30_CHECK_HEN_T()
 			CFLAG:30:1900 = 6
 			PRINTFORMDW %CALLNAME:MASTER%は奇妙な格好をした少女を見つけた
 			PRINTFORMDL かぶっている帽子には格調高い意匠が施されており持ち主の位の高さが伺える
@@ -361,7 +369,7 @@ ELSE
 		ENDIF
 	ENDIF
 	CALL K30_SET_C_NAME(0)
-	IF CFLAG:30:衣装一時変更 == 62
+	IF K30_CHECK_HEN_T()
 		PRINTFORML 「私の名は、四季映姫。幻想郷の閻魔を務めています…」
 		PRINTFORMW 「………………」
 		PRINTFORML 「……いろいろと疑問がありそうなのは、よくわかってます」
@@ -375,7 +383,7 @@ ELSE
 		PRINTFORMDW これは………バレているのか？
 	ENDIF
 ENDIF
-IF CFLAG:30:衣装一時変更 == 62
+IF K30_CHECK_HEN_T()
 	PRINTFORML 
 	PRINTFORMDL 一方的に話を打ち切られてしまった
 	PRINTFORMDL 噂に聞いていた幻想郷の閻魔様とはずいぶん印象が違い戸惑ってしまう
@@ -543,7 +551,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 0
 		CALL K30_PULL_OUT_VIBE
-		IF CFLAG:30:衣装一時変更 == 62
+		IF K30_CHECK_HEN_T()
 			IF TCVAR:30:358 == 0
 				PRINTFORMW 「こんな日に連れ回すだなんて、貴方って本当に意地悪な人です…」
 			ELSE
@@ -635,8 +643,8 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 1
 		IF TCVAR:30:373 && (ONCE("同棲挨拶") || (TIME - TCVAR:30:363 <= 5) || TIME - TIME:3 <= 5) || TFLAG:192 == 10
 		ELSEIF 仕事中チェック(30) && GET_JOBNAME(30) == "裁判"
-			PRINTFORMDL 映姫は\@ CFLAG:30:衣装一時変更 == 62 ? 変なＴシャツを着て # \@裁判に集中している…
-		ELSEIF CFLAG:30:衣装一時変更 == 62
+			PRINTFORMDL 映姫は\@ K30_CHECK_HEN_T() ? 変なＴシャツを着て # \@裁判に集中している…
+		ELSEIF K30_CHECK_HEN_T()
 			IF TALENT:機嫌 > -1
 				SELECTCASE RAND:3
 					CASE 0
@@ -671,7 +679,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 		IF TFLAG:192 == 10
-		ELSEIF CFLAG:30:衣装一時変更 == 62
+		ELSEIF K30_CHECK_HEN_T()
 			IF TALENT:機嫌 > -1
 				SELECTCASE RAND:3
 					CASE 0
@@ -746,8 +754,8 @@ IF LOCAL
 		IF TFLAG:192 == 10 
 			TFLAG:192 = 0
 		ELSEIF 仕事中チェック(30) && GET_JOBNAME(30) == "裁判"
-			PRINTFORMDL 映姫は\@ CFLAG:30:衣装一時変更 == 62 ? 変なＴシャツを着て # \@裁判に集中している…
-		ELSEIF CFLAG:30:衣装一時変更 == 62
+			PRINTFORMDL 映姫は\@ K30_CHECK_HEN_T() ? 変なＴシャツを着て # \@裁判に集中している…
+		ELSEIF K30_CHECK_HEN_T()
 			IF TALENT:機嫌 > -1
 				SELECTCASE RAND:3
 					CASE 0
@@ -912,7 +920,7 @@ IF LOCAL
 			TCVAR:30:372 = 1
 		TFLAG:192 = 10
 		;変なＴシャツ
-		IF CFLAG:30:衣装一時変更 == 62
+		IF K30_CHECK_HEN_T()
 			IF YOUBI_MATCH(DAY, "金")
 				IF FIRSTTIME("変Ｔお披露目")
 					PRINTFORMDW …%CALLNAME:MASTER%はその少女が誰だか一瞬わからなかった
@@ -1719,7 +1727,7 @@ IF LOCAL && SHIRAHU(30)
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
-		IF CFLAG:30:衣装一時変更 == 62
+		IF K30_CHECK_HEN_T()
 			PRINTFORMDL 映姫はぼんやりとしている
 		ELSE
 			PRINTFORMDL 映姫は%CALLNAME:MASTER%に会釈を返した
@@ -1732,7 +1740,7 @@ IF LOCAL && SHIRAHU(30)
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
-		IF CFLAG:30:衣装一時変更 == 62
+		IF K30_CHECK_HEN_T()
 			PRINTFORMDL 映姫はぼんやりとしている
 		ELSEIF TALENT:恋人
 			PRINTFORMDL 映姫は構ってもらえなくて残念そうだ…
@@ -2299,7 +2307,7 @@ IF LOCAL
 		SETBIT CFLAG:1910, 4
 	IF LOCAL:1 && ARG:1 == 1
 		;変Ｔで目が死んでいるときは取り上げるだけ
-		IF CFLAG:30:衣装一時変更 == 62 && TALENT:機嫌 > -1
+		IF K30_CHECK_HEN_T() && TALENT:機嫌 > -1
 			PRINTFORML 「……何を考えてるんですか、それは没収しておきます」
 			PRINTFORML 「………………」
 			PRINTFORMW 「いいです。今日のところは、もう行ってください……」
@@ -2345,8 +2353,8 @@ IF LOCAL
 		PRINTFORML 「どうも様子がおかしいと思ったら…」
 		PRINTFORML 「こんな物を持ち歩いていればおかしくて当たり前です！」
 		PRINTFORMDW 映姫は顔を赤らめながら%\@ 持主 == 30 ? 自分 # %CALLNAME:持主% \@%の%PANTSNAME(FINDELEMENT(PANTS_TEMP:持主:0, 1, 0), 持主)%を片付けている
-		;判定黒or一日で二回目以上なら説教。ぱんつの枚数で説教延長
-		IF 判定:0 || 一日一回 == DAY
+		;判定黒or一日で二回目以上orもう貰ってるなら説教。ぱんつの枚数で説教延長
+		IF 判定:0 || 一日一回 == DAY || STRCOUNT(CSTR:30:1, "ぱんつ預かり")
 			CALL K30_LECTURE_CHECK(MIN(30 + (累計 * 3), 60), 0)
 			RETURN 1
 		ENDIF
@@ -2428,9 +2436,7 @@ IF LOCAL
 					PRINTFORMW 
 					PRINTFORMDL 映姫の脱ぎたて\@ PALAM:潤滑 > PALAMLV:4 ? シミ付き # \@%PANTSNAME(EQUIP:30:下半身下着２, 30)%を手に入れた！
 					PRINTFORMDW %CALLNAME:MASTER%は%PANTSNAME(EQUIP:30:下半身下着２, 30)%を厳重にしまいこんだ
-					TCVAR:30:377 = EQUIP:30:下半身下着２
-					CALL PANTS_GET(30, "もらう")
-					CALLF ONCE("ぱんつなし")
+					CALL K30_PANTS_GETTING
 				;ノーパン露出プレイ＠スカートめくり反応と同じ条件分岐+高欲情
 				ELSEIF CFLAG:好感度 > 5000 && 判定:2 > 3 && PALAM:欲情 >= PALAMLV:7
 					PRINTFORMW 「………………」
@@ -2515,7 +2521,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG:1 == 2 
 		;変Ｔで目が死んでいるときは取り上げるだけ
-		IF CFLAG:30:衣装一時変更 == 62 && TALENT:機嫌 > -1
+		IF K30_CHECK_HEN_T() && TALENT:機嫌 > -1
 			PRINTFORML 「……何を考えてるんですか。それは没収しておきます」
 			PRINTFORML 「………………」
 			PRINTFORML 「いいです。今日のところはもう行ってください……」
@@ -2661,7 +2667,7 @@ IF LOCAL
 						PRINTFORMW 「ちゃんと…最後まで、慰めてください…」
 					ENDIF
 				;変Ｔ
-				ELSEIF CFLAG:30:衣装一時変更 == 62
+				ELSEIF K30_CHECK_HEN_T()
 					PRINTFORML 「……おとなしくしてください」
 					PRINTFORMW 「今は私からしたいんです。したくなったんです……」
 					PRINTFORMDW ……いろいろ溜まったものがどうやら爆発したようだ
@@ -2746,7 +2752,7 @@ IF LOCAL
 			TCVAR:30:376 = 2
 			;絶頂回数等リセット
 			VARSET TCVAR:30:0, 0, 390, 398
-			IF TALENT:恋慕 && CFLAG:30:衣装一時変更 == 62
+			IF TALENT:恋慕 && K30_CHECK_HEN_T()
 				PRINTFORML 「……おとなしくしてください」
 				PRINTFORMW 「今は私からしたいんです。したくなったんです……」
 				PRINTFORMDW いろいろ溜まったものがどうやら爆発したようだ
@@ -3181,7 +3187,7 @@ IF LOCAL && 連打防止 != TIME && CFLAG:30:職種 == 43
 		ELSEIF BATHROOM(CFLAG:現在位置)
 			PRINTFORMW 「身体も清めましたし、そろそろ仕事へ行ってきますね」
 		;変Ｔ
-		ELSEIF CFLAG:30:衣装一時変更 == 62
+		ELSEIF K30_CHECK_HEN_T()
 			PRINTFORML 「……………%TEXTR("……/お休みしたい/はぁ…/")%」
 			PRINTFORMDW 仕事に向かう映姫の足取りはとても重そうだ…
 		;通常
@@ -3227,7 +3233,7 @@ IF LOCAL && 連打防止 != TIME && CFLAG:30:職種 == 43
 					ENDDATA
 					PRINTFORMDL 映姫は死者に労いの言葉をかけている
 				ENDIF
-				IF CFLAG:30:衣装一時変更 == 62
+				IF K30_CHECK_HEN_T()
 					PRINTFORML 
 					PRINTDATADL
 						DATAFORM それにしても重々しい発言と服装がまるで合ってない…
@@ -3267,7 +3273,7 @@ IF LOCAL && 連打防止 != TIME && CFLAG:30:職種 == 43
 					DATAFORM 「修繕費…こんなにかかるのね…」\n「この建物、いいかげん直したいけど…これじゃあ無理か…」
 					DATAFORM 「三途の川底に穴を開けるなんて無茶なことを…」\n「久侘歌にきちんと調べてもらわないと…」
 				ENDDATA
-				PRINTFORMDL 映姫は\@ CFLAG:30:衣装一時変更 == 62 ? 心を無にして # \@大量の事務仕事を片付けている
+				PRINTFORMDL 映姫は\@ K30_CHECK_HEN_T() ? 心を無にして # \@大量の事務仕事を片付けている
 				PRINTFORMW
 			;書類整理
 			CASE 1020 TO 1139
@@ -3276,7 +3282,7 @@ IF LOCAL && 連打防止 != TIME && CFLAG:30:職種 == 43
 					DATAFORM 「こうしておけば、確認も楽かしら…」
 					DATAFORM 「あっ、ここはちゃんとしておかないと…」
 				ENDDATA
-				PRINTFORMDL 映姫は\@ CFLAG:30:衣装一時変更 == 62 ? 心を無にして # \@仕事の引き継ぎ作業をしている
+				PRINTFORMDL 映姫は\@ K30_CHECK_HEN_T() ? 心を無にして # \@仕事の引き継ぎ作業をしている
 				PRINTFORMW
 		ENDSELECT
 		CALLF ONCE("お仕事拝見")
@@ -3328,7 +3334,7 @@ IF LOCAL
 		TCVAR:盗み食い抑制 = 1
 		PRINTFORML 「…何を警戒しているのかしら」
 		PRINTFORML 「私は人様のものを勝手に食べたりはしませんよ」
-		IF CFLAG:30:衣装一時変更 == 62
+		IF K30_CHECK_HEN_T()
 		ELSEIF STRCOUNT(DISH_TASTE, "劣化/")
 			PRINTFORMDW 映姫に睨まれてしまった…
 			PRINTFORML 「それよりも、せっかくの料理をこんなになるまで放っておくことが気になります」
@@ -3590,7 +3596,7 @@ IF LOCAL
 		;朝うふふフラグ処理
 		SIF INRANGE(TCVAR:30:363, -4, -2)
 			TCVAR:30:363 = -5
-		IF CFLAG:30:衣装一時変更 == 62
+		IF K30_CHECK_HEN_T()
 			PRINTL
 			PRINTFORMDL ……情事の余韻が冷めると映姫はまた今の状況を思い出したようだ
 		ENDIF
@@ -3939,7 +3945,7 @@ IF LOCAL
 			PRINTFORML （やだ……%K30_C_NAME(K30_FIND_AROUND(), 2)%に、こんなの知られたら…）
 			PRINTFORMDW 生真面目な映姫にはノーパンの開放感が耐えられないようだ…
 		ELSE
-			PRINTFORMDW 万が一にもめくれないように\@ CFLAG:30:衣装一時変更 == 62 ? 普段より丈の短い # \@スカートの裾をしっかり押さえている…
+			PRINTFORMDW 万が一にもめくれないように\@ K30_CHECK_HEN_T() ? 普段より丈の短い # \@スカートの裾をしっかり押さえている…
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -4350,7 +4356,7 @@ IF LOCAL
 		WAIT
 		IF TFLAG:192 != 99
 			PRINTFORML 
-			TFLAG:192 = -8
+			TFLAG:192 = -7
 			CALL K30_SPTALK, "LOVE", LOCALS:2
 		ENDIF
 		FLAG:立ち絵種類 = LOCAL
@@ -4379,7 +4385,7 @@ IF LOCAL
 		IF TALENT:恋人
 			PRINTFORML 「離れるのは寂しいけど我慢しないとね…」
 			PRINTFORMW 「…さようなら。…また明日」
-		ELSEIF CFLAG:30:衣装一時変更 == 62
+		ELSEIF K30_CHECK_HEN_T()
 			PRINTFORML 「さようなら。お疲れさまでした…」
 			PRINTFORMDW 映姫は身を隠すようにして、さっと帰ってしまった
 		ELSEIF TALENT:恋慕
@@ -4429,7 +4435,7 @@ IF LOCAL
 				SIF !TCVAR:(CFLAG:MASTER:お招き):連泊禁止 && NEMUKE() < 720
 					PRINTFORMW 「……でも、本当は…離れたくないの……」
 			ENDIF
-		ELSEIF CFLAG:30:衣装一時変更 == 62
+		ELSEIF K30_CHECK_HEN_T()
 			PRINTFORML 「この時間になったら、もういいかしら…」
 			PRINTFORMW 「さようなら」
 			PRINTFORMDW 映姫は人目を気にしながらさっさと帰ってしまった
@@ -4518,7 +4524,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 7
 		PRINTFORML 「%K30_C_NAME(MASTER)%…」
-		PRINTFORMW 「今晩、このまま…お邪魔してもしてもいいかしら？」
+		PRINTFORMW 「今晩、このまま…お邪魔してもいいかしら？」
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -5237,8 +5243,6 @@ RETURN 0
 ;デートに誘われるのは恋慕から、相手に宴会参加予定あれば思慕以上で宴会に同行
 ;==================================================
 @M_KOJO_EVENT_K30_27(ARG,ARG:1)
-#DIM 変Ｔ
-変Ｔ = (CFLAG:30:衣装一時変更 == 62 || FLAG:ファッション == 62)
 ;口上主はLOCAL
 ;ARG:1は目的地
 ;--------------------------------------------------
@@ -5254,7 +5258,7 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			IF 変Ｔ
+			IF K30_CHECK_HEN_T()
 				IF TALENT:恋人
 					PRINTFORMW 「%K30_C_NAME(MASTER)%、人目につかない場所…どこか行きましょう…」
 				ELSEIF TALENT:恋慕
@@ -5281,7 +5285,7 @@ IF LOCAL
 		;-------------------------------------------------
 		IF LOCAL:1
 			TCVAR:30:358 = 1
-			IF 変Ｔ
+			IF K30_CHECK_HEN_T()
 				PRINTFORMW 「ありがとうございます…」
 			ELSEIF TALENT:恋慕
 				RESULT = 0
@@ -5302,7 +5306,7 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			IF 変Ｔ
+			IF K30_CHECK_HEN_T()
 				PRINTFORMW 「そうですか…」
 			ELSE
 				PRINTFORML 「はぁ、それだと時間が空いてしまうわ…」
@@ -5317,7 +5321,7 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			IF 変Ｔ
+			IF K30_CHECK_HEN_T()
 				PRINTFORMW 「あの……%K30_C_NAME(MASTER)%、私の部屋でお話しませんか？」
 			ELSE
 				IF TALENT:恋人
@@ -5337,7 +5341,7 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			IF 変Ｔ
+			IF K30_CHECK_HEN_T()
 				PRINTFORMW 「ありがとうございます……」
 			ELSE
 				IF TALENT:恋人
@@ -6363,7 +6367,7 @@ IF ARG == 1
 	;刻みすぎても大変なので評価は10点区切り
 	LOCAL = 評価点 >= 990 ? 100 # (評価点 / 100 * 10)
 	;変Ｔ
-	IF CFLAG:30:衣装一時変更 == 62
+	IF K30_CHECK_HEN_T()
 		PRINTFORML 「本当は今日みたいな日に渡すつもりはなかったんですが…」
 		IF TALENT:恋慕
 			PRINTFORML 「貴方からはいろいろ貰ってばかりですので」
