@@ -151,13 +151,18 @@ ELSE
 		ENDIF
 	ELSE
 		;服
-		IF FLAG:立ち絵種類
-			;顔絵
-		ELSE
-			;立ち絵
+		IF CFLAG:CHARA:衣装一時変更 == 55 || (CFLAG:CHARA:基本服装セット == 55 && CFLAG:CHARA:衣装一時変更==0)
+			IF FLAG:立ち絵種類
+				;顔絵
+				RESULTS = _バニー
+			ELSE
+				;立ち絵
+				RESULTS = _バニー
+			ENDIF
 		ENDIF
 	ENDIF
 ENDIF
+
 
 ;IMAGE_I43_体形(CHARA)-----------------------------------------------------------------------
 ;キャラクター特有の体形表示条件
@@ -210,6 +215,14 @@ ELSE
 	;通常画像
 	IF FLAG:立ち絵種類
 		;顔絵
+		IF CFLAG:CHARA:衣装一時変更 == 101 || (CFLAG:CHARA:基本服装セット == 101 && CFLAG:CHARA:衣装一時変更==0) && !CHECK_NUDE(CHARA)
+		;灵梦巫女set
+			IF SELECTCOM == 364
+				RESULTS = BEANED
+			ELSEIF GROUPMATCH(SELECTCOM, 415, 610, 615, 617) || (SELECTCOM == 414 && INRANGE(TFLAG:192, -1, 1)) || Activity_Duration:CHARA && (Activity_Type:CHARA == 2 || Activity_Type:CHARA == 3)
+				RESULTS = MGMG
+			ENDIF
+		ENDIF
 	ELSE
 		;立ち絵
 	ENDIF
@@ -269,6 +282,10 @@ ELSE
 		;立ち絵
 	ENDIF
 ENDIF
+
+;灵梦巫女set
+SIF CFLAG:CHARA:衣装一時変更 == 101 || (CFLAG:CHARA:基本服装セット == 101 && CFLAG:CHARA:衣装一時変更==0)
+	RESULTS = _Miko
 
 ;IMAGE_I43_特殊照れ(CHARA)--------------------------------------------------------------------
 ;キャラクター特有の照れエフェクト表示条件
@@ -393,7 +410,11 @@ ELSE
 	IF FLAG:立ち絵種類
 		;顔絵
 		IF TALENT:CHARA:母乳体質 && NOWEX:CHARA:噴乳 && CHECK_NUDE(CHARA)
-			RESULTS:エフェクト数 = 母乳
+			IF FLAG:巨乳差分表示 && TALENT:CHARA:バストサイズ>=2 && !(CFLAG:CHARA:衣装一時変更 == 101 || (CFLAG:CHARA:基本服装セット == 101 && CFLAG:CHARA:衣装一時変更==0))
+				RESULTS:エフェクト数 = 爆乳母乳
+			ELSE
+				RESULTS:エフェクト数 = 母乳
+			ENDIF
 			エフェクト数 += 1
 		ENDIF
 	ELSE

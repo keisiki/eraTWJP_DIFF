@@ -83,7 +83,36 @@ RETURN 1
 	PRINTL
 	PRINTFORMW 「本気を出しますから覚悟してください」ﾆｯｺﾘ
 	PRINTFORMW 「しっかり反省してくださいねっ♪」
-	IF CFLAG:31:1099 == 0
+	IF ABL:MASTER:戦闘能力 > 4
+		PRINTFORML (なんだか相当の実力者な雰囲気がしますし…慢心すると負けかねません）
+		ABL:31:戦闘能力 += 20
+		PRINTL
+		PRINTFORMDW %CALLNAME:MASTER%の高い戦闘力に早苗は一切の慢心を捨てたようだ……
+	ELSE
+		PRINTFORMW (まず私が負けることはないでしょうが…）
+		ABL:31:戦闘能力 += 2
+		PRINTFORMDW 早苗にはわずかに慢心があるようだ……
+	ENDIF
+	PRINTFORMDL [0]-本気で勝ちに行く
+	PRINTFORMDL [1]-いつも通り戦う
+	PRINTFORMDL [2]-手を抜く
+	INPUT
+	PRINTFORML
+	IF RESULT == 0
+		PRINTL 
+		IF CFLAG:31:K31_MASTER逆転刻印 > 0
+			PRINTFORMDW 刻まれた逆転刻印により%CALLNAME:MASTER%は本気を出すことができなかった……
+			CALL K31_MASTER逆転刻印取得チェック("取得")
+		ELSE
+			ABL:MASTER:戦闘能力 += 20
+			PRINTFORMDW %CALLNAME:MASTER%の戦闘力が一時的に超大幅アップした……
+		ENDIF
+	ELSEIF RESULT == 1
+		PRINTL 
+		CALL K31_MASTER逆転刻印取得チェック("取得")
+	ELSE
+		PRINTL
+		CALL K31_MASTER逆転刻印取得チェック("取得")
 		CALL K31_MASTER逆転刻印取得チェック("取得")
 	ENDIF
 
@@ -96,10 +125,16 @@ RETURN 1
 	PRINTL 
 	FONTREGULAR
 	
+	SIF ABL:31:戦闘能力 > 20
+		ABL:31:戦闘能力 -= 20
+	
+	SIF CFLAG:31:K31_MASTER逆転刻印 == 0
+		ABL:MASTER:戦闘能力 -= 20
+	
 	IF CFLAG:31:1412 == 1
 		;まさかの勝利
 		PRINTFORMDW パンツ収集に並々ならぬこだわりを持つ%CALLNAME:PLAYER%は必死に戦った…
-		PRINTFORMDW 能力を惜しみなく使いついに勝利したのである
+		PRINTFORMDW 激しい攻防戦の末、ついに勝利したのである
 		PRINTL
 		PRINTFORMW 「ま、負けた……！？　信じられません………」
 		PRINTFORMW 「本当に人間ですか……？」
@@ -118,8 +153,8 @@ RETURN 1
 	ENDIF
 	
 	IF TALENT:TARGET:処女 == 0 && ABL:TARGET:親密 > 8
-		PRINTFORML 「追加でお仕置きしてあげます%UNICODE(0x2665) *1%」
-		CFLAG:TARGET:溜まってる度 += 500
+		PRINTFORMW 「追加でお仕置きしてあげます%UNICODE(0x2665) *1%」
+		CFLAG:TARGET:溜まってる度 += 800
 		TCVAR:TARGET:発情 = 1
 		CFLAG:MASTER:うふふ = 2
 		CFLAG:うふふ = 2

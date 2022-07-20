@@ -14,16 +14,16 @@
 	#DIM BENCHMARKE
 	#DIM EFFECT_SEED
 	#DIM EFFECT_SEEDA
+	#DIM PREV_REDRAW
 	SETFONT "ＭＳ ゴシック"
 	VARSET MAP, "NULL"
 	VARSET COLOR, "0"
 	;If failed to retrieve map, revert back to original.
 	;If failed to retrieve color, set it to default color.
 	BENCHMARKS = GETMILLISECOND()
-	CURRENTREDRAW
-	ORIREDRAW = RESULT
+	PREV_REDRAW = CURRENTREDRAW()
 	REDRAW 0
-	IF ARGS == "ODEKAKE"		
+	IF ARGS == "ODEKAKE"
 		TRYCCALLFORM COLOREDODEKAKEMAP_{CFLAG:MASTER:デート中}(MAP,COLOR)
 		CATCH
 			CALL DRAW_MAP("ODEKAKE")
@@ -40,7 +40,7 @@
 	ELSE
 		CALLFORM MAP_VIEWING(MAIN_MAP)
 		CALL DRAW_INFORMATIONLINE(@"%MAPNAME:(TFLAG:マップ切り替え)%")
-		PRINTFORML 
+		PRINTFORML
 		CALLFORM COLOREDMAP_%RESULTS%_{TFLAG:マップ切り替え}(MAP, COLOR)
 	ENDIF
 	EFFECT_SEED = 0
@@ -48,7 +48,7 @@
 	FOR ROW, 0, 42
 		SIF MAP:ROW == "NULL"
 			BREAK
-		
+
 		;Remove zero width space
 		COLUMN_STR = %REPLACE(MAP:ROW,"​","")%
 		COLUMN_LENGTH = STRLENSU(COLUMN_STR)
@@ -57,7 +57,7 @@
 			CURRENT_STR = %SUBSTRINGU(COLUMN_STR, COLUMN, 1)%
 			SIF CURRENT_STR == ""
 				BREAK
-			
+
 			;Apply the character's color
 			IF COLORCOLUMNS:COLUMN != ""
 				IF ISNUMERIC(COLORCOLUMNS:COLUMN)
@@ -102,7 +102,7 @@
 		PRINTL
 	NEXT
 	RESETCOLOR
-	REDRAW ORIREDRAW
+	REDRAW PREV_REDRAW
 	BENCHMARKE = GETMILLISECOND()
 	LOCAL = BENCHMARKE - BENCHMARKS
 	;PRINTFORML Time taken: {LOCAL}
@@ -149,7 +149,7 @@
 			"i", "j", "l"," "
 	}
 	{
-		#DIM CONST SNOW = 
+		#DIM CONST SNOW =
 			0xFFFFFF,0xEBEBEB,0xD2D2D2,0x969696
 	}
 	#DIMS TYPE
@@ -205,7 +205,7 @@
 			ENDIF
 			COLOR = ANIMATIONCOLORS:CHARACTER
 			DEFAULT = %ANIMATIONCHARACTERS:CHARACTER%
-			
+
 			;A quick hack for offset. This reduces the characters of same category.
 			SIF !FLAG:70 && INCREMENTANIMATION
 				ANIMATION_SEED += 3
@@ -216,7 +216,7 @@
 				ELSE
 					CHARACTER = ((ANIMATION_SEED % 6) + 43)
 				ENDIF
-				
+
 				IF GETEFFECTCOND(EFFECT_SEED)
 					DEFAULT = %ANIMATIONCHARACTERS:CHARACTER%
 					IF DAY:2 == 2 || MAIN_MAP == 6
@@ -275,7 +275,7 @@
 			COLOR = 0xCCCCCC
 		ENDIF
 	ENDIF
-	
+
 	SIF TYPE == "def"
 		RESETCOLOR
 	SELECTCASE TYPE
@@ -308,7 +308,7 @@
 @GETEFFECTCOND(EFFECT_SEED)
 	#FUNCTION
 	{
-	#DIM CONST CURVER = 
+	#DIM CONST CURVER =
 				25,30,37,45,55,66,76,85,93,97,99,
                 100,100,100,100,100,100,100,100,100,100,
                 90,80,70,60,50,40,30,20,10,10
@@ -322,7 +322,7 @@
 	ELSE
 		RETURNF 0
 	ENDIF
-	
+
 ;===============================================
 ; Used by the color codes: 'bamboo', 'flora', and 'sakura'.
 ; DAY:2 starts with Spring (1), Summer (2), Autumn (3), then Winter (4)
@@ -344,19 +344,19 @@
 			0x140A05, 0x5A283C, 0x281423, 0x2D1E14
 	}
 	{
-	#DIM CONST CURVER = 
+	#DIM CONST CURVER =
 				25,30,37,45,55,66,76,85,93,97,99,
                 100,100,100,100,100,100,100,100,100,100,
                 90,80,70,60,50,40,30,20,10,10
 	}
 	{
-	#DIM CONST SNOW = 
+	#DIM CONST SNOW =
 			0xFFFFFF,0xEBEBEB,0xD2D2D2,0x969696
 	}
 	#DIM OFFSET
 	#DIM REF EFFECT_SEED
 	#DIMS TYPE
-	
+
 	OFFSET = -1
 	SELECTCASE TYPE
 		CASE "bambood"
@@ -384,7 +384,7 @@
 		CASE "sakuras"
 			OFFSET = 44
 	ENDSELECT
-	
+
 	;Snow Effect
 	IF (DAY:2 == 4)
 		IF GETEFFECTCOND(EFFECT_SEED)
@@ -400,7 +400,7 @@
 			ENDSELECT
 		ENDIF
 	ENDIF
-	
+
 	;Day 10, the next season is the current DAY:2
 	;Day 22, the next season is DAY:2 + 1
 	IF OFFSET > -1
@@ -443,7 +443,7 @@
 	#DIM STOP
 	#DIM INCREMENT
 	{
-	#DIM CONST CURVEF = 
+	#DIM CONST CURVEF =
 	45,35,25,17,10,4,1,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     1,4,10,17,25,35,45,45
@@ -457,4 +457,3 @@
 	ELSE
 		RETURN START
 	ENDIF
-	

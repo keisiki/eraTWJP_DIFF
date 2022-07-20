@@ -13,12 +13,14 @@
 
 ;**** FlagManagement **********************************************************
 ;本口上にて使用しているCFLAG・TCVAR等
+;CFLAG1300:素質変更
 ;CFLAG1200 ～ 1216:使用中 詳細未調査
 ;CFLAG1501 絶頂回数リセット？
 ;CFLAG1502 ～ 1505 ＣＶＢＡ絶頂回数
 ;
 ;CFLAG:1600 コマンド絵表示ON/OFFフラグ
 ;TCVAR:350 コマンド絵表示受け渡しフラグ
+;TCVAR:351 wear body suit for today (=1 decision made, =0 not decided)
 ;******************************************************************************
 ;白蓮の初期ステータス
 ;体力2000、気力1700（ちなみにあなたは体力2000、気力2000）
@@ -97,6 +99,15 @@ CFLAG:55:眠姦口上有 = 1
 ;	CFLAG:X:来訪不能 = 0
 ;ENDIF
 
+; body suit for today
+IF !CFLAG:55:衣装一時変更 && TCVAR:55:351 == 0
+	IF RAND:8 == 0
+		CALL CTRL_CLOTHES_SET(55, "現在衣装の変更_衣装セット", 64)
+		CALL CLOTHES_SETTING_TRAIN(55)
+	ENDIF
+	TCVAR:55:351 = 1
+ENDIF
+
 ;### 口上色判定 ###################################
 @M_KOJO_COLOR_K55
 
@@ -110,6 +121,43 @@ CFLAG:55:眠姦口上有 = 1
 ;口上独自のUPDATE用
 ;ENCOUNTER専用に独自分岐フラグを仕込んだ場合等にどうぞ
 ;UPDATE判定でCFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります
+
+IF !CFLAG:55:1300
+	PRINTFORML 口上に合わせて素質を変更しますか？
+	;【処女】【禁断の知識】
+	PRINTFORML 【保守的】【一線越えない】【貞操観念】【爆乳】【Ａ敏感】を失い、【気丈】【献身的】【謎の魅力】【巨乳】【人気】を得ます。
+	CALL ASK_M("変更する",1,"変更しない",1,"保留（次回アップデート時再度選択）",1)
+	SELECTCASE RESULT
+		CASE 0
+			PRINTFORMW 変更を行います
+			CFLAG:55:1300 = 1
+			
+			;CFLAG:55:処女喪失記念日 = -1
+			;CSTR:55:処女喪失履歴 = %CALLNAME:MASTER%に出会う前に失っている
+			;TALENT:55:処女 = 0
+			
+			TALENT:55:性的興味 = 0
+			TALENT:55:一線越えない = 0
+			TALENT:55:貞操 = 0
+			TALENT:55:Ａ感度 = 0
+			TALENT:55:バストサイズ = 1
+			TALENT:55:度胸 = 1
+			TALENT:55:献身的 = 1
+			TALENT:55:謎の魅力 = 1
+			
+			;TALENT:55:禁断の知識 = 1
+			
+			TALENT:55:人気 = 1
+			
+			;EXP:55:Ｖ経験 += 10
+		CASE 1
+			PRINTFORMW 変更しません
+			CFLAG:55:1300 = 1
+		CASE 2
+			PRINTFORMW 保留します
+	ENDSELECT
+ENDIF
+
 SIF !SPRITECREATED("55_A1")
 	RETURN 1
 PRINTL 白蓮別立ち絵拡張表示オプション
@@ -2352,7 +2400,7 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
-		IF CFLAG:うふふ
+		IF TFLAG:102 == 2 || TFLAG:102 == 3
 			IF RAND:3 == 0
 				PRINTFORMW 「あぁ…は、ぅ…%CALLNAME:MASTER%、もう仕事の時間よ…行かなくちゃ…」 
 			ELSEIF RAND:2 == 0 

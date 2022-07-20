@@ -15,6 +15,8 @@
 ;本口上にて使用しているCFLAG・TCVAR等
 ;CFLAG:31:1001 現在のストーリー章番号
 ;CFLAG:31:1002 現在のストーリー節番号
+;CFLAG:31:1011 サブイベ1_初回フラグ
+;CFLAG:31:1012 サブイベ1_発生判定フラグ
 ;CFLAG:31:1098 MASTER逆転経験
 ;CFLAG:31:1099 MASTER逆転刻印
 ;CFLAG:31:1111 ストーリー用フラグ1章1節用1つ目
@@ -348,28 +350,56 @@ IF LOCAL
 	;-------------------------------------------------
 	;TARGETが風呂に入ってきて一緒に入る
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
 		PRINTFORML
+		IF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「%CALLNAME:MASTER%さん、一緒に入りませんか？」
+			PRINTFORMDW 早苗は躊躇いもせずに%CALLNAME:MASTER%を誘った
+		ELSE
+			PRINTFORML 「あっ……%CALLNAME:MASTER%さん……！？」
+			PRINTFORMDL 風呂に入っていた%CALLNAME:MASTER%に一瞬驚いたようだが、すぐに表情を戻した
+			PRINTFORML 「まぁ……いいですけど」
+			PRINTFORMDW どうやら一緒に入っても良いようだ……
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
 	;TARGETが風呂に入ってきて出て行った
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 4
 		PRINTFORML
+		IF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「%CALLNAME:MASTER%さん、入ってたんですね」
+			PRINTFORML 「ふふっ、ごゆっくりどうぞ」
+			PRINTFORMDW 早苗は笑いながら風呂から出て行った……
+		ELSE
+			PRINTFORML 「あっ……%CALLNAME:MASTER%さん……！？」
+			PRINTFORMDL 風呂に入っていた%CALLNAME:MASTER%に驚いたようだ
+			PRINTFORML 「えーと、ごゆっくりどうぞ」
+			PRINTFORMDW 早苗は足早に風呂から出て行った……
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
 	;TARGETが風呂に入ってきて追い出された
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 5
 		PRINTFORML
+		IF TALENT:恋人 || TALENT:恋慕 || TALENT:思慕
+			PRINTFORML 「あっ…%CALLNAME:MASTER%さん、入ってたんですね」
+			PRINTFORML 「私が次はいりますから急いで急いでっ」
+			PRINTFORMDW %CALLNAME:MASTER%は急かされるまま風呂から出ることにした……
+		ELSE
+			PRINTFORML 「あっ…………！？」
+			PRINTFORML 「………………………………」
+			PRINTFORMDW 無言の圧を感じる………%CALLNAME:MASTER%は風呂から出ることにした……
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -1857,16 +1887,22 @@ RETURN 1
 ;ARG:1に自慰種類
 ;--------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------
 IF LOCAL
 	;-------------------------------------------------
 	;通常自慰
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
-		PRINTFORML  
+		IF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「んんっ……はぁっ、ふっ…………%UNICODE(0x2665) *1%」
+			PRINTFORML 「やっぱり……これだけじゃ……」
+		ELSE
+			PRINTFORML 「ん……っ…ふっ……んっ……」
+			PRINTFORML 「あー……………　　　ふぅ………」
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -1911,7 +1947,7 @@ IF LOCAL
 	;-------------------------------------------------
 	;陥落素質あり自慰中毒高め
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 5
 		;-------------------------------------------------
@@ -1953,7 +1989,7 @@ IF LOCAL
 		;-------------------------------------------------
 		;部位指定無し
 		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 0
+		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 5
 			PRINTFORML  
@@ -1961,13 +1997,19 @@ IF LOCAL
 		ENDIF
 		;その他
 		;上の分岐を一切書かずに、ここに書くことで陥落素質あり自慰中毒高め自慰の共通口上を表示することが出来ます
-		PRINTFORML  
+		IF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「んんっ……はぁっ、ふっ…………%UNICODE(0x2665) *1%」
+			PRINTFORML 「やっぱり……これだけじゃ……」
+		ELSE
+			PRINTFORML 「ん……っ…ふっ……んっ……」
+			PRINTFORML 「あー……………　　　ふぅ………」
+		ENDIF 
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
 	;自慰中毒高め
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 6
 		;-------------------------------------------------
@@ -1990,13 +2032,19 @@ IF LOCAL
 		ENDIF
 		;その他
 		;上の分岐を一切書かずに、ここに書くことで自慰中毒高め自慰の共通口上を表示することが出来ます
-		PRINTFORML  
+		IF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「んんっ……はぁっ、ふっ…………%UNICODE(0x2665) *1%」
+			PRINTFORML 「やっぱり……これだけじゃ……」
+		ELSE
+			PRINTFORML 「ん……っ…ふっ……んっ……」
+			PRINTFORML 「あー……………　　　ふぅ………」
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
 	;我慢
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 7
 		PRINTFORML 
@@ -2004,7 +2052,12 @@ IF LOCAL
 	ENDIF
 	;その他
 	;上の分岐を一切書かずに、ここに書くことで自慰の共通口上を表示することが出来ます
-	PRINTFORML  
+	IF TALENT:恋人 || TALENT:恋慕
+			PRINTFORML 「はぁっ……ふぅっ、うぅ…………%UNICODE(0x2665) *1%」
+			PRINTFORML 「明日………明日まで我慢です………%UNICODE(0x2665) *1%」
+		ELSE
+			PRINTFORML 「はぁっ……ふぅっ、うぅ…………我慢しないと……」
+		ENDIF
 	RETURN 1
 ENDIF
 RETURN 1
@@ -2531,9 +2584,15 @@ RETURN 1
 ;CFLAG:オナバレで分岐入れてもよさそう
 ;--------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------
 IF LOCAL
+	SIF GET_DAY(DAY) == "土" && CFLAG:31:K31_MASTER逆転刻印 > 0
+		CFLAG:31:翌日来訪 = 1
+	
+	;CFLAG:31:1012++のままのほうがGREP検索しやすいのでは・・・？
+	CFLAG:31:K31_サブイベ1_発生判定フラグ++
+	
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -2911,10 +2970,13 @@ RETURN 1
 CALL DAILY_MESSAGE_4(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
 ;--------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------
 IF LOCAL
-	PRINTFORMW 
+	PRINTFORMW 「明日は%CALLNAME:MASTER%さんに会いに行くことにしましょう」
+	IF CFLAG:31:K31_MASTER逆転刻印 > 2
+		PRINTFORMW (ついでにしっかり搾り取って…………ふふっ…)
+	ENDIF
 ENDIF
 RETURN 1
 

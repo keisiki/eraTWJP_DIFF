@@ -30,6 +30,7 @@ SELECTCASE RESULT
 	CASE 1
 		IF ITEM:酒ID >= 99
 			PRINTFORMW これ以上%VAR_FERMENT%を持てない
+			;（酒ID{酒ID}）
 			RETURN -1
 		ENDIF
 		PRINTFORML %CALLNAME:MASTER%は%VAR_FERMENT%を汲み出して%VAR_WATER%と入れ替えた
@@ -42,7 +43,7 @@ SELECTCASE RESULT
 	CASE 2
 		CALL COM450_1
 	CASE 3
-		IF GET_STR(0, "酒データ", 酒ID, "変化先") == ""
+		IF GET_STR(0, "酒データ", 酒ID, "変化先") == "0"
 			PRINTFORMW %VAR_FERMENT%にはやる意味がない
 			RETURN -1
 		ENDIF
@@ -50,7 +51,7 @@ SELECTCASE RESULT
 		BASE:MASTER:8 -= 2400
 		CALL 酒造
 	CASE 4
-		IF GET_STR(0, "酒データ", 酒ID, "変化先") == ""
+		IF GET_STR(0, "酒データ", 酒ID, "変化先") == "0"
 			PRINTFORMW %VAR_FERMENT%にはやる意味がない
 			RETURN -1
 		ENDIF
@@ -103,7 +104,7 @@ IF LOCAL == 0
 ENDIF
 IF LOCAL == 1
 	{
-	CALL ASK_M("どぶろく＊５", ITEM:どぶろく >= 5 && VAR_WATER == "ただの水",
+	CALL ASK_M("どぶろく＊５", ITEM:どぶろく >= 5 && VAR_FERMENT == "ただの水",
 	"甘味材＊１０", ITEM:甘味材 >= 10 && CAN_FERMENT(),
 	"熟成前ラム", ITEM:熟成前ラム && CAN_FERMENT(),
 	"熟成前フランボワーズ", ITEM:熟成前フランボワーズ && CAN_FERMENT(),
@@ -144,7 +145,7 @@ ENDIF
 IF LOCAL == 2
 	{
 	CALL ASK_M("上質食材", ITEM:上質食材 && CAN_FERMENT(),
-	"草木灰", ITEM:草木灰 && VAR_WATER == "どぶろく",
+	"草木灰", ITEM:草木灰 && VAR_FERMENT == "どぶろく",
 	"次へ",1,
 	"やめる",1)
 	}

@@ -3,7 +3,9 @@
 ;日常系コマンド、レベル1
 ;-------------------------------------------------
 @COM418
-LOCAL:1 = 1 + FLAG:畑拡張
+;LOCAL:1 = 1 + FLAG:畑拡張
+LOCAL:1 = GETUNELENGTH418()
+
 FOR LOCAL,0, LOCAL:1
 	CALL SHOW_PLANT(LOCAL)
 NEXT
@@ -30,6 +32,8 @@ ENDIF
 @FARMING(ARG, 行動番号)
 #DIM 行動番号
 #DIM 行動コスト
+#DIM 畝サイズ
+
 行動コスト = 0
 LOCALS = %HATAKE_NAME:ARG%
 IF 行動番号 == 0
@@ -130,7 +134,12 @@ ELSEIF 行動番号 == 4 && ITEM:簡易プール && GETBIT (FLAG:プール, 2)
 	IF !PLANT_DRY:ARG
 		PRINTL 今日はもういいだろう
 	ELSE
-		PLANT_DRY:ARG = 0
+		;PLANT_DRY:ARG = 0
+		
+		畝サイズ = GETUNELENGTH418()
+		FOR LOCAL,0, 畝サイズ
+			PLANT_DRY:LOCAL = 0
+		NEXT
 		PRINTFORML %LOCALS%に水をやった
 		SIF ITEM:三粒の天滴
 			FLAG:天滴坤神 = 1
@@ -324,3 +333,19 @@ SIF CFLAG:うふふ == 2
 	RETURN 0
 RETURN 1
 
+@GETUNELENGTH418()
+#FUNCTION
+#DIM 畝サイズ
+
+IF TALENT:MASTER:採集Lv > 5
+	畝サイズ = 1 + 3
+ELSEIF TALENT:MASTER:採集Lv > 4
+	畝サイズ = 1 + 2
+ELSEIF TALENT:MASTER:採集Lv > 2
+	畝サイズ = 1 + 2
+ELSEIF TALENT:MASTER:採集Lv > 0
+	畝サイズ = 1 + 1
+ELSE
+	畝サイズ = 1
+ENDIF
+RETURNF 畝サイズ

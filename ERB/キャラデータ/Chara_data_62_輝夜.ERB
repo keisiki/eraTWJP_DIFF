@@ -223,7 +223,30 @@ IF CFLAG:CHARA:差し替え適用
 ELSE
 	;通常画像
 	IF FLAG:立ち絵種類
-
+		;顔絵
+		IF !FLAG:巨乳差分表示 || TALENT:CHARA:バストサイズ <= 0 ;no big breast support
+			IF !CHECK_NUDE(CHARA)
+				LOCALS '= RESULTS:0
+				IF RESULTS:0 == "笑顔"
+					SIF TALENT:CHARA:恋慕 ;non-smug
+						RESULTS:0 = Smile
+					SIF TALENT:CHARA:思慕 || TALENT:CHARA:恋慕
+						RESULTS:1 = Wink
+				ENDIF
+				IF RESULTS:0 == "発情" || TCVAR:CHARA:媚薬 || CFLAG:CHARA:溜まってる度 > 850
+					;return back in case smile overrode it
+					RESULTS:0 '= LOCALS
+					IF !TALENT:CHARA:恋慕
+						RESULTS:1 = Hmph
+					ELSE
+						RESULTS:1 = Uehh
+					ENDIF
+				ENDIF
+			ELSE
+				SIF RESULTS:0 == "発情" || TCVAR:CHARA:媚薬 || CFLAG:CHARA:溜まってる度 > 850
+					RESULTS:1 = Ufufu
+			ENDIF
+		ENDIF
 	ELSE
 		;立ち絵
 	ENDIF
