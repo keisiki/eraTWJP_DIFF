@@ -21,8 +21,8 @@ PRINTFORML %CALLNAME:MASTER%は酒虫の入っている瓶を覗き込んだ
 PRINTFORML 瓶は%VAR_FERMENT%で満たされている…
 DRAWLINE
 {
-CALL ASK_M("何もしない",1,@"%LOCALS%", LOCAL,"時間操作酒造（TSP2400消費）",BASE:MASTER:8 >= 2400,
-"アイテムを足す",1)
+CALL ASK_M("何もしない",1,@"%LOCALS%", LOCAL,"アイテムを足す",1,
+"時間操作酒造（TSP2400消費）",BASE:MASTER:8 >= 2400,"『キング・クリムゾン』！（TSP4000&キング・クリムゾン消費）", BASE:MASTER:8 >= 4000 && ITEM:キング・クリムゾン)
 }
 SELECTCASE RESULT
 	CASE 0
@@ -40,17 +40,25 @@ SELECTCASE RESULT
 		VAR_WATER =
 		DAY:10 = 0
 	CASE 2
+		CALL COM450_1
+	CASE 3
 		IF GET_STR(0, "酒データ", 酒ID, "変化先") == ""
 			PRINTFORMW %VAR_FERMENT%にはやる意味がない
 			RETURN -1
 		ENDIF
 		PRINTFORML %CALLNAME:MASTER%は時間停止能力を応用して強引に瓶の中の時を進めた
 		BASE:MASTER:8 -= 2400
-		;PRINTFORML デバッグパワーでもっと進めた
-		;DAY:10 += 10
 		CALL 酒造
-	CASE 3
-		CALL COM450_1
+	CASE 4
+		IF GET_STR(0, "酒データ", 酒ID, "変化先") == ""
+			PRINTFORMW %VAR_FERMENT%にはやる意味がない
+			RETURN -1
+		ENDIF
+		PRINTFORML %CALLNAME:MASTER%は時間を消し飛ばして『結果』だけを得た
+		BASE:MASTER:8 -= 4000
+		ITEM:キング・クリムゾン --
+		DAY:10 += 9
+		CALL 酒造
 ENDSELECT
 TIME += 5
 RETURN 1
@@ -88,7 +96,7 @@ IF LOCAL == 0
 			VAR_FERMENT = 貴腐ブドウ汁
 		CASE 5
 			LOCAL = 1
-			CLEARLINE 6
+			CLEARLINE 7
 			RESTART
 		CASE 6
 	ENDSELECT
@@ -127,7 +135,7 @@ IF LOCAL == 1
 			VAR_FERMENT = 熟成前ブランデー
 		CASE 6
 			LOCAL = 2
-			CLEARLINE 7
+			CLEARLINE 8
 			RESTART
 		CASE 7
 	ENDSELECT
@@ -149,7 +157,7 @@ IF LOCAL == 2
 			VAR_FERMENT = 灰持酒
 		CASE 2
 			LOCAL = 0
-			CLEARLINE 3
+			CLEARLINE 4
 			RESTART
 		CASE 3
 	ENDSELECT
