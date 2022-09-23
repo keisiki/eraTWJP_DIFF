@@ -27,9 +27,10 @@ ELSEIF LOCAL:2 || BASE:MASTER:気力 == 0
 ELSEIF LOCAL:3 && FESTIVAL() == ""
 	PRINTL 同行者が仕事日のため出掛けることは出来ません
 	RETURN -1
-ELSEIF TIME:5 == 9 || TIME:5 == 5
-	PRINTL 悪天候のため出掛けることは出来ません
-	RETURN -1
+;(天候パッチ)悪天候時も外出可能に
+;ELSEIF TIME:5 == 9 || TIME:5 == 5
+;	PRINTL 悪天候のため出掛けることは出来ません
+;	RETURN -1
 ELSEIF TALENT:MASTER:100 < -4 
 	PRINTL この身体で出掛けるのは危険だ
 	RETURN -1
@@ -40,6 +41,23 @@ SELECTCASE CFLAG:MASTER:現在位置
 			PRINTFORML 営業時間外だ
 			RETURN -1
 		ENDIF
+		;(天候パッチ)悪天候時は運行見合わせ
+		IF GET_LOCATION_AREA_TYPHOON() == 1
+			PRINTFORML 台風接近により運行を見合わせているようだ
+			RETURN -1
+		ENDIF
+		IF WIND_VELOCITY >= 1
+			PRINTFORML 強風により運行を見合わせているようだ
+			RETURN -1
+		ENDIF
+		SELECTCASE TIME:5
+			CASE 14, 15
+				PRINTFORML 大雨により運行を見合わせているようだ
+				RETURN -1
+			CASE 9
+				PRINTFORML 大雪により運行を見合わせているようだ
+				RETURN -1
+		ENDSELECT
 		;守矢キャラたちと同行時は敷設者割引運賃
 		IF CFLAG:31:同行 || CFLAG:32:同行 || CFLAG:33:同行
 			FEE = 1

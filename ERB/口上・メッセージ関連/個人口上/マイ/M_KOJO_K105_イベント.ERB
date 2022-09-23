@@ -19,8 +19,11 @@
 ;CFLAG:105:1003 料理教室Lv
 ;CFLAG:105:1004 お花育ちLv
 ;CFLAG:105:1005 玩具発見Lv
+;CFLAG:105:1006 マゾ堕ちLv
 ;TCVAR:105:351	うふふ中媚薬投与量
-;
+;TCVAR:105:352	恋慕恋人でスパンキングした日に付ける
+;TCVAR:105:353	オナバレ種類
+;TCVAR:105:354	スパンキング拡張用
 ;******************************************************************************
 
 ;### 口上存在判定 ###################################
@@ -543,7 +546,7 @@ IF LOCAL
 		ELSEIF TALENT:恋慕
 			PRINTFORML 「あ……%CALLNAME:MASTER%」
 			PRINTFORMDL こちらに気が付いたマイが近づいてきた。
-			PRINTFORMW 「折角だし、今日は一緒に過ごさない？」
+			PRINTFORMW 「何か用事？　もし暇なら、二人でどこか行かない？」
 		ELSEIF TALENT:思慕
 			PRINTFORML 「%CALLNAME:MASTER%……」
 			PRINTFORML 「……%UNICODE(0x2665) *1%」
@@ -3690,12 +3693,16 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			IF TALENT:恋人 || TALENT:恋慕
-				PRINTFORML 「んんっ……ふぅっ……」
-				PRINTFORMW 「あ、%CALLNAME:MASTER%%UNICODE(0x2665) *1%……って、ちょっと！」
-			ELSE
-				PRINTFORML 「んんっ……ふぅっ……」
-				PRINTFORMW 「……え……」
+			IF TCVAR:105:353 == 0
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「んんっ……ふぅっ……」
+					PRINTFORMW 「あ、%CALLNAME:MASTER%%UNICODE(0x2665) *1%……って、ちょっと！」
+				ELSE
+					PRINTFORML 「んんっ……ふぅっ……」
+					PRINTFORMW 「……え……」
+				ENDIF
+			ELSE 
+				;緊縛オナバレ以降はここの反応も改変地の文に統合
 			ENDIF
 			RETURN 1
 		ENDIF
@@ -3706,13 +3713,24 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			IF TALENT:恋人 || TALENT:恋慕
-				PRINTFORML 「なるほどね……」
-				PRINTFORMW 「…………」
-				PRINTFORMW 「……覗き返してみるか」
+			IF TCVAR:105:353 == 2
+				PRINTFORML 「ああああッ、待って！　お願い！」
+				PRINTFORMW 「くっ、身動きが……もうっ、何この縄！　誰よ、縛ったのは！」
+				PRINTFORMW 「……」
+				PRINTFORMW 「まぁ、わたしか……」
+			ELSEIF TCVAR:105:353 == 1
+				PRINTFORML 「ちょっと……まさか、覗きに来ただけ？」
+				PRINTFORML 「物足りない、けど……一人で続きって気分でもないし」
+				PRINTFORMW 「引き留めれば良かったかな……」
 			ELSE
-				PRINTFORML 「なんなの、あいつは！」
-				PRINTFORMW 「もーっ、やめ！」
+				IF TALENT:恋人 || TALENT:恋慕
+					PRINTFORML 「なるほどね……」
+					PRINTFORMW 「…………」
+					PRINTFORMW 「……覗き返してみるか」
+				ELSE
+					PRINTFORML 「なんなの、あいつは！」
+					PRINTFORMW 「もーっ、やめ！」
+				ENDIF
 			ENDIF
 			RETURN 1
 		ENDIF
@@ -3723,13 +3741,29 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			IF TALENT:恋人 || TALENT:恋慕
-				PRINTFORMW 「腹立つわ、その上から目線」
-				PRINTFORML 「いいよ、もう……好きに見たら」
-				PRINTFORMW 「ほら、近くで見なくていいの？」
+			IF TCVAR:105:353 == 2
+				PRINTFORML 「そのままって……縄も、このまま？」
+				PRINTFORML 「あの、さすがにちょっと恥ずかしいんだけど……」
+				PRINTFORML 「……」
+				PRINTFORMW 「くぅ、やるしかないか……」
+			ELSEIF TCVAR:105:353 == 1
+				PRINTFORML 「……%CALLNAME:MASTER%は、見てるだけ？」
+				PRINTFORML 「はぁ……誰のせいで、わたしがこんな……」
+				PRINTFORMW 「本当に、良い趣味してるね」
 			ELSE
-				PRINTFORML 「……馬鹿？」
-				PRINTFORMW （めっちゃ緊張するわ、これ）
+				IF TALENT:恋人 || TALENT:恋慕
+					IF CFLAG:105:性格傾向 == 1 || CFLAG:105:性格傾向 == 4
+						PRINTFORML 「見られてるとわかってて、そのままっていうのは……ちょっと難しいかな」
+						PRINTFORMW 「とりあえず、する事はするから……それで許して……」
+					ELSEIF CFLAG:105:性格傾向 == 2 || CFLAG:105:性格傾向 == 3 || CFLAG:105:性格傾向 == 5
+						PRINTFORML 「見ててあげる、ね……偉そうに」
+						PRINTFORML 「…………」
+						PRINTFORMW 「わかったわ……見せてあげる」
+					ENDIF
+				ELSE
+					PRINTFORML 「……馬鹿？」
+					PRINTFORMW （めっちゃ緊張するわ、これ）
+				ENDIF
 			ENDIF
 			RETURN 1
 		ENDIF
@@ -3740,7 +3774,15 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			PRINTFORMW 「……今日はもう店じまい」
+			IF TCVAR:105:353 == 2
+				PRINTFORML 「勘弁して……もう、帰って」
+				PRINTFORMW 「あぁ、泣けてきた……」
+			ELSEIF TCVAR:105:353 == 1
+				PRINTFORML 「用事が無いなら、帰ったら」
+				PRINTFORMW 「全く、もう……どうしてこうタイミングが悪いかな」
+			ELSE
+				PRINTFORMW 「……今日はもう店じまい」
+			ENDIF
 			RETURN 1
 		ENDIF
 		;-------------------------------------------------
@@ -3750,7 +3792,12 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			IF TALENT:恋人 || TALENT:恋慕
+			IF TCVAR:105:353 == 2
+				PRINTFORML 「え……%CALLNAME:MASTER%も、付き合ってくれるの？」
+				PRINTFORMW 「……」
+				PRINTFORMW 「あの、それじゃあ……できれば、いっぱい虐めて欲しい……とか」
+				PRINTFORMW 「ね、%CALLNAME:MASTER%……ふ、ふふふ……%UNICODE(0x2665) *1%」
+			ELSEIF TALENT:恋人 || TALENT:恋慕
 				PRINTFORML 「知ってるよ」
 				PRINTFORML 「ふたりっていうか……%CALLNAME:MASTER%と%UNICODE(0x2665) *1%」
 				PRINTFORMW 「こうなったらもうヤケクソよ……徹底的にやろ」
@@ -3768,7 +3815,13 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			IF TALENT:恋人 || TALENT:恋慕
+			IF TCVAR:105:353 == 2
+				PRINTFORMDW 満足した%CALLNAME:MASTER%は、散々犯されて放心しているマイの縄をほどいてやった……
+				PRINTFORML 「あ、ありがとう……」
+				PRINTFORMW 「……」
+				PRINTFORMW 「あの、%CALLNAME:MASTER%……ほんとに、見捨てないでね……お願い」
+				PRINTFORMW 「もう、わたし……%CALLNAME:MASTER%がいないと……」
+			ELSEIF TALENT:恋人 || TALENT:恋慕
 				PRINTFORML 「ん、ぅ……%UNICODE(0x2665) *1%　……はぁ、軽くオナニーするだけのつもりだったのに」
 				PRINTFORMW 「良いんだけどね、こっちの方が気持ちいいし……」
 				PRINTFORMW 「急だったからビックリしたけど……来てくれて、嬉しかったわ」
@@ -3788,7 +3841,10 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			IF TALENT:恋人 || TALENT:恋慕
+			IF TCVAR:105:353 == 2
+				PRINTFORML 「泊まっ……うん、ぜひ」
+				PRINTFORMW 「ありがとう、%CALLNAME:MASTER%……%UNICODE(0x2665) *1%」
+			ELSEIF TALENT:恋人 || TALENT:恋慕
 				PRINTFORML 「え、泊まってくって……ずっといてくれるの？」
 				PRINTFORMW 「どうしたの、今日……ずいぶんサービス良いじゃん」
 				PRINTFORMW 「……あ、まさか……まだやり足りないとか？」
@@ -4242,7 +4298,7 @@ RETURN 1
 ;CFLAG:オナバレで分岐入れてもよさそう
 ;--------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------
 IF LOCAL
 	;-------------------------------------------------
@@ -4263,9 +4319,103 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 0
 		RETURN 1
 	ENDIF
+	;-------------------------------------------------
+	;SMルート
+	;倒錯的＋中毒しやすいとかいう才能を活かしたかった。例によって恋慕堕ち後のみ。悦んでいるので純愛！
+	;-------------------------------------------------
+	;こういう分岐条件のバランスがいまいちわからない
+	IF TCVAR:105:352 == 1 && ABL:105:マゾっ気 >=2 && EXP:105:苦痛快楽経験 >=50 && CFLAG:105:1006 == 0
+		CALL PRINT_FACE, 105, "発情", "裸", "", ""
+		PRINTFORMDW マイは部屋で一人、裸になって鏡に向かって立っている。
+		PRINTFORML 
+		PRINTFORMW 今日、%CALLNAME:MASTER%に叩かれた所……少し、赤くなっている。
+		PRINTFORMW 白い肌の中で目立っているが、不思議と悪い気はしない。
+		PRINTFORMW その痕を、ぐっと指で強く押してみる。わずかに感じる痛み。
+		PRINTFORMW 叩かれる痛みには遠く及ばない。だが、その時の感触がよみがえってくる。
+		PRINTFORMW …………
+		PRINTFORML 
+		PRINTFORMW 押し込んでいたはずの指は、いつの間にか肌を強く抓っていた。
+		PRINTFORMW 鈍い痛みが、じわじわと伝わってくる。肌から染み込むように、心の奥まで……
+		PRINTFORMW その時、つぅ……と、内腿に一筋の雫が伝ってきた。
+		PRINTFORMW 鏡に映る自分を見る。身体を抓り、股を濡らしている。
+		PRINTFORMW うっすらと笑っているように見える……目が合った瞬間、さらに口元が吊り上がり、歪んだ。
+		PRINTFORMW ああ、こんな顔をしていたのか……きっと、叩かれている最中も。
+		PRINTFORMW 片手で身体を抓ったまま、もう片方の手を股の間に伸ばす。
+		PRINTFORMW そのまま秘裂に指を沿わす。倒錯した欲情を証明するかのように、たっぷりと愛液をたくわえている。
+		PRINTFORMW 指を一本だけ挿入し、ゆっくりとかきまわす。
+		PRINTFORMW 鈍い痛みと淡い快感が、同時に伝わってくる。
+		PRINTFORMW 混ざりあっていく。どっちの手が、気持ち良いんだっけ？
+		PRINTFORML 
+		PRINTFORMW 「……まずいかな、これ」
+		PRINTFORML あまり良い趣味とは言えないかもしれない。少し冷静にならなくては。
+		PRINTFORML のめり込みすぎて%CALLNAME:MASTER%に引かれでもしたら、目も当てられない。
+		PRINTFORMW 手遅れになる前に自重すべきだろう。問題無い。本心を隠すのは得意だったはずだ。
+		PRINTFORML 
+		PRINTFORML 「でも……もう、隠し事はしないって決めたし」
+		PRINTFORMW 「……わたしは……」
+		PRINTFORML 
+		PRINTFORMDL （マイ口上についての注意）
+		PRINTFORMDL 　以後、加虐系コマンドで新たに素質を取得したり、苦痛刻印を取得しやすくなったりします。
+		PRINTFORMDW 　よろしいですか？
+		PRINTFORML 
+		CALL ASK_YN("はい","いいえ")
+		IF !RESULT
+			PRINTFORMDW SM系分岐を開放します。
+			CFLAG:105:1006 = 1
+		ELSE
+			PRINTFORMDW マイは苦痛に対する倒錯的な快楽に目覚めそうになったが、踏みとどまった！
+			CFLAG:105:1006 = -1
+		ENDIF
+	ELSEIF TCVAR:105:352 == 1 && ABL:105:マゾっ気 >=4 && CFLAG:105:1006 == 1
+		CALL PRINT_FACE, 105, "発情", "裸", "", ""
+		PRINTFORMDW マイは部屋で裸になり、自分の身体を見つめている……
+		PRINTFORML 
+		PRINTFORMW 今日も、%CALLNAME:MASTER%はわたしのことを痛めつけてくれた。
+		PRINTFORMW わたしが欲しがっているのをわかっているから、してくれたのだろうか。
+		PRINTFORMW それとも、たまたま互いの趣味が一致しているだけか……
+		PRINTFORMW それなら幸運だが、もし違うなら変な事に付き合わせてしまっているかもしれない。
+		PRINTFORMW だがどうであろうと、もうやめられそうにない。すっかり痛みと快感が混ざり合っている。
+		PRINTFORMW 困ったものだ。
+		PRINTFORML 
+		PRINTFORMW %CALLNAME:MASTER%に心を開いた時から、与えられるものが全て心地良いものになってしまった。
+		PRINTFORMW 興味の無かった趣味も、見下していた実の無い雑談も……苦しいだけのはずの、痛みも。
+		PRINTFORMW 身体に残る苦痛の痕も愛おしい。
+		PRINTFORMW 以前は弱みを見せないように気を付けていたというのに、その弱みの象徴が。
+		PRINTFORMW 腫れた部分に指を這わせながら今日の痛みを思い出す。
+		PRINTFORMW しばらくそうしていると、段々と秘所が熱を帯びてくる。
+		PRINTFORMW まったく、馬鹿な身体。
+		PRINTFORMW …………
+		PRINTFORML 
+		PRINTFORMW きっと、これは過渡期なのだ。心の変化に身体がついていっていない。
+		PRINTFORMW %CALLNAME:MASTER%への想いがフィルタとなり、苦痛を伴う快感から、快感の部分だけを取り出している。
+		PRINTFORMW だから、また痛めつけてもらおう。今までより、強く。
+		PRINTFORMW もっともっと強く痛めつければ、こんな身体でも苦痛と快楽の区別がつくだろうから。
+		PRINTFORML 
+		PRINTFORML 「そうだよね、%CALLNAME:MASTER%……」
+		PRINTFORMW 「ふふふふふ……%UNICODE(0x2665) *1%」
+		CFLAG:105:1006 = 2
+	ELSEIF TCVAR:105:352 == 1 && MARK:105:苦痛刻印 >= 2 && CFLAG:105:1006 == 2
+		CALL PRINT_FACE, 105, "発情", "裸", "", ""
+		PRINTFORMDW マイは部屋で一人考え込んでいる…… 
+		PRINTFORML 
+		PRINTFORML 「あはははは……」
+		PRINTFORMW 「もうダメだわ……言い訳できない」
+		PRINTFORML 苦痛と快楽が混ざっていたせいで、正しく苦痛を認識できていないと誤魔化していた。
+		PRINTFORML だが、快楽とは程遠い単なる苦痛でさえも何処か心地良かった。
+		PRINTFORMW 痛みだけで達してしまいそうなほどに。
+		PRINTFORMW 混ざっていたわけではなかった。もともと、同じものだったのだ。
+		PRINTFORML 
+		PRINTFORMW もう、自覚したほうが良いだろう。
+		PRINTFORMW 魔界で育った者が魔界人と呼ばれるように、
+		PRINTFORMW 魔法を使う者が魔法使いと呼ばれるように、
+		PRINTFORMW 苦痛で悦ぶわたしは……
+		PRINTFORML 
+		CFLAG:105:1006 = 3
+		TALENT:105:マゾ = 1
+		PRINTFORMDW マイは[マゾ]を得た
+	ENDIF
 ENDIF
 RETURN 1
-
 ;==================================================
 ;自由行動中
 ;ARG:1      0=行動中,1=完了時
@@ -4726,7 +4876,7 @@ IF LOCAL
 ENDIF
 RETURN 1
 
-[SKIPSTART]
+
 ;-------------------------------------------------
 ;オナバレ遭遇時の地の文をデフォルトのものから変更したい場合用。
 ;その場合は上下のSKIPSTART~SKIPENDを外してください。
@@ -4734,19 +4884,82 @@ RETURN 1
 ;-------------------------------------------------
 @M_KOJO_EVENT_K105_ONABARE_1(ARG)
 ;-------------------------------------------------
-:口上色を付けるならコメントアウトを外しXをキャラ番号に
-;CALL M_KOJO_COLOR_K105
+;口上色を付けるならコメントアウトを外しXをキャラ番号に
+CALL M_KOJO_COLOR_K105
 
-IF ARG
-	PRINTFORML A弄ってる場合
+CALL PrintOnanismImage(105)
+IF !TALENT:105:処女 && CFLAG:105:1006 == 3
+	;一線超えた一線超えない持ちは超えすぎるくらいが良い、と思っている
+	IF FIRSTTIME("緊縛オナバレ",0, 105)
+		PRINTFORMDW 気づかれないように部屋の中を覗くと、マイが荒縄で縛り上げられていた
+		PRINTFORMDW \@ ARG ? アナル # 秘処 \@には縄で固定されたバイブが深々と挿入され、低い音を立てて蠢いている
+		PRINTFORMDW 一体どうしたことだろう？　誰かに捕らえられているのだろうか？
+		PRINTFORMDW しかし部屋には他に誰かがいる様子もなく、バイブの音とマイの吐息だけが響き渡っている
+		PRINTFORMDW さらにマイの表情は緩み切っており、やはり誰かに強制されているわけではないことを感じさせる
+		PRINTFORML 「ふぅっ、ぅ……あぁ……%UNICODE(0x2665) *1%」
+		PRINTFORML 「わたし……こんなこと……%UNICODE(0x2665) *1%」
+		PRINTFORMW 「ふふっ、ふふふふ……っ、あ……%UNICODE(0x2665) *1%」
+		PRINTFORMDW マイが身を捩る度に柔肌に食い込んだ縄が軋み、それと同時に甘い喘ぎ声が上がる
+		PRINTFORMDW びくびくと震えながら大量の愛液を滴らせるマイの痴態と恍惚とした表情に惹かれ、つい眺め入ってしまう
+		PRINTFORMDW しばらくそうしていると、突然マイはこちらに顔を向け、目が合った
+		PRINTFORMDW 小さく開けた扉の隙間からこっそり覗いていたつもりが、無意識のうちに扉を大きく開けてしまっていたようだ
+		PRINTFORMDW %CALLNAME:MASTER%に見られていた事に気づき、マイは引きつった表情でこちらを見つめている
+		PRINTFORML 
+		PRINTFORML 「%CALLNAME:MASTER%……そんな」
+		PRINTFORML 「あっ、あの……これは……違うの」
+		PRINTFORML 「魔法で、その……縄を操る練習をしてて、ええと」
+		PRINTFORMW 「人を縛るのって結構難しいから……あー、細かい操作の練習に、丁度良いというか」
+		PRINTFORMW 「他人を縛るわけにもいかないし、それで自分を」
+		PRINTFORMDL どうやら、縄は自分で縛ったものらしい
+		PRINTFORMDW 器用なものだと感心しつつ\@ ARG ? アナル # 秘処 \@の方に目を向けると、未だにバイブが蠢いている
+		PRINTFORML 「あっ！　いや、その……えっとね、これは」
+		PRINTFORML 「こう、なんて言うの……集中できない状況でも、正確に操作できるかどうか試す……」
+		PRINTFORMW 「とっさの時でも、大丈夫なように……とか？」
+		PRINTFORML 
+		PRINTFORML 「あぁ……わたし、何言ってんだろ」
+		PRINTFORMW 「もう、おしまいだわ……お願いだから、ぜんぶ忘れてぇ……」
+		TCVAR:105:353 = 2
+		RETURN 1
+	ELSEIF RAND:2
+		PRINTFORMDW 気づかれないように部屋の中を覗くと、マイが荒縄で縛り上げられていた
+		PRINTFORMDW \@ ARG ? アナル # 秘処 \@には縄で固定されたバイブが深々と挿入され、低い音を立てて蠢いている
+		PRINTFORMDW どうやら懲りずに自分を縛って楽しんでいるようだ
+		PRINTFORML 「ふぅっ、ぅ……あぁ……%UNICODE(0x2665) *1%」
+		PRINTFORML 「わたし……またこんなこと……%UNICODE(0x2665) *1%」
+		PRINTFORMW 「ふふっ、ふふふふ……っ、あ……%UNICODE(0x2665) *1%」
+		PRINTFORMDW マイが身を捩る度に柔肌に食い込んだ縄が軋み、それと同時に甘い喘ぎ声が上がる
+		PRINTFORMDW びくびくと震えながら大量の愛液を滴らせるマイの煽情的な姿は、相変わらず見応えがある
+		PRINTFORMDW しばらく眺めていると、気配を察したのか突然マイがこちらに顔を向けた
+		PRINTFORMDW 咄嗟に身を隠したものの、一瞬目が合ってしまった
+		PRINTFORML 「あぁ、また……もう、なんなの」
+		PRINTFORML 「……%CALLNAME:MASTER%？　いるんでしょ……ちょっと来て」
+		PRINTFORMW 「少し、弁明させて……これにはその、深い事情が……」
+		TCVAR:105:353 = 2
+		RETURN 1
+	ELSE
+		;普通の自慰くらいでは動じなくなりそう
+		PRINTFORMDW 気づかれないように部屋の中を覗くと、マイが通常のオナニーに耽っていた
+		PRINTFORMW 「ん、ん……%CALLNAME:MASTER%……もっと、わたしを……」
+		PRINTFORMDW マイは片手で乳房を弄びながら、足を大きく広げて\@ ARG ? アナル # 秘処 \@に指を挿入すると、ゆっくりと動かし始めた
+		PRINTFORMDW しばらく眺めていると、指の動きは段々と激しさを増していく
+		PRINTFORMDW 吐息には甘い音色が混じり始め、ぐちゃぐちゃと鳴る淫らな水音と重なって響いてきた
+		PRINTFORMDW ……もう少しじっくり見ようと扉を開いた瞬間、軋んでいたのか思いのほか大きな音を立ててしまった
+		PRINTFORML 「っ……誰かいるの？」
+		PRINTFORMDW マイも気づいたらしく、慌ててこちらを振り向いた
+		PRINTFORML 「……と……%CALLNAME:MASTER%か」
+		PRINTFORMW 「な、何か用？」
+		PRINTFORMDW マイは平静を装っているが、僅かに緊張した様子だ……
+		TCVAR:105:353 = 1
+		RETURN 1
+	ENDIF
 ELSE
-	PRINTFORML V弄ってる場合
+	TCVAR:105:353 = 0
+	RETURN 2
 ENDIF
+
 ;-------------------------------------------------
-[SKIPEND]
 
 
-[SKIPSTART]
 ;-------------------------------------------------
 ;オナバレでそのまま続けてもらう場合の地の文をデフォルトのものから変更したい場合用。
 ;その場合は上下のSKIPSTART~SKIPENDを外してください。
@@ -4754,19 +4967,57 @@ ENDIF
 ;-------------------------------------------------
 @M_KOJO_EVENT_K105_ONABARE_2(ARG)
 ;-------------------------------------------------
-:口上色を付けるならコメントアウトを外しXをキャラ番号に
-;CALL M_KOJO_COLOR_K105
+;口上色を付けるならコメントアウトを外しXをキャラ番号に
+CALL M_KOJO_COLOR_K105
 
-IF ARG
-	PRINTFORML A弄ってる場合
-ELSE
-	PRINTFORML V弄ってる場合
-ENDIF
+	IF TCVAR:105:353 == 2
+		PRINTFORMDL %CALLNAME:MASTER%がマイをじっと見据えると、マイも観念したらしく口をきゅっと閉じ大人しくなった
+		PRINTFORMDW 部屋が静かになると相対的にバイブの音が大きく感じられ、否応なくその存在を強く意識させられる
+		PRINTFORML 「ふぅっ……く、ん……」
+		PRINTFORMW 「ん、ん……っ、ぅ……ぁ……%UNICODE(0x2665) *1%」
+		PRINTFORMDL マイにとっても同じなのか、段々と行為に没頭してきた様子で吐息が荒くなってきた
+		PRINTFORMDW その姿を黙って鑑賞していると、マイがわずかに潤んだ瞳で%CALLNAME:MASTER%を見上げ口を開いた
+		PRINTFORML 「はっ、はぁっ……あの、%CALLNAME:MASTER%……？」
+		PRINTFORMW 「見てるだけで、楽しい？　あんまり、変化も無いと思うけど……っ」
+		PRINTFORMDL 台詞とは裏腹に、彼女の様子は絶頂に向かって刻々と変化しているようだ
+		PRINTFORMDL 話した拍子に口元から漏れた唾液は当然ぬぐわれることは無く、そのまま顎を伝い糸を引いて垂れ落ちていく
+		PRINTFORMDW 一方で秘部からは愛液がとめどなく溢れ出ており、結果として拘束されながら体液に塗れたあられもない姿を晒している
+		PRINTFORML 「う、ぅ……ん……あぁ……%UNICODE(0x2665) *1%　だめ、イきそう」
+		PRINTFORMW 「も、もうちょっと……イきたい……イかせて、%CALLNAME:MASTER%……」
+		PRINTFORMDL より強い刺激で一気に絶頂に向かいたいようだが、身動きが取れず%CALLNAME:MASTER%に助けを求めてきた
+		PRINTFORMDL そんな懇願を無視して眺めていると、マイはどうにかして快楽を得ようと必死に身を捩り始めた
+		PRINTFORMDL きつく縛られた縄がぎしぎしと音を立て、そのたびに甘い声が上がる
+		PRINTFORMDW しばらくの苦闘の後、痛みによる快楽が最後のひと押しとなったかマイは激しく痙攣し絶頂に達した
+		PRINTFORML 「あっぐ、んんぅ%UNICODE(0x2665) *1%　イッ、く……%UNICODE(0x2665) *1%」
+		PRINTFORMW 「あ、ぁ……はぁ……%UNICODE(0x2665) *1%」
+		PRINTFORMDL マイはすっかり気の抜けた様子で、荒く息をつきながら頭を下げて脱力している
+		PRINTFORMDW 愉快な見世物に満足していると、マイがゆっくりと口を開いた
+		PRINTFORML 「あの、%CALLNAME:MASTER%……ちょっと、この縄ほどいてくれない？」
+		PRINTFORMW 「本当は自分で、魔法でほどけるんだけど……力が抜けて、うまくコントロールが……」
+		PRINTFORML 
+		CALL ASK_YN("ほどいてやる","放っておく")
+			IF !RESULT
+				PRINTFORMDL 思いのほか縛りがきつく苦戦したものの、無事ほどくことが出来た
+				PRINTFORMDL マイは絶頂の余韻と拘束からの開放感で脱力し横たわっている
+			ELSE
+				PRINTFORML 
+				PRINTFORML 「！　……ふふ、さすが」
+				PRINTFORMW 「そう、そうこなくちゃね……ふふふふふ……%UNICODE(0x2665) *1%」
+				PRINTFORMDW %CALLNAME:MASTER%はマイが気を取り直して縄をほどけるようになるまで、苦闘する様子をゆっくり眺めた
+				PRINTFORMDW …………
+				PRINTFORML 
+				PRINTFORMDW しばらくして、マイは再度の絶頂の後どうにか縄をほどいた
+				PRINTFORMDW 彼女は絶頂の余韻と拘束からの開放感で脱力し横たわっている
+			ENDIF
+		RETURN 1
+	ELSE
+		RETURN 2
+	ENDIF
 ;-------------------------------------------------
-[SKIPEND]
 
 
-[SKIPSTART]
+
+
 ;-------------------------------------------------
 ;オナバレなし崩しックスの地の文をデフォルトのものから変更したい場合用。
 ;その場合は上下のSKIPSTART~SKIPENDを外してください。
@@ -4781,25 +5032,42 @@ ENDIF
 #DIM 注入量
 #DIM 回数
 
-:口上色を付けるならコメントアウトを外しXをキャラ番号に
-;CALL M_KOJO_COLOR_K105
-
-SELECTCASE 前戯１
-	CASE 1
-		PRINTFORML Ｃ責め
-	CASE 2
-		PRINTFORML Ｂ責め
-	CASE 3
-		PRINTFORML Ｍ責め
-ENDSELECT
-
-IF 本番はどっちか
-	PRINTFORML Aで本番
-ELSE
-	PRINTFORML Vで本番
-ENDIF
+;口上色を付けるならコメントアウトを外しXをキャラ番号に
+CALL M_KOJO_COLOR_K105
+	IF TCVAR:105:353 == 2
+		PRINTFORMDL 受け入れる気満々のマイを見て気を良くした%CALLNAME:MASTER%は部屋に上がりこむと、さっそく服を脱ぎ下半身をさらけ出した
+		PRINTFORMDW 覗きの興奮で既にギンギンのペニスをマイの眼前に突きつけてやると、彼女は期待するような目で%CALLNAME:MASTER%を見上げた
+		PRINTFORMW 「は、はい……わたしの身体……どこでも、好きに使って……%UNICODE(0x2665) *1%」
+		PRINTFORMDW 手始めに口元にペニスを押し付けてみると、マイは自らそれを咥えこみ舐めしゃぶり始めた
+		PRINTFORMW 「ん、ふふ……ん、ん……%UNICODE(0x2665) *1%」
+		PRINTFORMDL マイは拘束され満足に身体を動かせないながらも、%CALLNAME:MASTER%を悦ばせようと必死に首から上だけを大きく動かし奉仕している
+		PRINTFORMDL そんな姿に興奮した%CALLNAME:MASTER%は我慢できなくなり、マイをペニスから引きはがすと乱暴に床へ突き倒した
+		PRINTFORMD その上にそのまま覆いかぶさると、未だ蠢いているバイブを一気に引き抜くとともに唾液と我慢汁で濡れたペニスを
+		IF 本番はどっちか
+			PRINTFORMD アナルに
+		ELSE
+			PRINTFORMD 膣口に
+		ENDIF
+		PRINTFORMDW あてがった
+		PRINTFORMW 「あぅ%UNICODE(0x2665) *1%　%CALLNAME:MASTER%……だ、だめぇ……%UNICODE(0x2665) *1%」
+		PRINTFORMDL 駄目なわけがない。どうやら、拘束されたまま無理矢理犯されるというシチュエーションに興奮しているようだ
+		PRINTFORMDW 望み通り多少強引にペニスを奥までねじ込んでやると、マイは緩みきった表情で嬌声をあげた
+		PRINTFORMW 「っ、ああぁ……%UNICODE(0x2665) *1%　来たぁ……%UNICODE(0x2665) *1%」
+		PRINTFORMDL そのまま勢いよく腰を動かし、拘束され肉オナホと化したマイの身体を楽しむ
+		PRINTFORMDL あらためて身体を間近で見ると縄は柔らかな肉体に強く食い込んでおり、かなりきつく縛られていることが分かる
+		PRINTFORMDW 変態的な自慰をしていたことについて罵ってやると、マイは顔を真っ赤にして目を背けた
+		PRINTFORML 「んっ、うう゛%UNICODE(0x2665) *1%　やめてぇぇ……そんなこと言わないで」
+		PRINTFORML 「だって、わたし……気持ち良くて……っ%UNICODE(0x2665) *1%　やめられなくてぇ%UNICODE(0x2665) *1%」
+		PRINTFORMW 「%CALLNAME:MASTER%……っ%UNICODE(0x2665) *1%　わたしっ、こんなだけど……嫌いにならないでぇ」
+		PRINTFORMDL 性的な趣向が一致するかどうかはともかく、身体の具合は間違いなく素晴らしい
+		PRINTFORMDW 答える代わりに腰の動きを激しくしてやると、マイは一層声を蕩けさせ喘ぎ狂った
+		PRINTFORMD %CALLNAME:MASTER%はその後もしばらくマイを犯し続け、最終的に
+		PRINTFORMDW \@本番はどっちか ? アナル# 膣\@に{注入量}の精液を注ぎ込んだ……
+		RETURN 1
+	ELSE
+		RETURN 2
+	ENDIF
 ;-------------------------------------------------
-[SKIPEND]
 
 
 ;-------------------------------------------------

@@ -168,55 +168,62 @@ IF LOCAL
 			ENDSELECT
 		;それ以外
 		ELSE
+			$TOYOHIME_KAIWA
 			SELECTCASE RAND:10
 				CASE 0
-					PRINTFORMW 「フェムトファイバーとは何か知っている？」
-					;選択肢
-					CALL ASK_YN("はい","いいえ")
-					;判定
-					SELECTCASE RESULT
-						;はい
-						CASE 0
-							PRINTFORML 「フェムト、わかりやすく言うと……え？ もう知ってる？」
-							PRINTFORMW 「そう……残念」
-							RETURN 1
-						;いいえ
-						CASE 1
-							GOTO FEMTOFIBER
-					ENDSELECT
-					$FEMTOFIBER
-					PRINTFORMW 「フェムト……わかりやすく言うと須臾のことね」
-					PRINTFORMW 「須臾とは生き物が認識できない僅かな時間のことよ」
-					PRINTFORMW 「時間とは……認識できない時が無数に積み重なってできています」
-					PRINTFORMW 「時間の最小単位である須臾が認識できないから時間は連続に見えるけど……」
-					PRINTFORMW 「本当は短い時が組み合わさってできているの」
-					PRINTFORMW 「組紐も１本の紐のようだけど、本当は細い紐が組み合わさっているもの」
-					PRINTFORMW 「認識できない細さの繊維で組まれた組紐は限りなく連続した物質に見えるでしょう」
-					PRINTFORMW 「そのとき、紐から余計な物がなくなり最強の強度を誇る」
-					PRINTFORMW 「さらには余計な穢れもつかなくなるのです」
-					PRINTFORMW 「この紐をさらに組み合わせて太い縄にすることで、決して腐らない縄ができる」
-					PRINTFORMW 「その縄は遥か昔から、不浄な者の出入りを禁じるために使われてきたのよ」
-					PRINTFORMW 「それがフェムトファイバー。理解できた？」
-					PRINTFORML 
-					EXP:MASTER:学習経験 ++
-					TCVAR:99:350 += 1
-					;選択肢
-					CALL ASK_M("はい", 1, "いいえ", TCVAR:99:350 < 3)
-					;判定
-					SELECTCASE RESULT
-						;はい
-						CASE 0
-							CALL M_KOJO_COLOR_K99
-							PRINTFORMW 「よかった♪ また聞きたくなったらいつでも教えてあげるわね」
-							RESETCOLOR
-							TCVAR:99:350 = 0
-						;いいえ
-						CASE 1
-							PRINTFORML 「あら、地上の民には少し難しかったかしら？」
-							PRINTFORMW 「なら、もう一度説明してあげるわね」
-							TIME += 10
-							GOTO FEMTOFIBER
-					ENDSELECT
+					;５分の１の確率でフェムトファイバーについて語る
+					IF !RAND:5
+						PRINTFORMW 「フェムトファイバーとは何か知っている？」
+						;選択肢
+						CALL ASK_YN("はい","いいえ")
+						;判定
+						SELECTCASE RESULT
+							;はい
+							CASE 0
+								PRINTFORML 「フェムト、わかりやすく言うと……え？ もう知ってる？」
+								PRINTFORMW 「そう……残念」
+								RETURN 1
+							;いいえ
+							CASE 1
+								GOTO FEMTOFIBER
+						ENDSELECT
+						$FEMTOFIBER
+						PRINTFORMW 「フェムト……わかりやすく言うと須臾のことね」
+						PRINTFORMW 「須臾とは生き物が認識できない僅かな時間のことよ」
+						PRINTFORMW 「時間とは……認識できない時が無数に積み重なってできています」
+						PRINTFORMW 「時間の最小単位である須臾が認識できないから時間は連続に見えるけど……」
+						PRINTFORMW 「本当は短い時が組み合わさってできているの」
+						PRINTFORMW 「組紐も１本の紐のようだけど、本当は細い紐が組み合わさっているもの」
+						PRINTFORMW 「認識できない細さの繊維で組まれた組紐は限りなく連続した物質に見えるでしょう」
+						PRINTFORMW 「そのとき、紐から余計な物がなくなり最強の強度を誇る」
+						PRINTFORMW 「さらには余計な穢れもつかなくなるのです」
+						PRINTFORMW 「この紐をさらに組み合わせて太い縄にすることで、決して腐らない縄ができる」
+						PRINTFORMW 「その縄は遥か昔から、不浄な者の出入りを禁じるために使われてきたのよ」
+						PRINTFORMW 「それがフェムトファイバー。理解できた？」
+						PRINTFORML 
+						EXP:MASTER:学習経験 ++
+						TCVAR:99:350 += 1
+						;選択肢
+						CALL ASK_M("はい", 1, "いいえ", TCVAR:99:350 < 3)
+						;判定
+						SELECTCASE RESULT
+							;はい
+							CASE 0
+								CALL M_KOJO_COLOR_K99
+								PRINTFORMW 「よかった♪ また聞きたくなったらいつでも教えてあげるわね」
+								RESETCOLOR
+								TCVAR:99:350 = 0
+							;いいえ
+							CASE 1
+								PRINTFORML 「あら、地上の民には少し難しかったかしら？」
+								PRINTFORMW 「なら、もう一度説明してあげるわね」
+								TIME += 10
+								GOTO FEMTOFIBER
+						ENDSELECT
+					;それ以外の場合は会話再抽選
+					ELSE
+						GOTO TOYOHIME_KAIWA
+					ENDIF
 				CASE 1
 					;依姫と面識が無い
 					IF !CFLAG:98:面識
@@ -1876,7 +1883,7 @@ CALL M_KOJO_COLOR_K99
 		CASE 77
 			CALL M_KOJO_MESSAGE_COM_K99_313_1
 		;85=Ｖ挿入する 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ
-		CASE 85,87 TO 89
+		CASE 85, 88
 			CALL M_KOJO_MESSAGE_COM_K99_313_1
 		;だいしゅきホールド
 		CASE 86
@@ -4136,28 +4143,35 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K99_698_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-
+CALL M_KOJO_COLOR_K99
+	PRINTFORML 「いらっしゃい。依姫が片付けてくれたから散らかってない筈よ」
+	PRINTFORMDW 駄目なお姉ちゃんだ……%CALLNAME:MASTER%は『お邪魔します』と言って部屋に上がった
 ENDIF
+RESETCOLOR
 RETURN 1
 ;==================================================
 ;699,外に出る
 ;==================================================
 @M_KOJO_MESSAGE_COM_K99_699
 CALL TRAIN_MESSAGE
+DRAWLINE
 CALL M_KOJO_MESSAGE_COM_K99_699_1
 RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K99_699_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-
+CALL M_KOJO_COLOR_K99
+	PRINTFORML 「忘れ物はない？ もしあったらレイセンに届けさせるわね」
+	PRINTFORMDW それはさすがに可哀相だ……%CALLNAME:MASTER%は忘れ物がないか念入りにチェックした
 ENDIF
+RESETCOLOR
 RETURN 1
 
 ;※※※※※※※※※※※※※※※※※※※※※※※※※

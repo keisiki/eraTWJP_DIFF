@@ -325,8 +325,10 @@ IF LOCAL && !FLAG:70
 				ENDSELECT
 			ENDIF
 		ENDSELECT
-	ELSEIF DAY:3 != 15 && !TCVAR:354
+	ELSEIF K63_CAN_KENGAKU()
 		CALL K63_職場見学
+	ELSEIF !TCVAR:356 && (TALENT:恋慕 || TALENT:思慕) && !MARK:反発刻印
+		CALL K63_RETRIEVE
 	;ウルフ・レッドムーン
 	ELSEIF !RAND:15
 		EXP:歌唱経験 ++
@@ -334,7 +336,7 @@ IF LOCAL && !FLAG:70
 		PRINTFORMW 「きりさーく静寂どーこまでーもー♪」
 	;恋慕の会話
 	ELSEIF TALENT:恋慕
-		SELECTCASE RAND:41
+		SELECTCASE RAND:45
 		;幻想郷に英語という概念はある
 		CASE 0
 			PRINTFORMW 「しょっちゅう“狼男”って言われてやんなっちゃうわ」
@@ -395,11 +397,30 @@ IF LOCAL && !FLAG:70
 				PRINTFORMW 「あ！食料調達とか！」
 			ENDIF
 		CASE 5
-			PRINTFORMW 「霧の湖にはわかさぎ姫っていう、私の友人の人魚が住んでるのよ」
-			PRINTFORMW 「おっとりしてとっても大人しい子なの」
-			PRINTFORMW 「石を集めるって変わった趣味もあったり…」
-			PRINTFORMW 「あと歌が上手いわね。岸辺で歌ってる姿が幻想的で」
-			PRINTFORMW 「思わず見とれちゃうわ～」
+			IF FIRSTTIME("姫の話題")
+				PRINTFORMW 「霧の湖にはわかさぎ姫っていう、私の友人の人魚が住んでるのよ」
+				PRINTFORMW 「おっとりしてとっても大人しい子なの」
+				PRINTFORMW 「石を集めるって変わった趣味もあったり…」
+				PRINTFORMW 「あと歌が上手いわね。岸辺で歌ってる姿が幻想的で」
+				PRINTFORMW 「思わず見とれちゃうわ～」
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「姫って謎の品の良さがあるわよね」
+						PRINTFORML 「普通の妖怪のはずなのになんでかしらね」
+					CASE 1
+						PRINTFORML 「宝物やマジックアイテムのコレクターより、綺麗な石を集めてる姫の方がすごいと思うわ」
+						PRINTFORML 「誰も気にも留めないようなものの良さがわかるんだもの」
+					CASE 2
+						PRINTFORML 「姫の石コレクション、だいたい綺麗だけどたまに何がそんなにいいのかわからないのがあるのよね」
+						CALL ASK_YN("他人の趣味なんてそんなもの","姫はたくさん見てるから")
+						IF !RESULT
+							PRINTFORML 「そうかもねー…私の感覚も通じないときあるし……」
+						ELSE
+							PRINTFORML 「なるほどー！いっぱい見てきたから、普通気づかない微妙な違いがわかるってことね！」
+						ENDIF
+				ENDSELECT
+			ENDIF
 		CASE 6
 			PRINTFORMW 「どうしてもお腹が減って食料がないときはこっそり人里に行くの」
 			PRINTFORMW 「いつもばれないかとヒヤヒヤするわ……」
@@ -674,6 +695,7 @@ IF LOCAL && !FLAG:70
 			PRINTFORMW 「ん？……ｸﾝｸﾝ」
 			SELECTCASE TIME:5
 			;そんな機能はない
+			;今なら天候管理作調システムの応用が使える？
 			CASE 0,1,2,3
 				PRINTFORMW 「なんだか雨が降りそうな雰囲気だわ…」
 			CASEELSE
@@ -744,15 +766,50 @@ IF LOCAL && !FLAG:70
 					PRINTFORML 「そりゃ悩むわよね」
 					PRINTFORML 「私も狼女やめて人間になれって言われたら迷うわー…」
 			ENDSELECT
+		CASE 41
+			PRINTFORML 「ユウボクミンって種類の人間は祖先が狼らしいわね」
+			PRINTFORML 「%CALLNAME:MASTER%はユウボクミン？」
+			PRINTFORML 「違うかあ」
+		CASE 42
+			PRINTFORML 身だしなみには結構気を使ってるつもりなんだけど、真面目にやろうとすると手間がかかってしょうがないのよね
+			PRINTFORML 外の世界には何か、こっちにはないような美容術ってある？
+			CALL ASK_M("まつげエクステ",1,"ネイルアート",1,"レーザー脱毛",1)
+			SELECTCASE RESULT
+				CASE 0
+					PRINTFORML 「よくできた作り物のまつげをくっつけるの？面白そう！」
+					PRINTFORML 「まつげは髪と違って好きなように伸ばせないもの」
+				CASE 1
+					PRINTFORML 「マニキュアぐらいならこっちにもあるけど、また違うの？」
+					PRINTFORML 「なるほど、細かい絵を描いた付け爪……一度見てみたいわね、こっちでもできるかしら？」
+				CASE 2
+					PRINTFORML 「レーザーって白黒の魔法使いとかが飛ばしてる光線でしょ？あれで脱毛？」
+					PRINTFORML 「肌に埋まってる毛の根っこを焼いて壊す！？うわー痛そう！」
+					PRINTFORML 「それお肌どうにかなったりしないの？やっぱり火傷するんだ……」
+					PRINTFORML 「うーん、毛の処理しないで済むようになるのは魅力だけど、永久に生えなくなっちゃったらそれはそれで困りそう」
+					PRINTFORML 「ハゲオオカミにはなりたくないわ」
+			ENDSELECT
+		CASE 43
+			PRINTFORML 「人間も仙人？になれば人間やめられるらしいけど、人間やめたくなっても%CALLNAME:MASTER%はそんなのにならないでね」
+			PRINTFORML 「しがらみのないただの妖怪になって、私や草の根の仲間たちと気楽に暮らしましょ？」
+		CASE 44
+			PRINTFORML 「蛮奇って脚細くて綺麗よねえ」
+			PRINTFORML 「ミニスカートも気兼ねなく履けて羨ましいわ」
+		CASE 45
+			PRINTFORML 「%CALLNAME:MASTER%から見て、蛮奇って人里に溶け込めてる感じする？」
+			CALL ASK_YN("ばっちり","あんまり")
+			IF !RESULT
+				PRINTFORML 「へー！なんだかんだで上手くやってるのね」
+			ELSE
+				PRINTFORML 「やっぱり……」
+			ENDIF
 		ENDSELECT
 	;会話不能
 	ELSEIF TCVAR:302
 		PRINTFORMW 「あら？どうしたの？」
 		PRINTFORMW 「…………………」
-
 	;普段の会話
 	ELSE
-		SELECTCASE RAND:30
+		SELECTCASE RAND:32
 		CASE 0
 			PRINTFORMW 「しょっちゅう“狼男”って言われてやんなっちゃうわ」
 			PRINTFORMW 「人狼＝狼男ってイメージが強すぎるのよね」
@@ -790,13 +847,22 @@ IF LOCAL && !FLAG:70
 			PRINTFORMW 「だから私も偶に遊びに行くんだけど」
 			PRINTFORMW 「あの巫女はちょっとしたスリルね」
 		CASE 5
-			PRINTFORMW 「霧の湖には人魚が住んでるのよ」
-			IF TALENT:思慕
-				PRINTFORMW 「わかさぎ姫っていうの」
-				PRINTFORMW 「初めて会ったときは間違えて食べそうになっちゃった♪」
-				PRINTFORMW 「あはは、今では仲良くしてるから大丈夫よ」
+			IF FIRSTTIME("姫の話題")
+				PRINTFORML 「霧の湖には人魚が住んでるのよ」
+				IF TALENT:思慕
+					PRINTFORML 「わかさぎ姫っていうの」
+					PRINTFORML 「初めて会ったときは間違えて食べそうになっちゃった♪」
+					PRINTFORMW 「あはは、今では仲良くしてるから大丈夫よ」
+				ENDIF
+				IF CFLAG:[[わかさぎ姫]]:面識
+					PRINTFORMW 「あ、会ったことある？」
+				ELSE
+					PRINTFORMW 「知ってた？」
+				ENDIF
 			ELSE
-				PRINTFORMW 「知ってた？」
+				PRINTFORML 「姫は綺麗な石を集めるのが趣味なの――あ、竹林のお姫様じゃなくてわかさぎ姫の方ね」
+				PRINTFORML 「%CALLNAME:MASTER%も良さそうなの見つけたらプレゼントしてあげてね」
+				PRINTFORML 「見つけるほど石なんか見ない？……まあ、そうよね」
 			ENDIF
 		CASE 6
 			PRINTFORMW 「どうしてもお腹が減って食料がないときはこっそり人里に行くの」
@@ -912,6 +978,18 @@ IF LOCAL && !FLAG:70
 			PRINTFORMW 「ｸﾝｸﾝ……狼だから……ｸﾝｸﾝ……」
 			PRINTFORMW 「鼻は利くのよ……ｸﾝｸﾝ……」
 			CALL KUNKUN_KAGEROU
+		CASE 30
+			PRINTFORML 「人里の柳の下に出る妖怪の話、聞いたことある？」
+			CALL ASK_M("知ってる",1,"知らない",1,"誰のこと言ってるのかわかる",ABL:[[蛮奇]]:親密 >= 2)
+			SELECTCASE RESULT
+				CASE 0
+					PRINTFORML 「へー！外来人の%CALLNAME:MASTER%でも知ってるんだ！」
+				CASE 1
+					PRINTFORML 「やっぱり言うほど知られてないんだ……」
+				CASE 2
+					PRINTFORML 「うわ……新参の外来人にすら正体バレてる……」
+					PRINTFORML 「本当に人里でやってけてるのかしら、あの子」
+			ENDSELECT
 		ENDSELECT
 	ENDIF
 ENDIF

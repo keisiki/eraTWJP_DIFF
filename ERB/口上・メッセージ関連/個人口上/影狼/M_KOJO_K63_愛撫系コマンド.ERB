@@ -12,7 +12,7 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K63_0_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 	;-------------------------------------------------
@@ -66,17 +66,20 @@ IF LOCAL
 	IF FLAG:70
 		PRINTFORMW 
 		RETURN 1
-	;恋慕
-	ELSEIF TALENT:恋慕
-		PRINTFORMW 
-		RETURN 1
-	;屈服3
-	ELSEIF MARK:不埒刻印 == 3
-		PRINTFORMW 
-		RETURN 1
 	;それ以外
 	ELSE
-		PRINTFORMW 
+		SELECTCASE RAND:10
+			CASE 0
+				PRINTFORML 普段まるでボディラインの出ない恰好をしているが、影狼はなかなかの恵体だ
+			CASE 1
+				PRINTFORML %TEXTR("しなやかなお腹/引き締まったお尻")%の感触が気持ちいい
+			CASE 2
+				PRINTFORML 柔らかいところは柔らかいが、贅肉がついているという印象はない
+				PRINTFORML 栄養の蓄積と内臓の保護のための、実用的な脂肪といった感じだ
+			CASE 3
+				PRINTFORML 出るところは出ているが、柔らかさの下に確かな筋肉が感じられる
+				PRINTFORML 野生の獣の肉体だ
+		ENDSELECT
 		RETURN 1
 	ENDIF
 ENDIF
@@ -85,6 +88,21 @@ RETURN 1
 ;1,クンニ
 ;==================================================
 @M_KOJO_MESSAGE_COM_K63_1
+;初めて
+IF FIRSTTIME("初クンニ")
+	PRINTFORMW 「うえぇぇっ！？舐める！？あそこを！？」
+	{
+	PRINTFORML 「汚いしそんなことさせるのは申し訳ないっていうか、いや汚いってのは不潔って意味じゃなくて
+	（こんなこともあろうかと）ちゃんと身綺麗にしてるけど交尾の準備だからってそんなことまでしなくてもいいんじゃないかなって」
+	}
+	CALL ASK_YN("嫌？","どうしても舐めたい")
+	IF !RESULT
+		PRINTFORMW 「そういうわけじゃないけど……」
+	ELSE
+		PRINTFORMW 「そこまで言うんなら、うん……」
+	ENDIF
+	PRINTFORMW 「じゃあ、その…よ、よろしくお願いします……」
+ENDIF
 CALL TRAIN_MESSAGE
 CALL M_KOJO_MESSAGE_COM_K63_1_1
 RETURN RESULT
@@ -92,7 +110,7 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K63_1_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 	;-------------------------------------------------
@@ -100,10 +118,12 @@ IF LOCAL
 	;-------------------------------------------------
 	;初めて
 	;記入チェック
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-		PRINTFORMW 
+		PRINTFORMW （どうしようすごいことになっちゃってる！）
+		PRINTFORMW （%CALLNAME:MASTER%が自分から、私の足の間に頭突っ込んで、私のここ舐めて気持ちよくさせようとしてる！）
+		CALL HPH_PRINT,@"（うわー－－っHPH）","W"
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -141,7 +161,17 @@ IF LOCAL
 		RETURN 1
 	;それ以外
 	ELSE
-		PRINTFORMW 
+		IF ABL:Ｃ感覚 < 2
+			PRINTFORML 「%TEXTR("ふっ、んんっ……/んっ……気持ちいい、かも……")%」
+		ELSE
+			CALL HPH_PRINT,@"「ああっHPH　あっHPH　あっHPH　はあっHPH」","L"
+			IF RAND:2
+				PRINTFORML （すごい真剣な感じで舐めてる……）
+				PRINTFORML （%CALLNAME:MASTER%も私を気持ちよくしたいんだ……）
+			ELSE	
+				CALL HPH_PRINT,@"（%TEXTR("あーきもちいー……HPH　あたまボーッっとする/ああ…HPH　私の汁、すっごい飲まれてる")%……HPH）","W"
+			ENDIF
+		ENDIF
 		RETURN 1
 	ENDIF
 ENDIF
@@ -760,7 +790,7 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K63_19_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 	;-------------------------------------------------
@@ -768,7 +798,7 @@ IF LOCAL
 	;-------------------------------------------------
 	;初めて
 	;記入チェック
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
 		PRINTFORMW 
@@ -781,7 +811,13 @@ IF LOCAL
 		RETURN 1
 	;恋慕
 	ELSEIF TALENT:恋慕
-		PRINTFORMW 
+		IF !RAND:2
+			PRINTFORML （牙なめられてる……なんか嬉しい……）
+		ELSE
+			PRINTFORML 影狼は人間そっくりだが、やはりところどころ違いはある
+			PRINTFORML 尖った歯、特に犬歯は明らかに人間のそれではない
+			PRINTFORML その犬歯を、丹念に、舐る
+		ENDIF
 		RETURN 1
 	;屈服3
 	ELSEIF MARK:不埒刻印 == 3

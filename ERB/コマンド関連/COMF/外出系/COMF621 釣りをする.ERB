@@ -26,6 +26,20 @@ IF CHARA == [[わかさぎ姫]] || TARGET == [[わかさぎ姫]]
 	RETURN -1
 ENDIF
 
+;(天候パッチ)連続降水カウンター10以上で鉄砲水に巻き込まれる可能性
+IF CONTINUOUS_RAINFALL >= 10 && RAND:(MAX(10, 40 - CONTINUOUS_RAINFALL)) == 0
+	PRINTFORML …川の様子がおかしい
+	PRINTFORMW ！！　鉄砲水だ！！
+	
+	PRINTFORML 
+	PRINTFORML %CALLNAME:MASTER%は川に押し流されながらも
+	PRINTFORML なんとか川から這い上がることに成功した…
+	PRINTL 
+	CALL ASK_DIARY("鉄砲水に遭遇した")
+	BASE:MASTER:体力 = 0
+	RETURN -1
+ENDIF
+
 ;季節ごとの活性
 SELECTCASE DAY:2
 	CASE 1  ;春
@@ -45,12 +59,19 @@ SELECTCASE TIME:2
 		活性 += 5
 ENDSELECT
 ;天気による活性
+;(天候パッチ)豪雨・ひょう・あられ
 SELECTCASE TIME:5
 	CASE 3, 6 ;曇、霧雨
 		活性 += 5
-	CASE 4, 5 ;雨
+	CASE 4, 5, 14, 15 ;雨
 		活性 += 7
-	CASE 8 TO 13 ;雪系統はマイナス
+	CASE 13
+		IF GET_HEAT_THUNDERSTORM() == 1 || GET_FRONTAL_THUNDERSTORM() == 1
+			活性 += 7
+		ELSE
+			活性 -= 3
+		ENDIF
+	CASE 8 TO 12 ;雪系統はマイナス
 		活性 -= 3
 ENDSELECT
 ;虹が出てるときは、雨の後で水が濁っているだろう
@@ -58,6 +79,9 @@ SELECTCASE TIME:7
 	CASE 1
 		活性 += 7
 ENDSELECT
+
+;(天候パッチ)連続降水カウンター分活性にプラス(最大+10)
+活性 += MIN(10, CONTINUOUS_RAINFALL)
 
 ;日替わりで-50～+50,アイテムやお祈り等で補正をかけることも可
 釣り運 = CFLAG:MASTER:今日の運勢 / 10 - 50
@@ -278,6 +302,21 @@ TIME += 20
 
 ;フラグ引き渡し
 TFLAG:SELECTCOMの分岐 = 釣れたもの
+SELECTCASE 釣れたもの
+	CASE 0
+		COM_STR = 釣れない
+	CASE 21
+		COM_STR = ローター
+	CASE 1 TO 60
+		COM_STR = %FISH_NAME(釣れたもの)%
+	CASE 610
+		COM_STR = 木片
+	CASE 131
+		COM_STR = 紙切れ
+	CASEELSE
+		COM_STR = %ITEMNAME:(釣れたもの)%
+ENDSELECT
+
 TFLAG:SOURCEなどに影響しないSELECTCOMの分岐 = CHARA + (相方が釣った * 1000)
 
 RETURN 1

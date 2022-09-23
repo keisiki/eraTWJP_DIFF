@@ -129,6 +129,8 @@ IF TCVAR:発情
 	ELSE
 		TFLAG:192 = -1
 	ENDIF
+ELSEIF (TALENT:恋慕 || TALENT:思慕) && DAY > K63_EYEBROW && AT_HOME(MASTER)
+	TFLAG:192 = 1
 ELSE
 	CALL TRAIN_MESSAGE
 ENDIF
@@ -188,13 +190,20 @@ IF LOCAL && !FLAG:70
 		ENDIF
 		RETURN 1
 	ENDIF
+	IF (TALENT:恋慕 || TALENT:思慕) && DAY > K63_EYEBROW && AT_HOME(MASTER)
+		CALL K63_眉カット
+		RETURN 1
+	ENDIF
+	CALL KAGEROU_SKINSHIP
 	;恋慕
 	IF TALENT:恋慕
-		CALL KAGEROU_SKINSHIP
 		SELECTCASE RESULT
 		;手を握る
 		CASE 0
-			IF RAND:2
+			IF !RAND:3
+				PRINTFORML 「やっぱり%CALLNAME:MASTER%の手は私のとは違うわね」
+				PRINTFORML 「道具を作って扱う、人間の手だわ」
+			ELSEIF RAND:2
 				PRINTFORMW 「あ…ちょっ……」
 				PRINTFORMW 「私の手、爪が立ってると危ないから、気をつけてね…」
 			ELSE
@@ -204,13 +213,17 @@ IF LOCAL && !FLAG:70
 			ENDIF
 		;頬を撫でる
 		CASE 1
-			IF RAND:2
-				PRINTFORMW 「あっ…どしたの%CALLNAME:MASTER%……」
-				PRINTFORMW 「ふふ、私もしてあげる……」
-			ELSE
-				PRINTFORMW 「わっ！急にやられるとびっくりするわ」
-				PRINTFORMW 「つ、つねったりしないでね」
-			ENDIF
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「あっ…どしたの%CALLNAME:MASTER%……」
+					PRINTFORML 「ふふ、私もしてあげる……」
+				CASE 1
+					PRINTFORML 「わっ！急にやられるとびっくりするわ」
+					PRINTFORML 「つ、つねったりしないでね」
+				CASE 2
+					PRINTFORML 「ん……」
+					PRINTFORML 目を細め、撫でている側に頭を傾けてきた
+			ENDSELECT
 		;耳に触る
 		CASE 2
 			IF RAND:2
@@ -223,21 +236,26 @@ IF LOCAL && !FLAG:70
 		;顎を擽る
 		CASE 3
 			IF RAND:2
-				PRINTFORMW 「あっ、それ気持ちいい……」
-				PRINTFORMW 「で、でもくすぐったいわ」
+				PRINTFORML 「あっ、それ気持ちいい……」
+				PRINTFORML 「で、でもくすぐったいわ」
 			ELSE
-				PRINTFORMW 「ふぁあ…くすぐったいわ……」
-				PRINTFORMW 「ああ…あと、犬みたいで恥ずかしい……」
+				PRINTFORML 「ふぁあ…くすぐったいわ……」
+				PRINTFORML 「ああ…あと、犬みたいで恥ずかしい……」
 			ENDIF
 		;髪に触る
 		CASE 4
-			IF RAND:2
-				PRINTFORMW 「ちゃんとお手入れはしてるつもりだけど…」
-				PRINTFORMW 「そうやってまじまじと観察されるとなんだか緊張するわね……」
-			ELSE
-				PRINTFORMW 「そんな嗅いだりしないでよ～…」
-				PRINTFORMW 「恥ずかしいわ……」
-			ENDIF
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ちゃんとお手入れはしてるつもりだけど…」
+					PRINTFORML 「そうやってまじまじと観察されるとなんだか緊張するわね……」
+				CASE 1
+					PRINTFORML 「そんな嗅いだりしないでよ～…」
+					PRINTFORML 「恥ずかしいわ……」
+				CASE 2
+					PRINTFORML 「手触り気持ちいい？」
+					PRINTFORML 「ふふ、これにかけてはちょっと自信あるのよ」
+			ENDSELECT
+			PRINTFORML 艶々とした黒髪を堪能した…
 		;肩を揉む
 		CASE 5
 			PRINTFORMW 「あ～気持ちいいわ～♪」
@@ -290,14 +308,30 @@ IF LOCAL && !FLAG:70
 				PRINTFORMW 「そんなに触りたいなら…その……」
 				PRINTFORMW 「物陰にでも行ってくれれば……」
 			ENDIF
+		CASE 10
+			IF FIRSTTIME("肉球")
+				PRINTFORMW 「肉球触りたい？まあ、変身すればあるけど……」
+				PRINTFORML 影狼は右手を左袖に入れて、もぞもぞと動かす
+				PRINTFORML そして差し出された右手は狼のそれだ
+				PRINTFORMW 「はい、どうぞ」
+				PRINTFORML 柔らか……くはない、靴底みたいだ
+				PRINTFORMW 「姫たちにも勝手にガッカリされたのよねー……」
+			ELSE
+				PRINTFORML 「%TEXTR("何が面白いんだか……/また？しょうがないわね……")%」
+				PRINTFORML 変身した手を触らせてもらった
+				IF !RAND:3
+					PRINTFORML 「片手だけ獣だと手袋の絵本みたい？そういう話があるの？」
+					PRINTFORML 「あ、狐なのね……狼じゃないんだ……」
+				ELSE
+					PRINTFORML %TEXTR("普段の女性らしい手とはまるで違うが、これも影狼だ/地面に爪を立て蹴るための、力強い獣の前肢だ")%
+				ENDIF
+			ENDIF
 		;人狼
 		CASE 100
 			CALL ERATOHO_JINROU_GAME
 		ENDSELECT
-
 	;恋慕じゃない
 	ELSE
-		CALL KAGEROU_SKINSHIP
 		SELECTCASE RESULT
 		;手を握る
 		CASE 0
@@ -611,6 +645,14 @@ IF LOCAL && !FLAG:70
 		ENDIF
 	;恋慕
 	ELSEIF TALENT:恋慕
+		IF TFLAG:193 == 1
+			PRINTFORML 「んっ、そこ気持ちいい…」
+			PRINTFORMW 耳の近くを撫でると頭を押し付けてきた
+			PRINTFORMW 「Gwwwmmmmm...」
+			PRINTFORML 満ち足りた唸り声を上げてさらに体重を預けてきたので、
+			PRINTFORMW しばらくの間頭を抱えるようにしてわしわしし続けた……
+			RETURN 1
+		ENDIF
 		SELECTCASE RAND:5
 		CASE 0
 			PRINTFORMW 「わわっ！」
@@ -1974,6 +2016,103 @@ IF LOCAL
 	ENDIF
 ENDIF
 RETURN 1
+
+;==================================================
+;448,罠を仕掛ける／虫トラップ
+;TFLAG:193,
+;   -1=罠が壊れた
+;    0=罠を仕掛けた
+;    1=獲物が得られた
+;   10=虫トラップを仕掛けた
+;   11=虫トラップを破棄した
+;   12=ムシを捕まえた
+;FLAG:194,獲物の番号
+;ムシの名前は MUSHI_NAME で表示したり判別したりできます
+;==================================================
+@M_KOJO_MESSAGE_COM_K63_448
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K63_448_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K63_448_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == 1
+	SELECTCASE TFLAG:194
+		CASE 1
+			;ネズミ
+		CASE 2
+			;イタチ
+			PRINTFORML 「小さいくせに暴れるし臭いしで好きじゃないわ」
+		CASE 3, 5, 12
+			;リス,テン, ノネコ
+			PRINTFORML 「すぐ木の上行っちゃうから捕りにくいのよね」
+		CASE 4
+			;ミンク
+			PRINTFORML 「味も量も大したことないけど、人間には人気らしいわね」
+		CASE 6
+			;アライグマ
+			PRINTFORML 「タヌキじゃないけどタヌキの親分と同じ尻尾してるやつね」
+		CASE 7, 8	;タヌキ,アナグマ
+			PRINTFORML 「ため糞するから見つけやすいのよね」
+		CASE 9
+			;ハクビシン
+			PRINTFORML 「白のラインがお洒落で美味しいやつね」
+		CASE 10
+			;キツネ
+			PRINTFORML 「捕れたら食べるけど、よっぽどお腹空いてなかったら捕らないかなあ…捕りやすくもないし」
+		CASE 11
+			PRINTFORML 「うわっこれは無理！絶対ムリ！」
+		CASE 13
+			;ノウサギ
+			PRINTFORML 「ウサギは好きなんだけど、近所で妖怪兎が徒党を組んでると大っぴらに狩るわけにもいかないのよね…」
+		CASE 14
+			;ヌートリア
+			PRINTFORML 「ネズミもこれぐらいあると食べでがあるわね」
+		CASE 15, 16, 17
+			;イノシシ,シカ,カモシカ
+			PRINTFORML 「こんな大物捕るのはかなり大変だし危ないのに、罠だと放っておけば捕れちゃうのね」
+			PRINTFORML 「人間ってずるいなあ…」
+		CASE 18
+			;サル
+			PRINTFORML 「へえ、サルも食べるのね。人間っぽいのに抵抗ないんだ？」
+			PRINTFORML 「私もキツネとか食べないわけじゃないけど」
+		CASE 19
+			;ツキノワグマ
+			PRINTFORML 「これは変身してないと無理ねえ」
+			PRINTFORML 「変身してもやりたくないけど」
+		CASE 20
+			;ヘビ
+			PRINTFORML 「捌くとき皮をビーッってやるの楽しいわよね」
+		CASE 21
+			;オオコウモリ
+		CASE 22
+			;モグラ
+			PRINTFORML 「たまに地面まで出てきてるのは見るけど獲ったことはないわね」
+		CASE 23
+			;デスワーム
+			PRINTFORML 「うわあ気持ち悪い…地底にはこんなミミズがいるんだ…」
+			PRINTFORML 「え？ミミズじゃない？」
+		CASE 24
+			;ツチノコ
+			PRINTFORML 「ぶっといヘビねえ」
+		CASE 25
+			;スライム
+			PRINTFORML 「何これ食べれるの？内臓どこだろ……」
+		CASE 26
+			;マタンゴ
+			PRINTFORML 「キノコっぽいけど人間っぽくもあり……これも食べるの？悪食ねえ」
+		CASE 27, 28
+			;ヤベオオツノジカ、ハナイズミモリウシ
+			PRINTFORML 「外の世界だと絶滅してるの？」
+			PRINTFORML 「私の同類かあ…」
+	ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
 ;※※※※※※※※※※※※※※※※※※※※※※※※※
 ;デート系コマンド
 ;※※※※※※※※※※※※※※※※※※※※※※※※※
@@ -2313,7 +2452,7 @@ LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL && !FLAG:70 && TALENT:恋慕
 	PRINTFORMW 「色んな本があるのね～」
-	SELECTCASE RAND:5
+	SELECTCASE RAND:7
 	CASE 0
 		PRINTFORMW 「"裏死海文書"？なんだこれ？」
 	CASE 1
@@ -2324,6 +2463,12 @@ IF LOCAL && !FLAG:70 && TALENT:恋慕
 		PRINTFORMW 「"ヴォイニッチ手稿"？なんだこれ？」
 	CASE 4
 		PRINTFORMW 「"レメゲトン－ゲーティア"？なんだこれ？」
+	CASE 5
+		PRINTFORML 「私にも読めそうなのないかしら」
+		PRINTFORML 「文字が多すぎなくて、人間用語もあんまりないやつがいいわ」
+	CASE 6
+		PRINTFORML 「"ヴァージニア・ウルフ"？よさそうな名前！」
+		PRINTFORML 「……割と難しくない？」
 	ENDSELECT
 ENDIF
 RETURN 1

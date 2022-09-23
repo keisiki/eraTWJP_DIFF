@@ -217,10 +217,14 @@ ELSEIF RESULT == 850
 	TFLAG:3 = SELECTCOM
 	DOTRAIN 999
 ;居場所察知=============================================================================================================================
-ELSEIF RESULT == 811 && TALENT:MASTER:居場所察知 && AT_HOME(MASTER) && !CFLAG:うふふ
+ELSEIF RESULT == 811 && TALENT:MASTER:居場所察知 && AT_HOME(MASTER) && (GETBIT(TALENT:MASTER:居場所察知, 1) || !(CFLAG:うふふ || CFLAG:イタズラ || CFLAG:添い寝中))
 	TFLAG:206 = CFLAG:MASTER:現在位置
 	CALL HITOSAGASI()
 	INPUT
+	;下記状態中は居場所表示だけ行い移動しない
+	IF CFLAG:うふふ || CFLAG:イタズラ || CFLAG:添い寝中
+		RETURN 1
+	ENDIF
 	IF GROUPMATCH(RESULT, 0, CFLAG:MASTER:現在位置)
 		TFLAG:Info表示中 = 0
 		RETURN 1
@@ -244,7 +248,7 @@ ELSEIF RESULT == 811 && TALENT:MASTER:居場所察知 && AT_HOME(MASTER) && !CFL
 	TFLAG:Info表示中 = 0
 	RETURN 1
 ;====================================================
-ELSEIF RESULT == 812 && TALENT:MASTER:汚部屋察知 && AT_HOME(MASTER) && !CFLAG:うふふ
+ELSEIF RESULT == 812 && TALENT:MASTER:汚部屋察知 && AT_HOME(MASTER) && !(CFLAG:うふふ || CFLAG:イタズラ || CFLAG:添い寝中)
 	TFLAG:206 = CFLAG:MASTER:現在位置
 	CALL OHEYA_CHECK
 	INPUT

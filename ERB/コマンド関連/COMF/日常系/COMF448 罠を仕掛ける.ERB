@@ -72,7 +72,7 @@ SELECTCASE CFLAG:MASTER:現在位置
 			RETURN -1
 		ENDIF
 	CASE 絶景の丘, 805
-		IF ABL:[[文]]:親密 < 5 && ABL:[[はたて]]:親密 < 5
+		IF ABL:[[文]]:親密 < 5 && ABL:[[はたて]]:親密 < 5 && ABL:[[龍]]:親密 < 5
 			DRAWLINE
 			PRINTFORML ここで密猟をするのはマズい気がする
 			RETURN -1
@@ -138,7 +138,6 @@ IF GROUPMATCH(CFLAG:MASTER:現在位置, TRAP_POINT:1, TRAP_POINT:2, TRAP_POINT:
 			獲物 = 0
 			;変数をリセット
 			CALL TRAP_V_RESET(TP_TO_PLACE())
-			CALL CRITTER_V_RESET
 		ELSE
 			PRINTFORML この獲物を解体しますか？
 			CALL ASK_YN("解体する", "逃がしてやる")
@@ -293,11 +292,11 @@ ELSE
 							;罠に応じて耐久度をセット
 							SELECTCASE リザルト
 								CASE 132
-									TRAP_DURABILITY:LOCAL = 30
+									TRAP_DURABILITY:LOCAL = 25
 								CASE 133
-									TRAP_DURABILITY:LOCAL = 45
+									TRAP_DURABILITY:LOCAL = 40
 								CASE 134
-									TRAP_DURABILITY:LOCAL = 60
+									TRAP_DURABILITY:LOCAL = 55
 								CASEELSE
 									TRAP_DURABILITY:LOCAL = 30
 							ENDSELECT
@@ -382,8 +381,6 @@ IF 獲物
 	CALL GET_ITEM(LOCALS, (CritterMeat_Value + SPOIL_ENHANCEMENT(獲物)), 2)
 	;罠の各種変数リセット
 	CALL TRAP_V_RESET(TP_TO_PLACE())
-	;獣関連の変数をリセット
-	CALL CRITTER_V_RESET
 ENDIF
 PRINTL 
 
@@ -423,50 +420,44 @@ IF CHARA > 0
 	
 	;獲物をみる
 	IF 獲物
-		SELECTCASE 獲物
-			CASE 20, 21, 22, 25
-				TIMES SOURCE:CHARA:歓楽 , 1.00
-				TIMES SOURCE:CHARA:受動 , 1.00
-				TIMES SOURCE:CHARA:征服 , 1.00
-				SOURCE:CHARA:達成 = 80
-			CASE 1 TO 5
-				TIMES SOURCE:CHARA:歓楽 , 1.10
-				TIMES SOURCE:CHARA:受動 , 1.10
-				TIMES SOURCE:CHARA:征服 , 1.10
-				SOURCE:CHARA:達成 = 115
-			CASE 6 TO 12, 14, 18
-				TIMES SOURCE:CHARA:歓楽 , 1.25
-				TIMES SOURCE:CHARA:受動 , 1.25
-				TIMES SOURCE:CHARA:征服 , 1.15
-				SOURCE:CHARA:達成 = 125
-			CASE 13
-				TIMES SOURCE:CHARA:歓楽 , 1.50
-				TIMES SOURCE:CHARA:受動 , 1.50
-				TIMES SOURCE:CHARA:征服 , 1.25
-				SOURCE:CHARA:達成 = 150
-			CASE 15 TO 17
-				TIMES SOURCE:CHARA:歓楽 , 1.75
-				TIMES SOURCE:CHARA:受動 , 1.75
-				TIMES SOURCE:CHARA:征服 , 1.50
-				SOURCE:CHARA:達成 = 200
-			CASE 19
-				TIMES SOURCE:CHARA:歓楽 , 2.00
-				TIMES SOURCE:CHARA:受動 , 2.00
-				TIMES SOURCE:CHARA:征服 , 1.75
-				SOURCE:CHARA:達成 = 300
-			;デスワーム。達成感はあるが、食べるのこれ？
-			CASE 23
-				TIMES SOURCE:CHARA:歓楽 , 0.70
-				TIMES SOURCE:CHARA:受動 , 0.70
-				TIMES SOURCE:CHARA:征服 , 0.70
-				SOURCE:CHARA:達成 = 300
-			;ツチノコ、マタンゴなどユニーク系統
-			CASEELSE
-				TIMES SOURCE:CHARA:歓楽 , 2.25
-				TIMES SOURCE:CHARA:受動 , 2.25
-				TIMES SOURCE:CHARA:征服 , 2.00
-				SOURCE:CHARA:達成 = 350
-		ENDSELECT
+		;デスワーム。達成感はあるが、食べるのこれ？
+		IF 獲物 == 23
+			TIMES SOURCE:CHARA:歓楽 , 0.70
+			TIMES SOURCE:CHARA:受動 , 0.70
+			TIMES SOURCE:CHARA:征服 , 0.70
+			SOURCE:CHARA:達成 = 300
+		ELSEIF STRCOUNT(CritterTribe, "希少/")
+			TIMES SOURCE:CHARA:歓楽 , 2.25
+			TIMES SOURCE:CHARA:受動 , 2.25
+			TIMES SOURCE:CHARA:征服 , 2.00
+			SOURCE:CHARA:達成 = 350
+		;ツキノワグマ。ショウブあった！
+		ELSEIF 獲物 == 19
+			TIMES SOURCE:CHARA:歓楽 , 2.00
+			TIMES SOURCE:CHARA:受動 , 2.00
+			TIMES SOURCE:CHARA:征服 , 1.75
+			SOURCE:CHARA:達成 = 300
+		ELSEIF STRCOUNT(CritterTribe, "謎/")
+			TIMES SOURCE:CHARA:歓楽 , 1.00
+			TIMES SOURCE:CHARA:受動 , 1.00
+			TIMES SOURCE:CHARA:征服 , 1.00
+			SOURCE:CHARA:達成 = 80
+		ELSEIF STRCOUNT(CritterTribe, "小型/")
+			TIMES SOURCE:CHARA:歓楽 , 1.10
+			TIMES SOURCE:CHARA:受動 , 1.10
+			TIMES SOURCE:CHARA:征服 , 1.10
+			SOURCE:CHARA:達成 = 115
+		ELSEIF STRCOUNT(CritterTribe, "中型/")
+			TIMES SOURCE:CHARA:歓楽 , 1.25
+			TIMES SOURCE:CHARA:受動 , 1.25
+			TIMES SOURCE:CHARA:征服 , 1.15
+			SOURCE:CHARA:達成 = 125
+		ELSEIF STRCOUNT(CritterTribe, "大型/")
+			TIMES SOURCE:CHARA:歓楽 , 1.50
+			TIMES SOURCE:CHARA:受動 , 1.50
+			TIMES SOURCE:CHARA:征服 , 1.25
+			SOURCE:CHARA:達成 = 150
+		ENDIF
 	;罠が壊れていた
 	ELSEIF TFLAG:193 == -1
 		TIMES SOURCE:CHARA:歓楽 , 0.50
@@ -475,8 +466,17 @@ IF CHARA > 0
 	;罠をしかけた
 	ELSEIF TP_TO_PLACE()
 		SOURCE:CHARA:達成 = 70
+	;解体せず逃がしたか、罠を回収した
+	ELSEIF 探索回数 == 0 && 獲物 == 0
+		TIMES SOURCE:CHARA:歓楽 , 1.10
+		TIMES SOURCE:CHARA:受動 , 1.10
+		TIMES SOURCE:CHARA:征服 , 1.05
+		SOURCE:CHARA:達成 = 110
 	ENDIF
 	;獲物のキャラに応じた固有反応（上書き）
+
+	;獣関連の変数をリセット
+	CALL CRITTER_V_RESET
 ENDIF
 RETURN 1
 
@@ -614,47 +614,56 @@ SIF GatheringSeason
 
 $LOOP
 
-C_ID = 1 + RAND:28
+C_ID = 1 + RAND:60
 ;変数を読み込み
 CALL CRITTER_DATA(C_ID)
-;レアな生物は１／２で再抽選に
-SIF GROUPMATCH(C_ID, 23, 24, 26, 27, 28) && RAND:2
+;無名（未登録）ならリターン
+SIF CritterName == ""
+	GOTO LOOP
+;[希少][猛禽]は１／２で再抽選に
+SIF (STRCOUNT(CritterTribe, "希少/") || STRCOUNT(CritterTribe, "猛禽/")) && RAND:2
 	GOTO LOOP
 ;地底以外で冬眠しているものは弾く
-SIF 季節 == 4 && GROUPMATCH(C_ID, 5, 8, 19, 20, 21) && HUNTING_SPOT != 6
+SIF 季節 == 4 && STRCOUNT(CritterTribe, "冬眠/") && HUNTING_SPOT != 6
 	GOTO LOOP
-;罠に応じて捕獲できる獲物のレンジを変える  小…基本の肉の量が3以下  中…肉の量が2～7  大…肉の量が3以上
+;夏以外の夏鳥を弾く（渡ってきてるので１日限定の季節異変は避ける）
+SIF DAY:2 != 2 && STRCOUNT(CritterTribe, "夏鳥/")
+	GOTO LOOP
+;冬以外の冬鳥を弾く
+SIF DAY:2 != 4 && STRCOUNT(CritterTribe, "冬鳥/")
+	GOTO LOOP
+;罠に応じて捕獲できる獲物のレンジを変える  小…基本の肉の量が2以下  中…肉の量が2～6  大…肉の量が4以上
 SELECTCASE 罠番号
 	CASE 132
 		SIF CritterMeat_Value > 3
 			GOTO LOOP
 	CASE 133
-		SIF CritterMeat_Value > 8 || CritterMeat_Value == 1
+		SIF CritterMeat_Value > 6 || CritterMeat_Value == 1
 			GOTO LOOP
 	CASE 134
 		SIF CritterMeat_Value < 4
 			GOTO LOOP
 ENDSELECT
 SELECTCASE HUNTING_SPOT
-	CASE 1;鎮守の森、妖精の大樹…普通の山の獣たち ユニークはツチノコ、ヤベオオツノジカ
-		SIF !GROUPMATCH(C_ID, 14, 18, 19, 21, 23, 25, 26, 28)
+	CASE 1;鎮守の森、妖精の大樹…普通の山の獣と山鳥たち ユニークはツチノコ、ヤベオオツノジカ、ニホンオオカミ
+		SIF STRCOUNT(CritterTribe, "博/")
 			RETURN C_ID
 	CASE 2;斜角の竹林…ノウサギ祭り。大型獣は少ない ユニークはツチノコ
 		SIF RAND:3 == 0
 			RETURN 13
-		SIF !GROUPMATCH(C_ID, 5, 14, 16, 17, 19, 21, 23, 25, 26, 27, 28)
+		SIF STRCOUNT(CritterTribe, "竹/")
 			RETURN C_ID
 	CASE 3;魔法の森…多様、ゲテモノも少々 ユニークはマタンゴ
-		SIF !GROUPMATCH(C_ID, 18, 23, 24, 25, 27, 28)
+		SIF  STRCOUNT(CritterTribe, "魔/")
 			RETURN C_ID
-	CASE 4;麓の樹海…多様、ユニークはツチノコ
-		SIF !GROUPMATCH(C_ID, 11, 12, 21, 23, 25, 26, 27, 28)
+	CASE 4;麓の樹海…多様、ユニークはニホンオオカミ、ニホンカワウソ
+		SIF  STRCOUNT(CritterTribe, "沢/")
 			RETURN C_ID
 	CASE 5;絶景の丘…小型獣が少し減る、ユニークはハナイズミモリウシ
-		SIF !GROUPMATCH(C_ID, 6, 7, 9, 11, 12, 14, 20, 21, 22, 23, 24, 25, 26, 27)
+		SIF  STRCOUNT(CritterTribe, "山/")
 			RETURN C_ID
 	CASE 6;幻想風穴、縦穴の底…ゲテモノが取れる ユニークはデスワーム
-		SIF GROUPMATCH(C_ID, 1, 20, 21, 22, 23, 25)
+		SIF  STRCOUNT(CritterTribe, "底/")
 			RETURN C_ID
 	CASEELSE
 		;エラーによる無限ループ除け
@@ -990,6 +999,9 @@ SELECTCASE CHARA
 	CASE [[リグル]], [[ヤマメ]], [[ラルバ]], [[百々世]]
 		SIF 獲物 == 23;デスワーム
 			RETURNF 1
+	CASE [[ミスティア]]
+		SIF 獲物 == 50 || 獲物 == 51 || 獲物 == 52 || 獲物 == 53 || 獲物 == 54;鳥類
+			RETURNF 1
 	CASE [[ナズーリン]]
 		SIF 獲物 == 1 || 獲物 == 5 || 獲物 == 14;ネズミ、リス、ヌートリア
 			RETURNF 1
@@ -997,13 +1009,19 @@ SELECTCASE CHARA
 		SIF 獲物 == 13;ノウサギ
 			RETURNF 1
 	CASE [[影狼]], [[椛]]
-		SIF 獲物 == 11;ノイヌ
+		SIF 獲物 == 11 || 獲物 == 29;ノイヌ、ニホンオオカミ
 			RETURNF 1
 	CASE [[マミゾウ]]
 		SIF 獲物 == 7;タヌキ
 			RETURNF 1
 	CASE [[潤美]]
 		SIF 獲物 == 28;ハナイズミモリウシ
+			RETURNF 1
+	CASE [[早鬼]]
+		SIF 獲物 == 29;ニホンオオカミ
+			RETURNF 1
+	CASE [[八千慧]]
+		SIF 獲物 == 30;ニホンカワウソ
 			RETURNF 1
 ENDSELECT
 RETURNF 0
@@ -1059,6 +1077,8 @@ VARSET CritterMeat
 VARSET CritterMeat_Value
 VARSET CritterEffort
 VARSET CritterIntro
+VARSET CritterHint
+VARSET CritterTribe
 
 ;-----------------------------------------------------------
 ;引っ越し時の罠の設置ポイントの張替えを行う関数

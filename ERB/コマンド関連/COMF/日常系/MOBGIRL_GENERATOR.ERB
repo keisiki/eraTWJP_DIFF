@@ -13,7 +13,7 @@ ADDCHARA ARG
 CALL ランダム素質付与(ARG, ARGS, 泡姫)
 
 ;ここでよく行く地域を設定し、該当地域でなければロード時撥ねることにする
-CFLAG:ARG:よく行く地域 = CFLAG:MASTER:現在位置 /100
+CFLAG:ARG:よく行く地域 = CFLAG:MASTER:現在位置 / 100
 
 ;気力、体力
 CALLNAME:ARG = %ランダムキャラ_命名(ARG)%
@@ -38,7 +38,7 @@ IF TALENT:ARG:性別 == 3
 	MAXBASE:ARG:勃起 = 1500
 ENDIF
 
-DBB = TFLAG:幸運補正 * 2 + (泡姫 * 10)
+DBB = TFLAG:幸運補正 * 2 + (泡姫 * 10) + ((ARGS == "サキュバス") * 15)
 ;DBB=Dosukebe Body Bonus
 ;男嫌いなどの面倒な素質がついた場合敏感がつきやすくなる
 
@@ -90,6 +90,8 @@ SIF ARGS == "河童" && !RAND:7
 	CSTR:ARG:3 '= "悪徳商人"
 SIF ARGS == "白狼天狗" && !RAND:3
 	CSTR:ARG:3 '= "下っ端哨戒天狗"
+SIF ARGS == "鴉天狗" && !RAND:3
+	CSTR:ARG:3 '= "新聞記者"
 SIF ARGS == "化け狸" && !RAND:3
 	CSTR:ARG:3 '= "借金の取立人"
 SIF ARGS == "化け狸" && !RAND:3
@@ -159,7 +161,7 @@ IF 泡姫
 		CSTR:ARG:モブ子種族 = %\@ LOCAL ? %LOCALS% # \@%%GET_TRIBENAME(ARG, GETNUM(TALENT, "人間"))%%\@ LOCAL ? # くずれ\@%
 	ELSEIF TALENT:ARG:人間 == 1 && TALENT:ARG:人妻
 		CSTR:ARG:モブ子種族 = %TEXTR("堕ちた/売られた/堕落した")%%GET_TALENTNAME(198, TALENT:ARG:人妻)%
-	ELSEIF ARGS != "泡姫"
+	ELSEIF !GROUPMATCH(ARGS, "泡姫", "サキュバス")
 		CSTR:ARG:モブ子種族 = %TEXTR("堕ちた/売られた/堕落した")%%ARGS%
 	ENDIF
 	MARK:RANDOM_CHARANUM:快楽刻印 = 3
@@ -168,6 +170,15 @@ ELSEIF ENEMY
 	CSTR:ARG:モブ子プロフィール１ = %CALLNAME:ARG%：%PRINT_DATE_F(DAY)%に喧嘩を売ってきた%ARGS%
 ELSE
 	CSTR:ARG:モブ子プロフィール１ = %CALLNAME:ARG%：%PRINT_DATE_F(DAY)%に%GET_MAPNAME(CFLAG:MASTER:現在位置 / 100)%で出会った%ARGS%
+ENDIF
+;人妻に低確率で出産経験と母乳体質付与
+IF TALENT:ARG:人妻
+	ABL:ARG:清掃技能 += RAND:2
+	ABL:ARG:料理技能 += RAND:2
+	SIF !TALENT:ARG:処女 && !RAND:4
+		EXP:ARG:出産経験 += 1 + RAND:3
+	SIF !RAND:(15 - (EXP:ARG:出産経験 * 3))
+		TALENT:ARG:母乳体質 = 2
 ENDIF
 ;モブ子の一人称/二人称決める
 LOCAL = ENEMY == 1 ? 1 # 0
@@ -181,7 +192,8 @@ CALL SET_MOB_PERSON(ARG, LOCAL)
 #DIM 衣装変更
 #DIM 店員
 衣装変更 = 0
-;リセット作業の追加。どの素質も一律２％の確率をつけて、付いたら困るものは０で上書き
+;素質リセット作業。一定の素質には種族関係なく２％の確率をつける
+VARSET RANDOM_TALENT_RATE
 VARSET RANDOM_TALENT_RATE, 20, 0, 100
 LOCAL:0 = 1, 3, 4, 5, 7, 8, 9, 17, 34, 72, 73, 74, 75, 76, 77, 78, 84, 85, 90, 91
 FOR COUNT, 0, 20
@@ -191,7 +203,7 @@ NEXT
 ;店員で取得素質の確率強化。ネガティブなものは無視。汎用性は無い
 ;有志に期待
 SELECTCASE ARGS
-	CASE "河童"
+	CASE "河童", "山童"
 		RANDOM_BASE:0 = 300
 		RANDOM_BASE:1 = 300
 		RANDOM_TALENT_RATE:(GETNUM(TALENT, "性別")) = 1000
@@ -236,20 +248,31 @@ SELECTCASE ARGS
 		CALL SET_BIASED_TALENT(ARG, "バストサイズ", -2, 70, -1, 100, 1, 150)
 		CALL SET_BIASED_TALENT(ARG, "酒耐性",       -2, 0, -1, 50, 1, 200, 2, 100, 3, 50)
 		
-		ABL:ARG:戦闘能力 = 1 + RAND:2
 		ABL:ARG:親密 = 1
+		ABL:ARG:戦闘能力 = 1 + RAND:2
 		ABL:ARG:技巧 = 2
 		ABL:ARG:指 = 1
+		;衣装セットは共通
+		;オブジェクト変数よくわからんので設定できない
+		衣装変更 = 12
+		IF ARGS == "河童"
 		TALENT:ARG:釣りLv = 2 + RAND:2
 		TALENT:ARG:水棲 = 1
 		TALENT:ARG:妖怪 = 4
-		CFLAG:ARG:モブ顔パターン = 20
-		;河童セット
-		衣装変更 = 12
 		;ランダムでにとりのスキルを取得している
 		SIF !RAND:3
 			SETBIT CFLAG:ARG:弾幕特能, 1
-	CASE "白狼天狗"
+		;山童
+		ELSE
+			SIF !RAND:3 
+				ABL:ARG:戦闘能力 ++
+			TALENT:ARG:採集Lv = 2 + RAND:2
+			TALENT:ARG:妖怪 = 12
+			;ランダムでたかねのスキルを取得している
+			SIF !RAND:3
+				SETBIT CFLAG:ARG:弾幕特能, 5
+		ENDIF
+	CASE "白狼天狗", "鴉天狗"
 		RANDOM_BASE:0 = 400
 		RANDOM_BASE:1 = 400
 		RANDOM_TALENT_RATE:(GETNUM(TALENT, "性別")) = 1000
@@ -294,20 +317,33 @@ SELECTCASE ARGS
 		CALL SET_BIASED_TALENT(ARG, "酒耐性",       -2, 0, -1, 50, 1, 250, 2, 150, 3, 100)
 
 		ABL:ARG:戦闘能力 = 2
-		SIF !RAND:3
+		SIF !RAND:3 
 			ABL:ARG:戦闘能力 ++
-		TALENT:ARG:採集Lv = 1
 		TALENT:ARG:妖怪 = 5
 		ABL:ARG:技巧 = 1
-		TALENT:ARG:動物耳 = 3
-		CFLAG:ARG:モブ顔パターン = 25
-		;白狼天狗セット
-		衣装変更 = 14
-		;ランダムで椛のスキルを取得している
-		SIF !RAND:3
-			SETBIT CFLAG:ARG:弾幕特能, 0
-		SIF !RAND:3
-			SETBIT CFLAG:ARG:弾幕特能, 2
+		IF ARGS == "白狼天狗"
+			TALENT:ARG:採集Lv = 1
+			TALENT:ARG:動物耳 = 3
+			;白狼天狗セット
+			衣装変更 = 14
+			;ランダムで椛のスキルを取得している
+			SIF !RAND:3
+				SETBIT CFLAG:ARG:弾幕特能, 0
+			SIF !RAND:3
+				SETBIT CFLAG:ARG:弾幕特能, 2
+		ELSE
+			ABL:ARG:戦闘能力 ++
+			ABL:ARG:話術技能 = 2
+			;鴉天狗セット
+			衣装変更 = 15
+			;ランダムで文のスキルを取得している
+			SIF !RAND:3
+				SETBIT CFLAG:ARG:弾幕特能, 0
+			SIF !RAND:3
+				SETBIT CFLAG:ARG:弾幕特能, 7
+			SIF !RAND:3
+				SETBIT CFLAG:ARG:弾幕特能, 8
+		ENDIF
 	CASE "玉兎"
 		;気力体力
 		RANDOM_BASE:0 = 400
@@ -361,7 +397,6 @@ SELECTCASE ARGS
 		TALENT:ARG:妖怪 = 6
 		ABL:ARG:戦闘能力 = 2
 		ABL:ARG:技巧 = 1 + RAND:3
-		CFLAG:ARG:モブ顔パターン = 39
 		;レイセンのスキルを取得している
 		SETBIT CFLAG:ARG:弾幕特能, 2
 	CASE "化け狸", "茨たぬき"
@@ -478,7 +513,6 @@ SELECTCASE ARGS
 		ABL:ARG:技巧 = 1 + RAND:2
 		SIF !RAND:4
 			ABL:ARG:戦闘能力 ++
-		CFLAG:ARG:モブ顔パターン = 40 + RAND:2
 				;ランダムでてゐのスキルを取得している
 		SIF !RAND:5
 			SETBIT CFLAG:ARG:弾幕特能, 4
@@ -539,7 +573,6 @@ SELECTCASE ARGS
 		ENDIF
 		TALENT:ARG:妖精 = 1
 		ABL:ARG:戦闘能力 = 1
-		CFLAG:ARG:モブ顔パターン = 30 + RAND:4
 		
 		;ランダムで三月精のスキルを取得している
 		SIF !RAND:8
@@ -696,7 +729,7 @@ SELECTCASE ARGS
 				;着物セット
 				衣装変更 = 11
 		ENDSELECT
-	CASE "泡姫"
+	CASE "泡姫", "サキュバス"
 	;ヤる為に作ったプロの人なので何も考えずプラス素質のみ
 		;気力体力
 		RANDOM_BASE:0 = 350
@@ -712,7 +745,7 @@ SELECTCASE ARGS
 		RANDOM_TALENT_RATE:(GETNUM(TALENT, "一線越えない")) = 0
 		RANDOM_TALENT_RATE:(GETNUM(TALENT, "目立ちたがり")) = 500
 		RANDOM_TALENT_RATE:(GETNUM(TALENT, "抵抗")) = 0
-		RANDOM_TALENT_RATE:(GETNUM(TALENT, "自慰しやすい")) = 300 
+		RANDOM_TALENT_RATE:(GETNUM(TALENT, "自慰しやすい")) = 250 
 		RANDOM_TALENT_RATE:(GETNUM(TALENT, "献身的")) = 500
 		RANDOM_TALENT_RATE:(GETNUM(TALENT, "中毒しやすい")) = 250
 		RANDOM_TALENT_RATE:(GETNUM(TALENT, "倒錯的")) = 250
@@ -730,27 +763,38 @@ SELECTCASE ARGS
 		CALL SET_BIASED_TALENT(ARG, "痛覚",       -1, 100, 1, 100)
 		CALL SET_BIASED_TALENT(ARG, "濡れやすさ", -1, 0,   1, 500)
 		CALL SET_BIASED_TALENT(ARG, "習得速度",   -1, 0,   1, 100)
-		CALL SET_BIASED_TALENT(ARG, "快感応答",   -1, 0,  1, 350)
+		CALL SET_BIASED_TALENT(ARG, "快感応答",   -1, 0,  1, 400)
 		CALL SET_BIASED_TALENT(ARG, "貞操",       -1, 200, 1, 0)
 		CALL SET_BIASED_TALENT(ARG, "自己愛",     -1, 0,   1, 250)
 		
 		;範囲が;-1~1を超える面倒くさい奴
 		CALL SET_BIASED_TALENT(ARG, "汚臭耐性",     -2, 50,  -1, 100, 1, 100, 2, 50)
-		CALL SET_BIASED_TALENT(ARG, "性別嗜好",     -1, 200,  1,  0, 2, 50)
+		CALL SET_BIASED_TALENT(ARG, "性別嗜好",     -1, 200, 1, 0, 2, 50)
 		CALL SET_BIASED_TALENT(ARG, "体型",         -2, 50, -1, 150, 1, 100)
 		CALL SET_BIASED_TALENT(ARG, "バストサイズ", -2, 80, -1, 150, 1, 100, 2, 100)
 		CALL SET_BIASED_TALENT(ARG, "酒耐性",       -2, 80, -1, 150, 1, 150, 2, 100, 3, 40)
-		TALENT:ARG:人間 = 1
-		IF !RAND:4
-			TALENT:ARG:人間 = 2 + RAND:5
-			SIF GROUPMATCH(TALENT:ARG:人間, 3, 4)
-				RANDOM_TALENT_RATE:(GETNUM(TALENT, "容姿")) = 400
-		ENDIF
-		ABL:ARG:教養 += RAND:2
 		ABL:ARG:技巧 = 3
-		ABL:ARG:話術技能 = 1 + RAND:3
-		TALENT:ARG:風俗嬢 = 2
 		衣装変更 = 11
+		IF ARGS == "泡姫"
+			TALENT:ARG:人間 = 1
+			IF !RAND:4
+				TALENT:ARG:人間 = 2 + RAND:5
+				SIF GROUPMATCH(TALENT:ARG:人間, 3, 4)
+					RANDOM_TALENT_RATE:(GETNUM(TALENT, "容姿")) = 400
+			ENDIF
+			TALENT:ARG:風俗嬢 = 2
+			ABL:ARG:教養 += RAND:3
+			ABL:ARG:話術技能 = 2 + RAND:3
+		ELSE
+			CALL SET_BIASED_TALENT(ARG, "性別嗜好",     -1, 750, 1, 0, 2,  0)
+			CALL SET_BIASED_TALENT(ARG, "バストサイズ", -2, 50, -1, 100, 1, 200, 2, 150)
+			CALL SET_BIASED_TALENT(ARG, "母乳体質",      1, 0, 2, 250)
+			RANDOM_TALENT_RATE:(GETNUM(TALENT, "容姿")) = 350
+			RANDOM_TALENT_RATE:(GETNUM(TALENT, "処女")) = 50
+			RANDOM_TALENT_RATE:(GETNUM(TALENT, "小悪魔")) = 250
+			ABL:ARG:話術技能 = 1 + RAND:2
+			TALENT:ARG:妖怪 = 9
+		ENDIF
 	CASE "鬼"
 		RANDOM_BASE:0 = 1000
 		RANDOM_BASE:1 = 1000
@@ -956,9 +1000,6 @@ CFLAG:ARG:出禁 = 0
 
 SIF !TALENT:ARG:幼稚
 	CFLAG:ARG:生理周期 = RAND:9 + 1
-
-SIF !CFLAG:ARG:モブ顔パターン
-	CFLAG:ARG:モブ顔パターン = RAND:MOB_FACETYPES + 1
 CALL MAKE_SIZE(ARG)
 CFLAG:ARG:身体測定 = 1
 ;=可変画像用のCSTR設定==========
@@ -992,9 +1033,11 @@ CALL CTRL_CLOTHES_SET(ARG, "現在衣装の変更_普段着")
 CALL CLOTHES_SETTING_TRAIN(ARG)
 SETBIT CFLAG:ARG:着替え実行, 0
 
-@ランダム経験能力付与(ARG, ARGS, 店員 = 0)
+@ランダム経験能力付与(ARG, ARGS, RANK = 0)
 #DIM LESBIAN
-#DIM 店員
+#DIM RANK
+SIF ARGS == "サキュバス" && !TALENT:ARG:処女
+	RANK = 2 
 ;性技とか経験足した方がいいんだろうがめんどい
 ABL:ARG:Ｃ感覚 = RAND:(2 + TALENT:ARG:自慰しやすい)
 ABL:ARG:Ｂ感覚 = RAND:(2 + TALENT:ARG:自慰しやすい)
@@ -1004,25 +1047,27 @@ ABL:ARG:Ｍ感覚 = RAND:(2 - TALENT:ARG:キス未経験)
 ABL:ARG:欲望 = RAND:3
 ABL:ARG:料理技能 = RAND:3
 IF !TALENT:ARG:処女
-	ABL:ARG:Ｖ感覚 += 1 + 店員 * 3
-	EXP:ARG:Ｖ経験 = 20 + RAND:5 + 店員 * 30
-	ABL:ARG:欲望 += RAND:3 + 店員 * 4
-	ABL:ARG:膣 += 1 + 店員 * 2
-	ABL:ARG:Ｃ感覚 += RAND:2 + 店員 * 3
-	ABL:ARG:Ｂ感覚 += RAND:2 + 店員 * 3
-	ABL:ARG:Ａ感覚 += RAND:2 + RAND(1 + 店員)
+	ABL:ARG:Ｖ感覚 += 1 + RANK * 3
+	EXP:ARG:Ｖ経験 = 20 + RAND:5 + RANK * 30
+	ABL:ARG:欲望 += RAND:3 + RANK * 4
+	ABL:ARG:膣 += 1 + RANK * 2
+	ABL:ARG:Ｃ感覚 += RAND:2 + RANK * 3
+	ABL:ARG:Ｂ感覚 += RAND:2 + RANK * 3
+	ABL:ARG:Ａ感覚 += RAND:2 + RAND(1 + RANK)
 	IF TALENT:ARG:自慰しやすい && !RAND:4
 		CSTR:ARG:処女喪失履歴 = オナニー中にうっかり破った
 	ELSE
-		IF !RAND:5 && (TALENT:ARG:貞操 < 1 || 店員)
+		IF !RAND:5 && (TALENT:ARG:貞操 < 1 || RANK)
 			TALENT:ARG:ヤリマン = 1
-			ABL:ARG:Ｃ感覚 += RAND:2 + 2 + 店員 * 3
-			ABL:ARG:Ｂ感覚 += RAND:2 + 2 + 店員 * 3
-			ABL:ARG:Ａ感覚 += RAND:2 + 2 + 店員 * 2
-			ABL:ARG:Ｖ感覚 += RAND:2 + 2 + 店員 * 3
-			EXP:ARG:Ｖ経験 += 50 + RAND:20 + 店員 * 30
+			ABL:ARG:Ｃ感覚 += RAND:2 + 2 + RANK * 3
+			ABL:ARG:Ｂ感覚 += RAND:2 + 2 + RANK * 3
+			ABL:ARG:Ａ感覚 += RAND:2 + 2 + RANK * 2
+			ABL:ARG:Ｖ感覚 += RAND:2 + 2 + RANK * 3
+			EXP:ARG:Ｖ経験 += 50 + RAND:20 + RANK * 30
 		ENDIF
-		IF TALENT:ARG:性別嗜好 == -1 && RAND:2
+		IF ARGS == "サキュバス"
+			LESBIAN = 0
+		ELSEIF TALENT:ARG:性別嗜好 == -1 && RAND:2
 			LESBIAN = 1
 		ELSEIF TALENT:ARG:性別嗜好 == 3
 			LESBIAN = -1
@@ -1032,13 +1077,13 @@ IF !TALENT:ARG:処女
 			LESBIAN = 0
 		ENDIF
 		EXP:ARG:Ｖ性交経験 = EXP:ARG:Ｖ経験
-		EXP:ARG:精液経験 = (EXP:ARG:Ｖ性交経験 * 3 / 4 ) + RAND:((10  + 店員 * 60) * POWER(1 + TALENT:ARG:ヤリマン, 2))
-		EXP:ARG:膣射経験 = EXP:ARG:Ｖ性交経験 * 3 / 4 + (店員 * RAND:30)
-		IF 店員
+		EXP:ARG:精液経験 = (EXP:ARG:Ｖ性交経験 * 3 / 4 ) + RAND:((10  + RANK * 60) * POWER(1 + TALENT:ARG:ヤリマン, 2))
+		EXP:ARG:膣射経験 = EXP:ARG:Ｖ性交経験 * 3 / 4 + (RANK * RAND:30)
+		IF RANK
 			EXP:ARG:子宮口開発経験 = EXP:ARG:Ｖ性交経験 / 4 * 3 
 			TALENT:ARG:ポルチオ性感 = EXP:ARG:子宮口開発経験 > 50 ? 1 # 0
 		ENDIF
-		IF !RAND:(9 - TALENT:ARG:貞操) && !GROUPMATCH(ARGS, "町娘", "泡姫")
+		IF !RAND:(9 - TALENT:ARG:貞操) && !GROUPMATCH(ARGS, "町娘", "泡姫", "サキュバス")
 			TALENT:ARG:人妻 = 1
 			SIF !RAND:5
 				TALENT:ARG:人妻 = 2
@@ -1048,6 +1093,8 @@ IF !TALENT:ARG:処女
 				CSTR:ARG:処女喪失履歴 = %TEXTR("金で売った/妖精の悪戯で奪われた/人里の男にレイプで奪われた/妖怪にレイプで奪われた/酒に酔って男たちに玩具にされ失った")%
 			ELSEIF ARGS == "鬼"
 				CSTR:ARG:処女喪失履歴 = %TEXTR("毒酒で酔い潰されているうちに奪われた/喧嘩に負けて好き放題されて奪われた")%
+			ELSEIF ARGS == "サキュバス"
+				CSTR:ARG:処女喪失履歴 = %TEXTR("部下に関係を強要して/酒に酔って男たちを玩具にしながら/妖怪退治屋を逆レイプして")%捨てた
 			ELSE
 				CSTR:ARG:処女喪失履歴 = %TEXTR("上司に関係を強要され奪われた/酒に酔って男たちに玩具にされ失った/妖怪退治屋にレイプで奪われた")%
 			ENDIF
@@ -1057,12 +1104,14 @@ IF !TALENT:ARG:処女
 			CSTR:ARG:処女喪失履歴 = さらってきた人間の%TEXTR("男/子供")%で捨てた
 		ELSEIF TALENT:ARG:人妻 && !RAND:2 && !LESBIAN
 			CSTR:ARG:処女喪失履歴 = %TEXTR("愛する/愛してもいない")%夫に捧げた
+		ELSEIF ARGS == "サキュバス"
+			CSTR:ARG:処女喪失履歴 = %TEXTR("乱交中いつの間にか失っていた/物心がついた時には失っていた/初めて見た人間をその場で襲って捨てた")%
 		ELSE
 			CSTR:ARG:処女喪失履歴 = %TEXTR("彼氏/元カレ/同僚/さして親しくもない相手")%に捧げた
 		ENDIF
 		SIF TALENT:ARG:人妻
 			CSTR:ARG:処女喪失履歴 = %REPLACE(@"%CSTR:ARG:処女喪失履歴%","彼氏","元カレ")%
-		SIF 店員 && STRCOUNT(CSTR:ARG:処女喪失履歴, "(奪われた|失った|親しくも|同僚)") && RAND:2
+		SIF RANK && STRCOUNT(CSTR:ARG:処女喪失履歴, "(奪われた|失った|親しくも|同僚)") && RAND:2
 			CSTR:ARG:処女喪失履歴 = 初めて取った客%TEXTR("に奪われた/に高く売った/で失った")%
 	ENDIF
 	IF ARGS == "町娘"
@@ -1074,13 +1123,13 @@ IF !TALENT:ARG:処女
 	ENDIF
 ENDIF
 ;Ａ性交関係 Ｖ経験とは干渉なし
-IF !RAND:(10 - TALENT:ARG:快感応答 - TALENT:ARG:汚臭耐性 - TALENT:ARG:性的興味 - TALENT:ARG:Ａ感度) || (店員 && !RAND(5 - 店員))
-	EXP:ARG:Ａ性交経験 = 10 + RAND:20 + 店員 * 20
-	EXP:ARG:Ａ経験 = 40 + EXP:ARG:Ａ性交経験 + 店員 * 30
-	EXP:ARG:肛射経験 = EXP:ARG:Ａ性交経験 * 3 / 4 + (店員 * RAND:8)
-	EXP:ARG:精液経験 += EXP:ARG:Ａ性交経験 * 3 / 4 + (店員 * RAND:12)
+IF !RAND:(10 - TALENT:ARG:快感応答 - TALENT:ARG:汚臭耐性 - TALENT:ARG:性的興味 - TALENT:ARG:Ａ感度) || (RANK && !RAND(5 - RANK)) || (ARGS == "サキュバス" && !TALENT:ARG:処女)
+	EXP:ARG:Ａ性交経験 = 10 + RAND:20 + RANK * 20
+	EXP:ARG:Ａ経験 = 40 + EXP:ARG:Ａ性交経験 + RANK * 30
+	EXP:ARG:肛射経験 = EXP:ARG:Ａ性交経験 * 3 / 4 + (RANK * RAND:8)
+	EXP:ARG:精液経験 += EXP:ARG:Ａ性交経験 * 3 / 4 + (RANK * RAND:12)
 	ABL:ARG:Ａ感覚 = MIN(ABL:ARG:Ａ感覚 + 2, 10)
-	ABL:ARG:アナル += 2 + (店員 > 0)
+	ABL:ARG:アナル += 2 + (RANK > 0)
 	;非処女の場合、50％は喪失履歴を揃える
 	IF !RAND:2 && !TALENT:ARG:処女 && CSTR:ARG:処女喪失履歴 != "オナニー中にうっかり破った"
 		CSTR:ARG:アナル処女喪失履歴 = %CSTR:ARG:処女喪失履歴%
@@ -1090,6 +1139,8 @@ IF !RAND:(10 - TALENT:ARG:快感応答 - TALENT:ARG:汚臭耐性 - TALENT:ARG:�
 				CSTR:ARG:アナル処女喪失履歴 = %TEXTR("こちらなら、と金で売った/妖精の悪戯で奪われた/男に迫られ、こちらなら、と捧げた")%
 			ELSEIF ARGS == "鬼"
 				CSTR:ARG:アナル処女喪失履歴 = %TEXTR("毒酒で酔い潰されているうちに奪われた/喧嘩に負けて好き放題されて奪われた")%
+			ELSEIF ARGS == "サキュバス"
+				CSTR:ARG:アナル処女喪失履歴 = 逆レイプのついでに捨てた
 			ELSE
 				CSTR:ARG:アナル処女喪失履歴 = %TEXTR("上司に関係を強要され、やむなく捧げた/妖怪退治屋にレイプで奪われた")%
 			ENDIF
@@ -1099,10 +1150,12 @@ IF !RAND:(10 - TALENT:ARG:快感応答 - TALENT:ARG:汚臭耐性 - TALENT:ARG:�
 			CSTR:ARG:アナル処女喪失履歴 = さらってきた人間の%TEXTR("男/子供")%に興味本位でくれてやった
 		ELSEIF TALENT:ARG:人妻 && !RAND:2 && !LESBIAN
 			CSTR:ARG:アナル処女喪失履歴 = %TEXTR("愛する夫/愛してもいない夫/不倫相手/元上司")%に捧げた
+		ELSEIF ARGS == "サキュバス"
+			CSTR:ARG:アナル処女喪失履歴 = %TEXTR("適当な男を襲って捨てた/見ず知らずの男にくれてやった/")%
 		ELSE
 			CSTR:ARG:アナル処女喪失履歴 = %TEXTR("彼氏/元カレ/同僚/さして親しくもない相手")%に捧げた
 		ENDIF
-		SIF 店員 && STRCOUNT(CSTR:ARG:処女喪失履歴, "(奪われた|失った|親しくも|同僚)") && RAND:2
+		SIF RANK && STRCOUNT(CSTR:ARG:処女喪失履歴, "(奪われた|失った|親しくも|同僚)") && RAND:2
 			CSTR:ARG:処女喪失履歴 = %TEXTR("初めて取った/強引な/興味本位の")%客に奪われた
 	ENDIF
 	IF TALENT:ARG:処女
@@ -1119,50 +1172,47 @@ IF !RAND:(10 - TALENT:ARG:快感応答 - TALENT:ARG:汚臭耐性 - TALENT:ARG:�
 	ENDIF
 	;喪失履歴の消失除け
 	CFLAG:ARG:アナル処女喪失記念日 = DAY
-ELSEIF 店員
+ELSEIF RANK
 	EXP:ARG:Ａ経験 = 19 + RAND:5
 ENDIF
 ;いずれかで性交経験がある場合、奉仕系経験・技能を設定
 IF EXP:ARG:Ｖ性交経験 || EXP:ARG:Ａ性交経験
-	IF !RAND:2 || 店員
+	IF !RAND:2 || RANK
 		EXP:ARG:精飲経験 = RAND:(MAX(EXP:ARG:精液経験 - EXP:ARG:膣射経験 - EXP:ARG:肛射経験, 1)) 
-		EXP:ARG:口淫経験 = EXP:ARG:精飲経験 + RAND:(30 * POWER(1 + TALENT:ARG:ヤリマン, 2))  + RAND:(1 + 店員 * 10 * POWER(店員, 2)) 
-		ABL:ARG:舌 = MIN(MAX(EXP:ARG:口淫経験 / 50, 1) + MAX(TALENT:ARG:習得速度, 0), 4) + 店員 
+		EXP:ARG:口淫経験 = EXP:ARG:精飲経験 + RAND:(30 * POWER(1 + TALENT:ARG:ヤリマン, 2))  + RAND:(1 + RANK * 10 * POWER(RANK, 2)) 
+		ABL:ARG:舌 = MIN(MAX(EXP:ARG:口淫経験 / 50, 1) + MAX(TALENT:ARG:習得速度, 0), 4) + RANK 
 	ENDIF
-	IF !RAND:(4 - TALENT:ARG:バストサイズ) || 店員
+	IF !RAND:(4 - TALENT:ARG:バストサイズ) || RANK
 		SIF EXP:ARG:精飲経験 == 0
 			EXP:ARG:精飲経験 = RAND:(MAX(EXP:ARG:精液経験 - EXP:ARG:膣射経験, 1))
-		EXP:ARG:パイズリ経験 = EXP:ARG:精飲経験 + RAND:(30 * POWER(1 + TALENT:ARG:ヤリマン, 2)) + 店員 * 30
-		ABL:ARG:胸 = MIN(MAX(EXP:ARG:パイズリ経験 / 40, 1) + MAX(TALENT:ARG:習得速度, 0), 4) + 店員
+		EXP:ARG:パイズリ経験 = EXP:ARG:精飲経験 + RAND:(30 * POWER(1 + TALENT:ARG:ヤリマン, 2)) + RANK * 30
+		ABL:ARG:胸 = MIN(MAX(EXP:ARG:パイズリ経験 / 40, 1) + MAX(TALENT:ARG:習得速度, 0), 4) + RANK
 	ENDIF
-	EXP:ARG:手淫経験 += RAND:(30 * POWER(1 + TALENT:ARG:ヤリマン, 2) + 店員 * 10)
+	EXP:ARG:手淫経験 += RAND:(30 * POWER(1 + TALENT:ARG:ヤリマン, 2) + RANK * 10)
 	SIF EXP:ARG:手淫経験
-		ABL:ARG:指 = MIN(MAX(EXP:ARG:手淫経験 / 50, 1) + MAX(TALENT:ARG:習得速度, 0), 4) + 店員
+		ABL:ARG:指 = MIN(MAX(EXP:ARG:手淫経験 / 50, 1) + MAX(TALENT:ARG:習得速度, 0), 4) + RANK
 ENDIF
 
 ;露出系
-IF 店員
-	ABL:ARG:露出癖 += 店員 * 2
-	EXP:ARG:露出快楽経験 += MAX(RAND:100, 店員 * 20 + RAND:10)
+IF RANK
+	ABL:ARG:露出癖 += RANK * 2
+	EXP:ARG:露出快楽経験 += MAX(RAND:100, RANK * 20 + RAND:10)
 ELSEIF !RAND:(8 - TALENT:ARG:快感応答 - TALENT:ARG:性的興味 + TALENT:ARG:羞恥心 + TALENT:ARG:貞操)
 	ABL:ARG:露出癖 += 1
 	EXP:ARG:露出快楽経験 += MAX(RAND:30, 1)
 ENDIF
 ;腰技能
 SIF EXP:ARG:Ｖ性交経験 || EXP:ARG:Ａ性交経験
-	ABL:ARG:腰 += MAX((EXP:ARG:Ｖ性交経験 + EXP:ARG:Ａ性交経験) / 200, 1) + MAX(TALENT:ARG:習得速度, 0) + 店員
+	ABL:ARG:腰 += MAX((EXP:ARG:Ｖ性交経験 + EXP:ARG:Ａ性交経験) / 200, 1) + MAX(TALENT:ARG:習得速度, 0) + RANK
 ;技巧
-ABL:ARG:技巧 = MIN(ABL:ARG:技巧 + MAX(ABL:ARG:指, ABL:ARG:舌, ABL:ARG:胸, ABL:ARG:腰, 0), 4) + 店員
-SIF TALENT:ARG:店員
+ABL:ARG:技巧 = MIN(ABL:ARG:技巧 + MAX(ABL:ARG:指, ABL:ARG:舌, ABL:ARG:胸, ABL:ARG:腰, 0), 4) + RANK
+SIF TALENT:ARG:RANK
 	ABL:ARG:技巧 = MAX(ABL:ARG:技巧, 3)
 
 SIF TALENT:ARG:サド
 	ABL:ARG:サドっ気 = 2 + RAND:2
 SIF TALENT:ARG:マゾ
 	ABL:ARG:マゾっ気 = 2 + RAND:2
-IF ARGS == "人妻"
-	ABL:ARG:料理技能 += RAND:2
-ENDIF
 ;各種経験 基本は感覚があるもののみ追加 Ｍ感覚に関してはキス経験とも絡むのでちょっと特殊
 SIF ABL:ARG:Ｃ感覚
 	EXP:ARG:Ｃ経験 = RAND:(MAX((ABL:ARG:Ｃ感覚 + TALENT:ARG:自慰しやすい) * 40, MAX(ABL:ARG:Ｃ感覚, 1) * 10))
@@ -1170,13 +1220,13 @@ SIF ABL:ARG:Ａ感覚 && EXP:ARG:Ａ経験 < 50;Ａ性交で加算されてる�
 	EXP:ARG:Ａ経験 += RAND:(MAX((ABL:ARG:Ａ感覚 + TALENT:ARG:自慰しやすい) * 30, MAX(ABL:ARG:Ａ感覚, 1) * 10))
 SIF ABL:ARG:Ｂ感覚 || EXP:ARG:パイズリ経験
 	EXP:ARG:Ｂ経験 = RAND:(MAX((ABL:ARG:Ｂ感覚 + TALENT:ARG:自慰しやすい) * 40, MAX(ABL:ARG:Ｂ感覚, 1) * 10)) + EXP:ARG:パイズリ経験
-IF ABL:ARG:Ｍ感覚 || EXP:ARG:口淫経験 || 店員
+IF ABL:ARG:Ｍ感覚 || EXP:ARG:口淫経験 || RANK
 	EXP:ARG:Ｍ経験 = RAND:(MAX(ABL:ARG:Ｍ感覚 * 15, MAX(ABL:ARG:Ｍ感覚, 1) * 5)) + EXP:ARG:口淫経験
 	SIF TALENT:ARG:キス未経験 && EXP:ARG:口淫経験 == 0
 		EXP:ARG:Ｍ経験 = 0
 	SIF TALENT:ARG:キス未経験 == 0
 		EXP:ARG:キス経験 = EXP:ARG:Ｍ経験 - EXP:ARG:口淫経験
-	IF 店員
+	IF RANK
 		EXP:ARG:キス経験 += EXP:ARG:口淫経験
 		ABL:ARG:Ｍ感覚 = (ABL:ARG:Ｃ感覚+ ABL:ARG:Ｖ感覚 + ABL:ARG:Ｂ感覚) / 3
 	ENDIF
@@ -1195,7 +1245,7 @@ EXP:ARG:Ｂ絶頂経験 = ABL:ARG:Ｂ感覚
 EXP:ARG:Ｍ絶頂経験 = ABL:ARG:Ｍ感覚
 
 ;中毒と絶頂を水増し
-IF 店員
+IF RANK
 	FOR COUNT, 5, 10
 		EXP:ARG:COUNT += (EXP:ARG:COUNT * 5) + RAND:9
 	NEXT
@@ -1208,8 +1258,17 @@ IF 店員
 ELSE
 	EXP:ARG:絶頂経験 = ABL:ARG:Ｃ感覚+ ABL:ARG:Ｖ感覚 + ABL:ARG:Ａ感覚 + ABL:ARG:Ｂ感覚 + ABL:ARG:Ｍ感覚
 ENDIF
-CFLAG:ARG:溜まってる度 = RAND:(ABL:ARG:欲望 * 50 + 100) + RAND:(ABL:ARG:欲望 * 50 + 100) + RAND:(店員 * 250 + 1)
-
+CFLAG:ARG:溜まってる度 = RAND:(ABL:ARG:欲望 * 50 + 100) + RAND:(ABL:ARG:欲望 * 50 + 100) + RAND:(RANK * 250 + 1)
+;[娼婦]とサキュバスには[淫乱]付与
+IF RANK > 1
+	TALENT:ARG:淫乱 = 1
+	;実績解除済み＆敏感素質有りなら上位快感応答素質も付与
+	FOR COUNT, 1, 6
+		SIF !GETBIT (FLAG:技能ボーナス取得状況, COUNT) || TALENT:ARG:(100 + (COUNT == 5) + COUNT) < 1
+			CONTINUE
+		TALENT:ARG:(72 + COUNT) = 1
+	NEXT
+ENDIF
 ;----------------------------------------------------------------------------------------
 ;BIASED_RANDOMを使用して離散的な数値のTALENTを設定する関数
 ;----------------------------------------------------------------------------------------
@@ -1290,6 +1349,10 @@ ELSE
 	CASE 210
 	ENDSELECT
 ENDIF
+
+;保留中
+@REVEAL_SUCCUBUS
+@HIDE_SUCCUBUS
 [SKIPEND]
 
 @REVEAL_YOUKAI(ARG)
@@ -1348,7 +1411,7 @@ ELSEIF (TALENT:ARG:幼稚 || TALENT:ARG:幼児／幼児退行) && 年齢差 != 2
 	年齢差 = 1
 ENDIF
 モブ子一人称 = %TEXTR(@"あたい/あたし/私/わたし/%CALLNAME:ARG%")%
-IF CFLAG:ARG:性格傾向 == 2 ||  (TALENT:ARG:度胸 > 0 && TALENT:ARG:プライド > 0)
+IF CFLAG:ARG:性格傾向 == 2 || (TALENT:ARG:度胸 > 0 && TALENT:ARG:プライド > 0)
 	SIF !RAND:5 && CSTR:ARG:モブ子種族 == "鬼"
 		モブ子一人称 = %TEXTR("オレ/俺")%
 	SIF !RAND:4

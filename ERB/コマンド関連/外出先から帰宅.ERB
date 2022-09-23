@@ -1,6 +1,10 @@
 ﻿@外出先から帰宅
 #DIM DIST_TO_HOME
 #DIM ReqTSP
+#DIM 道迷い時間
+#DIMS 低気圧位置
+
+低気圧位置 = %GET_LOCATION_LOW()%
 
 ReqTSP = TIME_REQUIRED(MAIN_MAP,CFLAG:MASTER:デート中) * 3
 IF !FLAG:デート相手 && !FLAG:70 && BASE:MASTER:TSP >= ReqTSP
@@ -17,7 +21,97 @@ IF !FLAG:デート相手 && !FLAG:70 && BASE:MASTER:TSP >= ReqTSP
 	ENDIF
 ENDIF
 IF !FLAG:70
+	;(天候パッチ)連続降水カウンター20以上で土砂崩れに巻き込まれる可能性
+	IF CONTINUOUS_RAINFALL >= 20 && RAND:(MAX(2, (40 - CONTINUOUS_RAINFALL) / 2)) == 0
+		PRINTFORML …道を歩いていると山手から異音が聞こえてきた
+		PRINTFORMW ！！　土砂崩れだ！！
+		
+		PRINTFORML 
+		PRINTFORML %CALLNAME:MASTER%は土砂に巻き込まれながらも
+		PRINTFORML なんとか脱出することに成功した…
+		PRINTL 
+		CALL ASK_DIARY("土砂崩れに遭遇した")
+		BASE:MASTER:体力 = 0
+		
+		GOTO WARP2
+	ENDIF
+	;(天候パッチ)猛烈な台風の暴風域にいるとき飛来物に巻き込まれる可能性 颶風時には確率上昇
+	IF (低気圧位置 == "台風接近暴風域" || 低気圧位置 == "台風通過暴風域") && IS_TYPHOON:1 >= 5 && (RAND:20 == 0 || (WIND_VELOCITY >= 3 && RAND:3 == 0))
+		PRINTFORML …道を歩いていると何かがこっちに飛ばされてきた
+		PRINTFORMW ！！　屋根瓦だ！！
+		
+		PRINTFORML 
+		PRINTFORML 暴風に飛ばされた瓦が%CALLNAME:MASTER%に直撃した…
+		PRINTL 
+		CALL ASK_DIARY("飛来物が直撃した")
+		BASE:MASTER:体力 = 0
+		
+		GOTO WARP3
+	ENDIF
+	;(天候パッチ)雪崩発生フラグが立っているとき雪崩に巻き込まれる可能性
+	IF POSSIBLITY_AVALANCHE == 1 && POWER_COLD_AIR >= 3 && RAND:((6 - POWER_COLD_AIR) * 10) == 0
+		PRINTFORML …道を歩いていると山手から何かが迫ってきた
+		PRINTFORMW ！！　雪崩だ！！
+		
+		PRINTFORML 
+		PRINTFORML %CALLNAME:MASTER%は雪崩に巻き込まれながらも
+		PRINTFORML なんとか脱出することに成功した…
+		PRINTL 
+		
+		POSSIBLITY_AVALANCHE = 0
+		CONTINUOUS_SNOWFALL = 0
+		
+		CALL ASK_DIARY("雪崩に遭遇した")
+		BASE:MASTER:体力 = 0
+		
+		GOTO WARP4
+	ELSEIF POSSIBLITY_AVALANCHE == 2 && POWER_WARM_AIR >= 2 && RAND:((6 - POWER_WARM_AIR) * 10) == 0
+		PRINTFORML …道を歩いていると山手から何かが迫ってきた
+		PRINTFORMW ！！　雪崩だ！！
+		
+		PRINTFORML 
+		PRINTFORML %CALLNAME:MASTER%は雪崩に巻き込まれながらも
+		PRINTFORML なんとか脱出することに成功した…
+		PRINTL 
+		
+		SNOW_COVERAGE = 0
+		CONTINUOUS_SNOWFALL = 0
+		SNOW_COVERAGE = 0
+		
+		CALL ASK_DIARY("雪崩に遭遇した")
+		BASE:MASTER:体力 = 0
+		
+		GOTO WARP5
+	ENDIF
+	;(天候パッチ)暴風雪発生時にホワイトアウト発生の可能性 颶風時には確率上昇
+	IF TIME:5 == 9 && ((WIND_VELOCITY == 2 && RAND:3 == 0) || WIND_VELOCITY >= 3)
+		道迷い時間 = 60 + RAND:120
+		PRINTFORML 降りしきる雪が猛烈な風にあおられて
+		PRINTFORMW 目の前が真っ白になった！
+		PRINTFORML 
+		PRINTFORML ……道に迷って{道迷い時間}分余計に歩いてしまった
+		TIME:0 += 道迷い時間
+		BASE:MASTER:体力 = MAX(BASE:MASTER:体力 - (20 * 道迷い時間), 0)
+		
+		GOTO WARP6
+	ELSEIF TIME:5 == 8 && ((WIND_VELOCITY == 2 && RAND:10 == 0) || WIND_VELOCITY >= 3)
+		道迷い時間 = 30 + RAND:60
+		PRINTFORML 降りしきる雪が猛烈な風にあおられて
+		PRINTFORMW 目の前が真っ白になった！
+		PRINTFORML 
+		PRINTFORML ……道に迷って{道迷い時間}分余計に歩いてしまった
+		TIME:0 += 道迷い時間
+		BASE:MASTER:体力 = MAX(BASE:MASTER:体力 - (15 * 道迷い時間), 0)
+		
+		GOTO WARP7
+	ENDIF
 	CALL お出かけイベント
+	$WARP2
+	$WARP3
+	$WARP4
+	$WARP5
+	$WARP6
+	$WARP7
 	CALL 帰宅の時間経過
 ELSEIF BASE:MASTER:TSP < ReqTSP
 	PRINTW TSPが足りないので時を止めたままは帰れない

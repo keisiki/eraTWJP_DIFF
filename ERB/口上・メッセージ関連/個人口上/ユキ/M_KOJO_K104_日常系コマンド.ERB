@@ -585,7 +585,7 @@ LOCAL = 1
 IF LOCAL
 	;時間停止中
 	IF FLAG:70
-	 PRINTFORML 
+		PRINTFORML 
 	;睡眠中
 	ELSEIF CFLAG:睡眠
 		PRINTFORML 
@@ -672,7 +672,7 @@ LOCAL = 1
 IF LOCAL
 	;時間停止中
 	IF FLAG:70
-	 PRINTFORML 
+		PRINTFORML 
 	;睡眠中
 	ELSEIF CFLAG:睡眠
 		PRINTFORML 
@@ -2555,6 +2555,12 @@ IF LOCAL
 		CASE 640
 			PRINTFORML 「フェニックスの尾！　言われてみれば、どことなく神々しさがあるような」
 			PRINTFORMW 「尻尾以外は、何に使えるのかな？」
+		CASE 665
+			PRINTFORML 「葡萄があったんだ！　良いなぁ、わたしの分も欲しい！」
+			PRINTFORMW 「ねぇっ、どの辺り？」
+		CASE 666
+			PRINTFORML 「葡萄だっ、一粒貰っちゃおうかな～」
+			PRINTFORML 「……あれっ、カビてるじゃない！　もうっ、よく見ないとダメよ」
 		CASE 706
 			PRINTFORML 「あ～、カエル」
 			PRINTFORMW 「わたしは苦手だから……食べるなら、%CALLNAME:MASTER%だけでね？」
@@ -2562,6 +2568,156 @@ IF LOCAL
 			PRINTFORML 
 		ENDSELECT
 	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;446,調合する
+;TFLAG:193(調合物のID)
+;TFLAG:194(今回調合した個数)
+;==================================================
+@M_KOJO_MESSAGE_COM_K104_446
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K104_446_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K104_446_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+	;失敗、多分
+	CASE 0
+		SELECTCASE RAND:2
+		CASE 0
+			PRINTFORML 「あれぇ、何でうまくいかなかったんだろ……%CALLNAME:MASTER%、わかる？」
+			PRINTFORMW 「むむむむ……とりあえず、もう一回やってみる？」
+		CASEELSE
+			PRINTFORML 「これは失敗ね……なんてことなの」
+			PRINTFORMW 「じゃあ、ここで問題！　なんで失敗したでしょう？」
+			PRINTFORMW 「答え？　わかったら、聞いてないわ……」
+		ENDSELECT
+	;コンドーム
+	CASE 45
+		IF GETBIT(CFLAG:既成事実 , 1)
+			PRINTFORML 「偉いね～、ちゃんと準備して」
+			PRINTFORML 「どれどれ、真面目さに免じて一丁気持ち良いのを作ってやろうじゃない」
+			PRINTFORMW 「薄さの限界に挑戦よ～！」
+		ELSE
+			PRINTFORML 「うわわ、これってぇ……%CALLNAME:MASTER%が使う用？」
+			PRINTFORMW 「どうしよ……サイズとか、測ったほうが良い？」
+		ENDIF
+	;エロ用薬品
+	CASE 41, 250
+		IF TALENT:恋慕 || TALENT:愛欲
+			PRINTFORML 「うわ～、薬で無理やりやる気なんだ？　あ～あ、最低！」
+			PRINTFORML 「でも……」
+			PRINTFORMW 「ちょっとだけなら、わたしにも使って良いよ……気持ち良いよね、きっと%UNICODE(0x2665) *1%」
+		ELSE
+			PRINTFORML 「ええっ、エッチな気持ちになる薬～！？　駄目よ、そんなの使っちゃ！」
+			PRINTFORML 「ち、ちなみに……誰を狙ってるとか、あるの？」
+			PRINTFORMW 「教えてくれないと、この薬のことバラしちゃうかも%UNICODE(0x2665) *1%」
+		ENDIF
+	;キャラ固有系
+	CASE 513
+		PRINTFORML 「阿求さん……あの、なんか記録してるって人だよね？」
+		PRINTFORML 「なんか聞かれたとき、あんな風にスッと歴史とか持ち出して答えられたらカッコ良いよねぇ」
+		PRINTFORMW 「泥酔させる方法なんて聞かれても、大失敗した思い出くらいしか出てこないわ～……はぁ」
+	CASE 514, 515
+		PRINTFORML 「う～ん、難しそうな薬だわ……永遠亭、のひとに教わったんだね」
+		PRINTFORML 「よく見かけるよね～、あそこの薬」
+		PRINTFORMW 「他じゃあ、作れないのかな……わたしたちで安く作れたら、もしかして結構儲かる？」
+	CASE 516, 517
+		PRINTFORML 「よしっ、毒薬完成ね！　……えっ、毒薬じゃないの？」
+		PRINTFORML 「上手い事組み合わせて、ギリギリでやばくない程度の薬にしてるのね」
+		PRINTFORMW 「毒を操るお人形さんかぁ……たいしたものね」
+	;お酒系
+	CASE 58, 560, 575, 661, 663, 664
+		PRINTFORML 「わたしには強そうなお酒だなぁ……」
+		PRINTFORML 「そうね～、甘い飲み物とかで割ったら丁度良いかな？」
+		PRINTFORMW 「んっ、ちょっと楽しみになってきた！」
+	;食べ物系
+	CASE 576, 669
+		PRINTFORML 「実験器具でお料理するの、なんだかワクワクする感じ！」
+		PRINTFORMW 「たまにはこういうのも良いよねっ%UNICODE(0x2665) *1%」
+	;弾幕系
+	CASE 850, 851, 852, 853, 854, 855
+		IF ABL:戦闘能力 >= ABL:MASTER:戦闘能力
+			PRINTFORML 「あっ、勝負で使うんでしょ？」
+			PRINTFORML 「うんうん、実力差は工夫でカバーしないとね！」
+			PRINTFORMW 「努力の姿勢は素晴らしいわ！　まだまだ、負ける気しないけどっ%UNICODE(0x2665) *1%」
+		ELSE
+			PRINTFORML 「勝負用に、道具を準備してるのかぁ……強さの秘訣は、こういうところにもあるの？」
+			PRINTFORML 「いまでも結構強いのに、ちゃんと努力してるのね」
+			PRINTFORMW 「わたしも何かしないと、追いつけなくなっちゃう！　やばいわ、これは」
+		ENDIF
+	;スタンド系
+	CASE 870, 871
+		PRINTFORML 「なんか、よくわからないものが出来ちゃったね……失敗？」
+		PRINTFORML 「これで問題ないの？　へぇ、変わった趣味ね～」
+		PRINTFORMW 「え、どっかに飾るんでしょ？　それくらいしか使い道無さそうだし……」
+	;ほか
+	CASEELSE
+		SELECTCASE PHARMACY_RANK(TFLAG:193)
+		CASE 1
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「これくらいは楽勝ね～、目をつぶっていてもいけるわ」
+				PRINTFORMW 「試していい？　1回だけ」
+			CASE 1
+				PRINTFORML 「簡単だし、まとめて作っちゃっても良いかもね」
+				PRINTFORMW 「その方が、大雑把に量ってもいけるし！」
+			CASE 2
+				PRINTFORML 「失敗する気がしないわ～」
+				PRINTFORMW 「このままじゃつまらないし……ちょっと、アレンジしちゃおっか？」
+			ENDSELECT
+		CASE 2
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「まぁまぁ、これくらいの調合なら任せておいて！」
+				PRINTFORMW 「これでもちょっとは腕に覚えがあるのよ？」
+			CASE 1
+				PRINTFORML 「えーと、次は……あれ？どうするんだっけ」
+				PRINTFORMW 「まぁ、この程度なら適当でもなんとかなるか！」
+			CASE 2
+				PRINTFORML 「完成ね！　あとは、片づけ……」
+				PRINTFORMW 「……また作るかもしれないし、器具はこのままにしちゃう？　駄目か」
+			ENDSELECT
+		CASE 3
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「これくらいのものが自分で作れると、何かと便利なんだよね」
+				PRINTFORMW 「%CALLNAME:MASTER%も、なかなかやるじゃない！」
+			CASE 1
+				PRINTFORML 「一緒にやると、さすがに手早いね！」
+				PRINTFORML 「わたしもたまに、マイに手伝ってもらうことはあるわ」
+				PRINTFORML 「でも、わたしがマイの調合を手伝おうとすると……なんか、断られるんだよね」
+				PRINTFORMW 「なんか、理由があるのかな？」
+			ENDSELECT
+		CASE 4
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「なかなか難しかったけど、レシピ通りで良いならなんとかなるものね～」
+				PRINTFORMW 「しかし、自分でレシピから考える人はすごいわ……」
+			CASE 1
+				PRINTFORML 「う～ん、あの材料からこんなものになるのね」
+				PRINTFORMW 「よくわからないけど、出来てるっぽいし……ま、大丈夫かな？」
+			ENDSELECT
+		CASE 5
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「いや～、複雑な手順だったわ……%CALLNAME:MASTER%、凄いのね」
+				PRINTFORMW 「これは調合で食っていけるかもしれないよ？」
+			CASE 1
+				PRINTFORML 「やばいわ、難易度……わたし間違ってなかった？　大丈夫？」
+				PRINTFORML 「なるほど、問題なかったか」
+				PRINTFORMW 「これは……わたしも、才能あるかも！？」
+			ENDSELECT
+		CASEELSE
+			;PRINTFORML 
+		ENDSELECT
+	ENDSELECT
 ENDIF
 RETURN 1
 ;==================================================

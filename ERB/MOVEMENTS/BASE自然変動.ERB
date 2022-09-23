@@ -204,13 +204,31 @@ IF OUTROOF(CFLAG:ARG:現在位置) && (AT_HOME(ARG) || ARG == MASTER || FLAG:デ
 				SIF Lapse && !TFLAG:195 && !CFLAG:ARG:うふふ && !CFLAG:ARG:睡眠
 					PRINTW 冷たい雨が肌を刺す
 			;雪・細雪・霧雪・みぞれ
-			CASE 8, 10, 12, 13
+			CASE 8, 10, 12
 				SIF Lapse && !TFLAG:195 && !CFLAG:ARG:うふふ && !CFLAG:ARG:睡眠
 					PRINTW 雪に包まれて肌寒い
 			;大雪
 			CASE 9
 				SIF Lapse && !TFLAG:195 && !CFLAG:ARG:うふふ && !CFLAG:ARG:睡眠
 					PRINTW 大雪で身体が凍てつくようだ
+			;(天候パッチ)豪雨・ひょうを追加、あられを変更
+			;あられ
+			CASE 13
+				IF GET_HEAT_THUNDERSTORM() == 1
+					SIF Lapse && !TFLAG:195 && !CFLAG:ARG:うふふ && !CFLAG:ARG:睡眠
+						PRINTW あられが勢いよく当たって痛い
+				ELSE
+					SIF Lapse && !TFLAG:195 && !CFLAG:ARG:うふふ && !CFLAG:ARG:睡眠
+						PRINTW 雪に包まれて肌寒い
+				ENDIF
+			;豪雨
+			CASE 14
+				SIF Lapse && !TFLAG:195 && !CFLAG:ARG:うふふ && !CFLAG:ARG:睡眠
+					PRINTW 滝のような雨が身体を打ち付ける
+			;ひょう
+			CASE 15
+				SIF Lapse && !TFLAG:195 && !CFLAG:ARG:うふふ && !CFLAG:ARG:睡眠
+					PRINTW 大粒のひょうが身体を痛めつける
 		ENDSELECT
 	;あなたが折りたたみ傘を持っていると体力の代わりに傘耐久度が減る
 	ELSEIF ARG == MASTER
@@ -223,6 +241,8 @@ IF OUTROOF(CFLAG:ARG:現在位置) && (AT_HOME(ARG) || ARG == MASTER || FLAG:デ
 					傘ダメージ += 50
 				ELSEIF WIND_VELOCITY == 2
 					傘ダメージ += 200
+				ELSEIF WIND_VELOCITY >= 3
+					傘ダメージ += 500
 				ENDIF
 			;みぞれ
 			CASE 13
@@ -232,6 +252,8 @@ IF OUTROOF(CFLAG:ARG:現在位置) && (AT_HOME(ARG) || ARG == MASTER || FLAG:デ
 					傘ダメージ += 50
 				ELSEIF WIND_VELOCITY == 2
 					傘ダメージ += 200
+				ELSEIF WIND_VELOCITY >= 3
+					傘ダメージ += 500
 				ENDIF
 			;雨・雪・細雪
 			CASE 4, 6, 8, 10, 12
@@ -241,15 +263,42 @@ IF OUTROOF(CFLAG:ARG:現在位置) && (AT_HOME(ARG) || ARG == MASTER || FLAG:デ
 					傘ダメージ += 50
 				ELSEIF WIND_VELOCITY == 2
 					傘ダメージ += 200
+				ELSEIF WIND_VELOCITY >= 3
+					傘ダメージ += 500
 				ENDIF
-			;大雨・吹雪
+			;大雨・大雪
 			CASE 5, 9
+				傘ダメージ = 20
+				;(天候パッチ)風速の影響
+				IF WIND_VELOCITY == 1
+					傘ダメージ += 50
+				ELSEIF WIND_VELOCITY == 2
+					傘ダメージ += 200
+				ELSEIF WIND_VELOCITY >= 3
+					傘ダメージ += 500
+				ENDIF
+			;(天候パッチ)豪雨・ひょうを追加
+			;豪雨
+			CASE 14
 				傘ダメージ = 50
 				;(天候パッチ)風速の影響
 				IF WIND_VELOCITY == 1
 					傘ダメージ += 50
 				ELSEIF WIND_VELOCITY == 2
 					傘ダメージ += 200
+				ELSEIF WIND_VELOCITY >= 3
+					傘ダメージ += 500
+				ENDIF
+			;ひょう
+			CASE 15
+				傘ダメージ = 100
+				;(天候パッチ)風速の影響
+				IF WIND_VELOCITY == 1
+					傘ダメージ += 50
+				ELSEIF WIND_VELOCITY == 2
+					傘ダメージ += 200
+				ELSEIF WIND_VELOCITY >= 3
+					傘ダメージ += 500
 				ENDIF
 			CASEELSE
 				傘ダメージ = 0
@@ -321,12 +370,25 @@ IF OUTROOF(ARG:1) && EQUIP:ARG:アクセサリ != 6 && !TEQUIP:ARG:相合い傘
 			ELSE
 				LOCAL = -3
 			ENDIF
+		;(天候パッチ)豪雨・ひょうを追加
+		;豪雨
+		CASE 14
+			IF TALENT:ARG:水棲
+				LOCAL = 3
+			ELSE
+				LOCAL = -6
+			ENDIF
+		;ひょう
+		CASE 15
+			LOCAL = -10
 	ENDSELECT
 	;(天候パッチ)風速の影響
 	IF WIND_VELOCITY == 1
 		LOCAL -= 1
 	ELSEIF WIND_VELOCITY == 2
 		LOCAL -= 3
+	ELSEIF WIND_VELOCITY >= 3
+		LOCAL -= 6
 	ENDIF
 ENDIF
 

@@ -22,6 +22,7 @@ ELSE
 	SIF RAND:LOCAL > 0
 		RETURN -1
 ENDIF
+;DAILY_EV28_発生回数 ++
 CALL DAILY_EV28
 RETURN 1
 
@@ -75,7 +76,7 @@ ENDIF
 CALL SPTALK, [[影狼]], "笑顔", 0, @"「こんばんわー」", 1
 PRINTFORMW また影狼がやってきた
 PRINTFORMW 「上がっていい？」
-SELECTCASE RAND:10
+SELECTCASE RAND:12
 	CASE 0
 		PRINTFORML 「見て見て、大きいのが獲れたの！また捌いてくれない？」
 		CALL EV28_MEAL(300)
@@ -85,9 +86,15 @@ SELECTCASE RAND:10
 		PRINTFORMW 「あ、姫には内緒よ？」
 		CALL GET_ITEM("辰砂", 1, 1)
 	CASE 2, 3
-		PRINTFORML 「お魚を獲ってきたわ」
-		PRINTFORMW 「ウサギ狩りしてよかったらもっとお肉が食べられるんだけどね」
+		IF !RAND:2
+			PRINTFORML 「お魚を獲ってきたわ」
+			PRINTFORMW 「ウサギ狩りしてよかったらもっとお肉が食べられるんだけどね」
+		ELSE
+			PRINTFORMW 「自慢できる程のじゃないけど、獲れたからお裾分けね」
+		ENDIF
 		CALL EV28_MEAL(100)
+	CASE 4
+		CALL EV28_MAMUSHI
 	CASEELSE
 		PRINTFORML 「はいお土産！」
 		LOCALS = %TEXTR("たけのこ/高麗人参/山菜/苦い根っこ")%
@@ -283,7 +290,7 @@ CALL ADD_EXP_LESNIAN(回数 * 5, [[影狼]], "PRINT")
 好感度上昇量 = 回数 * ABL:[[影狼]]:親密 * 10
 CALL CHANGE_CFLAG(2,[[影狼]],好感度上昇量)
 ;竹林以外が拠点なら泊まっていく
-IF MAIN_MAP != 4
+IF MAIN_MAP != 4 && !FLAG:一時滞在
 	FLAG:一時滞在 = [[影狼]]
 	CFLAG:[[影狼]]:本来の初期位置 = CFLAG:[[影狼]]:初期位置
 	CFLAG:[[影狼]]:初期位置 = CFLAG:MASTER:初期位置
@@ -459,3 +466,60 @@ ELSEIF finish == 2
 ENDIF
 PRINTFORMW 「もう一周して」
 GOTO LOOP
+
+@EV28_MAMUSHI
+IF FIRSTTIME("土産マムシ", 0, [[影狼]])
+	PRINTFORMW 「見てー！マムシー！」
+	PRINTFORMW まだ動いてる蛇の死体を見せつけてきた……
+	PRINTFORML 「食べたことないの？塩焼きにすると美味しいのよ」
+	PRINTFORMW 「いつも作ってもらってるから、今日は私がやるわね！」
+	PRINTFORMW ……
+	PRINTFORMW 意外と美味しかった
+ELSE
+	PRINTFORMW またマムシ捕ってきたわよ
+	{
+	PRINTFORMW %TEXTR("心臓いる？じゃあ私が貰うわね/皮をビーッって剥くのが楽しいのよね/
+	姫たちは食べてくれないのよね、美味しいのに/
+	レアでも美味しいんだけど、%CALLNAME:MASTER%がお腹壊すといけないからちゃんと焼かないとね")%
+	}
+	PRINTFORMW ……
+ENDIF
+CALL BUFF_BASE(MASTER,BASE_体力,50,1)
+CALL BUFF_BASE(MASTER,BASE_気力,50,1)
+CALL BUFF_BASE(MASTER,BASE_精力,300,1)
+CALL BUFF_BASE([[影狼]],BASE_体力,50,1)
+CALL BUFF_BASE([[影狼]],BASE_気力,50,1)
+EXP:[[影狼]]:料理経験 ++
+
+
+;PRINTFORMW 「所詮私はただの妖獣だものねー……」
+;CALL ASK_YN("そう言うな","気にしてる？")
+;IF !RESULT
+;
+;ELSE
+;	PRINTFORMW 「そりゃあね」
+;	PRINTFORMW 「近所には月のお姫様が住んでいて」
+;	PRINTFORMW 「山に狩りに行けば河童や天狗がのさばってて」
+;	PRINTFORMW 「友達のところに遊びに行けば紅い悪魔のお屋敷がでーんと建ってるのが目に入ってくるし」
+;	PRINTFORMW 「気にしない方が無理でしょ」
+;	IF TALENT:恋慕
+;		PRINTFORMW 「まあ、最近は昔ほどは気にならないわ」
+;		PRINTFORMW 「%CALLNAME:MASTER%にちやほやされると、自分が何かひとかどの妖怪にでもなったような気分にされちゃうからね」
+;		CALL ASK_YN("ならもっとちやほやしよう","すごい存在になりたい？")
+;		IF !RESULT
+;			PRINTFORMW 「ふふ、ありがと」
+;		ELSE
+;			{
+;			PRINTFORMW 「う～～ん……はっきりと何になりたいとか何がしたいとかあるわけじゃないし、
+;			人狼なのが嫌ってわけでもないんだけど……」
+;			}
+;			PRINTFORMW 「嫌なことがあったとき、自分が別の存在だったらこんな思いしないで済むのにって感じることがあるのよ」
+;			CALL ASK_YN("ない物ねだりするな","人間でもそういうことはある")
+;			IF !RESULT
+;				PRINTFORMW 「そう言われたらそれまでだけどね」
+;			ELSE
+;				PRINTFORMW 「ほんと？人間も人間で、それなりに面倒があるのね」
+;			ENDIF
+;		ENDIF
+;	ENDIF
+;ENDIF

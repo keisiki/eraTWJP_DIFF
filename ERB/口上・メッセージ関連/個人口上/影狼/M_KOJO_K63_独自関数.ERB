@@ -7,12 +7,20 @@ SIF CFLAG:1001
 	RETURN RAND:10
 PRINTL [0]手を握る [1]頬を撫でる [2]頭の耳に触る [3]顎を擽る [4]髪に触る [98]ランダム
 PRINTL [5]肩を揉む [6]背を撫でる [7]脇腹をつつく [8]鼻を擽る [9]ぺたぺた [99]毎回ランダム
+PRINTL [10]肉球を触る
 DRAWLINE
 PRINTFORML [999] 影狼さんの秘密
 INPUT
 SELECTCASE RESULT
 CASE 0 TO 9
 	RETURN RESULT
+CASE 10
+	IF TALENT:[[影狼]]:恋慕
+		RETURN 10
+	ELSE
+		PRINTL 「嫌よそんなの」
+		RETURN RAND:10
+	ENDIF
 CASE 98
 	RETURN RAND:10
 CASE 99
@@ -481,6 +489,11 @@ IF TALENT:恋慕 && !RAND:2
 				PRINTFORMW 「やっぱり育児って大変よ」
 			ENDIF
 		ENDIF
+	ELSEIF K63_WADAI:0 == "料理"
+		PRINTFORMW 「この間%CALLNAME:MASTER%が%K63_WADAI:1%を作ってくれたんだけど、これがまた美味しいのよ」
+	ELSEIF K63_WADAI:0 == "贈り物"
+		PRINTFORMW 「ほら、この%K63_WADAI:1%、%CALLNAME:MASTER%から貰ったの！」
+		PRINTFORMW 「趣味がいいわよねえ」
 	ELSE
 		IF !RAND:3
 			PRINTFORMW 「それでね%会話相手%、そのとき%CALLNAME:MASTER%が…」
@@ -509,6 +522,7 @@ ELSE
 		PRINTFORMW 「%会話相手%は最近どう？」
 	ENDIF
 ENDIF
+VARSET K63_WADAI
 ;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ;お月見イベントを切り出し
 ;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -795,13 +809,23 @@ IF FLAG:住み込みキャラ == 63
 			ENDSELECT
 		ENDSELECT
 	ENDSELECT
-ELSEIF DAY - CFLAG:最後に会った日 >= 5
-	LOCAL = DAY - CFLAG:最後に会った日
-	IF TALENT:恋慕
-		PRINTFORML {LOCAL}日も会えなくて寂しかったわ
-		PRINTFORMW ねえ、%CALLNAME:MASTER%はこの{LOCAL}日間、ちょっとでも私に会いたいと思ったこと、あった？
+ELSEIF DAY - CFLAG:最後に会った日 >= 7
+	LOCAL = (DAY - CFLAG:最後に会った日) / 7
+	IF LOCAL > 4
+		LOCAL /= 4
+		IF TALENT:恋慕
+			PRINTFORML {LOCAL}ヵ月も会えなくて寂しかったわ
+			PRINTFORMW ねえ、%CALLNAME:MASTER%はこの{LOCAL}ヵ月、ちょっとでも私に会いたいと思ったこと、あった？
+		ELSE
+			PRINTFORML {LOCAL}ヵ月ぶりね
+		ENDIF
 	ELSE
-		PRINTFORML {LOCAL}日ぶりね
+		IF TALENT:恋慕
+			PRINTFORML {LOCAL}週間も会えなくて寂しかったわ
+			PRINTFORMW ねえ、%CALLNAME:MASTER%はこの{LOCAL}週間、ちょっとでも私に会いたいと思ったこと、あった？
+		ELSE
+			PRINTFORML {LOCAL}週間ぶりね
+		ENDIF
 	ENDIF
 ELSE
 	SELECTCASE TIME:2
@@ -841,7 +865,10 @@ IF TALENT:[[影狼]]:恋慕
 		SELECTCASE DISHNAME
 		;最初に例外群
 		;"義大莉而鳥苗鳥肉"はこっちに移動
-		CASE "モッツァレラチーズとトマトのサラダ", "ドーピングコンソメスープ", "義大莉而鳥苗鳥肉"
+		CASE "義大莉而鳥苗鳥肉"
+			PRINTFORML 「大きい生の鳥肉！」
+			PRINTFORML 「脂も乗ってて美味しそう……あれ、なんか動いてる？」
+		CASE "モッツァレラチーズとトマトのサラダ", "ドーピングコンソメスープ"
 			$KINDAN
 			PRINTFORMW 「ちょっと%CALLNAME:MASTER%、大丈夫？」
 			PRINTFORMW 「おかしい…というより異常よ……」
@@ -856,7 +883,42 @@ IF TALENT:[[影狼]]:恋慕
 			PRINTFORMKW ギンギー
 			PRINTL
 			PRINTFORMW 「…………」
-		
+		CASE "ジビエ料理"
+			PRINTFORML 「ジビエ！やっぱりお肉と言ったらこれよね～」
+			PRINTFORMW 「姫はこういうの好きじゃないんだけど、%CALLNAME:MASTER%のお口には合ったようで何よりだわ」
+		CASE "飛頭饅頭"
+			PRINTFORML 「蛮奇が作るやつね」
+			PRINTFORMW 「美味しいは美味しいんだけど、私にはちょっと辛いのよね……」
+		CASE "マーメイドパフェ"
+			PRINTFORML 「姫のじゃない！？すごーい！」
+			PRINTFORMW 「材料が珍しいらしくて滅多に食べられないのよ」
+		CASE "ぼたん鍋"
+			PRINTFORML 「は～～凝った盛り付けねえ、牡丹肉だけに牡丹様ってわけね」
+			PRINTFORMW 「お味の方も期待できそうだわ」
+		CASE "ストロベリーダンゴ"
+			PRINTFORML 「人里で青い方の兎が売ってるやつ！綺麗だから気になってたのよ」
+		CASE "鈴瑚印の団子"
+			PRINTFORML 「人里で黄色い方の兎が売ってるやつね」
+			PRINTFORML 「前見たときはすごい並んでたわ」
+		CASE "バベルタワーパンケーキ"
+			PRINTFORML 「おお～～♪すっごいボリュームね！」
+		CASE "活け造り"
+			PRINTFORML 「へえ、人間もトドメ刺さずに生きたまま食べたりするんだ」
+		CASE "春の鎮魂料理"
+			PRINTFORML 「鎮魂。ふーん」
+			PRINTFORML 「死ねば悼んでもらえるなんて結構なことね」
+		CASE "ハングリータイガーステーキ"
+			PRINTFORML 「豪勢なステーキ！どこで習ったの？……命蓮寺のご本尊？」
+			PRINTFORML 「本能に逆らい続けるのは大変だものね、わかるわー……」
+		CASE "京丸牡丹鍋"
+			PRINTFORML 「やった！牡丹鍋――って、お肉入ってないじゃない！詐欺よ詐欺！」
+		CASE "焼き鳥"
+			PRINTFORML 「凝った料理もいいけど、お肉を味わうならシンプルなのがいいわよね」
+		CASE "ヤツメウナギの蒲焼き"
+			PRINTFORML 「夜雀が屋台で出してるやつじゃない」
+			PRINTFORML 「匂いもそっくり！」
+		CASE "犬まんま"
+			PRINTFORML 「見るからに雑だけど、腹持ちはよさそうね」
 		;お魚系、天麩羅は唯一、魚料理がつかないので先に分岐
 		;まー、TASTEにはついてないが内実は想像にまかせるということで
 		CASE "天ぷら"
@@ -866,23 +928,29 @@ IF TALENT:[[影狼]]:恋慕
 		;主食肉
 		;カエル料理もこの区分だが……
 		;だってこの娘、蛙肉だろうが喜んで食いそうなんだもん
-		CASE "ハンバーグ", "しゃぶしゃぶ", "生姜焼き", "ステーキ", "油淋鶏", "カエルのから揚げ", "カエルカレー", "カエルのソテー", "カエルの塩焼き", "ジビエ料理"
-			IF TCVAR:[[影狼]]:料理評価値 >= 700
-				CALL K63_DEVOUR
+		CASE "ハンバーグ", "しゃぶしゃぶ", "生姜焼き", "ステーキ", "油淋鶏", "カエルのから揚げ", "カエルカレー", "カエルのソテー", "カエルの塩焼き"
+			PRINTFORMW 「やっぱりお肉は最高ね～♪」
+			PRINTFORMW 「普段は生肉だけれど」
+			IF TCVAR:[[影狼]]:353
+				PRINTFORMW 「%CALLNAME:MASTER%とお料理した方がずっといいわね♪」
 			ELSE
-				PRINTFORMW 「やっぱりお肉は最高ね～♪」
-				PRINTFORMW 「普段は生肉だけれど」
-				IF TCVAR:[[影狼]]:353
-					PRINTFORMW 「%CALLNAME:MASTER%とお料理した方がずっといいわね♪」
-				ELSE
-					PRINTFORMW 「%CALLNAME:MASTER%のお料理を食べる方がずっといいわね♪」
-				ENDIF
+				PRINTFORMW 「%CALLNAME:MASTER%のお料理を食べる方がずっといいわね♪」
 			ENDIF
 		;軽食肉
 		CASE "ハンバーガー", "シウマイ", "肉まん"
 			$ONIKU
 			PRINTFORMW 「%DISHNAME%はお手軽に食べられて」
 			PRINTFORMW 「お肉も入ってるからいいわよね」
+		CASE "タピオカミルクティー"
+			PRINTFORML 「この沈んでる黒いのってナニ？」
+			CALL ASK_YN("芋","カエルの卵")
+			IF !RESULT
+				PRINTFORML 「芋がこうなるの！？」
+				PRINTFORML 「不思議ねえ、こんにゃくみたいなものかしら」
+			ELSE
+				PRINTFORML 「味も臭いも全然それっぽくないけど、変わったカエルがいるのね」
+				PRINTFORML 「それにしても甘いお茶にカエルの卵入れるなんて、すごい発想ねえ」
+			ENDIF
 		[SKIPSTART]
 		;仕様変更とともに闇に消えたっぽいのでコメントアウト
 		CASE 79
@@ -899,6 +967,9 @@ IF TALENT:[[影狼]]:恋慕
 		CASEELSE
 			IF STRCOUNT(DISH_TASTE, ESCAPE("ローター/"))
 				PRINTFORMW 「た、食べて大丈夫なのかしら……」
+			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("スパイス/"))
+				PRINTFORMW 「うわっ！？」
+				PRINTFORMW 「これはちょっと厳しいわー……匂いが鼻に刺さる……」
 			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("麺類/"))
 				IF TCVAR:[[影狼]]:353
 					PRINTFORMW 「たまごたまご……」
@@ -908,10 +979,18 @@ IF TALENT:[[影狼]]:恋慕
 					PRINTFORMW 「あら、たまごは入れないの？」
 				ENDIF
 				;月見ラーメンって何だ
+			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("揚げ物/")) && DISH_TYPE == "主食" 
+				PRINTFORML 「やったあ揚げ物！」
+				PRINTFORML 「好きなんだけど、一人暮らしだとなかなか作れなくて助かるわー」
+				PRINTFORML 一人暮らし以前に普段は生肉食べてるって言っていたような……
 			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("魚料理/"))
 				GOTO OSAKANA
 			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("肉料理/"))
 				GOTO ONIKU
+			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("芸術的/"))
+				PRINTFORML 「綺麗ねえ、盛り付けのセンスがいいわ」
+				PRINTFORML 「食べればなくなっちゃう儚いものに手間かけるの、粋よ」
+				;こういう感性はあるのに味の好みは雑
 			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("デザート/"))
 				PRINTFORMW 「お肉も好きだけど、こういうデザートも大好物よ♪」
 				PRINTFORMW 「狼なのに変？」
@@ -921,11 +1000,26 @@ IF TALENT:[[影狼]]:恋慕
 				PRINTFORMW 「ウ…やっぱり菜食は苦手だわ……」
 				PRINTFORMW 「食べられなくはないけれど…」
 				PRINTFORMW 「ちゃんと消化できるか心配ね……」
-			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("軽食/"))
+			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("虫肉/"))
+				PRINTFORML 「虫かあ」
+				PRINTFORML 「お腹減ってるときは食べることもあるけど……」
+				IF TCVAR:[[影狼]]:料理評価値 >= 500
+					PRINTFORMW 「あ、でもこれはいけるわね」
+				ENDIF
+			;ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("軽食/"))
 			ENDIF
 		ENDSELECT
 	PRINTL
 ENDIF
+
+IF TCVAR:[[影狼]]:料理評価値 >= 700
+	K63_WADAI:1 '= DISH_TYPE
+	K63_WADAI:0 = 料理
+	IF DISH_TYPE == "主食" && STRCOUNT(DISH_TASTE, ESCAPE("肉料理/"))
+		CALL K63_DEVOUR
+	ENDIF
+ENDIF
+
 
 ;吟味後（調味料は一緒に作らない時のみ）
 ;おいしくなかった
@@ -946,7 +1040,6 @@ ELSEIF TASTE_REACTION("すっぱい")
 	PRINTFORMW 「く、腐ってないこれ……？」
 ;おいしい
 ELSEIF TALENT:[[影狼]]:恋慕
-	PRINTFORMW 「ごちそうさま」
 	;一緒に作った
 	IF TCVAR:[[影狼]]:353 > 0
 		SELECTCASE RAND:5
@@ -977,6 +1070,19 @@ ELSEIF TALENT:[[影狼]]:恋慕
 	ELSE
 		PRINTFORMW 「%CALLNAME:MASTER%の作った料理は美味しいわね～」
 		CFLAG:1004 += 3
+	ENDIF
+	IF !RAND:5 && SELECTCOM == 414
+		PRINTFORMW 「あっ、口元」
+		IF GET_TARGETNUM() == 1
+			PRINTFORMW 顔を寄せられ…舐め取られた
+			PRINTFORMW 「ふふふ、ご馳走様」
+			CALL COLORMESSAGE(@"キス経験＋1",C_PINK,1)
+			EXP:[[影狼]]:キス経験 ++
+		ELSE
+			PRINTFORMW ハンカチで拭いてもらった
+		ENDIF
+	ELSE
+		PRINTFORMW 「ごちそうさま」
 	ENDIF
 ;恋慕じゃない
 ELSEIF TFLAG:193 == 1
@@ -1754,17 +1860,6 @@ RETURN 1
 ;━━━━━━━━━━━━━━━━━━━━━━━━━
 @K63_職場見学
 TCVAR:354 = 1
-;通い狼発生済み
-SIF !GETBIT(FLAG_DAILY_EV28, 0)
-	RETURN
-;前回から10日以上経ってないと駄目
-SIF DAY - FLAG_DAILY_EV29_LASTTIME < 10
-	RETURN
-SIF MARK:[[影狼]]:反発刻印
-	RETURN
-SIF ABL:[[わかさぎ姫]]:親密 < 2 || ABL:[[蛮奇]]:親密 < 2
-	RETURN
-
 ;初回
 IF !GETBIT(FLAG_DAILY_EV29, 0)
 	PRINTFORML 「蛮奇は人里の料理屋で人間のふりして働いてるらしいのよね」
@@ -1773,7 +1868,7 @@ IF !GETBIT(FLAG_DAILY_EV29, 0)
 	IF !RESULT
 		CALL SPTALK, [[影狼]], "笑顔", 0, @"「本当？じゃあ今夜、人里からちょっと離れたところで待ち合わせね！」", 1 
 		CALL COLORMESSAGE(@"一日の終了時にイベントが発生します（実際に移動する必要はありません）",C_YELLOW,2)
-		CFLAG:[[影狼]]:1005 = 1
+		K63_KENGAKU = 1
 		CALL KIGEN_CHANGE(TARGET,100,1)
 	ELSE
 		PRINTFORML 「そう…気が変わったら教えてね」
@@ -1784,18 +1879,37 @@ ELSE
 	IF !RESULT
 		CALL SPTALK, [[影狼]], "笑顔", 0, @"「じゃあ今夜、いつもの場所でね」", 1 
 		CALL COLORMESSAGE(@"一日の終了時にイベントが発生します（実際に移動する必要はありません）",C_YELLOW,2)
-		CFLAG:[[影狼]]:1005 = 1
+		K63_KENGAKU = 1
 		CALL KIGEN_CHANGE(TARGET,100,1)
 	ELSE
 		PRINTFORML 「じゃあまた日を改めて、ね」
 	ENDIF
 ENDIF
+
+@K63_CAN_KENGAKU(ARG)
+#FUNCTION
+SIF TCVAR:[[影狼]]:354
+	RETURNF 0
+SIF DAY:3 == 15
+	RETURNF 0
+;通い狼発生済み
+SIF !GETBIT(FLAG_DAILY_EV28, 0)
+	RETURNF 0
+;前回から10日以上経ってないと駄目
+SIF DAY - FLAG_DAILY_EV29_LASTTIME < 10
+	RETURNF 0
+SIF MARK:[[影狼]]:反発刻印
+	RETURNF 0
+SIF ABL:[[わかさぎ姫]]:親密 < 2 || ABL:[[蛮奇]]:親密 < 2
+	RETURNF 0
+RETURNF 1
 ;━━━━━━━━━━━━━━━━━━━━━━━━━
 ;━━━━━━━━━━━━━━━━━━━━━━━━━
 ;━━━━━━━━━━━━━━━━━━━━━━━━━
 ;━━━━━━━━━━━━━━━━━━━━━━━━━
 
 @K63_DEVOUR
+PRINTFORMW ……
 IF !RAND:2
 	PRINTFORML 「ガフッ！ガフッ！ガフッ！ガフッ！」
 	PRINTFORML 影狼はすごい勢いで貪り食っている……
@@ -1865,3 +1979,121 @@ SIF TALENT:[[影狼]]:自己愛 == 0
 PRINTFORML 親密と愛情経験が高いとうふふ終了時【解放】を取得可能
 ENDIF
 PRINTFORMW 
+
+;影狼さんが罠から獲物を持ってきてくれる関数
+;ノイヌは勝手に逃がしちゃう
+;絶滅動物のよしみでヤベオオツノジカとハナイズミモリウシも逃がすことにしたいけど大物だからプレイヤーのヘイト買うのが怖い
+@K63_RETRIEVE
+#DIM 獲物
+#DIM RETRIEVE
+TCVAR:356 = 1
+RETRIEVE = 0
+FOR LOCAL,1,4
+	SIF !TRAP_POINT:LOCAL
+		CONTINUE
+	;地底は無理
+	SIF TRAP_POINT:LOCAL / 100 == 9
+		CONTINUE
+	IF TRAP_DURABILITY:LOCAL == 0 || TRAP_CAPTURE:LOCAL
+		RETRIEVE = LOCAL
+		BREAK
+	ENDIF
+NEXT
+;なかった場合もう一度回す
+IF !RETRIEVE
+	FOR LOCAL,1,4
+		SIF !TRAP_POINT:LOCAL
+			CONTINUE
+		;地底は無理
+		SIF TRAP_POINT:LOCAL / 100 == 9
+			CONTINUE
+		IF TRAP_DURABILITY:LOCAL <= 20
+			RETRIEVE = LOCAL
+			BREAK
+		ENDIF
+	NEXT
+ENDIF
+SIF RETRIEVE == 0
+	RETURN
+
+SELECTCASE TRAP_POINT:RETRIEVE / 100
+	CASE 0
+		LOCALS = 神社の森
+	CASE 4
+		LOCALS = 竹林
+	CASE 5
+		LOCALS = 森の入り口
+	CASE 7
+		LOCALS = 山の中
+	CASE 8
+		LOCALS = 山のてっぺん
+	CASEELSE
+		LOCALS = どこだったか
+ENDSELECT
+
+PRINTFORML 「%CALLNAME:MASTER%、%LOCALS%に罠仕掛けてたでしょ？」
+IF TRAP_DURABILITY:RETRIEVE == 0 || TRAP_CAPTURE:RETRIEVE == 11
+	;ノイヌがかかってた場合嘘ついて逃がしちゃう
+	PRINTFORMW 「あれ壊れてたわよ」
+	CALL TRAP_V_RESET(RETRIEVE)
+	RETURN 0
+ENDIF
+IF TRAP_CAPTURE:RETRIEVE == 0 && TRAP_DURABILITY:RETRIEVE
+	PRINTFORML 「\@ TRAP_DURABILITY:RETRIEVE < 11? 結構# ちょっと\@傷んでたわよ」
+	PRINTFORML 「回収しておいた方がいいかもね」
+	RETURN 0
+ENDIF
+
+獲物 = TRAP_CAPTURE:RETRIEVE
+CAPTURE_RECORD:獲物 ++
+CALL CRITTER_DATA(獲物)
+SELECTCASE CritterMeat_Value
+	CASE IS >= 10
+		PRINTFORML 「すっごいのがかかってたわよ」
+		PRINTFORML 「ほら、お肉もこんなに！」
+	CASE IS >= 5
+		PRINTFORML 「大物がかかってたわよ」
+	CASEELSE
+		PRINTFORML 「獲物かかってたわよ」
+ENDSELECT
+DRAWLINE
+PRINTFORML 　【かかっていた獲物】
+PRINTFORM 　　
+CALL SPOIL_TEXT(SPOIL_ENHANCEMENT(獲物), 0, 1)
+DRAWLINE
+LOCALS = %ITEMNAME:(CritterMeat)%
+CALL GET_ITEM(LOCALS, (CritterMeat_Value + SPOIL_ENHANCEMENT(獲物)), 2)
+LOCALS = %ITEMNAME:(TRAP_TYPE:RETRIEVE)%
+CALL GET_ITEM(LOCALS, 1, 1)
+;罠の各種変数リセット
+CALL TRAP_V_RESET(RETRIEVE)
+;獣関連の変数をリセット
+CALL CRITTER_V_RESET
+
+@K63_眉カット
+IF FIRSTTIME("K63_眉カット")
+	PRINTFORMW 「…………」
+	PRINTFORMW %CALLNAME:MASTER%の顔をまじまじと見ている
+	PRINTFORMW 「剃刀ある？貸して」
+	PRINTFORMW ……
+	PRINTFORMW …
+	PRINTFORMW 「ふー……」
+	PRINTFORMW 「よくなったと思うわ！ほら、鏡見て？」
+	PRINTFORMW 眉を整えてもらった
+	CALL ASK_YN("ありがとう","上手いね")
+	PRINTFORML 「\@ RESULT? 慣れてるから# どういたしまして\@」
+	PRINTFORMW 「時々は手入れした方がいいわよ」
+ELSE
+	PRINTFORML 「んー、眉毛伸びてきたわね」
+	PRINTFORMW 「またやってあげましょうか」
+	PRINTFORMW ……
+	PRINTFORMW …
+	CALL PRINT_FACE, [[影狼]], "笑顔", "服", "", ""
+	PRINTFORML 「%TEXTR("できた！/こんなものかしら")%」
+	PRINTFORMW 「%TEXTR("ふふ、男ぶりが上がったわよ？/ん～スッキリ！")%」
+ENDIF
+CALL JUEL_UP_SPECIAL([[影狼]],"習得","技巧",10,1)
+CALL BUFF_BASE(MASTER,BASE_気力, 100)
+K63_EYEBROW = DAY + 30
+SIF TALENT:[[影狼]]:恋慕
+	K63_EYEBROW = DAY + 15

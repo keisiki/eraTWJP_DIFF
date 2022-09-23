@@ -585,9 +585,10 @@ ENDIF
 @絶頂強度判定(ARG,絶頂部位,ARG:2)
 #DIM 絶頂部位
 #DIM 欲求不満低下係数
+#DIM 上昇値
 ; ARG:2=絶頂補正
 VARSET LOCAL
-欲求不満低下係数 = MAX(60 - ABL:ARG:欲望 * 2,15)
+欲求不満低下係数 = MAX(60 - ABL:ARG:欲望 * 2, 30)
 
 
 SIF FLAG:70
@@ -615,15 +616,18 @@ IF ARG == MASTER && TARGET >= 1 && (TALENT:ARG:性別 & 1) && !FLAG:70
 	CFLAG:ARG:溜まってる度 -= LOCAL:1 * 20
 	CFLAG:ARG:溜まってる度 = MAX(CFLAG:ARG:溜まってる度, 0)
 ENDIF
-LOCAL:2 = LOCAL:1
+上昇値 = LOCAL:1
 IF !TALENT:ARG:妄想の産物
 	SIF MAXBASE:ARG:体力 > CSVBASE(ARG,0) * 2 || MAXBASE:ARG:気力 > CSVBASE(ARG,1) * 2
-		LOCAL:2 -= 1
+		上昇値 -= 1
 	SIF MAXBASE:ARG:体力 > CSVBASE(ARG,0) * 3 || MAXBASE:ARG:気力 > CSVBASE(ARG,1) * 3
-		LOCAL:2 -= 1
+		上昇値 -= 1
+	上昇値 = MAX(上昇値,0)
 	IF ARG
-		MAXBASE:ARG:体力 += MAX(LOCAL:2,0)
-		MAXBASE:ARG:気力 += MAX(LOCAL:2,0)
+		SIF MAXBASE:ARG:体力 < 5000 || !RAND:2
+			MAXBASE:ARG:体力 += 上昇値
+		SIF MAXBASE:ARG:気力 < 5000 || !RAND:2
+			MAXBASE:ARG:気力 += 上昇値
 	ENDIF
 ENDIF
 RETURN LOCAL:1

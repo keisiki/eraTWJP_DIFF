@@ -273,9 +273,19 @@ SELECTCASE ARG
 					IF FLAG:70
 						PRINTL 雨粒が停止している…
 					ELSEIF WIND_VELOCITY >= 1
-						PRINTL 息苦しいほど風雨が強い
+						PRINTL 大粒の雨が吹き荒れている…
 					ELSE
 						PRINTL 雨は激しく降りしきっている…
+					ENDIF
+				;大雨
+				;(天候パッチ)豪雨時の文章追加
+				CASE 14
+					IF FLAG:70
+						PRINTL 雨粒が停止している…
+					ELSEIF WIND_VELOCITY >= 1
+						PRINTL 風雨が強くて息苦しい…
+					ELSE
+						PRINTL 圧迫感を感じる大雨だ…前が見えにくい…
 					ENDIF
 				;霧・霧雨・霧雪
 				;(天候パッチ)濃霧時の文章追加
@@ -313,7 +323,14 @@ SELECTCASE ARG
 					IF FLAG:70
 						PRINTL 霰の粒すら停止している…
 					ELSE
-						PRINTL 大粒のあられが吹き荒れている…息が白い…
+						PRINTL 大粒のあられが吹き荒れている…
+					ENDIF
+				;(天候パッチ)ひょう
+				CASE 15
+					IF FLAG:70
+						PRINTL 雹の粒すら停止している…
+					ELSE
+						PRINTL 大粒のひょうが地面を打ち付けている…
 					ENDIF
 			ENDSELECT
 		ENDIF
@@ -356,39 +373,47 @@ SELECTCASE ARG
 		;(天候パッチ)冷害・風害発生時は表示
 		SELECTCASE FLAG:畑仕事の成果
 			CASE IS < 20
-				IF IS_COLD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1
-					PRINTFORM 相次ぐ冷害と風害の影響で 
+				IF (IS_COLD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1) || (IS_COLD_CROP_DAMAGE >= 1 && IS_FLOOD_CROP_DAMAGE >= 1) || (IS_FLOOD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1)
+					PRINTFORM 相次ぐ自然災害の影響で 
 				ELSEIF IS_COLD_CROP_DAMAGE >= 1
 					PRINTFORM 冷害の影響で 
 				ELSEIF IS_STORM_CROP_DAMAGE >= 1
 					PRINTFORM 風害の影響で 
+				ELSEIF IS_FLOOD_CROP_DAMAGE >= 1
+					PRINTFORM 水害の影響で 
 				ENDIF
 				PRINTFORML %STR_NOUMIN(FLAG:地主, "作物")%はまったくと言っていいほど育っていない
 			CASE 20 TO 60
-				IF IS_COLD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1
-					PRINTFORM 相次ぐ冷害と風害の影響で 
+				IF IS_COLD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1 || (IS_COLD_CROP_DAMAGE >= 1 && IS_FLOOD_CROP_DAMAGE >= 1) || (IS_FLOOD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1)
+					PRINTFORM 相次ぐ自然災害の影響で 
 				ELSEIF IS_COLD_CROP_DAMAGE >= 1
 					PRINTFORM 冷害の影響で 
 				ELSEIF IS_STORM_CROP_DAMAGE >= 1
 					PRINTFORM 風害の影響で 
+				ELSEIF IS_FLOOD_CROP_DAMAGE >= 1
+					PRINTFORM 水害の影響で 
 				ENDIF
 				PRINTFORML %STR_NOUMIN(FLAG:地主, "作物")%はあんまり育っていない
 			CASE 61 TO 100
-				IF IS_COLD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1
-					PRINTFORM 相次ぐ冷害と風害にもかかわらず 
+				IF IS_COLD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1 || (IS_COLD_CROP_DAMAGE >= 1 && IS_FLOOD_CROP_DAMAGE >= 1) || (IS_FLOOD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1)
+					PRINTFORM 相次ぐ自然災害にもかかわらず 
 				ELSEIF IS_COLD_CROP_DAMAGE >= 1
 					PRINTFORM 冷害にもかかわらず 
 				ELSEIF IS_STORM_CROP_DAMAGE >= 1
 					PRINTFORM 風害にもかかわらず 
+				ELSEIF IS_FLOOD_CROP_DAMAGE >= 1
+					PRINTFORM 水害にもかかわらず 
 				ENDIF
 				PRINTFORML %STR_NOUMIN(FLAG:地主, "作物")%はそれなりによく育っている
 			CASEELSE
-				IF IS_COLD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1
-					PRINTFORM 相次ぐ冷害と風害にもかかわらず 
+				IF IS_COLD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1 || (IS_COLD_CROP_DAMAGE >= 1 && IS_FLOOD_CROP_DAMAGE >= 1) || (IS_FLOOD_CROP_DAMAGE >= 1 && IS_STORM_CROP_DAMAGE >= 1)
+					PRINTFORM 相次ぐ自然災害にもかかわらず 
 				ELSEIF IS_COLD_CROP_DAMAGE >= 1
 					PRINTFORM 冷害にもかかわらず 
 				ELSEIF IS_STORM_CROP_DAMAGE >= 1
 					PRINTFORM 風害にもかかわらず 
+				ELSEIF IS_FLOOD_CROP_DAMAGE >= 1
+					PRINTFORM 水害にもかかわらず 
 				ENDIF
 				PRINTFORML %STR_NOUMIN(FLAG:地主, "作物")%が豊かに実っている
 		ENDSELECT
