@@ -4,6 +4,8 @@
 ;-------------------------------------------------
 @COM464
 #DIM FEE
+#DIM 目的場所
+#DIM 所要時間
 VARSET LOCAL
 FEE = 0
 FOR LOCAL,1,CHARANUM
@@ -67,7 +69,7 @@ SELECTCASE CFLAG:MASTER:現在位置
 			FEE = 5
 		ENDIF
 		;相手が鬼か天狗だと愛想笑い／敷設者にも敬意を払う
-		IF GROUPMATCH(TARGET, 10, 29, 31, 32, 33, 42, 64, 65)
+		IF GROUPMATCH(TARGET, 10, 29, 31, 32, 33, 42, 64, 65) && CFLAG:TARGET:同行
 			;ガワを山の河童(16)or里の人間(12)に決める
 			LOCAL = 12 + ((CFLAG:MASTER:現在位置 / 100 == 8) * 4)
 			CALL SPTALK, 0, "笑顔", LOCAL, @"「これはこれは%CALLNAME:TARGET%さん、ご利用ですか？」",1
@@ -135,22 +137,25 @@ ELSEIF !AT_HOME(MASTER) && MAIN_MAP == SPECIAL_AREAMOVE() / 100
 	ELSE
 		PRINTFORMW \@ CFLAG:MASTER:デート中 != CFLAG:TARGET:デート中 || TARGET == MASTER ? 外出 # デート \@から帰って来ました
 	ENDIF
+	;デート終了時は強制的にENTRANCEへ飛ばされるため一時保存
+	目的場所 = SPECIAL_AREAMOVE()
+	所要時間 = SPECIAL_AREAMOVE_TIME()
 	CFLAG:MASTER:現在位置 = SPECIAL_AREAMOVE()
-
 	CALL 守矢くじデート相手のリセット()
 	FOR LOCAL,1,CHARANUM
 		IF CHK_DATENOW(CFLAG:LOCAL:デート中)
 			CALL DATE_EVENT(LOCAL)
-			CFLAG:LOCAL:現在位置 = SPECIAL_AREAMOVE()
+			CFLAG:LOCAL:現在位置 = 目的場所
 			CALL SET_DATE(99,LOCAL)
+			;デート相手にも改めて現在位置渡す
+			CFLAG:LOCAL:現在位置 = 目的場所
 		ENDIF
 	NEXT
-	SIF CHK_DATENOW(CFLAG:MASTER:デート中)
-		CALL SET_DATE(99,MASTER)
-
-	TIME += SPECIAL_AREAMOVE_TIME()
+	CALL SET_DATE(99,MASTER,0)
+	;一時保存情報渡す
+	CFLAG:MASTER:現在位置 = 目的場所
+	TIME += 所要時間
 ENDIF
-
 ;-------------------------------------------------
 ;実行判定
 ;-------------------------------------------------

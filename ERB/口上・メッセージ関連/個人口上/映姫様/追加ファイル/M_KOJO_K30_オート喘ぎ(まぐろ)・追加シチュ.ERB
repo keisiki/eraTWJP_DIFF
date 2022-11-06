@@ -120,9 +120,9 @@ REPEAT 5 + RAND:2
 	ENDSELECT
 REND
 IF TEMP == 0
-	;無理矢理・薬時は語尾に一言だけ、後はどっちかに一言だけ CFLAG:1600 無理矢理口上反映フラグ
+	;無理矢理・薬時は語尾に一言だけ、後はどっちかに一言だけ TCVAR:30:386 無理矢理口上反映フラグ
 	IF TCVAR:無理矢理
-		CFLAG:1600 = 1
+		TCVAR:30:386 = 1
 	;無理矢理時に避妊
 		SIF (SELECTCOM == 51 || TEQUIP:PLAYER:コンドーム) && TCVAR:30:待たぬ == 1
 			PRINTFORM %TEXTR("何がしたいの…/意味がわからない…/ふざけてるの…/何考えてるの…")%
@@ -298,6 +298,9 @@ SIF !TALENT:恋慕
 ;うふふ解禁じゃないとダメ
 SIF !GETBIT(CFLAG:既成事実, 1)
 	RETURN 1
+;無自覚孕ませで傷付いていたらダメ
+SIF CFLAG:1805
+	RETURN 1
 ;ある程度経験ないとダメ
 SIF ABL:精液中毒 < 2
 	RETURN 1
@@ -449,6 +452,8 @@ IF DAY % 2 == 1 && (CFLAG:30:溜まってる度 > 500 || GROUPMATCH(S_VAL, 1000,
 	CFLAG:30:溜まってる度 = MAX(CFLAG:30:溜まってる度, 800)
 	CFLAG:MASTER:うふふ = 2
 	CFLAG:30:うふふ = 2
+	TCVAR:30:383 = TIME:1
+	TCVAR:30:378 = 1
 	UFUFU_START_TIME = TIME
 	UFUFU_START_DAY = DAY
 	BASE:30:ムード = 1200
@@ -828,7 +833,7 @@ LOCALS:0 '= "…………", "……", "…"
 RESETCOLOR
 DRAWLINE
 CALL PRINT_GROUP(LOCALS, 3)
-SETCOLOR 0x337D5C
+CALL M_KOJO_COLOR_K30
 TIME += 10
 ;顔絵エフェクト用フラグ
 TCVAR:30:363 = TIME
@@ -925,8 +930,8 @@ BASE:MASTER:勃起 = 700 - (RAND:250 + 1)
 RETURN 1
 
 ;==================================================
-;映姫様に仕事中でも咥えてもらう
-;うふふと仕事の挙動両立は不具合出そうなので口上内に留める
+;映姫様に仕事中でも咥えてもらう関数
+;うふふと仕事の挙動両立は不具合出そうなので1コマンド内に留める
 ;--------------------------------------------------
 @K30_BLOW_JOB_IN_COURT
 LOCALS:0 '= "…………", "……", "…"
@@ -991,7 +996,7 @@ LOCALS:0 '= "…………", "……", "…"
 RESETCOLOR
 DRAWLINE
 CALL PRINT_GROUP(LOCALS, 3)
-SETCOLOR 0x337D5C
+CALL M_KOJO_COLOR_K30
 CALL PRINT_FACE, 30, "反発", "服", "", "精液上"
 PRINTFORML 「ほら、こんなところ誰かに見られたら大変ですよ」
 PRINTFORML 「貴方も早く身支度して…いつまで丸出しでいるんですか？」
@@ -1057,7 +1062,7 @@ SELECTCASE ARGS
 		ELSE
 			PRINTDATADL
 				DATAFORM 映姫を\@ TEQUIP:体位 == 1 ? # 背後から \@抱きすくめピストンを速めると、\@ EX:膣内精液 > 500 ? %SLIT()%から白濁と愛蜜が混じり溢れてきた # ぐちゅぐちゅという水音がよりいっそう大きくなった \@…
-				DATAFORM 映姫の膣内は突けば突くほど馴染んできて、\@ TCVAR:30:394 > 2 ? 何度出してもなお # あまりの気持ち良さに \@%CALLNAME:MASTER%の腰は勝手に動いてしまうようだ…
+				DATAFORM 映姫の膣内は突けば突くほど馴染んできて、\@ TCVAR:30:396 > 2 ? 何度出してもなお # あまりの気持ち良さに \@%CALLNAME:MASTER%の腰は勝手に動いてしまうようだ…
 				DATAFORM %CALLNAME:MASTER%が\@ TEQUIP:体位 == 1 ? 肩を押さえつけ # 腰をがっしりと掴み \@先程よりも激しく抽送すると、映姫の嬌声\@ NOWEX:Ｖ絶頂 > 2 && RAND:3 != 1 ? はより激しく淫らなものへと変わっていった # も同じリズムを刻みだした \@…
 			ENDDATA
 		ENDIF
@@ -1127,7 +1132,7 @@ SIF NOWEX:MASTER:射精 && PALAM:欲情 > PALAMLV:6 && TEQUIP:体位 == TEQUIP:�
 	LOCALS += "体位おねだり/"
 SIF !NOWEX:MASTER:射精 && CHECK_SWEAT(30) && TEQUIP:体位 != 3 && !SUMARRAY(TEQUIP:30:0, 41, 46) && !RAND:7
 	LOCALS += "首筋/"
-SIF NOWEX:MASTER:射精 && TCVAR:30:394 > 4 && TEQUIP:体位 != 2  && !RAND:4
+SIF NOWEX:MASTER:射精 && TCVAR:30:396 > 4 && TEQUIP:体位 != 2  && !RAND:4
 	LOCALS += "頭なでられ/"
 SIF NOWEX:Ｖ絶頂 && TEQUIP:体位 != 2 && !RAND:6
 	LOCALS += "頭撫で/"
@@ -1143,7 +1148,7 @@ ENDIF
 SIF LOCALS == ""
 	RETURN
 WAIT
-SETCOLOR 0x337D5C
+CALL M_KOJO_COLOR_K30
 ;TEXTRで抽選して戻り値を使いSELECTCASE分岐
 SELECTCASE TEXTR(LOCALS)
 	CASE "体位おねだり"
@@ -1276,7 +1281,7 @@ SELECTCASE TEXTR(LOCALS)
 		IF GROUPMATCH(TEQUIP:体位, 1, 4) 
 			PRINTFORMDW %CALLNAME:MASTER%の顔に乳房を押し当てながら、映姫は慈しむように頭を撫でてくれた…
 		ELSE
-			PRINTFORMDW %CALLNAME:MASTER%が%TOKANJIT(TCVAR:30:394)%度目の射精を終えると、映姫はねぎらうように頭を撫でてくれた…
+			PRINTFORMDW %CALLNAME:MASTER%が%TOKANJIT(TCVAR:30:396)%度目の射精を終えると、映姫はねぎらうように頭を撫でてくれた…
 		ENDIF
 	CASE "頭撫で"
 		PRINTFORMDL %CALLNAME:MASTER%は絶頂%TEXTR("の余韻も冷めやらぬ/からようやく降りてきた")%映姫の%TEXTR("髪/頭/")%をそっと撫でた
@@ -1503,7 +1508,7 @@ ELSE
 				PRINTFORMDW を濡らす…
 			ENDIF
 		CASE 3
-			IF TCVAR:30:397 == 1
+			IF TCVAR:30:398 == 1
 				PRINTFORMDW 真正面にきれいな弧を描く…… 
 			ELSE
 				PRINTDATADW
@@ -1553,7 +1558,7 @@ ELSEIF K30_FIND_AROUND() || ARG == 5
 	PRINTFORMDW アナル絶頂へと登りつめていく…
 ELSEIF ABL:露出癖 > 4 && CFLAG:1607 > 10
 	;ニッチな性癖(ry
-	IF BODY == 3 && TCVAR:30:397 == 0
+	IF BODY == 3 && TCVAR:30:398 == 0
 		SELECTCASE RAND:3
 			CASE 0
 				CALL HPH_PRINT, @"「ふふっHPH　かけちゃった、みたい…HPH」", "L"
@@ -1685,6 +1690,8 @@ SIF K30_CHECK_HEN_T() || DAY % 2 == 0
 	RETURN 0
 SIF MARK:反発刻印 || TALENT:機嫌 == -1 || TALENT:妊娠 || (TALENT:育児中 && TFLAG:描写中の子供)
 	RETURN 0
+SIF !GETBIT(CFLAG:30:1910, 7) || ABL:露出癖 < 6
+	RETURN 0
 ;口上から予約済み
 IF GETBIT(CFLAG:1609, 0) && !CFLAG:1608
 	CLEARBIT CFLAG:1609, 0
@@ -1693,9 +1700,7 @@ IF GETBIT(CFLAG:1609, 0) && !CFLAG:1608
 ENDIF
 SIF TALENT:尻穴狂い && CFLAG:1608
 	GOTO SKIP
-SIF !GETBIT(CFLAG:30:1910, 7) || ABL:露出癖 < 6
-	RETURN 0
-SIF RAND:1000 >= (MAX(CFLAG:溜まってる度, 100) + MIN(CFLAG:1608 * 75, 750))
+SIF RAND:1000 >= (MAX(CFLAG:溜まってる度 / 10, 75) + MIN(CFLAG:1608 * 75, 750))
 	RETURN 0
 $SKIP
 SETBIT CFLAG:1609, 3
@@ -1723,7 +1728,7 @@ IF !CFLAG:1608
 	PRINTFORMW 「……どうでしょう…だめ、ですか？　こんな、はしたないこと…」
 	RESETCOLOR
 	CALL ASK_YN("やめるように諭す", "とことん付き合う")
-	SETCOLOR 0x337D5C
+	CALL M_KOJO_COLOR_K30
 	CLEARLINE 1
 	IF !RESULT
 		PRINTFORMW 「……………」
@@ -1765,7 +1770,7 @@ ELSE
 	PRINTFORMDL 映姫は興奮と欲情の入り混じった眼差しで、懇願するようにこちらを見つめている…
 	RESETCOLOR
 	CALL ASK_YN("今日は普通に", "しっかり付き合う")
-	SETCOLOR 0x337D5C
+	CALL M_KOJO_COLOR_K30
 	CLEARLINE 1
 	IF !RESULT
 		PRINTFORMW 「あら…？」
@@ -1778,7 +1783,7 @@ ELSE
 	IF EQUIP:30:下半身下着２
 		PRINTFORML 「ふふっ…♥　ありがとう、%K30_C_NAME(MASTER)%」
 		PRINTFORML 「じゃあ、これ…付き合ってくれるご褒美です♥」
-		PRINTFORMDL いつの間に脱いだのか、映姫はまだ暖かな%PANTSNAME(EQUIP:下半身下着２, 30)%を手渡してきた
+		PRINTFORMDL いつの間に脱いだのか、映姫はまだ温かな%PANTSNAME(EQUIP:下半身下着２, 30)%を手渡してきた
 		PRINTFORMDW %CALLNAME:MASTER%は%PANTSNAME(EQUIP:30:下半身下着２, 30)%を厳重にしまいこんだ
 		CALL K30_PANTS_GETTING
 		PRINTFORML 「%TEXTR("ああ…すごく、ドキドキしてきました/えっと…準備はもう終わってますから/…んっ♥　ごめんなさい、私…もう、うずいて")%…」
@@ -1806,7 +1811,7 @@ TEQUIP:アナルバイブ = 1
 LOCALS:0 '= "…………", "……", "…"
 RESETCOLOR
 CALL PRINT_GROUP(LOCALS, 3)
-SETCOLOR 0x337D5C
+CALL M_KOJO_COLOR_K30
 CALL HPH_PRINT, @"「%LOCALS:LOCAL%」", "W"
 CALL K30_PRINT_BUTT_IMAGE(0, 2, 0, 3, 0, 0)
 CALL HPH_PRINT, @"%LOCALS:6%", "W"
@@ -1826,7 +1831,7 @@ RETURN 1
 ;装着・ソース操作
 @K30_DATE_WITH_VIBERATOR
 ;デート終了/中断でのリセット処理
-IF (GET_MAPID(CFLAG:現在位置) == MAIN_MAP && CFLAG:現在位置 != OMANEKIBEYA())|| CFLAG:MASTER:デート中 !=  CFLAG:30:デート中
+IF (GET_MAPID(CFLAG:現在位置) == MAIN_MAP && CFLAG:現在位置 != OMANEKIBEYA())|| CFLAG:MASTER:デート中 != CFLAG:30:デート中
 	TEQUIP:アナルバイブ = 0
 	TCVAR:30:364 = 0
 	RETURN 1
@@ -1873,7 +1878,7 @@ DRAWLINE
 PRINTFORML 
 PRINTFORML 最後の最後まで楽しんだ二人はようやくデートから帰ってきた…
 PRINTFORMW 
-SETCOLOR 0x337D5C
+CALL M_KOJO_COLOR_K30
 EXP:MASTER:道具使用経験 += 1
 EXP:Ａ経験 += 2
 EXP:Ａ絶頂経験 += 6
@@ -2135,10 +2140,10 @@ RETURN
 ;--------------------------------------------------
 @K30_FACECUM
 ;条件判定
-;恋慕時「精液を飲み下すだけで完全に発情する身体になっている」で大量射精時に4分の1
-SIF CFLAG:1501 || TCVAR:30:無理矢理 || !SHIRAHU(30) || !TALENT:恋慕
+;恋慕時「精液を飲み下すだけで完全に発情する身体になっている」で大量射精時に33%
+SIF TCVAR:30:385 || TCVAR:30:無理矢理 || !SHIRAHU(30) || !TALENT:恋慕
 	RETURN 0
-SIF TFLAG:193 || TCVAR:30:362 == 3 || TCVAR:30:375 || RAND:4
+SIF TFLAG:193 || TCVAR:30:362 == 3 || TCVAR:30:375 || RAND:3
 	RETURN 0
 SIF EXP:精飲経験 <= 300 || ABL:精液中毒 < 10 || NOWEX:MASTER:射精 == 1
 	RETURN 0
@@ -2199,7 +2204,7 @@ ENDIF
 PRINTFORML 射精直前で%TINKO(PLAYER)%を引き抜き映姫の目の前へ突きつける
 PRINTFORMW ぶちまけられた%SAMEN_DESCRIPTION(PLAYER,1)%に顔じゅう汚されながら、映姫は\@ SUMARRAY(NOWEX:30:0, 0, 5) ? 恍惚 # 歓喜 \@の表情を浮かべている…
 CALL POISONBODY_MESSAGE(3)
-SETCOLOR 0x337D5C
+CALL M_KOJO_COLOR_K30
 ;口上の反応もこっちでやる
 PRINTDATAL
 	DATAFORM 「あはっ…♥　顔じゅう貴方の匂いに…包まれて…♥」\n「変な匂い…だけど、これ、好き…大好き…♥」
@@ -2287,3 +2292,20 @@ PRINTFORMW
 CFLAG:30:好感度 += 5
 CFLAG:30:信頼度 += 5
 RETURN 1
+
+;==================================================
+;無自覚孕ませ警告文
+;--------------------------------------------------
+@K30_WARNING_MAKE_PREGNANT
+SIF CFLAG:口上用引継ぎ枠 || SHIRAHU(30)
+	RETURN
+SIF TCVAR:ピル || TEQUIP:MASTER:コンドーム
+	RETURN
+CFLAG:口上用引継ぎ枠 = 1
+PRINTFORMDL 突然%CALLNAME:MASTER%の頭に謎の声が響いた
+FONTITALIC
+PRINTFORMDL 「映姫様は無自覚妊娠で心が傷つき一部選択肢が制限されます」
+PRINTFORMDL 「無責任孕ませは計画的に」
+PRINTFORMW 
+FONTREGULAR
+

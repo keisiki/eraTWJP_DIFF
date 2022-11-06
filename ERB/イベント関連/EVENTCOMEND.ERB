@@ -31,7 +31,14 @@ IF BASE:MASTER:酒気 >= MAXBASE:MASTER:酒気
 	ENDIF
 	GOTO OYASUMI
 ENDIF
-IF (BASE:MASTER:体力 <= 500 && !TCVAR:TARGET:好きにして) || BASE:MASTER:体力 <= 0
+IF BASE:MASTER:体力 <= 500 && ITEM:リバースフェザー
+	FONTSTYLE 1
+	PRINTFORML リバースフェザーが輝きを放ち　静かに燃え尽きた！
+	FONTREGULAR
+	CALL RECOVER_PERMIL(MASTER, 300, "体力", 0, "リバースフェザーによる回復")
+	CALL RECOVER_PERMIL(MASTER, 200, "気力", 0, "リバースフェザーによる回復")
+	ITEM:リバースフェザー --
+ELSEIF (BASE:MASTER:体力 <= 500 && !TCVAR:TARGET:好きにして) || BASE:MASTER:体力 <= 0
 	PRINTL （体力が限界に来ています）
 	;発情なし崩しお部屋上がり込みorにゅーぷらんの場合は選択肢を出さない
 	IF CFLAG:MASTER:現在位置 == OMANEKIBEYA() && (!TALENT:TARGET:恋慕 || TFLAG:泡風呂)
@@ -426,17 +433,11 @@ SIF SELECTCOM == 400
 	TWAIT 100,0
 
 @ENKAI_SINKOU
-;宴会の参加人数をセット
-FLAG:35 = 0
-FOR LOCAL,0,CHARANUM
-	IF CFLAG:LOCAL:宴会参加 == 1 || CFLAG:LOCAL:宴会参加 == 2
-		SIF CFLAG:LOCAL:現在位置 == TFLAG:宴会場
-			FLAG:35 ++
-	ENDIF
-NEXT
-
-SIF FLAG:宴会開催フラグ
+SIF FLAG:宴会開催フラグ == 0 || TFLAG:宴会状態 == 101
 	RETURN
+
+;宴会の参加人数をセット
+CALL 宴会参加人数再計算()
 
 ;天気が悪いと中止になる宴会もある
 
@@ -453,36 +454,50 @@ IF TIME:5 >= 4 && FLAG:36 > 0 && DAY >= FLAG:開始日 && TIME >= FLAG:33
 	PRINTFORMW 残念ながら、\@ CFLAG:MASTER:現在位置 == TFLAG:宴会場 ? 天気が悪いため宴会は中止になりました # 悪天候のため宴会は中止になったようです\@
 	CALL ENKAI_STOP
 ;宴会の途中で降り始めた場合
-ELSEIF FLAG:宴会開催フラグ >= 98 && TIME:5 >= 4 && FLAG:36 > 0
+ELSEIF TFLAG:宴会状態 >= 98 && TIME:5 >= 4 && FLAG:36 > 0
 	PRINTL  
 	PRINTFORMW 残念ながら、\@ CFLAG:MASTER:現在位置 == TFLAG:宴会場 ? 天気が悪いため宴会は中止になりました # 悪天候のため宴会は中止になったようです\@
 	CALL ENKAI_STOP
 ;宴会開始
-ELSEIF FLAG:宴会開催フラグ != 98 && FLAG:宴会開催フラグ != 99 && DAY >= FLAG:開始日 && TIME >= FLAG:33
+ELSEIF 宴会開始日判定() && TIME >= FLAG:33
 	IF CFLAG:MASTER:現在位置 == TFLAG:宴会場
 		PRINTFORML 
-		IF FLAG:35 < 2
+		IF FLAG:参加人数 < 2
 			PRINTW 静かな雰囲気の中、宴会が始まりました…
-		ELSEIF FLAG:35 >= 8
+		ELSEIF FLAG:参加人数 >= 8
 			PRINTW 賑やかな雰囲気の中、宴会が始まりました…
 		ELSE
 			PRINTW 和やかな雰囲気の中、宴会が始まりました…
 		ENDIF
 		PRINTFORML 
-		FLAG:宴会開催フラグ = 99
+		TFLAG:宴会状態 = 99
 	ELSE
-		FLAG:宴会開催フラグ = 98
+		TFLAG:宴会状態 = 98
 	ENDIF
-ELSEIF FLAG:宴会開催フラグ != 99 && DAY >= FLAG:開始日 && TIME >= FLAG:33
+ELSEIF TFLAG:宴会状態 == 98 && DAY >= FLAG:開始日 && TIME >= FLAG:33
 	IF CFLAG:MASTER:現在位置 == TFLAG:宴会場
 		PRINTL  
 		PRINTW 既に宴会は始まっているようです…
 		PRINTL  
-		FLAG:宴会開催フラグ = 99
+		TFLAG:宴会状態 = 99
 	ENDIF
 	;主催者側はまだ宴会準備フラグのままのため、フラグを無理やり進める
 	FOR LOCAL,0,CHARANUM
 		SIF CFLAG:LOCAL:20 == 2
 			CALL ENKAI_WORK(LOCAL)
 	NEXT
+ELSEIF 宴会開催中判定() && FLAG:参加人数 == 0
+	IF CFLAG:MASTER:現在位置 == TFLAG:宴会場
+		PRINTL
+		PRINTW 宴会はお開きのようです…
+		PRINTL
+		TFLAG:宴会状態 = 101
+	ELSE
+		TFLAG:宴会状態 = 100
+	ENDIF
+ELSEIF TFLAG:宴会状態 == 100 && CFLAG:MASTER:現在位置 == TFLAG:宴会場
+	PRINTL
+	PRINTW もう宴会は終わっているようです…
+	PRINTL
+	TFLAG:宴会状態 = 101
 ENDIF

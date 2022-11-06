@@ -538,17 +538,17 @@ IF !IN_HOME(ARG)
 	ENDSELECT
 ELSE
 	SELECTCASE ARG
-		CASE 25;鎮守の森
+		CASE P25鎮守の森
 			RETURNF 1
-		CASE 433;斜角の竹林
+		CASE P433斜角の竹林
 			RETURNF 2
-		CASE 507 ;キノコ群生地
+		CASE P507キノコ群生地
 			RETURNF 3
-		CASE 702;山道・沢へ続く道
+		CASE P702山道・沢へ続く道
 			RETURNF 4
-		CASE 805;山頂
+		CASE P805頂上
 			RETURNF 5
-		CASE 948;縦穴の底
+		CASE P948縦穴の底
 			RETURNF 6
 	ENDSELECT
 ENDIF
@@ -579,17 +579,17 @@ IF !IN_HOME(ARG)
 	ENDSELECT
 ELSE
 	SELECTCASE ARG
-		CASE 25;鎮守の森
+		CASE P25鎮守の森
 			LOCALS = 拠点の【鎮守の森】周辺
-		CASE 433;斜角の竹林
+		CASE P433斜角の竹林
 			LOCALS = 拠点の【斜角の竹林】周辺
-		CASE 507 ;キノコ群生地
+		CASE P507キノコ群生地
 			LOCALS = 拠点の【キノコ群生地】周辺
-		CASE 702;山道・沢へ続く道
+		CASE P702山道・沢へ続く道
 			LOCALS = 拠点の【山道・沢へ続く道】周辺
-		CASE 805;山頂
+		CASE P805頂上
 			LOCALS = 拠点の【山頂】周辺
-		CASE 948;縦穴の底
+		CASE P948縦穴の底
 			LOCALS = 拠点の【縦穴の底】周辺
 		CASEELSE
 			LOCALS = エラーメイン
@@ -620,18 +620,25 @@ CALL CRITTER_DATA(C_ID)
 ;無名（未登録）ならリターン
 SIF CritterName == ""
 	GOTO LOOP
+;タグ上の無登録はリターン
+SIF !STRCOUNT(CritterTribe, "獣/") && !STRCOUNT(CritterTribe, "鳥/")
+	GOTO LOOP
 ;[希少][猛禽]は１／２で再抽選に
 SIF (STRCOUNT(CritterTribe, "希少/") || STRCOUNT(CritterTribe, "猛禽/")) && RAND:2
 	GOTO LOOP
 ;地底以外で冬眠しているものは弾く
 SIF 季節 == 4 && STRCOUNT(CritterTribe, "冬眠/") && HUNTING_SPOT != 6
 	GOTO LOOP
+;夏鳥、冬鳥両持ちの対応
+IF (DAY:2 == 2 && STRCOUNT(CritterTribe, "夏鳥/")) || (DAY:2 == 4 && STRCOUNT(CritterTribe, "冬鳥/"))
+
 ;夏以外の夏鳥を弾く（渡ってきてるので１日限定の季節異変は避ける）
-SIF DAY:2 != 2 && STRCOUNT(CritterTribe, "夏鳥/")
+ELSEIF DAY:2 != 2 && STRCOUNT(CritterTribe, "夏鳥/")
 	GOTO LOOP
 ;冬以外の冬鳥を弾く
-SIF DAY:2 != 4 && STRCOUNT(CritterTribe, "冬鳥/")
+ELSEIF DAY:2 != 4 && STRCOUNT(CritterTribe, "冬鳥/")
 	GOTO LOOP
+ENDIF
 ;罠に応じて捕獲できる獲物のレンジを変える  小…基本の肉の量が2以下  中…肉の量が2～6  大…肉の量が4以上
 SELECTCASE 罠番号
 	CASE 132
@@ -654,16 +661,16 @@ SELECTCASE HUNTING_SPOT
 		SIF STRCOUNT(CritterTribe, "竹/")
 			RETURN C_ID
 	CASE 3;魔法の森…多様、ゲテモノも少々 ユニークはマタンゴ
-		SIF  STRCOUNT(CritterTribe, "魔/")
+		SIF STRCOUNT(CritterTribe, "魔/")
 			RETURN C_ID
 	CASE 4;麓の樹海…多様、ユニークはニホンオオカミ、ニホンカワウソ
-		SIF  STRCOUNT(CritterTribe, "沢/")
+		SIF STRCOUNT(CritterTribe, "沢/")
 			RETURN C_ID
 	CASE 5;絶景の丘…小型獣が少し減る、ユニークはハナイズミモリウシ
-		SIF  STRCOUNT(CritterTribe, "山/")
+		SIF STRCOUNT(CritterTribe, "山/")
 			RETURN C_ID
 	CASE 6;幻想風穴、縦穴の底…ゲテモノが取れる ユニークはデスワーム
-		SIF  STRCOUNT(CritterTribe, "底/")
+		SIF STRCOUNT(CritterTribe, "底/")
 			RETURN C_ID
 	CASEELSE
 		;エラーによる無限ループ除け

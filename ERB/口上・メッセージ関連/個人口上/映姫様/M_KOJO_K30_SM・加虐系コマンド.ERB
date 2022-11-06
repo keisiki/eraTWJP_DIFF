@@ -91,9 +91,14 @@ RETURN 1
 ;※※※※※※※※※※※※※※※※※※※※※※※※※
 ;==================================================
 ;100,スパンキング
+;マイ口上構文参考にしました
 ;==================================================
 @M_KOJO_MESSAGE_COM_K30_100
-CALL TRAIN_MESSAGE
+IF TCVAR:30:385 || FLAG:70 || TCVAR:30:無理矢理
+	CALL TRAIN_MESSAGE
+ELSE
+	CALL K30_TRAIN_MESSAGE_100
+ENDIF
 TCVAR:30:355 = TIME:1
 CALL K30_PRINT_BUTT_IMAGE(SELECTCOM)
 CALL M_KOJO_MESSAGE_COM_K30_100_1
@@ -105,40 +110,143 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	;時姦中
-	IF FLAG:70
-		PRINTFORMW 
-		RETURN 1
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
 	;初めて
-	;記入チェック
-	LOCAL:1 = 0
 	;-------------------------------------------------
-	ELSEIF LOCAL:1 && FIRSTTIME(SELECTCOM)
-		PRINTFORMW 
+	;時姦中
+	IF FLAG:70
+		RETURN 1
+	ELSEIF FIRSTTIME(SELECTCOM)
+		PRINTFORML 「！？」
+		PRINTFORML 「えっ…急に何するんですか！？」
+		PRINTFORMDW 映姫は痛みよりも突然叩かれたことに対して衝撃を受けている…
 		RETURN 1
 	;マグロスイッチオン
-	ELSEIF CFLAG:1501 || TCVAR:30:無理矢理 || TCVAR:30:泥酔
+	ELSEIF TCVAR:30:385 || TCVAR:30:無理矢理 || TCVAR:30:泥酔
 		CALL K30_GASPING_MAGURO
 		RETURN 1
-	;基本セット
-	;恋慕
-	ELSEIF TALENT:恋慕
-		PRINTFORMW 
+	;ABL:マゾっ気はちゃんと機能してない？結局お尻を使ったプレイになったし適当にＡ感覚で代用
+	;不慣れ
+	ELSEIF ABL:Ａ感覚 < 3
+		PRINTFORML 「%TEXTR("/ううっ/いやっ/なんで")%……私、こんなことされる覚えありませんよ！？」
+		PRINTFORML 「叩かれるべきなのは…むしろ貴方のほうじゃないかしら…」
+		PRINTFORMDW 赤みがかかったお尻をさすりながら、映姫は不平の声を漏らしている…
 		RETURN 1
-	;屈服3
-	ELSEIF MARK:不埒刻印 == 3
-		PRINTFORMW 
+	;非挿入時
+	ELSEIF ALLSAMES(TEQUIP:50, TEQUIP:51, -1)
+		PRINTDATAL
+			DATAFORM 「んっ…♥　好き放題叩いてくれましたけど…」\n「まさかこのままには…しませんよね♥」
+			DATAFORM 「なんてひどいことをするんでしょう…♥」\n「これは…すぐに手当が必要ですよ♥」
+			DATAFORM 「おしりが…ヒリヒリします…♥」\n「早く…慰めてください…♥」
+		ENDDATA
+		PRINTFORMDW 映姫は叩かれたばかりの尻を左右に揺すって何かを期待している…
+		IF RAND:2 == 1
+			PRINTFORMDL %CALLNAME:MASTER%は赤みのさした尻を犬のように舐め回した
+			IF ABL:Ａ感覚 < 5 || RAND:2
+				PRINTFORML 「ひゃっ♥　ちょっと…%K30_C_NAME(MASTER)%！？」
+				PRINTFORML 「なんだか…しびれるような、へんな…感じ……んんっ♥」
+				PRINTFORMDW 映姫は%CALLNAME:MASTER%の倒錯的な責めにむずがるような声をあげた…
+			ELSE
+				CALL HPH_PRINT, @"「ひあっHPH　そこっHPH　そこだけ、なめないでぇ…HPH」", "L"
+				CALL HPH_PRINT, @"「あっ…ああっHPH　いやっ、じらしちゃ…いやぁHPH」", "L"
+				PRINTFORMDW 火照った臀部を舌でなぞられると映姫は切羽詰まったような嬌声をあげた…
+			ENDIF
+		ELSE
+			PRINTFORMDL %CALLNAME:MASTER%はいたわるような手付きで映姫の尻を撫で回した
+			IF ABL:Ａ感覚 < 5 || RAND:2
+				PRINTFORML 「あふっ♥　それ、好き…ピリピリするの、飛んでいって…♥」
+				PRINTFORML 「%K30_C_NAME(MASTER)%、わたしのお尻…もっともっと…可愛がってほしいの♥」
+				PRINTFORMDW ひりつく痛みが快感へと変わっていく感覚に、映姫はすっかりハマったようだ…
+			ELSE
+				CALL HPH_PRINT, @"「んあっ…HPH　%K30_C_NAME(MASTER)%の手、優しくて、気もちいい…ですけど…」", "L"
+				PRINTFORMDL 火照った尻を撫で回すにつれ股間の愛液がさらに量を増してくる
+				CALL HPH_PRINT, @"「あのっ…ちょっとだけ、物足りなくて………ひいいぃんHPHHPH」", "L"
+				PRINTFORMDW 期待に震える蕾に軽く触れてやると閻魔様のはしたない声が辺りに響いた…
+			ENDIF
+		ENDIF
 		RETURN 1
-	;それ以外
+	ENDIF
+	;挿入時
+	IF PALAM:欲情 < PALAMLV:10 || !RAND:4
+		STRDATA LOCALS
+			DATAFORM 「あうっ…♥」\n「い、いま…すごく、奥から……」\n「ひぃんっ♥」
+			DATAFORM 「きゃっ♥」\n「…叩かれて、気もちいいなんて」\n「なんで、なんで…こんなに…？」
+			DATAFORM 「あふっ…♥」\n「…おしり、すごい…音して」\n「痛いよりも…恥ずかしい、です…♥」
+		ENDDATA
+		SIF TEQUIP:51 == MASTER
+			LOCALS '= REPLACE(LOCALS, "♥", "HPH")
+		CALL HPH_PRINT, LOCALS, "L"
+		PRINTFORMDL 勢いは控えめに、ことさら音だけが響くように尻を叩き映姫の羞恥を煽ってみる、
+		PRINTFORMDW 映姫は戸惑いながらも感じてることを\@ !TEQUIP:50 ? 雌 # 菊 \@穴の締め付け具合で教えてくれた…
 	ELSE
-		PRINTFORMW 
-		RETURN 1
+		STRDATA LOCALS
+			DATAFORM 「ひっ♥　だ…だめっ、それ、だめっ♥」\n「いっしょに、ぺんぺんするのっ、だめぇ♥」
+			DATAFORM 「あっ！　あっ♥　あひっ♥」\n「おしりっ、叩かれてっ♥」\n「奥っ♥　おくでっ、感じちゃうのぉ♥」
+			DATAFORM 「ふーっ♥　ふーっ♥　ふーっ…」\n「…ひぃんっ♥♥」\n「ごめんなさいっ♥　はしたないおしりでっ、ごめんなさいっ♥」
+		ENDDATA
+		SIF TEQUIP:51 == MASTER
+			LOCALS '= REPLACE(LOCALS, "♥", "HPH")
+		CALL HPH_PRINT, LOCALS, "L"
+		PRINTFORMDW スパンキングは最早\@ TEQUIP:51 == MASTER ? アナル # \@セックスの快楽を高めるスパイスでしかなく、映姫は我も忘れ乱れている…
+	ENDIF
+	PRINTFORML 
+	;Ｖ挿入/Ａ挿入:感覚-低
+	IF TEQUIP:50 == MASTER || ABL:Ａ感覚 < 5 || PALAM:欲情 < PALAMLV:10 || RAND:2
+		PRINTFORMDL 不意に%CALLNAME:MASTER%はピストンを止め映姫の尻を優しく撫で回す…
+		IF TEQUIP:50 == MASTER
+			PRINTFORML 「そう、そこ…すごく火照って…♥　んあっ♥」
+			PRINTFORML 「ああ…♥　あつい…♥」
+			PRINTFORML 「おしり…おまたも、すごくあつい…♥」
+		ELSE
+			CALL HPH_PRINT, @"「あああっHPH　だ、だめっ！　おしり、せつない…せつないのぉHPH」", "L"
+			CALL HPH_PRINT, @"「%K30_C_NAME(MASTER)%っ！　してっHPH　はやく、突いてぇHPHHPH」", "L"
+		ENDIF
+		PRINTFORMDW 刺激で敏感になった尻を愛撫され、\@ !TEQUIP:50 ? ペニスを咥えこんだ # しとどに濡れた \@膣口から新たな蜜が溢れてきた…
+	;Ａ挿入:感覚-高
+	ELSE
+		PRINTFORMDL さらに%CALLNAME:MASTER%はペニスを直腸奥深くまでねじ込み、こんどは強め映姫の尻を叩いた
+		CALL HPH_PRINT, @"「はひっHPHHPH　おしりっHPH　はっ、はっHPH　激しっHPH」", "L"
+		CALL HPH_PRINT, @"「こわれるっHPH　おしりっ、こわれちゃうぅうHPH」", "W"
+		PRINTFORMDW %CALLNAME:MASTER%に支配される感覚に酔いしれ、映姫は口の端から涎をこぼし喘ぎ続けた…
 	ENDIF
 ENDIF
 RETURN 1
+
+;地の文改変
+@K30_TRAIN_MESSAGE_100
+CALL M_KOJO_COLOR_K30
+IF GROUPMATCH(MASTER, TEQUIP:50, TEQUIP:51)
+	PRINTFORMD 映姫の\@ !TEQUIP:50 ? 雌 # 菊 \@穴をじっくり愉しみながら
+ELSEIF TEQUIP:0 & 1 && (EQUIP:スカート || EQUIP:下半身上着 || EQUIP:ワンピース || EQUIP:着物)
+	PRINTFORMD 映姫の%SHOW_BOTTOM(TARGET,1)%をめくって
+ELSE
+	PRINTFORMD 映姫の
+ENDIF
+SIF EQUIP:TARGET:レオタード || EQUIP:TARGET:ボディースーツ
+	PRINTFORMD %SHOW_下半身下着(TARGET,2)%に包まれた
+PRINTFORMDL %HIP(TARGET)%を平手でぴしゃりと叩いた
+PRINTFORMD %CALLNAME:MASTER%が緩急をつけて何度か叩く内に、
+IF ABL:Ａ感覚 < 3
+	PRINTFORMDL 映姫の尻はほんのりと赤くなっていった…
+ELSEIF ALLSAMES(TEQUIP:50, TEQUIP:51, -1)
+	PRINTFORMDL 映姫の股間は自身の愛液で濡れはじめていた…
+ELSE
+	PRINTFORMDL 映姫の\@ !TEQUIP:50 ? オマンコ # アナル \@はさらなる刺激を期待してキュンキュンと締め付けてきた…
+ENDIF
+PRINTFORMW 
+RETURN
+
+;スパンキングというよりおしりぺんぺんプレイを楽しむ映姫様のEXTRASOURCE関数
+@M_KOJO_EXTRASOURCE_COM_K30_100
+SIF TCVAR:30:385 || FLAG:70 || TCVAR:30:無理矢理
+	RETURN
+SOURCE:屈従 = 750
+SOURCE:苦痛 /= 2
+SOURCE:恐怖 /= 2
+TCVAR:コマンドＶ補正 = 2 * MIN((ABL:Ａ感覚 - 1), 10)
+TCVAR:コマンドＡ補正 = 4 * MIN((ABL:Ａ感覚 - 1), 10)
 
 ;==================================================
 ;104,アイマスク

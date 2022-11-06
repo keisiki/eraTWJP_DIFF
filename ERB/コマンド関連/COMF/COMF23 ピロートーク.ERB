@@ -161,9 +161,21 @@ SIF !TFLAG:100
 ;一括管理
 SIF GLOBAL_COMABLE(23)
 	RETURN RESULT
-;相手が疲れてないと駄目
-SIF BASE:体力 > MAXBASE:体力 / 2
+
+;自分か相手が疲れてないと駄目
+IF (BASE:PLAYER:体力 > MAXBASE:PLAYER:体力 / 2) && (BASE:体力 > MAXBASE:体力 / 2)
 	RETURN 0
+ENDIF
+;自分だけ疲れている場合(許してピロートークの場合の追加判定)
+IF (BASE:PLAYER:体力 <= MAXBASE:PLAYER:体力 / 2) && (BASE:体力 > MAXBASE:体力 / 2)
+	;発情だと無理
+	IF TCVAR:TARGET:発情 == 1
+		RETURN 0
+	;相手が幼稚だと無理
+	ELSEIF TALENT:TARGET:幼稚
+		RETURN 0
+	ENDIF
+ENDIF
 
 ;時間停止中も駄目
 SIF FLAG:70

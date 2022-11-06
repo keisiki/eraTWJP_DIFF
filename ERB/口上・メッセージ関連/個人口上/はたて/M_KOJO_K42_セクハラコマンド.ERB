@@ -29,7 +29,11 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	CALL K42_STROKING_HIP
+	;アニメーション表示判定
+	IF CFLAG:1501 == 0 || CFLAG:1501 == 2
+		CALL K42_STROKING_HIP
+	ENDIF
+
 	IF FLAG:70
 		IF TALENT:恋慕 || TALENT:恋人
 			PRINTFORML 揉み心地は満点だが、反応がないのは寂しい…
@@ -2478,60 +2482,152 @@ IF LOCAL
 		IF TALENT:42:性別 == 3
 			;初ご対面
 			IF CFLAG:1110 == 0
-				PRINTFORML 「あっ、ちょっと…！」
-				PRINTFORML はたては慌てて股間を押さえようとするが、隙間に手を滑り込ませた
-				PRINTW 
-				PRINTFORML むにゅんっ
-				PRINTFORML 今、妙な感触が…これは、まさか
-				PRINTW 
-				PRINTFORML はたてを見ると、羞恥に顔を赤く染めている
-				PRINTFORML 「だからぁ、触られたくなかったのよぉ…」
-				PRINTW 
-				PRINTFORML 「そーよ、私、女の子なのに生えてるの…おちんちん」
-				PRINTFORML 「変、だよね…私だけだったからさ。こんな身体なの」
-				PRINTW 
-				CALL ASK_YN("変じゃない","むしろご褒美だろ！　当たり前だよなあ？")
-				IF !RESULT
-					IF TALENT:MASTER:性別 == 3
-						PRINTFORML だって、自分も同じだから
-						;すでに見せている
-						IF CFLAG:1002 >= 1
-							PRINTFORML 「！　そーだったね、ごめんね、%MASTERNAME:42%のことを馬鹿にしたわけじゃないの」
-							PRINTFORML それは分かっている、とはたてを優しく撫でる
-							PRINTW 
-							PRINTFORML 「フツーの女の子とちょっと違うかもしれないけど、それでも、いーかな…？」
-							PRINTFORML 
-						;初めて見た
+				;あなたが無知
+				IF TALENT:MASTER:無知 == 1
+						PRINTFORML 「もー、そんなにじゃれついてこないのー」
+						PRINTFORML %CALLNAME:MASTER%がはたてと触れあっていると、彼女の股間にプニプニしたものがあることに気付いた
+						PRINTL 
+						PRINTFORML 「あっ、ちょっと…！」
+						PRINTFORML はたては慌てて股間を押さえようとするが、隙間に手を滑り込ませる
+						PRINTW 
+						PRINTFORML むにゅんっ
+						PRINTFORML 今、妙な感触がしたような気がする…
+						PRINTW 
+						PRINTFORML はたてを見ると、羞恥に顔を赤く染めている
+						PRINTFORML 「だからぁ、触られたくなかったのよぉ…」
+						PRINTW 
+						PRINTFORML 「そーよ、私、女の子なのに生えてるの…おちんちん」
+						IF 全員ふたなり化 == 1
+							PRINTFORML 「私だけじゃなくて、他の天狗の女の子も生えてるの、多いけどさ…」
 						ELSE
-							PRINTFORML 「！　えっ、%MASTERNAME:42%も、ついてるの…？」
-							PRINTFORML 「なぁんだ、私だけじゃなかったんだぁ…」
+							PRINTFORML 「変、だよね…私だけだったからさ。こんな身体なの」
+						ENDIF
+						PRINTW 
+						;無知な幼女
+						IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行) 
+							CALL ASK_YN("おちんちん？","おちんちんって、なぁに？")
+							PRINTFORML 「！！　え、えっとぉ…ホントーは、男の子についてる棒みたいなもので、おしっこを出すところ、かな…」
 							PRINTW 
-							PRINTFORML 「私たち、似た者どーしなんだね…♪」
-							PRINTFORML 「うん、%MASTERNAME:42%だったら触っても、いーよ…♪」
+							PRINTFORM 面白いからもっと触ってみたいと、服の中からはたての%TINKO(TARGET)%を外に出した
+							PRINTFORML 「あ、ちょ、駄目ぇぇっ……」
+							PRINTL 
+							IF BASE:勃起 >= 1000
+								PRINTFORML はたてのおちんちんは硬くそそり立ち、ビクビクと震えている
+							ELSE
+								PRINTFORML はたてのまだ柔らかいおちんちんが外気に晒される
+							ENDIF
+							PRINTW 
+							CALL HPH_PRINT,@"「やHPH　駄目っHPH　おちんちん、触ったり、シコシコしたらぁっHPH」","L"
+							CALL HPH_PRINT,@"「うっHPH　くうぅっHPH　駄目、いい子だからっ、これ以上はぁっHPH」","L"
+							PRINTW 
+						;無知な大人
+						ELSE
+							CALL ASK_M("おちんちん？", 1,"同じものを見たことがある", EXP:MASTER:Ｖ性交経験 > 0 || EXP:MASTER:Ａ性交経験 > 0 || EXP:MASTER:口淫経験 > 0 || EXP:MASTER:手淫経験 > 0 || EXP:MASTER:パイズリ経験 > 0)
+							SELECTCASE RESULT
+							CASE 0
+								PRINTFORML 「！！　え、えっとぉ…ホントーは、男の子についてる棒みたいなもので、おしっこを出すところ、かな…」
+								PRINTFORML 「ってゆーか、%MASTERNAME:42%、見たことないんだね…」
+								PRINTW 
+							CASE 1
+								PRINTFORML 「見たことあるのに名前を知らないって、ひょっとしてあなた、誰かに騙されたんじゃ…」
+								PRINTFORML （ってゆーか、私と違って性に関する知識がほとんどないのね、この娘…）
+								PRINTW 
+							ENDSELECT
+							PRINTFORM 面白いからもっと触ってみたいと、服の中からはたての%TINKO(TARGET)%を外に出した
+							PRINTFORML 「あ、ちょ、駄目ぇぇっ……」
+							PRINTL 
+							IF BASE:勃起 >= 1000
+								PRINTFORML はたてのおちんちんは硬くそそり立ち、ビクビクと震えている
+							ELSE
+								PRINTFORML はたてのまだ柔らかいおちんちんが外気に晒される
+							ENDIF
+							PRINTW 
+							CALL HPH_PRINT,@"「やHPH　駄目っHPH　おちんちん、触ったり、シコシコしたらぁっHPH」","L"
+							CALL HPH_PRINT,@"「ちょっとぉ、聞いて、聞いてってばぁHPH　くうぅっHPH」","L"
+							PRINTW 
+						ENDIF
+				;無知な幼女ではない
+				ELSE
+					PRINTFORML 「あっ、ちょっと…！」
+					PRINTFORML はたては慌てて股間を押さえようとするが、隙間に手を滑り込ませた
+					PRINTW 
+					PRINTFORML むにゅんっ
+					PRINTFORML 今、妙な感触が…これは、まさか
+					PRINTW 
+					PRINTFORML はたてを見ると、羞恥に顔を赤く染めている
+					PRINTFORML 「だからぁ、触られたくなかったのよぉ…」
+					PRINTW 
+					PRINTFORML 「そーよ、私、女の子なのに生えてるの…おちんちん」
+					PRINTFORML 「変、だよね…私だけだったからさ。こんな身体なの」
+					PRINTW 
+					CALL ASK_YN("変じゃない","むしろご褒美だろ！　当たり前だよなあ？")
+					IF !RESULT
+						IF TALENT:MASTER:性別 == 3
+							PRINTFORML だって、自分も同じだから
+							;すでに見せている
+							IF CFLAG:1002 >= 1
+								PRINTFORML 「！　そーだったね、ごめんね、%MASTERNAME:42%のことを馬鹿にしたわけじゃないの」
+								PRINTFORML それは分かっている、とはたてを優しく撫でる
+								PRINTW 
+								PRINTFORML 「フツーの女の子とちょっと違うかもしれないけど、それでも、いーかな…？」
+								PRINTFORML 
+							;初めて見た
+							ELSE
+								PRINTFORML 「！　えっ、%MASTERNAME:42%も、ついてるの…？」
+								PRINTFORML 「なぁんだ、私だけじゃなかったんだぁ…」
+								PRINTW 
+								PRINTFORML 「私たち、似た者どーしなんだね…♪」
+								PRINTFORML 「うん、%MASTERNAME:42%だったら触っても、いーよ…♪」
+								PRINTW 
+							ENDIF
+						ELSE
+							PRINTFORML そもそも妖怪とこういう仲になっているのだから、付いてる付いてないは些末なことだ
+							PRINTFORML 「……%MASTERNAME:42%って、いー加減なんだか大物なんだか分かんないわね」
+							PRINTW 
+							PRINTFORML 「でも、私の初めての相手が%MASTERNAME:42%でよかったかも♪」
+							PRINTFORML 「いいよ…%MASTERNAME:42%なら、全部、見せてあげる…%UNICODE(0x2665) *1%」
 							PRINTW 
 						ENDIF
 					ELSE
-						PRINTFORML そもそも妖怪とこういう仲になっているのだから、付いてる付いてないは些末なことだ
-						PRINTFORML 「……%MASTERNAME:42%って、いー加減なんだか大物なんだか分かんないわね」
+						PRINTFORML 「えっご褒美ってえっ？」
+						PRINTFORML 予想の斜め上の反応に思考がショートするはたて
 						PRINTW 
-						PRINTFORML 「でも、私の初めての相手が%MASTERNAME:42%でよかったかも♪」
-						PRINTFORML 「いいよ…%MASTERNAME:42%なら、全部、見せてあげる…%UNICODE(0x2665) *1%」
+						PRINTFORML はたてちゃんのふたなりちんぽとか最高だるるォ！？
+						PRINTFORML 「は！？　はああああああああ！？　いや、ちょっと待って、何握ってるのっ」
+						PRINTW 
+						PRINTFORML 「あ、やだ、そんな、しごかないで、あ、あ、あああああっ%UNICODE(0x2665) *1%」
 						PRINTW 
 					ENDIF
+				ENDIF
+			;すでにおちんちんを見ている
+			ELSE
+				IF TALENT:MASTER:無知 == 1
+					SELECTCASE RAND:5
+					CASE 0
+						CALL HPH_PRINT,@"（この子は面白がって触ってるだけ…面白がってるだけ…何もやましいことはないからぁっ…HPH）","L"
+						PRINTW 
+					CASE 1
+						CALL HPH_PRINT,@"「ああ、そう…HPH　手で包み込むように…うん…上手ぅ…HPH」","L"
+						CALL HPH_PRINT,@"（やっちゃったぁ…%MASTERNAME:42%が何も知らないのいいことに、イケないこと教えちゃったぁ…HPH）","L"
+						PRINTW 
+					CASE 2
+						CALL HPH_PRINT,@"（ああ…意味も分からずに%MASTERNAME:42%が私のおちんちんを見て『ぼっきしてる♪』なんて言ってる…HPH）","L"
+						CALL HPH_PRINT,@"（私、こんなヘンタイなんかじゃ…ああ…駄目ぇ、それ以上は…無邪気な顔でえっちな言葉言われた…HPH）","L"
+						PRINTW 
+					CASE 3
+						CALL HPH_PRINT,@"「う、うん…腫れてるところは、いっぱいさすってくれたら良くなるから…HPH」","L"
+						CALL HPH_PRINT,@"（嘘は言ってない、嘘は、言ってないから…HPH）","L"
+						PRINTW 
+					CASE 4
+						CALL HPH_PRINT,@"「%MASTERNAME:42%の\@ (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)  ? ちっちゃくてかわいい # \@舌が、おちんちん、ペロペロしてる…HPH」","L"
+						CALL HPH_PRINT,@"「うん…プニプニの先っぽから白いの出たら、腫れてるの、治るから…HPH」","L"
+						PRINTW 
+					ENDSELECT
 				ELSE
-					PRINTFORML 「えっご褒美ってえっ？」
-					PRINTFORML 予想の斜め上の反応に思考がショートするはたて
-					PRINTW 
-					PRINTFORML はたてちゃんのふたなりちんぽとか最高だるるォ！？
-					PRINTFORML 「は！？　はああああああああ！？　いや、ちょっと待って、何握ってるのっ」
-					PRINTW 
-					PRINTFORML 「あ、やだ、そんな、しごかないで、あ、あ、あああああっ%UNICODE(0x2665) *1%」
+					PRINTFORML 「やっ、そこっ、ビンカンだからぁ…」
+					PRINTFORML はたては身をすくませ、ピクンピクンと身体を震わせている
 					PRINTW 
 				ENDIF
-			ELSE
-				PRINTFORML 「やっ、そこっ、ビンカンだからぁ…」
-				PRINTFORML はたては身をすくませ、ピクンピクンと身体を震わせている
-				PRINTW 
 			ENDIF
 		;ちんぽついてない
 		ELSE
@@ -2549,79 +2645,132 @@ IF LOCAL
 				PRINTW 
 			ENDIF
 		ENDIF
+	;コマンド２回目以降
 	ELSE
 		IF TALENT:恋慕 || TALENT:恋人
-			IF (CFLAG:42:現在位置 == CFLAG:42:初期位置) || CFLAG:42:現在位置 ==OMANEKIBEYA() || AT_HOME(MASTER)
-				IF ABL:Ｃ感覚 >= 6
-					SELECTCASE RAND:2
-					CASE 0
-						PRINTFORML 「～～～～～～っ%UNICODE(0x2665) *1%～～～～～～～～っ%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%」
-						PRINTFORML はたては目をギュッと閉じ、太ももを震わせている
-						PRINTW 
-					CASE 1
-						PRINTFORML 「あっ%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%　いいっ%UNICODE(0x2665) *1%　気持ちいいっ%UNICODE(0x2665) *1%」
-						PRINTFORML 「だってぇ、そこ、擦られたらぁ、声、出ちゃうっ%UNICODE(0x2665) *1%」
-						PRINTW 
-					ENDSELECT
-				ELSEIF ABL:Ｃ感覚 >= 4
-					SELECTCASE RAND:2
-					CASE 0
-						PRINTFORML 「うん、そこ…♪」
-						PRINTFORML 「ふっ%UNICODE(0x2665) *1%　そこ、優しく擦られるの、好き、かも…♪」
-						PRINTW 
-					CASE 1
-						PRINTFORML 「ん、ん…\/\/\/」
-						PRINTFORML 「あっ…%UNICODE(0x2665) *1%　やだっ、私、変な声出しちゃった…\/\/\/」
-						PRINTW 
-					ENDSELECT
+			;ふたなり
+			IF TALENT:性別 == 3
+				;あなたが無知
+				IF TALENT:MASTER:無知
+					IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+						IF ABL:Ｃ感覚 >= 6
+						ELSEIF ABL:Ｃ感覚 >= 4
+						ELSE
+							SELECTCASE RAND:5
+							CASE 0
+								CALL HPH_PRINT,@"「うんっHPH　%MASTERNAME:42%のお手々、柔らかくて、好きだよぉ…HPH」","L"
+								PRINTW 
+							CASE 1
+								CALL HPH_PRINT,@"「ああっ、そんなにまじまじ見ちゃ駄目ぇ…HPH」","L"
+								PRINTFORML 「どうしてって…おちんちんは見られると恥ずかしくなっちゃうからぁ…」
+								PRINTW 
+							CASE 2
+								CALL HPH_PRINT,@"「どうして大きくなってるのって…大好きな%MASTERNAME:42%と一緒にいるからだよぉ…HPH」","L"
+								CALL HPH_PRINT,@"「%MASTERNAME:42%の前だと、おっきくなっちゃうのぉ…HPH」","L"
+								PRINTW 
+							CASE 3
+								CALL HPH_PRINT,@"「あ、ああっ…HPH　%MASTERNAME:42%の可愛いお手々が、私のおちんちん、しごいちゃってるよぉ…HPH」","L"
+								PRINTW 
+							CASE 4
+								CALL HPH_PRINT,@"「うん、そ、そう…そのお手々でいっぱいシコシコしてくれたら、小っちゃくなるから…HPH」","L"
+								PRINTW 
+							ENDSELECT
+						ENDIF
+					ELSE
+						IF ABL:Ｃ感覚 >= 6
+						ELSEIF ABL:Ｃ感覚 >= 4
+						ELSE
+						ENDIF
+					ENDIF
+				;無知なし
 				ELSE
-					SELECTCASE RAND:3
-					CASE 0
-						PRINTFORML 「んっ…%UNICODE(0x2665) *1%」
-						PRINTFORML 「今の、なんかちょっと気持ちよかった、かも…♪」
-					CASE 1
-						PRINTFORML 「うん…触ってもいいけど、ゆっくり、ね」
-						PRINTFORML 「ん、ふ…くふっ、ふふっ、あっ、駄目っ、くすぐったいから駄目ぇっ♪」
-						PRINTW 
-					CASE 2
-						PRINTFORML 「んっ…ちょっと、痛い…」
-						PRINTFORML 「んーん、大丈夫。でも、もーちょっと優しいと、嬉しいな…♪」
-						PRINTW 
-					ENDSELECT
+					IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+						IF ABL:Ｃ感覚 >= 6
+						ELSEIF ABL:Ｃ感覚 >= 4
+						ELSE
+						ENDIF
+					ELSE
+						IF ABL:Ｃ感覚 >= 6
+						ELSEIF ABL:Ｃ感覚 >= 4
+						ELSE
+						ENDIF
+					ENDIF
 				ENDIF
+			;クリ愛撫
 			ELSE
-				IF ABL:Ｃ感覚 >= 6
-					SELECTCASE RAND:2
-					CASE 0
-						PRINTFORML 「あっあぁ、やだぁ、こんなところでっ私っ%UNICODE(0x2665) *1%」
-						PRINTFORML 「ふっ%UNICODE(0x2665) *1%　ふーっ%UNICODE(0x2665) *1%　ふーっ%UNICODE(0x2665) *1%」
-						PRINTFORML はたては口元を押さえ、必死に喘ぎ声が漏れないようにしている
-						PRINTW 
-					CASE 1
-						PRINTFORML 「わっ、わたっ%UNICODE(0x2665) *1%　家っ、家の外っ%UNICODE(0x2665) *1%　なのにっ%UNICODE(0x2665) *1%」
-						PRINTFORML 「やだっ、声、出ちゃっ%UNICODE(0x2665) *1%　駄目っ%UNICODE(0x2665) *1%　～～～～～～～～～～っ%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%」
-						PRINTW 
-					ENDSELECT
-				ELSEIF ABL:Ｃ感覚 >= 4
-					SELECTCASE RAND:2
-					CASE 0
-						PRINTFORML 「ねぇ、やめようよぉ、そんなところ、触っちゃ、やだぁ…\/\/\/」
-						PRINTFORML 口では抵抗しつつ、はたては尻穴をいじられるがままになっている
-						PRINTW 
-					CASE 1
-						PRINTFORML 「もう、こんなところでエッチなことしちゃ駄目だってばぁ」
-						PRINTFORML 
-					ENDSELECT
+				IF (CFLAG:42:現在位置 == CFLAG:42:初期位置) || CFLAG:42:現在位置 ==OMANEKIBEYA() || AT_HOME(MASTER)
+					IF ABL:Ｃ感覚 >= 6
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「～～～～～～っ%UNICODE(0x2665) *1%～～～～～～～～っ%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%」
+							PRINTFORML はたては目をギュッと閉じ、太ももを震わせている
+							PRINTW 
+						CASE 1
+							PRINTFORML 「あっ%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%　いいっ%UNICODE(0x2665) *1%　気持ちいいっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「だってぇ、そこ、擦られたらぁ、声、出ちゃうっ%UNICODE(0x2665) *1%」
+							PRINTW 
+						ENDSELECT
+					ELSEIF ABL:Ｃ感覚 >= 4
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「うん、そこ…♪」
+							PRINTFORML 「ふっ%UNICODE(0x2665) *1%　そこ、優しく擦られるの、好き、かも…♪」
+							PRINTW 
+						CASE 1
+							PRINTFORML 「ん、ん…\/\/\/」
+							PRINTFORML 「あっ…%UNICODE(0x2665) *1%　やだっ、私、変な声出しちゃった…\/\/\/」
+							PRINTW 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「んっ…%UNICODE(0x2665) *1%」
+							PRINTFORML 「今の、なんかちょっと気持ちよかった、かも…♪」
+						CASE 1
+							PRINTFORML 「うん…触ってもいいけど、ゆっくり、ね」
+							PRINTFORML 「ん、ふ…くふっ、ふふっ、あっ、駄目っ、くすぐったいから駄目ぇっ♪」
+							PRINTW 
+						CASE 2
+							PRINTFORML 「んっ…ちょっと、痛い…」
+							PRINTFORML 「んーん、大丈夫。でも、もーちょっと優しいと、嬉しいな…♪」
+							PRINTW 
+						ENDSELECT
+					ENDIF
+				;自宅以外
 				ELSE
-					SELECTCASE RAND:2
-					CASE 0
-						PRINTFORML 「あっ、ちょっと、痛っ…乱暴はヤダぁっ」
-						PRINTFORML 「もー…あんまり痛くしないでよね」
-						PRINTFORML 「家じゃないところでするのもダメだからね？」
-					CASE 1
-						PRINTFORML 「やだっ、こんなところで…やっ」
-						PRINTW 
-					ENDSELECT
+					IF ABL:Ｃ感覚 >= 6
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「あっあぁ、やだぁ、こんなところでっ私っ%UNICODE(0x2665) *1%」
+							PRINTFORML 「ふっ%UNICODE(0x2665) *1%　ふーっ%UNICODE(0x2665) *1%　ふーっ%UNICODE(0x2665) *1%」
+							PRINTFORML はたては口元を押さえ、必死に喘ぎ声が漏れないようにしている
+							PRINTW 
+						CASE 1
+							PRINTFORML 「わっ、わたっ%UNICODE(0x2665) *1%　家っ、家の外っ%UNICODE(0x2665) *1%　なのにっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「やだっ、声、出ちゃっ%UNICODE(0x2665) *1%　駄目っ%UNICODE(0x2665) *1%　～～～～～～～～～～っ%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%」
+							PRINTW 
+						ENDSELECT
+					ELSEIF ABL:Ｃ感覚 >= 4
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「ねぇ、やめようよぉ、そんなところ、触っちゃ、やだぁ…\/\/\/」
+							PRINTFORML 口では抵抗しつつ、はたてはクリトリスをいじられるがままになっている
+							PRINTW 
+						CASE 1
+							PRINTFORML 「もう、こんなところでエッチなことしちゃ駄目だってばぁ」
+							PRINTFORML 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「あっ、ちょっと、痛っ…乱暴はヤダぁっ」
+							PRINTFORML 「もー…あんまり痛くしないでよね」
+							PRINTFORML 「家じゃないところでするのもダメだからね？」
+						CASE 1
+							PRINTFORML 「やだっ、こんなところで…やっ」
+							PRINTW 
+						ENDSELECT
+					ENDIF
 				ENDIF
 			ENDIF
 		ELSEIF TALENT:愛欲 || TALENT:セフレ
@@ -2761,27 +2910,210 @@ IF LOCAL
 					ENDSELECT
 				ENDIF
 			ENDIF
+		;思慕以下
 		ELSE
-			IF ABL:Ｃ感覚 >= 6
-				PRINTFORML 「ちっ違うっ、気持ちよくなってなんかっ」
-				PRINTFORML 「あンッ%UNICODE(0x2665) *1%」
-				PRINTFORML 「馬鹿っ、チョーシ、のんなぁ…%UNICODE(0x2665) *1%」
-				PRINTW 
-			ELSEIF ABL:Ｃ感覚 >= 4
-				PRINTFORML 「こらっ、やめろって言ってるでしょうがっ…！」
-				SELECTCASE RAND:2
-				CASE 0
-					PRINTFORML 「ンあっ%UNICODE(0x2665) *1%」
-					PRINTFORML 「…い、今のは違うから！
-					PRINTW 
-				CASE 1
-					PRINTFORML 「…んふっ、ふっ♪　んふふふふふふッ♪　あはははははッ！　くすぐったっ！　やめっ♪　うひぃっ♪」
-					PRINTW 
-				ENDSELECT
-				PRINTW 
+			;はたてふたなり
+			IF TALENT:性別 == 3
+				IF TALENT:MASTER:無知
+					IF ABL:Ｃ感覚 >= 6
+						SELECTCASE RAND:6
+						CASE 0
+							CALL HPH_PRINT,@"「だっだめぇっHPHHPH　そんな激しくこすったらぁHPHHPH」","L"
+							CALL HPH_PRINT,@"（%MASTERNAME:42%は私を気持ちよくしたいんじゃないっ、私の反応が楽しいからこんなことをっHPH）","L"
+							PRINTW 
+						CASE 1
+							CALL HPH_PRINT,@"「%MASTERNAME:42%、あっそれっHPH　気持ちいいっHPHHPH」","L"
+							CALL HPH_PRINT,@"（太い所に引っ掛けるように擦ってくるっHPH　）","L"
+							PRINTW 
+						CASE 2
+							CALL HPH_PRINT,@"「やだっHPH　待っHPH　やHPH　あぁっHPHHPH」","L"
+							PRINTW 
+						CASE 3
+							CALL HPH_PRINT,@"「あっHPH　でちゃうっHPH　白いのっHPH　すぐ出ちゃうっHPHHPH」","L"
+							PRINTW 
+						CASE 4
+							CALL HPH_PRINT,@"「ふうぅぅぅっHPH　ふーっHPH　ふーーっHPHHPH」","L"
+							PRINTFORML 身体を密着されながらの容赦ない手コキに、はたては先走り汁をピュッピュッと飛ばしている…
+							PRINTW 
+						CASE 5
+							CALL HPH_PRINT,@"「だっ駄目っHPH　いきなりそんなに擦ったらぁ〆√ﾚwww～HPH」","L"
+							PRINTFORML 無邪気な顔で激しく%TINKO(TARGET)%をしごかれ、はたては急速に精子が昇っていくのを感じた…
+							PRINTW 
+						ENDSELECT
+					ELSEIF ABL:Ｃ感覚 <= 5
+						SELECTCASE RAND:5
+						CASE 0
+							CALL HPH_PRINT,@"「そう、手で輪っか、作って先っぽを、お、おHPH　おぉ～～～～HPH」","L"
+							PRINTFORML 最も感じるカリの部分をコシコシと擦られ、はたては
+						CASE 1
+							IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+								CALL HPH_PRINT,@"「ああっ…プニプニの手で擦られるの、すっごくヤバいぃ…HPH」","L"
+								PRINTW 
+							ELSE
+								CALL HPH_PRINT,@"「だ、大丈夫だよ…HPH　このままシコシコしてくれたら、小さくなるから…HPH」","L"
+								CALL HPH_PRINT,@"（私ってば、%MASTERNAME:42%が何も知らないことをいいことに、手でさせちゃってる…HPH）","L"
+								PRINTW 
+							ENDIF
+						CASE 2
+							IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+								CALL HPH_PRINT,@"「う、ああっ…膝に跨られながら手で擦られるの、ヤバいことしてる感じ、半端ないよぉ…HPH」","L"
+								PRINTW 
+							ELSE
+								CALL HPH_PRINT,@"「だ、大丈夫だよ…HPH　このままシコシコしてくれたら、小さくなるから…HPH」","L"
+								CALL HPH_PRINT,@"（私ってば、%MASTERNAME:42%が何も知らないことをいいことに、手でさせちゃってる…HPH）","L"
+								PRINTW 
+							ENDIF
+						CASE 3
+							IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+								CALL HPH_PRINT,@"（やばっ…私、妖怪なのに背徳感が半端ない…っHPH）","L"
+								CALL HPH_PRINT,@"（この子は妹みたいな感じだったのに、同じ表情で、私のおちんちんしごいちゃってるよぉtねHPH）","L"
+								PRINTW 
+							ELSE
+								CALL HPH_PRINT,@"（うわっ…すっごい食い入るように私のおちんちん見てる…HPH）","L"
+								CALL HPH_PRINT,@"（このまま出したら、顔にかかっちゃうかな…）","L"
+								CALL HPH_PRINT,@"（出したいっHPH　でも、ひどいことはしたくないっ、でもでもぉっHPHHPH）","L"
+								PRINTW 
+							ENDIF
+						CASE 4
+							IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+								CALL HPH_PRINT,@"「っHPH　んっHPH」","L"
+								CALL HPH_PRINT,@"（触られたとこっHPH　ぞくぞくするっHPH）","L"
+								CALL HPH_PRINT,@"（おちんちん、敏感になってきてるせいでっHPH　この子に擦られただけでイきそうになってるっHPH）","L"
+							ELSE
+								CALL HPH_PRINT,@"「こらっ、駄目、だってばぁ…HPH」","L"
+								CALL HPH_PRINT,@"（嘘っ…%MASTERNAME:42%、前より触るの上手になってる…HPH）","L"
+								PRINTW 
+							ENDIF
+						ENDSELECT
+					ELSEIF ABL:Ｃ感覚 <= 3
+						SELECTCASE RAND:5
+						CASE 0
+							CALL HPH_PRINT,@"（この子は面白がって触ってるだけ…面白がってるだけ…何もやましいことはないから…）","L"
+							PRINTW 
+						CASE 1
+							CALL HPH_PRINT,@"「ああ、そう…HPH　手で包み込むように…うん…上手ぅ…HPH」","L"
+							CALL HPH_PRINT,@"（やっちゃったぁ…%MASTERNAME:42%が何も知らないのいいことに、イケないこと教えちゃったぁ…HPH）","L"
+							PRINTW 
+						CASE 2
+							CALL HPH_PRINT,@"（ああ…意味も分からずに%MASTERNAME:42%が私のおちんちんを見て『ぼっきしてる♪』なんて言ってる…HPH）","L"
+							CALL HPH_PRINT,@"（私、こんなヘンタイなんかじゃ…ああ…駄目ぇ、それ以上は…無邪気な顔でえっちな言葉言われたら…HPH）","L"
+							PRINTW 
+						CASE 3
+							CALL HPH_PRINT,@"「う、うん…腫れてるところは、いっぱいさすってくれたら良くなるから…HPH」","L"
+							CALL HPH_PRINT,@"（嘘は言ってない、嘘は、言ってないから…HPH）","L"
+							PRINTW 
+						CASE 4
+							CALL HPH_PRINT,@"「%MASTERNAME:42%の\@ (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)  ? ちっちゃくてかわいい # \@舌が、おちんちん、ペロペロしてる…HPH」","L"
+							CALL HPH_PRINT,@"「うん…プニプニの先っぽから白いの出たら、腫れてるの、治るから…HPH」","L"
+							PRINTW 
+						ENDSELECT
+					ENDIF
+				;あなた無知なし
+				ELSE
+					IF ABL:Ｃ感覚 >= 6
+						SELECTCASE RAND:6
+						CASE 0
+							PRINTFORML 「あっあぁ、やだぁ、こんなところでっ私っ%UNICODE(0x2665) *1%」
+							PRINTFORML 「ふっ%UNICODE(0x2665) *1%　ふーっ%UNICODE(0x2665) *1%　ふーっ%UNICODE(0x2665) *1%」
+							PRINTFORML はたては口元を押さえ、必死に喘ぎ声が漏れないようにしている
+							PRINTW 
+						CASE 1
+							PRINTFORML 「あっ、やぁ%UNICODE(0x2665) *1%　おちんちん、きもちいいっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「おちんちんでイクッ%UNICODE(0x2665) *1%　女なのにっ%UNICODE(0x2665) *1%　ちんぽでイクッ%UNICODE(0x2665) *1%」
+							PRINTW 
+						CASE 2
+							PRINTFORML 「あっ%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「そんな激しくしごいたらっ%UNICODE(0x2665) *1%　あっ、もっ%UNICODE(0x2665) *1%　射っ%UNICODE(0x2665) *1%」
+							PRINTW 
+						CASE 3
+							PRINTFORML 「お゛っ%UNICODE(0x2665) *1%　まっ%UNICODE(0x2665) *1%　まって%UNICODE(0x2665) *1%」
+							PRINTFORML 「しこしこだめっ%UNICODE(0x2665) *1%　すぐイク%UNICODE(0x2665) *1%　すぐイっちゃうッ%UNICODE(0x2665) *1%」
+							PRINTW 
+						CASE 4
+							PRINTFORML 「あ゛ぁぁぁぁっ%UNICODE(0x2665) *1%　それらめぇっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「さきっぽ、てのひらでごしごしッ、あ、やぁぁぁッ、あッ%UNICODE(0x2665) *1%」
+							PRINTW 
+						CASE 5
+							PRINTFORML 「だっ駄目ッ%UNICODE(0x2665) *1%　それ以上はぁッ%UNICODE(0x2665) *1%」
+							PRINTFORML 「やばっ%UNICODE(0x2665) *1%　射精るっ%UNICODE(0x2665) *1%　射精るってばぁ%UNICODE(0x2665) *1%」
+							PRINTFORML 鈴口から先走り汁をピュッ、ピュッと飛ばしながら、はたてはトロ顔を晒している
+							PRINTW 
+						ENDSELECT
+					ELSEIF ABL:Ｃ感覚 >= 3
+						SELECTCASE RAND:6
+						CASE 0
+							PRINTFORML 「ふぅッ…%UNICODE(0x2665) *1%　っ%UNICODE(0x2665) *1%　んッ%UNICODE(0x2665) *1%」
+							PRINTFORML はたては蕩けた表情で、しごかれるペニスを見つめている…
+							PRINTW 
+						CASE 1
+							PRINTFORML 「あっ、駄目ぇっ、そんな、おちんちん優しく扱かれたら…%UNICODE(0x2665) *1%」
+							PRINTFORML はたては%TINKO(TARGET)%をしごかれ、鈴口から先走り汁を漏らしている…
+							PRINTW 
+						CASE 2
+							PRINTFORML 「なんだか、男の子になった気分…」
+							PRINTFORML %TINKO(TARGET)%をしごかれ、はたては戸惑いと快楽が入り混じった複雑な表情を浮かべている
+							PRINTW 
+						CASE 3
+							PRINTFORML 「うぅ、先っぽからオツユ垂れてきちゃってるぅ…」
+							PRINTFORML はたての%TINKO(TARGET)%は愛撫に応えるように、鈴口から透明な汁をだらだらと零している
+							PRINTW 
+						CASE 4
+							PRINTFORML 「皮かぶせたまま先っぽだけこすらないでぇ…やぁっ%UNICODE(0x2665) *1%」
+							PRINTFORML 刺激が強すぎないようにと、包皮をかぶせたまま%TINKO(TARGET)%をしごいてやった
+							PRINTW 
+						CASE 5
+							PRINTFORML にぢゅっ%UNICODE(0x2665) *1%　ぬぢゅっ%UNICODE(0x2665) *1%　ちゅくっ%UNICODE(0x2665) *1%　ぐりゅっ%UNICODE(0x2665) *1%」
+							PRINTFORML 「んんっ%UNICODE(0x2665) *1%　あっ%UNICODE(0x2665) *1%　そこダメぇッ%UNICODE(0x2665) *1%　先っぽぉ%UNICODE(0x2665) *1%」
+							PRINTFORML %TINKO(TARGET)%を
+							PRINTW 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:6
+						CASE 0
+							PRINTFORML 「ん…変な感じはするけど、気持ちいいまではないかも…」
+							PRINTW 
+						CASE 1
+							CALL HPH_PRINT,@"「んっ…HPH　今の触り方、好きかも…HPH」","L"
+							PRINTW 
+						CASE 2
+							PRINTFORML 「痛っ…もうちょっと、優しく触ってよね…」
+							PRINTW 
+						CASE 3
+							PRINTFORML 「気持ちいーとかじゃなくて、触られたら勝手に反応するの…んっ」
+							PRINTW 
+						CASE 4
+							PRINTFORML 「ちょっと…分かんない、かも…」
+							PRINTFORML 「だから、続けて…」
+							PRINTW 
+						CASE 5
+							PRINTFORML 「ちょっ…とぉ、先っぽばっかり、弄らないでよぉ…」
+							PRINTW 
+						ENDSELECT
+					ENDIF
+				ENDIF
+			;はたてふたなし
 			ELSE
-				PRINTFORML 「こ、こら！　変なトコさわんなっ…くふっ♪　うひっうひひひひひっ♪　やめっやめぇっくすぐった♪」
-				PRINTW 
+				IF ABL:Ｃ感覚 >= 6
+					PRINTFORML 「ちっ違うっ、気持ちよくなってなんかっ」
+					PRINTFORML 「あンッ%UNICODE(0x2665) *1%」
+					PRINTFORML 「馬鹿っ、チョーシ、のんなぁ…%UNICODE(0x2665) *1%」
+					PRINTW 
+				ELSEIF ABL:Ｃ感覚 >= 4
+					PRINTFORML 「こらっ、やめろって言ってるでしょうがっ…！」
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「ンあっ%UNICODE(0x2665) *1%」
+						PRINTFORML 「…い、今のは違うから！
+						PRINTW 
+					CASE 1
+						PRINTFORML 「…んふっ、ふっ♪　んふふふふふふッ♪　あはははははッ！　くすぐったっ！　やめっ♪　うひぃっ♪」
+						PRINTW 
+					ENDSELECT
+					PRINTW 
+				ELSE
+					PRINTFORML 「こ、こら！　変なトコさわんなっ…くふっ♪　うひっうひひひひひっ♪　やめっやめぇっくすぐった♪」
+					PRINTW 
+				ENDIF
 			ENDIF
 		ENDIF
 	ENDIF
@@ -3426,12 +3758,15 @@ IF LOCAL
 ENDIF
 RETURN 1
 
-;※※※※※※※※※※※※※※※※※※※※※※※※※
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
 ;セクハラ系コマンドソース処理
-;※※※※※※※※※※※※※※※※※※※※※※※※※
-;==================================================
 ;結婚、または恋人・恋慕持ちでたくさん愛してあげているなら、セクハラコマンドは反感ゼロ
 ;逆に情愛、欲情などのSOURCEが増加し、常に愛情経験のボーナスが付く
+;※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※※
+
+;尻を撫でる
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 @M_KOJO_EXTRASOURCE_COM_K42_310
 IF CFLAG:K42C_結婚 >= 1 || (TALENT:恋慕 || TALENT:恋人 && EXP:愛情経験 >= 500 && CFLAG:信頼度 >= 5000)
 	SOURCE:反感 = 0
@@ -3441,8 +3776,13 @@ IF CFLAG:K42C_結婚 >= 1 || (TALENT:恋慕 || TALENT:恋人 && EXP:愛情経験
 	IF BASE:42:怒り >= MAXBASE:42:怒り / 2
 		BASE:42:怒り = BASE:42:怒り / 2
 	ENDIF
+;女の子だと陥落前でも反感減少
+ELSEIF TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3
+	SOURCE:反感 = SOURCE:反感 / 5
 ENDIF
 
+;抱き付く
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ;抱き付くは情愛、歓楽のSOURCEが大幅増
 @M_KOJO_EXTRASOURCE_COM_K42_311
 IF CFLAG:K42C_結婚 >= 1 || (TALENT:恋慕 || TALENT:恋人 && EXP:愛情経験 >= 500 && CFLAG:信頼度 >= 5000)
@@ -3453,8 +3793,15 @@ IF CFLAG:K42C_結婚 >= 1 || (TALENT:恋慕 || TALENT:恋人 && EXP:愛情経験
 	IF BASE:42:怒り >= MAXBASE:42:怒り / 2
 		BASE:42:怒り = BASE:42:怒り / 2
 	ENDIF
+;女の子だと陥落前でも情愛、歓楽アップ。反感減少
+ELSEIF TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3
+	SOURCE:反感 = SOURCE:反感 / 5
+	SOURCE:情愛 = SOURCE:情愛 * 12 / 10
+	SOURCE:歓楽 = SOURCE:歓楽 * 12 / 10
 ENDIF
 
+;キスする
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ;旦那のキスで恐怖する妻ってのも嫌なので。キスがもっと気持ちよい行為に
 @M_KOJO_EXTRASOURCE_COM_K42_312
 IF CFLAG:K42C_結婚 >= 1 || ((TALENT:恋慕 || TALENT:恋人) && EXP:愛情経験 >= 500 && CFLAG:信頼度 >= 5000)
@@ -3467,8 +3814,15 @@ IF CFLAG:K42C_結婚 >= 1 || ((TALENT:恋慕 || TALENT:恋人) && EXP:愛情経�
 	IF BASE:42:怒り >= MAXBASE:42:怒り / 2
 		BASE:42:怒り = BASE:42:怒り / 2
 	ENDIF
+ELSEIF TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3
+	SOURCE:反感 = SOURCE:反感 / 5
+	SOURCE:情愛 = SOURCE:情愛 * 12 / 10
+	SOURCE:歓楽 = SOURCE:歓楽 * 12 / 10
+	SOURCE:快Ｍ = ABL:PLAYER:舌 * 30 + 50
 ENDIF
 
+;胸愛撫
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 @M_KOJO_EXTRASOURCE_COM_K42_313
 IF CFLAG:K42C_結婚 >= 1 || ((TALENT:恋慕 || TALENT:恋人) && EXP:愛情経験 >= 500 && CFLAG:信頼度 >= 5000)
 	SOURCE:反感 = 0
@@ -3479,8 +3833,21 @@ IF CFLAG:K42C_結婚 >= 1 || ((TALENT:恋慕 || TALENT:恋人) && EXP:愛情経�
 	IF BASE:42:怒り >= MAXBASE:42:怒り / 2
 		BASE:42:怒り = BASE:42:怒り / 2
 	ENDIF
+ELSEIF TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3
+	IF TALENT:TARGET:バストサイズ >= TALENT:MASTER:バストサイズ
+		SOURCE:反感 = SOURCE:反感 / 5
+		SOURCE:快Ｂ = SOURCE:快Ｂ * 12 / 10
+		SOURCE:歓楽 = SOURCE:歓楽 * 12 / 10
+		SOURCE:征服 = SOURCE:征服 * 12 / 10
+	;あなたがはたてよりおっぱい大きいと怒る
+	ELSE
+		SOURCE:反感 = SOURCE:反感 * 11 / 10
+		SOURCE:屈従 = SOURCE:屈従 * 15 / 10
+	ENDIF
 ENDIF
 
+;アナル愛撫
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ;アナル愛撫は苦痛半減
 @M_KOJO_EXTRASOURCE_COM_K42_314
 IF CFLAG:K42C_結婚 >= 1 || ((TALENT:恋慕 || TALENT:恋人) && EXP:愛情経験 >= 500 && CFLAG:信頼度 >= 5000)
@@ -3495,6 +3862,55 @@ IF CFLAG:K42C_結婚 >= 1 || ((TALENT:恋慕 || TALENT:恋人) && EXP:愛情経�
 	ENDIF
 ENDIF
 
+;クリ愛撫
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+;ふたなり
+IF TALENT:性別 == 3
+	;無知な幼女相手におちんちん触られるといろいろ大幅プラス
+	IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+		IF TALENT:MASTER:無知 == 1
+			SOURCE:反感 = 0
+			SOURCE:快Ｃ = 360
+			SOURCE:歓楽 = 300
+			SOURCE:欲情 = 300
+			SOURCE:逸脱 = 300
+			SOURCE:快Ｃ += ABL:PLAYER:指 * 50
+			BASE:射精 += 500
+			IF BASE:42:怒り >= MAXBASE:42:怒り / 2
+				BASE:42:怒り = BASE:42:怒り / 2
+			ENDIF
+		ELSE
+			SOURCE:反感 = 0
+			SOURCE:快Ｃ = 240
+			SOURCE:歓楽 = 200
+			SOURCE:欲情 = 200
+			SOURCE:逸脱 = 150
+			SOURCE:快Ｃ += ABL:PLAYER:指 * 30
+			IF BASE:42:怒り >= MAXBASE:42:怒り / 2
+				BASE:42:怒り = BASE:42:怒り / 2
+			ENDIF
+		ENDIF
+	;あなたが大人の女性なら反感減少
+	ELSE
+		SOURCE:反感 = SOURCE:反感 / 5
+	ENDIF
+;ふたなし
+ELSE
+	;陥落＆高ステータスなら反感なし
+	IF CFLAG:K42C_結婚 >= 1 || ((TALENT:恋慕 || TALENT:恋人) && EXP:愛情経験 >= 500 && CFLAG:信頼度 >= 5000)
+		SOURCE:反感 = 0
+		SOURCE:快Ｃ = 240
+		SOURCE:歓楽 = 150
+		SOURCE:快Ｃ += ABL:PLAYER:指 * 30
+		CALL AddEXP("愛情経験", TARGET, 1)
+		IF BASE:42:怒り >= MAXBASE:42:怒り / 2
+			BASE:42:怒り = BASE:42:怒り / 2
+		ENDIF
+	ENDIF
+ENDIF
+
+;スカートめくり
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ;スカートめくりもやりたい放題に
 @M_KOJO_EXTRASOURCE_COM_K42_330
 IF CFLAG:K42C_結婚 >= 1 || ((TALENT:恋慕 || TALENT:恋人) && EXP:愛情経験 >= 500 && CFLAG:信頼度 >= 5000)
@@ -3505,4 +3921,6 @@ IF CFLAG:K42C_結婚 >= 1 || ((TALENT:恋慕 || TALENT:恋人) && EXP:愛情経�
 	IF BASE:42:怒り >= MAXBASE:42:怒り / 2
 		BASE:42:怒り = BASE:42:怒り / 2
 	ENDIF
+ELSEIF TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3
+	SOURCE:反感 = SOURCE:反感 / 5
 ENDIF

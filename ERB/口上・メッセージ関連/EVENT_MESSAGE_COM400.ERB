@@ -1341,6 +1341,8 @@ ENDIF
 		DEBUGPRINTFORML 秋雨
 	ENDIF
 	SELECTCASE YEAR_WEATHER_CONTROL
+		CASE 4
+			DEBUGPRINTFORML 長期天候傾向［4 確定通常］
 		CASE 3
 			DEBUGPRINTFORML 長期天候傾向［3 ラニーニャ現象］
 		CASE 2
@@ -1354,6 +1356,7 @@ ENDIF
 	ENDSELECT
 	DEBUGPRINTFORML 寒気の強さ {POWER_COLD_AIR}
 	DEBUGPRINTFORML 暖気の強さ {POWER_WARM_AIR}
+	DEBUGPRINTFORML 大気安定度 {ATMOSPHERIC_INSTABILITY}
 	
 	SELECTCASE NOW_WEATHER_CONTROL
 		CASE 1
@@ -1576,7 +1579,7 @@ SELECTCASE TIME:0
 	;AM4~6　早朝
 	CASE 240 TO 359
 		SELECTCASE TIME:5
-			CASE IS < 3
+			CASE IS <= 3
 				IF 低気圧位置 == "台風最接近"
 					PRINTW 雲が辺りを高速で飛び回っている
 					PRINTL 
@@ -1600,11 +1603,11 @@ SELECTCASE TIME:0
 	;AM6~8　正午前
 	CASE 360 TO 479
 		SELECTCASE TIME:5
-			CASE IS < 3
+			CASE IS <= 3
 				IF 低気圧位置 == "台風勢力圏"
 					PRINTW いつもより赤く鮮やかな朝焼けだ
 					PRINTL 
-				ELSEIF 低気圧位置 == "寒冷渦遠方" || 低気圧位置 == "疑似好天" || 低気圧位置 == "暖域"
+				ELSEIF (低気圧位置 == "寒冷渦遠方" && TIME_ENTER_TERRITORY_COLD_LOW:1 == DAY:3 && TIME_ENTER_TERRITORY_COLD_LOW:2 <= TIME:0 + 300) || 低気圧位置 == "疑似好天" || 低気圧位置 == "暖域"
 					PRINTW 明け行く空の彼方には壁みたいに連なった雲が見える
 					PRINTL 
 				ELSEIF 低気圧位置 == "寒冷渦接近" || IS_COLD_LOW || 低気圧位置 == "二つ玉低気圧接近" || 低気圧位置 == "日本海低気圧接近" || 低気圧位置 == "南岸低気圧接近" || 低気圧位置 == "温暖前線接近"
@@ -1633,11 +1636,15 @@ SELECTCASE TIME:0
 	;AM8~12　正午前
 	CASE 480 TO 719
 		SELECTCASE TIME:5
-			CASE IS < 3
+			CASE IS <= 3
 				IF DAY:2 == 2
 					IF IS_COLD_LOW || 低気圧位置 == "台風勢力圏"
 						PRINTW 彼方にたくさんの入道雲が見える
 						PRINTL 
+					ELSEIF 低気圧位置 == "台風最接近"
+						PRINTW 雲が辺りを高速で飛び回っている
+						PRINTL 
+						CALL ASK_DIARY("台風の目に入った")
 					ELSEIF POWER_WARM_AIR >= 4
 						PRINTW 彼方に綿雲がたくさん浮かんでいる
 						PRINTL 
@@ -1649,7 +1656,7 @@ SELECTCASE TIME:0
 						PRINTL 
 					ENDIF
 				ELSE
-					IF 低気圧位置 == "寒冷渦遠方" || 低気圧位置 == "疑似好天" || 低気圧位置 == "暖域"
+					IF (低気圧位置 == "寒冷渦遠方" && TIME_ENTER_TERRITORY_COLD_LOW:1 == DAY:3 && TIME_ENTER_TERRITORY_COLD_LOW:2 <= TIME:0 + 300) || 低気圧位置 == "疑似好天" || 低気圧位置 == "暖域"
 						PRINTW 空の彼方には壁みたいに連なった雲が見える
 						PRINTL 
 					ELSEIF 低気圧位置 == "台風最接近"
@@ -1685,7 +1692,11 @@ SELECTCASE TIME:0
 	CASE 720 TO 1079
 		SELECTCASE TIME:5
 			CASE IS < 4
-				IF DAY:2 == 2
+				IF 低気圧位置 == "台風最接近"
+					PRINTW 雲が辺りを高速で飛び回っている
+					PRINTL 
+					CALL ASK_DIARY("台風の目に入った")
+				ELSEIF DAY:2 == 2
 					SELECTCASE 積乱雲位置
 						CASE "積乱雲遠方", "積乱雲未発生"
 							IF IS_COLD_LOW || 低気圧位置 == "台風勢力圏"
@@ -1775,7 +1786,7 @@ SELECTCASE TIME:0
 							PRINTL 
 					ENDSELECT
 				ELSE
-					IF 低気圧位置 == "寒冷渦遠方" || 低気圧位置 == "疑似好天" || 低気圧位置 == "暖域"
+					IF (低気圧位置 == "寒冷渦遠方" && TIME_ENTER_TERRITORY_COLD_LOW:1 == DAY:3 && TIME_ENTER_TERRITORY_COLD_LOW:2 <= TIME:0 + 300) || 低気圧位置 == "疑似好天" || 低気圧位置 == "暖域"
 						PRINTW 空の彼方には壁みたいに連なった雲が見える
 						PRINTL 
 					ELSEIF 低気圧位置 == "台風最接近"
@@ -1844,7 +1855,7 @@ SELECTCASE TIME:0
 				IF 低気圧位置 == "台風勢力圏"
 					PRINTW いつもより赤く鮮やかな夕焼けだ
 					PRINTL 
-				ELSEIF 低気圧位置 == "寒冷渦遠方" || 低気圧位置 == "疑似好天" || 低気圧位置 == "暖域"
+				ELSEIF (低気圧位置 == "寒冷渦遠方" && TIME_ENTER_TERRITORY_COLD_LOW:1 == DAY:3 && TIME_ENTER_TERRITORY_COLD_LOW:2 <= TIME:0 + 300) || 低気圧位置 == "疑似好天" || 低気圧位置 == "暖域"
 					PRINTW 夕焼け空の彼方には壁みたいに連なった雲が見える
 					PRINTL 
 				ELSEIF 低気圧位置 == "台風遠方" || 低気圧位置 == "台風一過" || 低気圧位置 == "二つ玉低気圧通過" || 低気圧位置 == "日本海低気圧通過" || 低気圧位置 == "南岸低気圧通過" || 低気圧位置 == "温帯低気圧通過" || 低気圧位置 == "低気圧未発生"

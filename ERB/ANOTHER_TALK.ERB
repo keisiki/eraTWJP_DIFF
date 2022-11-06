@@ -33,7 +33,7 @@ ELSEIF ((CFLAG:TARGET:就寝時間 - TIME:0 <= 30 && CFLAG:TARGET:就寝時間 -
 	CALL MESSAGE_TALK(13)
 ELSEIF TALKER:0 && TALKER:1 && (!FLAG:70 || CFLAG:TARGET:344 == 1)
 	CALL MESSAGE_TALK(2, TALKER:0, TALKER:1)
-ELSEIF FLAG:宴会開催フラグ >= 98 && CFLAG:MASTER:現在位置 == TFLAG:宴会場
+ELSEIF 宴会場所在判定(MASTER)
 	CALL MESSAGE_TALK(1)
 ELSEIF TALENT:MASTER:形状 == 4 && TIME > 1140 && CFLAG:MASTER:デート中 && (CFLAG:MASTER:現在位置 % 100) % 10 && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
 	CALL MESSAGE_TALK(5,0,0)
@@ -125,18 +125,18 @@ SELECTCASE ARG
 			会場 = %NAME_FROM_PLACE(TFLAG:宴会場)%
 		ENDIF
 		;参加者が居なければ表示されない
-		IF FLAG:35 > 0
+		IF FLAG:参加人数 > 0
 			;宴会の規模に応じて分岐
-			IF FLAG:31 <= 1500 || FLAG:35 <= 3
-				PRINTFORML %会場%では{FLAG:35}人程度のささやかな宴会が開かれている……
+			IF FLAG:31 <= 1500 || FLAG:参加人数 <= 3
+				PRINTFORML %会場%では{FLAG:参加人数}人程度のささやかな宴会が開かれている……
 			ELSE
-				PRINTFORML %会場%では{FLAG:35}人程度の宴会が開かれている……
+				PRINTFORML %会場%では{FLAG:参加人数}人程度の宴会が開かれている……
 			ENDIF
 			;日を跨いだ場合
 			IF DAY > FLAG:開始日
 				;経過時間に応じて分岐
 				IF TIME >= (FLAG:33 + 240) - 1440 * (DAY - FLAG:開始日)
-					IF FLAG:35 <= 3
+					IF FLAG:参加人数 <= 3
 						PRINTFORML もはや残っているのは一部の猛者だけのようだ……
 					ELSE
 						PRINTFORML ちらほらと脱落者も出ているようだ……
@@ -152,7 +152,7 @@ SELECTCASE ARG
 			ELSE
 				;経過時間に応じて分岐
 				IF TIME >= (FLAG:33 + 240)
-					IF FLAG:35 <= 3
+					IF FLAG:参加人数 <= 3
 						PRINTFORML もはや残っているのは一部の猛者だけのようだ……
 					ELSE
 						PRINTFORML ちらほらと脱落者も出ているようだ……
@@ -976,7 +976,7 @@ ENDIF
 SIF CFLAG:MASTER:現在位置 == FA16_HOLE:0
 	CALL MESSAGE_TALK(17)
 ;付近で宴会をやっているなら賑やかな様子が見える
-IF FLAG:宴会開催フラグ >= 98 && CAN_MOVE(CFLAG:MASTER:現在位置, TFLAG:宴会場) >= 2
+IF 宴会開催中判定() && CAN_MOVE(CFLAG:MASTER:現在位置, TFLAG:宴会場) >= 2
 	CALL MESSAGE_TALK(1)
 ;けーね先生の寺小屋情景文章
 ELSEIF CFLAG:MASTER:現在位置 == 240 && CFLAG:67:行動 == 5

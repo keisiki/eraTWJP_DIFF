@@ -84,7 +84,7 @@ IF TIME > TIME:3
 	;(天候パッチ)1日予報を行う
 	CALL WEATHER_FORECAST_1DAY
 	;宴会の参加者決定
-	SIF FLAG:3 && FLAG:宴会開催フラグ != 98 && FLAG:宴会開催フラグ != 99 && DAY >= FLAG:開始日
+	SIF FLAG:3 && 宴会開始日判定()
 		CALL ENKAI_ENTRY
 ENDIF
 
@@ -500,7 +500,7 @@ IF FESTIVAL() != ""
 	PRINTFORML 今日は%FESTIVAL()%だ。
 	CALL SEASONAL_MORNING
 ENDIF
-IF FLAG:開始日 - DAY <= 0 && FLAG:宴会開催フラグ
+IF DAY == FLAG:開始日 && FLAG:宴会開催フラグ
 ;宴会日
 	PRINTFORM 今日は
 	CALL 宴会予定表示
@@ -515,6 +515,9 @@ IF FLAG:開始日 - DAY <= 0 && FLAG:宴会開催フラグ
 			ENDIF
 		NEXT
 	ENDIF
+ELSEIF DAY > FLAG:開始日 && FLAG:宴会開催フラグ
+	CALL ENKAI_END()
+	PRINTFORML %EnkaiTitle%は終了しました
 ENDIF
 IF CHILD_HAPPY_BIRTHDAY(CNT_BIRTHDAY, NAME_CHILD, AGE_CHILD)
 	PRINTFORM 今日は 

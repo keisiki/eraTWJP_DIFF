@@ -7,17 +7,24 @@
 #DIM 土地の恵み
 #DIM CHARA
 #DIM 採集位置
-;あからさまな人の敷地での無断採集はやめる
+;あからさまな人の敷地での無断採集はやめる、弾幕勝負で勝ってれば腕づくで
 SELECTCASE CFLAG:MASTER:現在位置
 	CASE 太陽の畑, 438
-		IF ABL:[[幽香]]:親密 < 5
+		IF ABL:[[幽香]]:親密 < 5 && CFLAG:[[幽香]]:弾幕勝負勝利 == 0
 			DRAWLINE
 			PRINTFORML ここで無断で採集をするのは非常に危険な気がする…
 			RETURN -1
 		ENDIF
 	;天界、桃園
 	CASE 天界, 833
-		IF ABL:[[天子]]:親密 < 5
+		IF ABL:[[天子]]:親密 < 5 && CFLAG:[[天子]]:弾幕勝負勝利 == 0
+			DRAWLINE
+			PRINTFORML ここで無断で採集をするのはマズい気がする…
+			RETURN -1
+		ENDIF
+	;虹龍洞
+	CASE 虹龍洞, 855
+		IF ABL:[[百々世]]:親密 < 5 && CFLAG:[[百々世]]:弾幕勝負勝利 == 0
 			DRAWLINE
 			PRINTFORML ここで無断で採集をするのはマズい気がする…
 			RETURN -1
@@ -137,13 +144,25 @@ ENDIF
 
 ;時間停止時はTSP減
 IF FLAG:70
-	BASE:MASTER:TSP -= 120
+	;虹龍洞は採掘困難
+	IF 採集位置 == 68
+		BASE:MASTER:TSP -= 290
+	ELSE
+		BASE:MASTER:TSP -= 120
+	ENDIF
 ELSE
 	;時間経過
 	TIME += 60
-	;体力減少は戦闘能力によって減少抑制
-	DOWNBASE:MASTER:体力 = 180 - (ABL:MASTER:戦闘能力 * 15)
-	DOWNBASE:MASTER:気力 = 150 
+	;虹龍洞は空気が薄い（無い）ので体力を余計に消耗する　ITEM:空色の勾玉の実装が待たれる
+	IF 採集位置 == 68
+		DOWNBASE:MASTER:体力 = 320 - (ABL:MASTER:戦闘能力 * 10)
+		DOWNBASE:MASTER:気力 = 280
+		PRINTFORML 坑内は空気が薄く、ひどく疲れた…
+	ELSE
+		;体力減少は戦闘能力によって減少抑制
+		DOWNBASE:MASTER:体力 = 180 - (ABL:MASTER:戦闘能力 * 15)
+		DOWNBASE:MASTER:気力 = 150 
+	ENDIF
 ENDIF
 
 ;参加者のソース,同一コマンド制限を受けないので控えめに,見つからないと半減
@@ -344,6 +363,8 @@ IF !IN_HOME(ARG) && !ARG:1
 			RETURNF 66
 		CASE 静かの海
 			RETURNF 67
+		CASE 虹龍洞
+			RETURNF 68
 	ENDSELECT
 ELSE
 	;メインマップでの判定
@@ -398,6 +419,8 @@ ELSE
 			RETURNF 36
 		CASE P833桃園
 			RETURNF 13
+		CASE P855虹龍洞
+			RETURNF 68
 		;地底
 		CASE P928灼熱地獄跡
 			RETURNF 65
@@ -538,6 +561,10 @@ SELECTCASE ARG:1
 	CASE 67
 		SIF GROUPMATCH(ARG:0, 639)
 			RETURNF 1
+	;虹龍洞
+	CASE 68
+		SIF GROUPMATCH(ARG:0, 647)
+			RETURNF 1
 ENDSELECT
 RETURNF 0
 
@@ -560,19 +587,19 @@ SELECTCASE LOCAL
 	;春:
 	CASE 1
 		SELECTCASE ARG:0
-			CASE 600 TO 602, 604 TO 608, 610 TO 613, 616, 618 TO 627, 629, 631 TO 640, 706
+			CASE 600 TO 602, 604 TO 608, 610 TO 613, 616, 618 TO 627, 629, 631 TO 640, 647, 706
 				RETURNF 1
 		ENDSELECT
 	;夏
 	CASE 2
 		SELECTCASE ARG:0
-			CASE 600 TO 601, 603, 606 TO 608, 612 TO 613, 618 TO 627, 630 TO 640, 665, 706
+			CASE 600 TO 601, 603, 606 TO 608, 612 TO 613, 618 TO 627, 630 TO 640, 647, 665, 706
 				RETURNF 1
 		ENDSELECT
 	;秋
 	CASE 3
 		SELECTCASE ARG:0
-			CASE 600 TO 608, 611 TO 614, 616 TO 623, 625 TO 628, 631 TO 640, 665, 706
+			CASE 600 TO 608, 611 TO 614, 616 TO 623, 625 TO 628, 631 TO 640, 647, 665, 706
 				RETURNF 1
 		ENDSELECT
 		;(酒造パッチ)(天候パッチ)かびたブドウ666は寒気の強さが5の時のみ
@@ -580,16 +607,16 @@ SELECTCASE LOCAL
 			RETURNF 1
 	;冬
 	CASE 4
-		;天界、地底、月とキノコ群生地は夏とみなして採集可能
+		;天界、地底、月とキノコ群生地、虹龍洞は夏とみなして採集可能
 		IF ARG:1
 			LOCAL:1 =ARG:1
 		ELSE
 			LOCAL:1 = GATHERING_SPOT(CFLAG:MASTER:現在位置)
 		ENDIF
 
-		IF GROUPMATCH(LOCAL:1, 13, 14, 37, 63, 64, 65, 66, 67)
+		IF GROUPMATCH(LOCAL:1, 13, 14, 37, 63, 64, 65, 66, 67, 68)
 			SELECTCASE ARG:0
-				CASE 600 TO 601, 603, 606 TO 609, 612 TO 613, 618 TO 627, 630 TO 640, 706
+				CASE 600 TO 601, 603, 606 TO 609, 612 TO 613, 618 TO 627, 630 TO 640, 647, 706
 					RETURNF 1
 			ENDSELECT
 		ELSE
@@ -806,6 +833,8 @@ CASE 66
 	ENDIF
 CASE 67
 	LOCALS = 静かの海
+CASE 68
+	LOCALS = 虹龍洞
 CASEELSE
 	LOCALS =
 ENDSELECT
@@ -823,6 +852,10 @@ RETURNF LOCALS
 #DIM start			;抽選開始値
 #DIM end			;抽選終了値
 #DIM difference		;加算or減算
+#DIMS 低気圧位置
+#DIMS 積乱雲位置
+低気圧位置 = %GET_LOCATION_LOW()%
+積乱雲位置 = %GET_LOCATION_CUMULUS()%
 Chosen = 0
 QTY = 0
 ;採集物の選出
@@ -864,7 +897,21 @@ FOR LOCAL:0, start, end, difference
 	ENDIF
 	LOCAL:5 = ITEMPRICE:(LOCAL:0) + 1000
 	;採集パワー＋補正値 が √アイテム費用+1000 を上回ったら入手
-	IF 採集パワー + Modification < SQRT(LOCAL:5)
+	;(天候パッチ)猛烈な台風通過後・二つ玉低気圧通過後・スーパーセル通過後は、龍の爪・竜血・竜骨・龍珠の入手成功率が上昇
+	IF GROUPMATCH(LOCAL:0, 606, 625, 634, 647) && ((低気圧位置 == "台風一過" && IS_TYPHOON:1 >= 5) || 低気圧位置 == "二つ玉低気圧通過" || (積乱雲位置 == "積乱雲通過" && CAN_CUMULUS:0 == 5))
+		DEBUGPRINTFORML %ITEMNAME:(LOCAL:0)%入手成功率上昇中
+		IF 採集パワー + Modification < SQRT((LOCAL:5)/2)
+			DEBUGPRINTFORML 採集パワー不足なため%ITEMNAME:(LOCAL:0)%をスキップ
+			CONTINUE
+		ENDIF
+	;(天候パッチ)寒冷渦通過後・二つ玉低気圧通過後は、氷の鱗の入手成功率が上昇
+	ELSEIF LOCAL:0 == 609 && (低気圧位置 == "寒冷渦通過" || 低気圧位置 == "二つ玉低気圧通過")
+		DEBUGPRINTFORML %ITEMNAME:(LOCAL:0)%入手成功率上昇中
+		IF 採集パワー + Modification < SQRT((LOCAL:5)/2)
+			DEBUGPRINTFORML 採集パワー不足なため%ITEMNAME:(LOCAL:0)%をスキップ
+			CONTINUE
+		ENDIF
+	ELSEIF 採集パワー + Modification < SQRT(LOCAL:5)
 		DEBUGPRINTFORML 採集パワー不足なため%ITEMNAME:(LOCAL:0)%をスキップ
 		CONTINUE
 	ENDIF

@@ -91,8 +91,14 @@ CFLAG:42:口上内抱き寄せ判定_初回 = 1
 CFLAG:42:口上内抱き寄せ判定_通常 = 1
 
 ;押し倒し禁止に1を入れると、自分から押し倒してこなくなります
-IF TALENT:42:恋慕 || TALENT:42:恋人 || TALENT:42:セフレ
+;はたてが陥落素質持ちならあなたが男女問わず押し倒す
+IF TALENT:42:恋慕 || TALENT:42:恋人 || TALENT:42:セフレ || TALENT:42:愛欲
 	CFLAG:42:押し倒し禁止 = 0
+;あなたが幼女かつ無知で魅力系素質持ち、はたてがふたなりかつ発情状態か欲求不満度75％以上かつ欲情Lv5以上なら押し倒す
+ELSEIF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行 && TALENT:MASTER:無知) && TALENT:性別 == 3 && (TALENT:MASTER:小悪魔 || TALENT:MASTER:魅力 || TALENT:MASTER:魅惑 || TALENT:MASTER:謎の魅力) && ((CFLAG:溜まってる度 >= 750 && PALAM:欲情 >= PALAMLV:5) || TCVAR:発情)
+;あなたが女性（ふたなり）、はたてがふたなりかつ発情状態か欲求不満度50％以上かつ欲情Lv5以上なら押し倒す
+;ELSEIF (TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3) && TALENT:性別 == 3 && ((CFLAG:ARG:溜まってる度 >= 500 && PALAM:ARG:欲情 >= PALAMLV:5) || TCVAR:発情)
+;	CFLAG:42:押し倒し禁止 = 0
 ELSE
 	CFLAG:42:押し倒し禁止 = 1
 ENDIF
@@ -153,6 +159,22 @@ SETCOLOR 0xA260BF
 			PRINTFORML 名前入力時の口上が一部表示されて違和感があると思いますがご理解ください
 			CALL NAME_SET_K42
 		ENDIF
+
+;映姫口上を引用させていただきました。ありがとうございます
+PRINTL はたて口上専用画像表示オプション
+PRINTL 
+PRINTL [0] - 表示ON
+PRINTL [1] - お腹撫でアニメのみON
+PRINTL [2] - お尻撫でアニメのみON
+PRINTL [3] - 全てOFF
+$LOOP_SELECT
+INPUT
+IF !INRANGE(RESULT, 0, 3)
+	CLEARLINE 1
+	GOTO LOOP_SELECT
+ENDIF
+CFLAG:42:1501 = RESULT
+
 RETURN 1
 
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
@@ -164,7 +186,7 @@ RETURN 1
 ;経験の変更は齟齬が出る場合がありますので、CSVを修正し同梱する事を推奨します
 IF OUTROOF(CFLAG:MASTER:現在位置) == 1
 	CFLAG:1014 = 1
-	PRINTFORML 「ちょっと、そこの人間！」
+	PRINTFORML 「ちょっと、そこの\@ TALENT:性別 == 2 ? 人間 # あなた \@！」
 	PRINTFORML 外を歩いていると、突然、頭上から声を掛けられた
 	PRINTFORML 頭上──？
 	PRINTW 
@@ -176,31 +198,155 @@ IF OUTROOF(CFLAG:MASTER:現在位置) == 1
 	PRINTFORMW 下半身は黒と紫の市松模様のミニスカート
 	PRINTFORML そして、%PANTS_DESCRIPTION(EQUIP:TARGET:下半身下着２, TARGET)%%SHOW_BOTTOM(TARGET)%
 	PRINTW 
-	PRINTFORML 「ちょっと、何スカートの中覗いてるのよ。キモッ！」
-	PRINTFORML 烏天狗の少女は初対面の相手に毒づくと、音もなく地面に舞い降りた
+	IF TALENT:MASTER:性別 == 2
+		PRINTFORML 「ちょっと、何スカートの中覗いてるのよ。キモッ！」
+		PRINTFORML 烏天狗の少女は初対面の相手に毒づくと、音もなく地面に舞い降りた
+	ELSE
+		;本当は年齢 < 0だけど、気にせず0のままにしている人もいるかもしれないので
+		IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+			PRINTFORML 「こんな小さな子が山の中に…親はどうしたっていうのよ」
+			PRINTFORML 妖怪のお姉さんはパンツを見られていたことも気にせず、音もなく地面に降りた
+		ELSE
+			PRINTFORML 「女の子がこの辺を出歩いてるなんて珍しーわねー。山の巫女や博麗神社の巫女とかならともかく」
+			PRINTFORML 烏天狗の少女は下着を見られていたことも気にせず、音もなく地面に舞い降りた
+		ENDIF
+	ENDIF
 	PRINTW 
-	PRINTFORML 「私は姫海棠はたて。『花果子念報』の記者をやってるの」
-	PRINTFORML 「ねえ、あんたの名前を教えてよ」
+	PRINTFORML 「私は烏天狗の姫海棠はたて。『花果子念報』の記者をやってるの」
+	IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行) && (TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3)
+		PRINTFORML 「ねぇ、あなたの名前を教えてくれる？」
+	ELSE
+		PRINTFORML 「ねえ、\@ TALENT:性別 == 2 ? あんた # あなた \@の名前を教えてよ」
+	ENDIF
 	PRINTW 
-	PRINTFORML 初対面なのに随分と馴れ馴れしいが、不思議と不愉快にはならなかった
+	IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行) && (TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3)
+		PRINTFORML 妖怪だけど、声はとても優しかった
+	ELSE
+		PRINTFORML 初対面なのに随分と馴れ馴れしいが、不思議と不愉快にはならなかった
+	ENDIF
 	
 		CALL NAME_SET_K42
 	
 	PRINTFORML 「ふーん、%MASTERNAME:42%っていうのね」
-	PRINTFORMW 「ねえあんた、何か面白いネタ知ってない？」
-	PRINTFORML 名前を名乗ったにも関わらず、あんた呼ばわりされてしまった
-	PRINTFORML 「え？　だって私とあんたってまだ知り合ったばかりじゃん」
-	PRINTFORML 「そんな名前で呼び合うほど親しい間柄じゃないんですけどー」
-	PRINTW 
-	PRINTFORML 里によく現れるショートヘアの天狗はもう少し丁寧な言葉遣いだったようだが、目の前の少女は違うようだ
-	PRINTFORML なんというか、他の妖怪と比べても独特な喋り方をする
-	PRINTW
-	PRINTFORML 「名前を覚えてほしかったらさー、私に何か面白いネタを教えてよ」
-	PRINTFORML 「それかさぁ、あんたが有名になったら私があんたのこと取材してあげるから」
-	PRINTW 
+	IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行) && (TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3)
+		PRINTFORML 「ねえ%MASTERNAME:42%、どこから来たの？」
+		PRINTFORML 「ここは妖怪の山。こわーい妖怪がたくさんいるのよ。攫われても知らないよ？」
+	ELSE
+		PRINTFORMW 「ねえ\@ TALENT:性別 == 2 ? あんた # %MASTERNAME:42% \@、何か面白いネタ知ってない？」
+	ENDIF
+	IF TALENT:MASTER:性別 == 2
+		PRINTFORML 名前を名乗ったにも関わらず、あんた呼ばわりされてしまった
+		PRINTFORML 「え？　だって私とあんたってまだ知り合ったばかりじゃん」
+		PRINTFORML 「そんな名前で呼び合うほど親しい間柄じゃないんですけどー」
+		PRINTW 
+		PRINTFORML 里によく現れるショートヘアの天狗はもう少し丁寧な言葉遣いだったようだが、目の前の少女は違うようだ
+		PRINTFORML なんというか、他の妖怪と比べても独特な喋り方をする
+		PRINTW
+		PRINTFORML 「名前を覚えてほしかったらさー、私に何か面白いネタを教えてよ」
+		PRINTFORML 「それかさぁ、あんたが有名になったら私があんたのこと取材してあげるから」
+		PRINTW 
+	ELSE
+		IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行) && (TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3)
+			PRINTFORML はたてという名前の女の人は、妖怪なのに心配してくれているようだ
+			PRINTW 
+			IF MAIN_MAP == 8
+				;文と同棲
+				IF CFLAG:MASTER:初期位置 == 807
+					PRINTFORML だが、文お姉ちゃんと一緒に住んでいるから大丈夫だと返事をする
+					PRINTL 
+					PRINTFORML 「は？　あいつと？　なんで？　ってゆーか、いつから一緒に住んでたの？」
+					PRINTFORML 「私、全然気付かなかったんだけど…ひょっとして監禁されてた？　よく分かんない？」
+				;椛と同棲
+				ELSEIF CFLAG:MASTER:初期位置 == 808
+					PRINTFORML だが、椛お姉ちゃんと一緒に住んでいるから大丈夫だと返事をする
+					PRINTL 
+					PRINTFORML 「へ？　椛と？　へー、あの子が人間と、ねぇ…」
+					PRINTFORML 「職務に真面目なあの子がそんなことしてるなんてねぇ。ちょっと意外ー」
+				;山小屋
+				ELSEIF CFLAG:MASTER:初期位置 == 810
+					PRINTFORML だが、近くの山小屋に住んでいるから大丈夫だと返事をする
+					PRINTL 
+					PRINTFORML 「あんなところに一人で？　わお、ちっこいのになかなかたくましいわね」
+				;守矢神社・神奈子私室
+				ELSEIF CFLAG:MASTER:初期位置 == 817
+					PRINTFORML だが、八坂様のお部屋に一緒に住んでいるから大丈夫だと返事をする
+					PRINTL 
+					PRINTFORML 「あー、あなた八坂様の知り合いだったのね。ならダイジョーブかな」
+				;諏訪子私室
+				ELSEIF CFLAG:MASTER:初期位置 == 818
+					PRINTFORML だが、諏訪子様のお部屋に一緒に住んでいるから大丈夫だと返事をする
+					PRINTL 
+					PRINTFORML 「あー、あなたあの祟り神様の知り合いだったのね。なら妖怪もおいそれと手出ししたりしないわね」
+				;早苗私室
+				ELSEIF CFLAG:MASTER:初期位置 == 820
+					PRINTFORML だが、早苗お姉ちゃんのお部屋に一緒に住んでいるから大丈夫だと返事をする
+					PRINTL 
+					PRINTFORML 「あー、あの緑の巫女２号さんの知り合いなんだ。妹…じゃないわよね？」
+				;あなた私室
+				ELSEIF CFLAG:MASTER:初期位置 == 823
+					PRINTFORML 山の神社に住んでいるから大丈夫だと返事をする
+					PRINTL 
+					PRINTFORML 「あれ、あなた神社の子だったの？　よく分からない？」
+				;比那名居邸
+				ELSE
+					PRINTFORML 空の上に住んでいるから大丈夫だと返事をする
+					PRINTL 
+					PRINTFORML 「空の上って…まさか、天界？」
+					PRINTFORML 「あなたって、天人なの？　え？　よく分かんない？」
+				ENDIF
+				PRINTW 
+				PRINTFORML 「私が知らなかっただけかー。足元がおろそかになってたみたい」
+				PRINTFORML 「いくら私が引きこもりとはいえ、妖怪の山に住んでるならすれ違うくらいはしてもおかしくなさそうだけど…」
+				PRINTW 
+				PRINTFORML 「あ、そうだ。%MASTERNAME:42%。よかったら私と友達にならない？」
+				PRINTFORML 「いくら神様や妖怪の庇護があるからといって、こんなところに小さい娘が住んでるなんて、興味が湧いてきたわ」
+				PRINTL 
+				PRINTFORML 「私も、あなたのこと守ってあげるから、あなたのこともっと教えてよ♪」
+				PRINTFORML 「よろしくね。これから長い付き合いになるかもね♪」
+				PRINTFORML はたては人懐っこく笑った
+				PRINTW 
+			;妖怪の山以外に在住
+			ELSE
+				PRINTFORML 「妖怪の山の外に住んでいるけど、気付いたら迷い込んでいたと…」
+				PRINTFORML 「小っちゃいくせに、あなたなかなかワイルドねぇ。見どころがあるわ」
+				PRINTW 
+				PRINTFORML 「よし、決めた。%MASTERNAME:42%、私が案内役になってあげる」
+				PRINTFORML 「あなたについていったら、何か面白いことが起こりそう。記者のカンがそう告げてるわ！」
+				PRINTL 
+				PRINTFORML 「困ったことがあったら私を頼りなさい。手助けしてあげる♪」
+				PRINTFORML 「そのかわり、山の外のことを色々教えてくれる？　あなたが知ってることでいいから」
+				PRINTW 
+				PRINTFORML 「ああそれと、この山はむやみに歩き回っちゃ駄目だからね」
+				PRINTFORML はたてが、一瞬妖怪の顔つきになる
+				PRINTL 
+				PRINTFORML 「私よりももっと怖い天狗や、人を誑かす悪い狐や、何でも食べちゃうこわーい百足の妖怪もいるからね」
+				PRINTFORML 「怖い目に遭いたくなかったら、私の言うことをちゃんと聞くのよ♪」
+				PRINTW 
+			ENDIF
+		ELSE
+			PRINTFORML はたては天狗の割に人懐っこい性格をしているようだ
+			PRINTFORML もう一人の烏天狗も距離感が近いといえば近いが…
+			PRINTW 
+			PRINTFORML 「ねぇねぇ、もしよかったら友達になってくんない？」
+			PRINTFORML 「私ってヒキコモリだからさー。あんまり友達いないのよねー」
+			PRINTFORML どうも自分の知っている引きこもりとはたての言う引きこもりはズレがありそうだ…
+			PRINTW 
+			PRINTFORML 「私ね、人間の女の子のファッションとか、好きな食べ物とかにも興味あるんだー」
+			PRINTFORML 「特に甘い物！　あれってすごいよね！　おおっぴらに人里には行けないからさ、たまにしか食べれないんだけど」
+			PRINTFORML 「%MASTERNAME:42%が友達になってくれたら、人里も簡単に行けるじゃん♪　ねー、友達になってよ！」
+			PRINTW 
+			PRINTFORML 強引さに押し負け、「まあ、話し相手なら…」と承諾する
+			PRINTFORML 「やったー！　ありがと！」
+			PRINTFORML 「ついでに記事になりそうな面白いネタがあったら私に一番に教えてね！　取材協力ってことで名前入れたげるから♪」
+			PRINTW 
+			PRINTFORML 「それじゃ、よろしくね、%MASTERNAME:42%♪」
+			PRINTFORML はたてはニッコリと笑って手を差し出してきた
+			PRINTW 
+		ENDIF
+	ENDIF
 ELSE
 	CFLAG:1014 = 2
-	PRINTFORML 「ん？　あんた誰ー？」
+	PRINTFORML 「ん？　\@ TALENT:性別 == 2 ? あんた # あなた \@誰ー？」
 	PRINTFORML 前を歩いてきた天狗の少女と目が合い、声を掛けられてきた
 	PRINTW 
 	PRINTFORML 相手に名前を訊ねるなら、そちらから名乗るのが先だろうと注意した
@@ -212,24 +358,42 @@ ELSE
 	PRINTFORML 天狗の少女──はたては、がっくりと肩を落とした
 	PRINTFORML しかし、すぐに気を取り直したのか、はたては顔を上げて%CALLNAME:MASTER%を見つめてきた
 	PRINTW 
-	PRINTFORML 「ま、いいや。これからどんどん有名になっていけばいいんだし。で、あんたの名前は？　教えてよ」
+	PRINTFORML 「ま、いいや。これからどんどん有名になっていけばいいんだし。で、\@ TALENT:性別 == 2 ? あんた # あなた \@の名前は？　教えてよ」
 	PRINTW 
 	PRINTFORML 初対面なのに随分と馴れ馴れしいが、不思議と不愉快にはならなかった
 	
 		CALL NAME_SET_K42
 		
-	PRINTFORMW 「ねえあんた、何か面白いネタ知ってない？」
-	PRINTFORML 名前を名乗ったにも関わらず、あんた呼ばわりされてしまった
-	PRINTFORML 「え？　だって私とあんたってまだ知り合ったばかりじゃん」
-	PRINTFORML 「そんな名前で呼び合うほど親しい間柄じゃないんですけどー」
-	PRINTW 
-	PRINTFORML 里によく現れるショートヘアの天狗はもう少し丁寧な言葉遣いだったようだが、目の前の少女は違うようだ
-	PRINTFORML なんというか、他の妖怪と比べても独特な喋り方をする
-	PRINTFORML ずけずけとものを言うところを見ると、腹に何か隠し持つタイプでもなさそうだ
-	PRINTW
-	PRINTFORML 「名前を覚えてほしかったらさー、私に何か面白いネタを教えてよ」
-	PRINTFORML 「それかさぁ、あんたが有名になったら私があんたのこと取材してあげるから」
-	PRINTW 
+	PRINTFORMW 「ねえ\@ TALENT:性別 == 2 ? あんた # %MASTERNAME:42% \@、何か面白いネタ知ってない？」
+	IF TALENT:MASTER:性別 == 2
+		PRINTFORML 名前を名乗ったにも関わらず、あんた呼ばわりされてしまった
+		PRINTFORML 「え？　だって私とあんたってまだ知り合ったばかりじゃん」
+		PRINTFORML 「そんな名前で呼び合うほど親しい間柄じゃないんですけどー」
+		PRINTW 
+		PRINTFORML 里によく現れるショートヘアの天狗はもう少し丁寧な言葉遣いだったようだが、目の前の少女は違うようだ
+		PRINTFORML なんというか、他の妖怪と比べても独特な喋り方をする
+		PRINTFORML ずけずけとものを言うところを見ると、腹に何か隠し持つタイプでもなさそうだ
+		PRINTW
+		PRINTFORML 「名前を覚えてほしかったらさー、私に何か面白いネタを教えてよ」
+		PRINTFORML 「それかさぁ、あんたが有名になったら私があんたのこと取材してあげるから」
+		PRINTW 
+	ELSE
+		PRINTFORML はたては天狗の割に人懐っこい性格をしているようだ
+		PRINTFORML もう一人の烏天狗も距離感が近いといえば近いが…
+		PRINTW 
+		PRINTFORML 「もしよかったらさ、友達になってくんない？」
+		PRINTFORML 「私ってヒキコモリだからさー。あんまり友達いないのよねー」
+		PRINTFORML どうも自分の知っている引きこもりとはたての言う引きこもりはズレがありそうだ…
+		PRINTW 
+		PRINTFORML 「私ね、人間の女の子のファッションとか、好きな食べ物とかにも興味あるんだー」
+		PRINTFORML 「特に甘い物！　あれってすごいよね！　おおっぴらに人里には行けないからさ、たまにしか食べれないんだけど」
+		PRINTFORML 「%MASTERNAME:42%が友達になってくれたら、人里も簡単に行けるじゃん♪　ねー、友達になってよ！」
+		PRINTW 
+		PRINTFORML 強引さに押し負け、「まあ、話し相手なら…」と承諾する
+		PRINTFORML 「やったー！　ありがと！」
+		PRINTFORML 「ついでに記事になりそうな面白いネタがあったら私に一番に教えてね！　取材協力ってことで名前入れたげるから♪」
+		PRINTW 
+	ENDIF
 	PRINTFORML 「ま、これからよろしくーってことで」
 	PRINTFORML そう言ってはたてはニッコリと笑った
 	PRINTW 
@@ -262,12 +426,48 @@ IF LOCAL
 			PRINTFORMW はたてに呼び止められ、%MASTERNAME:42%は振り返った
 			PRINTFORML 瞬間、はたての顔が%MASTERNAME:42%の眼前に迫り──
 			PRINTW 
-			PRINTFORML 「えへへ、キス、しちゃった」
+			PRINTFORML 「えへへ、\@ TALENT:性別 == 2 ?  # 女の子同士で \@キス、しちゃった」
 			PRINTFORML はたては、ペロっと舌を出して頬を掻いている
 			PRINTW 
-			PRINTFORML 「言っとくけど、今の、私の初めてだからね」
-			PRINTFORML 「ちゃんと、責任取りなさいよっ♪」
-			PRINTW 
+			IF TALENT:MASTER:性別 == 2
+				PRINTFORML 「言っとくけど、今の、私の初めてだからね」
+				PRINTFORML 「ちゃんと、責任取りなさいよっ♪」
+				PRINTW 
+			ELSE
+				PRINTFORML 「あっ、ごっ、ごめんっ。勢いでついやっちゃったけど…嫌じゃなかった？」
+				CALL ASK_M("ううん、嬉しかったよ", 1,"いきなりじゃないほうがいいかなぁ", 1,"正直女の子同士は…と冗談を言う", 1)
+				SELECTCASE RESULT
+				CASE 0
+					PRINTFORML 「よ、よかったぁ…%MASTERNAME:42%に嫌われちゃったらどうしよ～～って…」
+					PRINTFORML 「女の子同士だけど、私、%MASTERNAME:42%のことが好きだよ…%UNICODE(0x2665) *1%」
+					PRINTW 
+				CASE 1
+					PRINTFORML 「う…ご、ごめんなさい」
+					PRINTFORML はたてはシュンとなって俯く
+					PRINTW 
+					PRINTFORML 別に嫌だったわけじゃない、びっくりしただけと頭を撫でてやると、はたては元気を取り戻した
+					PRINTFORML 「うん…次から気を付けるね。でも、%MASTERNAME:42%を見てたら、また急にしたくなっちゃうかも…キス」
+					PRINTW 
+					PRINTFORML これじゃあまた不意打ちされちゃうなあと笑うと、はたてが顔を真っ赤にして怒った
+					PRINTFORML 「うー、だ、だってしょーがないじゃん！　%MASTERNAME:42%が、だ、大好きなんだもんっ！」
+					PRINTL 
+					PRINTFORML 帰り道、はたてにポカポカと背中を叩かれ続ける羽目になってしまった…
+					PRINTW 
+				CASE 2
+					PRINTFORML 「え…」
+					PRINTFORML はたては目の前が真っ暗になったかのような錯覚を覚える
+					PRINTW 
+					PRINTFORML 「あの、ごめ、ごめ、なさい…」
+					PRINTFORML いつも元気で愛くるしいはたてが、親に叱られた子供のように震えている
+					PRINTW 
+					PRINTFORML ちょっと意地悪をしすぎたようだ…はたてを抱きしめながら謝った
+					PRINTFORML はたては安堵感からか、瞳から大粒の涙をポロポロと零し始める
+					PRINTW 
+					PRINTFORML 「よがっだぁ、よがっだよ゛ぉ、%MASTERNAME:42%、きらいにならないでぇ」
+					PRINTFORML はたてを傷付けてしまったことに胸を痛めながら、彼女が泣き止むまで抱きしめてやった…
+					PRINTW 
+				ENDSELECT
+			ENDIF
 		;ムードが半分未満だとはたてからキスしてくれない
 		ELSE
 		TCVAR:キスキャンセル = 1
@@ -375,6 +575,8 @@ IF LOCAL
 		PRINTFORML 「あーもう、嬉しいなあ」
 		PRINTW 
 		PRINTFORML 「大げさ？　そんなことないもん。私たち、種族だって立場だって違うじゃん」
+		SIF TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3
+		PRINTFORML 「それに、私たち女の子同士だからさ。もーこれ断られるかもって覚悟してたんだよ？」
 		PRINTFORML 「それなのに、『一緒にいよう』って言ってもらえたんだもん。これってすごいことだよ」
 		PRINTW 
 		PRINTFORML 「あ、ごめんね。一人で舞い上がっちゃった」
@@ -494,7 +696,7 @@ IF LOCAL
 			PRINTFORML 「んで、ね。これがあれば、私が何してたかとか、会いたい日なんかも連絡できるよーになるんだー」
 			PRINTFORML 「%MASTERNAME:42%にだったら、受け取ってほしーかなー、なんて…\/\/\/」
 			
-			CALL ASK_YN("いる","いらん")
+			CALL ASK_YN("いる","いらない")
 			IF !RESULT
 				PRINTFORML 「ほんと！？　よかったー、いらないって言われたらさすがにショックだったしー」
 				PRINTFORML 「じゃー使い方教えるね。ここを押すとねー…」
@@ -564,9 +766,15 @@ IF LOCAL
 								PRINTFORML 
 								PRINTW 
 							ELSE
-								PRINTFORML 「私の中じゃ、アンタってけっこーいいセンいってると思うんだけどなー」
-								PRINTFORML 「なんで彼女いないの？　それとも彼女はめんどい派？」
-								PRINTFORML 「ま、私でよかったらいつでもデートしたげるわよ♪」
+								IF TALENT:MASTER:性別 == 2
+									PRINTFORML 「私の中じゃ、アンタってけっこーいいセンいってると思うんだけどなー」
+									PRINTFORML 「なんで彼女いないの？　それとも彼女はめんどい派？」
+									PRINTFORML 「ま、私でよかったらいつでもデートしたげるわよ♪」
+								ELSEIF TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3
+									PRINTFORML 「%MASTERNAME:42%ってカワイーのにね」
+									PRINTFORML 「彼氏とかつくんないの？　それとも女の子の方が好きなの？」
+									PRINTFORML 「ま、いっか♪　恋人できちゃったら私と会う機会が減っちゃうもんね♪」
+								ENDIF
 							ENDIF
 						CASE 1
 							PRINTFORML 「あー楽しかった♪　また誘ってよねー」
@@ -577,10 +785,17 @@ IF LOCAL
 								PRINTFORML 「『またすぐに会いたい』？　だからー…あっ、こらぁ、お尻揉んで誤魔化すなぁ…%UNICODE(0x2665) *1%」
 								PRINTW 
 							ELSE
-								SIF TCVAR:351 >= 1
-									PRINTFORML 「アンタ、甘い物おごってくれるから好きよ%UNICODE(0x2665) *1%」
-								SIF TCVAR:356
+								IF TCVAR:351 >= 1
+									IF TALENT:MASTER:性別 == 2
+										PRINTFORML 「アンタ、甘い物おごってくれるから好きよ%UNICODE(0x2665) *1%」
+									ELSE
+										PRINTFORML 「また甘い物の食べさせあいっこしよーね♪」
+									ENDIF
+								ENDIF
+								
+								IF TCVAR:356 >= 1
 									PRINTFORML 「エッチもいっぱいできたし満足ー%UNICODE(0x2665) *1%」
+								ENDIF
 							ENDIF
 						ENDSELECT
 					ELSE
@@ -594,7 +809,6 @@ IF LOCAL
 							IF CFLAG:好感度 >= 3000
 								PRINTFORML 「ま、私でよかったら練習相手になったげるからさ♪」
 								PRINTW 
-							ELSE
 							ENDIF
 						CASE 1
 							IF TALENT:MASTER:恋人 && !TALENT:42:恋人
@@ -857,33 +1071,46 @@ IF LOCAL
 									PRINTW 
 								ENDIF
 							ELSE
-								PRINTFORML 「あ、おかーえり♪」
-								PRINTFORML 家からひょっこり顔を出し、はたてが笑顔で出迎えてくれた
-								PRINTW 
-								PRINTFORML 「今日はどうする？　お風呂？　ご飯？　それともわ・た・し？」
-								PRINTFORML 「きゃー言っちゃった%UNICODE(0x2665) *1%　一度言ってみたかったのよねー、これ…って、%MASTERNAME:42%？」
-								PRINTFORML 「え？　私？　冗談よねー？　あのー、%MASTERNAME:42%、顔が怖いんですけど…」
-								PRINTW 
-								PRINTL [0] 据え膳頂きます
-								PRINTL [1] 冗談
-								$INPUT_LOOP_suezen
-								INPUT
-								IF RESULT == 0
-									PRINTFORMW 「あ、でもでも、まだお風呂入ってないし」
-									PRINTFORMW 「お布団ちゃんと引いてないし」
-									PRINTFORMW 「それに、心の準備が…」
-									PRINTFORMW 「あ、あうう…きょ、今日だけだからね…」
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「あ、おかーえり♪」
+									PRINTFORML 家からひょっこり顔を出し、はたてが笑顔で出迎えてくれた
 									PRINTW 
-									CALL 抱き寄せ(42)
-									;押し倒しに移行
-								ELSEIF RESULT == 1
-									PRINTFORML 「じょ、冗談だったんだ…」
-									PRINTFORML はたてはホッとしたような、残念なような複雑な表情を浮かべている
-									PRINTFORML （うう、%MASTERNAME:42%気分悪くしてないかなー。悪いことしちゃったかなぁ）
+									PRINTFORML 「今日はどうする？　お風呂？　ご飯？　それともわ・た・し？」
+									IF CFLAG:TARGET:溜まってる度 >= 500
+										PRINTFORML 「きゃー言っちゃった%UNICODE(0x2665) *1%　一度言ってみたかったのよねー、これ…って、%MASTERNAME:42%？」
+										PRINTFORML 「え？　私？　冗談よねー？　あのー、%MASTERNAME:42%、顔が怖いんですけど…」
+										PRINTW 
+											PRINTL [0] 据え膳頂きます
+											PRINTL [1] 冗談
+											$INPUT_LOOP_suezen
+											INPUT
+											IF RESULT == 0
+												PRINTFORMW 「あ、でもでも、まだお風呂入ってないし」
+												PRINTFORMW 「お布団ちゃんと引いてないし」
+												PRINTFORMW 「それに、心の準備が…」
+												PRINTFORMW 「あ、あうう…きょ、今日だけだからね…」
+												PRINTW 
+												CALL 抱き寄せ(42)
+												;押し倒しに移行
+											ELSEIF RESULT == 1
+												PRINTFORML 「じょ、冗談だったんだ…」
+												PRINTFORML はたてはホッとしたような、残念なような複雑な表情を浮かべている
+												PRINTFORML （うう、%MASTERNAME:42%気分悪くしてないかなー。悪いことしちゃったかなぁ）
+												PRINTW 
+											ELSE
+												GOTO INPUT_LOOP_suezen
+											ENDIF
+									ELSE
+										CALL HPH_PRINT,@"「きゃー言っちゃったHPH　一度言ってみたかったのよねー、これ」","L"
+										PRINTFORML はたてはイヤンイヤンと首を振っている
+										PRINTW 
+									ENDIF
+								CASE 1
+									PRINTFORML 「%MASTERNAME:42%%UNICODE(0x2665) *1%　おかえりなさい%UNICODE(0x2665) *1%」
+									PRINTFORML はたては抱きついて出迎えてくれた
 									PRINTW 
-								ELSE
-									GOTO INPUT_LOOP_suezen
-								ENDIF
+								ENDSELECT
 							ENDIF
 						ENDIF
 					;非同棲中
@@ -949,48 +1176,109 @@ IF LOCAL
 						PRINTW 
 					ENDIF
 				ELSEIF TALENT:思慕
-					PRINTFORML 「あっ、%MASTERNAME:42%。来てくれたの？」
-					PRINTFORML 「なーに立ったままなのよ。ほら、上がって上がって」
-					PRINTW 
+					IF TALENT:MASTER:性別 == 2
+						PRINTFORML 「あっ、%MASTERNAME:42%。来てくれたの？」
+						PRINTFORML 「なーに立ったままなのよ。ほら、上がって上がって」
+						PRINTW 
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「あっ、%MASTERNAME:42%。来てくれたの？」
+							PRINTFORML 「なーに立ったままなのよ。ほら、上がって上がって」
+							PRINTW 
+						CASE 1
+							PRINTFORML 「あっ、%MASTERNAME:42%じゃん！　いらっしゃい♪」
+							PRINTFORML 「今日はどんなお話する？　あ、そーいえばさ、この前…」
+							PRINTW 
+						ENDSELECT
+					ENDIF
 				ELSEIF CFLAG:好感度 >= 500
 					PRINTFORML 「あら、%MASTERNAME:42%じゃん」
 					PRINTFORML 「そこで立ちっぱなしもなんだし、上がったら？　
 					PRINTW 
 				ELSE
-					PRINTFORML 「え、あんた何しにきたの？」
-					PRINTFORML 「まあお茶くらいは出してあげるけど、用が済んだらさっさと帰ってよねー」
-					PRINTW 
+					IF TALENT:MASTER:性別 == 2
+						PRINTFORML 「え、あんた何しにきたの？」
+						PRINTFORML 「まあお茶くらいは出してあげるけど、用が済んだらさっさと帰ってよねー」
+						PRINTW 
+					ELSE
+						PRINTFORML 「あ、%MASTERNAME:42%じゃん。どーしたの？」
+						PRINTFORML 「ま、とりあえず上がっていきなさいよ」
+						PRINTW 
+					ENDIF
 				ENDIF
 			;はたて宅以外
 			ELSE
 				IF TALENT:恋慕 || TALENT:恋人
-					PRINTFORML 「あっ、%MASTERNAME:42%♪」
-					PRINTFORML 「ひょっとして私のこと探してくれてたの？　なーんて♪」
-					CALL ASK_YN("そうだよ","違いますよ")
-					IF !RESULT
-						PRINTFORML 「！　そ、そーなんだー。そーなんだー\/\/\/　えへへ…♪」
+					SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「あっ、%MASTERNAME:42%♪」
+						PRINTFORML はたてはこちらに気付くと、手を振りながら小走りで近づいてきた
 						PRINTW 
-					ELSE
-						PRINTFORML 「ちぇー、残念～」
-						PRINTW 
-					ENDIF
+					CASE 1
+						PRINTFORML 「あっ、%MASTERNAME:42%♪」
+						PRINTFORML 「ひょっとして私のこと探してくれてたの？　なーんて♪」
+						SELECTCASE RAND:2
+						CASE 0
+							CALL ASK_YN("そうだよ","違いますよ")
+							IF !RESULT
+								PRINTFORML 「！　そ、そーなんだー。そーなんだー\/\/\/　えへへ…♪」
+								PRINTW 
+							ELSE
+								PRINTFORML 「ちぇー、残念～」
+								PRINTW 
+							ENDIF
+						CASE 1
+							PRINTFORML 「あっ、%MASTERNAME:42%♪　やっほー♪」
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML こちらに近寄ってきたはたてと両手でタッチしあった
+							CASE 1
+								PRINTFORML こちらに近寄ってきたはたてと両手の指を絡めあってお互い小さくジャンプした
+							ENDSELECT
+							PRINTW 
+						ENDSELECT
+					CASE 2 && (TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3)
+					ENDSELECT
 				ELSEIF TALENT:愛欲 || TALENT:セフレ
-					PRINTFORML 「あら、ひょっとして私を探しに来てくれたの？」
-					CALL ASK_YN("そうだよ","違いますよ")
-					IF !RESULT
-						PRINTFORML 「あら、嬉しいこといってくれるのね♪　じゃあ、後でサービスしちゃおうかしら…♪」
+					PRINTFORML 「あれ、ひょっとして私を探しに来てくれたの？」
+					SELECTCASE RAND:2
+					CASE 0
+						CALL ASK_YN("そうだよ","違いますよ")
+						IF !RESULT
+							PRINTFORML 「あら、嬉しいこといってくれるのね♪　じゃあ、後でサービスしちゃおうかしら…♪」
+							PRINTW 
+						ELSE
+							PRINTFORML 「いけずねぇ。そーいうときは嘘でも『そうだよ』って言えばいいものを」
+							PRINTFORML 「ま、アンタにそーいうのは期待しちゃいないけど、ね」
+							PRINTW 
+						ENDIF
+					CASE 1
+						PRINTFORML 「ま、アンタが私を探しに来たってことはそーいうことよね…♪」
+						PRINTW 
+					ENDSELECT
+				ELSEIF TALENT:思慕
+					IF TALENT:MASTER:性別 == 2
+						PRINTFORML 「あれ、%MASTERNAME:42%じゃん」
+						PRINTFORML 「こんなとこで奇遇ねー♪」
 						PRINTW 
 					ELSE
-						PRINTFORML 「いけずねぇ。そーいうときは嘘でも『そうだよ』って言えばいいものを」
-						PRINTFORML 「ま、アンタにそーいうのは期待しちゃいないけど、ね」
-						PRINTW 
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「あれ、%MASTERNAME:42%じゃん」
+							PRINTFORML 「こんなとこで奇遇ねー♪」
+							PRINTW 
+						CASE 1
+							PRINTFORML 「%MASTERNAME:42%じゃん。やっほー♪」
+							PRINTFORML はたては近づいて笑顔でハイタッチしてきた
+						ENDSELECT
 					ENDIF
-				ELSEIF TALENT:思慕
-					PRINTFORML 「あれ、%MASTERNAME:42%じゃん」
-					PRINTFORML 「こんなとこで奇遇ねー♪」
-					PRINTW 
 				ELSE
-					PRINTFORML 「なーんだ、あんたか」
+					IF TALENT:MASTER:性別 == 2
+						PRINTFORML 「なーんだ、あんたか」
+					ELSE
+						PRINTFORML 「あ、%MASTERNAME:42%じゃん。今暇？　付き合ってよ！」
+					ENDIF
 					PRINTW 
 				ENDIF
 			ENDIF
@@ -1043,8 +1331,14 @@ IF LOCAL
 					PRINTFORML 「ま、思いがけず会えるのもそれはそれで嬉しーけどね」
 					PRINTW 
 				ELSEIF TALENT:思慕
-					PRINTFORML 「あれ、%MASTERNAME:42%来てたんだ…って、何自分ちみたいにくつろいでんのよ」
-					PRINTW 
+					IF TALENT:MASTER:性別 == 2
+						PRINTFORML 「あれ、%MASTERNAME:42%来てたんだ…って、何自分ちみたいにくつろいでんのよ」
+						PRINTW 
+					ELSE
+						PRINTFORML 「あれ、%MASTERNAME:42%来てたんだ…って、何自分ちみたいにくつろいでんのよ」
+						PRINTFORML 「アンタもけっこー妖怪の山に馴染んできたわねー」
+						PRINTW 
+					ENDIF
 				;鍵閉まってて死に口上な気がする
 				ELSE
 					PRINTFORML 「…あんた人ん家で何くつろいでんのよ」
@@ -1054,17 +1348,28 @@ IF LOCAL
 		;はたて宅以外
 		ELSE
 			IF CFLAG:1100 >= 1
+				PRINTFORML 「あれ、ダーリン、こんなところにいたんだ」
+				PRINTFORML 「ん。私も脱引きこもりしてたとこ。なんてね♪」
 			ELSEIF TALENT:恋慕 || TALENT:恋人
+				PRINTFORML 「%MASTERNAME:42%とこんなところで会うなんて、私たちの相性バッチリだー♪」
+				PRINTW 
 			ELSEIF TALENT:思慕
-				PRINTFORML 
+				PRINTFORML 「あれ、%MASTERNAME:42%じゃん。こんなところで会うなんてねー」
+				PRINTFORML 「ねーねー、よかったらお話しよーよ」
+				PRINTW 
 			ELSEIF CFLAG:好感度 >= 500
 				PRINTFORML 「あれ、%MASTERNAME:42%。奇遇ね」
 				PRINTFORML 「それともはたてちゃんの追っかけでもやってたのー？　なんてね」
 				PRINTW 
 			ELSE
-				PRINTFORML 「あれ、あんたここで何やってんのよ」
-				PRINTFORML 「ひょっとして犯罪？　だったら一部始終見せてもらってもいい？」
-				PRINTW 
+				IF TALENT:MASTER:性別 == 2
+					PRINTFORML 「あれ、あんたここで何やってんのよ」
+					PRINTFORML 「ひょっとして犯罪？　だったら一部始終見せてもらってもいい？」
+					PRINTW 
+				ELSE
+					PRINTFORML 「あれ？　%MASTERNAME:42%。こんなところで会うなんて奇遇じゃん」
+					PRINTW 
+				ENDIF
 			ENDIF
 		ENDIF
 		RETURN 1
@@ -1090,6 +1395,8 @@ IF LOCAL
 					PRINTFORML はたては手の甲を文に向け、しっしっと追い払う仕草をした
 					PRINTW 
 					PRINTFORML 「ってゆーか、あんた知ってて知らんふりしてるでしょ！　その人はぁ、わーたーしーのこ・い・び・となんですけどぉー！？」
+					SIF TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3
+					PRINTFORML 「悪い！？　幻想郷じゃ女の子同士でも恋人になれるんですー！」
 					PRINTFORML 殊更「恋人」の部分に力を込めながら、はたては文からひったくるように%CALLNAME:MASTER%の腕を引っ張った
 					PRINTW 
 				;にとり
@@ -1140,8 +1447,63 @@ IF LOCAL
 				ENDIF
 			;二人だけでお風呂に入る
 			ELSE
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「えっと、私も一緒に入っていいかな？」
+					PRINTFORML 胸や股間をそっと手で隠しながら、はたてはおずおずと浴槽に近づいた
+					PRINTW 
+				CASE 1
+					PRINTFORML 「一緒にお風呂って、なんかドキドキしちゃうね…♪」
+					PRINTFORML 手招きすると、はたては照れながらも一緒に入ることを承諾してくれた
+					PRINTW 
+				ENDSELECT
 			ENDIF
 		ELSEIF TALENT:恋慕
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「えっと、私も一緒に入っていいかな？」
+				PRINTFORML 胸や股間をそっと手で隠しながら、はたてはおずおずと浴槽に近づいた
+				PRINTW 
+			CASE 1
+				PRINTFORML 「一緒にお風呂って、なんかドキドキしちゃうね…♪」
+				PRINTFORML 手招きすると、はたては照れながらも一緒に入ることを承諾してくれた
+				PRINTW 
+			ENDSELECT
+		ELSEIF TALENT:愛欲 || TALENT:セフレ
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「あっ、%MASTERNAME:42%じゃん。私も入っていーい？」
+				PRINTFORML こちらが返事をするまでもなく、はたては服を脱いで浴室に入ってきた
+				PRINTW 
+			CASE 1
+				PRINTFORML 「%MASTERNAME:42%。せっかくだから身体洗ってあげよーか♪」
+				PRINTFORML 意味ありげな視線を送りながら、裸身を隠すことなくはたてが入ってきた
+				PRINTW 
+			ENDSELECT
+		;実質女の子専用
+		ELSE
+			SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「あれ、%MASTERNAME:42%じゃん。先に入ってたの？」
+				PRINTFORML 「私も一緒に入っていーい？」
+				PRINTW 
+			CASE 1
+				PRINTFORML 「あれ、%MASTERNAME:42%じゃん。よく会うわね」
+				PRINTFORML 「私も一緒に入っちゃおっと」
+				PRINTW 
+			CASE 2
+				IF TALENT:TARGET:バストサイズ > TALENT:MASTER:バストサイズ
+					PRINTFORML 「よし…勝った」
+					PRINTFORML はたてはボソリと勝利宣言した
+				ELSEIF TALENT:TARGET:バストサイズ < TALENT:MASTER:バストサイズ
+					PRINTFORML 「うっ…負けてる…」
+					PRINTFORML はたては自分の胸に触れ、ため息をついた
+				ELSE
+					PRINTFORML 「ま、負けてはない…よね？」
+					PRINTFORML はたては自分の胸とこちらの胸を交互に見比べている…
+				ENDIF
+				PRINTW 
+			ENDSELECT
 		ENDIF
 		CFLAG:42:1002 += 1
 		RETURN 1
@@ -1385,25 +1747,33 @@ IF LOCAL
 					PRINTFORML はたてはお尻を手で隠し、警戒している
 				ELSEIF (Πタッチ > スカートめくり) && (Πタッチ > お尻タッチ)
 					PRINTFORML 「うわ！　妖怪乳揉みだ！　キモーい！」
-					PRINTFORML はたては両腕で控えめな胸を掻き抱き、こちらを警戒している
+					PRINTFORML はたては両腕で\@ TALENT:バストサイズ < 0 ? 控えめな # \@胸を掻き抱き、こちらを警戒している
 					PRINTW 
 				ELSE
+					IF TALENT:MASTER:性別 == 2
+						PRINTFORML えーと…%MASTERNAME:42%…だったわよね？」
+						PRINTFORML やっと名前を覚えてもらえたようだ
+						PRINTW 
+					ENDIF
+				ENDIF
+			CASEELSE
+				IF TALENT:MASTER:性別 == 2
 					PRINTFORML えーと…%MASTERNAME:42%…だったわよね？」
 					PRINTFORML やっと名前を覚えてもらえたようだ
 					PRINTW 
 				ENDIF
-			CASEELSE
-				PRINTFORML えーと…%MASTERNAME:42%…だったわよね？」
-				PRINTFORML やっと名前を覚えてもらえたようだ
-				PRINTW 
 			ENDSELECT
 		ELSEIF CFLAG:好感度 >= 200
 			SELECTCASE RAND:3
 			CASE 0
-				PRINTFORML 「あら、あんたじゃない」
+				PRINTFORML 「あら、\@ TALENT:性別 == 2 ? あんた # %MASTERNAME:42% \@じゃない」
 				PRINTFORML 「もちろん覚えてるわよ。アレでしょ？　ほら、アレ」
 				PRINTW 
 				PRINTFORML 顔は覚えてくれたようだが、名前と一致しないようだ
+				IF TALENT:MASTER:性別 == 2
+				ELSE
+					PRINTFORML 「なーんてね。ちゃんと友達のくらい覚えてるわよ」
+				ENDIF
 				PRINTW 
 			CASE 1
 				PRINTFORML 「あっ、%MASTERNAME:42%。いや、ゴンベイ？」
@@ -1412,31 +1782,48 @@ IF LOCAL
 					PRINTFORML しかし、女に向かってゴンベイとはいかがなものか
 					PRINTW 
 			CASEELSE
-				PRINTFORML 「あら、あんたじゃない」
+				PRINTFORML 「あら、\@ TALENT:性別 == 2 ? あんた # %MASTERNAME:42% \@じゃない」
 				PRINTFORML 「ねぇねぇ、何かいい情報は見つかった？　知ってるなら教えなさいよー」
 			ENDSELECT
 		ELSE
-			SELECTCASE RAND:4
-			CASE 0
-				PRINTFORML 「えーと…新聞は間に合ってます」
-				PRINTFORML 新聞記者のくせに随分ひどい記憶力だ
-				PRINTW 
-			CASE 1
-				PRINTFORML 「あっ、前に会ったわよね！　私よ、私私！」
-				PRINTFORML 詐欺にでも嵌めるつもりなのか
-				PRINTW 
-			CASE 2
-				PRINTFORML 「ねぇねぇそこの人、何か面白い話なーい？」
-				PRINTFORML ひょっとして記憶の片隅にも残っていないのだろうか
-				PRINTFORML 演技だったら逆に怖い
-				PRINTW 
-			CASEELSE
-				PRINTFORML 「あっ、あんた！」
-				PRINTFORML 「…誰だったっけ」
-				PRINTW 
-				PRINTFORML 少しは出会いや会話を重ねたつもりだったが、はたてからすればそうでもなかったようだ
-				PRINTW 
-			ENDSELECT
+			IF TALENT:MASTER:性別 == 2
+				SELECTCASE RAND:4
+				CASE 0
+					PRINTFORML 「えーと…新聞は間に合ってます」
+					PRINTFORML 新聞記者のくせに随分ひどい記憶力だ
+					PRINTW 
+				CASE 1
+					PRINTFORML 「あっ、前に会ったわよね！　私よ、私私！」
+					PRINTFORML 詐欺にでも嵌めるつもりなのか
+					PRINTW 
+				CASE 2
+					PRINTFORML 「ねぇねぇそこの人、何か面白い話なーい？」
+					PRINTFORML ひょっとして記憶の片隅にも残っていないのだろうか
+					PRINTFORML 演技だったら逆に怖い
+					PRINTW 
+				CASEELSE
+					PRINTFORML 「あっ、あんた！」
+					PRINTFORML 「…誰だったっけ」
+					PRINTW 
+					PRINTFORML 少しは出会いや会話を重ねたつもりだったが、はたてからすればそうでもなかったようだ
+					PRINTW 
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「あれ、%MASTERNAME:42%じゃん」
+					PRINTFORML 「ねぇねぇ、何かいい情報ない？」
+					PRINTW 
+				CASE 1 
+					PRINTFORML 「よくこんなところまで来れたわねー」
+					PRINTFORML 「うちに寄ってく？　せっかくだから色々お話しない？」
+					PRINTW 
+				CASE 2
+					PRINTFORML 「私は別にいーんだけどさ。他の天狗には気を付けなよ」
+					PRINTFORML 「融通がきかない奴だと乱暴されちゃうかもしれないからね」
+					PRINTW 
+				ENDSELECT
+			ENDIF
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -2149,8 +2536,21 @@ IF LOCAL
 			PRINTFORML 「じゃーねー%MASTERNAME:42%。また明日ー」
 			PRINTW 
 		ELSE
-			PRINTFORML 「じゃ、私帰るから。あんたもさっさと帰りなさいよね」
-			PRINTW 
+			IF TALENT:MASTER:性別 == 2
+				IF AT_HOME(MASTER) == 1
+					PRINTFORML 「じゃ、私帰るから。取材協力またよろしくー」
+				ELSE
+					PRINTFORML 「じゃ、私帰るから。あんたもさっさと帰りなさいよね」
+				ENDIF
+					PRINTW 
+			ELSE
+				IF AT_HOME(MASTER) == 1
+					PRINTFORML 「そろそろ帰るね。お邪魔しました」
+				ELSE
+					PRINTFORML 「そろそろ帰るね。%MASTERNAME:42%も帰り道は気を付けて」
+				ENDIF
+					PRINTW 
+			ENDIF
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -2270,21 +2670,61 @@ IF LOCAL
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 1
 			IF TALENT:恋人
-				PRINTFORML 「ごめーん、もう眠いからまた明日、ね」
-				PRINTFORML 「んじゃ、おやすみー」
-				PRINTW 
+				IF TALENT:MASTER:性別 == 2
+					PRINTFORML 「ごめーん、もう眠いからまた明日、ね」
+					PRINTFORML 「んじゃ、おやすみー」
+					PRINTW 
+				ELSE
+					
+				ENDIF
 			ELSEIF TALENT:愛欲 || TALENT:セフレ
 				PRINTFORML 「さすがに眠いと相手するのしんどいから、さ」
 				PRINTFORML 「シたかったらまた明日来てね。おやすみ」
 				PRINTW 
 			ELSEIF TALENT:思慕
-				PRINTFORML 「はいはい、可愛いはたてちゃんとずっと一緒にいたい気持ちは分かるけど、私今から寝るから」
-				PRINTFORML 「それじゃーね。おやすみー」
-				PRINTW 
+				IF TALENT:MASTER:性別 == 2
+					PRINTFORML 「はいはい、可愛いはたてちゃんとずっと一緒にいたい気持ちは分かるけど、私今から寝るから」
+					PRINTFORML 「それじゃーね。おやすみー」
+					PRINTW 
+				ELSE
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「あー、もう頭がくわんくわんする…」
+						PRINTFORML はたてが半分舟をこぎながらもたれかかってくる
+						PRINTFORM 身体を支えるために腕を回すと、
+						IF TALENT:TARGET:バストサイズ > 0
+							PRINTFORML 服越しとはいえ柔らかく豊満な乳房に指が埋まった
+						ELSEIF TALENT:TARGET:バストサイズ == -1
+							PRINTFORML 控えめながらも柔らかさのある胸にうっかり触れてしまった
+						ELSEIF TALENT:TARGET:バストサイズ == -2
+							PRINTFORML 胸がないとはいえ、女性特有の柔らかさが服を通して手の平に伝わった
+						ELSE
+							PRINTFORML 形の良い胸が手の甲に触れた
+						ENDIF
+						PRINTL 
+						PRINTFORML 「あー、ごめんねー…支えてもらってー…」
+						PRINTFORML こちらの胸の高鳴りに気付いていないかのように、はたては素直に感謝を述べる
+						PRINTL 
+						PRINTFORML 「うん、そろそろ寝る…また明日ね」
+						PRINTFORML 「おやすみ、%MASTERNAME:42%」
+						PRINTW 
+					CASE 1
+						PRINTFORML 「うー、ごめん、そろそろ眠いかもー」
+						PRINTFORML 「%MASTERNAME:42%、帰り道気を付けてねー」
+						PRINTFORML 「それじゃーね。おやすみー」
+						PRINTW 
+					ENDSELECT
+				ENDIF
 			ELSE
-				PRINTFORML 「あんたいつまで私の家にいるのよ」
-				PRINTFORML 「さ、帰った帰った」
-				PRINTW 
+				IF TALENT:MASTER:性別 == 2
+					PRINTFORML 「あんたいつまで私の家にいるのよ」
+					PRINTFORML 「さ、帰った帰った」
+					PRINTW 
+				ELSE
+					PRINTFORML 「ふぁ…そろそろ眠くなってきちゃった」
+					PRINTFORML 「そろそろお開きにしよっか。また明日ね。おやすみー」
+					PRINTW 
+				ENDIF
 			ENDIF
 			RETURN 1
 		ENDIF
@@ -2419,25 +2859,67 @@ IF LOCAL
 					ENDSELECT
 				ENDIF
 			ELSEIF TALENT:思慕
-				SELECTCASE RAND:2
-				CASE 0
-					PRINTFORML 「ん？　%MASTERNAME:42%、用事があるんじゃないの？」
-					PRINTFORML 「え、私のこと探してた？　何の用事？」
-					PRINTFORML 「特に用事はないけど会いたかったって…何よそれー\/\/\/」
-					PRINTFORML はたてにペシペシと肩を叩かれた
-					PRINTW 
-				CASE 1
-					PRINTFORML 「ん？　どしたの？」
-					PRINTFORML 「%MASTERNAME:42%も暇してるの？　じゃー私の取材に付き合ってよ♪」
-					PRINTW 
-				ENDSELECT
+				IF TALENT:MASTER:性別 == 2
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「ん？　%MASTERNAME:42%、用事があるんじゃないの？」
+						PRINTFORML 「え、私のこと探してた？　何の用事？」
+						PRINTFORML 「特に用事はないけど会いたかったって…何よそれー\/\/\/」
+						PRINTFORML はたてにペシペシと肩を叩かれた
+						PRINTW 
+					CASE 1
+						PRINTFORML 「ん？　どしたの？」
+						PRINTFORML 「%MASTERNAME:42%も暇してるの？　じゃー私の取材に付き合ってよ♪」
+						PRINTW 
+					ENDSELECT
+				ELSE
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「あ、%MASTERNAME:42%だー♪」
+						PRINTFORML はたてはこちらの姿を見つけると、小走りで駆け寄り、手を取って指を絡ませてきた
+						PRINTFORML 「会いたいなーって思ってたところなんだー。今日はどーする？」
+						PRINTFORML はたては童女のようにあどけなく笑った
+						PRINTW 
+					CASE 1
+						PRINTFORML 「%MASTERNAME:42%♪」
+						PRINTFORML はたてはふわりと宙を舞い、%MASTERNAME:42%の肩にちょこんと座る
+						PRINTFORML 巧みに浮いているためか、重さはまったく感じないが、お尻の柔らかさを肩で感じた
+						PRINTFORML 「今日は取材はお休み。どこか遊びに行こーよ♪」
+						PRINTW 
+					ENDSELECT
+				ENDIF
 			ELSEIF CFLAG:好感度 >= 500
-				PRINTFORML 「なになに？　私に何かネタ持ってきてくれたのー？」
-				PRINTW 
+				IF TALENT:MASTER:性別 == 2
+					PRINTFORML 「なになに？　私に何かネタ持ってきてくれたのー？」
+					PRINTW 
+				ELSE
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「やっほー。%MASTERNAME:42%。また会いに来てくれたんだ！」
+					CASE 1
+						PRINTFORML 「あ、%MASTERNAME:42%じゃん」
+						PRINTFORML 「なになに？　私に何かネタ持ってきてくれたのー？」
+					ENDSELECT
+					PRINTW 
+				ENDIF
 			ELSE
-				PRINTFORML 「うわ」
-				PRINTFORML 「何よ。私に何か用？」
-				PRINTW 
+				IF TALENT:MASTER:性別 == 2
+					PRINTFORML 「うわ」
+					PRINTFORML 「何よ。私に何か用？」
+					PRINTFORML ネタを教えろと言われたのにひどい言われようだ
+					PRINTW 
+				ELSE
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「あ、%MASTERNAME:42%。どーしたの？」
+						PRINTFORML 「ひょっとして何かいいネタでも持ってきてくれた？」
+						PRINTW 
+					CASE 1
+						PRINTFORML 「あ、%MASTERNAME:42%じゃん」
+						PRINTFORML ちゃんと名前を憶えてくれていたようでほっとした
+						PRINTW 
+					ENDSELECT
+				ENDIF
 			ENDIF
 		ENDIF
 		RETURN 1
@@ -2453,27 +2935,56 @@ IF LOCAL
 			PRINTFORML 「慌てすぎたら怪我しちゃうわよー！」
 			PRINTW 
 		ELSEIF TALENT:恋慕 || TALENT:恋人
-			PRINTFORML 「あ、%MASTERNAME:42%、そんなに急いでどこ行くのー！？」
-			PRINTFORML 「あーあ、行っちゃったー」
-			PRINTW 
+			IF TALENT:MASTER:性別 == 2
+				PRINTFORML 「あ、%MASTERNAME:42%、そんなに急いでどこ行くのー！？」
+				PRINTFORML 「あーあ、行っちゃったー」
+				PRINTW 
+			ELSE
+				PRINTFORML 「あ、%MASTERNAME:42%！　あのね、あのねっ」
+				PRINTFORML 「え、用事があるからまた後で？　うん、分かった…」
+				PRINTW 
+			ENDIF
 		ELSEIF TALENT:愛欲 || TALENT:セフレ
 			SELECTCASE RAND:3
 			CASE 0
 				PRINTFORML 「こらー！　私の胸をあいさつ代わりに揉んでいくなー！」
 				PRINTW 
 			CASE 1
-				PRINTFORML 「ちょっ…スカートめくりするとかガキなんだからぁ！」
-				PRINTW 
+				IF TALENT:MASTER:性別 == 2
+					PRINTFORML 「ちょっ…スカートめくりするとかガキなんだからぁ！」
+					PRINTW 
+				ELSE
+					PRINTFORML 「やンッ、スカートめくんないでよぉ！」
+					PRINTFORML 「まったく、スケベなんだからー」
+					PRINTW 
+				ENDIF
 			CASE 2
-				PRINTFORML 「どさくさに紛れて尻を触っていくあたりがアイツらしいわねぇ」
-				PRINTW 
+				IF TALENT:MASTER:性別 == 2
+					PRINTFORML 「どさくさに紛れて尻を触っていくあたりがアイツらしいわねぇ」
+					PRINTW 
+				ELSE
+					PRINTFORML 「もう…触るなら、ちゃんと可愛がってほしいのにィ」
+					PRINTW 
+				ENDIF
 			ENDSELECT
 		ELSEIF CFLAG:好感度 >= 500
-			PRINTFORML 「あー、ちょっとくらい私の相手してくれたっていーじゃーん」
-			PRINTW 
+			IF TALENT:MASTER:性別 == 2
+				PRINTFORML 「あー、ちょっとくらい私の相手してくれたっていーじゃーん」
+				PRINTW 
+			ELSE
+				PRINTFORML 「やっほー、%MASTERNAME:42%。あれ、もう行っちゃうのー？」
+				PRINTFORML 「また今度相手してよねー！」
+				PRINTW 
+			ENDIF
 		ELSE
-			PRINTFORML 「ん」
-			PRINTW 
+			IF TALENT:MASTER:性別 == 2
+				PRINTFORML 「ん」
+				PRINTW 
+			ELSE
+				PRINTFORML 「あれ、%MASTERNAME:42%、お出かけー？」
+				PRINTFORML 「またねー！」
+				PRINTW 
+			ENDIF
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -2497,20 +3008,45 @@ IF LOCAL
 				PRINTFORML 「何かあったのかな」
 				PRINTW 
 			ELSEIF TALENT:恋慕 || TALENT:恋人
-				PRINTFORML 「あっ…行っちゃった…」
-				PRINTFORML 「何か怒らせちゃったかなぁ…」
-				PRINTW 
+				IF TALENT:MASTER:性別 == 2
+					PRINTFORML 「あっ…行っちゃった…」
+					PRINTFORML 「何か怒らせちゃったかなぁ…」
+					PRINTW 
+				ELSE
+					PRINTFORML 「%MASTERNAME:42%…あれっ？」
+					PRINTFORML 「素通りされちゃった！　私、何か嫌われるようなことしちゃったっけ…？」
+					PRINTW 
+				ENDIF
 			ELSEIF TALENT:愛欲 || TALENT:セフレ
 				PRINTFORML 「せっかちねぇ。他の女にお熱なのかしら」
 				PRINTFORML 「ま、他所でアイツが何してよーが私には関係ないけどー」
 				PRINTW 
 			ELSEIF CFLAG:好感度 >= 500
-				PRINTFORML 「あいつってば、何急いでんのよ」
-				PRINTW 
+				IF TALENT:MASTER:性別 == 2
+					PRINTFORML 「あいつってば、何急いでんのよ」
+					PRINTW 
+				ELSE
+					IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+						PRINTFORML 「気を付けるのよー…って、もう行っちゃった。意外と足が速いわねぇ」
+					ELSE
+						PRINTFORML 「忙しそうにしてるわねー」
+						PRINTFORML 「って言っても、気付くくらいはしてほしかったなー」
+					ENDIF
+					PRINTW 
+				ENDIF
 			ELSE
-				PRINTFORML 「シカト？　うわー、感じ悪ー」
-				PRINTFORML 「…って誰だったっけ」
-				PRINTW 
+				IF TALENT:MASTER:性別 == 2
+					PRINTFORML 「シカト？　うわー、感じ悪ー」
+					PRINTFORML 「…って誰だったっけ」
+					PRINTW 
+				ELSE
+					IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+						PRINTFORML 「元気いっぱいねぇ。転ばないといいんだけど」
+					ELSE
+						PRINTFORML 「忙しい娘ねー」
+					ENDIF
+					PRINTW 
+				ENDIF
 			ENDIF
 		ENDIF
 		RETURN 1
@@ -2778,27 +3314,53 @@ IF LOCAL
 			PRINTFORML 喋ってる間、はたての目はずっと笑っていなかった…
 			PRINTW 
 		ELSEIF TALENT:恋慕 || TALENT:恋人
-			PRINTFORML 「%MASTERNAME:42%、これは何かなー？」
-			PRINTFORML 「そーねー、女物のパンツねー」
-			PRINTFORML 「%MASTERNAME:42%には必要なものかなー？」
-			PRINTFORML 「そーねー、ないないしましょーねー♪」
-			PRINTW 
+			IF TALENT:MASTER:性別 == 2
+				PRINTFORML 「%MASTERNAME:42%、これは何かなー？」
+				PRINTFORML 「そーねー、女物のパンツねー」
+				PRINTFORML 「%MASTERNAME:42%には必要なものかなー？」
+				PRINTFORML 「そーねー、ないないしましょーねー♪」
+				PRINTW 
+			ELSE
+				PRINTFORML 「%MASTERNAME:42%…言ってくれれば、私の下着あげるのに…」
+				PRINTFORML 「他の人の下着に触れるのは嫌っていうか…」
+				PRINTFORML 「もうこういうことしたら駄目だからね？」
+			ENDIF
 		ELSEIF TALENT:愛欲 || TALENT:セフレ
 			PRINTFORML 「ん～？　これなーにぃ～？」
 			PRINTFORML 「へー、あんたこーいう趣味なんだぁ。ヘンターイ♪」
 			PRINTFORML 「言ってくれれば私のあげたのになー」
 			PRINTW 
 		ELSEIF TALENT:思慕
-			PRINTFORML 「…なんでアンタのポケットに女物のパンツが入ってんのよ」
-			PRINTFORML 「そんなに欲しいんだったら私の…いやなんでもない」
-			PRINTFORML 「とりあえずこれは没収だから。盗られた人たちに返してくるわ」
-			PRINTW 
+			IF TALENT:MASTER:性別 == 2
+				PRINTFORML 「…なんでアンタのポケットに女物のパンツが入ってんのよ」
+				PRINTFORML 「そんなに欲しいんだったら私の…いやなんでもない」
+				PRINTFORML 「とりあえずこれは没収だから。盗られた人たちに返してくるわ」
+				PRINTW 
+			ELSE
+				PRINTFORML 「ん？　それって%MASTERNAME:42%の下着？」
+				PRINTFORML 「違う？　拾った？　また珍妙な話ね…」
+				PRINTFORML 「私が返してきてあげるわよ。歩き回るの大変でしょ？」
+				PRINTW 
+			ENDIF
 		ELSE
-			PRINTFORML 「うわっ、これ女物のパンツじゃん…」
-			PRINTFORML 「あんた、こーいう趣味あったわけ？　キモッ…」
-			PRINTFORML 「ひょっとして、私のパンツも狙ってんじゃないでしょーね…」
-			PRINTFORML はたては後ろ手でサっとスカートを押さえた
-			PRINTW 
+			IF TALENT:MASTER:性別 == 2
+				PRINTFORML 「うわっ、これ女物のパンツじゃん…」
+				PRINTFORML 「あんた、こーいう趣味あったわけ？　キモッ…」
+				PRINTFORML 「ひょっとして、私のパンツも狙ってんじゃないでしょーね…」
+				PRINTFORML はたては後ろ手でサっとスカートを押さえた
+				PRINTW 
+			ELSE
+				IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+					PRINTFORML 「%MASTERNAME:42%！？　それ、ハンカチじゃないのよ！？」
+					PRINTFORML 「そんなもの持ってちゃ駄目！　持ち主に返してといてあげるから、渡しなさい」
+					PRINTW 
+				ELSE
+					PRINTFORML 「%MASTERNAME:42%、下着をハンカチにするってのはさすがにどーかと…」
+					PRINTFORML 「違う？　拾ったのはいいけど扱いに困ってる？　…まー、フツーは困るわよね」
+					PRINTFORML 「とりあえずそれ、私が持ち主に返しといてあげるから。念写で突き留められるでしょ。多分」
+					PRINTW 
+				ENDIF
+			ENDIF
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -2834,14 +3396,26 @@ IF LOCAL
 			IF TCVAR:発情
 				PRINTFORML 「ふ～～～～～～っ%UNICODE(0x2665) *1%　ふ～～～～～～っ%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%」
 				PRINTFORML はたての瞳は情欲で濁りきっている…
-				PRINTFORML 頬を紅潮させ、息を荒げる普段からは想像できない姿に、下半身は嫌が応にも反応してしまう…
+				PRINTFORM 頬を紅潮させ、息を荒げる普段からは想像できない姿に
+				IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+					PRINTFORML 恐怖を覚え、眼の端に涙がにじんだ…
+				ELSE
+					PRINTFORML 、下半身は嫌が応にも反応してしまう…
+				ENDIF
 				PRINTW 
 			ELSE
 				IF TALENT:処女 == 1
-					PRINTFORML 「はたてのこと、もらってくれない%MASTERNAME:42%が悪いんだからね…っ！」
-					PRINTFORML 「ずっと、ずっと待ってたのに、本気で抱いてくれないから…」
-					PRINTFORML 「私から、あげちゃうんだから…はたての、初めて」
-					PRINTW 
+					IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+						PRINTFORML 「ごめんね…ちっちゃな子に手を出すのは自分でもどーかと思うんだけど…」
+						CALL HPH_PRINT,@"「%MASTERNAME:42%が可愛いからしょうがないんだよ…HPH」","L"
+						CALL HPH_PRINT,@"「お姉ちゃんと一緒に気持ちよくなろ…HPH」","L"
+						PRINTW 
+					ELSE
+						PRINTFORML 「はたてのこと、もらってくれない%MASTERNAME:42%が悪いんだからね…っ！」
+						PRINTFORML 「ずっと、ずっと待ってたのに、本気で抱いてくれないから…」
+						PRINTFORML 「私から、あげちゃうんだから…はたての、初めて」
+						PRINTW 
+					ENDIF
 				ELSEIF ALCOHOL_FACE(42) == "ぐでぐで"
 					SELECTCASE RAND:3
 					CASE 0
@@ -2860,21 +3434,44 @@ IF LOCAL
 						PRINTW 
 					ENDSELECT
 				ELSE
-					SELECTCASE RAND:3
-					CASE 0
-						PRINTFORML 「私、はしたないよね…？」
-						PRINTFORML 「でも、我慢できないの…今、%MASTERNAME:42%がほしいの…」
-						PRINTFORML 「好き、%MASTERNAME:42%、好き…%UNICODE(0x2665) *1%」
+					IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+						SELECTCASE RAND:3
+						CASE 0
+							CALL HPH_PRINT,@"「ダイジョーブだよ、痛いことはしないからね…HPH」","L"
+							CALL HPH_PRINT,@"「お姉ちゃんに全部任せればいいの…HPH」","L"
+						CASE 1
+							IF ABL:MASTER:Ｖ感覚 < 2
+								CALL HPH_PRINT,@"「また痛いことするのって？　大丈夫、今度は痛くしないから…HPH」","L"
+								CALL HPH_PRINT,@"「ほら、逃げないのHPH　天狗の私に、子どものあなたが叶う訳ないよね…HPH」","L"
+								IF TALENT:性別 == 3
+									CALL HPH_PRINT,@"「だから、お姉ちゃんのこれ、気持ちよくしてね…HPH」","L"
+								ENDIF
+							ELSE
+								CALL HPH_PRINT,@"「また気持ちいいことするのって？　そーだよ、とっても気持ちいーことするのHPH」","L"
+								CALL HPH_PRINT,@"「お姉ちゃんと気持ちよくなろーね…HPH」","L"
+							ENDIF
+						CASE 2
+							CALL HPH_PRINT,@"「%MASTERNAME:42%がイケないんだよ…HPH」","L"
+							CALL HPH_PRINT,@"「無意識に私のことを誘惑するから…HPH」","L"
+						ENDSELECT
 						PRINTW 
-					CASE 1
-						PRINTFORML 「%MASTERNAME:42%は、エッチな女の子、嫌い…？」
-						PRINTFORML 「好きな気持ちとおんなじくらい、%MASTERNAME:42%とエッチしたい気持ちがおっきくなってるの…」
-						PRINTW 
-					CASE 2
-						PRINTFORML 「%MASTERNAME:42%、こーいうときは、察してよぉ…%UNICODE(0x2665) *1%」
-						PRINTFORML 「じゃないと、こーやって襲っちゃうんだからね…%UNICODE(0x2665) *1%」
-						PRINTW 
-					ENDSELECT
+					ELSE
+						SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「私、はしたないよね…？」
+							PRINTFORML 「でも、我慢できないの…今、%MASTERNAME:42%がほしいの…」
+							PRINTFORML 「好き、%MASTERNAME:42%、好き…%UNICODE(0x2665) *1%」
+							PRINTW 
+						CASE 1
+							PRINTFORML 「%MASTERNAME:42%は、エッチな女の子、嫌い…？」
+							PRINTFORML 「好きな気持ちとおんなじくらい、%MASTERNAME:42%とエッチしたい気持ちがおっきくなってるの…」
+							PRINTW 
+						CASE 2
+							PRINTFORML 「%MASTERNAME:42%、こーいうときは、察してよぉ…%UNICODE(0x2665) *1%」
+							PRINTFORML 「じゃないと、こーやって襲っちゃうんだからね…%UNICODE(0x2665) *1%」
+							PRINTW 
+						ENDSELECT
+					ENDIF
 				ENDIF
 			ENDIF
 			RETURN 1
@@ -2882,10 +3479,34 @@ IF LOCAL
 		;-------------------------------------------------
 		;MASTERに抱きついた（開始時）
 		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 0
+		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 1
-			PRINTFORML
+			IF CFLAG:K42C_結婚 >= 1
+				CALL HPH_PRINT,@"「ダーリーンHPH」","L"
+				CALL HPH_PRINT,@"「ねぇねぇ、今ならイチャイチャしてもいーよねHPH」","L"
+			ELSEIF TALENT:恋慕 || TALENT:恋人
+				IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+					CALL HPH_PRINT,@"「本当に%MASTERNAME:42%ってば可愛いわねーHPH」","L"
+					CALL HPH_PRINT,@"「ほーら、逃げないのー♪　はたてお姉ちゃんにギューってされなさいHPH」","L"
+					PRINTW 
+				ELSE
+					CALL HPH_PRINT,@"「%MASTERNAME:42%HPH」","L"
+					CALL HPH_PRINT,@"「あ～、%MASTERNAME:42%の抱き心地、最高～HPH」","L"
+					CALL HPH_PRINT,@"「しばらくこうさせて～HPH　あー、癒されるー…HPH」","L"
+					PRINTW 
+				ENDIF
+			ELSEIF TALENT:愛欲 || TALENT:セフレ
+				IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+					CALL HPH_PRINT,@"「気持ちいいことするのって？　違う違う、単に抱きしめたくなっただけ」","L"
+					CALL HPH_PRINT,@"「それとも、%MASTERNAME:42%は気持ちいいことのほうがいーのかなー？HPH」","L"
+					PRINTW 
+				ELSE
+					CALL HPH_PRINT,@"「ふふ、ドキドキしてる？」","L"
+					CALL HPH_PRINT,@"「たまにはこーいうのもいーじゃんHPH　女同士でイチャイチャしちゃおっか…HPH」","L"
+					PRINTW 
+				ENDIF
+			ENDIF
 			RETURN 1
 		ENDIF
 		PRINTFORML
@@ -2912,9 +3533,15 @@ IF LOCAL
 				PRINTFORML （わ～～～～～～～～～～～～っ、や、やっちゃったぁ…！）
 				PRINTFORML 事が済んで冷静になったはたては、これまでの行為を思い出し、顔を真っ赤にしている
 				PRINTW 
-				PRINTFORML （ゼッタイ、%MASTERNAME:42%にはしたない女だって思われちゃったよう…）
-				PRINTFORML （どーしよ…引かれないかな、嫌われないかな、そんなの、ヤだよう…）
-				PRINTW 
+				IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+					PRINTFORML （%MASTERNAME:42%に、怖いことするお姉ちゃんって思われちゃったよう…）
+					PRINTFORML （どーしよ…嫌われないかな…）
+					PRINTW 
+				ELSE
+					PRINTFORML （ゼッタイ、%MASTERNAME:42%にはしたない女だって思われちゃったよう…）
+					PRINTFORML （どーしよ…引かれないかな、嫌われないかな、そんなの、ヤだよう…）
+					PRINTW 
+				ENDIF
 			ENDSELECT
 			RETURN 1
 		ENDIF
@@ -2924,7 +3551,11 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 1
+		IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+			CALL HPH_PRINT,@"「はー、%MASTERNAME:42%を堪能できて幸せーHPH　補充完了したわーHPH」","L"
+		ELSE
 			PRINTFORML 「あハ…%UNICODE(0x2665) *1%　%MASTERNAME:42%…%UNICODE(0x2665) *1%　好き、好きィ…%UNICODE(0x2665) *1%」
+		ENDIF
 			PRINTW 
 			RETURN 1
 		ENDIF
@@ -3196,10 +3827,18 @@ IF LOCAL
 			PRINTFORML はたては可愛らしい欠伸を漏らし、戸を閉めると再び床に就いた
 			PRINTW 
 		ELSE
-			PRINTFORML 「あのさあ、乙女の部屋に、それも寝込みを襲うとかありえなくない？」
-			PRINTFORML 「分かったら出てってよね」
-			PRINTFORML 返事をする前にピシャリと戸を閉められた
-			PRINTW 
+			IF TALENT:MASTER:性別 == 2
+				PRINTFORML 「あのさあ、乙女の部屋に、それも寝込みを襲うとかありえなくない？」
+				PRINTFORML 「分かったら出てってよね」
+				PRINTFORML 返事をする前にピシャリと戸を閉められた
+				PRINTW 
+			ELSE
+				PRINTFORML 「あれー、%MASTERNAME:42%じゃん」
+				PRINTFORML 「さすがに今日はもう遅いからさー。また明日…っていうか今日っていうか…」
+				PRINTFORML 「とにかくおやすみー」
+				PRINTFORML はたては可愛らしい欠伸を漏らし、戸を閉めると再び床に就いた
+				PRINTW 
+			ENDIF
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -3345,7 +3984,7 @@ IF LOCAL
 		IF CFLAG:TARGET:睡眠
 		ELSE
 			IF CFLAG:K42C_結婚 >= 1
-				IF BASE:TARGET:体力 < 600
+				IF BASE:TARGET:体力 < 600 || BASE:TARGET:体力 < MAXBASE:TARGET:体力 / 8
 					;ステータス関連表示のLookに描写あり
 					SELECTCASE RAND:3
 					CASE 0
@@ -3411,7 +4050,7 @@ IF LOCAL
 							PRINTW 
 						ENDIF
 					ENDIF
-				ELSEIF BASE:TARGET:体力 > 1300
+				ELSEIF BASE:TARGET:体力 > MAXBASE:TARGET:体力 / 2
 					SELECTCASE RAND:2
 					CASE 0
 						PRINTFORML 「ダーリン、無理してない？　疲れてるときは、いいんだよ？」
@@ -3440,7 +4079,7 @@ IF LOCAL
 					ENDSELECT
 				ENDIF
 			ELSEIF TALENT:恋慕 || TALENT:恋人
-				IF BASE:TARGET:体力 < 600
+				IF BASE:TARGET:体力 < 600 || BASE:TARGET:体力 < MAXBASE:TARGET:体力 / 8
 					;ステータス関連表示のLookに描写あり
 					SELECTCASE RAND:3
 					CASE 0
@@ -3507,7 +4146,7 @@ IF LOCAL
 						ENDIF
 					ENDIF
 							
-				ELSEIF BASE:TARGET:体力 > 1300
+				ELSEIF BASE:TARGET:体力 > MAXBASE:TARGET:体力 / 2
 					SELECTCASE RAND:2
 					CASE 0
 						PRINTFORML 「%MASTERNAME:42%、疲れてる？」
@@ -3530,7 +4169,7 @@ IF LOCAL
 					ENDSELECT
 				ENDIF
 			ELSEIF TALENT:愛欲 || TALENT:セフレ
-				IF BASE:TARGET:体力 < 600
+				IF BASE:TARGET:体力 < 600 || BASE:TARGET:体力 < MAXBASE:TARGET:体力 / 8
 					;ステータス関連表示のLookに描写あり
 					SELECTCASE RAND:4
 					CASE 0
@@ -3620,7 +4259,7 @@ IF LOCAL
 						ENDSELECT
 					ENDIF
 							
-				ELSEIF BASE:TARGET:体力 > 1300
+				ELSEIF BASE:TARGET:体力 > MAXBASE:TARGET:体力 / 2
 					SELECTCASE RAND:2
 					CASE 0
 						PRINTFORML 「%MASTERNAME:42%、いつもより淡泊じゃん」
@@ -3662,7 +4301,7 @@ IF LOCAL
 					ENDSELECT
 				ENDIF
 			ELSEIF TALENT:思慕
-				SELECTCASE RAND:2
+				SELECTCASE RAND:3
 				CASE 0
 					PRINTFORML 「えっと…その…シちゃった、ね…\/\/\/」
 					PRINTW 
@@ -3670,6 +4309,10 @@ IF LOCAL
 					PRINTFORML 「あ…駄目、顔、見ないで…\/\/\/」
 					PRINTFORML はたては顔を手で覆い、ぷいっとそっぽを向いた
 					PRINTFORML 隠しきれない頬の一部は真っ赤に染まっている
+					PRINTW 
+				CASE 2 && TALENT:MASTER:性別 == 1 || TALENT:MASTER:性別 == 3
+					PRINTFORML 「うわぁ…私、女の子同士でシちゃったんだぁ…\/\/\/」
+					PRINTFORML 恥ずかしさが急にこみ上げてきたはたては、真っ赤な顔を必死に手で覆っている
 					PRINTW 
 				ENDSELECT
 			ENDIF
@@ -4291,7 +4934,12 @@ IF LOCAL
 				PRINTFORML （もうこれで何枚目よっ！？　私の下着ばっかり何度も何度もっ！！）
 				PRINTFORML （マジでムカつくっ！！　犯人のやつ、絶対ちぎる！）
 				PRINTW 
-				PRINTFORML （コイツの仕業？　下着がなくなるときはいつもコイツが近くにいたような気がする…）
+				IF TALENT:MASTER:性別 == 2
+					PRINTFORML （コイツの仕業？　下着がなくなるときはいつもコイツが近くにいたような気がする…）
+				ELSE
+					PRINTFORML （まさか…%MASTERNAME:42%の仕業、なんてことないよね…？）
+					PRINTFORML （でも、下着がなくなるときはいつも%MASTERNAME:42%が近くにいたような気がする…）
+				ENDIF
 				PRINTW 
 			ENDIF
 		ELSE
@@ -4309,15 +4957,28 @@ IF LOCAL
 					PRINTFORML （ちょっと～～～～！　あれお気に入りだったのに～～～～！　犯人のやつ、ブン殴る！）
 					PRINTW 
 				ELSEIF TALENT:思慕
-					PRINTFORML 「だ、大丈夫だから。こっち来ないでよ…」
-					PRINTFORML （なんで！？　なんでなんでなんでっ！　下着、ちゃんと穿いてたはずなのにっ！）
-					PRINTFORML （%MASTERNAME:42%にバレないようにしなきゃ…うぅ、落ち着かない…）
-					PRINTW 
+					IF TALENT:MASTER:性別 == 2
+						PRINTFORML 「だ、大丈夫だから。こっち来ないでよ…」
+						PRINTFORML （なんで！？　なんでなんでなんでっ！　下着、ちゃんと穿いてたはずなのにっ！）
+						PRINTFORML （%MASTERNAME:42%にバレないようにしなきゃ…うぅ、落ち着かない…）
+						PRINTW 
+					ELSE
+						PRINTFORML 「だ、大丈夫だから。ホンット大丈夫だからっっ」
+						PRINTFORML （なんで！？　なんでなんでなんでっ！　下着、ちゃんと穿いてたはずなのにっ！）
+						PRINTFORML （%MASTERNAME:42%にバレないようにしなきゃ…うぅ、落ち着かない…）
+						PRINTW 
+					ENDIF
 				ELSE
-					PRINTFORML 「なんでもないってば！　近寄んないで！」
-					PRINTFORML （さっきまでちゃんと穿いてたはずなのに…！）
-					PRINTFORML （コイツにはバレたくない…！　早く家に帰んないと…！）
-					PRINTW 
+					IF TALENT:MASTER:性別 == 2
+						PRINTFORML 「なんでもないってば！　近寄んないで！」
+						PRINTFORML （さっきまでちゃんと穿いてたはずなのに…！）
+						PRINTFORML （コイツにはバレたくない…！　早く家に帰んないと…！）
+						PRINTW 
+					ELSE
+						PRINTFORML 「なっ、なんでもない！　ダイジョーブだから！」
+						PRINTFORML  （さっきまでちゃんと穿いてたはずなのに…！）
+						PRINTFORML （友達にノーパンとか思われたらヤバいって！　早く家に帰んないと…！）
+					ENDIF
 				ENDIF
 			CASE 1
 				PRINTFORML 「ひっ…！」
@@ -5429,12 +6090,21 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 4
 		IF TALENT:恋慕 || TALENT:恋人
-			PRINTFORML 「えっと…その…危険日以外なら、いーよ…？」
-			PRINTFORML 「できれば、安全日とか、ピルも使ってくれると嬉しいなー…」
-			PRINTW 
-			PRINTFORML 「うん、すごくうれしそーだねー私の話耳に入ってないねーうんうん」
-			PRINTFORML 「もう、いざデきちゃったときにダイジョーブかなー…この人…」
-			PRINTW 
+			IF TALENT:MASTER:性別 == 2
+				PRINTFORML 「えっと…その…危険日以外なら、いーよ…？」
+				PRINTFORML 「できれば、安全日とか、ピルも使ってくれると嬉しいなー…」
+				PRINTW 
+				PRINTFORML 「うん、すごくうれしそーだねー私の話耳に入ってないねーうんうん」
+				PRINTFORML 「もう、いざデきちゃったときにダイジョーブかなー…この人…」
+				PRINTW 
+			ELSE
+				PRINTFORML 「えっと…その…危険日以外なら、いーよ…？」
+				PRINTFORML 「できれば、安全日とか、ピルも使ってくれると嬉しいなー…」
+				PRINTW 
+				PRINTFORML 「ほら、%MASTERNAME:42%とはまだ二人っきりでラブラブしてたいなー…って」
+				PRINTFORML 「女の子同士だし、デキないかもしんないけどさっ。念のため、ねっ？」
+				PRINTW 
+			ENDIF
 		ELSEIF TALENT:愛欲 || TALENT:セフレ
 			PRINTFORML 「まあ、危険日以外だったらいっかな～…みたいな」
 			PRINTFORML 「な、何よ。私だって生セックスには興味あったんだから」
@@ -5444,12 +6114,19 @@ IF LOCAL
 			PRINTFORML 「聞いてないわねアンタ。ていっ」
 			PRINTW 
 		ELSEIF TALENT:思慕
-			PRINTFORML 「～～～～～～～～～～っ、き、危険日以外なら…」
-			PRINTFORML 「うわ、すごい喜びよう…ちょっとヒクわー…」
-			PRINTW 
-			PRINTFORML 「でも、できればピルも一緒に使うとか、外に出すとかしてね…？」
-			PRINTFORML 「うん、多分しないよね、その顔見てたら分かるもん…はぁ…」
-			PRINTW 
+			IF TALENT:MASTER:性別 == 2
+				PRINTFORML 「～～～～～～～～～～っ、き、危険日以外なら…」
+				PRINTFORML 「うわ、すごい喜びよう…ちょっとヒクわー…」
+				PRINTW 
+				PRINTFORML 「でも、できればピルも一緒に使うとか、外に出すとかしてね…？」
+				PRINTFORML 「うん、多分しないよね、その顔見てたら分かるもん…はぁ…」
+				PRINTW 
+			ELSE
+				PRINTFORML 「～～～～～～～～～～っ、き、危険日以外なら…」
+				PRINTFORML 「女の子同士でデキるか分かんないけど、危険日はまだちょっと怖いかな…」
+				PRINTFORML 「でも、できればピルも一緒に使うとか、外に出すとかしてね…？」
+				PRINTW 
+			ENDIF
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -5464,9 +6141,15 @@ IF LOCAL
 			PRINTFORML 「射精したくなったら、ぜーんぶはたてに注いでね%UNICODE(0x2665) *1%　お願い%UNICODE(0x2665) *1%」
 			PRINTW 
 		ELSEIF TALENT:恋慕 || TALENT:恋人
-			PRINTFORML 「うん…%UNICODE(0x2665) *1%　はたてに、%MASTERNAME:42%との赤ちゃん、産ませて…%UNICODE(0x2665) *1%」
-			PRINTFORML 「はたての中に、%MASTERNAME:42%のいーっぱい注いで…%UNICODE(0x2665) *1%」
-			PRINTW 
+			IF TALENT:MASTER:性別 == 2
+				PRINTFORML 「うん…%UNICODE(0x2665) *1%　はたてに、%MASTERNAME:42%との赤ちゃん、産ませて…%UNICODE(0x2665) *1%」
+				PRINTFORML 「はたての中に、%MASTERNAME:42%のいーっぱい注いで…%UNICODE(0x2665) *1%」
+				PRINTW 
+			ELSE
+				CALL HPH_PRINT,@"「うん…HPH　女の子同士でデキるか分かんないけど…」","L"
+				CALL HPH_PRINT,@"「もし出したくなったら…全部ナカで出して、いーよ…HPH」","L"
+				PRINTW 
+			ENDIF
 		ELSEIF TALENT:愛欲 || TALENT:セフレ
 			PRINTFORML （ヤバ…できちゃうかもって日にセックスすること想像しただけで興奮しちゃう…）
 			PRINTFORML （コイツもだけど、私も大概だよね…人のこと言えないや…）
@@ -5737,28 +6420,70 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
-		;会話の相手は想像にお任せします。同一人物かもしれないし、そうではないかもしれないです
-		PRINTFORML ケータイの待ち受け画像を見て、はたてがにへら、と笑う
-		PRINTFORML 「え？　変顔するなって？　ひどーい！」
-		PRINTW 
-		PRINTFORML むくれたはたては、再びケータイの待ち受け画像を見てにへらと笑う
-		PRINTFORML 「いーじゃん。しょーがないじゃん。顔がにやけちゃうんだもん」
-		PRINTW 
-		PRINTFORML 「ねーねー、%MASTERNAME:42%って私のこと好きだと思うー？」
-		PRINTFORML 「自分で聞けって…聞けたら苦労しないに決まってるじゃん！」
-		PRINTW 
-		PRINTFORML 「私を見てるときは優しい表情になってる気がする…？　そっか、そっかぁーー♪　そぉっかぁーーーー♪」
-		PRINTFORML 「その気持ち悪い物をみたような表情、やめてよねー。傷付くんですけどー」
-		PRINTW 
-		PRINTFORML 「人を好きになるのってどんな気持ちかって？　んー、そーだなー」
-		PRINTFORML 「心の中の大半をその人で占めちゃって、思うだけでズッキューンって胸が跳ねちゃって、ぽかぽかーってあったかくなるの」
-		PRINTW 
-		PRINTFORML 「好きって気持ちを言葉にすると、もっとあったかくなるよ。ってか今もうすでにあったかくなってる」
-		PRINTFORML 「でもねー、会えない時逆に胸のあたりがキュってなるんだよね。その分、会えた時はチョーうれしー！　幸せー！　って感じになるんだけどさー」
-		PRINTW 
-		PRINTFORML 「え？　今までで一番いい顔してる？　そーなんだ♪」
-		PRINTFORML はたてはまるで童女のように屈託のない、素敵な笑みを浮かべた
-		PRINTW 
+		IF TALENT:MASTER:性別 == 2
+			;会話の相手は想像にお任せします。思慕のときと同一人物かもしれないし、そうではないかもしれないです
+			PRINTFORML ケータイの待ち受け画像を見て、はたてがにへら、と笑う
+			PRINTFORML 「え？　変顔するなって？　ひどーい！」
+			PRINTW 
+			PRINTFORML むくれたはたては、再びケータイの待ち受け画像を見てにへらと笑う
+			PRINTFORML 「いーじゃん。しょーがないじゃん。顔がにやけちゃうんだもん」
+			PRINTW 
+			PRINTFORML 「ねーねー、%MASTERNAME:42%って私のこと好きだと思うー？」
+			PRINTFORML 「自分で聞けって…聞けたら苦労しないに決まってるじゃん！」
+			PRINTW 
+			PRINTFORML 「私を見てるときは優しい表情になってる気がする…？　そっか、そっかぁーー♪　そぉっかぁーーーー♪」
+			PRINTFORML 「その気持ち悪い物をみたような表情、やめてよねー。傷付くんですけどー」
+			PRINTW 
+			PRINTFORML 「人を好きになるのってどんな気持ちかって？　んー、そーだなー」
+			PRINTFORML 「心の中の大半をその人で占めちゃって、思うだけでズッキューンって胸が跳ねちゃって、ぽかぽかーってあったかくなるの」
+			PRINTW 
+			PRINTFORML 「好きって気持ちを言葉にすると、もっとあったかくなるよ。ってか今もうすでにあったかくなってる」
+			PRINTFORML 「でもねー、会えない時逆に胸のあたりがキュってなるんだよね。その分、会えた時はチョーうれしー！　幸せー！　って感じになるんだけどさー」
+			PRINTW 
+			PRINTFORML 「え？　今までで一番いい顔してる？　そーなんだ♪」
+			PRINTFORML はたてはまるで童女のように屈託のない、素敵な笑みを浮かべた
+			PRINTW 
+		ELSE
+			PRINTFORML ケータイの待ち受け画像を見て、はたてがにへら、と笑う
+			PRINTFORML 「え？　変顔するなって？　ひどーい！」
+			PRINTW 
+			PRINTFORML むくれたはたては、再びケータイの待ち受け画像を見てにへらと笑う
+			PRINTFORML 「いーじゃん。しょーがないじゃん。顔がにやけちゃうんだもん」
+			PRINTW 
+			PRINTFORML 待ち受け画像には、少しだけ困ったような笑顔の%CALLNAME:MASTER%と、
+			PRINTFORML 屈託のない笑顔で抱きつくはたての姿があった
+			PRINTW 
+			PRINTFORML 別に同性愛に対して偏見があったわけではない
+			PRINTFORML ただ、自分が同性を愛する姿が想像できなかったのだ
+			PRINTL 
+			PRINTFORML いつからなんだろう。%CALLNAME:MASTER%のことを好きになったのは
+			PRINTFORML あの時かな。それとも、あの時？　いやいや、ひょっとして、出会った瞬間から──？
+			PRINTW 
+			PRINTFORML 「最近、表情が前みたいに明るくなったって？　えっ、私暗かった？」
+			PRINTFORML 「マジかー。うん？　うん、悩みは、解決したといえば解決したかな？」
+			PRINTW 
+			IF TALENT:恋人 && TALENT:MASTER:恋人
+				PRINTFORML だって、私たちは相思相愛になれたのだから
+				PRINTFORML 女の子同士？　そんなの関係ない！
+				PRINTFORML 恋する乙女は無敵なんだからね！
+				PRINTW 
+			ELSE
+				PRINTFORML 周りは同性を好きになるなんて、なんて思うかもしれない
+				PRINTFORML それでも、好きなものは好き。女の子同士とかカンケーないし！
+				PRINTFORML 今までは、心地良い関係が壊れるのが嫌で心に嘘をついていたけど、これからは正直になるんだ
+				PRINTW 
+				PRINTFORML 私が引きこもりをやめて、自分の足で取材するようになったみたいに
+				PRINTFORML 自分の言葉で、あの人に「好き」を伝えるんだ
+				PRINTW 
+			ENDIF
+			PRINTFORML カメラをコツンと額に当てて、エイヤッと念じてパシャリと一枚
+			PRINTFORML そこに写るのは、私の大好きな、笑顔のあの人
+			PRINTFORML 最近は、無意識に念写すると彼女ばかりが写っちゃう。困ったもんだ。ホントは全然困ってないけど
+			PRINTW 
+			PRINTFORML 「ん？『変な顔だけど今までで一番いい顔してる？』どんな評価よー、それ」
+			PRINTFORML はたてはまるで童女のように屈託のない、素敵な笑みを浮かべた
+			PRINTW 
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -5767,35 +6492,227 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
-		;会話の相手は想像にお任せします
-		PRINTFORML 「そーなのよー。んで、%MASTERNAME:42%がね…」
-		PRINTFORML 「え？　最近、%MASTERNAME:42%の話題が多い？　気のせい、気のせいだってばー」
-		PRINTW 
-		PRINTFORML 「……で、話の続きなんだけどー、%MASTERNAME:42%がね」
-		PRINTFORML 「何よ。えぇ？　%MASTERNAME:42%のことが好きぃ？　分かんないよぉー」
-		PRINTW 
-		PRINTFORML 「いや、少なくとも嫌いじゃーないけど…ねぇ、私って、%MASTERNAME:42%のことが好きだと思う？」
-		PRINTFORML 「分かんないから聞いてるんじゃん。アイツのどこがいいのかって？　んー、そーだなぁ…」
-		PRINTW 
-		PRINTFORML 「意外と優しいしー、話してて面白いしー、顔はまあ悪くないとして…見ててけっこー飽きないし、まあ気付いたら会ってるって感じよね。気が合うし」
-		PRINTFORML 「何よその変な顔。ああ、もう帰っちゃうの？　じゃーねー」
-		PRINTW 
-		PRINTFORML 「………………」
-		PRINTFORML 「えっ、私って、%MASTERNAME:42%のことが、好き、なの？」
-		PRINTW 
+		IF TALENT:MASTER:性別 == 2
+			;会話の相手は想像にお任せします。文か椛か龍か、はたまた別の烏天狗か
+			;典？　やめとけやめとけ、あいつは面白がって破滅に持ち込むタイプだ
+			PRINTFORML 「そーなのよー。んで、%MASTERNAME:42%がね…」
+			PRINTFORML 「え？　最近、%MASTERNAME:42%の話題が多い？　気のせい、気のせいだってばー」
+			PRINTW 
+			PRINTFORML 「……で、話の続きなんだけどー、%MASTERNAME:42%がね」
+			PRINTFORML 「何よ。えぇ？　%MASTERNAME:42%のことが好きぃ？　分かんないよぉー」
+			PRINTW 
+			PRINTFORML 「いや、少なくとも嫌いじゃーないけど…ねぇ、私って、%MASTERNAME:42%のことが好きだと思う？」
+			PRINTFORML 「分かんないから聞いてるんじゃん。アイツのどこがいいのかって？　んー、そーだなぁ…」
+			PRINTW 
+			PRINTFORML 「意外と優しいしー、話してて面白いしー、顔はまあ悪くないとして…見ててけっこー飽きないし、まあ気付いたら会ってるって感じよね。気が合うし」
+			PRINTFORML 「何よその変な顔。ああ、もう帰っちゃうの？　じゃーねー」
+			PRINTW 
+			PRINTFORML 「………………」
+			PRINTFORML 「えっ、私って、%MASTERNAME:42%のことが、好き、なの？」
+			PRINTW 
+		ELSE
+			PRINTFORML 「そーなのよー。んで、%MASTERNAME:42%がね…」
+			PRINTFORML 「え？　最近、%MASTERNAME:42%の話題が多い？　だってね、あの娘面白いんだよー」
+			PRINTW 
+			PRINTFORML 「この前なんて、%MASTERNAME:42%がね…」
+			PRINTFORML 「何よ。えぇ？　%MASTERNAME:42%のことが好きぃ？　そりゃ、嫌いだったら取材以外で人間にわざわざ会ったりするわけないでしょ」
+			PRINTW
+			PRINTFORML 「そういうことを言いたいわけじゃない？　どーいう意味よ」
+			PRINTFORML 「何よその変な顔。ああ、もう帰っちゃうの？　じゃーねー」
+			PRINTW 
+			PRINTFORML 「………………」
+			PRINTFORML 静寂が包む一人だけの部屋で、はたては仰向けに寝ころぶと、ケータイ型カメラを開いた
+			PRINTFORML 画面に表示されるのは、楽しそうに笑うはたてと、ちょっと困ったような、はにかんでいるような%CALLNAME:MASTER%
+			PRINTW 
+			PRINTFORML 「言われなくても、分かってるってーの」
+			PRINTFORML なんとなくは気付いている
+			PRINTFORML %CALLNAME:MASTER%の視線が、態度が、触れ方が、ただの友人とは微妙に異なることを
+			PRINTFORML そして自分もまた、ただの友人とは異なる視点で%CALLNAME:MASTER%を追っていることを
+			PRINTW 
+			PRINTFORML でも、そのことを指摘したりはしない
+			PRINTFORML %CALLNAME:MASTER%との二人の時間は居心地が良いから
+			PRINTFORML この関係を自分から壊すようなことをしたくはない
+			PRINTW 
+			PRINTFORML 文はあくまでライバルであって、友人とはまた違う。あえて「友」というカテゴリーに当てはめるなら、「戦友」が近いだろうか
+			PRINTFORML 椛は友人に近い関係と言っていいかもしれないが、烏天狗である自分に対して一歩引いたような印象だ
+			PRINTW 
+			PRINTFORML だが、%CALLNAME:MASTER%は違う
+			PRINTFORML 友人になってほしかったのは本当だが、同時に、人間目線での取材源としての側面を強く求めていた
+			PRINTL 
+			PRINTFORML 今では、完全に逆転してしまっている
+			PRINTFORML 取材を口実に、%CALLNAME:MASTER%と長く触れあっていたいのだ
+			PRINTW 
+			PRINTFORML %CALLNAME:MASTER%が他の女の子と親し気に話していると、心がざわつくことが増えてきた
+			PRINTFORML 私の知らない人ならなおさらだ
+			PRINTW 
+			PRINTFORML この気持ちに名前を付けるなら──
+			PRINTFORML いや、よそう。私はもっと%CALLNAME:MASTER%と友人でいたいのだ
+			PRINTFORML だって、私と%CALLNAME:MASTER%は女の子同士なのだから
+			PRINTW 
+			PRINTFORML さあ、明日はどんな口実で%CALLNAME:MASTER%を誘おう。どんな服を着ていこう
+			PRINTL 
+			PRINTFORML リボンも替えてみようかな。スカートの丈をちょっとだけ短くしても気付いてくれるかな
+			PRINTL 
+			PRINTFORML もうちょっとだけ大胆に接してみようかな？　スキンシップも気持ち多めに
+			PRINTW 
+			PRINTFORML 本当のキモチは、
+			PRINTFORML 「もう少しだけ引きこもっててもいいよね」
+			PRINTW 
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
 	;愛欲取得
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
-		PRINTFORML
+		;オトコ
+		IF TALENT:MASTER:性別 == 2
+			;あなた男×はたてふた
+			IF TALENT:性別 == 3
+			;あなた男×はたて女
+			ELSE
+			ENDIF
+		ELSE
+			;ふたなり
+			IF TALENT:MASTER:性別 == 3
+				;あなたふた×はたてふた
+				IF TALENT:性別 == 3
+				;あなたふた×はたて女
+				ELSE
+				ENDIF
+			;女
+			ELSE
+				;あなた女×はたてふた
+				IF TALENT:性別 == 3
+					PRINTL 
+					PRINTFORML 「ああっ、%MASTERNAME:42%、%MASTERNAME:42%…っ」
+					PRINTFORML 自分しかいない部屋で、はたては自慰に耽っていた
+					PRINTL 
+					CALL HPH_PRINT,@"「ああっ、%MASTERNAME:42%のおまんこ、気持ちいいっHPH　おちんちん、溶けちゃいそうっHPH」","L"
+					PRINTFORML ピンと尖った乳房の頂の豆を人差し指と親指でこねくり回しながら、反対の手で下半身を慰める
+					PRINTFORML それが普通の女性とは違うのは、本来ありえないはずの存在、ペニスを握りしめていたからだ
+					PRINTW 
+					CALL HPH_PRINT,@"「おまんこぉっHPH　%MASTERNAME:42%のおまんこっ、すごいよぉっHPH」","L"
+					IF TALENT:非童貞 == 0
+						PRINTFORML いまだ使わせてもらえぬ%CALLNAME:MASTER%の秘裂を夢想しながら、ゴシゴシと反り返った肉茎を上下に擦る
+					ELSE
+						PRINTFORML 散々味わった%CALLNAME:MASTER%の肉壺の心地を頭の中で反芻しながら、ゴシゴシと反り返った肉茎を上下に擦る
+					ENDIF
+					PRINTW 
+					PRINTFORML 少し前までは想像もできなかった自分の姿。浅ましく陰茎をしごきながら、淫語を連呼する現在の自分を見たら、
+					PRINTFORML 過去の汚れてない自分はどんな反応をするだろうか
+					PRINTW 
+					CALL HPH_PRINT,@"「子宮、気持ちいいよねっHPH　赤ちゃんのお部屋、コツコツされるの気持ちいいよねっHPH」","L" 
+					IF TALENT:非童貞 == 0
+						PRINTFORML 本だけの知識で手に入れた童貞らしい勝手な妄想の中で、はたては%CALLNAME:MASTER%の子宮を何度も突いてよがり狂わせる
+					ELSE
+						PRINTFORML はたての妄想の中で、%CALLNAME:MASTER%は降りてきた子宮をガツガツと乱暴に突かれながらもよがり狂っている
+					ENDIF
+					PRINTW 
+					CALL HPH_PRINT,@"「射すねっHPH　%CALLNAME:MASTER%の赤ちゃんのお部屋っHPH　一番っHPH　奥にっHPH」","L"
+					PRINTFORML はたての手の平の中で肉棒がブワリと膨らむ
+					PRINTFORML 睾丸で急速充填された子種が尿道を通り、鈴口から勢いよく放たれた
+					PRINTW 
+					CALL HPH_PRINT,@"「～～～～～～～～～～っHPH　ッHPH　ッHPH」","L"
+					PRINTFORML はたては全身を弓なりにそらし、つま先をピンと伸ばして声もなく射精する
+					PRINTFORML 薄い本で見た竿役もかくや、という量の精液は見事な弧を描き、はたての腹部や胸元、頬にビタビタと降り注ぐ
+					PRINTW 
+					CALL HPH_PRINT,@"「ふぅッHPH　んうぅっHPH　んん゛ッHPH」","L"
+					PRINTFORML 腰を限界まで押し付け、最後の一滴まで子宮に注ぎ込む姿を夢想しながら、はたてはイって敏感になったペニスを乱暴にしごく
+					PRINTFORML ついに精液は勢いを失い、力なく下腹部の淡い茂みにポトポトと零れ落ちた
+					PRINTW 
+					CALL HPH_PRINT,@"「はぁ……はぁ……っHPH%CALLNAME:MASTER%…もっとエッチしたいよォ…HPH」","L"
+					PRINTFORML 射精後の気だるさに身を委ねながら、%CALLNAME:MASTER%の顔を思い浮かべる
+					PRINTFORML 半陰陽の自分を、%CALLNAME:MASTER%は愛してくれた
+					PRINTL 
+					PRINTFORML それが、快楽目的なのは分かっている。事が済めば、睦言を交わす間もない
+					PRINTFORML それでも、ありのままの自分を、自分の欲望を受け止めてくれるのは%CALLNAME:MASTER%しかいなかったのだ
+					PRINTW 
+					PRINTFORML どうせまともな恋愛など望めるはずもない。なら、いっそ自分と共にどこまでも堕ちてくれる相手がよかった
+					PRINTFORML 私と%CALLNAME:MASTER%は肉欲のままに互いを求め、堕落していく。どこまでも、どこまでも。地獄に棲むという欲望の魔獣のように
+					PRINTW 
+					PRINTFORML 「そっか。これって、『ダブルスポイラー』じゃん」
+					PRINTFORML 烏天狗の同僚と交わした約束が、まさかこんな形で果たされるとは──
+					PRINTFORML うわ、サイテーじゃん、私。はたては自嘲気味に笑う
+					PRINTL 
+					PRINTFORML はたては、箪笥の上に飾ってある写真立てを見つめる
+					PRINTFORML そこには、はたてとやや仏頂面をした黒髪の烏天狗の少女が一緒に写っている
+					PRINTL 
+					PRINTFORML 「ごめん、文。そっちの方は約束果たせそうにないや」
+					PRINTFORML バイバイ、ジャーナリズム
+					PRINTFORML ペンは剣より強いのかもしれないけれど、セックスの前には雑魚同然なんだよ。知ってた？
+					PRINTW 
+					PRINTFORML 写真の中の射命丸文の表情が悲し気に見えたのは、かつてのライバルへの罪悪感がそう思わせたのだろうか
+					PRINTFORML 今となっては、そんなことはどうでもよかった
+					PRINTFORML さあ、明日はどんな気持ちいいことをしようかな？
+					PRINTW 
+				;あなた女×はたて女
+				ELSE
+					PRINTL 
+					PRINTFORML 「ああっ、%MASTERNAME:42%、%MASTERNAME:42%…っ」
+					PRINTFORML 自分しかいない部屋で、はたては自慰に耽っていた
+					PRINTL 
+					CALL HPH_PRINT,@"「ああっ、%MASTERNAME:42%の指、気持ちいいっHPH　もっとっHPH　はたてのそこを苛めてっHPH」","L"
+					PRINTFORML ピンと尖った乳房の頂の豆を人差し指と親指でこねくり回しながら、反対の手で下半身を慰める
+					PRINTFORML クチュクチュという淫らな水音が、秘裂から指が抜き差しされるたびに漏れ出る
+					PRINTW 
+					CALL HPH_PRINT,@"「気持ちいいっHPH　おまんこっHPH　もっとしてっHPH」","L"
+					PRINTFORML 少し前までは想像もできなかった自分の姿。浅ましく秘裂を指で掻きまわしながら、淫語を連呼する現在の自分を見たら、
+					PRINTFORML 過去の汚れてない自分はどんな反応をするだろうか
+					PRINTW 
+					CALL HPH_PRINT,@"「おしりっHPH　駄目っHPH　汚いからぁっHPH」","L" 
+					PRINTFORML %CALLNAME:MASTER%に無理やり辱められる姿を妄想しながら、はたては秘裂のすぐ下、薄茶色の窄まりに、
+					PRINTFORML 愛液をたっぷりとまぶした中指をクニクニと抽挿する
+					PRINTW 
+					CALL HPH_PRINT,@"「もうイクッHPH　イっちゃう、イっちゃうっHPH」","L"
+					PRINTFORML とめどなく溢れ出る愛液はいまやブクブクと白く泡立っており、秘裂の周りや指、薄い陰毛に纏わりついている
+					PRINTFORML さざ波のようだった快感が、急速に高まっていくのをはたては感じた
+					PRINTW 
+					CALL HPH_PRINT,@"「～～～～～～～～～～っHPH　ッHPH　ッHPH」","L"
+					PRINTFORML はたては全身を弓なりにそらし、つま先をピンと伸ばして声もなく絶頂する
+					PRINTFORML 勢いよく指が引き抜かれた瞬間、尿道から透明の汁がプシャアッと放たれた
+					PRINTW 
+					CALL HPH_PRINT,@"「ふぅッHPH　んうぅっHPH　んん゛ッHPH」","L"
+					PRINTFORML 痛々しいほど乳房を握りしめ、目をきつく閉じながら、はたては快楽の奔流に翻弄される
+					PRINTFORML ガクガクと痙攣していた体は、緩やかにだが、その熱を失っていく
+					PRINTW 
+					CALL HPH_PRINT,@"「はぁ……はぁ……っHPH%CALLNAME:MASTER%…もっとエッチしたいよォ…HPH」","L"
+					PRINTFORML 絶頂後の気だるさに身を委ねながら、%CALLNAME:MASTER%の顔を思い浮かべる
+					PRINTFORML 同性の自分を、%CALLNAME:MASTER%は愛してくれた
+					PRINTL 
+					PRINTFORML それが、快楽目的なのは分かっている。事が済めば、睦言を交わす間もない
+					PRINTFORML それでも、ありのままの自分を、自分の欲望を受け止めてくれるのは%CALLNAME:MASTER%しかいなかったのだ
+					PRINTW 
+					PRINTFORML 同じ烏天狗間では異端として、まともな恋愛など望めるはずもない。なら、いっそ自分と共にどこまでも堕ちてくれる相手がよかった
+					PRINTFORML 私と%CALLNAME:MASTER%は肉欲のままに互いを求め、堕落していく。どこまでも、どこまでも。地獄に棲むという欲望の魔獣のように
+					PRINTW 
+					PRINTFORML 「そっか。これって、『ダブルスポイラー』じゃん」
+					PRINTFORML 烏天狗の同僚と交わした約束が、まさかこんな形で果たされるとは──
+					PRINTFORML うわ、サイテーじゃん、私。はたては自嘲気味に笑う
+					PRINTL 
+					PRINTFORML はたては、箪笥の上に飾ってある写真立てを見つめる
+					PRINTFORML そこには、はたてとやや仏頂面をした黒髪の烏天狗の少女が一緒に写っている
+					PRINTL 
+					PRINTFORML 「ごめん、文。そっちの方は約束果たせそうにないや」
+					PRINTFORML バイバイ、ジャーナリズム
+					PRINTFORML ペンは剣より強いのかもしれないけれど、セックスの前には雑魚同然なんだよ。知ってた？
+					PRINTW 
+					PRINTFORML 写真の中の射命丸文の表情が悲し気に見えたのは、かつてのライバルへの罪悪感がそう思わせたのだろうか
+					PRINTL 
+					PRINTFORML それとも、彼女に対して想いを秘めていたから──？
+					PRINTL 
+					PRINTFORML 今となっては、そんなことはどうでもよかった
+					PRINTFORML さあ、明日はどんな気持ちいいことをしようかな？
+					PRINTW 
+				ENDIF
+			ENDIF
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
-	;愛欲取得
+	;愛人取得
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
 	;-------------------------------------------------
@@ -6209,10 +7126,17 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
 		;ふたなり発覚前
-		IF CFLAG:1110 == 0
-			PRINTFORML 「お風呂？　だっ、駄目よ絶対ダメッ！！」
-			PRINTFORML はたては大げさなほどに狼狽えている。よほど入りたくない理由があるのだろうか
-			PRINTW 
+		IF CFLAG:1110 == 0 && TALENT:性別 == 3
+			IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+				PRINTFORML 「一緒にお風呂？　え、えーと…」
+				PRINTFORML はたては%CALLNAME:MASTER%のお願いに歯切れの悪い返事をした
+				PRINTFORML （多分、びっくりしちゃうよね…）
+				PRINTW 
+			ELSE
+				PRINTFORML 「お風呂？　だっ、駄目よ絶対ダメッ！！」
+				PRINTFORML はたては大げさなほどに狼狽えている。よほど入りたくない理由があるのだろうか
+				PRINTW 
+			ENDIF
 		ELSE
 			IF TALENT:恋人
 				PRINTFORML 「私とお風呂入りたいの？　えーっと…ちょっと、恥ずかしーかも…」
@@ -6244,73 +7168,201 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 		;恋慕ならともかく、セフレでは無理じゃないですかね…
-		IF CFLAG:1110 == 0
-			PRINTFORML 「い、いーけど…驚かないでよね？」
-			PRINTFORML 何を驚くというのだろうか
-			PRINTW 
-			PRINTFORML 少女脱衣中…
-			PRINTFORML 「…お、おまたせ」
-			PRINTFORML はたては手ぬぐいでなぜか股間だけ隠していた
-			PRINTW 
-			PRINTFORML 「え！？　だ、だって、見せるの恥ずかしーし…」
-			PRINTFORML 自分とはたての仲だというのに、何を恥ずかしがっているのか
-			IF !HAS_PENIS(MASTER)
-				PRINTFORML それに同性同士、大して違いはないのだから恥ずかしがることもないだろう
-			ELSE
-			ENDIF
-			PRINTW 
-			PRINTFORML なおも尻込みするはたての手ぬぐいを隙を見てはぎ取った
-			PRINTFORML 「ひっ…きゃあああああ～～～～～～～ッ！！」
-			PRINTW 
-			PRINTFORML なんと、はたての股間には、本来存在しないはずの肉棒が生えていた
-			IF BASE:42:勃起 >= 1000
-				PRINTFORML それは既に屹立し、存在感を誇示していた
-			ELSE
-				PRINTFORML まだ完全には勃起しておらず、亀頭は皮を被っている
-				PRINTW 
-			ENDIF
-			PRINTFORML 「わ、私変だよね…女の子なのに」
-			PRINTFORML 「産まれたときから生えてて…ずっと隠してきたの」
-			PRINTW 
-			CALL ASK_YN("変じゃない","むしろご褒美だろ！　当たり前だよなあ？")
-			IF !RESULT
-				IF TALENT:MASTER:性別 == 3
-					PRINTFORML だって、自分も同じだから
-					;すでに見せている
-					IF CFLAG:1002 >= 1
-						PRINTFORML 「！　そーだったね、ごめんね、%MASTERNAME:42%のことを馬鹿にしたわけじゃないの」
-						PRINTFORML それは分かっている、とはたてを優しく撫でる
-						PRINTW 
-						PRINTFORML 「フツーの女の子とちょっと違うかもしれないけど、それでも、いーかな…？」
-						PRINTFORML 
-					;初めて見た
+		;はたてふたなり
+		IF TALENT:性別 == 3
+			;ふたなり初回
+			IF CFLAG:1110 == 0
+				IF (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+					PRINTFORML 「い、いーけど…驚かないでよね？」
+					PRINTFORML 一緒にお風呂に入るだけだというのに、はたては妙に緊張している
+					PRINTW 
+					PRINTFORML 少女脱衣中…
+					PRINTFORML 「…お、おまたせ」
+					PRINTFORML はたてが一糸惑わぬ姿になった
+					PRINTW 
+					CALL ASK_YN("あれ？","お姉ちゃん、おちんちんがある…")
+					IF !RESULT
 					ELSE
-						PRINTFORML 「！　えっ、%MASTERNAME:42%も、ついてるの…？」
-						PRINTFORML 「なぁんだ、私だけじゃなかったんだぁ…」
+					ENDIF
+					PRINTFORML 「そ、そうなの…私ね、女なんだけど、おちんちん『も』あるの」
+					IF BASE:42:勃起 >= 1000
+						PRINTFORML それは既に屹立し、存在感を誇示していた
+					ELSE
+						PRINTFORML まだ完全には勃起しておらず、亀頭は皮を被っている
 						PRINTW 
-						PRINTFORML 「私たち、似た者どーしなんだね…♪」
-						PRINTFORML 「続けてくれる？　私、最後まで、シてほしい…%UNICODE(0x2665) *1%」
+					ENDIF
+					SELECTCASE TALENT:形状
+					CASE 10;馬並み
+						PRINTFORML はたてから生えているとは思い難いほど股間の赤黒い肉塊は野太く、凶悪さを際立たせるように血管を浮きだたせている
+					CASE 6
+						PRINTFORML 一般男性のものを遥かに凌駕する大きさの肉棒は、%CALLNAME:MASTER%の手首か、それ以上の太さがありそうだ
+					CASE 1,2;粗チン
+						PRINTFORML ただし、外見は貧相で、一般的な子供と大差ない大きさだ
+					CASE 4
+						PRINTFORML どういう原理か、亀頭から竿の根元まで光り輝いている
+					CASE 5
+						PRINTFORML 竿の部分にはゴツゴツとしたイボが隆起しており、はたてから生えているとは思い難いほど醜悪な見た目をしている
+					CASEELSE
+						PRINTFORML はたてのペニスは、一般成人男性のものにも劣らぬ立派な大きさだ
+					ENDSELECT
+					PRINTW 
+					IF TALENT:MASTER:性別 == 1
+						PRINTFORML 「や、やっぱりびっくりしちゃうよねー…あはは…」
+						PRINTFORML 「そ、そんなにまじまじ見ないでね…恥ずかしーから、さ…」
+						PRINTL 
+						IF TALENT:MASTER:無知
+							CALL HPH_PRINT,@"「こっこらっ！？　おちんちん、触っちゃ、駄目っHPH　あっHPH　くっHPH」","L"
+							CALL HPH_PRINT,@"「ち、違うの…HPH　痛くはないから、大丈夫…HPH　」","L"
+							PRINTFORML 何も知らない%MASTERNAME:42%のぷにぷにしたお手々が、私のおちんちん撫でたりしちゃってるよぉ…）
+						ENDIF
+						PRINTFORML （うう…こんな小さい子におちんちん見せつけちゃった…）
+						IF ABL:欲望 + ABL:露出癖 >= 10
+							PRINTFORML （ヤバ、なんか私、コーフンしちゃってる？　そんなの、いけないことなのに…）
+						ELSE
+							PRINTFORML （変に歪んじゃったりしないといいけど…この子も、私も）
+						ENDIF
+						PRINTFORML 「ほ、ほら！　さっさとお風呂に入っちゃお―よ。裸のまんまだと風邪ひいちゃうから」
+						PRINTW 
+					;あなたがふたなり
+					ELSEIF TALENT:MASTER:性別 == 3
+						PRINTFORML 「や、やっぱりびっくりしちゃうよねー…あはは…」
+						PRINTFORML 「そ、そんなにまじまじ見ないでね…恥ずかしーから、さ…」
+						PRINTL 
+						PRINTFORML 「えっ、おそろいだねって…ま、まさか！？」
+						PRINTFORML はたては、%CALLNAME:MASTER%の服を脱がせる
+						PRINTFORML %CALLNAME:MASTER%の股間にも、はたて同様男性の象徴が生えていた
+						PRINTW 
+						IF BASE:MASTER:勃起 >= 1000
+							PRINTFORML それは既に屹立し、存在感を誇示していた
+						ELSE
+							PRINTFORML まだ完全には勃起しておらず、亀頭は皮を被っている
+							PRINTW 
+						ENDIF
+						SELECTCASE TALENT:形状
+						CASE 10;馬並み
+							PRINTFORML 幼女から生えているとは思い難いほど股間の赤黒い肉塊は野太く、凶悪さを際立たせるように血管を浮きだたせている
+						CASE 6
+							PRINTFORML 一般男性のものより大きい肉棒は、%CALLNAME:MASTER%の手首くらい太さがありそうだ
+						CASE 1,2;粗チン
+							PRINTFORML ただし、外見は愛らしいほどに小さい。せいぜいクリトリスが肥大化したと思える程度だ
+						CASE 4
+							PRINTFORML 少年のような%CALLNAME:MASTER%のペニスは、どういう原理か、亀頭から竿の根元まで光り輝いている
+						CASE 5
+							PRINTFORML 大きさや太さは大人には敵わないものの、竿の部分にはゴツゴツとしたイボが隆起しており、幼女から生えているとは思い難いほど醜悪な見た目をしている
+						CASEELSE
+							PRINTFORML %CALLNAME:MASTER%のペニスは、一般的な若者ほどありそうだ
+						ENDSELECT
+						PRINTW 
+						CALL HPH_PRINT,@"（うわっ、ヤバっ、自分以外のおちんちん、初めて見ちゃった…HPH）","L"
+						PRINTFORML （女の子の部分もあったし、この子も、私と一緒なんだ…）
+					;あなたがおとこのこ
+					ELSEIF TALENT:MASTER:性別 == 2
+						PRINTFORML 「一緒だね、って、まーそうなのかな…」
+						PRINTFORML 「ほら、お風呂入るんだからあなたも脱ぐの。えいっ！」
+						PRINTL 
+						IF BASE:MASTER:勃起 >= 1000
+							PRINTFORML それは既に屹立し、存在感を誇示していた
+						ELSE
+							PRINTFORML まだ完全には勃起しておらず、亀頭は皮を被っている
+							PRINTW 
+						ENDIF
+						SELECTCASE TALENT:形状
+						CASE 10;馬並み
+							PRINTFORML 幼児から生えているとは思い難いほど股間の赤黒い肉塊は野太く、凶悪さを際立たせるように血管を浮きだたせている
+							PRINTFORML （何よこれ…どこにこんなもの隠してたのよ…）
+						CASE 6
+							PRINTFORML 一般男性のものより大きい肉棒は、%CALLNAME:MASTER%の手首くらい太さがありそうだ
+							PRINTFORML （な、なにこれぇ…ちっちゃな子のおちんちんとは思えない…）
+						CASE 1,2;粗チン
+							PRINTFORML ただし、外見は愛らしいほどに小さい。せいぜい小指の先といったところか
+							PRINTFORML （ふふ、かーわいい♪　いかにも子どものおちんちんって感じだなー）
+						CASE 4
+							PRINTFORML 外見より立派な%CALLNAME:MASTER%のペニスは、どういう原理か、亀頭から竿の根元まで光り輝いている
+							PRINTFORML （意外とこの子の大きくない？　ってゆーか、眩しい！）
+						CASE 5
+							PRINTFORML 大きさや太さは大人には敵わないものの、竿の部分にはゴツゴツとしたイボが隆起しており、幼女から生えているとは思い難いほど醜悪な見た目をしている
+							PRINTFORML （うわ、小っちゃい子からこんなのが生えてるなんて…エグっ）
+						CASEELSE
+							PRINTFORML %CALLNAME:MASTER%のペニスは、幼児にしては随分立派だった
+							PRINTFORML （小っちゃい子なのに、こっちはけっこー立派なんだ…）
+							PRINTFORML （ハッ！？　ついつい魅入っちゃった！　駄目ダメ、こんな小さな子にそんな気持ち抱いたら！）
+						ENDSELECT
+						PRINTL 
+						PRINTFORML 「ほ、ほら！　さっさとお風呂に入っちゃお―よ。裸のまんまだと風邪ひいちゃうからね」
+						PRINTFORML はたては%CALLNAME:MASTER%の背中をそっと押して浴室へ入っていった
 						PRINTW 
 					ENDIF
 				ELSE
-					PRINTFORML そもそも妖怪とこういう仲になっているのだから、付いてる付いてないは些末なことだ
-					PRINTFORML 「……%MASTERNAME:42%って、いー加減なんだか大物なんだか分かんないわね」
+					PRINTFORML 「い、いーけど…驚かないでよね？」
+					PRINTFORML 何を驚くというのだろうか
 					PRINTW 
-					PRINTFORML 「でも、初めて見られた相手が%MASTERNAME:42%でよかったかも」
-					PRINTFORML 「いいよ、%MASTERNAME:42%、お風呂入ろ♪」
+					PRINTFORML 少女脱衣中…
+					PRINTFORML 「…お、おまたせ」
+					PRINTFORML はたては手ぬぐいでなぜか股間だけ隠していた
 					PRINTW 
+					PRINTFORML 「え！？　だ、だって、見せるの恥ずかしーし…」
+					PRINTFORML 自分とはたての仲だというのに、何を恥ずかしがっているのか
+					IF !HAS_PENIS(MASTER)
+						PRINTFORML それに同性同士、大して違いはないのだから恥ずかしがることもないだろう
+					ELSE
+					ENDIF
+					PRINTW 
+					PRINTFORML なおも尻込みするはたての手ぬぐいを隙を見てはぎ取った
+					PRINTFORML 「ひっ…きゃあああああ～～～～～～～ッ！！」
+					PRINTW 
+					PRINTFORML なんと、はたての股間には、本来存在しないはずの肉棒が生えていた
+					IF BASE:42:勃起 >= 1000
+						PRINTFORML それは既に屹立し、存在感を誇示していた
+					ELSE
+						PRINTFORML まだ完全には勃起しておらず、亀頭は皮を被っている
+						PRINTW 
+					ENDIF
+					PRINTFORML 「わ、私変だよね…女の子なのに」
+					PRINTFORML 「産まれたときから生えてて…ずっと隠してきたの」
+					PRINTW 
+					CALL ASK_YN("変じゃない","むしろご褒美だろ！　当たり前だよなあ？")
+					IF !RESULT
+						IF TALENT:MASTER:性別 == 3
+							PRINTFORML だって、自分も同じだから
+							;すでに見せている
+							IF CFLAG:1002 >= 1
+								PRINTFORML 「！　そーだったね、ごめんね、%MASTERNAME:42%のことを馬鹿にしたわけじゃないの」
+								PRINTFORML それは分かっている、とはたてを優しく撫でる
+								PRINTW 
+								PRINTFORML 「フツーの女の子とちょっと違うかもしれないけど、それでも、いーかな…？」
+								PRINTFORML 
+							;初めて見た
+							ELSE
+								PRINTFORML 「！　えっ、%MASTERNAME:42%も、ついてるの…？」
+								PRINTFORML 「なぁんだ、私だけじゃなかったんだぁ…」
+								PRINTW 
+								PRINTFORML 「私たち、似た者どーしなんだね…♪」
+								PRINTFORML 「続けてくれる？　私、最後まで、シてほしい…%UNICODE(0x2665) *1%」
+								PRINTW 
+							ENDIF
+						ELSE
+							PRINTFORML そもそも妖怪とこういう仲になっているのだから、付いてる付いてないは些末なことだ
+							PRINTFORML 「……%MASTERNAME:42%って、いー加減なんだか大物なんだか分かんないわね」
+							PRINTW 
+							PRINTFORML 「でも、初めて見られた相手が%MASTERNAME:42%でよかったかも」
+							PRINTFORML 「いいよ、%MASTERNAME:42%、お風呂入ろ♪」
+							PRINTW 
+						ENDIF
+					ELSE
+						PRINTFORML 「えっご褒美ってえっ？」
+						PRINTFORML 予想の斜め上の反応に思考がショートするはたて
+						PRINTW 
+						PRINTFORML はたてちゃんのふたなりちんぽ、これは隅々まで研究せねばなるまいて
+						PRINTFORML 「い、いやいやいや！　そーいうの、いーから！　間に合ってますから！」
+						PRINTW 
+						PRINTFORML 「ちょ、ちょっと、触ったらダメっ、やぁんっ%UNICODE(0x2665) *1%」
+						PRINTW 
+					ENDIF
+					CFLAG:1110 += 1
 				ENDIF
-			ELSE
-				PRINTFORML 「えっご褒美ってえっ？」
-				PRINTFORML 予想の斜め上の反応に思考がショートするはたて
-				PRINTW 
-				PRINTFORML はたてちゃんのふたなりちんぽ、これは隅々まで研究せねばなるまいて
-				PRINTFORML 「い、いやいやいや！　そーいうの、いーから！　間に合ってますから！」
-				PRINTW 
-				PRINTFORML 「ちょ、ちょっと、触ったらダメっ、やぁんっ%UNICODE(0x2665) *1%」
-				PRINTW 
+			;ふたなり２回目以降
+			ELSEIF CFLAG:1110 >= 1
 			ENDIF
-			CFLAG:1110 += 1
 		ELSE
 			IF TALENT:愛欲 || TALENT:セフレ
 				SELECTCASE RAND:2
@@ -6365,15 +7417,81 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
 		CFLAG:1091 = 1
-		PRINTFORML 「えへへ、おめでた、だって♪」
-		PRINTFORML 「%MASTERNAME:42%の赤ちゃん、授かっちゃった…♪」
-		PRINTFORML 「不思議だね。まだお腹も出てないのに、ここに新しい命が宿ってるんだ…♪」
-		PRINTW 
-		PRINTFORML 「私、頑張って産むからね！　この子をいーっぱい幸せにするんだー♪」
-		PRINTFORML 「うん！　頼りにしてるよ。よろしくね、パパ%UNICODE(0x2665) *1%」
-		PRINTW 
-		RETURN 1
+		IF CFLAG:K42C_結婚 >= 1
+			IF EXP:出産経験 > 0
+				PRINTFORML 「えへへ、おめでた、だって♪」
+				PRINTFORML 「また%MASTERNAME:42%の赤ちゃん、授かっちゃった…♪」
+				PRINTFORML 「初めての時は妊娠できなかったらどうしよーって不安に思ってたのが嘘みたい」
+				PRINTW 
+				PRINTFORML 「私、頑張って産むからね！　この子もいーっぱい幸せにするんだー♪」
+				PRINTFORML 「そして、独り立ちしたあの子\@ EXP:出産経験 > 1 ? たち # \@にも見せてあげるの♪」
+				PRINTFORML 「うん！　いつも通り頼りにしてるよ。またよろしくね、ダーリン%UNICODE(0x2665) *1%」
+				PRINTW 
+			;初めての懐妊
+			ELSE
+				PRINTFORML 「赤ちゃん、できたんだって」
+				PRINTFORML まだ膨らんでもいない腹部をそっと押さえながら、はたてが報告してきた
+				PRINTL 
+				PRINTFORML 「あなたと家族になれただけでもすごく幸せなのに、もう一人、家族が増えるなんて…」
+				PRINTFORML 「嬉しい、嬉しいよぉ…うぇぇぇぇん」
+				PRINTFORML 感極まったはたてが泣き出したので、お腹の子に影響が出ないようそっと抱きしめて頭を撫でてやった
+				PRINTW 
+				PRINTFORML 「ごめんね、つい取り乱しちゃった…だって、念願の赤ちゃんを授かったんだもん」
+				PRINTFORML 「私、頑張って産むからね！　この子をいーっぱい幸せにするんだー♪」
+				PRINTFORML 「うん！　頼りにしてるよ。よろしくね、ダーリン%UNICODE(0x2665) *1%」
+				PRINTW 
+			ENDIF
+		ELSE
+			IF TALENT:MASTER:性別 == 2
+				PRINTFORML 「えへへ、おめでた、だって♪」
+				PRINTFORML 「%MASTERNAME:42%の赤ちゃん、授かっちゃった…♪」
+				PRINTFORML 「不思議だね。まだお腹も出てないのに、ここに新しい命が宿ってるんだ…♪」
+				PRINTW 
+				PRINTFORML 「私、頑張って産むからね！　この子をいーっぱい幸せにするんだー♪」
+				PRINTFORML 「うん！　頼りにしてるよ。よろしくね、パパ%UNICODE(0x2665) *1%」
+				PRINTW 
+			ELSE
+				;ふたなりはたて
+				IF TALENT:性別 == 3
+					PRINTFORML 「えへへ、おめでた、だって♪」
+					PRINTFORML 「%MASTERNAME:42%の赤ちゃん、授かっちゃった…♪」
+					PRINTFORML 「不思議だね。まだお腹も出てないのに、ここに新しい命が宿ってるんだ…♪」
+					PRINTW 
+					PRINTFORML 「私たち、あべこべの体をしちゃってるけどさ。恋をして、命を育むことだってちゃぁんとできるんだよ」
+					PRINTFORML 「ひょっとしたら、この子にも私たちの特徴が受け継がれちゃうかもしんないけど」
+					PRINTFORML 「でも、この子が産まれたらお話してあげるんだ」
+					PRINTFORML 「『あなたは、おとーさんとおかーさんが愛し合って、望まれて産まれてきた子なんだよ』って」
+					PRINTW 
+					PRINTFORML 「そのためにはまず無事に産んであげなきゃ。この子をいーっぱい幸せにするんだー♪」
+					PRINTFORML 「うん！　頼りにしてるよ。よろしくね、パパ%UNICODE(0x2665) *1%」
+					PRINTW 
+				;女はたて
+				ELSE
+					PRINTFORML 「えへへ、おめでた、だって♪」
+					PRINTFORML 「%MASTERNAME:42%の赤ちゃん、授かっちゃった…♪」
+					PRINTFORML 「不思議だね。まだお腹も出てないのに、ここに新しい命が宿ってるんだ…♪」
+					PRINTW 
+					PRINTFORML 「不安だった？　ひょっとして、子供ができないんじゃないかって」
+					CALL ASK_YN("全然思ってない","不安だった")
+					IF !RESULT
+						PRINTFORML 「あはは、さすがだねー。その自身があったから授かれたのかも♪」
+					ELSE
+						PRINTFORML 「そっかぁ。苦しかったはずなのに、勇気を出してくれてありがと」
+						PRINTFORML はたては、優しい手つきで頭を抱き寄せ、自身の胸元に埋めさせた
+					ENDIF
+					PRINTW 
+					PRINTFORML 「物心ついたらびっくりするだろーなー。『おかーさんが二人いる！』って」
+					PRINTFORML 「でもね、この子が産まれたらお話してあげるんだ」
+					PRINTFORML 「『あなたは、おとーさんとおかーさんが愛し合って、望まれて産まれてきた子なんだよ』って」
+					PRINTW 
+					PRINTFORML 「そのためにはまず無事に産んであげなきゃ。この子をいーっぱい幸せにするんだー♪」
+					PRINTFORML 「うん！　頼りにしてるよ。よろしくね、パパ%UNICODE(0x2665) *1%」
+					PRINTW 
+				ENDIF
+			ENDIF
+		ENDIF
 	ENDIF
+	RETURN 1
 	;-------------------------------------------------
 	;思慕
 	;記入チェック（=0, 非表示、1, 表示）
@@ -9548,10 +10666,16 @@ ELSEIF TALENT:思慕
 	PRINTFORML 「ちょ、ちょっと待ってよ！」
 	PRINTFORML 抱き寄せようとしたところをはたてに押しとどめられた
 	PRINTW 
-	PRINTFORML 「ま、まだ心の準備が…」
-	PRINTFORML 「それに、まだ、してもらってないし………………キス」
-	PRINTFORML 「もっとそーいうの大事にしてくれたら、嫌じゃないってゆーか…」
-	PRINTW 
+	IF TALENT:MASTER:性別 == 2
+		PRINTFORML 「ま、まだ心の準備が…」
+		PRINTFORML 「それに、まだ、してもらってないし………………キス」
+		PRINTFORML 「もっとそーいうの大事にしてくれたら、嫌じゃないってゆーか…」
+		PRINTW 
+	ELSE
+		PRINTFORML 「ま、まだ心の準備が…」
+		PRINTFORML 「同性でするってのが嫌とかじゃなくて…もーちょっと、段階踏んでほしーってゆーか…」
+		PRINTW 
+	ENDIF
 	PRINTFORML はたては少しだけ顔を伏せながら唇を尖らせ、ブツブツと呟いている
 	PRINTFORML もっと親密になり、段階を踏んでいけば心も体も開いてくれるかもしれない
 	PRINTW 
@@ -9569,8 +10693,12 @@ ELSE
 	ENDIF
 		PRINTFORML と私って、そーいう仲じゃないでしょ」
 		PRINTFORML 「積極的なのは別に嫌いじゃないけど…そもそも私が全然その気じゃないしっ」
-		PRINTFORML 「そーいう仲になりたいんだったら、もっとアンタのこと色々教えてよね」
-		PRINTFORML 「そして私のことも色々知りなさいよ」
+		IF TALENT:MASTER:性別 == 2
+			PRINTFORML 「そーいう仲になりたいんだったら、もっとアンタのこと色々教えてよね」
+			PRINTFORML 「そして私のことも色々知りなさいよ」
+		ELSE
+			PRINTFORML 「%MASTERNAME:42%のこと、友達だと思ってるから…ごめんね」
+		ENDIF
 		PRINTW 
 	RETURN -1
 ENDIF

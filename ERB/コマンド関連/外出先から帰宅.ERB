@@ -31,22 +31,9 @@ IF !FLAG:70
 		PRINTFORML なんとか脱出することに成功した…
 		PRINTL 
 		CALL ASK_DIARY("土砂崩れに遭遇した")
-		BASE:MASTER:体力 = 0
+		BASE:MASTER:体力 -= (MAXBASE:MASTER:体力 * 3)
 		
 		GOTO WARP2
-	ENDIF
-	;(天候パッチ)猛烈な台風の暴風域にいるとき飛来物に巻き込まれる可能性 颶風時には確率上昇
-	IF (低気圧位置 == "台風接近暴風域" || 低気圧位置 == "台風通過暴風域") && IS_TYPHOON:1 >= 5 && (RAND:20 == 0 || (WIND_VELOCITY >= 3 && RAND:3 == 0))
-		PRINTFORML …道を歩いていると何かがこっちに飛ばされてきた
-		PRINTFORMW ！！　屋根瓦だ！！
-		
-		PRINTFORML 
-		PRINTFORML 暴風に飛ばされた瓦が%CALLNAME:MASTER%に直撃した…
-		PRINTL 
-		CALL ASK_DIARY("飛来物が直撃した")
-		BASE:MASTER:体力 = 0
-		
-		GOTO WARP3
 	ENDIF
 	;(天候パッチ)雪崩発生フラグが立っているとき雪崩に巻き込まれる可能性
 	IF POSSIBLITY_AVALANCHE == 1 && POWER_COLD_AIR >= 3 && RAND:((6 - POWER_COLD_AIR) * 10) == 0
@@ -62,7 +49,7 @@ IF !FLAG:70
 		CONTINUOUS_SNOWFALL = 0
 		
 		CALL ASK_DIARY("雪崩に遭遇した")
-		BASE:MASTER:体力 = 0
+		BASE:MASTER:体力 -= (MAXBASE:MASTER:体力 * 3)
 		
 		GOTO WARP4
 	ELSEIF POSSIBLITY_AVALANCHE == 2 && POWER_WARM_AIR >= 2 && RAND:((6 - POWER_WARM_AIR) * 10) == 0
@@ -74,12 +61,12 @@ IF !FLAG:70
 		PRINTFORML なんとか脱出することに成功した…
 		PRINTL 
 		
-		SNOW_COVERAGE = 0
+		POSSIBLITY_AVALANCHE = 0
 		CONTINUOUS_SNOWFALL = 0
 		SNOW_COVERAGE = 0
 		
 		CALL ASK_DIARY("雪崩に遭遇した")
-		BASE:MASTER:体力 = 0
+		BASE:MASTER:体力 -= (MAXBASE:MASTER:体力 * 3)
 		
 		GOTO WARP5
 	ENDIF
@@ -107,7 +94,6 @@ IF !FLAG:70
 	ENDIF
 	CALL お出かけイベント
 	$WARP2
-	$WARP3
 	$WARP4
 	$WARP5
 	$WARP6

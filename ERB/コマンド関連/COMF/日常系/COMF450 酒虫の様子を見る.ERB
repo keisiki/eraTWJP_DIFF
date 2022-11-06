@@ -35,6 +35,27 @@ SELECTCASE RESULT
 		VAR_FERMENT = %VAR_WATER%
 		VAR_WATER =
 		DAY:10 = 0
+		;入れ替え時にエサをやれる
+		IF ITEM:魚粕 || ITEM:肉骨粉
+			PRINTFORML 酒虫にエサを与えようか…
+			{
+			CALL ASK_M("魚粕を与える", ITEM:魚粕,
+			"肉骨粉を与える", ITEM:肉骨粉,
+			"エサはやらない",1)
+			}
+			SELECTCASE RESULT
+				CASE 0
+					CALL LOST_ITEM("魚粕", 1, 1)
+					PRINTFORML 酒虫は魚粕をついばんで少し活動的になったようだ…
+					DAY:10 += 1
+				CASE 1
+					CALL LOST_ITEM("肉骨粉", 1, 1)
+					PRINTFORML 酒虫は肉骨粉をついばんで活動的になったようだ…
+					DAY:10 += 2
+				CASE 2
+					PRINTFORML エサはやらないことにした
+			ENDSELECT
+		ENDIF
 	CASE 2
 		CALL COM450_1
 	CASE 3
@@ -92,7 +113,7 @@ IF LOCAL == 0
 			VAR_FERMENT = 貴腐ブドウ汁
 		CASE 5
 			LOCAL = 1
-			CLEARLINE 7
+			CLEARLINE 8
 			RESTART
 		CASE 6
 	ENDSELECT
@@ -131,7 +152,7 @@ IF LOCAL == 1
 			VAR_FERMENT = 熟成前ブランデー
 		CASE 6
 			LOCAL = 2
-			CLEARLINE 8
+			CLEARLINE 9
 			RESTART
 		CASE 7
 	ENDSELECT
@@ -153,7 +174,7 @@ IF LOCAL == 2
 			VAR_FERMENT = 灰持酒
 		CASE 2
 			LOCAL = 0
-			CLEARLINE 4
+			CLEARLINE 5
 			RESTART
 		CASE 3
 	ENDSELECT
