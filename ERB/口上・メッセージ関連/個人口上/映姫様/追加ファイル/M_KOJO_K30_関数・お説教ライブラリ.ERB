@@ -46,11 +46,11 @@ RETURNF 1
 ;-------------------------------------------------
 @K30_CHECK_HEN_T()
 #FUNCTION
+SIF DAY % 7 == 5
+	RETURNF 1
 SIF FLAG:ファッション == 62
 	RETURNF 1
-SIF CFLAG:30:衣装一時変更 != 62
-	RETURNF 0
-SIF DAY % 7 == 5
+SIF CFLAG:30:衣装一時変更 == 62
 	RETURNF 1
 RETURNF 0
 ;==================================================
@@ -101,31 +101,34 @@ SIF LOCAL >= LOCAL:1
 	RETURNF 0
 RETURNF 1
 ;==================================================
-;同部屋のキャラを拾う式中関数。探す順位は[恋人]持ち→知り合い→TARGET内ランダム
+;同部屋のキャラを拾う式中関数
 ;アリス口上の関数お借りして平文化しました。ERHだと動作が速かったり安定するのかな
 ;丸コピはあれなので知り合い以外はランダムで選んでIDを返すように。誰もいなければ0を返す
+;引数が真-TARGET内ランダム、偽-優先順序付き（[恋人]持ち→知り合い→TARGET内ランダム）
+;映姫様の知り合いは7人,小町>久侘歌>さとり>ヘカーティア>阿求>幽々子>紫の順に(勝手に)設定
 ;-------------------------------------------------
-@K30_FIND_AROUND()
+@K30_FIND_AROUND(ARG = 0)
 #FUNCTION
 #DIM 知り合い,7 = 76, 129, 49, 113, 80, 66, 26
 #DIM 総人数
 #DIM 抽選
 #LOCALSIZE 200
-;映姫様の知り合いは7人,小町>久侘歌>さとり>ヘカーティア>阿求>幽々子>紫の順に(勝手に)設定
 VARSET LOCAL
 抽選 = 0
 総人数 = GET_TARGETNUM() 
 ;部屋に映姫様一人なら当然0
 SIF 総人数 == 1
 	RETURNF 0
-;[恋人]持ちがいたら優先してIDを返す
-SIF K30_FIND_LOVER() == 2
-	RETURNF TALENT:MASTER:恋人
-;知り合い優先度順に現在位置を調べMASTERと同じならIDを返す
-FOR COUNT, 0, 7
-	SIF CFLAG:(知り合い:COUNT):現在位置 == CFLAG:MASTER:現在位置
-		RETURNF 知り合い:COUNT
-NEXT
+IF !ARG
+	;[恋人]持ちがいたら優先してIDを返す
+	SIF K30_FIND_LOVER() == 2
+		RETURNF TALENT:MASTER:恋人
+	;知り合い優先度順に現在位置を調べMASTERと同じならIDを返す
+	FOR COUNT, 0, 7
+		SIF CFLAG:(知り合い:COUNT):現在位置 == CFLAG:MASTER:現在位置
+			RETURNF 知り合い:COUNT
+	NEXT
+ENDIF
 ;知り合いがいなければ同室のTARGET_ID全部を拾う
 FOR COUNT,1, 総人数 + 1
 	;地獄の断頭台withジェロニモ状態を防ぐため口上主はスキップ
@@ -450,10 +453,7 @@ SELECTCASE 対象マップ
 				TEMP_NAME = 命蓮寺
 		ENDSELECT
 	CASE 2
-		SELECTCASE MAP_SEARCH_REPLACEMENT_2(ARG)
-			CASEELSE
-				TEMP_NAME = 人里
-		ENDSELECT
+		TEMP_NAME = 人里
 	CASE 3
 		SELECTCASE MAP_SEARCH_REPLACEMENT_3(ARG)
 			CASE 霧の湖, 氷のかまくら
@@ -790,6 +790,21 @@ SELECTCASE 日記ID
 	CASE 37
 		特記 = %\@ CFLAG:1608 ? 有 # \@%
 		別記 = %\@ TALENT:恋慕 ? 恋 # \@%
+	;セフレ：取得手段、契約時の分岐
+	CASE 39
+		IF COM_STR == "K30_契約" && TFLAG:193
+			特記 = 契約
+			SELECTCASE TFLAG:193
+				CASE 3
+					別記 = 前世
+				CASE 2
+					別記 = Ａ調教
+				CASE 1
+					別記 = 無意識
+			ENDSELECT
+		ELSE
+			特記 = 素質
+		ENDIF
 ENDSELECT
 IF ARG == 0
 	DIARY:30:日記ID = 2
@@ -1095,7 +1110,7 @@ ENDIF
 #DIM CLEAN
 #DIM TEMP
 #DIMS HTML_FORM
-SIF !FLAG:画像表示 || !FLAG:挿絵表示 || GETBIT(CFLAG:1500, 0)
+SIF !FLAG:画像表示 || !FLAG:挿絵表示 || !GETBIT(CFLAG:1500, 0)
 	RETURN
 
 VARSET LOCAL
@@ -1328,7 +1343,7 @@ RETURNF MIN(LOCAL * キャラ画像表示サイズ比 / 10000 * 100 , 1800)
 					 "30_SHADOW_HAND", "30_SHADOW_INST", "30_SHADOW_LICK", "30_SHADOW_LIFT", "30_SHADOW_PENIS", "30_SHADOW_SPANK", "30_SHADOW_DEEPER"
 }
 
-SIF !FLAG:画像表示 || GETBIT(CFLAG:1500, 1)
+SIF !FLAG:画像表示 || !GETBIT(CFLAG:1500, 1)
 	RETURN
 
 VARSET SET_RESOURCE
@@ -2487,15 +2502,7 @@ IF !TALENT:30:恋慕
 	PRINTFORML
 	;無自覚孕ませ
 	IF CFLAG:1805
-		IF INRANGE(CFLAG:妊娠経過日数, 1, 39)
-			PRINTFORML 自身の身体の変調にあえて目を逸らしている
-		ELSEIF CFLAG:妊娠経過日数
-			PRINTFORML 誰とも知らぬ子を孕まされた異常な事態に恐れ慄いている
-		ELSEIF CFLAG:出産経過日
-			PRINTFORML 罪の意識に苛まれ%CSTR:30:83%を無事に育てることだけを支えにしている
-		ELSE
-			CALL COLORMESSAGE, "自らを苛烈な罰にさらし二度と孕めぬ身体となった", C_RED, 1, 1
-		ENDIF
+		CALL K30_UNWANTED_PREGNANCY
 	ENDIF
 	RETURN 1
 ENDIF
@@ -2522,6 +2529,11 @@ IF CFLAG:30:1801 && STRCOUNT(CSTR:30:0, "押し倒し")
 		PRINTFORML 　・%CALLNAME:MASTER%に乳を含ませながら、ダダ甘に甘やかしたいと密かに思っているらしい…
 ENDIF
 PRINTFORML 
+;無自覚孕ませ
+IF CFLAG:1805
+	CALL K30_UNWANTED_PREGNANCY
+	RETURN 1
+ENDIF
 ;妊娠願望。恋慕後でも時姦妊娠とか鬼畜あなたを考慮したら見づらい分岐に
 ;願望再取得時
 IF GETBIT(CFLAG:30:1502, 4)
@@ -2536,19 +2548,6 @@ ELSEIF TALENT:30:妊娠願望
 ELSEIF GETBIT(CFLAG:30:1502, 3) && !TALENT:30:育児中 && !TALENT:30:妊娠
 	PRINTFORML また[願掛け]をすれば子供を授かるのではないかと期待をしている。
 	PRINTFORML 
-	RETURN 1
-ENDIF
-;無自覚孕ませ
-IF CFLAG:1805
-	IF INRANGE(CFLAG:妊娠経過日数, 1, 39)
-		PRINTFORML 自身の身体の変調にあえて目を逸らしている
-	ELSEIF CFLAG:妊娠経過日数
-		PRINTFORML 誰とも知らぬ子を孕まされた異常な事態に恐れ慄いている
-	ELSEIF CFLAG:出産経過日
-		PRINTFORML 罪の意識に苛まれ%CSTR:30:83%を無事に育てることだけを支えにしている
-	ELSE
-		CALL COLORMESSAGE, "自らを苛烈な罰にさらし二度と孕めぬ身体となった", C_RED, 1, 1
-	ENDIF
 	RETURN 1
 ENDIF
 SIF !INRANGE(CFLAG:30:1502, 1, 7) || TALENT:30:育児中 || TALENT:30:妊娠 || EXP:30:出産経験
@@ -2580,6 +2579,20 @@ SELECTCASE CFLAG:30:1502
 		PRINTFORML 迷いも晴れてついに%CALLNAME:MASTER%と子作りをする決心ができた。
 ENDSELECT
 RETURN 1
+
+@K30_UNWANTED_PREGNANCY
+IF INRANGE(CFLAG:妊娠経過日数, 1, 19)
+ELSEIF INRANGE(CFLAG:妊娠経過日数, 20, 59)
+	PRINTFORML 自身の身体の変調にあえて目を逸らしている
+ELSEIF CFLAG:妊娠経過日数
+	PRINTFORML 誰とも知らぬ子を孕まされた異常な事態に恐れ慄いている
+ELSEIF CFLAG:出産経過日
+	PRINTFORML 罪の意識に苛まれ%CSTR:30:83%を無事に育てることだけを支えにしている
+ELSE
+	CALL COLORMESSAGE, "自らを苛烈な罰にさらし二度と孕めぬ身体となった", C_RED, 1, 1
+ENDIF
+RETURN
+
 ;==================================================
 ;映姫様のお尻の穴と抵抗を緩くするEXTRASOURCE関数群
 ;豊姫口上参考にしました

@@ -11,7 +11,7 @@
 RETURN 1
 
 ;一日の終了時の流れの覚書
-;残存精液/妊娠判定 → 会ってない日数チェック（口上）→ デイリーイベント → 夜オナニー（口上）
+;妊娠判定/出産経過（育児関連経過日数を+1） → 会ってない日数チェック（口上）→ デイリーイベント → 夜オナニー（口上）
 ;→ @DIARY_TEXT_KXX（日記本文）→ @DIARY_AFTER_CHECK_KXX（フラグの処理）→ 陥落・素質UPチェック → 一日の終了
 ;=============================
 @DIARY_AFTER_CHECK_K30
@@ -20,7 +20,7 @@ RETURN 1
 ;=============================
 @DIARY_BEFORE_CHECK_K30
 ;PAGENUM:0は使えません
-;EVENTCOMEND.ERBから現在位置に係わらず毎ターン呼び出される
+;EVENTCOMEND.ERBから現在位置に関係なく毎ターン呼び出される
 ;=============================
 ;MAXPAGEはここで記入する
 MAX_DIARY_PAGE:30:0 = 100
@@ -91,6 +91,7 @@ SIF DIARY:30:35 ==0 && GETBIT(CFLAG:30:1910, 7)
 ;小町と同時			No.36	一日の終了時
 ;尻穴狂い			No.37	一日の終了時
 ;バイブデート		No.38	追加シチュ
+;セフレ				No.39	一日の終了時
 
 ;初対面				No.50	初対面挨拶
 
@@ -114,6 +115,8 @@ VARSET LOCALS
 服装 = 服
 エフェクト =
 TFLAG:192 = 0
+SIF GETBIT(CFLAG:30:1500, 2)
+	SETANIMETIMER 50
 ;口上色＠コマンドで呼び出された時、色を付ける
 CALL M_KOJO_COLOR_K30
 ;日記内容
@@ -133,13 +136,12 @@ IF MODE == "デイリー"
 		CASE 1, 2, 32
 			IF K30_DIARY_DATA(PAGENUM, 2) == "恋"
 				表情 = 笑顔
-				エフェクト = ダミー
 				TFLAG:192 = -7
 			ELSE
 				表情 = %\@ PAGENUM == 1 ? 発情 # 睡眠 \@%
 			ENDIF
 		CASE 3, 4, 9, 11, 13, 14, 16, 17, 18, 20, 21, 22, 24, 32, 33, 36, 50
-			表情 = 通常
+			表情 = アニメ
 			SIF PAGENUM == 36
 				エフェクト = 照れ
 		CASE 5, 20, 25
@@ -162,14 +164,15 @@ IF MODE == "デイリー"
 		CASE 23
 			表情 = 絶頂
 			服装 = 服_下着
-			エフェクト = ダミー
 			TFLAG:192 = -9
 		CASE 30, 37, 38
 			表情 = %\@ PAGENUM == 30 ? LOVE # 発情 \@%
-			エフェクト = ダミー
 			TFLAG:192 = -7
 			SIF PAGENUM == 37
 				SETBIT CFLAG:1609, 0
+		CASE 39
+			表情 = 睡眠
+			エフェクト = 照れ
 	ENDSELECT
 	PRINTFORML 
 	CALL PRINT_FACE,30, 表情, 服装, "", エフェクト
@@ -315,7 +318,7 @@ SELECTCASE PAGENUM
 			PRINTFORML 
 			PRINTFORMDL この後も弾幕勝負での反省と分析がびっしりと書き込まれている
 			PRINTFORMDW 閻魔様の強さの秘訣はこの真面目さに違いない…
-			表情 = 通常
+			表情 = アニメ
 			IF RAND:2 == 1
 				{
 				台詞 = 「勝負において全力を出すのはお互い当たり前」
@@ -343,7 +346,7 @@ SELECTCASE PAGENUM
 		ENDIF
 		PRINTFORML 私も仕事の忙しさにかまけてしまい、どうやら修練が足りなかったようだ。
 		PRINTFORMW どこかで時間を捻出して訓練に当てなければならない。
-		表情 = 通常
+		表情 = アニメ
 		IF MODE == "コマンド"
 			PRINTFORML 
 			PRINTFORMDW 閻魔様の向上心には頭が下がる思いだ…
@@ -462,7 +465,7 @@ SELECTCASE PAGENUM
 			PRINTFORMDL 残りのページは説教の内容が事細かに書かれて埋め尽くされていた
 			PRINTFORMDW こんなのを何度も聞かされているのに、それでもさぼる小町とはいったい…
 			IF RAND:2 == 1
-				表情 = 通常
+				表情 = アニメ
 				{
 				台詞 = 「言い聞かせる内容は毎回記録していますよ」
 				/「同じ事を言ってばかりでは聞く方も身が入りませんから」
@@ -528,7 +531,7 @@ SELECTCASE PAGENUM
 			PRINTFORML 
 			PRINTFORMDW さすがにいつもあの勢いで罪人を叩いてるわけではないようだ…
 			IF RAND:2 == 1
-				表情 = 通常
+				表情 = アニメ
 				台詞 = 「%\@ LOCAL ? あれで次の日には # あんなふうにされて \@%全然平気なんですから」/「貴方って本当に丈夫な人ですよね…」
 			ELSE
 				表情 = 反発
@@ -602,7 +605,7 @@ SELECTCASE PAGENUM
 				//「ありがとうございます、%K30_C_NAME(MASTER)%」
 				}
 			ELSE
-				表情 = 通常
+				表情 = アニメ
 				{
 				台詞 = 「貴方からは色々と貰っているだけ」
 				/「私からはちゃんとお返しはできているのかしら…？」
@@ -619,7 +622,7 @@ SELECTCASE PAGENUM
 		IF MODE == "コマンド"
 			PRINTFORML 
 			PRINTFORMDW 無難に選んだつもりだったが、間違ってなくてなによりだ…
-			表情 =通常
+			表情 =アニメ
 			IF RAND:2 == 1
 				{
 				台詞 = 「あの%K30_DIARY_DATA(PAGENUM, 2)%なんですけど」
@@ -790,7 +793,7 @@ SELECTCASE PAGENUM
 			PRINTFORML
 			PRINTFORMDL 閻魔様はさとりのことをずいぶん高く評価しているようだ…
 			IF RAND:2 == 1
-				表情 = 通常
+				表情 = アニメ
 				{
 				台詞 = 「罪を暴く閻魔と心を見透かす覚」
 				/「似た者同士ですね。人妖問わず避けられる点も一緒です」
@@ -824,7 +827,7 @@ SELECTCASE PAGENUM
 		IF MODE == "コマンド"
 			PRINTFORML 
 			PRINTFORMW ……お労しや、閻魔様
-			表情 = 通常
+			表情 = アニメ
 			IF LOCAL && RAND:2 == 1
 				台詞 = 「冗談でも悪い夢でもありませんでしたね…」
 			ELSEIF RAND:2 == 1
@@ -845,7 +848,7 @@ SELECTCASE PAGENUM
 		IF MODE == "コマンド"
 			PRINTFORML 
 			PRINTFORMW 閻魔様のスペカを予告なしとは結構やばいのでは…気をつけよう
-			表情 = 通常
+			表情 = アニメ
 			IF RAND:2 == 1
 				台詞 = 「まあこの時は、それぐらいが良い薬になると思ってましたから……」
 			ELSE
@@ -863,7 +866,7 @@ SELECTCASE PAGENUM
 		PRINTFORMW 少し早いが今日はもう寝てしまおう。
 		IF MODE == "コマンド"
 			IF RAND:2 == 1
-				表情 = 通常
+				表情 = アニメ
 				{
 				台詞 = 「……この時は色々と迷ってばかりだったの」
 				/「初めての経験、しかもそれが白黒はっきりつけられないこと」
@@ -882,7 +885,7 @@ SELECTCASE PAGENUM
 		PRINTFORML 自分のことすらわかっていない閻魔とは情けない限りだ
 		PRINTFORMW 本当にどうしてしまったのだろう。
 		IF MODE == "コマンド"
-			表情 = 通常
+			表情 = アニメ
 			IF RAND:2 == 1
 				{
 				台詞 = 「たいていの事を自分はわかったつもりになっていましたが」
@@ -1010,7 +1013,7 @@ SELECTCASE PAGENUM
 				/「何だかすごくダメな感じがしてきますね…」
 				}
 			ELSE
-				表情 = 通常
+				表情 = アニメ
 				{
 				台詞 = 「え？　今でも当日になって誘う理由ですか？」
 				/「だって…せっかくのお休みなら、%K30_C_NAME(MASTER)%と二人で過ごしたいじゃない」
@@ -1182,7 +1185,7 @@ SELECTCASE PAGENUM
 					台詞 = 「待ち遠しくてたまらないのよ…」
 				ENDIF
 			ELSE
-				表情 = 通常
+				表情 = アニメ
 				{
 				台詞 = 「種族の差や閻魔としての立場…」
 				/「私たちにはいろいろと難しい事がありますけど」
@@ -1211,7 +1214,7 @@ SELECTCASE PAGENUM
 		ENDIF
 		IF MODE == "コマンド"
 			IF EXP:出産経験
-				表情 = 通常
+				表情 = アニメ
 				{
 				台詞 =「身体の変化に赤ちゃんを産むことへの喜びと不安と」
 				/「ずっと自分には縁の無いと思っていたものがいっぺんに降ってきて…」
@@ -1245,7 +1248,7 @@ SELECTCASE PAGENUM
 					/「だからほら、もっと%K30_DIARY_DATA(PAGENUM, 2)%と遊んであげてください」
 					}
 				CASE 60 TO 120
-					表情 = 通常
+					表情 = アニメ
 					{
 					台詞 = 「ついこの間まで、こんなふうに一日中いっしょに過ごしていましたね」
 					/「だけど少しずつ私の手から離れて」
@@ -1433,13 +1436,48 @@ SELECTCASE PAGENUM
 			PRINTFORML 
 			PRINTFORMDW だいぶ危ない橋を渡ったと思うが、それでも続けたいのだろうか…
 			IF GETBIT(CFLAG:1609, 2)
-				表情 = 通常
+				表情 = アニメ
 				台詞 = /「…控えたほうがいいのかしら？」
 			ELSE
 				表情 = LOVE
 				TFLAG:192 = -7
 				台詞 = /「…………………」/「………%\@ RAND:2 ? 貴方は、イヤなんですか… # ええ、もちろんですよ \@%♥」
 			ENDIF
+		ENDIF
+	;セフレ
+	CASE 39
+		IF K30_DIARY_DATA(PAGENUM, 2) == "契約"
+			PRINTFORML 自分の心がこんなにも弱いとは思ってもみなかった。
+			PRINTFORML %K30_DIARY_DATA(PAGENUM, 3)%がニヤニヤ笑いながら持ちかけてきたふざけた話。
+			SELECTCASE K30_DIARY_DATA(PAGENUM, 5)
+				CASE "前世"
+					PRINTFORML 普通ならあんな事を言われて怒って当然、なのに私は受け入れてしまった。
+					PRINTFORML どうしても%K30_DIARY_DATA(PAGENUM, 3)%の言うことに私は逆らえない。
+					PRINTFORML 初めて抱かれたときもそうだが、なぜか従うのが当然の言葉として頭に響くのだ。
+				CASE "Ａ調教"
+					PRINTFORML 閻魔としてその場で叱り飛ばすべき、きちんと罰を与え反省を促すべき場面だ。
+					PRINTFORML なのに私は自分が気持ち良くしてもらうことを一番に考えていた。
+					PRINTFORML 肉欲に、しかも不浄の穴の快楽に負けてしまうなんて本当に情けないと思う。
+				CASE "無意識"
+					PRINTFORML もちろん断るべき、そんなこと頭ではわかっていた。
+					PRINTFORML でも身体の奥、お尻のほうから湧き上がるあの妙な疼き。
+					PRINTFORML それが私を狂わせ気づいた時には%K30_DIARY_DATA(PAGENUM, 3)%の言うことに従っていた。
+			ENDSELECT
+			PRINTFORML 
+			PRINTFORML せめてもの意趣返しに返答だけはそっけなくしてみたけど効果は疑わしい。
+			PRINTFORML %K30_DIARY_DATA(PAGENUM, 3)%には私の虚勢を見透かされている気がしてならない。
+			PRINTFORML 現に日記をしたためている今でも身体が疼き、一人では満たされない乾きを感じている。
+			PRINTFORML 明日からしてもらえることに、もう期待をしてしまっている自分がいる。
+			PRINTFORMW 本当に私は堕ちるところまで堕ちてしまったようだ。
+		ELSE
+			PRINTFORML いったい私はなにをしているのだろうか。
+			PRINTFORML 想いを確かめてもない相手と肌を重ねるだけでも大きな罪なのに、
+			PRINTFORML %K30_DIARY_DATA(PAGENUM, 3)%がくれる気持ち良い事が四六時中頭から離れてくれない。
+			PRINTFORML 閻魔の矜持さえ無くしてしまうくらいにあの人に弄ばれているのに、何度でもして欲しくてたまらない。
+			PRINTFORML 
+			PRINTFORML %K30_DIARY_DATA(PAGENUM, 3)%の想いは私に向いていないのはわかっている。
+			PRINTFORML 私に出来ることはこの貧相な身体を差し出し、あの人をちょっとだけ繋ぎ止めることぐらい。
+			PRINTFORMW 本当に浅ましいと思うが今の私にはこの程度の振る舞いがお似合いなのだろう。
 		ENDIF
 	;初対面
 	CASE 50
@@ -1493,7 +1531,7 @@ IF SHIRAHU(30) && MODE == "コマンド" && CFLAG:30:現在位置 == CFLAG:MASTE
 	CFLAG:30:差し替え適用 = 1
 	IF GROUPMATCH(PAGENUM, 17, 22) && TFLAG:192 == -2
 		PRINTFORML 
-		CALL K30_SPTALK, "通常", LOCALS
+		CALL K30_SPTALK, "アニメ", LOCALS
 		WAIT
 		TFLAG:192 = -6
 	ENDIF
@@ -1505,6 +1543,7 @@ IF SHIRAHU(30) && MODE == "コマンド" && CFLAG:30:現在位置 == CFLAG:MASTE
 ENDIF
 ;デイリーイベントで呼び出されてた時、元通りにする
 RESETCOLOR
+SETANIMETIMER 32627
 
 ;=============================
 @M_KOJO_MESSAGE_COM_K30_406
