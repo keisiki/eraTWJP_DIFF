@@ -5,6 +5,43 @@
 画像が表示されない場合、DL・解凍の過程で問題が起きている、ないしはセキュリティソフトが悪さをしている可能性があります。
 
 **********************************************************************************************************
+11/20
+
+Emuera for TW 20221027.7z
+TW4.871画像表示修正Ver.2
+eraTW4.871あなたの起床時間によって、バニー衣装にならないを修正したパッチ
+eraTW4.871用セフレ契約
+eraTW4.871用天候パッチver4.0.0
+eraTW4.871反発刻印履歴バグ修正
+
+起床時メニューに固有料理リスト追加。
+エラー吐くので白蓮口上のCALLFORM M_KOJO_MESSAGE_COM_K55_{SELECTCOM}_1をコメントアウト。
+会話で大成功する確率を少し低下＆大成功すると会話累積値追加。
+セフレ契約を大幅改変。バランスに関する意見募集。
+口上テンプレにセフレ契約用の@KOJO_SF_CONTRACT_KX(ARGS)を追加。
+飛来物、台風の目、変な雲のCALL ASK_DIARYをコメントアウト。
+初回抱き寄せ時などに@ASK_DIARY追加。
+
+
+10/27
+
+蓬莱山像素绘差分+bugfix 补丁
+	Emuera change: 
+	(modified from [Emuera1824+v11+webp+test+fix])
+	1. add image size px to html image parameters, fix blurred image bug
+
+	new image set: 
+	1. add new image set for 辉夜
+
+	bug fix:
+	1. fix [when 巨乳 image setting is enabled, some 表情 cannot be shown] 
+	2. fix [梦美 下着 image doesn't show in some situation]
+	3. fix [白莲 颜绘 effect doesn't show when it is in 差し替え画像]
+	4. fix [白莲 别立 下着 shows when having 全身下着 such as ボディスーツ]
+	5. fix [白莲 别立 お腹撫 effects will still show when target is other characters ]
+	6. fix [some 勇儀 effects didn't show]
+	7. fix [the special clouth for 響子 didn't show]
+	8. fix [衣装一時変更 will be reset to default clouth when 時間停止解除]
 
 ホワイトデーの好感度信頼度上昇量が流石にムチャクチャだったので調整。
 攻略の進行につれて激しくインフレする要素を固定値でやるのは難しいわね。

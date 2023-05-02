@@ -198,33 +198,14 @@ ELSE
 			;顔絵
 		ELSE
 			;立ち絵
-			RESULTS = _TT
 		ENDIF
 	ELSE
 		;服
 		IF CFLAG:CHARA:衣装一時変更 == 65 || (CFLAG:CHARA:基本服装セット == 65 && CFLAG:CHARA:衣装一時変更==0)
-			IF FLAG:立ち絵種類
-				;顔絵
-				RESULTS = _作業着
-			ELSE
-				;立ち絵
-				IF TCVAR:発情
-					RESULTS = _TT発情
-				ELSEIF CFLAG:51:溜まってる度 >= 400
-					RESULTS = _TTムラムラ
-				ELSE
-					RESULTS = _TT
-				ENDIF
-			ENDIF
-		;バニー
-		ELSEIF CFLAG:CHARA:衣装一時変更 == 55 || (CFLAG:CHARA:基本服装セット == 55 && CFLAG:CHARA:衣装一時変更==0)
-			IF FLAG:立ち絵種類
-				;顔絵
-				RESULTS = _バニー
-			ELSE
-				;立ち絵
-				RESULTS = _バニー
-			ENDIF
+			RESULTS = _作業着
+		;バニー立ち絵のみ
+		ELSEIF CFLAG:CHARA:衣装一時変更 == 55 || (CFLAG:CHARA:基本服装セット == 55 && CFLAG:CHARA:衣装一時変更==0) && !FLAG:立ち絵種類
+			RESULTS = _バニー
 		ELSE
 			SIF DAY:2 == 2
 				RESULTS = _夏服
@@ -283,8 +264,52 @@ ELSE
 	;通常画像
 	IF FLAG:立ち絵種類
 		;顔絵
-	ELSE
-		;立ち絵
+	ELSEIF CFLAG:CHARA:衣装一時変更 == 65 || (CFLAG:CHARA:基本服装セット == 65 && CFLAG:CHARA:衣装一時変更==0) && (TCVAR:発情 || CFLAG:51:溜まってる度 >= 400) && !CHECK_NUDE(CHARA)
+		IF TALENT:CHARA:機嫌 == -1 || CFLAG:CHARA:ブチギレ
+			RESULTS:0 = 怒り
+			LOCAL = -1
+		ELSEIF TALENT:CHARA:機嫌 == 1 || BASE:CHARA:ムード == MAXBASE:CHARA:ムード || TCVAR:CHARA:泥酔
+			RESULTS:0 = 笑顔
+			LOCAL = 1
+		ELSE
+			RESULTS:0 = 通常
+			LOCAL = 0
+		ENDIF
+		SIF CHECK_CHARA(CHARA, "陥落")
+			LOCAL ++
+		SIF BATHROOM(CFLAG:CHARA:現在位置) && 風呂追い出し条件(CHARA)
+			LOCAL --
+		SIF MARK:CHARA:反発刻印
+			LOCAL --
+		SIF BASE:CHARA:怒り >= 500
+			LOCAL --
+		SIF BASE:CHARA:ムード >= 650
+			LOCAL ++
+		SELECTCASE RESULTS:0
+			CASE "笑顔"
+			;	笑顔時は表情が固まらないように
+			;	IF LOCAL < 0
+					RESULTS:1 = 通常
+			;	ELSE
+			;		RESULTS:1 = 笑顔
+			;	ENDIF
+			CASE "怒り"
+				IF LOCAL > 0
+					RESULTS:1 = 通常
+				ELSE
+					RESULTS:1 = 怒り
+				ENDIF
+			CASEELSE
+				IF LOCAL > 0
+					RESULTS:1 = 笑顔
+				ELSEIF LOCAL < 0
+					RESULTS:1 = 怒り
+				ELSE
+					RESULTS:1 = 通常
+				ENDIF
+		ENDSELECT
+		RESULTS:0 = %RESULTS:0%%\@ TCVAR:発情 ? 発情 # ムラムラ \@%
+		RESULTS:1 = %RESULTS:1%%\@ TCVAR:発情 ? 発情 # ムラムラ \@%
 	ENDIF
 ENDIF
 
@@ -444,8 +469,10 @@ IF CFLAG:CHARA:差し替え適用
 	;差し替え画像
 ELSE
 	;通常画像
-	;SIF STRFIND(エフェクト, "母乳") != -1
-	;	RETURN 1
+	SIF STRFIND(エフェクト, "巨乳服ズレ") != -1 && !FLAG:立ち絵種類
+		RETURN 1
+	SIF STRFIND(エフェクト, "巨乳服はだけ") != -1 && !FLAG:立ち絵種類
+		RETURN 1
 ENDIF
 
 RETURN 0
@@ -472,8 +499,17 @@ ELSE
 	;通常画像
 	IF FLAG:立ち絵種類
 		;顔絵
-	ELSE
+	ELSEIF TALENT:CHARA:バストサイズ > 0 && FLAG:巨乳差分表示 && !CHECK_NUDE(CHARA)
 		;立ち絵
+		IF CFLAG:CHARA:衣装一時変更 == 65 || (CFLAG:CHARA:基本服装セット == 65 && CFLAG:CHARA:衣装一時変更==0) 
+			IF TCVAR:発情
+				RESULTS:0 = 巨乳服はだけ
+				エフェクト数 ++
+			ELSEIF CFLAG:51:溜まってる度 >= 400
+				RESULTS:0 = 巨乳服ズレ
+				エフェクト数 ++
+			ENDIF
+		ENDIF
 	ENDIF
 ENDIF
 
