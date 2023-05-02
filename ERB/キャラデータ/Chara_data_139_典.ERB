@@ -116,22 +116,10 @@ RETURN 1
 #DIM CHARA
 VARSET RESULTS
 
-IF CFLAG:CHARA:差し替え適用
-	;差し替え画像
-	IF CHECK_NUDE(CHARA)
-		;裸
-		IF FLAG:立ち絵種類
-			;顔絵
-		ELSE
-			;立ち絵
-		ENDIF
-	ELSE
-		;服
-		IF FLAG:立ち絵種類
-			;顔絵
-		ELSE
-			;立ち絵
-		ENDIF
+IF CFLAG:CHARA:差し替え適用 && FLAG:立ち絵種類
+	IF CFLAG:CHARA:衣装一時変更 == 55 || (CFLAG:CHARA:基本服装セット == 55 && CFLAG:CHARA:衣装一時変更==0)
+		SIF !CHECK_NUDE(CHARA)
+			RESULTS = _バニー
 	ENDIF
 ELSE
 	;通常画像
@@ -202,6 +190,15 @@ IF CFLAG:CHARA:差し替え適用
 	;差し替え画像
 	IF FLAG:立ち絵種類
 		;顔絵
+		IF RESULTS:0 == "通常"
+			IF CFLAG:CHARA:うふふ || CFLAG:CHARA:溜まってる度 >= 500
+				RESULTS:0 = 半目
+				RESULTS:1 = 半目
+			ELSEIF TALENT:CHARA:機嫌 > 0
+				RESULTS:0 = 悪い顔
+				RESULTS:1 = 悪い顔
+			ENDIF
+		ENDIF
 	ELSE
 		;立ち絵
 	ENDIF

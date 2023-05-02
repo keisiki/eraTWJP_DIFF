@@ -248,3 +248,305 @@ IF LOCAL
 	ENDIF
 ENDIF
 RETURN 1
+;==================================================
+;301,お茶を淹れる
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K133_301
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K133_301
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K133_301_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K133_301_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;怒り
+	IF CFLAG:318 == 1
+		PRINTFORMW 「お前の茶など飲む気はしないな！」
+	ELSEIF TFLAG:193 == -1
+		IF RAND:5 == 0
+			PRINTFORMW 「……お茶の点て方を今度教えてやるよ」
+		ELSEIF RAND:4 == 0
+			PRINTFORMW 「うん！不味いな！」
+		ELSEIF RAND:3 == 0
+			PRINTFORMW 「私が点てた方が美味いな！」
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「昔飲んだお茶はもっと美味しかったぞ？」
+		ELSE
+			PRINTFORMW 「……お前はあまり茶を淹れるのが上手くないな！」
+		ENDIF
+	ELSE
+		IF RAND:5 == 0
+			PRINTFORMW 「%CALLNAME:MASTER%はすごいな！こんなに上手いお茶は飲んだことないぞ！」
+		ELSEIF RAND:4 == 0
+			PRINTFORMW 「ぷはぁ……！お前が淹れたお茶は美味いな！」
+		ELSEIF RAND:3 == 0
+			PRINTFORMW 「うん！格別な味だな！」
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「ずずっ……結構な味だな」
+		ELSE
+			PRINTFORMW 「ふぅ……上手いお茶を飲むとホッとするな！」
+		ENDIF
+	ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;302,スキンシップ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K133_302
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K133_302
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K133_302_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K133_302_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:318 == 1
+		IF RAND:3 == 0
+			PRINTFORMW 「私に触れるなよ、怒っているからな！」
+			PRINTFORMW 早鬼はスキンシップに対して睨みつけている。
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「気やすく触れるな薄汚い……」
+			PRINTFORMW 早鬼は%CALLNAME:MASTER%の行為に声を荒げて抗議した。
+		ELSE
+			PRINTFORMW 「止めろ！私は今機嫌が悪いんだ！」
+			PRINTFORMW 早鬼は怒った表情で抗議してくる。
+		ENDIF
+	;風呂場
+	ELSEIF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+		IF RAND:3 == 0
+			PRINTFORMW 「私が背中を流してやろう……何、緊張するな！」
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「湯浴みは楽しいな！ほら、洗いっこしよう！」
+		ELSE
+			PRINTFORMW 「私の背中を流してくれないか？人の手で洗われるのが好きなんだ」
+		ENDIF
+	ELSEIF TALENT:恋人
+		IF RAND:3 == 0
+			PRINTFORMW 「お前に撫でられるためにトリートメントを変えてきたんだ、綺麗なもんだろ？」
+			PRINTFORMW 早鬼は%CALLNAME:MASTER%に嫋やかな髪を撫でられながら微笑んでいる。
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「んん……お前に触れられると気持ちよくなってしまうな……%UNICODE(0x2665) *1%」
+			PRINTFORMW 早鬼は顔を赤らめながら%CALLNAME:MASTER%とスキンシップを取っている。
+		ELSE
+			PRINTFORMW 「どうだ？私の筋肉はすごいだろう？もっと触れていいぞ！」
+			PRINTFORMW 早鬼は%CALLNAME:MASTER%と楽し気にスキンシップを取っている。
+		ENDIF
+	ELSEIF TALENT:恋慕
+		IF RAND:3 == 0
+			PRINTFORMW 「もっと筋肉を付けた方がいいな、お前も」
+			PRINTFORMW 「ほら！私の筋肉を触ってみるがいい！」
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「ん？肩を揉んでくれるのか？鍛えているから硬いかもしれんぞ！」
+		ELSE
+			PRINTFORMW 「ほら、私がいっぱい撫でてやろう！」
+			PRINTFORMW 「その代わり私も撫でるんだぞ！」
+		ENDIF
+	ELSEIF TALENT:思慕
+		IF RAND:3 == 0
+			PRINTFORMW 「んっ……お前と触れ合うのは楽しいな！」
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「もっと強く揉んでいいぞ！」
+			PRINTFORMW 「私は鍛えているからな！」
+		ELSE
+			PRINTFORMW 「ふふふ……そんなに私の筋肉が魅力的か？」
+			PRINTFORMW 早鬼は%CALLNAME:MASTER%とのスキンシップを楽しんでいる。
+		ENDIF
+	ELSEIF CFLAG:2 >= 500
+		IF RAND:3 == 0
+			PRINTFORMW 「あまり馴れ馴れしくするな、嫌いじゃないがな」
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「んー人間に撫でられるのは久々だな」
+		ELSE
+			PRINTFORMW 「私の筋肉に興味があるのか？嬉しいな！」
+		ENDIF
+	ELSE
+		IF RAND:3 == 0
+			PRINTFORMW 「お前、意外と馴れ馴れしいな」
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「お前ももっと筋肉を付けるべきだな、筋肉はすべてを解決するからな！」
+		ELSE
+			PRINTFORMW 「私の筋肉に興味があるとは中々見込みがあるやつだな！」
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;303,謝る
+;TFLAG:193(2=菓子折成功 1=大成功 0=成功 -1=失敗 -2=菓子折失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K133_303
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K133_303
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K133_303_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K133_303_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193 
+	CASE 0,1,2
+		IF TALENT:恋慕
+			PRINTFORMW 「……仕方ないな」
+			PRINTFORMW 早鬼は%CALLNAME:MASTER%の謝罪の言葉を受け入れた。
+			PRINTFORMW 「お前のことだ、何か考えていることがあったんだろう」
+			PRINTFORMW 「だけどあまり私を怒らせるな、お前を嫌いになりたくないからな」
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%は早鬼に対して非礼を詫びると
+			PRINTFORMW 「まあ、私は寛大だからな、許してやろう！！！」
+			PRINTFORMW 早鬼は笑顔で許すことに決めたようだ。
+		ENDIF
+	CASEELSE
+		IF TALENT:恋慕
+			PRINTFORMW 「謝ればいいって訳じゃないだろ」
+			PRINTFORMW 「落とし前の一つぐらいはつけんとな」
+		ELSE
+			PRINTFORMW %CALLNAME:MASTER%が早鬼に対して非礼を詫びると
+			PRINTFORMW 「……」
+			PRINTFORMW 早鬼は沈黙を保ったままそっぽを向いた。
+		ENDIF
+	ENDSELECT
+
+ENDIF
+RETURN 1
+;==================================================
+;304,仕事を手伝う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;CFLAG:350(仕事内容(JOB_仕事内容.ERB参照のこと
+;TCVAR:手伝えない(=2 手伝っても早くは終わらない、時間停止中不可 永琳の診察等)
+;==================================================
+@M_KOJO_SUCCESS_COM_K133_304
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K133_304
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K133_304_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K133_304_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+	;通常
+	ELSE
+	ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;305,膝枕してもらう
+;TFLAG:193(-5=MASTERがTARGETよりも巨体の場合(TALENT:MASTER:体型 > TALENT:体型 + 2) 1=大成功 0=成功 -1=失敗)(-5以外は地の文分岐無し)
+;ABL:親密(6以上=顔をのぞき込みながら頭を撫でてくれる 3以上=ただ頭を撫でてくれる 2以下=縮こまっている)
+;==================================================
+@M_KOJO_SUCCESS_COM_K133_305
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+@M_KOJO_MESSAGE_COM_K133_305
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K133_305_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K133_305_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:318 == 1
+		PRINTFORMW 「お前は私を怒らせてまで膝枕をして欲しいのか？」
+		PRINTFORMW 早鬼は心底嫌な表情をしながら膝を貸している。
+	ELSEIF TALENT:恋人
+		IF RAND:3 == 0
+			PRINTFORMW 「よしよし、いい子だ」
+			PRINTFORMW 早鬼は膝の上の%CALLNAME:MASTER%の頭を優しく撫でている。
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「こうしていると昔を思い出すな」
+			PRINTFORMW 早鬼は正座を正すと膝の上に%CALLNAME:MASTER%を迎え入れた。
+			PRINTFORMW 「まあ膝枕をしたわけじゃないが……優しくされた記憶はあるよ、だからしてやるんだ」
+			PRINTFORMW そう言いつつ早鬼は%CALLNAME:MASTER%の頭を優しく撫でている。
+		ELSE
+			PRINTFORMW 「よしよし、私の比類なき脚を堪能するがいい！！！」
+			PRINTFORMW 早鬼はそう言いながら膝の上に%CALLNAME:MASTER%を受け入れた。
+		ENDIF
+	ELSEIF TALENT:恋慕
+		IF RAND:3 == 0
+			PRINTFORMW 「そうか、膝枕をして欲しいのか」
+			PRINTFORMW 「こうしていると親子みたいだな！よしよし」
+			PRINTFORMW 早鬼は%CALLNAME:MASTER%の温もりを膝で感じている。
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「私の膝枕で存分に眠るといい！！」
+			PRINTFORMW 早鬼は少し鼻息を荒くしながら%CALLNAME:MASTER%を膝の上に迎え入れた。
+		ELSE
+			PRINTFORMW 「どうした？疲れているのか？」
+			PRINTFORMW 早鬼はそう言いながら%CALLNAME:MASTER%の頭を膝の上に乗せた。
+			PRINTFORMW 「さぁ、私に甘えるといい、そうすれば疲れも取れるだろう！」
+		ENDIF
+	ELSEIF TALENT:思慕
+		IF RAND:3 == 0
+			PRINTFORMW 「よーしよし、私の膝の上で眠るといい！！」
+			PRINTFORMW 「しかしこれでは胸の影になってお前の顔がよく見えんな……」
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「あまり期待はするなよ、慣れてないからな」
+			PRINTFORMW 早鬼は%CALLNAME:MASTER%頭を膝の上で優しく撫でている。
+		ELSE
+			PRINTFORMW 「ふふん、吉兆の貧相な脚より私の脚の方が魅力的という訳か？」
+			PRINTFORMW 「いいだろう！？存分に味わうといい！！！」
+		ENDIF
+	ELSEIF CFLAG:2 >= 500
+		IF RAND:3 == 0
+			PRINTFORMW 「ほう、私に膝枕をして欲しいとは面白いやつだな！よしよししてやろう！！！」
+			PRINTFORMW 早鬼は膝枕をすると%CALLNAME:MASTER%の頭を撫でてきた。
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「なるほど構わないぞ！折角の機会だ撫でてやろう！」
+			PRINTFORMW 早鬼は膝の上の%CALLNAME:MASTER%の頭を撫でている。
+		ELSE
+			PRINTFORMW 「いいぞ！可愛がってやろう！」
+			PRINTFORMW 早鬼は%CALLNAME:MASTER%の頭を撫でている。
+		ENDIF
+	ELSE
+		IF RAND:3 == 0
+			PRINTFORMW 「あまり経験はないが……膝枕をしてやろう！」
+			PRINTFORMW 早鬼は膝枕をすると%CALLNAME:MASTER%の頭を撫でてきた。
+		ELSEIF RAND:2 == 0
+			PRINTFORMW 「ふむふむ……人間はこういうのが好きなんだな！いいぞ！膝を貸してやろう！」
+			PRINTFORMW 早鬼はそう言いながら%CALLNAME:MASTER%の頭を撫でている。
+		ELSE
+			PRINTFORMW 「構わんが、お前は実はオオカミ霊じゃないのか？」
+			PRINTFORMW 早鬼は%CALLNAME:MASTER%をそう言いながら撫でている。
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1

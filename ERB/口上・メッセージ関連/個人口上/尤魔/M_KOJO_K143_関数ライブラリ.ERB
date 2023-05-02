@@ -1,0 +1,758 @@
+﻿;
+;### 関数 ###################################
+;以下の関数は「映姫様口上」内の「M_KOJO_K30_関数・お説教ライブラリ」を拝借したものです
+;尤魔口上作者が作成したものではないのでご注意ください
+;同ライブラリの利用に関しては、映姫様口上の作者様のライセンスに準じます
+
+;拝借ここから
+;==================================================
+
+;==================================================
+
+;==================================================
+;MASTERの恋人がその場に居るかどうか返す式中関数
+;これは力技でなんとか実装できたっぽいので、使わなくても問題ない気がする（小町口上作者）
+;でも絶対こっちのがスマート
+;=-1 尤魔が恋人 =0 元から恋人なし =1 その場に居ない =2 恋人と同席
+@K143_FIND_LOVER()
+#FUNCTION
+SIF TALENT:MASTER:恋人 == 0
+	RETURNF 0
+SIF TALENT:恋人
+	RETURNF -1
+LOCAL = TALENT:MASTER:恋人
+SIF CFLAG:LOCAL:現在位置 == CFLAG:MASTER:現在位置
+	RETURNF 2
+RETURNF 1
+;==================================================
+
+
+;==================================================
+;同部屋のキャラを拾う式中関数。探す順位は[恋人]持ち→知り合い→TARGET内ランダム
+;アリス口上の関数お借りして平文化した映姫口上の関数を拝借しました。つまり丸パクり
+;丸コピする以外の技術がないので先人たちの知恵に感謝をし続けるしかない
+@K143_FIND_AROUND()
+#FUNCTION
+#DIM 知り合い, 5 = 50, 124, 130, 132, 133
+#DIM 総人数
+#DIM 抽選
+#LOCALSIZE 200
+
+VARSET LOCAL
+抽選 = 0
+総人数 = GET_TARGETNUM() 
+;部屋に一人なら当然0
+SIF 総人数 == 1
+	RETURNF 0
+;[恋人]持ちがいたら優先してIDを返す
+SIF K143_FIND_LOVER() == 2
+	RETURNF TALENT:MASTER:恋人
+;知り合い優先度順に現在位置を調べMASTERと同じならIDを返す
+FOR COUNT, 0, 6
+	SIF CFLAG:(知り合い:COUNT):現在位置 == CFLAG:MASTER:現在位置
+		RETURNF 知り合い:COUNT
+NEXT
+;知り合いがいなければ同室のTARGET_ID全部を拾う
+FOR COUNT,1, 総人数 + 1
+	;地獄の断頭台withジェロニモ状態を防ぐため口上主はスキップ
+	SIF TARGET:COUNT == TARGET:0
+		CONTINUE
+	;MASTERと尤魔の現在位置にいなければスキップ
+	SIF (CFLAG:(TARGET:COUNT):現在位置 != CFLAG:MASTER:現在位置) || (CFLAG:(TARGET:COUNT):現在位置 != CFLAG:42:現在位置)
+		CONTINUE
+	;配列のカウントは別で取りながら代入
+	LOCAL:抽選 = TARGET:COUNT
+	抽選 ++
+NEXT
+
+SIF 抽選 < 1
+	RETURNF 0
+;抽選してIDを決定
+RETURNF LOCAL:(RAND(抽選))
+
+
+;==================================================
+;料理に対する反応（食事を取る、振舞う）
+;==================================================
+@K143_COOKING_REACTION
+	;OBJ/CLASS/キャラデータに料理嗜好
+	;料理そのものに対する反応
+	
+	;軽食
+	SELECTCASE DISHNAME
+	CASE "おにぎり"
+		PRINTW 
+	CASE "のり巻き"
+		PRINTW 
+	CASE "かっぱ巻き"
+		PRINTW 
+	CASE "フレンチトースト"
+		PRINTW 
+	CASE "スコーン"
+		PRINTW 
+	CASE "サンドイッチ"
+		PRINTW 
+	CASE "ハンバーガー"
+		PRINTW 
+	CASE "ホットドッグ"
+		PRINTW 
+	CASE "ラピュタパン"
+		PRINTW 
+	CASE "コーンフレーク"
+		PRINTW 
+	CASE "カロリーバー"
+		PRINTW 
+	CASE "ポップコーン"
+		PRINTW 
+	CASE "サラダ"
+		PRINTW 
+	CASE "山菜サラダ"
+		PRINTW 
+	CASE "おひたし"
+		PRINTW 
+	CASE "漬物"
+		PRINTW 
+	CASE "ビーフン"
+		PRINTW 
+	CASE "タコス"
+		PRINTW 
+	CASE "モッツァレラチーズとトマトのサラダ"
+		PRINTW 
+	CASE "オムレツ"
+		PRINTW 
+	CASE "ゆでたまご"
+		PRINTW 
+	CASE "肉じゃが"
+		PRINTW 
+	CASE "茶碗蒸し"
+		PRINTW 
+	CASE "ロールキャベツ"
+		PRINTW 
+	CASE "ポトフ"
+		PRINTW 
+	CASE "キムチ"
+		PRINTW 
+	CASE "イナゴの佃煮"
+		PRINTW 
+	CASE "蜂の子"
+		PRINTW 
+	CASE "干物"
+		PRINTW 
+	CASE "茹でた枝豆"
+		PRINTW 
+	CASE "からあげ"
+		PRINTW 
+	CASE "フライドチキン"
+		PRINTW 
+	CASE "フランクフルト"
+		PRINTW 
+	CASE "竜田揚げ"
+		PRINTW 
+	CASE "カエルのから揚げ"
+		PRINTW 
+	CASE "たこ焼き"
+		PRINTW 
+	CASE "コロッケ"
+		PRINTW 
+	CASE "肉まん"
+		PRINTW 
+	CASE "餃子"
+		PRINTW 
+	CASE "シウマイ"
+		PRINTW 
+	;魚料理
+	CASE "フライ"
+		PRINTW 
+	CASE "塩焼き"
+		PRINTW 
+	CASE "照り焼き"
+		PRINTW 
+	CASE "煮付け"
+		PRINTW 
+	CASE "蒲焼き"
+		PRINTW 
+	CASE "ムニエル"
+		PRINTW 
+	CASE "マリネ"
+		PRINTW 
+	CASE "天ぷら"
+		PRINTW 
+	CASE "カエルの塩焼き"
+		PRINTW 
+	CASE "カエルのソテー"
+		PRINTW 
+	;芋料理
+	CASE "焼きいも"
+		PRINTW 
+	CASE "フライドポテト"
+		PRINTW 
+	CASE "じゃがバター"
+		PRINTW 
+	CASE "フィッシュ＆チップス"
+		PRINTW 
+	CASE "味噌汁"
+		PRINTW 
+	CASE "おしるこ"
+		PRINTW 
+	CASE "豚汁"
+		PRINTW 
+	CASE "コーンスープ"
+		PRINTW 
+	CASE "カップ麺"
+		PRINTW 
+	CASE "ちくわ"
+		PRINTW 
+	CASE "納豆"
+		PRINTW 
+	CASE "豆腐"
+		PRINTW 
+	CASE "梅干し"
+		PRINTW 
+	CASE "葛切り"
+		PRINTW 
+	CASE "煎餅"
+		PRINTW 
+	;主食
+	CASE "やまもりごはん"
+		PRINTW 
+	CASE "卵かけご飯"
+		PRINTW 
+	CASE "お茶漬け"
+		PRINTW 
+	CASE "たけのこごはん"
+		PRINTW 	
+	CASE "漬け物に大盛り飯"
+		PRINTW 	
+	CASE "赤飯"
+		PRINTW 	
+	CASE "雑炊"
+		PRINTW 
+	CASE "カツ丼"
+		PRINTW 
+	CASE "牛丼"
+		PRINTW 
+	CASE "親子丼"
+		PRINTW 
+	CASE "天丼"
+		PRINTW 
+	CASE "海鮮丼"
+		PRINTW 
+	CASE "寿司"
+		PRINTW 
+	CASE "うな重"
+		PRINTW 
+	CASE "オムライス"
+		PRINTW 
+	CASE "チャーハン"
+		PRINTW 
+	CASE "カレーライス"
+		PRINTW 
+	CASE "ドリア"
+		PRINTW 
+	CASE "フィッシュカレー"
+		PRINTW 
+	CASE "カエルカレー"
+		PRINTW 	
+	CASE "粉末成形スシ"
+		PRINTW 
+	CASE "そば"
+		PRINTW
+	CASE "うどん"
+		PRINTW 
+	CASE "そうめん"
+		PRINTW 
+	CASE "ラーメン"
+		PRINTW 
+	CASE "担々麺"
+		PRINTW 
+	CASE "スパゲッティ"
+		PRINTW 
+	CASE "焼きそば"
+		PRINTW 
+	CASE "冷やし中華"
+		PRINTW 
+	CASE "水炊き"
+		PRINTW
+	CASE "すき焼き"
+		PRINTW 
+	CASE "おでん"
+		PRINTW 
+	CASE "チゲ鍋"
+		PRINTW 
+	CASE "しゃぶしゃぶ"
+
+	CASE "チーズフォンデュ"
+		PRINTW 
+	CASE "シチュー"
+		PRINTW 
+	CASE "ボルシチ"
+		PRINTW 
+	CASE "ブレッドボウルシチュー"
+		PRINTW 
+	CASE "グラタン"
+		PRINTW 
+	CASE "ピザ"
+		PRINTW 
+	CASE "お好み焼き"
+		PRINTW 
+	CASE "麻婆茄子"
+		PRINTW 
+	CASE "油淋鶏"
+		PRINTW 
+	CASE "中華あんかけ"
+		PRINTW 
+	CASE "野菜炒め"
+		PRINTW 
+	CASE "生姜焼き"
+
+	CASE "ステーキ"
+		PRINTW 
+	CASE "ハンバーグ"
+		PRINTW 
+	CASE "お子様ランチ"
+		PRINTW 
+	CASE "刺身"
+		PRINTW 
+	CASE "キッシュ"
+		PRINTW 
+	CASE "スターゲイジーパイ"
+		PRINTW 
+	CASE "義大莉而鳥苗鳥肉";鶏が入ってるのでトータルでマイナス補正。尤魔ちゃんは虫肉はイケるのだ
+		PRINTW 
+	CASE "ドーピングコンソメスープ"
+		PRINTW 
+	CASE "ギンギー料理"
+		PRINTW 
+	
+	;料理：好きな味　
+	;料理：嫌いな味　
+	;料理：助手効果　
+	;大好き…
+	;普通に好き…
+	;大嫌い…
+	
+	;季節の料理
+	CASE "おせち料理"
+		PRINTW 
+	CASE "七草粥"
+		PRINTW 
+	CASE "恵方巻"
+		PRINTW 
+	CASE "年越し蕎麦"
+		PRINTW 
+	CASE "ローストチキン"
+	;デザート
+	CASE "ショートケーキ"
+		PRINTW 
+	CASE "チョコレートケーキ"
+		PRINTW 
+	CASE "ホットケーキ"
+		PRINTW 
+	CASE "パイ"
+		PRINTW 
+	CASE "タルト"
+		PRINTW 
+	CASE "マカロン"
+		PRINTW 
+	CASE "クレープ"
+		PRINTW 
+	CASE "シュークリーム"
+		PRINTW 
+	CASE "パフェ"
+		PRINTW 
+	CASE "プリン"
+		PRINTW 
+	CASE "ゼリー"
+		PRINTW 
+	CASE "カエルプリン"
+		PRINTW 
+	CASE "ヨーグルト"
+		PRINTW 
+	CASE "アイスクリーム"
+		PRINTW 
+	CASE "クッキー"
+		PRINTW 
+	CASE "ドーナツ"
+		PRINTW 
+	CASE "りんご飴"
+		PRINTW 
+	CASE "あんみつ"
+		PRINTW 
+	CASE "カステラ"
+		PRINTW 
+	CASE "団子"
+		PRINTW 
+	CASE "羊羹"
+		PRINTW 
+	CASE "大福"
+		PRINTW 
+	CASE "まんじゅう"
+		PRINTW 
+	CASE "栗きんとん"
+		PRINTW 
+	CASE "杏仁豆腐"
+		PRINTW 
+	CASE "フルーツ盛り合わせ"
+		PRINTW 
+	CASE "タピオカミルクティー"
+		PRINTW 
+	CASE "いちごとうふ"
+		PRINTW 
+	;季節のデザート
+	CASE "月見団子"
+		PRINTW 
+	CASE "ハロウィンケーキ"
+		PRINTW 
+	CASE "クリスマスケーキ"
+		PRINTW 
+	;禁断の料理
+	CASE "揚げローター"
+		PRINTW 
+	CASE "Eマッサージャ風ローターの湯引き"
+		PRINTW 
+	CASE "クリキャップ用ローターの握り"
+		PRINTW 
+	CASE "オナホール仕立てのローター煮込み"
+		PRINTW 
+	CASE "バイブライクローターアイス"
+		PRINTW 
+	;ここから固有料理
+	;はたて
+	CASE "プリンセスデザート"
+		PRINTW 
+	;霊夢
+	CASE "紅白まんじゅう"
+		PRINTW 
+	;サニーミルク
+	CASE "サニーサイドアップ"
+		PRINTW 
+	;ルナチャイルド
+	CASE "静かの海スープ"
+		PRINTW 
+	;スターサファイア
+	CASE "京丸牡丹鍋"
+		PRINTW 
+	;ちゆり
+	CASE "水兵カレー"
+		PRINTW 
+	;夢美
+	CASE "イチゴスペシャル"
+		PRINTW 
+	;萃香
+	CASE "ウイスキー入りチョコレート"
+		PRINTW 
+	;魔理沙
+	CASE "魔法のキノコソテー"
+		PRINTW 
+	;ルーミア
+	CASE "闇ドーナツ"
+		PRINTW 
+	;チルノ
+	CASE "かき氷"
+		PRINTW 
+	;咲夜
+	CASE "紅魔ランチ"
+		PRINTW 
+	;レミリア
+	CASE "真紅のブラッドスープ"
+		PRINTW 
+	;アリス
+	CASE "ジンジャーブレッドマン"
+		PRINTW 
+	;リリーホワイト
+	CASE "春のお花見弁当"
+		PRINTW 
+	;リリーブラック
+	CASE "春の鎮魂料理"
+		PRINTW 
+	;妖夢
+	CASE "白玉みつまめ"
+		PRINTW 
+	;橙
+	CASE "猫まんま"
+		PRINTW 
+	;藍
+	CASE "お稲荷さん"
+		PRINTW 
+	;紫
+	CASE "ウミガメのスープ"
+		PRINTW 
+	;リグル
+	CASE "ローヤルゼリー"
+		PRINTW 
+	;ミスティア
+	CASE "ヤツメウナギの蒲焼き"
+		PRINTW 
+	;文
+	CASE "ミックスナッツ"
+		PRINTW 
+	;映姫
+	CASE "地獄ラーメン（極辛）"
+		PRINTW 
+	;早苗
+	CASE "やしょうま"
+		PRINTW 
+	;神奈子
+	CASE "オンバシラスティック"
+		PRINTW 
+	;諏訪子
+	CASE "のたもち"
+		PRINTW 
+	;天子
+	CASE "天界フルーツパフェ"
+		PRINTW 
+	;衣玖
+	CASE "わたパチ"
+		PRINTW 
+	;お燐
+	CASE "ゾンビ焼き"
+		PRINTW 
+	;お空
+	CASE "核熱メルトダウンステーキ"
+		PRINTW 
+	;こいし
+	CASE "りんごの薔薇ゼリー"
+		PRINTW 
+	;ナズーリン
+	CASE "チーズケーキ"
+		PRINTW 
+	;ぬえ
+	CASE "未確認飛行料理"
+		PRINTW 
+	;里香
+	CASE "ばけばケーキ"
+		PRINTW 
+	;さとり
+	CASE "ハートフェルトファンシー"
+		PRINTW 
+	;フランドール
+	CASE "クランベリートラップ"
+		PRINTW 
+	;にとり
+	CASE "キュウリのキューちゃん"
+		PRINTW 
+	;てゐ
+	CASE "紅白なます"
+		PRINTW 
+	;鈴仙
+	CASE "狂気の赤い目玉焼き"
+		PRINTW 
+	;パチュリー
+	CASE "マジカルカップケーキ"
+		PRINTW 
+	;白蓮
+	CASE "精進料理"
+		PRINTW 
+	;こころ
+	CASE "恋する人形焼き"
+		PRINTW 
+	;美鈴
+	CASE "彩色小籠包"
+		PRINTW 
+	;小悪魔
+	CASE "悪魔のおにぎり"
+		PRINTW 
+	;パルスィ
+	CASE "やきもち"
+		PRINTW 
+	;妹紅
+	CASE "焼き鳥"
+		PRINTW 
+	;輝夜
+	CASE "蓬莱のアイスの玉の枝"
+		PRINTW 
+	;影狼
+	CASE "ジビエ料理"
+		PRINTW 
+	;椛
+	CASE "もみじ饅頭"
+		PRINTW 
+	;幽々子
+	CASE "桜餅"
+		PRINTW 
+	;慧音
+	CASE "月見うどん"
+		PRINTW 
+	;幽香
+	CASE "ひまわりワッフル"
+		PRINTW 
+	;永琳
+	CASE "超栄養ドリンク"
+		PRINTW 
+	;蛮奇
+	CASE "飛頭饅頭"
+		PRINTW 
+	;レティ
+	CASE "ゆきだるまアイス"
+		PRINTW 
+	;メディスン
+	CASE "鈴蘭団子"
+		PRINTW 
+	;小町
+	CASE "人魂わたあめ"
+		PRINTW 
+	;静葉
+	CASE "紅葉の天ぷら"
+		PRINTW 
+	;穣子
+	CASE "スイートポテト"
+		PRINTW 
+	;雛
+	CASE "ひなあられ"
+		PRINTW 
+	;阿求
+	CASE "求聞雑炊"
+		PRINTW 
+	;蓮子
+	CASE "栄養効率サプリメント"
+		PRINTW 
+	;一輪
+	CASE "入道わたあめ"
+		PRINTW 
+	;ムラサ
+	CASE "深海料理"
+		PRINTW 
+	;星
+	CASE "ハングリータイガーステーキ"
+		PRINTW 
+	;わかさぎ姫
+	CASE "マーメイドパフェ"
+		PRINTW 
+	;弁々
+	CASE "びわゼリー"
+		PRINTW 
+	;八橋
+	CASE "八つ橋"
+		PRINTW 
+	;正邪
+	CASE "逆さバーガー"
+		PRINTW 
+	;ユキ
+	CASE "フォンデュ・エソテリア"
+		PRINTW 
+	;マイ
+	CASE "ヴィナ・コーヒー"
+		PRINTW 
+	;清蘭
+	CASE "ストロベリーダンゴ"
+		PRINTW 
+	;鈴瑚
+	CASE "鈴瑚印の団子"
+		PRINTW 
+	;ドレミー
+	CASE "謎の夢魂菓子"
+		PRINTW 
+	;クラウンピース
+	CASE "アビスバーガー"
+		PRINTW 
+	;純狐
+	CASE "月餅"
+		PRINTW 
+	;ヘカーティア
+	CASE "三色地獄そぼろ丼"
+		PRINTW 
+	;エタニティラルバ
+	CASE "花蜜ゼリー"
+		PRINTW 
+	;ネムノ
+	CASE "山の郷土料理"
+		PRINTW 
+	;あうん
+	CASE "犬まんま"
+		PRINTW 
+	;成美
+	CASE "地蔵焼き"
+		PRINTW 
+	;舞
+	CASE "タナバタスターソーメン"
+		PRINTW 
+	;里乃
+	CASE "忘れ茗荷の酢漬け"
+		PRINTW 
+	;隠岐奈
+	CASE "マターラボッカ"
+		PRINTW 
+	;女苑
+	CASE "イタ飯"
+		PRINTW 
+	;紫苑
+	CASE "もやし炒め"
+		PRINTW 
+	;瓔花
+	CASE "バベルタワーパンケーキ"
+		PRINTW 
+	;潤美
+	CASE "活け造り"
+		PRINTW 
+	;久侘歌
+	CASE "ひよ子"
+		PRINTW 
+	;八千慧
+	CASE "魚翅湯"
+		PRINTW 
+	;磨弓
+	CASE "はにわまん"
+		PRINTW 
+	;袿姫
+	CASE "偶像仕立ての工芸菓子"
+		PRINTW 
+	;早鬼
+	CASE "鬼形のホイボーロ"
+		PRINTW 
+	;美宵
+	CASE "鯢呑亭秘伝の煮付け"
+		PRINTW 
+	;たかね
+	CASE "グリーンサラダ"
+		PRINTW 
+	;魅須丸
+	CASE "勾玉クッキー"
+		PRINTW 
+	;典
+	CASE "きつねごはん"
+		PRINTW 
+	;千亦
+	CASE "レインボータルト"
+		PRINTW 
+	;百々世
+	CASE "ドラゴンステーキ"
+		PRINTW 
+	;尤魔
+	CASE "剛欲な獣神の夕餉"
+		PRINTW 
+	ENDSELECT
+	
+	;味付けに対する反応
+	SELECTCASE TCVAR:MASTER:308
+	;濃い
+	CASE 0
+
+	;薄味
+	CASE 1
+		PRINTW 
+	;激辛
+	CASE 3
+		PRINTW 
+	;激甘
+	CASE 4
+		PRINTW 
+	;わさび
+	CASE 5
+		PRINTW 
+	;激酸っぱ
+	CASE 6
+		PRINTW 
+	ENDSELECT
+	
+	;最終的な味の評価
+	PRINTL 
+	PRINTFORML さて、尤魔の評価は…
+	PRINTL 
+	SELECTCASE TCVAR:[[尤魔]]:料理評価値
+	;高評価
+	CASE IS >= 700
+	CASE IS >= 400
+	CASEELSE
+	ENDSELECT
+RETURN 1
+
