@@ -1145,10 +1145,53 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K63_350_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL && !FLAG:70 
-
+	;一方的に「抱かれたい」「あなたのモノにされたい」のではなく双方向性を強調
+	IF !TCVAR:抱き寄せ初回
+		IF TALENT:63:自己愛 < 0
+			PRINTFORML 「%TEXTR("あっ……したいの？/えっと……お手柔らかに、お願いね/また？嫌じゃない、けど")%」
+		;ELSEIF TALENT:MASTER:濃厚精液
+		ELSEIF BASE:ムード < 500
+			CALL PRINT_FACE, [[影狼]], "怒り","服", "",""
+			PRINTFORML 「もうちょっと雰囲気盛り上げてよ」
+			PRINTFORML 「ただ交尾するだけなら虫でもできるわよ」
+		ELSEIF TCVAR:発情 || CFLAG:溜まってる度 >= 800
+			TCVAR:発情 = 1
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「うん、私も、愛を確かめ合いたい気分……HPH」","W"
+				CASE 1
+					CALL HPH_PRINT,@"「ん～～～～～～～～～っHPH　たまんない……HPH」","W"
+					PRINTFORML 影狼は%CALLNAME:MASTER%の首筋に顔を埋め、オスの体臭を目一杯吸い込む
+					PRINTFORML うなじを舐め上げ、柔らかな胸を、しなやかな腹を、服越しに押し付ける
+					PRINTFORML 「%CALLNAME:MASTER%も私のこと、感じて？」
+				CASE 2
+					PRINTFORMW 「ふふ、そんなに私が欲しい？私もよ」
+					CALL HPH_PRINT,@"「ね、わかる？　%CALLNAME:MASTER%が欲しくて、カラダ、熱くなってるの……HPH」","W"
+					PRINTFORML 言葉通り影狼の体温は常にも増して高く、肌は汗ばみ吐息は荒い
+			ENDSELECT
+		ELSEIF CFLAG:溜まってる度 < 250
+			PRINTFORML 「%TEXTR("いいけど、雑なのは嫌よ？/また？人間はサカりっぱなしね")%」
+		ELSE
+			SELECTCASE RAND:4
+				CASE 0
+					PRINTFORML 「こら、がっつかないの」
+					PRINTFORML 「求愛ならそれなりの作法があるでしょ？」
+					CALL ASK_YN("頬に手を添えて髪を撫でる","跪いて手の甲にキス")
+					CALL HPH_PRINT,@"「んふふ……HPH　ごうかく……HPH」","L"
+				CASE 1
+					PRINTFORML 「よかった」
+					PRINTFORML 「誘ってくれなかったら、私から誘おうと思ってたの」
+				CASE 2
+					PRINTFORML 「うん、待ってた……」
+				CASE 3
+					PRINTFORML 「ふふ」
+					PRINTFORML 「求められるって、いいわね」
+			ENDSELECT
+		ENDIF
+	ENDIF
 ENDIF
 RETURN 1
 ;==================================================
@@ -1663,6 +1706,7 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL && !FLAG:70 
+	TCVAR:[[影狼]]:353 = FLAG:20 + 1
 	;初回
 	IF FIRSTTIME(413)
 		;料理人
@@ -1675,8 +1719,37 @@ IF LOCAL && !FLAG:70
 			PRINTFORMW 「私全然経験ないけど、やってみたいとは思ってたのよ」
 			PRINTFORMW 「よかったら教えてくれないかしら？」
 		ENDIF
+		RETURN 1
+	ELSEIF DISHNAME == "ジビエ料理"
+		IF FIRSTTIME("固有料理練習")
+			PRINTFORMW 「料理教えろって、私が教えられそうなことなんてある？」
+			PRINTFORMW 「あ、シメ方とか捌き方なら教えられるかしら」
+		ELSEIF STRCOUNT(DISH_TASTE, "練習")
+			{
+			PRINTFORMW 「%TEXTR("ここを上に引っ張ると関節が外れてバラしやすくなるのよ/
+			皮はここから首側に剥くと綺麗に剥けるわ/そこの軟骨切れば簡単に外れるわよ/
+			深く切りすぎちゃ駄目。モツが破けちゃうわ")%」
+			}
+		ELSE
+			PRINTFORMW 「捌き方、堂に入ってきたわね」
+		ENDIF
+		RETURN 1
+	ENDIF
+	IF STRCOUNT(DISH_TASTE, "スパイス/")
+		PRINTFORML 「わっ！香辛料入れないで！」
+		PRINTFORML スパイス抜きで作りますか？
+		CALL ASK_YN
+		IF !RESULT
+			DISH_TASTE '= REPLACE(DISH_TASTE, "スパイス\/", "")
+			DISH_TASTE += "スパイス抜き/"
+			PRINTFORMW 「ありがと……」
+		ELSE
+			PRINTFORMW 「鼻がビリビリする～……」
+		ENDIF
+		PRINTFORML 
+	ENDIF
 	;恋慕
-	ELSEIF TALENT:恋慕
+	IF TALENT:恋慕
 		;調理前口上
 		SELECTCASE DISH_NAME
 		;最初に例外群
@@ -1708,8 +1781,6 @@ IF LOCAL && !FLAG:70
 			$OTEGARU
 			PRINTFORMW 「あら、それくらいならぱぱっと作れそうね」
 			GOTO COOKINGEND
-			
-			
 		[SKIPSTART]
 		;仕様変更とともに闇に消えたっぽいのでコメントアウト
 		;ビールと枝豆
@@ -1747,9 +1818,8 @@ IF LOCAL && !FLAG:70
 				GOTO OTEGARU
 			ENDIF
 		ENDSELECT
-		
 		PRINTL
-		SELECTCASE RAND:5
+		SELECTCASE RAND:6
 		CASE 0
 			PRINTFORMW 「ええっと、これを持って…あちっ！」
 			PRINTFORMW 「うう…火は苦手……」
@@ -1769,6 +1839,9 @@ IF LOCAL && !FLAG:70
 		CASE 4
 			PRINTFORMW 「料理って大変だけど楽しいわね♪」
 			PRINTFORMW 「%CALLNAME:MASTER%と一緒だからかしら？」
+		CASE 5
+			PRINTFORML 「ねえねえ私に手伝えそうなことある？」
+			PRINTFORML %CALLNAME:MASTER%の後ろをうろうろしている
 		ENDSELECT
 		$COOKINGEND
 		PRINTL
@@ -1796,7 +1869,7 @@ IF LOCAL && !FLAG:70
 			PRINTFORMW 「大した腕前ね～。お上手お上手♪」
 	ENDIF
 ENDIF
-TCVAR:[[影狼]]:353 = FLAG:20 + 1
+
 RETURN 1
 ;==================================================
 ;414,食事

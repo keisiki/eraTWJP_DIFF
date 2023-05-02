@@ -30,6 +30,9 @@
 ;TCVAR:356,罠回収用	
 
 ;TCVAR:360,イかせすぎ
+;TCVAR:361,今日やった
+;TCVAR:362,前ターン絶頂確認
+;TCVAR:363,特殊服装
 
 ;　2018/12/19　morph
 ;　FLAG:20が古い仕様になったのでDISHNAMEとDISHTASTE準拠の分岐に変更しました
@@ -110,6 +113,36 @@ ENDIF
 ;ENCOUNTER専用に独自分岐フラグを仕込んだ場合等にどうぞ
 ;UPDATE判定でCFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります
 
+;画像表示テスト
+CALL PRINT_FACE, [[影狼]], "通常", "裸", "", ""
+CALL PRINT_FACE, [[影狼]], "通常", "服", "", ""
+CALL PRINT_FACE, [[影狼]], "通常", "服_下着A", "", ""
+PRINTFORMW 
+CALL PRINT_FACE, [[影狼]], "通常", "服_下着B", "", ""
+CALL PRINT_FACE, [[影狼]], "通常", "服_白ワンピ", "", ""
+CALL PRINT_FACE, [[影狼]], "通常", "服_赤ずきん", "",""
+PRINTFORMW 
+CALL PRINT_FACE, [[影狼]], "通常", "服_バニー", "", ""
+CALL PRINT_FACE, [[影狼]], "通常", "服_冬服", "", ""
+PRINTFORMW 
+CALL PRINT_FACE, [[影狼]], "通常", "服_ボテ", "",""
+CALL PRINT_FACE, [[影狼]], "通常", "服_キス顔","", ""
+PRINTFORMW 
+CALL PRINT_FACE, [[影狼]], "笑顔",  "服", ""
+CALL PRINT_FACE, [[影狼]], "怒り",  "服", ""
+CALL PRINT_FACE, [[影狼]], "微笑",  "服", ""
+PRINTFORMW 
+CALL PRINT_FACE, [[影狼]], "ウィンク","服", "", ""
+CALL PRINT_FACE, [[影狼]], "誘惑", "服", ""
+CALL PRINT_FACE, [[影狼]], "発情","服", ""
+CALL PRINT_FACE, [[影狼]], "デレデレ","服", "", ""
+PRINTFORMW 
+CALL PRINT_FACE, [[影狼]], "トロ顔", "裸",  ""
+CALL PRINT_FACE, [[影狼]], "トロ笑い","裸", "", ""
+CALL PRINT_FACE, [[影狼]], "性交","裸", ""
+CALL PRINT_FACE, [[影狼]], "絶頂","裸", ""
+
+CFLAG:63:性格傾向 = 4
 IF !CFLAG:63:1003
 	PRINTFORML 口上に合わせて素質を変更しますか？
 	PRINTFORML 【気丈】【Ａ敏感】を失い、【抑圧】【貞操観念】【習得遅い】【恥じらい】【献身的】【音痴】【一線越えない】【Ｍ敏感】【Ｂ鈍感】を得ます。
@@ -157,6 +190,17 @@ PRINTW 「それにしてもずいぶん賑やかな神社になったわねぇ�
 TCVAR:350 = 1
 RETURN 1
 
+@K63_BEFORETRAIN
+;一日の開始時、正確には来訪判定時に読み込む関数,使うときはコメントアウトを外すこと
+;ここでCFLAG:XX:翌日来訪を設定して確実に来訪させたりTCVAR:XX:発情で朝っぱらからサカらせることもできる
+;ただし「毎朝例外なく読み込まれる」ため、条件を設定しておくことが望ましい
+IF DAY:3 == 28
+;バニー
+	TALENT:63:機嫌 = -1
+	TCVAR:63:363 = 1
+ELSEIF DAY:2 == 4 && !RAND:6
+	TCVAR:63:363 = 2
+ENDIF
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
 ;"SP_EVENT"系イベント
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
@@ -2478,6 +2522,9 @@ IF CFLAG:ブチギレ || MARK:反発刻印
 	PRINTFORMW 「がるるるる……」
 	RETURN -1
 ENDIF
+IF BASE:ムード < 500
+	RETURN -1
+ENDIF
 RETURN 0
 ;-------------------------------------------------
 
@@ -2574,3 +2621,25 @@ ELSEIF ARG == 5
 	RETURN 1
 ENDIF
 RETURN 1
+
+;セフレ契約用
+;"補正"でRETURNした数値が理性判定に加算されるので、
+;簡単にセフレにしたいならマイナス、難易度を上げたかったり実質不可能にしたいならプラスすべし
+@KOJO_SF_CONTRACT_K63(ARGS)
+SELECTCASE ARGS
+	CASE "導入"
+		PRINTFORML 「セフレ？なにそれ？」
+		PRINTFORML 「は？体だけの関係？」
+	CASE "補正"
+		PRINTFORMW 「……馬鹿にしてる？」
+		FONTBOLD
+		PRINTFORMW 「私が、獣で、つまんない妖怪だからって」
+		PRINTFORMW 「馬鹿にしてるのかって聞いてんのよ！！」
+		FONTREGULAR
+		SOURCE:反感 += 5000
+		RETURN 5000
+	CASE "成功"
+		;PRINTFORML 「いいよー」
+	CASE "失敗"
+		;PRINTFORML 「おことわりだー」
+ENDSELECT

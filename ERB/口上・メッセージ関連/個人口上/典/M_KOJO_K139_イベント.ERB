@@ -207,6 +207,35 @@ ENDIF
 			PRINTL 
 		ENDIF
 	ENDIF
+	
+	;典が男かふたなり時発生
+	IF TALENT:性別 == 2 || TALENT:性別 == 3
+		PRINTFORML 典のペニスのサイズは…
+		CALL ASK_M("超巨チン", 1,"巨チン", 1,"普チン", 1,"粗チン", 1,"幼チン", 1)
+		SELECTCASE RESULT
+		CASE 0
+			PRINTFORML 典のペニスサイズが[超巨チン]になりました
+			PRINTFORML 邪悪な管狐はたとえ相手が無知な幼女だろうが余命幾ばくもない老女だろうが凶器のようなおちんぽをねじ込むことに躊躇しません
+			TALENT:形状 = 10
+		CASE 1
+			PRINTFORML 「典のペニスサイズが[巨チン]になりました
+			PRINTFORML 勃起していなくても十分な太さと長さを兼ね備えたおちんぽです
+			TALENT:形状 = 6
+		CASE 2
+			PRINTFORML 「典のペニスサイズが[普チン]になりました
+			PRINTFORML それなりに立派な太さと長さのおちんちんです
+			TALENT:形状 = 0
+		CASE 3
+			PRINTFORML 「典のペニスサイズが[粗チン]になりました
+			PRINTFORML 小さすぎて一部から鼻で笑われるおちんちんです
+			TALENT:形状 = 2
+		CASE 4
+			PRINTFORML 典のペニスサイズが[幼チン]になりました
+			PRINTFORML まるで幼児のように愛らしいおちんちんです
+			TALENT:形状 = 1
+		ENDSELECT
+		PRINTL 
+	ENDIF
 RETURN 1
 
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
@@ -430,6 +459,21 @@ RETURN 1
 			PRINTW 
 			TCVAR:強制排卵 = 180
 		ENDIF
+	ENDIF
+	
+	;セフレ、愛欲なら一日の開始からすでに膣が濡れている
+	IF TALENT:愛欲
+		IF TALENT:性別 == 2 || TALENT:性別 == 3
+			CALL HPH_PRINT,@"「ああ、%CALLNAME:MASTER%どの、早く来ないのかしら…HPH　自分で慰めてるだけじゃ物足りないわ…HPH」","L"
+			PRINTFORML 典は物陰で%TINKO(TARGET)%をしごきながら、%CALLNAME:MASTER%の来訪を待ちわびている…
+			BASE:勃起 = 1000
+		ELSE
+			CALL HPH_PRINT,@"「ああ、%CALLNAME:MASTER%どの、早く来ないのかしら…HPH　自分で慰めてるだけじゃ物足りないわ…HPH」","L"
+			PRINTFORML 典は衣服に手を突っ込み、ヴァギナを指でクチュクチュとかきまぜながら、%CALLNAME:MASTER%の来訪を待ちわびている…
+		ENDIF
+		PALAM:潤滑 = 5000
+	ELSEIF TALENT:セフレ
+		PALAM:潤滑 = 2500
 	ENDIF
 
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
@@ -1206,14 +1250,385 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 0
 		IF TALENT:恋慕 || TALENT:恋人
-		ELSEIF TALENT:思慕
+			;初デート帰り
+			IF CFLAG:1005 == 1
+				PRINTFORML 「ふむ、これが『デート』というものなのですね」
+				IF BASE:139:ムード == MAXBASE:139:ムード
+					PRINTFORML 「控えめに申し上げても、最高でございました…♪」
+					PRINTFORML 「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@のことを大事にしていただいて、天にも昇る心地でございます…%UNICODE(0x2665) *1%」
+					PRINTFORML 典は赤らめた頬に手を当て、身をくねらせている
+					PRINTW 
+					PRINTFORML 「大げさ？　いいえ、いいえ、とんでもない！」
+					IF TALENT:恋人
+						IF CFLAG:139:1000 > 0
+							PRINTFORML 「だって、飯綱丸さまより私を選んでくださったことですら嬉しかったというのに、こんな素敵なデートまで…」
+							PRINTFORML 「典は今、女としての幸せを噛みしめているところでございますよ%UNICODE(0x2665) *1%」
+							PRINTFORML 「まあ、その分家に帰った後の飯綱丸さまの反応を思うと胃が痛くなりますが…」
+							PRINTL 
+						ELSE
+							PRINTFORML 「この典、今までこういった経験はありませんでしたから…」
+							PRINTFORML 「ですから、こうして%CALLNAME:MASTER%どのと過ごす時間が新鮮に感じるのです」
+							PRINTL 
+						ENDIF
+						PRINTFORML 「また、デートしてくださいますか？　\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は、%CALLNAME:MASTER%どのともっともっとデートしたいです…%UNICODE(0x2665) *1%」
+						PRINTFORML 
+					ELSE
+						;あなたに典以外の恋人がいる
+						IF TALENT:MASTER:恋人
+							IF TALENT:140:恋人
+								PRINTFORML 「その、飯綱丸さまと恋仲でありながら、典にもお目こぼしいただけるなんて…」
+								PRINTFORML 「もちろん、飯綱丸さまのことは第一にお考え下さい。それは私の望みでもありますので」
+								PRINTFORML 「ですが…これからもこうやって時々でもいいので、私のことも愛してくださるならば…典はこのままで満足でございます」
+								PRINTFORML 「……それに、あまり度を過ぎると私が飯綱丸からどんなお仕置きを受けるかと思うとゾッとします…」
+							ELSE
+								PRINTFORML 「正直、飯綱丸さまでも私でもない方を選ばれたことに思うところがないわけではありませんが…」
+								PRINTFORML 「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は%CALLNAME:MASTER%どののお傍にいられればそれで幸せです」
+							ENDIF
+							PRINTW 
+						;あなたはフリー
+						ELSE
+							;典以外にも２人以上が恋慕
+							IF CMATCH(TALENT:恋慕, 1) > 2
+								PRINTFORML 「%CALLNAME:MASTER%どのが自覚なさっているかは存じませんが、あなた様は結構おモテになっているんですよ？」
+								SIF TALENT:140:恋慕
+								PRINTFORML 「私の主も、あなた様をいたく気に入っておられる様子ですが…」
+								PRINTL 
+								PRINTFORML 「その中からデートのお相手に選んでいただけて、こんなに素敵な時間をいただけたことは光栄の極みです…%UNICODE(0x2665) *1%」
+								PRINTFORML 「あ、だからといって、他の女と付き合うななんて野暮なことは申しません。典は理解のある女ですので♪」
+								PRINTL 
+								PRINTFORML 「……ですが、飯綱丸さまをお選びになったときは、飯綱丸さまと私以外の女とは縁をお切りくださいね？」
+								PRINTFORML それまで夢見る少女のような表情を浮かべていた典の顔つきが、一瞬だけ剣呑なものになる
+								PRINTFORML ちゃっかりと自分は例外にしてある辺りは、典らしい
+								PRINTW 
+							ELSE
+								IF TALENT:140:恋慕
+									PRINTFORML 「よりにもよって、恋のライバルは我が主である飯綱丸さまですからね…」
+									IF CFLAG:139:1000
+										PRINTFORML 「しかも、飯綱丸さまのほうが私なぞより先にあなた様のことをお慕いしていましたし…」
+									ELSEIF CFLAG:139:1001
+										PRINTFORML 「私の方が先に好きになったというのに…恋というものは、ままならないものです」
+									ENDIF
+									PRINTL 
+									PRINTFORML 「そのような中で、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@がデートに誘っていただけたことがどれだけ幸せなことかお分かりいただましたか？」
+									PRINTFORML 「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@はずるいですからね。できれば、このまま私を選んでいただければな、なんて思っています」
+									PRINTFORML 「ずる賢く立ち回ってきた私ですが、あなた様への思い、真剣に向き合おうと思います」
+									PRINTFORML 「ですから…どのような結果になろうと、あなた様の思いをしっかりお伝えくださいませ」
+								ELSE
+									PRINTFORML 「今のところライバルが少ないとはいえ、あなた様の魅力に他の女たちが気付くのも時間の問題ですからね…」
+									PRINTFORML 「この勢いで典を恋人にしていただければ、何の憂いもないのですが…♪」
+									PRINTL 
+									PRINTFORML 「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は理解のある女ですから。他の女と付き合うななんて野暮なことは申しません♪」
+									PRINTFORML 「最後に必ず\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@の許に帰ってきていただければ…幸せでございます%UNICODE(0x2665) *1%」
+								ENDIF
+								PRINTW 
+							ENDIF
+						ENDIF
+					ENDIF
+				ELSEIF BASE:139:ムード >= 500
+					IF TALENT:恋人
+						PRINTFORML 「楽しい一日でございました。素敵な恋人がいて、典は幸せ者でございますね♪」
+						PRINTFORML 「次はどこへ行きましょうか？　ああそうだ、食べたいものもあるんでした。それから…」
+						PRINTL 
+						PRINTFORML 「……コホン、つい、柄にもなく舞い上がってしまいました」
+						PRINTFORML 「また、デートいたしましょうね。たくさん思い出をつくりましょう」
+						PRINTW 
+					ELSE
+						PRINTFORML 「楽しい一日でございました。典は幸せ者でございますね♪」
+						IF TALENT:MASTER:恋人
+							IF TALENT:140:恋人
+								PRINTFORML 「その、飯綱丸さまと恋仲でありながら、典にもお目こぼしいただけるなんて…」
+								PRINTFORML 「もちろん、飯綱丸さまのことは第一にお考え下さい。それは私の望みでもありますので」
+								PRINTFORML 「ですが…これからもこうやって時々でもいいので、私のことも愛してくださるならば…典はこのままで満足でございます」
+								PRINTFORML 「……それに、あまり度を過ぎると私が飯綱丸からどんなお仕置きを受けるかと思うとゾッとします…」
+							ELSE
+								PRINTFORML 「正直、飯綱丸さまでも私でもない方を選ばれたことに思うところがないわけではありませんが…」
+								PRINTFORML 「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は%CALLNAME:MASTER%どののお傍にいられればそれで幸せです」
+							ENDIF
+							PRINTW 
+						ELSE
+							;典以外にも２人以上が恋慕
+							IF CMATCH(TALENT:恋慕, 1) > 2
+								PRINTFORML 「%CALLNAME:MASTER%どのが自覚なさっているかは存じませんが、あなた様は結構おモテになっているんですよ？」
+								SIF TALENT:140:恋慕
+								PRINTFORML 「私の主も、あなた様をいたく気に入っておられる様子ですが…」
+								PRINTL 
+								PRINTFORML 「その中からデートのお相手に選んでいただけて、こんなに素敵な時間をいただけたことは光栄の極みです…%UNICODE(0x2665) *1%」
+								PRINTFORML 「あ、だからといって、他の女と付き合うななんて野暮なことは申しません。典は理解のある女ですので♪」
+								PRINTL 
+								PRINTFORML 「……ですが、飯綱丸さまをお選びになったときは、飯綱丸さまと私以外の女とは縁をお切りくださいね？」
+								PRINTFORML それまで夢見る少女のような表情を浮かべていた典の顔つきが、一瞬だけ剣呑なものになる
+								PRINTFORML ちゃっかりと自分は例外にしてある辺りは、典らしい
+								PRINTW 
+							ELSE
+								IF TALENT:140:恋慕
+									PRINTFORML 「よりにもよって、恋のライバルは我が主である飯綱丸さまですからね…」
+									IF CFLAG:139:1000
+										PRINTFORML 「しかも、飯綱丸さまのほうが私なぞより先にあなた様のことをお慕いしていましたし…」
+									ELSEIF CFLAG:139:1001
+										PRINTFORML 「私の方が先に好きになったというのに…恋というものは、ままならないものです」
+									ENDIF
+									PRINTL 
+									PRINTFORML 「そのような中で、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@がデートに誘っていただけたことがどれだけ幸せなことかお分かりいただましたか？」
+									PRINTFORML 「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@はずるいですからね。できれば、このまま私を選んでいただければな、なんて思っています」
+									PRINTFORML 「ずる賢く立ち回ってきた私ですが、あなた様への思い、真剣に向き合おうと思います」
+									PRINTFORML 「ですから…どのような結果になろうと、あなた様の思いをしっかりお伝えくださいませ」
+								ELSE
+									PRINTFORML 「今のところライバルが少ないとはいえ、あなた様の魅力に他の女たちが気付くのも時間の問題ですからね…」
+									PRINTFORML 「この勢いで典を恋人にしていただければ、何の憂いもないのですが…♪」
+									PRINTL 
+									PRINTFORML 「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は理解のある女ですから。他の女と付き合うななんて野暮なことは申しません♪」
+									PRINTFORML 「最後に必ず\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@の許に帰ってきていただければ…幸せでございます%UNICODE(0x2665) *1%」
+								ENDIF
+								PRINTW 
+							ENDIF
+						ENDIF
+					ENDIF
+				;１回目・ムード低い
+				ELSE
+					IF TALENT:恋人
+						PRINTFORML 「うーん…恋人同士のデートって、このような感じなんですかね…？」
+						PRINTFORML 「思い描いてたのと違うような…すみません、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@、勝手に理想像を作り上げちゃっていたようです…」
+						PRINTL 
+						PRINTFORML 「ですが、この一回限りではありませんよね？」
+						PRINTFORML 「これから二人で、たくさん思い出を作っていきましょう♪　そうだ、次は私がプランを練るのもいいかもしれないですね」
+						PRINTFORML 「ふふ、次のデートが楽しみでございます♪」
+						PRINTW 
+					ELSE
+						IF TALENT:140:恋人
+							PRINTFORML 「%CALLNAME:MASTER%どの、まさか、飯綱丸さまともこんな感じで…？」
+							PRINTFORML 「いや、まあ…飯綱丸さまなら喜ぶ…？　いや、ないですね…」
+							PRINTL 
+							PRINTFORML 「%CALLNAME:MASTER%どの、このままではいけません！　もっともっと、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@とデートしましょう！」
+							PRINTFORML 「経験値を増やして、飯綱丸さまも大満足されるようなデートプランを練り上げていくのです！　典もお手伝いいたします！」
+							PRINTFORML 「そのついでといってはなんですが…\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@のことも可愛がってくれればなぁ…なんて」
+						ELSE
+							PRINTFORML 「%CALLNAME:MASTER%どの、正直申し上げまして、今日のようなデートはいかがなものかと…」
+							PRINTFORML 「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は我慢できますが、立腹なさる女性もいらっしゃるかもしれませんよ？」
+							PRINTL 
+							PRINTFORML 「これは、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@との修業が必要なようですね」
+							PRINTFORML 「私と何度もデートして、女性を喜ばせる術を学んでいきましょう♪」
+							PRINTFORML 「勿論、私と恋仲になるための予行演習でも全然かまいませんが…%UNICODE(0x2665) *1%」
+						ENDIF
+						PRINTW 
+					ENDIF
+				ENDIF
+			;恋慕／恋人の２回目以降
+			ELSE
+				IF BASE:139:ムード == MAXBASE:139:ムード
+					PRINTFORML 「はぁ～、最高の一日でございましたぁ…%UNICODE(0x2665) *1%」
+					IF TALENT:恋人
+						;元旦
+						IF DAY:2 == 1 && DAY:3 == 1
+							PRINTFORML 「新年の初めを、%CALLNAME:MASTER%どのとデートして過ごすことができるなんて、典は幸せでございますねぇ…♪」
+							IF TCVAR:378 > 0
+								SETCOLOR 0xFF69B4
+								CALL HPH_PRINT,@"「新年早々、激しく愛し合ってしまいましたね…HPH」","L"
+								RESETCOLOR
+							ENDIF
+							PRINTFORML 「今年も、いえ、これからも\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@をよろしくお願いします♪」
+							PRINTW 
+						;クリスマスイブ
+						ELSEIF DAY:2 == 1 && DAY:3 == 24
+							PRINTFORML 「%CALLNAME:MASTER%どの、ご存じでした？　なんでも今日は外界では最も恋人同士が燃え上がる日とか…」
+							IF TCVAR:378 > 0
+								PRINTFORML 「…実際、燃え上がってしまいましたね…%UNICODE(0x2665) *1%」
+							ELSE
+								PRINTFORML 「…どうですか、この後、私の家で燃え上がりませんか…%UNICODE(0x2665) *1%」
+							ENDIF
+							PRINTW 
+						ELSE
+							SELECTCASE RAND:2
+							CASE 0
+								;浮気公認
+								IF GET_UWAKI_HISTORY(139, 140) == 2
+									PRINTFORML 「ちなみに、飯綱丸さまともこんな感じでデートされているのですか？」
+									PRINTFORML 「ああ、勘違いなさらないでください。別に\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は嫉妬しているわけではありません」
+									PRINTFORML 「…嘘です。ちょっとだけ、嫉妬してます」
+									PRINTL 
+									PRINTFORML 「まあでも、飯綱丸さまと\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は家が同じですし、相手も同じ%CALLNAME:MASTER%どのですし」
+									PRINTFORML 「帰ってきてくれるところは一緒。二人とも愛してもらえるし、私は飯綱丸さまに恋人と付き合わせてあげているという貸しができる。%CALLNAME:MASTER%どのは両手に花」
+									PRINTFORML 「つまり今の関係は完璧ということです♪　これからも、私たちのこと、たくさん愛してくださいね…%UNICODE(0x2665) *1%」
+									PRINTW 
+								ELSE
+									IF TALENT:140:恋慕
+										PRINTFORML 「ちなみに、飯綱丸さまともいまだ交流がおありで？」
+										PRINTFORML 「駄目とは申しておりません。どうしても、尊敬する主と比較しなければならないので不安になるだけですっ」
+										PRINTFORML 「…まあ、典のことを愛してくださっているから、こうしてデートにお誘いくださるんでしょうけど…」
+										PRINTL 
+										PRINTFORML 「それに、%CALLNAME:MASTER%どのは自由なお方。典が束縛してしまっては、あなた様の魅力を損ねてしまうかもしれませんからね」
+										PRINTFORML 「その代わり、必ず典の許に帰ってきてくださいね。約束ですよ」
+										PRINTFORML 「そして、またデートにお誘いくださいませ♪」
+										PRINTW 
+									ELSE
+										PRINTFORML 「ちなみに、典以外ともこのようにデートを？」
+										PRINTFORML 「ああ、勘違いなさらないでください。他の方とのお付き合いを禁止しようってわけではありません」
+										PRINTFORML 「…まあ、少しは……それなりに、嫉妬はしますけど」
+										PRINTFORML 「卑しき管狐なれど、女としての矜持はございますので」
+										PRINTL 
+										PRINTFORML 「%CALLNAME:MASTER%どのは自由なお方。典が束縛してしまっては、あなた様の魅力を損ねてしまうかもしれませんからね」
+										PRINTFORML 「その代わり、必ず典の許に帰ってきてくださいね。約束ですよ」
+										PRINTFORML 「そして、またデートにお誘いくださいませ♪」
+										PRINTW 
+									ENDIF
+								ENDIF
+							CASE 1
+								IF (TALENT:恋慕 && CMATCH(TALENT:恋慕, 1) > 1) || (!TALENT:恋慕 && CMATCH(TALENT:恋慕, 1) > 0)
+									PRINTFORML 「ちなみに、典以外ともこのようにデートを？」
+									PRINTFORML 「ああ、勘違いなさらないでください。他の方とのお付き合いを禁止しようってわけではありません」
+									PRINTFORML 「…まあ、少しは……それなりに、嫉妬はしますけど」
+									PRINTL 
+									PRINTFORML 「%CALLNAME:MASTER%どのは自由なお方。典が束縛してしまっては、あなた様の魅力を損ねてしまうかもしれませんからね」
+									PRINTFORML 「その代わり、必ず典の許に帰ってきてくださいね。約束ですよ」
+									PRINTFORML 「そして、またデートにお誘いくださいませ♪」
+									PRINTW 
+								ELSEIF CMATCH(TALENT:セフレ, 1) > 0 ||  CMATCH(TALENT:愛欲, 1) > 0
+									PRINTFORML 「ちなみに、特別なお友達ともこのようなデートを？」
+									PRINTFORML 「ああ、誤解なさらないでください。\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は他の女との体の付き合いを許さない程狭量ではございません」
+									PRINTFORML 「…まあ、%CALLNAME:MASTER%どのを満足させられていない忸怩たるものはございますが…」
+									PRINTL 
+									PRINTFORML 「典のことを飽いておられぬからこそ、こうしてデートへ連れて行ってくださることもないでしょうからね」
+									PRINTFORML 「知ってますよ。こういうのって、『体は許しちゃったけど心はあなたのもの』ってやつでしょう？」
+									PRINTFORML 「ふふふ、典が恋人でよかったでしょう♪　\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@ってば、理解のある女でごめーんねっ！」
+									PRINTFORML 「こぉんっ！　なんでデコピンするんですかぁっ！？」
+									PRINTW 
+								ELSE
+									PRINTFORML 「%CALLNAME:MASTER%どのって、真面目な方ですよねぇ。他所で女をこさえるわけでもなく」
+									PRINTFORML 「別に\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は他の女との付き合いを許さぬほど狭量ではございませんよ？」
+									PRINTFORML 「ちなみに嫉妬しないとは申しておりません。とーぜんでございますっ」
+									PRINTL 
+									PRINTFORML 「…まあ、他の妖怪から馬鹿にされやすい管狐の私にすら誠実なあなただからこそ、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@も惹かれたのでしょうねぇ」
+									PRINTFORML 「もっとも！　%CALLNAME:MASTER%どのの魅力はそれだけではございませんがっ！　その気になれば、一晩中語り明かす自信がございますっ！」
+									PRINTFORML 「…こ、こほん、つい口が滑りました。その、%CALLNAME:MASTER%どの…」
+									PRINTFORML 「また、デートに誘ってくださいね…♪」
+									PRINTW 
+								ENDIF
+							ENDSELECT
+						ENDIF
+					ELSE
+						PRINTFORML 「%CALLNAME:MASTER%どののお傍にいられるだけでなく、こうして大切にしていただけるなんて…」
+						PRINTFORML 「典は果報者でございますね」
+						IF TALENT:140;恋人
+							PRINTFORML 「飯綱丸さまの目を盗みながらですので心苦しいところはありますが…」
+							PRINTFORML 「それでも…典は、%CALLNAME:MASTER%どのにお会いしとうございます…%UNICODE(0x2665) *1%」
+							PRINTFORML 「また、お誘いくださいますか…？」
+							PRINTW 
+						ELSE
+							PRINTFORML 「ふふ、%CALLNAME:MASTER%どのは恋人がおられますのに、いけないお方ですね」
+							PRINTFORML 「でも…典は幸せにございます」
+							PRINTFORML 「こうやって会いに来ていただけて…愛してくださる、その事実で十分でございます」
+							PRINTFORML 「一つだけ我が儘を言わせていただけるなら…また、お誘いいただけますか？」
+							PRINTW 
+						ENDIF
+					ENDIF
+				ELSEIF BASE:139:ムード >= 500
+					PRINTFORML 「素敵な一日をありがとうございました。%CALLNAME:MASTER%どのに愛していただけて、典は幸せものです♪」
+					IF TCVAR:378 > 0
+						SETCOLOR 0xFF69B4
+						CALL HPH_PRINT,@"「また、あそこでたっぷり愛しあいましょうね…HPH」","L"
+						RESETCOLOR
+					ENDIF
+					PRINTFORML 典は満面の笑みを浮かべている。今日のデートを楽しんでくれたようだ
+					PRINTW 
+				;ムード低い
+				ELSE
+					PRINTFORML 「楽しい一日をありがとうございました。またお誘いくださいね」
+					PRINTFORML 典は喜んでくれていたものの、心の底から楽しめた訳ではなかったようだ
+					PRINTW 
+				ENDIF
+			ENDIF
+		ELSEIF TALENT:愛欲 || TALENT:セフレ
+			;初デート帰り
+			IF CFLAG:1005 == 1
+				PRINTFORML 「ふむ、これが『デート』というものなのですね」
+				IF BASE:139:ムード == MAXBASE:139:ムード
+					PRINTFORML 「爛れた関係とはいえ、今日みたいなことも悪くはありませんね。むしろ楽しいものでした」
+					PRINTFORML 「普通のデートならここでお別れでしょうが…」
+					PRINTW 
+					PRINTFORML 典は%CALLNAME:MASTER%の胸元に指を這わせ、耳元で囁く
+					CALL HPH_PRINT,@"「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@たちは、ここからが本番でございましょう…？HPH」","L"
+					PRINTW
+				ELSEIF BASE:139:ムード >= 500
+					PRINTFORML 「私のような者には似合わないと思いましたが、思いのほか楽しかったです」
+					PRINTFORML 「ですが…」
+					PRINTW 
+					PRINTFORML 典は%CALLNAME:MASTER%の胸元に指を這わせ、耳元で囁く
+					CALL HPH_PRINT,@"「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は、こちらのお付き合いのほうがやはり好きでして…HPH」","L"
+					PRINTW
+				ELSE
+					PRINTFORML 「正直期待するほどのものではありませんでしたね」
+					PRINTFORML 「まあ、普通の恋人同士でしたらそれなりに楽しめたのでしょうが…」
+					PRINTW 
+					PRINTFORML 典は%CALLNAME:MASTER%の胸元に指を這わせ、耳元で囁く
+					CALL HPH_PRINT,@"「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@たちが心から楽しめるのは、やはりこっちでございましょう…？HPH」","L"
+					PRINTW
+				ENDIF
+			;２回目以降
+			ELSE
+				IF ALCOHOL_FACE(139) == "酔いどれ" || ALCOHOL_FACE(72) == "ぐでぐで"
+					CALL HPH_PRINT,@"「%CALLNAME:MASTER%どの…\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@、身体が熱くて…HPH」","L"
+					CALL HPH_PRINT,@"「少し、服を緩めていただけませんか…HPH」","L"
+				ELSE
+					IF TALENT:140:恋人 == 1
+						PRINTFORML 「楽しい時間だったのは否定しませんが、こういったことは飯綱丸さまとお楽しみくださいませ」
+						SIF TCVAR:378 >= 1
+						CALL HPH_PRINT,@"「まあ、ラブホデートは悪くありませんでしたけどねHPH」","L"
+						PRINTFORML 「上司のことは気に掛けるのにセックスなんてしていいのかって？　それはそれ、これはこれ、でございますよ」
+						PRINTFORML 「そして、あなた様も同罪でございますからね…♪　死なばもろともですよ♪」
+						PRINTW 
+					ELSE
+						IF TALENT:29:恋人 == 1
+							PRINTFORM 「射命丸どのを放っておいて、典とデートを楽しむなんて悪いお方…♪」
+							PRINTFORML 「まあ、仕事一筋で恋人を放っておく射命丸どのがいけないんでしょうけどね」
+							PRINTFORML 「典はあくまで%CALLNAME:MASTER%どのをお慰め差し上げているだけ…♪」
+							PRINTFORML 「典でよければ、いくらでもお相手いたしますよ。特に身体をお慰めるする方は…%UNICODE(0x2665) *1%」
+							PRINTW 
+						ELSEIF TALENT:42:恋人 == 1
+							PRINTFORML 「姫海棠どのとデートなさらなくてよろしいのですか？　それとも、彼女は引きこもってばかりで面白くないとか？」
+							PRINTFORML 「まあ、恋人などという縛られた関係より、私たちの関係の方がよほど健全だと思いますがねぇ」
+							PRINTFORML 「気が向いたら会い、気が向いたら飽きるまで身体を重ねる…最高ではないですか♪」
+							PRINTFORML 「もっとも、飽きるなんてことはありえませんが…♪」
+							PRINTW 
+						ELSEIF TALENT:65:恋人 == 1
+							PRINTFORML 「真面目な犬走どのを放って、典とデートを楽しむなんてひどいお方ですねぇ」
+							PRINTFORML 「何かとお堅い方ですから…デートでも控えめなのではないですか？　それが物足りないとか？」
+							PRINTFORML 「オナホ扱いとか、絶対させてくれそうにありませんものねぇ、あの方」
+							CALL HPH_PRINT,@"「典なら、気持ちよくさせていただけるならオナホ扱い大歓迎ですけど…HPH」","L"
+							PRINTW 
+						ELSE
+							PRINTFORML 「恋人さまを放っておいて、典とデートを楽しむなんてひどいお方ですねぇ」
+							PRINTFORML 「ひょっとして、恋人さまに飽きてしまわれたとか？　まあ、典にはかかわりのないことでございますが」
+							PRINTFORML 「四六時中恋人といるのも、それはそれで息が詰まってしまいますからね。たまには息抜きしませんと」
+							CALL HPH_PRINT,@"「こっちなら、いつでもイキヌキして差し上げますよ…HPH」","L"
+							PRINTW 
+						ENDIF
+					ENDIF
+				ENDIF
+			ENDIF
 		ELSE
 			;初デート帰り
 			IF CFLAG:1005 == 1
 				PRINTFORML 「ふむ、これが『デート』というものなのですね」
 				IF BASE:139:ムード == MAXBASE:139:ムード
+					PRINTFORML 「正直申し上げますと…不覚にもときめいてしまいました」
+					PRINTFORML こんなはずではなかったのに、という表情で、典はむむむ、と唸る
+					PRINTW 
+					PRINTFORML 「%CALLNAME:MASTER%と一緒にいるとき、殊の外心地いいんですよねえ」
+					PRINTFORML 「本来なら私のような美少女狐を侍らしてデートに行くなど、デート料をいただきたいところですが…」
+					PRINTFORML 「楽しかったのでチャラにして差し上げます。よかったですねぇ」
+					PRINTL 
+					PRINTFORML そう言っておどけて見せる典の頬と耳はほんのりと朱に染まっていた
+					PRINTFORMW 「また」
+					PRINTFORML 「また、誘ってくださいね。約束ですよ」
+					PRINTFORML どうやら、典は次回もデートに応じてくれるようだ
+					PRINTW 
 				ELSEIF BASE:139:ムード >= 500
-					
+					PRINTFORML 「思っていたより楽しかった…と申しておきましょう」
+					PRINTFORML 「ですが！　私はもちろんのこと、飯綱丸さまを満足させるにはまだまだといえますねぇ」
+					PRINTFORML 「次は、もっと楽しませていただけると期待していますよ」
+					PRINTL 
+					PRINTFORML 初デートはそれなりに好感触だったようだ
+					PRINTFORML どうやら、典は次回もデートに応じてくれるようだ
+					PRINTW 
 				ELSE
 					PRINTFORML 「正直……期待していたほどではありませんでした」
 					PRINTW 
@@ -1224,6 +1639,79 @@ IF LOCAL
 				ENDIF
 			;２回目以降
 			ELSE
+				IF BASE:139:ムード == MAXBASE:139:ムード
+					PRINTFORML 「%CALLNAME:MASTER%どの、今日も素敵なデートをありがとうございました」
+					IF TALENT:思慕
+						IF TALENT:140:恋慕
+							PRINTFORML 「私とのデートを飯綱丸さまとの時に活かしてくださいね♪」
+							PRINTFORML 「……」
+							PRINTFORML 「あ、いえいえ。なんでもないです。それでは」
+							PRINTW 
+							PRINTFORML （……何かモヤッてするんですよね…）
+							PRINTFORML （飯綱丸さまの恋を応援することに嘘偽りはないのに…）
+							PRINTW 
+						ELSEIF TALENT:29:恋慕
+							PRINTFORML 「射命丸どのはゴシップ記事の取材でお忙しいので、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@ならいつでもデートのお相手をいたしますよ♪」
+						ELSEIF TALENT:42:恋慕
+							PRINTFORML 「姫海棠どのは引きこもりですからねぇ…\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@ならいつでもデートのお誘いに応じますのに…」
+						ELSEIF TALENT:65:恋慕
+							PRINTFORML 「犬走どのは職務に忠実ですからね。お相手していただけないときは、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@がお付き合いいたしますよ」
+						ELSE
+							SELECTCASE RAND:3
+							CASE 0
+								PRINTFORML 「はぁ、楽しい時間というものはあっという間ですねぇ…名残惜しいです」
+							CASE 1
+								PRINTFORML 「このまま別れたくない…といったらどうなさいますか？」
+								PRINTFORML 「ふふ、ちょっと言ってみたかっただけでございますよ♪」
+							CASE 2
+								PRINTFORML 「この後、御予定などは…？　いえ、典だけが独占するのはよろしくないですね」
+								PRINTFORML 「またお誘いいただけることを楽しみにしておりますね♪」
+							ENDSELECT
+						ENDIF
+					ELSE
+						PRINTFORML 「%CALLNAME:MASTER%どののこと、好きになっちゃいそう…%UNICODE(0x2665) *1%　なーんて♪」
+						PRINTFORML 「あ、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@のこと、好きになっちゃいました？」
+						PRINTFORML 「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@、罪な女でございますねぇ…♪」
+						PRINTW 
+					ENDIF
+				ELSEIF BASE:139:ムード >= 500
+					PRINTFORML 「%CALLNAME:MASTER%どの、楽しい時間をありがとうございました」
+					IF TALENT:思慕
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「また、お会いできますよね？」
+						CASE 1
+							PRINTFORML 「次は、いつお誘いくださいますか？　可能な限り、予定を空けておきますので」
+						ENDSELECT
+					ELSE
+						PRINTFORML 「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@でよければ、またお付き合いしますよ。こんこん♪」
+					ENDIF
+				ELSE
+					IF TALENT:思慕
+						PRINTFORML 「%CALLNAME:MASTER%どの…他の女性に対してもこのようなデートを？」
+						PRINTFORML 「はぁ…そんなことでは大きい魚を逃がしてしまうかもしれませんよ？」
+						PRINTFORML 「しょうがないですねぇ。典がお付き合いしてさしあげますから、もっとお相手の喜ばせ方を磨いてくださいね」
+						IF TALENT:140:恋慕 || TALENT:140:恋人
+							PRINTFORML （こんなデートで一日が終わるとか、飯綱丸さまが不憫ですからねぇ…）
+							PRINTFORML （まったく、下っ端というのも楽ではありませんね）
+						ELSE
+							IF CMATCH(TALENT:恋慕, 1) > 0
+								PRINTFORML （私の調べだと、こんなのでもモテるんですからねぇ…）
+								PRINTFORML （幻想郷の女ども、少々チョロすぎではありませんかね？）
+							ELSEIF CMATCH(TALENT:恋人, 1) > 0
+								PRINTFORML （私の調べではありますが、一応恋人はいるんですよねぇ）
+								PRINTFORML （まったく、物好きもいたものです…）
+							ELSE
+								PRINTFORML （私の調べだと、予想通りというか、恋人や惚れている相手はいない様子…）
+								PRINTFORML （だからこそ、私がこの人のことを少し気になっているというのが気に食わないんですよねぇ…）
+							ENDIF
+						ENDIF
+					ELSE
+						PRINTFORML 「はぁ、%CALLNAME:MASTER%どのとのデートということで期待しておりましたのに…」
+						PRINTFORML 「ちょっとがっかりだわぁー。次は誘われてもお断りしようかしらぁー」
+						PRINTFORML 「次は」を強調しながら、典は芝居がかった仕草で不満を漏らしている…
+					ENDIF
+				ENDIF
 			ENDIF
 		ENDIF
 		RETURN 1
@@ -1296,6 +1784,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
 		IF FLAG:70
+		;典に尿意あり
 		ELSEIF TCVAR:374 >= 500 || (TCVAR:利尿剤 && TCVAR:374 > 0)
 			;トイレに入ってきた
 			IF CFLAG:MASTER:現在位置 == 14 || CFLAG:MASTER:現在位置 == 236 || CFLAG:MASTER:現在位置 == 316 || CFLAG:MASTER:現在位置 == 322 || CFLAG:MASTER:現在位置 == 824
@@ -1545,6 +2034,7 @@ IF LOCAL
 					PRINTW 
 				ENDIF
 			ENDIF
+		;トイレ以外の遭遇
 		ELSE
 			;DAY:2で季節を選択
 			SELECTCASE DAY:2
@@ -1606,11 +2096,140 @@ IF LOCAL
 					PRINTW 
 				;夜
 				CASE 5,6,7
-					PRINTFORML 「こんにちは。%CALLNAME:MASTER%どの」
+					PRINTFORML 「こんばんは。%CALLNAME:MASTER%どの」
 					PRINTFORML 「夜は、少しだけ冷えますね」
 					PRINTFORML 「そちらに寄ってもよろしいですか？　ふふ、なーんて冗談です♪」
 					PRINTW 
 				ENDSELECT
+				
+				IF FESTIVAL() == "ハロウィン"
+					PRINTFORML 「トリック・オア・トリ～ト～～～！！」
+					PRINTFORML 「ふふ、御存じないのですか？　今日はハロウィンでございますよ♪」
+					PRINTL 
+					IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「お菓子はいらないのでイタズラさせてください♪」
+							PRINTFORML 判断が速い！
+						CASE 1
+							PRINTFORML 「お姉ちゃんにお菓子をくれないと、イタズラしちゃいますよ～～♪」
+							PRINTFORML 典のほうが年上なので逆じゃないだろうかと思った
+						CASE 2
+							PRINTFORML 「というわけで、%CALLNAME:MASTER%どのの方がお子様なので、お姉ちゃんに言ってみてください♪」
+							CALL ASK_YN("トリック・オア・トリート？","何かたくらんでそうだからヤダ")
+							IF !RESULT
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「お菓子なんて持ってません！　だから、お姉ちゃんに好きなだけイタズラしてください%UNICODE(0x2665) *1%」
+									PRINTFORML 騙された！
+								CASE 1
+									PRINTFORML 
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「……%CALLNAME:MASTER%どののような勘のいい子どもは嫌いですよ」
+								CASE 1
+									PRINTFORML 「えぇ～～……それはざぁ～～～～んねん！」
+									PRINTFORML 「ほら、この通り美味しいお菓子を用意してたのになぁ～♪」
+									PRINTFORML 「でも言ってくれなかったのでこれはお姉ちゃんが食べちゃいまーす♪　あっ美味しっ♪　んー、こっちも最高ー♪」
+									PRINTFORML 吐き気を催すほどの邪悪…！
+								ENDSELECT
+							ENDIF
+						ENDSELECT
+					ELSE
+						PRINTFORML 「と、いうわけでぇ～～…」
+						IF TALENT:恋人
+							PRINTFORML 「お菓子をくれなきゃイタズラしちゃいますよ～♪」
+							CALL ASK_M("今は持ってないけど作ってあげようか？", ABL:料理技能 > 2,"これをどうぞ", ITEM:飴 > 0,"お菓子がないのでイタズラで", 1,"むしろ典にイタズラしたい", 1)
+							SELECTCASE RESULT
+							CASE 0
+								PRINTFORML 「えっ！？」
+								PRINTFORML 「いえ、嬉しいんですけど…その返しは想定外といいますか…」
+								PRINTFORML 「ああっ、すみませんっ、今非常に顔がニヤけておりますのでこちらを見ないでくださいっ」
+								PRINTW 
+							CASE 1
+								PRINTFORML 「おや、色とりどりの包み紙の飴ですねぇ。いただきます♪」
+								PRINTFORML 「お菓子はいただけたけど、残念ですねぇ。せっかくのイタズラのチャンスが…♪」
+								PRINTFORMW 「……」
+								PRINTFORML 「その…デートの後にでも、イタズラしあいませんか…%UNICODE(0x2665) *1%」
+								PRINTW 
+							CASE 2
+								PRINTFORML 「いいんですか？　後悔いたしませんね？」
+								PRINTFORML 「では、大人しくしていてくださいませ♪」
+								PRINTFORML 典は%CALLNAME:MASTER%の背後に回り、両手でそっと目隠ししてきた
+								PRINTW 
+								SETCOLOR 0xFF69B4
+								CALL HPH_PRINT,@"「%CALLNAME:MASTER%どの、好HPH　きHPH」","W"
+								CALL HPH_PRINT,@"「幻想郷で誰よりも、あなたのことを愛しております…HPH」","W"
+								CALL HPH_PRINT,@"「典の身も心も、すべてあなた様のものです…HPH」","W"
+								CALL HPH_PRINT,@"「あなた様が望むなら、典はなんだってご奉仕いたしますよ…HPH」","L"
+								CALL HPH_PRINT,@"「なんでしたら、今からでも、典のこと、好きにいたします…？HPH」","L"
+								RESETCOLOR
+								PRINTW 
+								PRINTFORML 「は～い、おしまい♪」
+								PRINTFORML 突如、視界が開ける
+								PRINTW 
+								PRINTFORML 「どうでしたか？　典のイタズラ♪」
+								PRINTFORML 「ちなみに、すべて本音でございますからね♪」
+								PRINTW 
+							CASE 3
+								PRINTFORML 「！　ほ、ほほう、言うようになったではないですか…♪」
+								PRINTFORML 「そしたら、%CALLNAME:MASTER%どのにイタズラされちゃおうっかなぁ…%UNICODE(0x2665) *1%」
+								PRINTW 
+							ENDSELECt
+						ELSEIF TALENT:恋慕
+							PRINTFORML 「お菓子をくれなきゃイタズラしちゃいますよ～♪」
+						ELSEIF TALENT:愛欲 || TALENT:セフレ
+							SETCOLOR 0xFF69B4
+							CALL HPH_PRINT,@"「お菓子をくれなきゃ犯しちゃいますよ…HPH」","L"
+							RESETCOLOR
+							CALL ASK_M("アメでよければ…", ITEM:飴 > 0,"じゃあお菓子はあげない", 1)
+							SELECTCASE RESULT
+							CASE 0
+								PRINTFORML 「うーわ、ノリ悪いですねぇ」
+								PRINTFORML 「別にもらわないとは申しておりません。いただきます」
+								PRINTFORML 「……ふむ、普通の飴ですね。味も悪くはなく…」
+								IF ITEM:媚薬 > 0
+									PRINTW 
+									SETCOLOR 0xFF69B4
+									PRINTFORML 「……！」
+									CALL HPH_PRINT,@"「なるほど…ここまで『仕込み』というわけですか…HPH」","L"
+									PRINTFORML 典は%CALLNAME:MASTER%にしなだれかかり、股間に手を這わせる
+									PRINTFORML 典の吐息は荒く、頬が紅潮していた、うっすらと汗もかいているようだ
+									PRINTL 
+									CALL HPH_PRINT,@"「ここまでしてくれたからには、楽しませていただけるんでしょうね…HPH」","L"
+									PRINTFORML 典は%CALLNAME:MASTER%の首に両腕を回し、唇を重ねてきた…
+									PRINTW 
+									PALAM:欲情 += 30000
+									PALAM:潤滑 += 5000
+								ELSE
+									PRINTW 
+									PRINTFORML 「%CALLNAME:MASTER%どののことだから、お菓子はあげないからさっさとヤるぞって言ってくるものかと思いました」
+									PRINTFORML 「下半身以外でもものを考えられるんですねぇ。意外です」
+									PRINTW 
+								ENDIF
+							CASE 1
+								CALL HPH_PRINT,@"「ふふ、ですよね…HPH」","L"
+								CALL HPH_PRINT,@"「私たちには、季節の行事なんかより、そうしてるほうがお似合いです…HPH」","L"
+								CALL HPH_PRINT,@"「それじゃあ、どこでシましょうか…HPH」","L"
+								CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのがよろしければ、ここで初めても構わないのですよ…HPH」","L"
+							ENDSELECT
+						ELSE
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 「お菓子をくれなきゃイタズラしちゃいますよ…♪」
+								PRINTFORML 畑に電気網仕掛けなきゃ…（使命感）
+								PRINTFORML 「ちょっ、害獣扱いしないでくださいよぉ～～～～！」
+							CASE 1
+								PRINTFORML 「お菓子をくれなきゃイタズラしちゃいますよ～♪」
+								PRINTFORML %CALLNAME:MASTER%はその場にジャンプし、ジャラジャラとなった小銭を典に手渡して「これで勘弁を…」と懇願した
+								PRINTFORML 「え…はあ……あの、反応に困ること、やめていただけませんか…」
+								PRINTFORML 典はチベットスナギツネのような表情を浮かべている…
+							ENDSELECT
+						ENDIF
+					ENDIF
+				ENDIF
 			;冬
 			CASE 4
 				SELECTCASE TIME:2
@@ -1789,29 +2408,637 @@ IF LOCAL
 					RESETCOLOR
 					PRINTW 
 				ENDIF
+			;発情していない
 			ELSE
-				SELECTCASE RAND:3
-				CASE 0
-					PRINTFORML 「こんなところで%CALLNAME:MASTER%どのと出会えるなんて、運命的ですねぇ♪」
-					;あなたが恥じらい持ち
-					IF TALENT:MASTER:羞恥心 == 1
-						PRINTFORML 「あら、顔を赤くしてどうなさったのですか…♪」
-						IF TALENT:MASTER:非童貞 == 0
-							PRINTFORML （これだから童貞は…ちょっと気のあるふりしただけで、ちょろいですねぇ…♪」
+				IF TALENT:愛欲 || TALENT:セフレ
+					;あなたが龍と典の家に来た
+					IF CFLAG:MASTER:現在位置 == 854 && CFLAG:現在位置 == 854
+						;龍が不在
+						IF !CFLAG:140:現在位置 == 854
+							PRINTFORML 「おや、%CALLNAME:MASTER%どの。いらっしゃいませ♪」
+							PRINTFORML 「飯綱丸さまがいらっしゃらない時にお越しになられたということは…そういうことですかね」
+							PRINTW 
+							IF TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3
+								IF BASE:MASTER:勃起 >= 1000
+									IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+										CALL HPH_PRINT,@"「まあ…HPH　立派なおちんちんHPH」","L"
+										CALL HPH_PRINT,@"「お姉ちゃんが待ち遠しくて、ここに来るまでずっとおっきさせてたのね…HPH」","L"
+										PRINTL 
+										IF CFLAG:TARGET:溜まってる度 >= 600
+											CALL HPH_PRINT,@"「お山の中で、ずっと我慢していたのでしょう…HPH」","L"
+											PRINTFORML 典は服をはだけると、戸に手を付いて腰を突き出した
+											CALL HPH_PRINT,@"「我慢して来れたご褒美に、ここでシちゃいましょう…HPH」","L"
+											PRINTW 
+											PRINTFORML 典に導かれるまま、先端から先走り汁を滴らせる%TINKO(TARGET)%を潤った秘所にあてがう
+											CALL HPH_PRINT,@"「来てっ、一息にぃぃぃぃぃぃぃッHPHHPHHPH」","L"
+											PRINTW 
+											CALL HPH_PRINT,@"にゅぷううんっHPH","L"
+											PRINTW 
+											CALL HPH_PRINT,@"「お゛HPH　お゛おっHPHHPH　おぉぉ～～HPH」","L"
+											CALL HPH_PRINT,@"「ああっHPH　これぇっHPH　生ちんちんっHPH　これがほしかったんですっHPH」","L"
+											PRINTW 
+											CALL HPH_PRINT,@"ぱんっHPH　ぱんっHPH　ぱんっHPH","L"
+											CALL HPH_PRINT,@"　　ぱんっHPH　ぱんっHPH　ぱんっHPH","L"
+											PRINTW 
+											CALL HPH_PRINT,@"「おちんちんっHPH　硬いぃっHPH　ひぃぃッHPH」","L"
+											CALL HPH_PRINT,@"「なんてお姉ちゃん泣かせなっHPH　いいっHPH　もっとぉHPH　もっとおちんちんハメてぇっHPH」","L"
+											PRINTW 
+											PRINTFORML 玄関口にも関わらず、形の良い唇から淫猥な言葉を連呼し、典は本能のままよがり狂う
+											PRINTFORML まるで、取り繕ってセックスする者など阿呆だと言わんばかりに、自らも腰をくねらせて劣情を誘う
+											PRINTFORML %CALLNAME:MASTER%の腰がぶつかるたび、結合部からぶちゅっ、ぶちゅっと淫汁が飛び散った
+											PRINTW 
+											IF CFLAG:TARGET:生解禁 == 2
+												CALL HPH_PRINT,@"「お゛っHPH　ん゛お゛ッHPH　きてッHPH　お姉ちゃんの膣内にぃッHPHHPH」","L"
+												CALL HPH_PRINT,@"「赤ちゃんとかっHPH　どうでもっHPH　いいですからぁッHPHHPH」","L"
+												PRINTFORML 後先を考えない破滅的なセックスの快楽に、典は酔いしれる
+												PRINTFORML そして、それに抗えないのは%CALLNAME:MASTER%も同じだった
+												PRINTW 
+												CALL HPH_PRINT,@"びゅくんっHPH","L"
+												CALL HPH_PRINT,@"「はHPH　へHPH　うHPH　お゛HPH」","L"
+												PRINTW 
+												PRINTFORML ビシャビシャと、膣を通り抜けて、幼くも濃厚な白濁の液体が子宮口に叩きつけられた
+												PRINTFORML 言葉にならない呻き声をあげながら、典は膣内射精の快楽に酔いしれる
+												PRINTFORML それはまるで麻薬のように、典の脳髄をドロドロに溶かしていった
+												PRINTW 
+												CALL HPH_PRINT,@"「はッHPH　お゛ッHPH　子どもおちんちんのくせにぃ…HPH　射精量が半端じゃないんですからぁ…HPH　お゛っHPH」","L"
+												CALL HPH_PRINT,@"「ま、まだこれで終わりじゃないですよね…HPH　お姉ちゃん、もっと%CALLNAME:MASTER%どののおちんちんほしいのぉ…HPH」","L"
+												CALL HPH_PRINT,@"「ほらぁ、このまま繋がったまま、家に入りますよぉんッHPH　おンッHPH　おぉンッHPHHPH」","L"
+												PRINTFORML 典を後ろから突きあげながら、２回戦を始めるべく家の中へ入っていった…
+												CALL 抱き寄せ(139)
+												TEQUIP:TARGET:Ｖセックス = 1
+												TEQUIP:TARGET:体位 = 2
+											ELSEIF CFLAG:TARGET:生解禁 == 1
+												;危険日
+												IF CFLAG:生理周期 == 7
+													CALL HPH_PRINT,@"「お゛っHPH　ん゛お゛ッHPH　ダメッHPH　今日は赤ちゃんできちゃう日ですッHPHHPH」","L"
+													PRINTFORML 快楽で思考に靄がかかりながらも、ギリギリのところで理性を振り絞った典が訴える
+													PRINTFORML このまま雄の本能に導かれるまま典お姉ちゃんに赤ちゃんを産ませてみたいという衝動に飲み込まれそうになるが、
+													PRINTFORML やはり自分が父親にならないといけないかもしれないという恐怖がわずかに勝った
+													PRINTW 
+													CALL HPH_PRINT,@"びゅくんっHPH","L"
+													CALL HPH_PRINT,@"「はHPH　へHPH　うHPH　お゛HPH」","L"
+													PRINTW 
+													PRINTFORML 射精寸前で%TINKO(PLAYER)%が抜き取られ、先端から灼熱の白濁液を吐精する
+													PRINTFORML 勢いよく放たれた濃厚な子種汁は、典の背中や尻、大陰唇を白く染め上げる。一部は、髪にまで飛び散った
+													PRINTW 
+													CALL HPH_PRINT,@"「おしり、熱ぅい…HPH　ざ、子どもおちんちんのくせにぃ…HPH　射精量が半端じゃないんですからぁ…HPH　お゛っHPH」","L"
+													CALL HPH_PRINT,@"「ま、まだこれで終わりじゃないですよね…HPH　終わったら、もうエッチなことしてあげません…HPH」","L"
+													CALL HPH_PRINT,@"「それが嫌なら、中で続きをしますよぉんッHPH　おンッHPH　おぉンッHPHHPH」","L"
+													PRINTFORML 勃起力を取り戻した肉棒で典を後ろから突きあげながら、２回戦を始めるべく家の中へ入っていった…
+													CALL 抱き寄せ(139)
+													TEQUIP:TARGET:Ｖセックス = 1
+													TEQUIP:TARGET:体位 = 2
+												;危険日以外
+												ELSE
+													CALL HPH_PRINT,@"「お゛っHPH　ん゛お゛ッHPH　きてッHPH　膣内にぃッHPHHPH」","L"
+													CALL HPH_PRINT,@"「多分っHPH　大丈夫ですからぁっHPH　中出しっHPH　いいッHPH」","L"
+													PRINTFORML 短絡的に快楽を求める者らしい、万が一の可能性を考慮すらしない典の発言
+													PRINTFORML しかし、やはり刹那的な快楽を求める%CALLNAME:MASTER%もまた、その魅力的な提案に逆らおうとしなかった
+													PRINTW 
+													CALL HPH_PRINT,@"びゅくんっHPH","L"
+													CALL HPH_PRINT,@"「はHPH　へHPH　うHPH　お゛HPH」","L"
+													PRINTW 
+													PRINTFORML ビシャビシャと、膣を通り抜けて白濁の液体が子宮口に叩きつけられた
+													PRINTFORML 言葉にならない呻き声をあげながら、典は膣内射精の快楽に酔いしれる
+													PRINTFORML それはまるで麻薬のように、典の脳髄をドロドロに溶かしていった
+													PRINTW 
+													CALL HPH_PRINT,@"「はッHPH　お゛ッHPH　子どもおちんちんのくせにぃ…HPH　射精量が半端じゃないんですからぁ…HPH　お゛っHPH」","L"
+													CALL HPH_PRINT,@"「ま、まだこれで終わりじゃないですよね…HPH　お姉ちゃん、もっと%CALLNAME:MASTER%どののおちんちんほしいのぉ…HPH」","L"
+													CALL HPH_PRINT,@"「ほらぁ、このまま繋がったまま、家に入りますよぉんッHPH　おンッHPH　おぉンッHPHHPH」","L"
+													PRINTFORML 典を後ろから突きあげながら、２回戦を始めるべく家の中へ入っていった…
+													CALL 抱き寄せ(139)
+													TEQUIP:TARGET:Ｖセックス = 1
+													TEQUIP:TARGET:体位 = 2
+												ENDIF
+											ELSE
+												;安全日
+												IF CFLAG:生理周期 == 1 || CFLAG:生理周期 == 2
+													CALL HPH_PRINT,@"「お゛っHPH　ん゛お゛ッHPH　きてッHPH　膣内にぃッHPHHPH」","L"
+													CALL HPH_PRINT,@"「安全日だからぁっHPH　中出しっHPH　いいッHPH」","L"
+													PRINTFORML 短絡的に快楽を求める者らしい、万が一の可能性を考慮すらしない典の発言
+													PRINTFORML しかし、やはり刹那的な快楽を求める%CALLNAME:MASTER%もまた、その魅力的な提案に逆らおうとしなかった
+													PRINTW 
+													CALL HPH_PRINT,@"びゅくんっHPH","L"
+													CALL HPH_PRINT,@"「はHPH　へHPH　うHPH　お゛HPH」","L"
+													PRINTW 
+													PRINTFORML ビシャビシャと、膣を通り抜けて、幼くも濃厚な白濁の液体が子宮口に叩きつけられた
+													PRINTFORML 言葉にならない呻き声をあげながら、典は膣内射精の快楽に酔いしれる
+													PRINTFORML それはまるで麻薬のように、典の脳髄をドロドロに溶かしていった
+													PRINTW 
+													CALL HPH_PRINT,@"「はッHPH　お゛ッHPH　子どもおちんちんのくせにぃ…HPH　射精量が半端じゃないんですからぁ…HPH　お゛っHPH」","L"
+													CALL HPH_PRINT,@"「ま、まだこれで終わりじゃないですよね…HPH　お姉ちゃん、もっと%CALLNAME:MASTER%どののおちんちんほしいのぉ…HPH」","L"
+													CALL HPH_PRINT,@"「ほらぁ、このまま繋がったまま、家に入りますよぉんッHPH　おンッHPH　おぉンッHPHHPH」","L"
+													PRINTFORML 典を後ろから突きあげながら、２回戦を始めるべく家の中へ入っていった…
+													CALL 抱き寄せ(139)
+													TEQUIP:TARGET:Ｖセックス = 1
+													TEQUIP:TARGET:体位 = 2
+												;安全日以外
+												ELSE
+													CALL HPH_PRINT,@"「お゛っHPH　ん゛お゛ッHPH　ダメッHPH　今日は赤ちゃんできちゃう日ですッHPHHPH」","L"
+													PRINTFORML 快楽で思考に靄がかかりながらも、ギリギリのところで理性を振り絞った典が訴える
+													PRINTFORML このまま雄の本能に導かれるまま典お姉ちゃんに赤ちゃんを産ませてみたいという衝動に飲み込まれそうになるが、
+													PRINTFORML やはり自分が父親にならないといけないかもしれないという恐怖がわずかに勝った
+													PRINTW 
+													CALL HPH_PRINT,@"びゅくんっHPH","L"
+													CALL HPH_PRINT,@"「はHPH　へHPH　うHPH　お゛HPH」","L"
+													PRINTW 
+													PRINTFORML 射精寸前で%TINKO(PLAYER)%が抜き取られ、先端から灼熱の白濁液を吐精する
+													PRINTFORML 勢いよく放たれた濃厚な子種汁は、典の背中や尻、大陰唇を白く染め上げる。一部は、髪にまで飛び散った
+													PRINTW 
+													CALL HPH_PRINT,@"「おしり、熱ぅい…HPH　ざ、子どもおちんちんのくせにぃ…HPH　射精量が半端じゃないんですからぁ…HPH　お゛っHPH」","L"
+													CALL HPH_PRINT,@"「ま、まだこれで終わりじゃないですよね…HPH　終わったら、もうエッチなことしてあげません…HPH」","L"
+													CALL HPH_PRINT,@"「それが嫌なら、中で続きをしますよぉんッHPH　おンッHPH　おぉンッHPHHPH」","L"
+													PRINTFORML 勃起力を取り戻した肉棒で典を後ろから突きあげながら、２回戦を始めるべく家の中へ入っていった…
+													CALL 抱き寄せ(139)
+													TEQUIP:TARGET:Ｖセックス = 1
+													TEQUIP:TARGET:体位 = 2
+												ENDIF
+											ENDIF
+											
+										ELSE
+											CALL HPH_PRINT,@"「いつ飯綱丸さまが戻ってこられるとも分かりませんからね…ささ、早く中へ…HPH」","L"
+											PRINTFORML 典は%CALLNAME:MASTER%の%TINKO(PLAYER)%を揉みしだきながら、家の中へ二人で入っていった…
+											PRINTW 
+										ENDIF
+									;大人
+									ELSE
+										CALL HPH_PRINT,@"「おほッ…HPH　まさか、山の中でずっとおちんぽ様おっ勃ててこられたのですか…HPH」","L"
+										CALL HPH_PRINT,@"「雑魚ちんぽのくせに、度し難い変態ですねぇ…HPH」","L"
+										PRINTFORML 典は言葉とは裏腹に、%TINKO(TARGET)%を凝視して舌なめずりをしている
+										PRINTL 
+										IF CFLAG:TARGET:溜まってる度 >= 600
+											CALL HPH_PRINT,@"「そんな変態ちんぽは、ここで懲らしめませんとね…HPH」","L"
+											PRINTFORML 典は服をはだけると、戸に手を付いて腰を突き出した
+											CALL HPH_PRINT,@"「まずは、駆けつけ一発…ハメていただけませんかHPH」","L"
+											PRINTW 
+											PRINTFORML 典の要望通り、%TINKO(PLAYER)%を露出させ、すでに濡れそぼっている雌穴の入り口にあてがう
+											CALL HPH_PRINT,@"「来てっ、一息にぃぃぃぃぃぃぃッHPHHPHHPH」","L"
+											PRINTW 
+											CALL HPH_PRINT,@"にゅぷううんっHPH","L"
+											PRINTW 
+											CALL HPH_PRINT,@"「お゛HPH　お゛おっHPHHPH　おぉぉ～～HPH」","L"
+											CALL HPH_PRINT,@"「ああっHPH　これぇっHPH　生ちんぽっHPH　これがほしかったんですっHPH」","L"
+											PRINTW 
+											CALL HPH_PRINT,@"ぱんっHPH　ぱんっHPH　ぱんっHPH","L"
+											CALL HPH_PRINT,@"　　ぱんっHPH　ぱんっHPH　ぱんっHPH","L"
+											PRINTW 
+											CALL HPH_PRINT,@"「おちんぽ様っHPH　硬いぃっHPH　ひぃぃッHPH」","L"
+											CALL HPH_PRINT,@"「もっとぉHPH　もっと後ろから突いてっHPH　おちんぽハメてぇっHPH」","L"
+											PRINTW 
+											PRINTFORML 玄関口にも関わらず、形の良い唇から淫猥な言葉を連呼し、典は本能のままよがり狂う
+											PRINTFORML まるで、取り繕ってセックスする者など阿呆だと言わんばかりに、自らも腰をくねらせて劣情を誘う
+											PRINTFORML %CALLNAME:MASTER%の腰がぶつかるたび、結合部からぶちゅっ、ぶちゅっと淫汁が飛び散った
+											PRINTW 
+											IF CFLAG:TARGET:生解禁 == 2
+												CALL HPH_PRINT,@"「お゛っHPH　ん゛お゛ッHPH　きてッHPH　膣内にぃッHPHHPH」","L"
+												CALL HPH_PRINT,@"「避妊とかっHPH　どうでもっHPH　いいですからぁッHPHHPH」","L"
+												PRINTFORML 後先を考えない破滅的なセックスの快楽に、典は酔いしれる
+												PRINTFORML そして、それに抗えないのは%CALLNAME:MASTER%も同じだった
+												PRINTW 
+												CALL HPH_PRINT,@"びゅくんっHPH","L"
+												CALL HPH_PRINT,@"「はHPH　へHPH　うHPH　お゛HPH」","L"
+												PRINTW 
+												PRINTFORML ビシャビシャと、膣を通り抜けて白濁の液体が子宮口に叩きつけられた
+												PRINTFORML 言葉にならない呻き声をあげながら、典は膣内射精の快楽に酔いしれる
+												PRINTFORML それはまるで麻薬のように、典の脳髄をドロドロに溶かしていった
+												PRINTW 
+												CALL HPH_PRINT,@"「はッHPH　お゛ッHPH　ざ、雑魚ちんぽのくせにぃ…HPH　射精量が半端じゃないんですからぁ…HPH　お゛っHPH」","L"
+												CALL HPH_PRINT,@"「ま、まだこれで終わりじゃないですよね…HPH　終わったら、ずっと雑魚呼ばわりしますから…HPH」","L"
+												CALL HPH_PRINT,@"「雑魚じゃないなら、このまま繋がったまま、家に入りますよぉんッHPH　おンッHPH　おぉンッHPHHPH」","L"
+												PRINTFORML 典を後ろから突きあげながら、２回戦を始めるべく家の中へ入っていった…
+												CALL 抱き寄せ(139)
+												TEQUIP:TARGET:Ｖセックス = 1
+												TEQUIP:TARGET:体位 = 2
+											ELSEIF CFLAG:TARGET:生解禁 == 1
+												;危険日
+												IF CFLAG:生理周期 == 7
+													CALL HPH_PRINT,@"「お゛っHPH　ん゛お゛ッHPH　ダメッHPH　今日は膣外にッHPHHPH」","L"
+													PRINTFORML 快楽で思考に靄がかかりながらも、ギリギリのところで理性を振り絞った典が訴える
+													PRINTFORML このまま膣内にぶちまけて典を孕ませてみたい衝動に飲み込まれそうになるが、やはり後々の面倒のことを考えると理性がわずかに勝った
+													PRINTW 
+													CALL HPH_PRINT,@"びゅくんっHPH","L"
+													CALL HPH_PRINT,@"「はHPH　へHPH　うHPH　お゛HPH」","L"
+													PRINTW 
+													PRINTFORML 射精寸前で%TINKO(PLAYER)%が抜き取られ、先端から灼熱の白濁液を吐精する
+													PRINTFORML 勢いよく放たれた濃厚な子種汁は、典の背中や尻、大陰唇を白く染め上げる。一部は、髪にまで飛び散った
+													PRINTW 
+													CALL HPH_PRINT,@"「おしり、熱ぅい…HPH　ざ、雑魚ちんぽのくせにぃ…HPH　射精量が半端じゃないんですからぁ…HPH　お゛っHPH」","L"
+													CALL HPH_PRINT,@"「ま、まだこれで終わりじゃないですよね…HPH　終わったら、ずっと雑魚呼ばわりしますから…HPH」","L"
+													CALL HPH_PRINT,@"「雑魚じゃないなら、中で続きをしますよぉんッHPH　おンッHPH　おぉンッHPHHPH」","L"
+													PRINTFORML 勃起力を取り戻した肉棒で典を後ろから突きあげながら、２回戦を始めるべく家の中へ入っていった…
+													CALL 抱き寄せ(139)
+													TEQUIP:TARGET:Ｖセックス = 1
+													TEQUIP:TARGET:体位 = 2
+												;危険日以外
+												ELSE
+													CALL HPH_PRINT,@"「お゛っHPH　ん゛お゛ッHPH　きてッHPH　膣内にぃッHPHHPH」","L"
+													CALL HPH_PRINT,@"「多分っHPH　大丈夫ですからぁっHPH　中出しっHPH　いいッHPH」","L"
+													PRINTFORML 短絡的に快楽を求める者らしい、万が一の可能性を考慮すらしない典の発言
+													PRINTFORML しかし、やはり刹那的な快楽を求める%CALLNAME:MASTER%もまた、その魅力的な提案に逆らおうとしなかった
+													PRINTW 
+													CALL HPH_PRINT,@"びゅくんっHPH","L"
+													CALL HPH_PRINT,@"「はHPH　へHPH　うHPH　お゛HPH」","L"
+													PRINTW 
+													PRINTFORML ビシャビシャと、膣を通り抜けて白濁の液体が子宮口に叩きつけられた
+													PRINTFORML 言葉にならない呻き声をあげながら、典は膣内射精の快楽に酔いしれる
+													PRINTFORML それはまるで麻薬のように、典の脳髄をドロドロに溶かしていった
+													PRINTW 
+													CALL HPH_PRINT,@"「はッHPH　お゛ッHPH　ざ、雑魚ちんぽのくせにぃ…HPH　射精量が半端じゃないんですからぁ…HPH　お゛っHPH」","L"
+													CALL HPH_PRINT,@"「ま、まだこれで終わりじゃないですよね…HPH　終わったら、ずっと雑魚呼ばわりしますから…HPH」","L"
+													CALL HPH_PRINT,@"「雑魚じゃないなら、このまま繋がったまま、家に入りますよぉんッHPH　おンッHPH　おぉンッHPHHPH」","L"
+													PRINTFORML 典を後ろから突きあげながら、２回戦を始めるべく家の中へ入っていった…
+													CALL 抱き寄せ(139)
+													TEQUIP:TARGET:Ｖセックス = 1
+													TEQUIP:TARGET:体位 = 2
+												ENDIF
+											ELSE
+												;安全日
+												IF CFLAG:生理周期 == 1 || CFLAG:生理周期 == 2
+													CALL HPH_PRINT,@"「お゛っHPH　ん゛お゛ッHPH　きてッHPH　膣内にぃッHPHHPH」","L"
+													CALL HPH_PRINT,@"「安全日だからぁっHPH　中出しっHPH　いいッHPH」","L"
+													PRINTFORML 短絡的に快楽を求める者らしい、万が一の可能性を考慮すらしない典の発言
+													PRINTFORML しかし、やはり刹那的な快楽を求める%CALLNAME:MASTER%もまた、その魅力的な提案に逆らおうとしなかった
+													PRINTW 
+													CALL HPH_PRINT,@"びゅくんっHPH","L"
+													CALL HPH_PRINT,@"「はHPH　へHPH　うHPH　お゛HPH」","L"
+													PRINTW 
+													PRINTFORML ビシャビシャと、膣を通り抜けて白濁の液体が子宮口に叩きつけられた
+													PRINTFORML 言葉にならない呻き声をあげながら、典は膣内射精の快楽に酔いしれる
+													PRINTFORML それはまるで麻薬のように、典の脳髄をドロドロに溶かしていった
+													PRINTW 
+													CALL HPH_PRINT,@"「はッHPH　お゛ッHPH　ざ、雑魚ちんぽのくせにぃ…HPH　射精量が半端じゃないんですからぁ…HPH　お゛っHPH」","L"
+													CALL HPH_PRINT,@"「ま、まだこれで終わりじゃないですよね…HPH　終わったら、ずっと雑魚呼ばわりしますから…HPH」","L"
+													CALL HPH_PRINT,@"「雑魚じゃないなら、このまま繋がったまま、家に入りますよぉんッHPH　おンッHPH　おぉンッHPHHPH」","L"
+													PRINTFORML 典を後ろから突きあげながら、２回戦を始めるべく家の中へ入っていった…
+													CALL 抱き寄せ(139)
+													TEQUIP:TARGET:Ｖセックス = 1
+													TEQUIP:TARGET:体位 = 2
+												;安全日以外
+												ELSE
+													CALL HPH_PRINT,@"「お゛っHPH　ん゛お゛ッHPH　ダメッHPH　今日は膣外にッHPHHPH」","L"
+													PRINTFORML 快楽で思考に靄がかかりながらも、ギリギリのところで理性を振り絞った典が訴える
+													PRINTFORML このまま膣内にぶちまけて典を孕ませてみたい衝動に飲み込まれそうになるが、やはり後々の面倒のことを考えると理性がわずかに勝った
+													PRINTW 
+													CALL HPH_PRINT,@"びゅくんっHPH","L"
+													CALL HPH_PRINT,@"「はHPH　へHPH　うHPH　お゛HPH」","L"
+													PRINTW 
+													PRINTFORML 射精寸前で%TINKO(PLAYER)%が抜き取られ、先端から灼熱の白濁液を吐精する
+													PRINTFORML 勢いよく放たれた濃厚な子種汁は、典の背中や尻、大陰唇を白く染め上げる。一部は、髪にまで飛び散った
+													PRINTW 
+													CALL HPH_PRINT,@"「おしり、熱ぅい…HPH　ざ、雑魚ちんぽのくせにぃ…HPH　射精量が半端じゃないんですからぁ…HPH　お゛っHPH」","L"
+													CALL HPH_PRINT,@"「ま、まだこれで終わりじゃないですよね…HPH　終わったら、ずっと雑魚呼ばわりしますから…HPH」","L"
+													CALL HPH_PRINT,@"「雑魚じゃないなら、中で続きをしますよぉんッHPH　おンッHPH　おぉンッHPHHPH」","L"
+													PRINTFORML 勃起力を取り戻した肉棒で典を後ろから突きあげながら、２回戦を始めるべく家の中へ入っていった…
+													CALL 抱き寄せ(139)
+													TEQUIP:TARGET:Ｖセックス = 1
+													TEQUIP:TARGET:体位 = 2
+												ENDIF
+											ENDIF
+										;溜まってる度60％未満	
+										ELSE
+											CALL HPH_PRINT,@"「いつ飯綱丸さまが戻ってこられるとも分かりませんからね…ささ、早く中へ…HPH」","L"
+											PRINTFORML 典は%CALLNAME:MASTER%の%TINKO(PLAYER)%を揉みしだきながら、家の中へ二人で入っていった…
+											PRINTW 
+										ENDIF
+									ENDIF
+								;勃起していない
+								ELSE
+									IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+										CALL HPH_PRINT,@"「お姉ちゃんと、気持ちいいことたくさんしましょうね…HPH　ささ、早く中へ…HPH」","L"
+									ELSE
+										CALL HPH_PRINT,@"「いつ飯綱丸さまが戻ってこられるとも分かりませんからね…ささ、早く中へ…HPH」","L"
+									ENDIF
+								ENDIF
+							;女性
+							ELSE
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 典は%CALLNAME:MASTER%の首に腕を回し、唇を奪ってきた
+									PRINTFORML 口腔に舌がねじ込まれ、結合部分からクチュクチュといやらしい水音が漏れる
+									PRINTL 
+									CALL HPH_PRINT,@"「ん…はぁHPH　いきなり過ぎましたか？　お嫌でしたら、やめますが…HPH」","L"
+									CALL HPH_PRINT,@"「ふふ、止めるはずありませんよねHPH　さあ、続きは中でしましょうか…HPH」","L"
+								CASE 1
+									IF ITEM:ペニスバンド == 1
+										CALL HPH_PRINT,@"「心配しなくても、疑似チンポでしっかり犯して差し上げますからね…HPH」","L"
+										CALL HPH_PRINT,@"「そのかわり、典のことも楽しませてくださいね…HPH」","L"
+									ELSEIF ITEM:バイブ == 1 || ITEM:アナルバイブ == 1 || ITEM:ローター == 1 || ITEM:Ｅマッサージャ == 1 || ITEM:クリキャップ == 1 || ITEM:ニプルキャップ == 1
+										CALL HPH_PRINT,@"「ふふ、ちゃあんと大人の玩具も用意してありますよ…HPH」","L"
+										CALL HPH_PRINT,@"「足腰立たなくなるくらい、試してみましょうか…HPH」","L"
+									ENDIF
+								ENDSELECT
+							ENDIF
+						;龍も自宅にいる
 						ELSE
-							PRINTFORML （意外と初心なんですねぇ…♪）
+							PRINTFORML 「おや、%CALLNAME:MASTER%どの。いらっしゃいませ♪」
+							PRINTFORML 「飯綱丸さまにご用ですか？　…私に？　あら、まあ…♪」
+							PRINTW 
+							IF TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3
+								IF BASE:MASTER:勃起 >= 1000
+									IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+										CALL HPH_PRINT,@"「まあ…HPH　立派なおちんちんHPH」","L"
+										IF TALENT:140:恋人
+											CALL HPH_PRINT,@"「飯綱丸さまのことを想って、おちんちんそうなっちゃったの…？HPH」","L"
+											CALL HPH_PRINT,@"「違うよね…HPH　お姉ちゃんのおまんこにおちんちん入れたくて、ずっとおっきさせてたんだよね…HPH」","L"
+										ELSE
+											CALL HPH_PRINT,@"「お姉ちゃんが待ち遠しくて、ここに来るまでずっとおっきさせてたのね…HPH」","L"
+										ENDIF
+										PRINTL 
+										IF CFLAG:TARGET:溜まってる度 >= 600
+											CALL HPH_PRINT,@"「お山の中で、ずっと我慢していたのでしょう…HPH」","L"
+											PRINTFORML 典は%CALLNAME:MASTER%を伴って玄関を出る。そして、軒下で服をはだけると、壁に手を付いて腰を突き出した
+											CALL HPH_PRINT,@"「我慢して来れたご褒美に、ここでちょっとだけシちゃいましょう…HPH」","L"
+											PRINTW 
+											PRINTFORML 典に導かれるまま、すでに挿入への期待で濡れそぼった肉壺に、%CALLNAME:MASTER%は猛るペニスを挿入していく
+											CALL HPH_PRINT,@"「はHPH　あHPH　おっHPH　おちんちんっHPH　おちんちんっHPH　きたぁっHPH」","L"
+											PRINTW 
+											CALL HPH_PRINT,@"ぱちゅんっHPH　ぱちゅんっHPH　ぱちゅんっHPH　ぱちゅんっHPH","L"
+											CALL HPH_PRINT,@"「はぉおんっHPH　いきなりっHPH　はげしいっHPH　お姉ちゃんっHPH　壊れちゃうっHPH」","L"
+											PRINTW 
+											PRINTFORML 技術もへったくれもない、ただ自分が短時間で気持ちよくなりたいがための我が儘な腰振りに対してさえ、
+											PRINTFORML 典は悦び、雌穴から歓喜の涙を流しながら腰をくねらせている
+											PRINTW 
+											CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのっHPH　まっHPH　待ちなさいっHPH」","L"
+											CALL HPH_PRINT,@"「そろそろっHPH　飯綱丸さまが気付いちゃうからっHPH　おお゛う゛っHPHHPH」","L"
+											PRINTW 
+											PRINTFORML そのまま快楽に溺れそうになるのを必死にこらえ、典が%CALLNAME:MASTER%を押しとどめる
+											PRINTFORML 一方で、ペニスが抜けきるまで、典の膣肉はムッチリと絡みつき、なかなか手放そうとはしなかった
+											PRINTW 
+											CALL HPH_PRINT,@"「ああン…HPH　名残惜しいけど、続きは、後で、ね…HPH」","L"
+											CALL HPH_PRINT,@"「飯綱丸さまがお出かけしたら、好きなだけ、おまんこパンパンさせてあげますから…HPH」","L"
+											PRINTW 
+											PRINTFORML 典は宥めるように%TINKO(PLAYER)%に口付けし、着崩れを直してやる
+											PRINTFORMW そして何事もなかったかのように自身の着崩れも正し、%CALLNAME:MASTER%の頬に口付けすると、家の中へ案内した…
+											PRINTL 
+											CALL HPH_PRINT,@"「飯綱丸さま、\@ TALENT:140:恋人 == 1 ? 恋人の #  \@%CALLNAME:MASTER%どのがおいでになりましたよ…HPH」","L"
+											PRINTW 
+											PALAM:潤滑 += 10000
+											PALAM:欲情 += 20000
+											SOURCE:露出 += 5000
+											SOURCE:逸脱 += 5000
+											CFLAG:TARGET:溜まってる度 = 1000
+											PALAM:MASTER:欲情 += 20000
+											SOURCE:MASTER:露出 += 5000
+											SOURCE:MASTER:逸脱 += 5000
+											BASE:MASTER:勃起 = 1500
+										ELSE
+											CALL HPH_PRINT,@"「飯綱丸さまがお出かけしたら、いっぱい家でシましょうね…HPH」","L"
+											CALL HPH_PRINT,@"「お口でも、おまんこでも、好きなだけお射精させてあげますよHPH」","L"
+											PRINTFORMW 典は%CALLNAME:MASTER%の%TINKO(PLAYER)%を揉みしだきながら、家の中へ二人で入っていった…
+											PRINTL 
+											CALL HPH_PRINT,@"「飯綱丸さま、\@ TALENT:140:恋人 == 1 ? 恋人の #  \@%CALLNAME:MASTER%どのがおいでになりましたよ…HPH」","L"
+											PRINTW 
+										ENDIF
+									;大人
+									ELSE
+										CALL HPH_PRINT,@"「勃起させて来るなんて、ありえないんですけど…HPH」","L"
+										PRINTFORML 罵りながらも、典の視線は%CALLNAME:MASTER%の股間の一点に集中している
+										PRINTW 
+										IF TALENT:140:恋人
+											CALL HPH_PRINT,@"「飯綱丸さまと一刻も早く愛し合いたくて？　なーんて、そんな恋人百点満点のお方じゃありませんよね、あなたはHPH」","L"
+											CALL HPH_PRINT,@"「恋人の目を盗んで、典とおまんこなさりたいだけでしょう？」","L"
+											CALL HPH_PRINT,@"「もしくは、あわよくば、飯綱丸さまを舌先三寸で丸めこんで、三人で楽しみたいとか…ねHPH」","L"
+											PRINTFORML 喋っている間、典は服の上から%TINKO(PLAYER)%を指先で愛撫し続ける
+											PRINTW 
+										ELSE
+											CALL HPH_PRINT,@"「飯綱丸さまがいなくなるのを待ってから…なんて、お行儀のいいことなんてできないですよねHPH」","L"
+											CALL HPH_PRINT,@"「隙を見て、典を物陰に連れ込んでハメ倒したいくらいはお考えでしょう？HPH」","L"
+											CALL HPH_PRINT,@"「それとも、飯綱丸さまに自分たちのセックスを見せつけたい…なんて考えたりしてます？HPH」","L"
+											PRINTW 
+										ENDIF
+
+										IF CFLAG:TARGET:溜まってる度 >= 600
+											CALL HPH_PRINT,@"「ふふ、ハメたくてハメたくて我慢できないって感じですねぇ…HPH」","L"
+											PRINTFORML 典は%CALLNAME:MASTER%を伴って玄関を出る。そして、軒下で服をはだけると、壁に手を付いて腰を突き出した
+											CALL HPH_PRINT,@"「いいですよ、ほんの、少しだけ…おまんこ使ってもHPH」","L"
+											PRINTW 
+											PRINTFORML \@ EXP:Ｖ性交経験 >= 100 ? 使い込んだ #  \@典の濡れる肉壺に、%CALLNAME:MASTER%は猛るペニスを挿入していく
+											CALL HPH_PRINT,@"「はHPH　あHPH　おっHPH　おちんぽっHPH　ちんぽぉっHPH　きたぁっHPH」","L"
+											PRINTW 
+											CALL HPH_PRINT,@"ぱちゅんっHPH　ぱちゅんっHPH　ぱちゅんっHPH　ぱちゅんっHPH","L"
+											CALL HPH_PRINT,@"「はぉおんっHPH　いきなりっHPH　はげしいっHPH　待っHPH　声がっっHPH」","L"
+											PRINTW 
+											PRINTFORML 技術もへったくれもない、ただ自分が短時間で気持ちよくなりたいがための我が儘な腰振りに対してさえ、
+											PRINTFORML 典は悦び、雌穴から歓喜の涙を流しながら腰をくねらせている
+											PRINTW 
+											CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのっHPH　まっHPH　待ってっHPH」","L"
+											CALL HPH_PRINT,@"「そろそろっHPH　飯綱丸さまに怪しまれちゃうからっHPH　おお゛う゛っHPHHPH」","L"
+											PRINTW 
+											PRINTFORML そのまま快楽に溺れそうになるのを必死にこらえ、典が%CALLNAME:MASTER%を押しとどめる
+											PRINTFORML 一方で、ペニスが抜けきるまで、典の膣肉はムッチリと絡みつき、なかなか手放そうとはしなかった
+											PRINTW 
+											CALL HPH_PRINT,@"「ああン…HPH　名残惜しいけど、続きは、後で、ね…HPH」","L"
+											CALL HPH_PRINT,@"「飯綱丸さまがお出かけしたら、好きなだけ、おまんこパンパンさせてあげますから…HPH」","L"
+											PRINTW 
+											PRINTFORML 典は宥めるように%TINKO(PLAYER)%に口付けし、着崩れを直してやる
+											PRINTFORM そして何事もなかったかのように自身の着崩れも正し、
+											IF EXP:キス経験 > 0
+												PRINTFORMW %CALLNAME:MASTER%に口付けすると、家の中へ案内した…
+											ELSE
+												PRINTFORMW %CALLNAME:MASTER%の頬に口付けすると、家の中へ案内した…
+											ENDIF
+											PRINTL 
+											CALL HPH_PRINT,@"「飯綱丸さま、\@ TALENT:140:恋人 == 1 ? 恋人の #  \@%CALLNAME:MASTER%どのがおいでになりましたよ…HPH」","L"
+											PRINTW 
+											PALAM:潤滑 += 10000
+											PALAM:欲情 += 20000
+											SOURCE:露出 += 5000
+											SOURCE:逸脱 += 5000
+											CFLAG:TARGET:溜まってる度 = 1000
+											SOURCE:MASTER:欲情 += 20000
+											SOURCE:MASTER:露出 += 5000
+											SOURCE:MASTER:逸脱 += 5000
+											BASE:MASTER:勃起 = 1500
+										ELSE
+											CALL HPH_PRINT,@"「ふふ、まだですよ、ま・だHPH」","L"
+											PRINTFORML 典は、%CALLNAME:MASTER%を手でそっと押しとどめ、頬に口付けする
+											CALL HPH_PRINT,@"「二人きりになったら、お口でも、おまんこでも、好きなだけちんぽ穴としてお使いくださいHPH」","L"
+											PRINTFORMW 典は%CALLNAME:MASTER%の%TINKO(PLAYER)%を揉みしだきながら、家の中へ二人で入っていった…
+											PRINTL 
+											CALL HPH_PRINT,@"「飯綱丸さま、\@ TALENT:140:恋人 == 1 ? 恋人の #  \@%CALLNAME:MASTER%どのがおいでになりましたよ…HPH」","L"
+											PRINTW 
+											BASE:MASTER:勃起 = 1000
+										ENDIF
+									ENDIF
+								;勃起していない
+								ELSE
+									IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+										PRINTFORML 「今は飯綱丸さまがいらっしゃるから、エッチなことは我慢ですよ」
+										PRINTFORML そう言いながら、典は%CALLNAME:MASTER%の%TINKO(PLAYER)%を指で弄んでいる
+										PRINTW 
+										CALL HPH_PRINT,@"「あらあら、我慢といったのに、触っただけでおちんちん硬くしちゃって…HPH」","L"
+										CALL HPH_PRINT,@"「後で、お姉ちゃんと気持ちいいことたくさんしましょうね…HPH」","L"
+										PRINTL 
+										CALL HPH_PRINT,@"「飯綱丸さま、\@ TALENT:140:恋人 == 1 ? 恋人の #  \@%CALLNAME:MASTER%どのがおいでになりましたよ…HPH」","L"
+										PRINTW 
+										BASE:MASTER:勃起 = 1000
+									ELSE
+										CALL HPH_PRINT,@"「あら、てっきり勃起させてやって来ると思っていたのに…不能にでもなっちゃいましたか？HPH」","L"
+										PRINTFORML 典はニヤニヤと笑いながら、%CALLNAME:MASTER%の股間を巧みな手つきでまさぐる
+										PRINTFORML たちまち、%CALLNAME:MASTER%の肉棒はムクムクと屹立し始めた
+										PRINTW 
+										CALL HPH_PRINT,@"「なあんだ。ちゃんと、勃起なさるじゃないですか…HPH」","L"
+										PRINTFORML 服の中に手を入れ、金玉をマッサージしながら、典は流し目を送る
+										PRINTW 
+										CALL HPH_PRINT,@"「この場で一発抜いて差し上げてもよろしいのですが…バレたら面倒ですしねHPH」","L"
+										CALL HPH_PRINT,@"「後で、たぁっぷり可愛がっていただくとしましょうHPH」","L"
+										PRINTW 
+									ENDIF
+								ENDIF
+							;女性
+							ELSE
+								IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+									PRINTFORML 「%CALLNAME:MASTER%どのは、お姉ちゃんに会いに来たのかな？　それとも、飯綱丸さま？」
+									CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのは、お姉ちゃんに会いに来たのかな？　それとも、飯綱丸さま？HPH」","L"
+									IF TALENT:性別 == 3
+										CALL HPH_PRINT,@"「ふふ、お姉ちゃんのおちんちんで気持ちよくしてもらいたくて来たんだよね…HPH」","L"
+									ELSE
+										CALL HPH_PRINT,@"「ふふ、お姉ちゃんに気持ちよいことしてほしくて来たんだよね…HPH」","L"
+									ENDIF
+									PRINTW 
+									CALL HPH_PRINT,@"「大丈夫ですよ。飯綱丸さまがお出かけしたら、たっぷり可愛がって差し上げますから…HPH」","L"
+									CALL HPH_PRINT,@"「それまで、%CALLNAME:MASTER%どのはいい娘でいられるかな～？HPH」","L"
+									PRINTW 
+								ELSE
+									PRINTFORML 「おやおや、我が主が在宅中だというのに押しかけてきて…♪」
+									IF TALENT:性別 == 3
+										IF TALENT:140:恋人
+											CALL HPH_PRINT,@"「まさか、恋人の目の前でおちんぽをハメられたいなんて思っていないでしょうね…HPH」","L"
+										ELSE
+											CALL HPH_PRINT,@"「まさか、我が主の前で、ふたなりチンポで犯されたいなんて思っていないでしょうね…HPH」","L"
+										ENDIF
+									ELSE
+										IF TALENT:140:恋人
+											CALL HPH_PRINT,@"「まさか、恋人の目の前で典に可愛がられたいなんてお考えですか…HPH」","L"
+										ELSE
+											CALL HPH_PRINT,@"「まさか、我が主の前であられもない姿を曝け出したいなんでお考えですか…HPH」","L"
+										ENDIF
+									ENDIF
+									PRINTW 
+									CALL HPH_PRINT,@"「まあ、それはそれで魅力的ですが…HPH　一応私にも立場というものがございますので」","L"
+									CALL HPH_PRINT,@"「飯綱丸さまがいなくなるまで我慢出来れば、後でたっぷり可愛がって差し上げますよ…HPH」","L"
+									PRINTW 
+								ENDIF
+							ENDIF
 						ENDIF
-						PRINTW 
+					;龍の自宅以外で遭遇
+					ELSE
+						;龍も一緒
+						IF K139_FIND_AROUND() == 140
+							SELECTCASE RAND:2
+							CASE 0
+								CALL HPH_PRINT,@"「おや、%CALLNAME:MASTER%どの…あンッHPH」","L"
+								CALL HPH_PRINT,@"「いけませんよ…HPH　\@ TALENT:140:恋人 == 1 ? 恋人の #  \@飯綱丸さまに不埒なことをしているのばバレちゃう…」","L"
+								CALL HPH_PRINT,@"「もう…言っても聞かないんですか、らぁンHPHHPH」","L"
+							CASE 1
+								PRINTFORML 「%CALLNAME:MASTER%どの…もう、間の悪いお方ですねぇ」
+								PRINTFORML 典は%CALLNAME:MASTER%に音もなく近寄り、そっと耳元で囁いてきた
+								CALL HPH_PRINT,@"「後でこっそり…飯綱丸さまの家でシちゃいます？HPH」","L"
+							ENDSELECT
+						;龍はいない
+						ELSE
+							IF GET_TARGETNUM() >= 2
+								SELECTCASE RAND:3
+								CASE 0
+									CALL HPH_PRINT,@"「あらあら、まさかこんなところで盛りたいおつもりですか…HPH」","L"
+									CALL HPH_PRINT,@"「観衆がいるのもそれはそれで悪くないですが…どこか二人きりでしっぽりと楽しみませんか？HPH」","L"
+									PRINTL 
+									PRINTFORM 典は%CALLNAME:MASTER%に寄り添いつつ、
+									IF K139_FIND_AROUND() == 29
+										IF TALENT:29:恋人 == 1
+											PRINTFORM %CALLNAME:MASTER%の恋人の
+										ELSEIF TALENT:恋慕
+											PRINTFORML %CALLNAME:MASTER%に想いを寄せる
+										ENDIF
+										PRINTFORM 文に
+									ELSEIF K139_FIND_AROUND() == 42
+										IF TALENT:29:恋人 == 1
+											PRINTFORM %CALLNAME:MASTER%の恋人の
+										ELSEIF TALENT:恋慕
+											PRINTFORML %CALLNAME:MASTER%に想いを寄せる
+										ENDIF
+										PRINTFORM はたてに
+									ELSEIF K139_FIND_AROUND() == 65
+										IF TALENT:29:恋人 == 1
+											PRINTFORM %CALLNAME:MASTER%の恋人の
+										ELSEIF TALENT:恋慕
+											PRINTFORML %CALLNAME:MASTER%に想いを寄せる
+										ENDIF
+										PRINTFORM 椛に
+									ELSE
+										PRINTFORM 自分以外の相手に
+									ENDIF
+									PRINTFORML 目配せしながらそっと囁いてきた…
+								CASE 1
+									CALL HPH_PRINT,@"「まさか、観衆がいるのに始めちゃいます…？HPH」","L"
+									CALL HPH_PRINT,@"「誰かに見られながら犯されるなんて、想像しただけで濡れてしまいそうです…HPH」","L"
+								CASE 2
+									IF ABL:露出癖 >= 3
+										CALL HPH_PRINT,@"「ふふ、私はこの場で今からでも…と言ったらどうなさいます？HPH」","L"
+									ELSE
+										CALL HPH_PRINT,@"「一応この典にも恥じらいがございますので…どうせなら、草葉の陰でも…HPH」","L"
+									ENDIF
+								ENDSELECT
+							ELSE
+								SELECTCASE RAND:4
+								CASE 0
+									CALL HPH_PRINT,@"「あらあら、今日も典をご所望ですか…HPH」","L"
+								CASE 1
+									CALL HPH_PRINT,@"「偶然ですかねえ、%CALLNAME:MASTER%どのと\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@が二人きり…HPH」","L"
+								CASE 2
+									CALL HPH_PRINT,@"「ふふ、%CALLNAME:MASTER%どのをお待ちしていたのですよ…HPH」","L"
+								CASE 3
+									CALL HPH_PRINT,@"「この場でシちゃいます？　それとも、密室で誰にも邪魔されず、明け方まで楽しみますか…？HPH」","L"
+								ENDSELECT
+							ENDIF
+						ENDIF
 					ENDIF
-				CASE 1
-					PRINTFORML 「何かお困りごとはありませんか？　この管狐の典めがご相談に乗りますよ？　こーん♪」
-					PRINTFORML 典は手を狐の形にしてからかってきた
-					PRINTW 
-				CASE 2
-					PRINTFORML 「しかし、こんなところで奇遇ですねぇ」
-					PRINTFORML 「ひょっとして、私のことをお探しでしたか？」
-					PRINTW 
-				ENDSELECT
+				;愛欲・セフレ以外
+				ELSE
+					SELECTCASE RAND:6
+					CASE 0
+						PRINTFORML 「こんなところで%CALLNAME:MASTER%どのと出会えるなんて、運命的ですねぇ♪」
+						;あなたが恥じらい持ち
+						IF TALENT:MASTER:羞恥心 == 1
+							PRINTFORML 「あら、顔を赤くしてどうなさったのですか…♪」
+							IF TALENT:恋慕 || TALENT:恋人
+								IF TALENT:MASTER:非童貞 == 0
+									PRINTFORML （ふふ、こういう女性慣れしていないところが可愛いですねぇ…♪）
+								ELSE
+									PRINTFORML （ふふ、可愛い人ですねぇ…♪）
+								ENDIF
+								PRINTW 
+							ELSE
+								IF TALENT:MASTER:非童貞 == 0
+									PRINTFORML （これだから童貞は…ちょっと気のあるふりしただけで、ちょろいですねぇ…♪）
+								ELSE
+									PRINTFORML （意外と初心なんですねぇ…♪）
+								ENDIF
+								PRINTW 
+							ENDIF
+						ENDIF
+					CASE 1
+						PRINTFORML 「何かお困りごとはありませんか？　この管狐の典めがご相談に乗りますよ？　こーん♪」
+						PRINTFORML 典は手を狐の形にしてからかってきた
+						PRINTW 
+					CASE 2
+						PRINTFORML 「しかし、こんなところで奇遇ですねぇ」
+						PRINTFORML 「ひょっとして、私のことをお探しでしたか？」
+						PRINTW 
+					CASE 3
+						IF TALENT:恋慕 || TALENT:恋人
+							PRINTFORML 「%CALLNAME:MASTER%どのにお会いできるなんて、今日は良い日です♪」
+						ELSEIF TALENT:思慕
+							PRINTFORML 「おや、%CALLNAME:MASTER%どのにお会いできるとは♪」
+						ELSE
+							PRINTFORML 「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@が恋しかったですか？　フフフ♪」
+						ENDIF
+					CASE 4
+						PRINTFORML 「%CALLNAME:MASTER%どの、私とお話でもしませんか？　生き急いでも良いことはないですよ♪　のんびりいきましょ♪」
+					CASE 5
+						PRINTFORML 「%CALLNAME:MASTER%どの、何か面白い話をご存じではないですか？　\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@、噂話が大好きでして…♪」
+					ENDSELECT
+				ENDIF
 			ENDIF
 		ENDIF
 		RETURN 1
@@ -2330,10 +3557,133 @@ IF LOCAL
 	;他キャラとデート中に遭遇した
 	;ARG:1にデート相手
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 7
-		PRINTFORML 
+		IF TALENT:恋人
+			IF ARG:1 == 140
+				IF TALENT:140:恋慕
+					PRINTFORML 「ふふ、よかったですねぇ、飯綱丸さま♪」
+					PRINTFORML 「%CALLNAME:MASTER%どのは甲斐性のあるお方なので、何人でもお相手できるようですよ♪」
+					PRINTFORML 「私が怒っている？　とんでもない♪」
+					PRINTFORML 「我が主をもご自分のものにされようとする欲の深さに、感心しているところです」
+					PRINTW 
+				ELSE
+					PRINTFORML 「おや、二人でお出かけでございますか？」
+					PRINTFORML 「%CALLNAME:MASTER%どの、飯綱丸さまに粗相がないようお願いいたしますね」
+					PRINTW 
+				ENDIF
+			ELSEIF ARG:1 == 29
+				IF TALENT:29:恋慕
+					PRINTFORML 「他人の恋人に手を出すのも幻想郷最速でいらっしゃいましたか♪」
+					PRINTFORML 「ごゆるりと。『私の』恋人はとても素敵なお方ですよ♪」
+					PRINTW 
+				ELSE
+					PRINTFORML 「おやおや、二人で夜の潜入取材にでも行かれるおつもりですか？」
+					PRINTFORML 「後で典にも感想をお聞かせくださいね♪」
+					PRINTW 
+				ENDIF
+			ELSEIF ARG:1 == 42
+				IF TALENT:42:恋慕
+					PRINTFORML 「引きこもりなのに、そういうことには行動力があるんですねぇ」
+					PRINTFORML 「貴女は射命丸どのと違ってそういうことはなさらないと思いましたが…貴女もそういった側でしたか」
+				ELSE
+					PRINTFORML 「おやおや、引きこもりをやめられたと思ったら、恋人漁りですか。精が出ますねぇ♪」
+				ENDIF
+			ELSEIF ARG:1 == 65
+				IF TALENT:65:恋慕
+					PRINTFORML 「真面目なふりして他人の恋人と逢引きとは…貴女の同僚たちに教えてやったらどんな噂が立つやら」
+					PRINTFORML 「なんて、ね♪　典はそこまで狭量な女ではございませんよ。楽しんでいらっしゃいませ♪」
+				ELSE
+					PRINTFORML 「へぇ、お堅い方かと思っておりましたのに、意外と隅に置けませんねぇ♪」
+				ENDIF
+			ELSE
+				PRINTFORML 「……ふーん」
+				PRINTFORML 「%CALLNAME:MASTER%どのはモテモテでございますねぇ♪　楽しんでいらっしゃいませ♪」
+				PRINTL 
+				PRINTFORML 典は%CALLNAME:MASTER%に近寄り、そっと耳打ちする
+				PRINTFORML 「今晩、帰ってきたら搾り取りますからね…♪」
+				PRINTW 
+			ENDIF
+		ELSEIF TALENT:恋慕
+			PRINTFORML 「あらあら、典はお誘いいただけませんでしたのに…とても悲しいです」
+			PRINTFORML 「帰ってきたら、たくさん愛していただきますからね♪」
+			PRINTW 
+		ELSEIF TALENT:愛欲 || TALENT:セフレ
+			IF ARG:1 == 140
+				PRINTFORML 「おや、飯綱丸さまに%CALLNAME:MASTER%どの。行ってらっしゃいませ」
+				PRINTFORML 「%CALLNAME:MASTER%どの、飯綱丸さまを足腰が立たなくなるほど可愛がってはいけませんよ♪」
+				PRINTW 
+			ELSEIF ARG:1 == 29
+				PRINTFORML 「おや、射命丸どの。今から%CALLNAME:MASTER%どのに可愛がっていただけるなんて羨ましいですねぇ♪」
+				CALL HPH_PRINT,@"「\@ TALENT:MASTER:性別 == 2 ? 彼 # 彼女 \@のセックス、激しいですからね…HPH　私も何度気をやったことか…HPH」","L"
+				SIF TALENT:29:恋慕 || TALENT:29:恋人
+				PRINTFORML 「ああ、そういえば射命丸どのは%CALLNAME:MASTER%どのを想っていらしたのですね。これは失言を…♪」
+				PRINTW 
+			ELSEIF ARG:1 == 42
+				PRINTFORML 「おや、姫海棠どの。今から%CALLNAME:MASTER%どのに可愛がっていただけるなんて羨ましいですねぇ♪」
+				CALL HPH_PRINT,@"「\@ TALENT:MASTER:性別 == 2 ? 彼 # 彼女 \@のセックス、激しいですからね…HPH　私も何度気をやったことか…HPH」","L"
+				SIF TALENT:29:恋慕 || TALENT:29:恋人
+				PRINTFORML 「ああ、そういえば射命丸どのは%CALLNAME:MASTER%どのを想っていらしたのですね。これは失言を…♪」
+				PRINTW 
+			ELSEIF ARG:1 == 65
+				PRINTFORML 「おや、犬走どの。今から%CALLNAME:MASTER%どのに可愛がっていただけるなんて羨ましいですねぇ♪」
+				CALL HPH_PRINT,@"「\@ TALENT:MASTER:性別 == 2 ? 彼 # 彼女 \@のセックス、激しいですからね…HPH　私も何度気をやったことか…HPH」","L"
+				SIF TALENT:29:恋慕 || TALENT:29:恋人
+				PRINTFORML 「ああ、そういえば射命丸どのは%CALLNAME:MASTER%どのを想っていらしたのですね。これは失言を…♪」
+				PRINTW 
+			ELSEIF ARG:1 == 141
+				PRINTFORML 「千亦どの、市場を開くより股を開く方に力を入れ始めたのですか？♪」
+				PRINTFORML 「ああ、怒らないでくださいよぉ♪　でも、千亦どのだってその方の噂くらい聞いているでしょう？」
+				PRINTFORML 「すごいですからね、\@ TALENT:MASTER:性別 == 2 ? 彼 # 彼女 \@…%UNICODE(0x2665) *1%」
+				PRINTW 
+			ELSE
+				PRINTFORML 「おやおや、お二人で今からラブホにでも行かれるつもりですか？」
+				PRINTFORML 「その方、セックスがとてもお上手なんですよ♪　
+			ENDIF
+		ELSE
+			IF ARG:1 == 140
+				IF TALENT:140:恋慕 == 1
+					PRINTFORML 「飯綱丸さまが%CALLNAME:MASTER%どのに熱を上げていらっしゃるのは本当のようですねぇ…♪」
+					PRINTFORML 「%CALLNAME:MASTER%どの、飯綱丸さまを楽しませてくるのですよ♪」
+					PRINTW 
+				ELSE
+					PRINTFORML 「お出かけでございますか？　ごゆっくりお楽しみくださいませ」
+					PRINTFORML 「%CALLNAME:MASTER%どの、飯綱丸さまに粗相がありませんようにね」
+				ENDIF
+			ELSEIF ARG:1 == 29
+				IF TALENT:29:恋慕 == 1
+					PRINTFORML 「ふぅん、人間に熱を上げているという烏天狗たちの噂は本当のようですねぇ…♪」
+					PRINTFORML 「%CALLNAME:MASTER%どの、デートなさるなら人里か地底がよろしいのでは？♪」
+					PRINTFORML 「行けば分かりますよ、行けば。ふふ♪
+					PRINTW 
+				ELSE
+					PRINTFORML 「ふぅん、妖怪の山よりも外に目を向ける射命丸どのらしいですねぇ」
+					PRINTW 
+				ENDIF
+			ELSEIF ARG:1 == 42
+				IF TALENT:29:恋慕 == 1
+					PRINTFORML 「ふぅん、引きこもりをやめたと思ったら、そういうことでしたか…♪」
+					PRINTFORML 「%CALLNAME:MASTER%どの、意外とこのお方は押しに弱いですよ♪」
+					PRINTW 
+				ELSE
+					PRINTFORML 「おや、引きこもりが珍しい…しかも相手が人間とは」
+					PRINTFORML 「これはこれでニュースなりそうですねぇ。飯綱丸さまに報告しようかしら♪」
+					PRINTW 
+				ENDIF
+			ELSEIF ARG:1 == 65
+				IF TALENT:29:恋慕 == 1
+					PRINTFORML 「犬走どの、最近その方と逢引きなさる姿をよくお見掛けしますねぇ♪」
+					PRINTFORML 「いえいえ、文句だなんて滅相もない。とてもお似合いでございますよ♪」
+					PRINTW 
+				ELSE
+					PRINTFORML 「おや、職務に真面目な犬走どのが人間と連れ添うとは…意外ですねぇ」
+					PRINTW 
+				ENDIF
+			ELSE
+				PRINTFORML 「おやおや、お熱いですねぇ♪」
+			ENDIF
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -2343,6 +3693,15 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 8
+		PRINTFORML 「おや、%CALLNAME:MASTER%どの」
+		;朝～正午前
+		IF TIME:2 == 1 || TIME:2 == 2
+			PRINTFORML 「おはようございます♪」
+		ELSEIF TIME:2 == 3 || TIME:2 == 4
+			PRINTFORML 「こんにちは♪」
+		ELSE
+			PRINTFORML 「こんばんは♪」
+		ENDIF
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -7595,6 +8954,8 @@ IF LOCAL
 		CFLAG:1016 = 1
 	ENDIF
 
+	;典の修行
+	;-------------------------------------------------------------
 	IF EXP:口淫経験 > 0 && EXP:Ｖ性交経験 > 0 && ABL:親密 >= 3 && ABL:欲望 >= 5
 		SELECTCASE RAND:2
 		CASE 0
@@ -7610,7 +8971,16 @@ IF LOCAL
 		ENDSELECT
 	ENDIF
 
+	;ビュッビュッイクッ新聞
+	;-------------------------------------------------------------
+	;典がセフレor愛欲、典が非処女、露出癖Lv3以上、膣射経験10回以上
+	;あなたにペニスが生えている
+	IF (TALENT:愛欲 || TALENT:セフレ) && !TALENT:処女 && ABL:露出癖 >= 3 && EXP:膣射経験 >= 10 && (TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3) && !RAND:3 && CFLAG:1023 == 0
+		CALL K139_TENG_FUCK
+	ENDIF
+
 	;典のオナニーサポート
+	;-------------------------------------------------------------
 	;オナ禁３日目以上かつあなたが童貞、典の好感度500以上。恋人は不可
 	IF CFLAG:1008 == 2 || CFLAG:1008 == 3 || TALENT:139:恋人 == 1
 	ELSEIF FLAG:71 >= 3 && TALENT:MASTER:非童貞 == 0 && CFLAG:139:好感度 >= 500 && CFLAG:1008 != 2
@@ -7618,6 +8988,7 @@ IF LOCAL
 	ENDIF
 
 	;妊娠願望
+	;-------------------------------------------------------------
 	;龍が恋人で妊娠か出産経験済み、龍の愛情経験200以上。典が龍より先に恋慕を取得し、典が妊娠・出産しておらず、妊娠願望を取得していない
 {
 	IF TALENT:140:恋人 && (TALENT:140:妊娠 || EXP:140:出産経験 > 0)
@@ -7631,6 +9002,7 @@ IF LOCAL
 	ENDIF
 
 	;典とこっそり…
+	;-------------------------------------------------------------
 	;龍と典の家であなたが就寝しており、龍が恋慕か恋人持ち、典の欲望が5以上で好感度が1000以上、二人とも非処女のとき発生
 	;4.821現在まだ龍と典の家がないのでパッチ前提のイベントです
 {
@@ -7643,7 +9015,9 @@ IF LOCAL
 		CALL K139_AFFAIR
 	ENDIF
 
-	;発情期。毎年冬の1～7日に必ず発情状態になる
+	;発情期
+	;-------------------------------------------------------------
+	;毎年冬の1～7日に必ず発情状態になる
 	;秋の月31日に告知イベント
 	IF DAY:2 == 3 && DAY:3 == 31
 		IF CFLAG:1002 == 0
@@ -9303,3 +10677,291 @@ IF TCVAR:374 >= 500 || TCVAR:利尿剤 || IN_TOILET(CFLAG:MASTER:現在位置)
 	ENDIF
 ENDIF
 ;※改変注：IN_TOILET(CFLAG:MASTER:現在位置)←これでMASTERがトイレにいるときとして使えます
+
+;==================================================
+;セフレ契約用
+;==================================================
+;"補正"でRETURNした数値が理性判定に加算されるので、
+;簡単にセフレにしたいならマイナス、難易度を上げたかったり実質不可能にしたいならプラスすべし
+@KOJO_SF_CONTRACT_K139(ARGS)
+SELECTCASE ARGS
+	CASE "導入"
+		;PRINTFORML 「セフレって、ええー」
+		IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+			IF TALENT:MASTER:無知
+				PRINTFORML 「どうしたの？　お姉ちゃんに何か言いたいことがありますか？」
+				PRINTFORML 「……、……！　あらあら、まあまあ…♪」
+				PRINTW 
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのは、お姉ちゃんとお股の擦りっこ、もっとしたいんだ…HPH」","L"
+				CALL HPH_PRINT,@"「そうですねHPH　擦り合いっこ、気持ちいいですもんねHPH」","L"
+				PRINTW 
+				PRINT 「でも、
+				IF TALENT:140:恋人 == 1
+					PRINTFORM 龍お姉ちゃん
+				ELSEIF TALENT:29:恋人 == 1
+					PRINTFORM 文お姉ちゃん
+				ELSEIF TALENT:42:恋人 == 1
+					PRINTFORM はたてお姉ちゃん
+				ELSEIF TALENT:65:恋人 == 1
+					PRINTFORM 椛お姉ちゃん
+				ELSEIF TALENT:MASTER:恋人 == 1 && !TALENT:恋人
+					PRINTFORM 恋人のお姉ちゃん
+				ENDIF
+				PRINTFORMW じゃなくていいんですか？　お姉ちゃんは、別に構いませんが…」
+				CALL HPH_PRINT,@"「勿論、内緒にしていてあげますよHPH　二人だけの、ヒ・ミ・ツHPH」","L"
+				PRINTW 
+			ELSE
+				PRINTFORML 「セフレ、でございますか？」
+				PRINTFORML 「あらあら、おませさんですねぇ…♪　どこでそんな言葉を覚えたのかしら」
+				PRINTW 
+				PRINTFORML 「本当に、お姉ちゃんでいいのかしら？」
+				PRINT 「だって、
+				IF TALENT:140:恋人 == 1
+					PRINTFORM 龍お姉ちゃん
+				ELSEIF TALENT:29:恋人 == 1
+					PRINTFORM 文お姉ちゃん
+				ELSEIF TALENT:42:恋人 == 1
+					PRINTFORM はたてお姉ちゃん
+				ELSEIF TALENT:65:恋人 == 1
+					PRINTFORM 椛お姉ちゃん
+				ELSEIF TALENT:MASTER:恋人 == 1 && !TALENT:恋人
+					PRINTFORM 恋人のお姉ちゃん
+				ENDIF
+				PRINTFORML がいるはずなのに…」
+				CALL HPH_PRINT,@"「一番好きな人よりも、お姉ちゃんとのエッチを優先しちゃうんだぁ…HPH　とっても悪い子ですねぇ…HPH」","L"
+			ENDIF
+		ELSE
+			PRINTFORML 「セフレ、でございますか？」
+			PRINTFORML 「すみません、セフレ、というものがそもそもどういうものなのか…」
+			PRINTL 
+			PRINTFORML 「！　ほほう、なるほど、なるほど…」
+			PRINTFORML 「セックスフレンド、すなわち、互いがヤりたいときにヤる、肉体だけのお付き合いというわけですか…」
+			PRINTW 
+			IF TALENT:140:恋人 == 1
+				PRINTFORM 「飯綱丸さま
+			ELSEIF TALENT:29:恋人 == 1
+				PRINTFORM 「射命丸どの
+			ELSEIF TALENT:42:恋人 == 1
+				PRINTFORM 「姫海棠どの
+			ELSEIF TALENT:65:恋人 == 1
+				PRINTFORM 「犬走どの
+			ELSEIF TALENT:MASTER:恋人 == 1 && !TALENT:恋人
+				PRINTFORM 「恋人さま
+			ENDIF
+			PRINTFORMW 「がいらっしゃいながら、いい度胸をされていますねぇ」
+			CALL HPH_PRINT,@"「…ですが、嫌いじゃないですよ、そういうのHPH」","L"
+			PRINTW 
+		ENDIF
+	CASE "補正"
+		;ショタと大人では評価が逆転
+		IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+			CALL HPH_PRINT,@"（まあこちらとしても、この子を好きに食べられるというのは都合がいいもの…HPH）","L"
+			RETURN -500
+			IF TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3
+				SELECTCASE TALENT:MASTER:形状
+				CASE 6,10;巨根、馬並み
+					CALL HPH_PRINT,@"（それに子供離れしたおちんちんも持っているしね…HPH）","L"
+					RETURN -100
+				CASE 1,2;粗チン
+					CALL HPH_PRINT,@"（それに、とっても可愛いおちんちんを持ってるし…私としては言うことなしだわ…HPH）","L"
+					RETURN -300
+				CASEELSE
+					CALL HPH_PRINT,@"（子どもにしてはなかなか立派なおちんちんしてるのよね…HPH）","L"
+					RETURN -200
+				ENDSELECT
+				
+				IF ABL:MASTER:腰 >= 3 && EXP:Ｖ絶頂経験 >= 100
+					CALL HPH_PRINT,@"（セックスだって大人顔負けだし、イってもすぐ勃起するし…HPH　何より、精液の臭いが他の人間と桁違いだわ…HPH）","L"
+					RETURN -100
+					PRINTW 
+				ELSE
+					CALL HPH_PRINT,@"（正直セックスは上手じゃないけど、逆にそういう子を絞り尽くしてあげるのが楽しいのよね…HPH）","L"
+					CALL HPH_PRINT,@"（テクニックなんてなくても、イってもすぐ勃起するし…HPH　何より、精液の臭いが他の人間と桁違いだわ…HPH）","L"
+					RETURN -200
+					PRINTW 
+				ENDIF
+			ELSE
+				IF TALENT:MASTER:処女 == 0 && TALENT:性別 == 3 && EXP:挿入経験 > 0
+					IF ABL:MASTER:膣 >= 3
+						CALL HPH_PRINT,@"(この娘の膣内、とっても具合がいいのよねぇ…HPH)","L"
+						CALL HPH_PRINT,@"(仕事や、日ごろ口さがない奴らからのやっかみからのストレスの捌け口にちょうどいいのよねHPH)","L"
+						RETURN -200
+					ELSE
+						IF ABL:MASTER:腰 >= 3
+							CALL HPH_PRINT,@"（締まりは普通だけど、腰の動きがいいのよね…HPH）","L"
+							RETURN -100
+						ELSE
+							CALL HPH_PRINT,@"（正直、締まりとか巧さはないけど、性欲やストレスの捌け口としてはちょうどいいのよね…HPH）","L"
+						ENDIF
+					ENDIF
+				ELSEIF TALENT:MASTER:処女 == 0
+					IF TALENT:性別 == 3
+						CALL HPH_PRINT,@"（いつかこの娘の処女を奪ってやりたいと思っていたのよね…HPH）","L"
+						CALL HPH_PRINT,@"（まさか向こうから望んでくるなんて…HPH　こんな年端もいかない小娘がねぇ…HPH）","L"
+					ELSE
+						CALL HPH_PRINT,@"（この娘の処女を指や道具で奪ってやったら、どんな声で鳴いてくれるのかしら…HPH）","L"
+					ENDIF
+				ENDIF
+			ENDIF
+			
+			IF TALENT:MASTER:無知
+				CALL HPH_PRINT,@"（何よりもこの子が最高なのは、性知識がないところなのよね…HPH）","L"
+				CALL HPH_PRINT,@"（自分でもよくわからないまま快楽に溺れていく姿、本当にたまらないわ…HPH）","L"
+				RETURN -500
+			ENDIF
+		ELSE
+			IF TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3
+				SELECTCASE TALENT:MASTER:形状
+				CASE 6,10;巨根、馬並み
+					CALL HPH_PRINT,@"（正直、こんなデカちんぽ、妖怪相手でもなかなかお目にかかれないのよね…HPH）","L"
+					RETURN -200
+				CASE 1,2;粗チン
+					CALL HPH_PRINT,@"（チンポこそお粗末だけど、身体の相性はいいのよね…HPH）","L"
+					
+				CASEELSE
+					CALL HPH_PRINT,@"（人間にしては、結構立派なおちんぽ持っているのよね…HPH）","L"
+					RETURN -100
+				ENDSELECT
+
+				IF ABL:MASTER:腰 >= 3 && EXP:Ｖ絶頂経験 >= 100
+					CALL HPH_PRINT,@"（セックスだって巧いし、絶倫だし…HPH　何より、精液の臭いが他の人間と桁違いだわ…HPH）","L"
+					RETURN -100
+					PRINTW 
+				ELSE
+					CALL HPH_PRINT,@"（正直セックスは下手だけど、逆にこっちが絞り尽くしてあげるのが楽しいのよね…HPH）","L"
+					CALL HPH_PRINT,@"（テクニックなんてなくても、イってもすぐ勃起するし…HPH　何より、精液の臭いが他の人間と桁違いだわ…HPH）","L"
+					PRINTW 
+				ENDIF
+			ELSE
+				IF TALENT:MASTER:処女 == 0 && TALENT:性別 == 3 && EXP:挿入経験 > 0
+					IF ABL:MASTER:膣 >= 3
+						CALL HPH_PRINT,@"(%CALLNAME:MASTER%の膣内、とっても具合がいいのよねぇ…HPH)","L"
+						CALL HPH_PRINT,@"(仕事や、日ごろ口さがない奴らからのやっかみからのストレスの捌け口にちょうどいいのよねHPH)","L"
+						RETURN -200
+					ELSE
+						IF ABL:MASTER:腰 >= 3
+							CALL HPH_PRINT,@"（締まりは普通だけど、腰の動きがいいのよね…HPH）","L"
+							RETURN -100
+						ELSE
+							CALL HPH_PRINT,@"（正直、締まりとか巧さはないけど、性欲やストレスの捌け口としてはちょうどいいのよね…HPH）","L"
+						ENDIF
+					ENDIF
+				ELSEIF TALENT:MASTER:処女 == 0
+					IF TALENT:性別 == 3
+						CALL HPH_PRINT,@"（いつか%CALLNAME:MASTER%の処女を奪ってやりたいと思っていたのよね…HPH）","L"
+						CALL HPH_PRINT,@"（まさか向こうから望んでくるなんて…HPH　とんだ好き者だわ…HPH）","L"
+					ELSE
+						CALL HPH_PRINT,@"（%CALLNAME:MASTER%の処女を指や道具で奪ってやったら、どんな声で鳴いてくれるのかしら…HPH）","L"
+					ENDIF
+				ENDIF
+			ENDIF
+			PRINTFORML 
+		ENDIF
+		;PRINTFORML （サクッとヤりたいなあ）
+		;RETURN -1000
+	CASE "成功"
+		;PRINTFORML 「いいよー」
+		IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+			PRINTL 
+			PRINTFORML （何より、私の方がこの子をたっぷり可愛がってあげたいわ…♪）
+			IF TALENT:MASTER:無知
+				PRINTFORML 「ええ、いいですよ♪　シたくなったら、お姉ちゃんとお股の擦り合いっこたくさんしましょう♪」
+				PRINTFORML 「%CALLNAME:MASTER%どのだけ特別♪　他の子にはシーーっ、ですよ♪」
+				PRINTW 
+			ELSE
+				PRINTFORML 「ええ、いいですよ♪　お姉ちゃんと『セフレ』になりましょう♪」
+				IF TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3
+					IF TALENT:MASTER:性別 == 2
+						IF TALENT:性別 == 3
+							CALL HPH_PRINT,@"「そのかわり、覚悟してねHPH　お姉ちゃんのおちんちんで、%CALLNAME:MASTER%どのを女の子にしちゃうんだから…HPH」","L"
+						ELSE
+							CALL HPH_PRINT,@"「そのかわり、覚悟してねHPH　お姉ちゃん、%CALLNAME:MASTER%どののおちんちん、トロットロに溶かしちゃうから…HPH」","L"
+						ENDIF
+					ELSEIF TALENT:MASTER:性別 == 3
+						;ふたなり同士
+						IF TALENT:性別 == 3
+							CALL HPH_PRINT,@"「そのかわり、覚悟してねHPH　お姉ちゃん、おちんちんもおまんこも、トロットロに溶かしちゃうんだから…HPH」","L"
+						ELSE
+							CALL HPH_PRINT,@"「そのかわり、覚悟してねHPH　お姉ちゃん、%CALLNAME:MASTER%どののおちんちん、トロットロに溶かしちゃうから…HPH」","L"
+						ENDIF
+					ENDIF
+				;女の子
+				ELSE
+					IF TALENT:性別 == 3
+						CALL HPH_PRINT,@"「そのかわり、覚悟してねHPH　お姉ちゃんのおちんちんで、%CALLNAME:MASTER%どのの女の子の穴、戻らなくしちゃうから…HPH」","L"
+					ELSE
+						CALL HPH_PRINT,@"「そのかわり、覚悟してねHPH　男の子が好きな身体に戻れなくしちゃうから…HPH」","L"
+					ENDIF
+				ENDIF
+			ENDIF
+		;大人の「成功」
+		ELSE
+			PRINTFORML 「ええ、構いませんよ。では、契約成立ということで…」
+			IF TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3
+				;オトコ
+				IF TALENT:MASTER:性別 == 2
+					IF TALENT:性別 == 3
+						CALL HPH_PRINT,@"「こっちで満足させていただくのは当然として…HPH」","L"
+						CALL HPH_PRINT,@"「こっちの穴に挿れてみるのも、興味があるんですよねぇ…HPH　せっかく、爛れたお付き合いをするんですからHPH」","L"
+						PRINTFORML %CALLNAME:MASTER%の股間と尻穴をくにゅくにゅと弄びながら、典が妖しくほほ笑んだ…
+					ELSE
+						CALL HPH_PRINT,@"「そのかわり、典のことをここでしっかり満足させてくださいね…HPH」","L"
+						PRINTFORML %CALLNAME:MASTER%の股間を巧みに弄びながら、典が妖しくほほ笑んだ…
+					ENDIF
+				;ふたなり
+				ELSEIF TALENT:MASTER:性別 == 3
+					;ふたなり同士
+					IF TALENT:性別 == 3
+						CALL HPH_PRINT,@"「ふふ、普通の男と女同士では楽しめないセックスが、色々と楽しめそうですね…HPH」","L"
+					ELSE
+						CALL HPH_PRINT,@"「ふふ、セフレ相手が両方付いているなんて、色々と楽しめそうですねぇ…HPH」","L"
+					ENDIF
+				ENDIF
+			;女性
+			ELSE
+				IF TALENT:性別 == 3
+					CALL HPH_PRINT,@"「これまで以上に典のおちんぽでイかせて差し上げますからHPH　覚悟してくださいね♪」","L"
+				ELSE
+					CALL HPH_PRINT,@"「ふふ、女同士の快楽、お互い貪り合うことにいたしましょうね…HPH」","L"
+				ENDIF
+			ENDIF
+			
+			IF CFLAG:初期位置 == 854 && TALENT:140:恋人
+				PRINTFORML 「とはいっても、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は飯綱丸さまと同居しておりますので、バレないようにしませんとね」
+				PRINTFORML 「うまく立ち回ってくださいね、%CALLNAME:MASTER%どの♪」
+				PRINTW 
+			ENDIF
+		ENDIF
+	CASE "失敗"
+		;PRINTFORML 「おことわりだー」
+		;失敗すんのかなこれ
+		IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
+			PRINTL 
+			PRINTFORML （……まあでも、この子のことを考えたらまだ時期尚早ですかねぇ）
+			PRINTFORML （それに、お預けを食らわせたほうが、もっと誑かせることができるかもしれないですしね…♪）
+			PRINTW 
+			PRINTFORML 「%CALLNAME:MASTER%どの、残念ですが、今はお受けすることができません」
+			PRINTFORML 「ふふ、そんなに残念な顔をなさらないでください。お姉ちゃん、困っちゃいます」
+			CALL HPH_PRINT,@"(ああ、そのお顔…ゾクゾクしますねぇHPH)","L"
+			PRINTW 
+			PRINTFORML 「それに、『今は』と申したでしょう？　一度で諦めるおつもりですか？」
+			PRINTFORML 「諦めずに機を伺いなさい。お姉ちゃんの気が変わるかもしれないですよ？」
+			PRINTW 
+		ELSE
+			PRINTL 
+			PRINTFORML （…かといって、こいつとそこまでヤりたいかというと、そうでもないのよね）
+			PRINTFORML 「…申し訳ありませんが、そういったことは別の方に頼まれるのがよろしいかと」
+			PRINTL 
+			IF TALENT:MASTER:恋人
+				PRINTFORMW 「それに、%CALLNAME:MASTER%どのには立派な恋人さまがおられますでしょう？」
+				PRINTFORMW 「…それでも、典を抱きたい、恋人なんかでは物足りないというのであれば、もう一度声をお掛けください♪」
+				PRINTL 
+				PRINTFORML 「…恋人さまとの関係は終わってしまうかもしれませんが、天にも昇る心地をずぅっと、味わわせてあげますよ…♪」
+				PRINTW 
+			ELSE
+				PRINTFORML 「典などよりも、もっと魅力的な方が妖怪の山には大勢いらっしゃるでしょう？」
+				PRINTFORML 「射命丸どのとか、姫海棠どのとか…山の神などもお勧めいたしますよ」
+				PRINTW 
+			ENDIF
+		ENDIF
+ENDSELECT

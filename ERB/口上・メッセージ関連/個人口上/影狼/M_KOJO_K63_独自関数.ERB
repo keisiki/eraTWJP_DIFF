@@ -761,6 +761,14 @@ TCVAR:351 = 1
 ;挨拶
 ;━━━━━━━━━━━━━━━━━━━━━━━━━
 @K63_GREETING
+IF TCVAR:363 == 1
+	{
+	PRINTFORMW 「%TEXTR("やだなあ……服装ぐらい好きにさせて欲しいわ……/
+	なんで狼がこんな格好しなきゃいけないんだか……/満月から遠い日なだけマシね……")%」
+	}
+	RETURN 1
+ENDIF
+
 IF FLAG:住み込みキャラ == 63
 	SELECTCASE TIME:2
 	;朝は寝てるんで死に分岐ですが
@@ -914,11 +922,24 @@ IF TALENT:[[影狼]]:恋慕
 			PRINTFORML 「やった！牡丹鍋――って、お肉入ってないじゃない！詐欺よ詐欺！」
 		CASE "焼き鳥"
 			PRINTFORML 「凝った料理もいいけど、お肉を味わうならシンプルなのがいいわよね」
+			PRINTFORMW 「誰に習ったの？――ああ、妹紅ね、たまに挨拶するわ」
 		CASE "ヤツメウナギの蒲焼き"
 			PRINTFORML 「夜雀が屋台で出してるやつじゃない」
 			PRINTFORML 「匂いもそっくり！」
 		CASE "犬まんま"
 			PRINTFORML 「見るからに雑だけど、腹持ちはよさそうね」
+		{
+		CASE "ショートケーキ" , "チョコレートケーキ", "ホットケーキ" , "パウンドケーキ" ,
+		"パイ" , "タルト" , "クレープ" , "シュークリーム",
+		"パフェ" , "プリン" , "ゼリー" , "ヨーグルト" , "アイスクリーム"
+		}
+			PRINTFORML 「洋菓子じゃない！売ってないし材料も珍しいから、私たちみたいなしがない妖怪にはなかなか食べられないのよ」
+			IF TALENT:恋慕 && !RAND:4
+				PRINTFORML 「だから紅魔館で催し物があるときは、あそこでメイドやってる妖精と話をつけて……」
+				PRINTFORMW 結構ふてぶてしくやっているようだ
+			ELSE
+				PRINTFORMW 「これ披露したら人気者になれるんじゃない？」
+			ENDIF
 		;お魚系、天麩羅は唯一、魚料理がつかないので先に分岐
 		;まー、TASTEにはついてないが内実は想像にまかせるということで
 		CASE "天ぷら"
@@ -965,11 +986,11 @@ IF TALENT:[[影狼]]:恋慕
 		[SKIPEND]
 		
 		CASEELSE
-			IF STRCOUNT(DISH_TASTE, ESCAPE("ローター/"))
-				PRINTFORMW 「た、食べて大丈夫なのかしら……」
-			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("スパイス/"))
+			IF STRCOUNT(DISH_TASTE, ESCAPE("スパイス/"))
 				PRINTFORMW 「うわっ！？」
 				PRINTFORMW 「これはちょっと厳しいわー……匂いが鼻に刺さる……」
+			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("ローター/"))
+				PRINTFORMW 「た、食べて大丈夫なのかしら……」
 			ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("麺類/"))
 				IF TCVAR:[[影狼]]:353
 					PRINTFORMW 「たまごたまご……」
@@ -1006,6 +1027,11 @@ IF TALENT:[[影狼]]:恋慕
 				IF TCVAR:[[影狼]]:料理評価値 >= 500
 					PRINTFORMW 「あ、でもこれはいけるわね」
 				ENDIF
+			;ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("家庭的/"))
+			;	PRINTFORML 「嫌いじゃないけど…なんていうのこういうの？カテイテキ？」
+			;	PRINTFORML 「カテイって家族のことでしょ？家族だと食べるものが変わるの？」
+			;	PRINTFORML 「一人暮らしだとこれ食べないの？そういうわけでもない？」
+			;	PRINTFORMW 「……まったく、人間ってよくわからない生き物ね」
 			;ELSEIF STRCOUNT(DISH_TASTE, ESCAPE("軽食/"))
 			ENDIF
 		ENDSELECT
@@ -2087,10 +2113,11 @@ ELSE
 	PRINTFORML 「んー、眉毛伸びてきたわね」
 	PRINTFORMW 「またやってあげましょうか」
 	PRINTFORMW ……
+	PRINTFORMW 「%TEXTR("もうちょっと細くしようかしら……/眉尻をちょっと書き足して……/こう山を作りたいのよね～")%」
 	PRINTFORMW …
 	CALL PRINT_FACE, [[影狼]], "笑顔", "服", "", ""
-	PRINTFORML 「%TEXTR("できた！/こんなものかしら")%」
-	PRINTFORMW 「%TEXTR("ふふ、男ぶりが上がったわよ？/ん～スッキリ！")%」
+	PRINTFORML 「%TEXTR("できた！/こんなものかしら/ふー……終わり！")%」
+	PRINTFORMW 「%TEXTR("ふふ、男ぶりが上がったわよ？/ん～スッキリ！/美眉ね。我ながらいい仕事！")%」
 ENDIF
 CALL JUEL_UP_SPECIAL([[影狼]],"習得","技巧",10,1)
 CALL BUFF_BASE(MASTER,BASE_気力, 100)

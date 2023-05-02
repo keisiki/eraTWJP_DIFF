@@ -20,28 +20,7 @@
 ;-------------------------------------------------
 @M_KOJO_MESSAGE_PALAMCNG_B_K63
 #DIM TotalEX
-IF TCVAR:MASTER:イきそう
-	IF FIRSTTIME("射精前兆")
-		PRINTFORMW （なんかビクビクしてる……これって、もしかして……）
-	ELSEIF (TEQUIP:50 == MASTER || TEQUIP:51 == MASTER)
-	;挿入中
-		IF TALENT:63:自己愛 >= 0 && NOWEX:TotalEX > 0 && ABL:欲望 >= 10 && ABL:親密 >= 12
-			IF !RAND:2 && NOWEX:TotalEX >= 5
-				CALL HPH_PRINT,@"「つけてッHPH 　%CALLNAME:MASTER%の種、いっぱいつけてぇHPH」","W"
-			ELSE
-				CALL HPH_PRINT,@"「%TEXTR("んっ/あっ/あんっ")%HPH　%CALLNAME:MASTER%もイきそう？　一緒にイこっHPH」","W"
-			ENDIF
-		ELSEIF RAND:2
-			CALL HPH_PRINT,@"「%TEXTR("んっ/あっ")%…中で%TEXTR("おっきく/ビクビクって/膨らんで")%……HPH」","W"
-		ELSE
-			CALL HPH_PRINT,@"（%TEXTR("んっ……HPH　動き速くっ……HPH/すごい必死な感じで腰振ってる……　私に夢中なんだ……HPH")%）","W"
-		ENDIF
-	ELSEIF TALENT:63:自己愛 < 0
-		PRINTFORMW （うう、また出すのね……）
-	ELSE
-		CALL HPH_PRINT,@"（%TEXTR("イキそうなの我慢してる…可愛い……HPH/もうちょっとかしら？イッちゃえHPH　イッちゃえHPH")%）","W"
-	ENDIF
-ENDIF
+
 CALL PALAM_MESSAGE_B
 ;-------------------------------------------------
 ;噴乳
@@ -72,10 +51,36 @@ ENDIF
 ;記入チェック（=0, 非表示、1, 表示）
 LOCAL = 1
 ;-------------------------------------------------
+IF NOWEX:MASTER:射精
+	IF FIRSTTIME("射精前兆")
+		PRINTFORMW （なんかビクビクしてる……これって、もしかして……）
+	ELSEIF (TEQUIP:50 == MASTER || TEQUIP:51 == MASTER)
+	;挿入中
+		IF TALENT:63:自己愛 >= 0 && NOWEX:TotalEX > 0 && ABL:欲望 >= 10 && ABL:親密 >= 12
+			IF !RAND:2 && NOWEX:TotalEX >= 5
+				CALL HPH_PRINT,@"「つけてッHPH 　%CALLNAME:MASTER%の種、いっぱいつけてぇHPH」","W"
+			ELSE
+				CALL HPH_PRINT,@"「%TEXTR("んっ/あっ/あんっ")%HPH　%CALLNAME:MASTER%もイきそう？　一緒にイこっHPH」","W"
+			ENDIF
+		ELSEIF RAND:2
+			CALL HPH_PRINT,@"「%TEXTR("んっ/あっ")%…中で%TEXTR("おっきく/ビクビクって/膨らんで")%……HPH」","W"
+		ELSE
+			CALL HPH_PRINT,@"（%TEXTR("んっ……HPH　動き速くっ……HPH/すごい必死な感じで腰振ってる……　私に夢中なんだ……HPH")%）","W"
+		ENDIF
+	ELSEIF TALENT:63:自己愛 < 0
+		PRINTFORMW （うう、また出すのね……）
+	ELSE
+		CALL HPH_PRINT,@"（%TEXTR("イキそうなの我慢してる…可愛い……HPH/もうちょっとかしら？イッちゃえHPH　イッちゃえHPH")%）","W"
+	ENDIF
+ENDIF
 ;合計絶頂数で分岐
 ;これだけではどの部位が絶頂したかは区別されないため、書き分けたければ任意で分岐を加筆されたし。
 IF LOCAL
-	SELECTCASE NOWEX:TotalEX
+	IF SHIRAHU(TARGET)
+		TCVAR:361 = 1
+	ENDIF
+	IF NOWEX:TotalEX
+	SELECTCASE NOWEX:TotalEX + TCVAR:発情
 		;強
 		;潜伏中と抑圧が取れるまでは堪える
 		CASE IS >= 6
@@ -85,7 +90,7 @@ IF LOCAL
 				CALL HPH_PRINT,@"「フーーッ……HPH　フーーッ……HPH　フーーッ……HPH」","W"
 			ELSE
 				CALL HPH_PRINT,@"「%TEXTR("おほぉッHPH　んおッHPH　おおッHPH/　んおッHPH　あおッHPH　おおッHPH")%HPH」","W"
-				CALL HPH_PRINT,@"「%TEXTR("オ゛ッ…HPH　オ゛オ゛～～～～～～～～ッHPH/ア゛オ゛オ～～～～～～～～～ッHP")% 」","W"
+				CALL HPH_PRINT,@"「%TEXTR("オ゛ッ…HPH　オ゛オ゛～～～～～～～～ッHPH/ア゛オ゛オ～～～～～～～～～ッHPH")% 」","W"
 			ENDIF
 			TCVAR:360 += 5
 		;中
@@ -109,10 +114,11 @@ IF LOCAL
 			IF GETBIT(FLAG:潜伏,0) || TALENT:自己愛 < 0
 				CALL HPH_PRINT,@"「………%TEXTR("んっ/あっ/あんっ")%HPH」","W"
 			ELSE
-				CALL HPH_PRINT,@"「%TEXTR("んんっ/ああっ/あんっ/んあぁっ")%HPHH」","W"
+				CALL HPH_PRINT,@"「%TEXTR("んんっ/ああっ/あんっ/んあぁっ")%HPH」","W"
 				CALL HPH_PRINT,@"「気持ちいい……HPH」","W"
 			ENDIF
 	ENDSELECT
+	ENDIF
 ENDIF
 IF TALENT:Ｂ感度 < 0 && NOWEX:Ｂ絶頂 >= 2
 	CALL HPH_PRINT,@"「おっぱいでもこんなに気持ちよくなれるものなのね……HPH」","L"
@@ -124,6 +130,15 @@ ENDIF
 ;-------------------------------------------------
 @M_KOJO_MESSAGE_PALAMCNG_B2_K63
 CALL PALAM_MESSAGE_B
+
+;-------------------------------------------
+;調教後のテキスト＠調教後というかコマンド後
+;映姫口上によればうふふ等に関係なくTARGET指定中なら毎ターン読み込まれるらしい
+;-------------------------------------------
+@M_KOJO_MESSAGE_PALAMCNG_C_K63
+;このターンの絶頂強度を記録し、次のターンでの判定に使う
+TCVAR:362 = NOWEX:TotalEX
+
 ;-------------------------------------------------
 ;睡眠噴乳
 ;記入チェック（=0, 非表示、1, 表示）
@@ -443,8 +458,13 @@ IF FIRSTTIME("初膣内射精")
 ENDIF
 IF !NOWEX:Ｖ絶頂
 	IF TALENT:63:自己愛 >= 0
-		PRINTFORML 「あっ…出てる？」
-		PRINTFORML 「もう、そんなにガッチリ腰を掴まなくても逃げないわよ」
+		SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「あっ…出てる？」
+				PRINTFORML 「もう、そんなにガッチリ腰を掴まなくても逃げないわよ」
+			CASE 1
+				PRINTFORML 「%TEXTR("んふ、気持ちいい？/まだできる？次は一緒に、ね？")%」
+		ENDSELECT
 	ELSE
 		PRINTFORML 「んっ…また中で……」
 	ENDIF
@@ -481,8 +501,31 @@ IF NOWEX:MASTER:射精 > 1
 	IF ABL:膣射中毒 < 2
 		PRINTFORML 「まだ出てる……」
 	ELSE
-		CALL HPH_PRINT,@"「%TEXTR(@"まだ脈打ってる……射精ながぁい………HPH/もう、こんなに出して……HPH/ふふ、%CALLNAME:MASTER%も気持ちよかった？")%」」","L"
+		SELECTCASE RAND:8
+			CASE 0
+				CALL HPH_PRINT,@"「ん゛～～っHPH　もっと頂戴？」","L"
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%の全部、私のものにしたいの……HPH」","L"
+			CASE 1
+				IF TALENT:妊娠
+					PRINTFORML 「もう、そんなに頑張っても先客がいるから、今は赤ちゃんになれないわよ？」
+				ELSE
+					PRINTFORML 「ふふ、すごいいっぱい来てる」
+					PRINTFORML 「私の赤ちゃんになりたくて必死な感じね」
+				ENDIF
+			CASE 2
+				CALL HPH_PRINT,@"（はーーーっHPH　お腹あったか……HPH）","L"
+				PRINTFORML （%CALLNAME:MASTER%の熱が、命が、私の中に……）
+				CALL HPH_PRINT,@"（ふふ、ふふふ……HPH）","L"
+			CASEELSE
+				CALL HPH_PRINT,@"「%TEXTR(@"まだ脈打ってる……射精ながぁい………HPH/もう、こんなに出して……HPH/ふふ、%CALLNAME:MASTER%も気持ちよかった？")%」」","L"
+		ENDSELECT
 	ENDIF
+ELSEIF TALENT:63:自己愛 >= 0
+	SELECTCASE RAND:3
+		CASE 0
+			PRINTFORML 「ふふ」
+			PRINTFORML 「一緒にイけると、通じ合ってる感じがして嬉しいわ」
+	ENDSELECT
 ENDIF
 RETURN 1
 
