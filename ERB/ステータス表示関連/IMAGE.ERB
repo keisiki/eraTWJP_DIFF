@@ -136,10 +136,6 @@ FOR LOCAL, iPrintStart, FLAG:画像表示 + iPrintStart
 		RESULTS:0 = %GET_BASESTYLE(CHARA)%_服_通常_{CHARA}
 		RESULTS:1 =
 	ENDIF
-	;ボテ画像表示
-	IF SHOW_BOTE(CHARA) && !RAND:3
-		RESULTS:1 = ボテ_{CHARA}
-	ENDIF
     ;時間停止時はマウスオーバー画像を表示しない
 	SIF FLAG:時間停止
 		RESULTS:1 =
@@ -758,6 +754,8 @@ RETURNF 0
 #DIMS DYNAMIC リソース, 100
 #DIMS DYNAMIC エフェクト名
 
+;PRINTFORML エフェクトが走ってるよ
+
 SIF !FLAG:追加エフェクト
 	RETURN 0
 VARSET RESULTS
@@ -827,6 +825,15 @@ IF RESULT || エフェクト == ""
 		ENDIF
 	NEXT
 ENDIF
+;PRINTFORML 汎用エフェクトチェックが走ってるよ
+IF CSTR:CHARA:汎用エフェクト != ""
+	;PRINTFORML エフェクト「汎用エフェクト_%CSTR:CHARA:汎用エフェクト%」を確認
+	IF SPRITECREATED(@"汎用エフェクト_%CSTR:CHARA:汎用エフェクト%")
+		;PRINTFORML あったよ
+		リソース:(エフェクト数) = 汎用エフェクト_%CSTR:CHARA:汎用エフェクト%
+		エフェクト数 += 1
+	ENDIF
+ENDIF
 
 ARRAYCOPY "リソース", "RESULTS"
 RETURN エフェクト数
@@ -893,18 +900,3 @@ SIF SPENT_TIME > 0 && CFLAG:CHARA:うふふ
 SIF BASE:CHARA:体力 < MAXBASE:CHARA:体力*3/4 && BASE:CHARA:気力 < MAXBASE:CHARA:気力/4
 	RETURNF 1
 RETURNF 0
-
-@SHOW_BOTE(CHARA)
-#FUNCTION
-#DIM CHARA
-SIF CFLAG:CHARA:衣装一時変更
-	RETURNF 0
-SIF CFLAG:CHARA:うふふ
-	RETURNF 0
-SIF TEQUIP:CHARA:上半身着衣状況 == 0 || TEQUIP:CHARA:下半身着衣状況 == 0
-	RETURNF 0
-SIF CFLAG:CHARA:妊娠経過日数 < 40
-	RETURNF 0
-SIF !SPRITECREATED(@"ボテ_{CHARA}")
-	RETURNF 0
-RETURNF 1

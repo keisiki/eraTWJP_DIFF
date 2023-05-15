@@ -69,7 +69,14 @@ IF ITEM:コレクションのスキマ
 		CALL PANTS_SUKIMA(ARG, 種類)
 		スキマ送り成否 = RESULT
 	ELSEIF FLAG:パンツ輸送 == 0
-		PRINTFORML コレクションのスキマを使いますか？（残り：{ITEM:コレクションのスキマ}）
+		IF CFLAG:MASTER:現在位置 != CFLAG:MASTER:初期位置
+			PRINTFORM コレクションのスキマを使い（残り：{ITEM:コレクションのスキマ}）、
+		ENDIF
+		SIF CFLAG:ARG:(種類 + パンツ管理) == 0
+			SETCOLOR C_PINK
+		PRINTFORM %CALLNAME:ARG%の%PANTSNAME(種類, ARG)%
+		RESETCOLOR
+		PRINTFORML をコレクションに追加しますか？
 		CALL ASK_YN
 		IF !RESULT
 			CALL PANTS_SUKIMA(ARG, 種類)
@@ -88,22 +95,29 @@ RETURN スキマ送り成否
 IF PANTS_TEMP:ARG:種類
 	CFLAG:ARG:(種類 + パンツ管理) += PANTS_TEMP:ARG:種類 
 	PANTS_TEMP:ARG:種類 = 0
-	PRINTFORMW %CALLNAME:MASTER%はコレクションのスキマを開き、%CALLNAME:ARG%の%PANTSNAME(種類,ARG)%を放り込んだ
-	ITEM:コレクションのスキマ -= 1
+	IF CFLAG:MASTER:現在位置 != CFLAG:MASTER:初期位置
+		ITEM:コレクションのスキマ -= 1
+		PRINTFORMW %CALLNAME:MASTER%はコレクションのスキマを開き、%CALLNAME:ARG%の%PANTSNAME(種類,ARG)%を放り込んだ
+	ELSE
+		PRINTFORMW %CALLNAME:ARG%の%PANTSNAME(種類, ARG)%をコレクションに追加した
+	ENDIF
 	スキマ送り成否 = 1
 ENDIF
 RETURN スキマ送り成否
 
 @SHOW_HAVE_COLLECTION
-IF ITEM:コレクションのスキマ == 0
+IF ITEM:コレクションのスキマ == 0 && CFLAG:MASTER:現在位置 != CFLAG:MASTER:初期位置
 	CALL DISPLAY_ALL_COLLECTION(1,0)
 	PRINTW 
 ELSE
-	PRINTFORMW コレクションのスキマを使いますか？（残り：{ITEM:コレクションのスキマ}）
+	IF CFLAG:MASTER:現在位置 != CFLAG:MASTER:初期位置
+		PRINTFORM コレクションのスキマを使い（残り：{ITEM:コレクションのスキマ}）
+	ENDIF
+	PRINTFORMW コレクションに追加しますか？
 	DRAWLINE
 	CALL DISPLAY_ALL_COLLECTION(1,1)
 	DRAWLINE
-	PRINTFORML [0] 使わない
+	PRINTFORML [0] 追加しない
 	INPUT
 	LOCAL = RESULT
 	CALL PANTS_SUKIMA(LOCAL / 100, LOCAL % 100)
@@ -161,3 +175,9 @@ IF EQUIP:ARG:下半身下着２
 	NEXT
 ENDIF
 RETURNF 0
+
+@CLEAR_HAVE_COLLECTION
+FOR LOCAL,1,CHARANUM
+	VARSET PANTS_TEMP:LOCAL:0
+NEXT
+FLAG:パンツ輸送 = 0

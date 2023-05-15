@@ -2,9 +2,11 @@
 @OPTION
 #DIM L_COUNT
 #DIM L_FEED
+#DIM TEMP
 VARSET LOCAL
-L_FEED = 0
+L_FEED = LINECOUNT
 TOOLTIP_SETDELAY 100
+TEMP = CURRENTREDRAW()
 REDRAW 0
 DRAWLINEFORM =
 FOR L_COUNT, 0, 91
@@ -17,47 +19,46 @@ FOR L_COUNT, 0, 91
 	ELSE
 		HTML_PRINT @"<button value='{L_COUNT}' title='%RESULTS:2%'>[{L_COUNT, 2}] - %RESULTS:0, 30, RIGHT%：%RESULTS:1%</button>"
 	ENDIF
-	L_FEED ++
 NEXT
 DRAWLINEFORM －
-PRINTFORML [94] - オート喘ぎ一括設定
-PRINTFORML [95] - 簡易フィルタの一括設定
-;PRINTFORML [96] - 料理のオプション設定
-PRINTFORML [97] - 画像表示設定
-PRINTFORML [98] - 登場キャラ切り替え
-PRINTFORML [99] - コマンドフィルタ
+PRINTFORML [91] - オート喘ぎ一括設定
+PRINTFORML [92] - 簡易フィルタの一括設定
+PRINTFORML [93] - 画像表示設定
+PRINTFORML [94] - 登場キャラ切り替え
+PRINTFORML [95] - コマンドフィルタ
+;#;PRINTFORML [96] - カウンター行動フィルタ（デバッグ用）
+;PRINTFORML [97] - 料理のオプション設定
 DRAWLINE
 
-IF DAY > 120
+SIF DAY > 124
 	HTML_PRINT @"<button value='200' title='【警告】 これより 先は 読んではいけない'>[200] - バイツァ・ダスト</button>"
-	L_FEED ++
-ENDIF
 PRINTFORML [999] - 設定完了
 INPUT
 SELECTCASE RESULT
 CASE 0 TO 90
-	IF !LOCAL:RESULT
-		CLEARLINE 10 + L_FEED
-		RESTART
-	ENDIF
-	CALL OPTION_SETTING(RESULT)
-	CLEARLINE 10 + L_FEED
-CASE 94
+	SIF LOCAL:RESULT
+		CALL OPTION_SETTING(RESULT)
+	CLEARLINE LINECOUNT - L_FEED
+CASE 91
 	CALL OPTION_オート喘ぎ一括設定
-CASE 95
+CASE 92
 	CALL 簡易フィルタ一括設定
-;CASE 96
-;	CALL SET_OPTION_COOKING
-CASE  97
+CASE 93
 	CALL OPTION_画像表示詳細設定
-CASE 98
+CASE 94
 	CALL 登場キャラ切り替え
-CASE 99
+CASE 95
 	CALL OPTION_COMMAND_FILTER
+[IF_DEBUG]
+CASE 96
+	CALL OPTION_COUNTER_FILTER
+[ENDIF]
+;CASE 97
+;	CALL SET_OPTION_COOKING
 CASE  200
-	IF DAY <= 120
-		REDRAW 1
-		TOOLTIP_SETDELAY 500
+	TOOLTIP_SETDELAY 500
+	IF DAY <= 124
+		REDRAW TEMP
 		RETURN
 	ENDIF
 	PRINTFORML 時間を吹き飛ばして一日目に戻りますか？
@@ -71,8 +72,8 @@ CASE  200
 ;		PRINTW 「スイッチ」を押すのは止められなかったが、幸運にもオプション選択までしか戻らなかった。
 	ENDIF
 CASEELSE
-	REDRAW 1
 	TOOLTIP_SETDELAY 500
+	REDRAW TEMP
 	RETURN
 ENDSELECT
 RESTART
@@ -86,7 +87,7 @@ CASE 0
 	RESULTS:0 = 妊娠の有無
 	IF FLAG:妊娠スイッチ
 		RESULTS:1 = 妊娠する
-		RESULTS:2 = ※あなたの妊娠機能は未実装※
+		RESULTS:2 = ※ 女あなたの妊娠機能は未実装 ※
 	ELSE
 		RESULTS:1 = 妊娠しない
 	ENDIF
@@ -188,22 +189,22 @@ CASE 12
 	ELSEIF FLAG:Look表示用乳房 == 0 && FLAG:Look表示用乳首 == 0
 		RESULTS:1 = 固定しない
 	ENDIF
-CASE 13
-	RESULTS:0 = 好意/理性の壁の表示
-	IF FLAG:好意理性短縮
-		RESULTS:1 = 短縮する
-	ELSE
-		RESULTS:1 = 短縮しない
-	ENDIF
-	RESULTS:2 = ※現在未機能※
-CASE 14
-	RESULTS:0 = 能力表示の表記
-	IF FLAG:能力表記
-		RESULTS:1 = 数字表記
-	ELSE
-		RESULTS:1 = 記号表記
-	ENDIF
-	RESULTS:2 = ※現在未機能※
+;CASE 13
+;	RESULTS:0 = 好意/理性の壁の表示
+;	IF FLAG:好意理性短縮
+;		RESULTS:1 = 短縮する
+;	ELSE
+;		RESULTS:1 = 短縮しない
+;	ENDIF
+;	RESULTS:2 = ※現在未機能※
+;CASE 14
+;	RESULTS:0 = 能力表示の表記
+;	IF FLAG:能力表記
+;		RESULTS:1 = 数字表記
+;	ELSE
+;		RESULTS:1 = 記号表記
+;	ENDIF
+;	RESULTS:2 = ※現在未機能※
 CASE 15
 	RESULTS:0 = ターン毎のABLUP
 	IF FLAG:ABLUP省略
@@ -244,7 +245,7 @@ CASE 19
 	RESULTS:0 = 消耗品の自動購入
 	IF FLAG:消耗品自動購入
 		RESULTS:1 = する
-		RESULTS:2 = ローションのみ有効
+		RESULTS:2 = 購入するのはローションのみ
 	ELSE
 		RESULTS:1 = しない
 	ENDIF
@@ -271,7 +272,7 @@ CASE 22
 	RESULTS:0 = 注意札使用
 	IF FLAG:注意札使用
 		RESULTS:1 = あり
-		RESULTS:2 = 度が過ぎたセクハラで発行され貯まるとゲームオーバーになります
+		RESULTS:2 = 度が過ぎたセクハラ等で発行され貯まるとゲームオーバーになります
 	ELSE
 		RESULTS:1 = なし
 	ENDIF
@@ -367,6 +368,26 @@ CASE 33
 		RESULTS:1 = 有効
 	ELSE
 		RESULTS:1 = 無効
+	ENDIF
+CASE 34
+	RESULTS:0 = カウンターのお仕置き
+	SELECTCASE FLAG:カウンター制裁
+	CASE 0
+		RESULTS:1 = あり
+		RESULTS:2 = 弱みを握られるとまれに発生してうふふが中断します
+	CASE 1
+		RESULTS:1 = 過激なお仕置きはしない
+		RESULTS:2 = 道具を使ったお仕置きを控えてくれます
+	CASE 2
+		RESULTS:1 = なし
+	ENDSELECT
+CASE 35
+	RESULTS:0 = あなたのアナル開発許可
+	IF FLAG:アナル開発無効
+		RESULTS:1 = 禁止
+		RESULTS:2 = あなたに快Ａソースが入るカウンター行動を禁止します
+	ELSE
+		RESULTS:1 = 許可
 	ENDIF
 CASEELSE
 	RESULT = 0
@@ -490,6 +511,12 @@ CASE "採集時の再抽選機能"
 	FLAG:採集再抽選 = !FLAG:採集再抽選
 CASE "日時天候による背景色推移"
 	FLAG:背景色推移 = !FLAG:背景色推移
+CASE "カウンターのお仕置き"
+	CALL オプション切り替え("カウンター制裁", 2)
+CASE "あなたのアナル開発許可"
+	FLAG:アナル開発無効 = !FLAG:アナル開発無効
+CASE "日常行動中の風チラ発生"
+	FLAG:風チラ発生 = !FLAG:風チラ発生
 ENDSELECT
 
 @オプション切り替え(ARGS, ARG)
@@ -815,6 +842,44 @@ ELSEIF RESULT == 16
 	RESTART
 ENDIF
 RESTART
+
+;カウンター行動フィルタ
+@OPTION_COUNTER_FILTER
+#DIM CCOM_ID
+#DIM L_FEED
+#DIM TEMP
+TEMP = CURRENTREDRAW()
+REDRAW 0
+LOADGLOBAL
+CALL COLORMESSAGE, "※ フィルタのかけすぎは不具合を起こす可能性があります ※", C_YELLOW, 2
+DRAWLINE
+DO
+	L_FEED = LINECOUNT
+	FOR CCOM_ID, 0, CCOM_MAXNUM
+		SIF STR:(4000 + CCOM_ID) == ""
+			CONTINUE
+		CALL PRINTBUTTON_EXC(@"%STR:(4000 + CCOM_ID)%[{CCOM_ID,3}]", CCOM_ID, CCOM_FILTER:CCOM_ID)
+	NEXT
+	PRINTL 
+	DRAWLINE
+	PRINTL [500] - 全て無効
+	PRINTL [501] - リセット
+	PRINTL 
+	PRINTL [999] - 決定
+	INPUT
+	SELECTCASE RESULT
+	CASE 0 TO CCOM_MAXNUM
+		SIF STR:(4000 + RESULT) != ""
+			CCOM_FILTER:RESULT = !(CCOM_FILTER:RESULT)
+	CASE 500, 501
+		VARSET CCOM_FILTER, (RESULT == 500)
+	CASE 999
+		SAVEGLOBAL
+		REDRAW TEMP
+		RETURN
+	ENDSELECT
+	CLEARLINE LINECOUNT - L_FEED
+LOOP 1
 
 [SKIPSTART]
 ;;料理オプション設定関数

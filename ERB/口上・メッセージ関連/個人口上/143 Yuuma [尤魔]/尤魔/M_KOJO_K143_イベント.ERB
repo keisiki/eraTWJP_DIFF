@@ -1,0 +1,6253 @@
+﻿;-------------------------------------------------
+; eraTheWorld 4.842用 饕餮尤魔口上
+;-------------------------------------------------
+;他者による修正、加筆、改変については、同梱のライセンス条項に従ってください。
+
+;------ ｷﾘﾄﾘ ｶｲｼ -----------
+;eraTheWorld proto4.07パッチ取り込み用 Ver1.13
+;テンプレートの使い方
+;初めに置換コマンド等により K143 を K(キャラNo) に変更して下さい  
+;キャラNoはCSVフォルダのCharaファイルを参照　例(霧雨 魔理沙の場合)：K143 =置換=> K11
+;
+;------ ｷﾘﾄﾘ ｵﾜﾘ -----------
+
+;**** FlagManagement **********************************************************
+;本口上にて使用しているCFLAG・TCVAR等
+;
+;
+;
+;******************************************************************************
+
+;### 口上存在判定 ###################################
+@M_KOJO_K143(ARG)
+;別人版を作成する際はこのテンプレではなく別人版用口上テンプレをご利用ください
+
+;口上存在判定です、けしてコメントアウトしないでください
+;他の処理は一切行わないように
+RETURN 1
+
+;### 口上基本フラグ設定 #############################
+@M_KOJO_FLAGSETTING_K143
+;基本フラグ設定はここで行ってください
+;共通の口上フラグは必要な箇所のコメントアウトを外してご利用ください
+;口上専用フラグはご自由に
+;Xにはキャラ番号を入れてください
+
+;眠姦口上有、時間停止口上有、なりきりに1を入れると、それぞれ時間停止時、眠姦時、なりきり時にコマンド口上が読み込まれるように
+;入れないと時間停止時、眠姦時、なりきり時は一切喋りません
+;CFLAG:X:眠姦口上有 = 0
+;CFLAG:X:時間停止口上有 = 0
+;CFLAG:X:なりきり口上有 = 0
+
+;破瓜キャンセル口上有に1を入れると、@M_KOJO_EVENT_K143_LOST_VIRGIN_STOPでキャンセルの成否を操作できます
+;CFLAG:X:破瓜キャンセル口上有 = 0
+
+;口上内抱き寄せ判定_初回と口上内抱き寄せ判定_通常に1を入れると、M_KOJO_EVENT_K143_PERMISSIONで押し倒しの成否を操作できます
+;CFLAG:X:口上内抱き寄せ判定_初回 = 1
+CFLAG:143:口上内抱き寄せ判定_通常 = 1
+
+;押し倒し禁止に1を入れると、自分から押し倒してこなくなります
+;以下は恋慕かセフレがつくまで押し倒してこなくなる使用例
+;IF !TALENT:X:恋慕 && !TALENT:X:セフレ
+;	CFLAG:X:押し倒し禁止 = 1
+;ELSE
+;	CFLAG:X:押し倒し禁止 = 0
+;ENDIF
+
+;来訪不能に1を入れると、来訪してこなくなります
+;以下は面識があるまで来訪してこなくなる使用例
+;IF !CFLAG:X:面識
+;	CFLAG:X:来訪不能 = 1
+;ELSE
+;	CFLAG:X:来訪不能 = 0
+;ENDIF
+
+;### 口上色判定 ###################################
+@M_KOJO_COLOR_K143
+
+;ここでSETCOLORすることで口上に色を付けられます
+;例：SETCOLOR 0xC07070
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;"UPDATE判定"
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_UPDATE_K143
+;口上独自のUPDATE用
+;ENCOUNTER専用に独自分岐フラグを仕込んだ場合等にどうぞ
+;UPDATE判定でCFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります
+
+	IF CFLAG:143:1009 > 0
+		PRINTFORML 尤魔の不妊体質フラグをリセットしますか？
+		CALL ASK_YN("なくす","そのままで")
+		IF !RESULT
+			CFLAG:143:1009 = 0
+			PRINTFORML リセットしました
+		ELSE
+			PRINTFORML 変更しませんでした
+		ENDIF
+	ENDIF
+	
+	IF CFLAG:143:1000 > 0
+		PRINTFORML 尤魔の性に貪欲フラグをリセットしますか？
+		CALL ASK_YN("なくす","そのままで")
+		IF !RESULT
+			CFLAG:143:1000 = 0
+			PRINTFORML リセットしました
+		ELSE
+			PRINTFORML 変更しませんでした
+		ENDIF
+	ENDIF
+	
+	IF CFLAG:143:1001 > 0
+		PRINTFORML 尤魔の時止め中に動くフラグをリセットしますか？
+		CALL ASK_YN("なくす","そのままで")
+		IF !RESULT
+			CFLAG:143:1001 = 0
+			PRINTFORML リセットしました
+		ELSE
+			PRINTFORML 変更しませんでした
+		ENDIF
+	ENDIF
+
+IF CFLAG:143:1000 == 0
+	PRINTL 
+	PRINTFORML 尤魔を不妊体質にしてもよろしいですか？
+	PRINTL 
+	PRINTFORML ※注意※
+	PRINTFORML イベントを達成するまで、尤魔が妊娠しなくなります
+	PRINTFORML この選択肢で「はい」を選んだ場合、イベント達成後でも尤魔が時姦では孕まなくなります
+	PRINTFORML この選択肢で「いいえ」を選んだ場合、普通に妊娠しますが、妊娠に関係する口上の発生頻度が減少します
+	PRINTL 
+	CALL ASK_YN("はい","いいえ")
+	IF !RESULT
+		PRINTL 
+		PRINTFORML 尤魔を[不妊体質]にします
+		PRINTFORML 膣内に出された精液はすべて受精前に体内に栄養として吸収されてしまいます
+		PRINTL 
+		;K143C_妊娠レベル = 1
+		CFLAG:1009 = 1
+	ELSE
+		PRINTL 
+		PRINTFORML 尤魔は普通に妊娠します
+		PRINTFORML 
+	ENDIF
+
+	PRINTL 
+	PRINTFORML 尤魔はエッチなことにも料理にも貪欲ですか？
+	PRINTFORML ※注意※尤魔が貪欲なまでに性的な素質を得ます。おまけに料理名人になります
+	PRINTFORML 能力や素質が大幅に変化しますので、嫌な方は「いいえ」を選んでください
+	PRINTL 
+	CALL ASK_M("はい",1 , "いいえ",1 , "この周回ではもう表示させない",1)
+	SELECTCASE RESULT
+	CASE 0
+		PRINTL 
+		PRINTFORML 尤魔に
+		PRINTFORML [好奇心][自慰しやすい][快感に素直][精愛味覚][ヤリマン]
+		PRINTFORML が付与されます
+		PRINTL 
+		TALENT:性的興味 = 1
+		TALENT:自慰しやすい = 1
+		TALENT:快感応答 = 1
+		TALENT:精愛味覚 = 1
+		TALENT:ヤリマン = 1
+		EXP:自慰経験 = 30000
+		EXP:絶頂経験 = 30000
+		EXP:料理経験 = 496000
+		ABL:Ｃ感覚 = 3
+		ABL:Ｂ感覚 = 3
+		ABL:Ｖ感覚 = 2
+		ABL:自慰中毒 = 6
+		ABL:指 = 6
+		ABL:料理技能 = 5
+		
+		CFLAG:143:1000 = 1
+		
+		PRINTL 
+		PRINTFORML 貪欲な尤魔は部下や気に入った男を…
+		PRINTL 
+		PRINTL ※注意※選択肢によっては尤魔が非処女でのスタートになります
+		PRINTL 1日の終わりに部屋に部下を呼びつけて性交します
+		PRINTL エッチな同盟長は好きだけど自分以外とはちょっと…という方はご注意ください
+		PRINTL 
+		CALL ASK_M("上の口で貪っています（処女）",1 , "下の口で貪っています（非処女）",1 , "後ろの穴で貪っています（アナル非処女）",1 , "穴という穴で貪っています（両穴非処女）",1 , "手でしごくのが大好き（処女）",1 , "これ以上変えない",1)
+		SELECTCASE RESULT
+		CASE 0
+			EXP:口淫経験 = 1024
+			CFLAG:143:1000 = 3
+		CASE 1
+			EXP:Ｖ性交経験 = 1024
+			CFLAG:143:1000 = 4
+			TALENT:処女 = 0
+		CASE 2
+			EXP:Ａ性交経験 = 1024
+			CFLAG:143:1000 = 5
+		CASE 3
+			EXP:手淫経験 = 1024
+			EXP:口淫経験 = 1024
+			EXP:パイズリ経験 = 1024
+			EXP:Ａ性交経験 = 1024
+			EXP:Ｖ性交経験 = 1024
+			CFLAG:143:1000 = 6
+			TALENT:処女 = 0
+		CASE 4
+			EXP:手淫経験 = 1024
+			CFLAG:143:1000 = 7
+		CASE 5
+			PRINTFORML 素質をこれ以上変化させません
+		ENDSELECT
+	CASE 1
+		PRINTFORML 素質を変更しません
+	CASE 2
+		PRINTFORML 次回以降表示させないようにします
+		CFLAG:143:1000 = 999
+	ENDSELECT
+ENDIF
+
+IF CFLAG:143:1001 == 0
+	PRINTL 
+	PRINTFORML 尤魔がイベントによって時止め状態でも反応できるようにしてよろしいですか？
+	PRINTL 
+	CALL ASK_M("はい",1 , "いいえ",1 , "この周回ではもう表示させない",1)
+	SELECTCASE RESULT
+	CASE 0
+		PRINTFORML フラグをオンにします
+		CFLAG:143:1001 = 1
+	CASE 1
+		PRINTFORML 保留します
+	CASE 2
+		PRINTFORML 次回以降表示させないようにします
+		CFLAG:143:1001 = 2
+	ENDSELECT
+ENDIF
+
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;"ENCOUNTER"系イベント（エクストラ構文）
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+@M_KOJO_ENCOUNTER_K143
+;初対面、挨拶のタイミング
+;TALENTの変更はここでどうぞ。
+;経験の変更は齟齬が出る場合がありますので、CSVを修正し同梱する事を推奨します
+;畜生界で遭遇
+IF GROUPMATCH(CFLAG:MASTER:現在位置, 640, 641)
+	PRINTFORML 「んん？」
+	PRINTFORML 「見慣れん顔だが…お前、どこの組の者だ？」
+	CALL ASK_M("ただの観光客です", 1,"鬼傑組の%CALLNAME:MASTER%と申します", 1,"勁牙組の%CALLNAME:MASTER%じゃコラァ！", 1,"剛欲同盟に憧れる%CALLNAME:MASTER%です", 1)
+	SELECTCASE RESULT
+	;観光客を名乗る
+	CASE 0
+		PRINTFORML 「クックック、ヤクザの縄張り（シマ）に観光に来るとは、随分の大馬鹿野郎か大物なんだか」
+		PRINTFORML 「お前、名は？」
+		PRINTL 
+		PRINTFORML 「そうか、%CALLNAME:MASTER%というのか。覚えたぞ」
+		PRINTFORML 「私か？　私は尤魔っていうんだ」
+		PRINTL 
+		CALL ASK_YN("まさか…","あの剛欲同盟の…")
+		IF !RESULT
+			PRINTFORML 「クックック、そのまさかだよ」
+		ELSE
+			PRINTFORML 「ほう、ただの観光客にも名が知られているとは、私も出世したもんだな」
+		ENDIF
+		PRINTFORML 「我こそが剛欲同盟長、饕餮尤魔だ」
+		PRINTFORML 「%CALLNAME:MASTER%、悪いことは言わんからここは堅気が来るようなところじゃない」
+		PRINTFORML 「身ぐるみはがされたくなければさっさと畜生界を出ることだな」
+		PRINTL 
+		PRINTL そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+		PRINTFORML 「でないと、こわぁいこわぁい妖怪に頭から食われちまうぞ」
+		PRINTW 
+	;鬼傑組を名乗る
+	CASE 1 
+		PRINTFORML 「クックック、堂々と組を名乗るとは大胆なことをするなあ」
+		PRINTFORML 「残念だが、鬼傑のはそんな馬鹿正直に組の名を出したりせんよ」
+		IF (TALENT:MASTER:年齢 < 0 || (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行))
+			PRINTFORML 「おまけにこんなガキがヤクザごっことか…世も末だなぁ、おい」
+		ENDIF
+		IF TALENT:130:恋人
+			PRINTFORML 「ん？　お前、確か…」
+			PRINTFORML 「恋人のために敵対組織に探りでも入れてみたってところか？」
+			PRINTFORML 「クックック、泣けるなぁ。いい\@ TALENT:MASTER:性別 == 2 ? 男 # 女 \@だよ、お前」
+			PRINTFORML 「だがまぁ…一人でやってきたのは迂闊だったなぁ」
+			PRINTL 
+			PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+			PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+			PRINTW 
+			PRINTFORML 「…なんて、な」
+			PRINTFORML 「そういう手もあるにはあるが、吉弔のが怒りの余りえげつない策略を仕掛けてきたらたまらん」
+			PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+			PRINTL 
+		ELSEIF TALENT:130:恋慕
+			PRINTFORML 「ん？　お前、確か…」
+			PRINTFORML 「自分に惚れた女のために一肌脱いでやっているのか？　泣けるなあ」
+			PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+			PRINTL 
+			PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+			PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+			PRINTW 
+			PRINTFORML 「…なんて、な」
+			PRINTFORML 「そういう手もあるにはあるが、吉弔のが怒りの余りえげつない策略を仕掛けてきたらたまらん」
+			PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+			PRINTL 
+		ELSE
+			PRINTFORML 「本当の組員かどうかは重要じゃあない。多分お前さん、利用されているだけだぞ」
+			PRINTFORML 「奴さんたち、人間のことなんざ道具程度にしか考えていないからな」
+			PRINTL 
+			PRINTFORML 「もしくは、あいつの能力で逆らえなくされてるか、だな」
+			PRINTFORML 「あるいは…考えたくないが後先考えずにノリで鬼傑組を名乗った阿呆か、だ」
+			PRINTW 
+			PRINTFORML 「それに、だ」
+			PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+			PRINTFORML 「のこのこ敵対組織の長にちょっかいを出して、五体満足で帰れると思ったか？」
+			PRINTW 
+			PRINTL 
+			PRINTL 
+			PRINTFORML 「…なんて、な」
+			PRINTFORML 「万が一お前が鬼傑の者だったとして、あいつに報復の大義名分を与えるのも気に食わない」
+			PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+			PRINTL 
+		ENDIF
+		PRINTFORML 「おっと、自己紹介が遅れたな」
+		PRINTFORML 「我こそが剛欲同盟長、饕餮尤魔だ」
+		PRINTFORML 「お前さんが鬼傑の者なら、再び会うこともあるだろうなあ」
+		PRINTW 
+		PRINTFORML あなたは、[鬼傑組]の一員として見なされたようです
+		PRINTL 
+		CFLAG:1004 = 1
+	;勁牙組を名乗る
+	CASE 2
+		PRINTFORML 「クックック、威勢がいいなあ」
+		PRINTFORML 「だが、唾を吐く相手はしっかり吟味しておくことだぞ。弱肉強食の世界の世の常だ」
+		IF (TALENT:MASTER:年齢 < 0 || (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行))
+			PRINTFORML 「しかし、こんなガキがヤクザごっことか…世も末だなぁ、おい」
+		ENDIF
+		IF TALENT:133:恋人
+			PRINTFORML 「ん？　お前、確か…」
+			PRINTFORML 「恋人のために敵対組織に探りでも入れてみたってところか？」
+			PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+			PRINTL 
+			PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+			PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+			PRINTW 
+			PRINTFORML 「…なんて、な」
+			PRINTFORML 「そういう手もあるにはあるが、驪駒のが逆上してなりふり構わず攻め込まれても面倒だ」
+			PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+			PRINTL 
+		ELSEIF TALENT:133:恋慕
+			PRINTFORML 「ん？　お前、確か…」
+			PRINTFORML 「自分に惚れた女のために人肌脱いでやっているのか？　泣けるなあ」
+			PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+			PRINTL 
+			PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+			PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+			PRINTW 
+			PRINTFORML 「…なんて、な」
+			PRINTFORML 「そういう手もあるにはあるが、驪駒のが逆上してなりふり構わず攻め込まれても面倒だ」
+			PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+			PRINTL 
+		ELSE
+			PRINTFORML 「本当の組員かどうかは重要じゃあない。多分お前さん、利用されているだけだぞ」
+			PRINTFORML 「奴さんたち、人間のことなんざ餌程度にしか考えていないからな」
+			PRINTFORML 「まあ、あそこは力こそ正義。実力さえあればお前のようなものでものし上がれたりはするが」
+			PRINTFORML 「あるいは…考えたくないが後先考えずにノリで勁牙組を名乗った阿呆か、だ」
+			PRINTW 
+			PRINTFORML 「それに、だ」
+			PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+			PRINTFORML 「のこのこ敵対組織の長にちょっかいを出して、五体満足で帰れると思ったか？」
+			PRINTW 
+			PRINTL 
+			PRINTL 
+			PRINTFORML 「…なんて、な」
+			PRINTFORML 「万が一お前が勁牙の者だったとして、あいつに報復の大義名分を与えるのも気に食わない」
+			PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+			PRINTL 
+		ENDIF
+		PRINTFORML 「おっと、自己紹介が遅れたな」
+		PRINTFORML 「我こそが剛欲同盟長、饕餮尤魔だ」
+		PRINTFORML 「お前さんが勁牙の者なら、再び会うこともあるだろうなあ」
+		PRINTW 
+		PRINTFORML あなたは、[勁牙組]の一員として見なされたようです
+		PRINTL 
+		CFLAG:1005 = 1
+	;剛欲同盟に志願
+	CASE 3
+		PRINTFORML 「おいおい、物好きにも程があるぞ」
+		PRINTFORML 「私はともかく、部下たちは人間のことなんざ奴隷としか思っていないからな」
+		PRINTL 
+		PRINTFORML 「ん？　気付いたか？　そうだ、我こそが剛欲同盟長、饕餮尤魔だ」
+		PRINTFORML 「%CALLNAME:MASTER%、悪いことは言わんからここは堅気が来るようなところじゃない」
+		PRINTFORML 「身ぐるみはがされたくなければさっさと畜生界を出ることだな」
+		PRINTW 
+		PRINTFORML 「……もし、本気で組の一員になりたいんだったら勝手にしろ」
+		PRINTFORML 「そもそも長の私が徒党を組む気がないからな。部下たちも各々好きにやっている」
+		PRINTFORML 「だからお前も自分で考えて動け。まあ、期待はしていないがな」
+		PRINTW 
+		PRINTFORML あなたは、[剛欲同盟]の一員として見なされた…かもしれません
+		PRINTL 
+		CFLAG:1006 = 1
+	ENDSELECT
+;尤魔宅で遭遇
+ELSEIF GROUPMATCH(CFLAG:MASTER:現在位置, 653, 654, 655)
+	;尤魔宅のリビングで遭遇
+	IF CFLAG:MASTER:現在位置 == 653
+		PRINTL 
+		PRINTFORML 派手さはないが、オリエンタルな趣のある一室。恐らくはリビングだろう
+		PRINTFORML 部屋の景観を損ねない程度に落ち着いた雰囲気の調度品が置かれている
+		PRINTL 
+		PRINTFORML 一本足の大きなテーブルは、幻想郷では珍しい円形で、どうやらテーブルの上部は回すことができるようだ
+		PRINTFORML 大人数での食事、もっといえば、大皿をテーブルに着いたものが自由に取り分けることを想定した作りだ
+		PRINTW 
+		PRINTFORML リビングの奥には、個人が使うには立派な厨房が備え付けられていた
+		PRINTFORML 飲食店という雰囲気ではない。ということは、料理人を複数雇っているのか
+		PRINTFORML それにしては、人の雰囲気が少なすぎる
+		PRINTL 
+		PRINTFORML 丁寧に並べられた調理器具はよく使い込まれていたものの、しっかりと手入れがなされている
+		PRINTFORML 皿も形に合わせて綺麗に分けられており、用途に応じてすぐ取り出せるようになっている
+		PRINTFORML 棚には夥しい数の瓶や缶詰、箱が並んでおり、その中身は見たこともないような調味料ばかりだった
+		PRINTW 
+		PRINTFORML 厨房の奥では、一人の少女が鼻歌を歌いながら、身の丈に似合わぬほどの大鍋を軽々と振るっていた
+		PRINTFORML まるで羊毛を思わせるふわふわの髪からは、やはり羊のような真っ赤な角が二本生えており、先端に青いリボンを巻き付けている
+		PRINTFORML 饕餮文の入ったワンピースのような衣装を身にまとい、その下には肩が剥き出しになる赤色のインナーを着用しているようだ
+		PRINTL 
+		PRINTFORML 「んん？」
+		PRINTFORML 「なんだ、お前。私の厨房に勝手に立ち入って」
+		PRINTL 
+		CALL ASK_M("ごめんなさい。観光でうっかり", 1,"鬼傑組の%CALLNAME:MASTER%と申します", 1,"勁牙組の%CALLNAME:MASTER%じゃコラァ！", 1,"剛欲同盟に憧れる%CALLNAME:MASTER%です", 1)
+		SELECTCASE RESULT
+		;観光客を名乗る
+		CASE 0
+			PRINTFORML 「お前、ここは飯屋じゃないぞ。他を当たれ」
+			PRINTFORML 「……と言いたいところだがな、もうすぐ飯ができる。せっかくだ。お前も食っていけ」
+			PRINTFORML 「とりあえず奥の部屋で待ってろ。ここは私の戦場だからな。勝手に荒らされたら困る」
+			PRINTW 
+			PRINTFORML 少女の言う通り、リビングで大人しく待っていると、少女が大皿を持ってやって来た
+			PRINTFORML 「待たせたな。皮付きモモ肉の回鍋肉だ。こいつは美味いぞ」
+			PRINTL 
+			PRINTFORML 具材はモモ肉と葉ニンニクが入っただけのシンプルな料理だが、
+			PRINTFORML 反り返るまで炒められた肉とその肉の脂が絡まった野菜は、見ているだけで美味そうだ
+			PRINTW 
+			PRINTFORML 少女は先ほど、「ここは飯屋ではない」と言っていた
+			PRINTFORML 部屋に自分たち以外誰もいないところを見ると、ひょっとして、少女はこれを一人で食べるつもりだったのだろうか？
+			PRINTL 
+			PRINTFORML 「さあ、食おうぜ。鉄は熱いうちに打て。飯は熱いうちに食え、だ」
+			PRINTFORML そんな自分の疑問をよそに、少女は%CALLNAME:MASTER%の分も料理を取り分けてくれた
+			PRINTW 
+			PRINTFORML 「どうだ？　美味いか？」
+			PRINTFORML 尤魔に促され、料理を口に運ぶ…美味い
+			PRINTFORML これなら、金を取っても文句のない味だ
+			PRINTL 
+			PRINTFORML 「くっくっく。ありがとよ。やはり料理ってのはいいもんだ。食う奴の欲望がストレートに分かるからな」
+			PRINTFORML 自らも料理に舌鼓を打ちながら、少女は%CALLNAME:MASTER%の賛辞に笑顔を浮かべる
+			PRINTW 
+			PRINTFORML ついつい彼女のペースに乗せられ、食事までいただいてしまったが、目の前の少女は一体誰だろう
+			PRINTFORML 同じようなことを考えていたのか、少女はこちらをじっと見つめていた
+			PRINTL 
+			PRINTFORML 「ところでお前…誰だ？」
+			PRINTFORML 食事までもらって今さらな感じもするが、改めて家に土足で上がり込んだことを詫び、名前を名乗る
+			PRINTW 
+			PRINTFORML 「ふぅん、%CALLNAME:MASTER%っていうのか」
+			PRINTFORML 「私は饕餮尤魔。剛欲同盟の長といえば、観光客のお前でも知ってるんじゃないのか？」
+			PRINTL 
+			PRINTFORML 剛欲同盟──確か、畜生界を牛耳る三大組織の一角だったはず
+			PRINTFORML まさか、そんな巨大組織の長に食事を振舞われるとは…
+			PRINTW 
+			PRINTFORML 「%CALLNAME:MASTER%、悪いことは言わんからここは堅気が来るようなところじゃない」
+			PRINTFORML 「飯を振舞った私が言うのもなんだが、身ぐるみはがされたくなければさっさと畜生界を出ることだな」
+			PRINTL 
+			PRINTFORML 「それでも自分の責任で動き回るっていうのなら、私も止めはせんがね」
+			PRINTFORML 「私の部下は私以上に人間どもを見下しているし、他の組織は奴隷か家畜呼ばわりしているからな。気を付けることだ」
+			PRINTFORML 幸か不幸か、三大派閥の長と接点を持つことになったようだ…
+			PRINTW 
+		;鬼傑組を名乗る
+		CASE 1
+			IF (TALENT:MASTER:年齢 < 0 || (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行))
+				PRINTFORML 「お前、本当に意味が分かって言ってるか？　お子様が名乗っていい組の名前じゃねーんだよ、それは」
+				PRINTFORML 「怖い人に連れてかれて、身体の中身を取られちまうぞ」
+			ELSE
+				PRINTFORML 「……お前、馬鹿だろ。組の名前を最初に出したら後には引けんぞ？」
+				PRINTFORML 「お前の取った行動のせいで、組が壊滅することだってある。この世界じゃあ常識だ」
+			ENDIF
+			PRINTFORML 「……と言いたいところだがな、もうすぐ飯ができる。せっかくだ。お前も食っていけ」
+			PRINTFORML 「とりあえず奥の部屋で待ってろ。ここは私の戦場だからな。勝手に荒らされたら困る」
+			PRINTW 
+			PRINTFORML 少女の言う通り、リビングで大人しく待っていると、少女が大皿を持ってやって来た
+			PRINTFORML 「待たせたな。皮付きモモ肉の回鍋肉だ。こいつは美味いぞ」
+			PRINTL 
+			PRINTFORML 具材はモモ肉と葉ニンニクが入っただけのシンプルな料理だが、
+			PRINTFORML 反り返るまで炒められた肉とその肉の脂が絡まった野菜は、見ているだけで美味そうだ
+			PRINTW 
+			PRINTFORML 少女は先ほど、「ここは飯屋ではない」と言っていた
+			PRINTFORML 部屋に自分たち以外誰もいないところを見ると、ひょっとして、少女はこれを一人で食べるつもりだったのだろうか？
+			PRINTL 
+			PRINTFORML 「さあ、食おうぜ。鉄は熱いうちに打て。飯は熱いうちに食え、だ」
+			PRINTFORML そんな自分の疑問をよそに、少女は%CALLNAME:MASTER%の分も料理を取り分けてくれた
+			PRINTW 
+			PRINTFORML 「どうだ？　美味いか？」
+			PRINTFORML 尤魔に促され、料理を口に運ぶ…美味い
+			PRINTFORML これなら、金を取っても文句のない味だ
+			PRINTL 
+			PRINTFORML 「くっくっく。ありがとよ。やはり料理ってのはいいもんだ。食う奴の欲望がストレートに分かるからな」
+			PRINTFORML 自らも料理に舌鼓を打ちながら、少女は%CALLNAME:MASTER%の賛辞に笑顔を浮かべる
+			PRINTW 
+			PRINTFORML ついつい彼女のペースに乗せられ、食事までいただいてしまったが、目の前の少女は一体誰だろう
+			PRINTFORML 同じようなことを考えていたのか、少女はこちらをじっと見つめていた
+			PRINTL 
+			PRINTFORML 「ところでお前…誰だ？」
+			PRINTFORML 改めて家に土足で上がり込んだことを詫び、名前を名乗る
+			PRINTW 
+			PRINTFORML 「ふぅん、%CALLNAME:MASTER%っていうのか」
+			PRINTFORML 「クックック、堂々と組を名乗るとは大胆なことをしたなあ」
+			PRINTFORML 「残念だが、鬼傑のはそんな馬鹿正直に組の名を出したりせんよ。やるなら、もっと狡猾にやる」
+			IF TALENT:130:恋人
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「恋人のために敵対組織に探りでも入れてみたってところか？」
+				PRINTFORML 「クックック、泣けるなぁ。いい\@ TALENT:MASTER:性別 == 2 ? 男 # 女 \@だよ、お前」
+				PRINTFORML 「だがまぁ…一人でやってきたのは迂闊だったなぁ」
+				PRINTL 
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+				PRINTW 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「そういう手もあるにはあるが、吉弔のが怒りの余りえげつない策略を仕掛けてきたらたまらん」
+				PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+				PRINTL 
+			ELSEIF TALENT:130:恋慕
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「自分に惚れた女のために一肌脱いでやっているのか？　泣けるなあ」
+				PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+				PRINTL 
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+				PRINTW 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「そういう手もあるにはあるが、吉弔のが怒りの余りえげつない策略を仕掛けてきたらたまらん」
+				PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+				PRINTL 
+			ELSE
+				PRINTFORML 「本当の組員かどうかは重要じゃあない。多分お前さん、利用されているだけだぞ」
+				PRINTFORML 「奴さんたち、人間のことなんざ道具程度にしか考えていないからな」
+				PRINTL 
+				PRINTFORML 「もしくは、あいつの能力で逆らえなくされてるか、だな」
+				PRINTFORML 「あるいは…考えたくないが後先考えずにノリで鬼傑組を名乗った阿呆か、だ」
+				PRINTW 
+				PRINTFORML 「それに、だ」
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「のこのこ敵対組織の長にちょっかいを出して、五体満足で帰れると思ったか？」
+				PRINTW 
+				PRINTL 
+				PRINTL 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「万が一お前が鬼傑の者だったとして、あいつに報復の大義名分を与えるのも気に食わない」
+				PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+				PRINTL 
+			ENDIF
+			PRINTFORML 「おっと、自己紹介が遅れたな」
+			PRINTFORML 「我こそが剛欲同盟長、饕餮尤魔だ」
+			PRINTFORML 「お前さんが鬼傑の者なら、再び会うこともあるだろうなあ。とりあえず今日は飯食ったら帰れ。いいな」
+			PRINTW 
+			PRINTFORML あなたは、[鬼傑組]の一員として見なされたようです
+			PRINTL 
+			CFLAG:1004 = 1
+		;勁牙組を名乗る
+		CASE 2
+			PRINTFORML スッゾコラー！
+			PRINTFORML 厨房の奥に乗り込もうとした瞬間、自分の顔の横を光が横切った
+			PRINTL 
+			PRINTFORML 「……汚い足で厨房に入り込むんじゃねぇ」
+			PRINTFORML 見た目よりもずっとドスの利いた声で少女が警告する
+			PRINTFORML %CALLNAME:MASTER%の頬に、一筋の赤い線が走る。少女が投げたのは包丁で、それは%CALLNAME:MASTER%の薄皮を裂いた後、壁に突き刺さっていた
+			PRINTW 
+			PRINTFORML 「…ったく、驪駒の奴は部下にどんな教育してやがるんだ…昔の私だったら即ミンチだったな」
+			PRINTFORML 「お前、腹が減ってるんじゃないか？　それで、気が立ってんだろ」
+			PRINTFORML 「とりあえず奥の部屋で待ってろ。ここは私の戦場だからな。勝手に荒らされたら困る」
+			PRINTW 
+			PRINTFORML 少女の言う通り、リビングで大人しく待っていると、少女が大皿を持ってやって来た
+			PRINTFORML 「待たせたな。皮付きモモ肉の回鍋肉だ。こいつは美味いぞ」
+			PRINTL 
+			PRINTFORML 具材はモモ肉と葉ニンニクが入っただけのシンプルな料理だが、
+			PRINTFORML 反り返るまで炒められた肉とその肉の脂が絡まった野菜は、見ているだけで美味そうだ
+			PRINTW 
+			PRINTFORML 少女は先ほど、「ここは飯屋ではない」と言っていた
+			PRINTFORML 部屋に自分たち以外誰もいないところを見ると、ひょっとして、少女はこれを一人で食べるつもりだったのだろうか？
+			PRINTL 
+			PRINTFORML 「さあ、食おうぜ。鉄は熱いうちに打て。飯は熱いうちに食え、だ」
+			PRINTFORML そんな自分の疑問をよそに、少女は%CALLNAME:MASTER%の分も料理を取り分けてくれた
+			PRINTW 
+			PRINTFORML 「どうだ？　美味いか？」
+			PRINTFORML 尤魔に促され、料理を口に運ぶ…美味い
+			PRINTFORML これなら、金を取っても文句のない味だ
+			PRINTL 
+			PRINTFORML 「くっくっく。ありがとよ。やはり料理ってのはいいもんだ。食う奴の欲望がストレートに分かるからな」
+			PRINTFORML 自らも料理に舌鼓を打ちながら、少女は%CALLNAME:MASTER%の賛辞に笑顔を浮かべる
+			PRINTW 
+			PRINTFORML ついつい彼女のペースに乗せられ、食事までいただいてしまったが、目の前の少女は一体誰だろう
+			PRINTFORML 同じようなことを考えていたのか、少女はこちらをじっと見つめていた
+			PRINTL 
+			PRINTFORML 「ところでお前…誰だ？」
+			PRINTFORML 大事な厨房に押し掛けたことを詫び、名前を名乗る
+			PRINTW 
+			PRINTFORML 「ふぅん、%CALLNAME:MASTER%っていうのか」
+			PRINTFORML 「%CALLNAME:MASTER%、威勢がいいのは結構だが、唾を吐く相手はしっかり吟味しておくことだぞ。弱肉強食の世界の世の常だ」
+			PRINTL 
+			IF TALENT:133:恋人
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「恋人のために敵対組織に探りでも入れてみたってところか？」
+				PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+				PRINTL 
+				PRINTFORML そう言って、目の前の少女はいつの前に取り出したのか、スプーンのような獲物をこちらに突きつける
+				PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+				PRINTW 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「そういう手もあるにはあるが、驪駒のが逆上してなりふり構わず攻め込まれても面倒だ」
+				PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+				PRINTL 
+			ELSEIF TALENT:133:恋慕
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「自分に惚れた女のために人肌脱いでやっているのか？　泣けるなあ」
+				PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+				PRINTL 
+				PRINTFORML そう言って、目の前の少女はいつの前に取り出したのか、スプーンのような獲物をこちらに突きつける
+				PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+				PRINTW 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「そういう手もあるにはあるが、驪駒のが逆上してなりふり構わず攻め込まれても面倒だ」
+				PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+				PRINTL 
+			ELSE
+				PRINTFORML 「本当の組員かどうかは重要じゃあない。多分お前さん、利用されているだけだぞ」
+				PRINTFORML 「奴さんたち、人間のことなんざ餌程度にしか考えていないからな」
+				PRINTFORML 「まあ、あそこは力こそ正義。実力さえあればお前のようなものでものし上がれたりはするが」
+				PRINTFORML 「あるいは…考えたくないが後先考えずにノリで勁牙組を名乗った阿呆か、だ」
+				PRINTW 
+				PRINTFORML 「それに、だ」
+				PRINTFORML そう言って、目の前の少女はいつの前に取り出したのか、スプーンのような獲物をこちらに突きつける
+				PRINTFORML 「のこのこ敵対組織の長にちょっかいを出して、五体満足で帰れると思ったか？」
+				PRINTW 
+				PRINTL 
+				PRINTL 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「万が一お前が勁牙の者だったとして、あいつに報復の大義名分を与えるのも気に食わない」
+				PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+				PRINTL 
+			ENDIF
+				PRINTFORML 「おっと、自己紹介が遅れたな」
+				PRINTFORML 「我こそが剛欲同盟長、饕餮尤魔だ」
+				PRINTFORML 「お前さんが勁牙の者なら、再び会うこともあるだろうなあ。飯を食ったら大人しく帰れ。いいな」
+				PRINTW 
+				PRINTFORML あなたは、[勁牙組]の一員として見なされたようです
+				PRINTL 
+				CFLAG:1005 = 1
+		;剛欲同盟に志願
+		CASE 3
+			IF (TALENT:MASTER:年齢 < 0 || (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行))
+				PRINTFORML 「お前、物乞いのガキか何かか？　ここは炊き出しの場所じゃないぞ」
+				PRINTFORML 「こわーいこわーいヤクザの事務所だ。とっとと出ていくんだな」
+			ELSE
+				PRINTFORML 「お前、ここは就職斡旋所じゃねぇんだぞ。他を当たれ」
+			ENDIF
+			PRINTFORML 「……と言いたいところだがな、もうすぐ飯ができる。せっかくだ。お前も食っていけ」
+			PRINTFORML 「とりあえず奥の部屋で待ってろ。ここは私の戦場だからな。勝手に荒らされたら困る」
+			PRINTW 
+			PRINTFORML 少女の言う通り、リビングで大人しく待っていると、少女が大皿を持ってやって来た
+			PRINTFORML 「待たせたな。皮付きモモ肉の回鍋肉だ。こいつは美味いぞ」
+			PRINTL 
+			PRINTFORML 具材はモモ肉と葉ニンニクが入っただけのシンプルな料理だが、
+			PRINTFORML 反り返るまで炒められた肉とその肉の脂が絡まった野菜は、見ているだけで美味そうだ
+			PRINTW 
+			PRINTFORML 少女は先ほど、「ここは飯屋ではない」と言っていた
+			PRINTFORML 部屋に自分たち以外誰もいないところを見ると、ひょっとして、少女はこれを一人で食べるつもりだったのだろうか？
+			PRINTL 
+			PRINTFORML 「さあ、食おうぜ。鉄は熱いうちに打て。飯は熱いうちに食え、だ」
+			PRINTFORML そんな自分の疑問をよそに、少女は%CALLNAME:MASTER%の分も料理を取り分けてくれた
+			PRINTW 
+			PRINTFORML 「どうだ？　美味いか？」
+			PRINTFORML 尤魔に促され、料理を口に運ぶ…美味い
+			PRINTFORML これなら、金を取っても文句のない味だ
+			PRINTL 
+			PRINTFORML 「くっくっく。ありがとよ。やはり料理ってのはいいもんだ。食う奴の欲望がストレートに分かるからな」
+			PRINTFORML 自らも料理に舌鼓を打ちながら、少女は%CALLNAME:MASTER%の賛辞に笑顔を浮かべる
+			PRINTW 
+			PRINTFORML ついつい彼女のペースに乗せられ、食事までいただいてしまったが、目の前の少女は一体誰だろう
+			PRINTFORML 同じようなことを考えていたのか、少女はこちらをじっと見つめていた
+			PRINTL 
+			PRINTFORML 「ところでお前…誰だ？」
+			PRINTFORML 改めて家に土足で上がり込んだことを詫び、名前を名乗る
+			PRINTW 
+			PRINTFORML 「ふぅん、%CALLNAME:MASTER%っていうのか」
+			PRINTFORML 「%CALLNAME:MASTER%、お前、物好きにも程があるぞ」
+			PRINTFORML 「私はともかく、部下たちは人間のことなんざ奴隷としか思っていないからな」
+			PRINTL 
+			PRINTFORML 「ん？　やっと気付いたか？　そうだ、我こそが剛欲同盟長、饕餮尤魔だ」
+			PRINTFORML 「%CALLNAME:MASTER%、悪いことは言わんからここは堅気が来るようなところじゃない」
+			PRINTFORML 「身ぐるみはがされたくなければさっさと畜生界を出ることだな」
+			PRINTW 
+			PRINTFORML 「……もし、本気で組の一員になりたいんだったら勝手にしろ」
+			PRINTFORML 「そもそも長の私が徒党を組む気がないからな。部下たちも各々好きにやっている」
+			PRINTFORML 「だからお前も自分で考えて動け。まあ、期待はしていないがな」
+			PRINTFORML 「まあ、腹が減ったらここに来い。たまになら、飯を食わせてやる」
+			PRINTW 
+			PRINTFORML あなたは、[剛欲同盟]の一員として見なされた…かもしれません
+			PRINTL 
+			CFLAG:1006 = 1
+		ENDSELECT
+	;リビング以外（お風呂は追い出されるため実質起床後の寝室一択）
+	ELSE
+		PRINTFORML とある邸宅の一室、一人の少女がいた
+		PRINTFORML まるで羊毛を思わせるふわふわの髪からは、やはり羊のような真っ赤な角が二本生えており、先端に青いリボンを巻き付けている
+		PRINTFORML 饕餮文の入ったワンピースのような衣装を身にまとい、その下には肩が剥き出しになる赤色のインナーを着用しているようだ
+		PRINTL 
+		PRINTFORML 「んん？」
+		PRINTFORML 「見慣れん顔だが…お前、どこの組の者だ？」
+		SELECTCASE RESULT
+		;観光客を名乗る
+		CASE 0
+			PRINTFORML 「クックック、ヤクザのヤサに観光に来るとは、随分の大馬鹿野郎か大物なんだか」
+			IF (TALENT:MASTER:年齢 < 0 || (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行))
+				PRINTFORML 「おまけにこんなガキとはな…驚きだぜ」
+			ENDIF
+			PRINTFORML 「お前、名は？」
+			PRINTL 
+			PRINTFORML 「そうか、%CALLNAME:MASTER%というのか。覚えたぞ」
+			PRINTFORML 「私か？　私は尤魔っていうんだ」
+			PRINTL 
+			CALL ASK_YN("まさか…","あの剛欲同盟の…")
+			IF !RESULT
+				PRINTFORML 「クックック、そのまさかだよ」
+			ELSE
+				PRINTFORML 「ほう、ただの観光客にも名が知られているとは、私も出世したもんだな」
+			ENDIF
+			PRINTFORML 「我こそが剛欲同盟長、饕餮尤魔だ」
+			PRINTFORML 「%CALLNAME:MASTER%、悪いことは言わんからここは堅気が来るようなところじゃない」
+			PRINTFORML 「身ぐるみはがされたくなければさっさと畜生界を出ることだな」
+			PRINTL 
+			PRINTL そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+			PRINTFORML 「でないと、こわぁいこわぁい妖怪に頭から食われちまうぞ」
+			PRINTW 
+		;鬼傑組を名乗る
+		CASE 1 
+			PRINTFORML 「クックック、堂々と組を名乗るとは大胆なことをするなあ」
+			PRINTFORML 「残念だが、鬼傑のはそんな馬鹿正直に組の名を出したりせんよ」
+			IF (TALENT:MASTER:年齢 < 0 || (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行))
+				PRINTFORML 「おまけにこんなガキがヤクザごっことか…世も末だなぁ、おい」
+			ENDIF
+			IF TALENT:130:恋人
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「恋人のために敵対組織に探りでも入れてみたってところか？」
+				PRINTFORML 「クックック、泣けるなぁ。いい\@ TALENT:MASTER:性別 == 2 ? 男 # 女 \@だよ、お前」
+				PRINTFORML 「だがまぁ…一人でやってきたのは迂闊だったなぁ」
+				PRINTL 
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+				PRINTW 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「そういう手もあるにはあるが、吉弔のが怒りの余りえげつない策略を仕掛けてきたらたまらん」
+				PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+				PRINTL 
+			ELSEIF TALENT:130:恋慕
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「自分に惚れた女のために一肌脱いでやっているのか？　泣けるなあ」
+				PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+				PRINTL 
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+				PRINTW 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「そういう手もあるにはあるが、吉弔のが怒りの余りえげつない策略を仕掛けてきたらたまらん」
+				PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+				PRINTL 
+			ELSE
+				PRINTFORML 「本当の組員かどうかは重要じゃあない。多分お前さん、利用されているだけだぞ」
+				PRINTFORML 「奴さんたち、人間のことなんざ道具程度にしか考えていないからな」
+				PRINTL 
+				PRINTFORML 「もしくは、あいつの能力で逆らえなくされてるか、だな」
+				PRINTFORML 「あるいは…考えたくないが後先考えずにノリで鬼傑組を名乗った阿呆か、だ」
+				PRINTW 
+				PRINTFORML 「それに、だ」
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「のこのこ敵対組織の長にちょっかいを出して、五体満足で帰れると思ったか？」
+				PRINTW 
+				PRINTL 
+				PRINTL 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「万が一お前が鬼傑の者だったとして、あいつに報復の大義名分を与えるのも気に食わない」
+				PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+				PRINTL 
+			ENDIF
+			PRINTFORML 「おっと、自己紹介が遅れたな」
+			PRINTFORML 「我こそが剛欲同盟長、饕餮尤魔だ」
+			PRINTFORML 「お前さんが鬼傑の者なら、再び会うこともあるだろうなあ」
+			PRINTW 
+			PRINTFORML あなたは、[鬼傑組]の一員として見なされたようです
+			PRINTL 
+			CFLAG:1004 = 1
+		;勁牙組を名乗る
+		CASE 2
+			PRINTFORML 「クックック、威勢がいいなあ」
+			PRINTFORML 「だが、唾を吐く相手はしっかり吟味しておくことだぞ。弱肉強食の世界の世の常だ」
+			IF (TALENT:MASTER:年齢 < 0 || (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行))
+				PRINTFORML 「おまけにこんなガキがヤクザごっことか…世も末だなぁ、おい」
+			ENDIF
+			IF TALENT:133:恋人
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「恋人のために敵対組織に探りでも入れてみたってところか？」
+				PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+				PRINTL 
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+				PRINTW 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「そういう手もあるにはあるが、驪駒のが逆上してなりふり構わず攻め込まれても面倒だ」
+				PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+				PRINTL 
+			ELSEIF TALENT:133:恋慕
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「自分に惚れた女のために人肌脱いでやっているのか？　泣けるなあ」
+				PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+				PRINTL 
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+				PRINTW 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「そういう手もあるにはあるが、驪駒のが逆上してなりふり構わず攻め込まれても面倒だ」
+				PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+				PRINTL 
+			ELSE
+				PRINTFORML 「本当の組員かどうかは重要じゃあない。多分お前さん、利用されているだけだぞ」
+				PRINTFORML 「奴さんたち、人間のことなんざ餌程度にしか考えていないからな」
+				PRINTFORML 「まあ、あそこは力こそ正義。実力さえあればお前のようなものでものし上がれたりはするが」
+				PRINTFORML 「あるいは…考えたくないが後先考えずにノリで勁牙組を名乗った阿呆か、だ」
+				PRINTW 
+				PRINTFORML 「それに、だ」
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「のこのこ敵対組織の長にちょっかいを出して、五体満足で帰れると思ったか？」
+				PRINTW 
+				PRINTL 
+				PRINTL 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「万が一お前が勁牙の者だったとして、あいつに報復の大義名分を与えるのも気に食わない」
+				PRINTFORML 「事を荒立てる気がないなら見逃してやろう」
+				PRINTL 
+			ENDIF
+			PRINTFORML 「おっと、自己紹介が遅れたな」
+			PRINTFORML 「我こそが剛欲同盟長、饕餮尤魔だ」
+			PRINTFORML 「お前さんが勁牙の者なら、再び会うこともあるだろうなあ」
+			PRINTW 
+			PRINTFORML あなたは、[勁牙組]の一員として見なされたようです
+			PRINTL 
+			CFLAG:1005 = 1
+		;剛欲同盟に志願
+		CASE 3
+			PRINTFORML 「おいおい、物好きにも程があるぞ」
+			PRINTFORML 「私はともかく、部下たちは人間のことなんざ奴隷としか思っていないからな」
+			PRINTL 
+			PRINTFORML 「ん？　気付いたか？　そうだ、我こそが剛欲同盟長、饕餮尤魔だ」
+			PRINTFORML 「%CALLNAME:MASTER%、悪いことは言わんからここは堅気が来るようなところじゃない」
+			PRINTFORML 「身ぐるみはがされたくなければさっさと畜生界を出ることだな」
+			PRINTW 
+			PRINTFORML 「……もし、本気で組の一員になりたいんだったら勝手にしろ」
+			PRINTFORML 「そもそも長の私が徒党を組む気がないからな。部下たちも各々好きにやっている」
+			PRINTFORML 「だからお前も自分で考えて動け。まあ、期待はしていないがな」
+			PRINTW 
+			PRINTFORML あなたは、[剛欲同盟]の一員として見なされた…かもしれません
+			PRINTL 
+			CFLAG:1006 = 1
+		ENDSELECT
+	ENDIF
+;八千慧、早鬼の邸宅
+ELSEIF GROUPMATCH(CFLAG:MASTER:現在位置, 647, 648, 650, 651)
+	PRINTFORML 一人の少女がいた
+	PRINTFORML まるで羊毛を思わせるふわふわの髪からは、やはり羊のような真っ赤な角が二本生えており、先端に青いリボンを巻き付けている
+	PRINTFORML 饕餮文の入ったワンピースのような衣装を身にまとい、その下には肩が剥き出しになる赤色のインナーを着用しているようだ
+	PRINTFORML 何より目を惹くのが、少女の背丈よりもずっと大きい先割れスプーンだ
+	PRINTL 
+	PRINTFORML 「んん？」
+	PRINTFORML 「私以外にも客がいたのか？　見慣れん顔だが…お前、どこの組の者だ？」
+	CALL ASK_M("ただの観光客です", 1,"鬼傑組の%CALLNAME:MASTER%と申します", 1,"勁牙組の%CALLNAME:MASTER%じゃコラァ！", 1,"剛欲同盟に憧れる%CALLNAME:MASTER%です", 1)
+	SELECTCASE RESULT
+	;観光客を名乗る
+	CASE 0
+		PRINTFORML 「クックック、ヤクザのヤサに観光に来るとは、随分の大馬鹿野郎か大物なんだか」
+		PRINTFORML 「お前、名は？」
+		PRINTL 
+		PRINTFORML 「そうか、%CALLNAME:MASTER%というのか。覚えたぞ」
+		;八千慧が恋人または恋慕
+		IF TALENT:130:恋人 || TALENT:130:恋慕
+			IF GROUPMATCH(CFLAG:MASTER:現在位置, 647, 648)
+				PRINTFORML 「待てよ。%CALLNAME:MASTER%だと？　%CALLNAME:MASTER%…ああ、思い出した」
+				PRINTFORML 「お前、吉弔のツレか。どこかで聞いたことある名前だと思ったよ」
+				PRINTFORML 「ならこんなところにいるのも納得だな。新婚さんはお熱いねぇ」
+			ELSE
+				PRINTFORML 「待てよ。%CALLNAME:MASTER%だと？　%CALLNAME:MASTER%…ああ、思い出した」
+				PRINTFORML 「お前、吉弔のツレか。どこかで聞いたことある名前だと思ったよ」
+				PRINTFORML 「愛する女のために敵情視察か？　涙ぐましいなあ、おい」
+			ENDIF
+		;早鬼が恋人または恋慕
+		ELSEIF TALENT:133:恋人 || TALENT:133:恋慕
+			IF GROUPMATCH(CFLAG:MASTER:現在位置, 650, 651)
+				PRINTFORML 「待てよ。%CALLNAME:MASTER%だと？　%CALLNAME:MASTER%…ああ、思い出した」
+				PRINTFORML 「お前、驪駒のツレか。どこかで聞いたことある名前だと思ったよ」
+				PRINTFORML 「ならこんなところにいるのも納得だな。新婚さんはお熱いねぇ」
+			ELSE
+				PRINTFORML 「待てよ。%CALLNAME:MASTER%だと？　%CALLNAME:MASTER%…ああ、思い出した」
+				PRINTFORML 「お前、驪駒のツレか。どこかで聞いたことある名前だと思ったよ」
+				PRINTFORML 「愛する女のために敵情視察か？　涙ぐましいなあ、おい」
+			ENDIF
+		ENDIF
+		PRINTFORML 「私か？　私は尤魔っていうんだ」
+		PRINTL 
+		CALL ASK_YN("まさか…","あの剛欲同盟の…")
+		IF !RESULT
+			PRINTFORML 「クックック、そのまさかだよ」
+		ELSE
+			PRINTFORML 「ほう、ただの観光客にも名が知られているとは、私も出世したもんだな」
+		ENDIF
+		PRINTFORML 「我こそが剛欲同盟長、饕餮尤魔だ」
+		PRINTFORML 「%CALLNAME:MASTER%、悪いことは言わんからここは堅気が来るようなところじゃない」
+		PRINTFORML 「私と違って、ここの奴は人間のことなんざなんとも思ってないからな」
+		PRINTFORML 「身ぐるみはがされたくなければさっさと畜生界を出ることだな」
+		PRINTL 
+		PRINTL そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+		PRINTFORML 「でないと、こわぁいこわぁい妖怪に頭から食われちまうぞ」
+		PRINTW 
+	;鬼傑組を名乗る
+	CASE 1 
+		;八千慧邸
+		IF GROUPMATCH(CFLAG:MASTER:現在位置, 647, 648)
+			PRINTFORML 「ほう、ここの組の者か」
+			PRINTFORML 「親分のお膝元だから、気が大きくなったか？」
+			IF TALENT:130:恋人
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「恋人のために私に探りでも入れてみたってところか？」
+				PRINTFORML 「クックック、泣けるなぁ。いい\@ TALENT:MASTER:性別 == 2 ? 男 # 女 \@だよ、お前」
+				PRINTFORML 「だがまぁ…相手は選べよ？」
+				PRINTL 
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「私もヤクザだ。吉弔ならともかく、お前のような木っ端が私の相手になると思うなよ？」
+				PRINTFORML 小柄な体からは想像もつかないようなドスの利いた声で少女は警告する
+				PRINTW 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「そもそも私はここへ客として来たんだ。他人の縄張りで事を構える気はない」
+				PRINTL 
+			ELSEIF TALENT:130:恋慕
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「自分に惚れた女のために一肌脱いでやっているのか？　泣けるなあ」
+				PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+				PRINTL 
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「私もヤクザだ。吉弔ならともかく、お前のような木っ端が私の相手になると思うなよ？」
+				PRINTFORML 小柄な体からは想像もつかないようなドスの利いた声で少女は警告する
+				PRINTW 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「そもそも私はここへ客として来たんだ。他人の縄張りで事を構える気はない」
+				PRINTL 
+			ELSE
+				PRINTFORML 「本当の組員かどうかは重要じゃあない。多分お前さん、利用されているだけだぞ」
+				PRINTFORML 「奴さんたち、人間のことなんざ道具程度にしか考えていないからな」
+				PRINTL 
+				PRINTFORML 「もしくは、あいつの能力で逆らえなくされてるか、だな」
+				PRINTFORML 「あるいは…考えたくないが後先考えずにノリで鬼傑組を名乗った阿呆か、だ」
+				PRINTW 
+				PRINTFORML 「それに、だ」
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「のこのこ敵対組織の長にちょっかいを出して、ただで済む思ったか？」
+				PRINTW 
+				PRINTL 
+				PRINTL 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「万が一お前が鬼傑の者だったとして、あいつに報復の大義名分を与えるのも気に食わない」
+				PRINTFORML 「私もここへは客として来ている。他人の縄張りで事を構える気はない」
+				PRINTL 
+			ENDIF
+		;早鬼邸
+		ELSE
+			PRINTFORML 「お前、ここは敵対組織のど真ん中だぞ」
+			PRINTFORML 「そんなところで馬鹿正直に名乗って大丈夫か？　鬼傑のやつにしちゃ、随分と間抜けだな」
+			IF TALENT:130:恋人
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「恋人のために敵対組織に探りでも入れてみたってところか？」
+				PRINTFORML 「クックック、泣けるなぁ。いい\@ TALENT:MASTER:性別 == 2 ? 男 # 女 \@だよ、お前」
+				PRINTFORML 「だがまぁ…一人でやってきたのは迂闊だったなぁ」
+				PRINTL 
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+				PRINTW 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「そういう手もあるにはあるが、吉弔のが怒りの余りえげつない策略を仕掛けてきたらたまらん」
+				PRINTFORML 「それに、私もここへは客として来ている。他人の縄張りで事を構える気はない」
+				PRINTFORML 「騒ぎになる前にここを早く出ることだな」
+				PRINTL 
+			ELSEIF TALENT:130:恋慕
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「自分に惚れた女のために一肌脱いでやっているのか？　泣けるなあ」
+				PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+				PRINTL 
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「私もヤクザだ。ここでお前を痛めつけて拉致してもいいし、三途の川に沈めてあいつに精神的ダメージを負わせてもいい」
+				PRINTW 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「そういう手もあるにはあるが、吉弔のが怒りの余りえげつない策略を仕掛けてきたらたまらん」
+				PRINTFORML 「それに、私もここへは客として来ている。他人の縄張りで事を構える気はない」
+				PRINTFORML 「騒ぎになる前にここを早く出ることだな」
+				PRINTL 
+			ELSE
+				PRINTFORML 「本当の組員かどうかは重要じゃあない。多分お前さん、利用されているだけだぞ」
+				PRINTFORML 「奴さんたち、人間のことなんざ道具程度にしか考えていないからな」
+				PRINTL 
+				PRINTFORML 「もしくは、あいつの能力で逆らえなくされてるか、だな」
+				PRINTFORML 「あるいは…考えたくないが後先考えずにノリで鬼傑組を名乗った阿呆か、だ」
+				PRINTW 
+				PRINTFORML 「それに、だ」
+				PRINTFORML そう言って、目の前の少女はスプーンのような獲物をこちらに突きつける
+				PRINTFORML 「のこのこ敵対組織の長にちょっかいを出して、五体満足で帰れると思ったか？」
+				PRINTW 
+				PRINTL 
+				PRINTL 
+				PRINTFORML 「…なんて、な」
+				PRINTFORML 「万が一お前が鬼傑の者だったとして、あいつに報復の大義名分を与えるのも気に食わない」
+				PRINTFORML 「私もここへは客として来ている。他人の縄張りで事を構える気はない」
+				PRINTFORML 「騒ぎになる前にここを早く出ることだな」
+				PRINTL 
+			ENDIF
+		ENDIF
+		PRINTFORML 「おっと、自己紹介が遅れたな」
+		PRINTFORML 「我こそが剛欲同盟長、饕餮尤魔だ」
+		PRINTFORML 「お前さんが鬼傑の者なら、再び会うこともあるだろうなあ」
+		PRINTW 
+		PRINTFORML あなたは、[鬼傑組]の一員として見なされたようです
+		PRINTL 
+		CFLAG:1004 = 1
+	;勁牙組を名乗る
+	CASE 2
+		;八千慧邸（お風呂は除外）
+		IF GROUPMATCH(CFLAG:MASTER:現在位置, 647, 648)
+			PRINTFORML 「…やっぱり勁牙の奴らは脳筋揃いなんだな…鬼傑の奴らよりは可愛げがあるが…」
+			PRINTFORML 「よりによって敵対組織のど真ん中で堂々と名乗るとかな」
+			IF TALENT:133:恋人
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「恋人のために敵対組織に探りでも入れてみたってところか？」
+				PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+				PRINTL 
+				PRINTFORML 「ここは吉弔のシマだ。恋人に泣かれたくなかったら大人しく帰っておけ」
+				PRINTFORML 「最終的に迷惑を被るのは驪駒だぞ？」
+				PRINTL 
+			ELSEIF TALENT:133:恋慕
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「自分に惚れた女のために人肌脱いでやっているのか？　泣けるなあ」
+				PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+				PRINTL 
+				PRINTFORML 「ここは吉弔のシマだ。女に泣かれたくなかったら大人しく帰っておけ」
+				PRINTFORML 「最終的に迷惑を被るのは驪駒だぞ？」
+				PRINTL 
+			ELSE
+				PRINTFORML 「本当の組員かどうかは重要じゃあない。多分お前さん、利用されているだけだぞ」
+				PRINTFORML 「奴さんたち、人間のことなんざ餌程度にしか考えていないからな」
+				PRINTFORML 「まあ、あそこは力こそ正義。実力さえあればお前のようなものでものし上がれたりはするが」
+				PRINTFORML 「あるいは…考えたくないが後先考えずにノリで勁牙組を名乗った阿呆か、だ」
+				PRINTW 
+				PRINTFORML 「万が一お前が勁牙の者だったとして、吉弔のシマで組の名前を出すんじゃない」
+				PRINTFORML 「最終的に迷惑を被るのは驪駒だぞ？　それとも、それが狙いか？」
+				PRINTFORML 「…ったく、なんで私が敵対組織の木っ端なんぞの面倒をみてやらんといかんのだ…部下の教育はちゃんとしておけよ」
+				PRINTL 
+			ENDIF
+		;早鬼邸（お風呂は除外）
+		ELSEIF GROUPMATCH(CFLAG:MASTER:現在位置, 650, 651)
+			IF TALENT:133:恋人
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「恋人のために敵対組織に探りでも入れてみたってところか？」
+				PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+				PRINTL 
+				PRINTFORML 「それに私はここに客として来ている。お前らが脳筋ぞろいなのは知っているが、礼儀まで失するつもりか？」
+				PRINTFORML 「最終的に迷惑を被るのは驪駒だぞ？」
+				PRINTL 
+			ELSEIF TALENT:133:恋慕
+				PRINTFORML 「ん？　お前、確か…」
+				PRINTFORML 「自分に惚れた女のために人肌脱いでやっているのか？　泣けるなあ」
+				PRINTFORML 「だがやめておけ。弾幕ごっこならいざ知らず、命の獲り合いになったら保証はできんぞ」
+				PRINTL 
+				PRINTFORML 「それに私はここに客として来ている。お前らが脳筋ぞろいなのは知っているが、礼儀まで失するつもりか？」
+				PRINTFORML 「最終的に迷惑を被るのは驪駒だぞ？」
+				PRINTL 
+			ELSE
+				PRINTFORML 「本当の組員かどうかは重要じゃあない。多分お前さん、利用されているだけだぞ」
+				PRINTFORML 「奴さんたち、人間のことなんざ餌程度にしか考えていないからな」
+				PRINTFORML 「まあ、あそこは力こそ正義。実力さえあればお前のようなものでものし上がれたりはするが」
+				PRINTFORML 「あるいは…考えたくないが後先考えずにノリで勁牙組を名乗った阿呆か、だ」
+				PRINTW 
+				PRINTFORML 「万が一お前が勁牙の者だったとして、正式な客に喧嘩売るんじゃない」
+				PRINTFORML 「最終的に迷惑を被るのは驪駒だぞ？　それとも、それが狙いか？」
+				PRINTFORML 「…ったく、なんで私が敵対組織の木っ端なんぞの面倒をみてやらんといかんのだ…部下の教育はちゃんとしておけよ」
+				PRINTL 
+			ENDIF
+		ENDIF
+		PRINTFORML 「おっと、自己紹介が遅れたな」
+		PRINTFORML 「我こそが剛欲同盟長、饕餮尤魔だ」
+		PRINTFORML 「お前さんが勁牙の者なら、再び会うこともあるだろうなあ」
+		PRINTW 
+		PRINTFORML あなたは、[勁牙組]の一員として見なされたようです
+		PRINTL 
+		CFLAG:1005 = 1
+	;剛欲同盟に志願
+	CASE 3
+		PRINTFORML 「おいおい、物好きにも程があるぞ」
+		PRINTFORML 「私はともかく、部下たちは人間のことなんざ奴隷としか思っていないからな」
+		PRINTL 
+		PRINTFORML 「というか、同盟に入りたい奴がなんでこんなところをウロウロしてるんだ」
+		PRINTFORML 「焦って手柄を立てに来たのかもしれんが…バレたらお前、袋叩きにされかねんぞ。話しかけたのが私でよかったな」
+		PRINTL 
+		PRINTFORML 「ん？　気付いたか？　そうだ、我こそが剛欲同盟長、饕餮尤魔だ」
+		PRINTFORML 「%CALLNAME:MASTER%、悪いことは言わんからここは堅気が来るようなところじゃない」
+		PRINTFORML 「身ぐるみはがされたくなければさっさと畜生界を出ることだな」
+		PRINTW 
+		PRINTFORML 「……もし、本気で組の一員になりたいんだったら勝手にしろ」
+		PRINTFORML 「そもそも長の私が徒党を組む気がないからな。部下たちも各々好きにやっている」
+		PRINTFORML 「だからお前も自分で考えて動け。まあ、期待はしていないがな」
+		PRINTW 
+		PRINTFORML あなたは、[剛欲同盟]の一員として見なされた…かもしれません
+		PRINTL 
+		CFLAG:1006 = 1
+	ENDSELECT
+;畜生界以外でのメインマップでの遭遇
+ELSEIF MAIN_MAP == 6
+	PRINTFORML 一人の少女がいた
+	PRINTFORML まるで羊毛を思わせるふわふわの髪からは、やはり羊のような真っ赤な角が二本生えており、先端に青いリボンを巻き付けている
+	PRINTFORML 饕餮文の入ったワンピースのような衣装を身にまとい、その下には肩が剥き出しになる赤色のインナーを着用しているようだ
+	PRINTFORML 何より目を惹くのが、少女の背丈よりもずっと大きい先割れスプーンだ
+	PRINTW 
+	PRINTFORML 「んん？」
+	PRINTFORML 「お前、この辺じゃ見慣れん顔だが…地上の奴か？」
+	PRINTFORML 少女は抜け目なくこちらを観察している
+	PRINTL 
+	IF FLAG:陥落人数 >= 10 
+		PRINTFORML 「ふぅん、お前、随分と欲を溜め込んでいるようだな」
+		PRINTFORML 「くだけて言えば女を自分のモノにしたいって欲だ。私には、他人の欲が〝視える〟んだよ」
+		IF FLAG:周回数 > 3
+			PRINTFORML 「！！　おっほ…♪　これはこれは、くくくっ」
+			PRINTFORML 「お前、とんでもない欲の持ち主だなあ。こんな欲の持ち主…あの時代の皇帝以来か…いや、それ以上かもな」
+			PRINTFORML 「この私ですらお前の欲で胃もたれしそうだぜ。くっくっく」
+		ELSEIF FLAG:周回数 > 0
+			PRINTFORML 「いや待て…お前、巧妙に隠しちゃあいるが、随分どころじゃあないな」
+			PRINTFORML 「〝同質〟ではあるが異なる欲がまとわりついている。くっくっく、面白い奴だな」
+		ENDIF
+		PRINTFORML 「ひょっとして、ここにもそういう目的でやってきたのか？　業の深い奴だなぁ、くくくっ」
+	ELSEIF FLAG:陥落人数 >= 2
+		PRINTFORML 「ふぅん、女との出会いを求めてはるばるここへやって来たのか？」
+		PRINTFORML 「私はな、他人の欲が〝視える〟んだよ。何人かとっかえひっかえして遊んでるんだろ？」
+		IF FLAG:周回数 > 3
+			PRINTFORML 「いや待て…お前、巧妙に隠しちゃあいるが、相当な欲の持ち主だな」
+			PRINTFORML 「一瞬気付かなかったが、幾重もの欲が蛇のように絡みついてやがる。こりゃ、何人かじゃ済まないだろ。くっくっく」
+		ELSEIF FLAG:周回数 > 0
+			PRINTFORML 「いや待て…お前、巧妙に隠しちゃあいるが、相当な欲の持ち主だな」
+			PRINTFORML 「〝同質〟ではあるが異なる欲がまとわりついている。くっくっく、面白い奴だな」
+		ENDIF
+	ELSE
+		PRINTFORML 「ふぅん、割と普通の欲の持ち主のようだな」
+		IF FLAG:周回数 > 3
+			PRINTFORML 「いや待て…お前、巧妙に隠しちゃあいるが、相当な欲の持ち主だな」
+			PRINTFORML 「一瞬気付かなかったが、幾重もの欲が蛇のように絡みついてやがる。くっくっく、大した奴だ」
+		ELSEIF FLAG:周回数 > 0
+			PRINTFORML 「いや待て…お前、巧妙に隠しちゃあいるが、相当な欲の持ち主だな」
+			PRINTFORML 「〝同質〟ではあるが異なる欲がまとわりついている。くっくっく、面白い奴だな」
+		ENDIF
+	ENDIF
+	PRINTW 
+	PRINTFORML 「遠路はるばる幻想郷のどん詰まりへようこそ。私は饕餮尤魔（とうてつ　ゆうま）だ」
+	PRINTFORML 「地上じゃ黒い水が噴き出た異変の元凶…ってことになってるのか？」
+	PRINTL 
+	PRINTFORML 「こっちが名乗ったんだ。お前の名前も教えろよ」
+	PRINTFORML 「ふぅん、%CALLNAME:MASTER%っていうのか」
+	PRINTFORML 「よろしく、%CALLNAME:MASTER%。お前とは長い付き合いになりたいもんだなぁ…」
+	PRINTFORML 少女は羊のような瞳を細め、尖った歯を剥き出しにしてニヤリと笑った
+	PRINTW 
+;完全にアウェー（縁結びなんかでできる？）
+ELSE
+	PRINTFORML 一人の少女がいた
+	PRINTFORML まるで羊毛を思わせるふわふわの髪からは、やはり羊のような真っ赤な角が二本生えており、先端に青いリボンを巻き付けている
+	PRINTFORML 饕餮文の入ったワンピースのような衣装を身にまとい、その下には肩が剥き出しになる赤色のインナーを着用しているようだ
+	PRINTFORML 何より目を惹くのが、少女の背丈よりもずっと大きい先割れスプーンだ
+	PRINTW 
+	PRINTFORML 「んん？」
+	PRINTFORML 「おっと失礼。スプーンが邪魔だったか」
+	PRINTFORML 「袖振り合うも多生の縁って言葉があったな。私は饕餮尤魔（とうてつゆうま）」
+	PRINTFORML 「普段は地獄にいるんだがな…無性に地上に出てきたくなったんだよ」
+	PRINTL 
+	PRINTFORML 「お前の名は？　よかったら教えてくれ」
+	PRINTFORML 「ふーん…%CALLNAME:MASTER%というのか。改めて初めましてだな、%CALLNAME:MASTER%」
+	PRINTFORML 「ところでお前──」
+	IF FLAG:陥落人数 >= 10
+		PRINTFORML 「とんでもねぇ欲の持ち主だなぁ」
+		PRINTFORML 「言葉が巧いのかあっちの腕がいいのかそれとも他人を惹きつける魅力の持ち主か…女に不自由したことないだろ？」
+		PRINTFORML 「〝視える〟んだよ。私には。お前の女を侍らせたいって欲がな」
+		IF FLAG:周回数 > 3
+			PRINTFORML 「ん、んん…？　！！　おっほ…♪　これはこれは、くくくっ」
+			PRINTFORML 「お前、とんでもない欲の持ち主だなあ。こんな欲の持ち主…あの時代の皇帝以来か…いや、それ以上かもな」
+			PRINTFORML 「一瞬気付かなかったが、お前、さらなる欲を裡に秘めているな」
+			PRINTFORML 「この私ですらお前の欲で胃もたれしそうだぜ。くっくっく」
+		ELSEIF FLAG:周回数 > 0
+			PRINTFORML 「いや待て…お前、巧妙に隠しちゃあいるが、随分どころじゃあないな」
+			PRINTFORML 「〝同質〟ではあるが異なる欲がまとわりついている。くっくっく、面白い奴だな」
+		ENDIF
+		PRINTFORML 「決めた。私は、お前に付きまとうことにしたぞ」
+		PRINTFORML 「お前の持つ欲は興味深い。お前に付いていったら面白いことが起きると私の勘が告げている」
+		PRINTFORML 「これからもよろしくな、%CALLNAME:MASTER%」
+		PRINTFORML 尤魔は刃を思わせるギザギザの歯を見せ、ニッと笑った
+		PRINTW 
+	ELSEIF FLAG:陥落人数 >= 2
+		PRINTFORML 「かなりの欲の持ち主だなぁ。女は両手で抱くだけじゃ飽き足らないか？」
+		PRINTFORML 「〝視える〟んだよ。私には。お前の女を侍らせたいって欲がな」
+		IF FLAG:周回数 > 3
+			PRINTFORML 「いや待て…お前、巧妙に隠しちゃあいるが、かなりどころじゃない欲の持ち主だな」
+			PRINTFORML 「一瞬気付かなかったが、幾重もの欲が蛇のように絡みついてやがる。こりゃ、何人かじゃ済まないだろ。くっくっく」
+		ELSEIF FLAG:周回数 > 0
+			PRINTFORML 「いや待て…お前、巧妙に隠しちゃあいるが、相当な欲の持ち主だな」
+			PRINTFORML 「〝同質〟ではあるが異なる欲がまとわりついている。くっくっく、面白い奴だな」
+		ENDIF
+		PRINTFORML 「決めた。私は、お前に付きまとうことにしたぞ」
+		PRINTFORML 「お前の持つ欲は興味深い。お前に付いていったら面白いことが起きると私の勘が告げている」
+		PRINTFORML 「これからもよろしくな、%CALLNAME:MASTER%」
+		PRINTFORML 尤魔は刃を思わせるギザギザの歯を見せ、ニッと笑った
+		PRINTW 
+	ELSE
+		PRINTFORML 「美味い飯屋を知らないか？　私は美味い物に目がなくてな」
+		PRINTFORML 「しかし地上には知り合いが少ないから困っていたところなんだ。知っていたら、案内してくれよ」
+		PRINTFORML 尤魔は刃を思わせるギザギザの歯を見せ、ニッと笑った
+		PRINTW 
+	ENDIF
+
+	PRINTW 
+ENDIF
+RETURN 1
+
+@K143_BEFORETRAIN
+;一日の開始時、正確には来訪判定時に読み込む関数,使うときはコメントアウトを外すこと
+;ここでCFLAG:XX:翌日来訪を設定して確実に来訪させたりTCVAR:XX:発情で朝っぱらからサカらせることもできる
+;ただし「毎朝例外なく読み込まれる」ため、条件を設定しておくことが望ましい
+;尤魔宅のリビング（厨房）は常に清潔に保たれている
+IF YOGORE:(653) > 0
+	PRINTFORML 尤魔は起床後、厨房の隅から隅まで丁寧に掃除をしたようだ…
+	YOGORE:(653) = 0
+ENDIF
+
+IF K143C_剛欲同盟 == 1 && (DAY:2 == 1 && DAY:3 == 1)
+	PRINTFORML 「くっくっく。明けましておめでとう」
+	PRINTFORML 尤魔の邸宅に、剛欲同盟の構成員が一堂に会していた
+	PRINTW 
+	PRINTFORML 「日頃頑張っているお前たちにお年玉をくれてやろう。ほら、一列に並べ」
+	PRINTFORML 日頃から尤魔を慕っている構成員たちから歓声が上がる
+	PRINTW 
+	PRINTFORML 尤魔から手渡しで受け取った構成員たちからは、
+	PRINTFORML 「守矢くじだああああ」
+	PRINTFORML 「木片だあああああ」
+	PRINTFORML 「１００カリスマだあああああ」
+	PRINTFORML といった喜びの声（？）があちこちで上がっている…
+	PRINTW 
+	PRINTFORML 「くっくっく。ただあげたんじゃつまらんからな。中身はバラバラだ」
+	PRINTFORML 「さーて、%CALLNAME:MASTER%。お前のお年玉の中身は何かな？」
+	PRINTW 
+	PRINTFORML 運命のドラムロール…！
+	PRINTW 
+	SELECTCASE RAND:99
+	CASE 0
+		PRINTFORML \\100000だあああああ！
+		PRINTW 
+		PRINTFORML 「おお…まさか、大当たりを引き当てるとはな」
+		PRINTFORML 「今年はついているかもな。その金は好きに使え」
+		PRINTW 
+		MONEY += 100000
+	CASE 1 TO 10
+		PRINTFORML \\30000だあああああ！
+		PRINTW 
+		PRINTFORML 「ほう、惜しかったじゃないか」
+		PRINTFORML 「悪くはないが、まだ最高金額が残っているからな。来年に期待していろ」
+		PRINTW 
+		MONEY += 30000
+	CASE 11 TO 20
+		PRINTFORML \\10000だあああああ！
+		PRINTW 
+		PRINTFORML 「まあまあだな」
+		PRINTFORML 「それよりずっと上の額があるぞ」
+		PRINTW 
+		MONEY += 10000
+	CASE 21 TO 40
+		PRINTFORML 地獄ラーメン１年分引換券だあああああ！
+		PRINTW 
+		PRINTFORML 「くっくっく。お前、辛いの好きか？」
+		PRINTW 
+	CASE 41 TO 60
+		PRINTFORML 子ども銀行券（100兆円）だあああああ！
+		PRINTW 
+		PRINTFORML 「くっくっく。額面だけは最高だな」
+		PRINTW 
+	CASE 61 TO 99
+		PRINTFORML タワシだあああああ！
+		PRINTW 
+		PRINTFORML 「くっくっく。残念だったな。次は乗り物でも当たるといいなあ」
+		PRINTW 
+	ENDSELECT
+	PRINTW 
+	
+ENDIF
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;"SP_EVENT"系イベント
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;デート帰りにファーストKISS（合意も付く）
+;==================================================
+@M_KOJO_SPEVENT_K143_1(ARG,ARG:1)
+;口上主はTARGET
+;地の文表示
+CALL SPEVENT_MESSAGE_1(ARG,ARG:1)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	PRINTFORML 「なあ、%CALLNAME:MASTER%。今日は楽しかったぞ」
+	PRINTFORML 尤魔は上機嫌のようだ。にも拘わらず首に腕を回されている…
+	PRINTL 
+	PRINTFORML 「頑張ったお前にはご褒美をあげないとなあ」
+	PRINTFORML ニヤニヤと笑う尤魔の顔が近づき、視界いっぱいに尤魔が映った瞬間、唇に柔らかい感触を感じた
+	PRINTW 
+	PRINTFORML 「どうだ？　強欲同盟長さまのお味は」
+	PRINTFORML 「クックック、ちなみに今のは私の初めてだからな。光栄に思え」
+	PRINTL 
+	PRINTFORML 「意外か？　残念ながら、今まで捧げたい相手もいなければ奪ってこようとする骨のある奴もいなかったんだ」
+	PRINTFORML 「それだけお前は特別ってことだよ」
+	PRINTL 
+	IF K143C_鬼傑組 == 1
+		IF TALENT:130:恋人
+			PRINTFORML 「吉弔の情夫？知らんね。私がお前を気に入ったんだ」
+		ELSE
+			PRINTFORML 「お前が鬼傑と縁のある者だったとしてもな」
+		ENDIF
+		PRINTFORML 「覚えておけ。饕餮尤魔は欲しいものはどんな手段を用いても手に入れるってことをな」
+		PRINTL 
+	ELSEIF K143C_勁牙組 == 1
+		IF TALENT:130:恋人
+			PRINTFORML 「驪駒の情夫？知らんね。私がお前を気に入ったんだ」
+		ELSE
+			PRINTFORML 「お前が勁牙と縁のある者だったとしてもな」
+		ENDIF
+		PRINTFORML 「覚えておけ。饕餮尤魔は欲しいものはどんな手段を用いても手に入れるってことをな」
+		PRINTL 
+	ELSEIF K143C_剛欲同盟 == 1
+		PRINTFORML 「組の者が黙っちゃいない？　知ったことか。私は欲しいものはなんだって自分のものにしなきゃ気が済まない」
+		PRINTFORML 「お前だってそうさ。文句のあるやつは私がぶっとばす。お前は、私のもんだ」
+		PRINTL 
+	ELSE
+		PRINTFORML 「堅気のお前に手を出すのもどうかとは思ったがな。私は欲張りなんだ。欲しいものは手に入れる」
+		PRINTFORML 「お前の気持ちを無視してひどい奴だと思うか？　それが、饕餮尤魔と付き合うってことだよ」
+		PRINTFORML 「私の持っているものならお前にくれてやる。代わりに、お前のすべてを私によこせ。心も身体もな」
+		PRINTL 
+	ENDIF
+	;キスをキャンセルしたい場合は以下を開放
+	;TCVAR:キスキャンセル = 1
+ENDIF
+RETURN 1
+
+;==================================================
+;デート帰りに告白（恋人が付く）
+;==================================================
+@M_KOJO_SPEVENT_K143_2(ARG,ARG:1)
+;口上主はTARGET
+;地の文表示
+CALL SPEVENT_MESSAGE_2(ARG,ARG:1)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;告白内容
+	;この告白内容表示後に受けるかどうかの選択分が表示されます
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML 「おい、%CALLNAME:MASTER%。私と付き合わないか？」
+		PRINTFORML 「もう付き合ってるって、そっちの話じゃない。お前、案外鈍いんだな」
+		PRINTL 
+		PRINTFORML 「私の恋人として付き合えってことだよ」
+		IF TALENT:MASTER:無知
+			PRINTFORML 「よくわからないって顔してんな…」
+			PRINTFORML 「あー、よーするにだ、私はお前のことが好きだから、今まで以上に仲良くするぞってことだよ」
+			PRINTFORML 「あー分かった分かった！　私はお前が大好きだから、ずっと一緒にいてくれ！　これで分かっただろ！　これ以上は聞くな！」
+		ELSE
+			PRINTFORML 「私はお前のことを気に入っている。利害とはまったく別にしてな」
+			IF K143C_鬼傑組 == 1 || K143C_勁牙組 == 1
+				PRINTFORML 「お前がライバル組織の者だとしてもだ。私は欲張りだからな。欲しいものは手に入れる」
+			ELSEIF K143C_剛欲同盟 == 1
+				PRINTFORML 「お前は私の部下かもしれんが、各々が好き勝手にやってる組織だ。惚れた腫れたも好きにやりゃいい」
+			ELSE
+				PRINTFORML 「お前はどの組にも所属してるわけじゃないしな。誰かのものになる前に、私のものにしたい」
+			ENDIF
+			PRINTW 
+			PRINTFORML 「……あーだこーだ理屈をつけたが、要は、他の奴にお前を取られたくないんだよ」
+			PRINTFORML 「すべてにおいて利害を計算して動いてきたこの私が、だ。笑えるだろ？」
+			PRINTW 
+			PRINTFORML 「……なってくれるか？　私の恋人に」
+			PRINTL 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;告白オッケー（恋人が付く）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		IF TALENT:MASTER:無知
+			PRINTFORML 「なんかまだ微妙に分かってなさそうな感じもするが…お前も、私のことが好きなんだな」
+		ELSE
+			PRINTL 
+			PRINTFORML 「そうか、そうか！」
+			PRINTFORML 尤魔は満面の笑みで%CALLNAME:MASTER%に抱きついた
+			PRINTW 
+			IF K143C_鬼傑組 == 1 || K143C_勁牙組 == 1
+				PRINTFORML 「組の方には私から話をつけといてやる。安心しろ」
+				PRINTFORML 「私としちゃ、同盟を結んでも全然かまわんのだがな。勢力だって確保できるし、お前にも問題なく会うことができる」
+			ELSEIF K143C_剛欲同盟 == 1
+				PRINTFORML 「同盟の奴らには私から宣言しておいてやる。安心しろ」
+				PRINTFORML 「私から惚れたと言えばほとんどの奴も納得してくれるだろう。まあ、小言の一つや二つは言われるかもしれんがな」
+			ELSE
+				PRINTFORML 「お前と私は今日から恋人だな！　最高の日だ！」
+				PRINTFORML 「ははっ、こんなに胸が高鳴ったのはいつ以来だ、ほら、触れてみろ。早鐘のようだろ？」
+			ENDIF
+		ENDIF
+		PRINTW 
+		PRINTFORML 「さて、恋人になったからにはこいつをやっとかないとな」
+		PRINTFORML 尤魔はニヤリと笑うと、抱きついたまま顔を近づけてきた
+		PRINTW
+		IF TALENT:MASTER:キス未経験
+			CALL SET_FIRSTKISS(MASTER, 143, 0)
+			PRINTFORML 「ひょっとして、お前初めてだったのか？」
+			IF TALENT:143:キス未経験
+				PRINTFORML 「そいつは奇遇だな。私も実は初めてだ」
+			ELSE
+				PRINTFORML 「こいつはついていたな。お前の初めてを奪ってやったぞ」
+			ENDIF
+		ELSEIF TALENT:143:キス未経験
+			CALL SET_FIRSTKISS(143, MASTER, 0)
+			PRINTFORML 「ぎこちない？　しょーがねーだろ…初めてだったんだからよ…」
+			PRINTFORML 「初めてでもなんでも、お前とキスしたかったんだよ…悪いかよ」
+			PRINTFORML 尤魔には珍しく、照れた表情を浮かべモジモジしている
+		ELSE
+			PRINTFORML 「お互い初めてってわけじゃねーが…恋人としちゃ初めての口付けだな」
+			PRINTFORML 「うまく言えんが…なんか唇がムズムズする。今までのキスとは全然違うな」
+		ENDIF
+		PRINTW 
+		PRINTFORML 「恋人になった以上、お前は血の一滴まで残らず私のもんだ」
+		PRINTFORML 「骨の髄まで愛し尽くしてやる。覚悟しろよ。くっくっく」
+		PRINTFORML 物騒な表情と言葉で、尤魔から最大級の愛を囁かれた…
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;告白失敗
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		IF K143C_鬼傑組 == 1 || K143C_勁牙組 == 1
+			PRINTFORML 「なんだ？　ひょっとして組から罰を受けるのを恐れてるのか？」
+			IF (TALENT:MASTER:年齢 <= 0 ||  (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行))
+				PRINTFORML 「…まあ、お前からすりゃ怒られるかもしれないのは怖いよな」
+				PRINTW 
+			ELSE
+				PRINTFORML 「…まあ、好き勝手やってる私の所と違って、お前の所は規律も厳しそうだしな」
+				PRINTW 
+			ENDIF
+				PRINTFORML 「ちっ、しゃーない。お前の気が変わるのを待ってやるさ」
+				PRINTFORML 「こう見えて、待つことや説得することは得意なんだ」
+				PRINTFORML 「とはいえ、待たせすぎるなよ？　実力行使って手もあるからな？」
+				PRINTW 
+		ELSEIF K143C_剛欲同盟 == 1
+			PRINTFORML 「なんだ？　ひょっとして周りの目を気にしているのか？」
+			IF TALENT:MASTER:無知
+				PRINTFORML 「…まだよく分かってないって感じだな」
+				PRINTFORML 「…ちょっとだけ、お前を好きになった気持ちが揺らいだぞ」
+			ELSE
+				SELECTCASE K143C_地位
+				;若頭
+				CASE 5
+					PRINTFORML 「お前、今じゃ私の片腕だぞ？　もっと自信持てよ」
+					PRINTFORML 「ひょ、ひょっとして、そもそも私のことがそんなに好きじゃないのか…？」
+				;本部長
+				CASE 4
+					PRINTFORML 「お前ほどの実力なら、文句を言う奴もそうそういないとは思うんだがな…」
+				;若衆～若頭補佐
+				CASE 1 TO 3
+					PRINTFORML 「まあ、部下共が勝手にランク付けやっているとはいえ、下っ端のお前はそういうのを気にするか…」
+				CASEELSE
+					PRINTFORML 「私がいいと言っているんだが…まあ、気を遣うような関係になってもつまらんしな」
+				ENDSELECT
+			ENDIF
+			PRINTW 
+			PRINTFORML 「ちっ、しゃーない。お前の気が変わるのを待ってやるさ」
+			PRINTFORML 「こう見えて、待つことや説得することは得意なんだ」
+			PRINTFORML 「とはいえ、待たせすぎるなよ？　実力行使って手もあるからな？」
+			PRINTL 
+			PRINTFORML そう言って、尤魔は%CALLNAME:MASTER%の唇を奪った
+			PRINTW 
+			IF TALENT:MASTER:キス未経験
+				CALL SET_FIRSTKISS(MASTER, 143, 0)
+				IF TALENT:143:キス未経験
+					PRINTFORML 「〝手付金〟だ。私の初めて、くれてやるよ」
+					PRINTFORML 「ひょっとして、お前も初めてだったのか？　くくっ、そいつはご馳走様」
+				ENDIF
+			ELSEIF TALENT:143:キス未経験
+				CALL SET_FIRSTKISS(143, MASTER, 0)
+				PRINTFORML 「〝手付金〟だ。私の初めて、くれてやるよ」
+			ELSE
+				PRINTFORML 「…こんな風にな」
+			ENDIF
+			PRINTFORML 尤魔は唇を離すと、ニヤリと笑った
+			PRINTW 
+		ELSE
+			PRINTW 
+			PRINTFORML 「マジかよ…お前も、私のこと好いていてくれていると思ったんだがな…」
+			PRINTFORML 「あーあ。フラれちまったかぁ」
+			PRINTW 
+			PRINTFORML 「ってここで諦めると思ったか？　剛欲同盟長さまはな、どこまでも欲深いんだよ」
+			PRINTL 
+			PRINTFORML そう言って、尤魔は%CALLNAME:MASTER%の唇を奪った
+			PRINTW 
+			IF TALENT:MASTER:キス未経験
+				CALL SET_FIRSTKISS(MASTER, 143, 0)
+				IF TALENT:143:キス未経験
+					PRINTFORML 「〝手付金〟だ。私の初めて、くれてやるよ」
+					PRINTFORML 「ひょっとして、お前も初めてだったのか？　くくっ、そいつはご馳走様」
+				ENDIF
+			ELSEIF TALENT:143:キス未経験
+				CALL SET_FIRSTKISS(143, MASTER, 0)
+				PRINTFORML 「〝手付金〟だ。私の初めて、くれてやるよ」
+			ELSE
+				PRINTFORML 「…こんな風にな」
+			ENDIF
+			PRINTFORML 尤魔は唇を離すと、ニヤリと笑った
+			PRINTW 
+		ENDIF
+		RETURN 1
+	ENDIF
+
+ENDIF
+RETURN 1
+
+;==================================================
+;デート帰り
+;==================================================
+@M_KOJO_SPEVENT_K143_3(ARG,ARG:1)
+;口上主はTARGET
+;地の文表示
+CALL SPEVENT_MESSAGE_3(ARG,ARG:1)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;通常帰宅
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 0
+		IF TALENT:恋慕
+			;同棲
+			IF CFLAG:MASTER:初期位置 == CFLAG:143:初期位置
+				PRINTFORML 「もうこんな時間か。楽しい時はあっという間だな」
+				IF K143C_鬼傑組 == 1 ||  K143C_勁牙組 == 1
+					
+				ELSEIF K143C_剛欲同盟 == 1
+				ELSE
+				ENDIF
+			ENDIF
+		ELSEIF TALENT:愛欲 || TALENT:セフレ
+			PRINTFORML 「このまま帰ってもいいが…どうせ暇なんだろ？　家に寄って行けよ」
+			PRINTFORML 「シメに一発ヤろうぜ。気持ちよくしてやるからよ」
+			PRINTW 
+		ELSE
+			
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;反発刻印消去イベント
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML （クソッ、こいつに付き合うまでは顔も見たくなかったってーのに…）
+		IF CFLAG:好感度 >= 10000
+			PRINTFORML （よく考えたら、私、こいつにベタ惚れだったわ…そりゃ怒りが続くわけねーわな）
+		ELSEIF CFLAG:好感度 >= 3000
+			PRINTFORML （惚れた弱みってやつか…ついつい、許しちまうんだよなぁ…）
+		ELSE
+			PRINTFORML （どこか憎めないとこあるんだよなあ…こいつ）
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;反発刻印2>1レベルダウンイベント
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML （クソッ、あんだけムカつくことされたっていうのに、許そうって気になりかけてる私はチョロすぎだろ）
+		IF TALENT:処女 == 1
+			PRINTFORML （まるで生娘かよ…って、まだ生娘だったわ、私）
+		ELSE
+			PRINTFORML （つい生娘のようにはしゃいじまった…）
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;反発刻印3>2レベルダウンイベント
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML （ちっ、当分こいつを許すつもりはなかったが…思いの外楽しかったじゃねーか）
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;"EVENT"系イベント
+;※※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;部屋で遭遇
+;==================================================
+@M_KOJO_EVENT_K143_1(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;MASTERが入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		IF CFLAG:MASTER:現在位置 == 653 || CFLAG:MASTER:現在位置 == 654
+			PRINTFORML 「ん、なんだ、お前か」
+		ELSEIF K143C_鬼傑組 == 1 ||  K143C_勁牙組 == 1
+			PRINTFORML 「どうした？　命でも獲りに来たか？」
+		ELSEIF K143C_剛欲同盟 == 1
+			PRINTFORML 「どうした？　何か報告でもあるのか？」
+		ELSE
+			PRINTFORML 「こんなところまでわざわざ来るとはご苦労なことだな」
+			PRINTFORML 「まあくつろいで行け」
+		ENDIF
+		PRINTL 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;TARGETが入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;TARGETが風呂に入ってきて一緒に入る
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML 「クックック、お前か」
+		PRINTFORML 「ちょうどいい。お前も一緒に入れ。裸の付き合いってやつだ」
+		IF K143C_鬼傑組 == 1 ||  K143C_勁牙組 == 1
+			PRINTFORML 「それとも、敵対組織の長と一緒に入るのは怖いか？」
+			IF BASE:MASTER:勃起 >= 1000
+				PRINTFORML 「…クックック、そこで逸物をおっ勃てるとは大した奴だな」
+			ENDIF
+		ELSEIF K143C_剛欲同盟 == 1
+			IF CFLAG:TARGET:溜まってる度 > 600
+				PRINTFORML 「念入りに洗ってくれよ。珠の肌だからな」
+			ELSE
+				PRINTFORML 「親の背中を流すのは子の務めだろう」
+			ENDIF
+		ELSE
+			PRINTFORML 「別に取って食ったりしないから安心して入ってこい」
+		ENDIF
+		PRINTL 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;TARGETが風呂に入ってきて出て行った
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		PRINTFORML 「なんだ、先客か」
+		IF CFLAG:1006 == 1
+			PRINTFORML 「私は今一人で入りたい気分なんだ。早く出ろ」
+			PRINTFORML 「……お前、親に待っていろとかいい度胸しているな」
+		ELSEIF K143C_鬼傑組 == 1 ||  K143C_勁牙組 == 1
+			PRINTFORML 「ほれ、敵対組織の長が無防備な姿をさらしているぞ。ブスリといくチャンスじゃないのか？」
+			IF BASE:MASTER:勃起 >= 1000
+				PRINTFORML 「…お前、別のモノで私をブスリといきたいと思ってるだろ」
+			ENDIF
+		ELSE
+			PRINTFORML 「…お前、私が裸を見られて悲鳴を上げるところでも期待してるのか？」
+			PRINTFORML 「そういうのは驪駒辺りがやってくれそうだがな」
+		ENDIF
+		PRINTL 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;TARGETが風呂に入ってきて追い出された
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		PRINTFORML 「何をそこでボーっと突っ立っている」
+		PRINTFORML 「見て分からんのか。今は私が一人でくつろいでいるんだ」
+		PRINTFORML 「私の機嫌を損ねんうちに早く出ていけ」
+		PRINTL 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;外出先で遭遇した
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		PRINTFORML 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;他キャラとデート中に遭遇した
+	;ARG:1にデート相手
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		IF TALENT:恋人
+			IF CFLAG:1004 == 1
+				PRINTFORML 「おやおや、鬼傑組のトップは、そいつが好みでしたか」
+				PRINTFORML 「そいつはいい男だよ。何せ、私のオトコだからな」
+				PRINTFORML 「%CALLNAME:MASTER%、しっかりそちらの方と親密になってきてくれよ」
+			ELSEIF CFLAG:1005 == 1
+				PRINTFORML 「おやおや、勁牙組のトップは喧嘩も早ければオトコに手を出すのも早いですなあ」
+				PRINTFORML 「まあ、私が惚れた男だ。手を出したくなるのも分かる」
+				PRINTFORML 「%CALLNAME:MASTER%、しっかりそちらのお方を接待してこいよ」
+			ELSE
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 尤魔は無言でニヤニヤとした笑みを浮かべながら二人を見送っている
+					PRINTFORML 後でお仕置きが待っているかもしれない…
+				CASE 1
+					PRINTFORML 「…フン、私を差し置いて他の女とよろしくやるとはいい度胸だな」
+				CASE 2
+					PRINTFORML 「クックック、お熱いことだなぁ」
+					PRINTFORML その表情から、尤魔が怒っているのかそうでないかは読み取れない…
+				ENDSELECT
+			ENDIF
+		ELSEIF CFLAG:好感度 > 0
+			IF CFLAG:1004 == 1
+				PRINTFORML 「おやおや、鬼傑組のトップは、そいつが好みでしたか」
+				PRINTFORML 「クックック。明日には畜生界中にその噂が流れているかもなあ」
+			ELSEIF CFLAG:1005 == 1
+				PRINTFORML 「おやおや、勁牙組のトップは喧嘩も早ければオトコに手を出すのも早いですなあ」
+				PRINTFORML 「おっと、私は邪魔だったな。それじゃあ、ごゆっくり」
+			ELSE
+				IF TALENT:恋慕
+					PRINTFORML 「…フン、私を差し置いて他の女とよろしくやるとはいい度胸だな」
+				ELSE
+					PRINTFORML 「クックック、お熱いことだなぁ」
+				ENDIF
+			ENDIF
+		ENDIF
+		PRINTL 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;MAIN_MAP上で一日最初の挨拶
+	;注、このあと通常の遭遇口上、ARG==1 OR ARG==2に接続します
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 8
+		;尤魔宅のリビングであなたが剛欲同盟所属or観光客
+		IF CFLAG:MASTER:現在位置 == 653 && (K143C_剛欲同盟 == 1 || K143C_鬼傑組 == 0 && K143C_勁牙組 == 0)
+			IF K143C_剛欲同盟 == 1
+				;下っ端
+				IF K143C_地位 <= 1
+					PRINTFORML 「おお、新入りの%CALLNAME:MASTER%か。よく来たな」
+					PRINTFORML 「腹が減ってないか？　まだシノギもうまくいってないだろう？」
+					PRINTW 
+				;地位高め
+				ELSE
+					PRINTFORML 「おお、%CALLNAME:MASTER%じゃないか。どうだ？　シノギは順調か？」
+					PRINTFORML 「立ち話もなんだ、飯食っていくか？」
+					PRINTW 
+				ENDIF
+					;おなかがすいてない
+					IF !TIME_PROGRESS(TCVAR:MASTER:空腹時刻)
+						PRINTFORML 「何？　今はおなかがいっぱい？　そうか…」
+						PRINTFORML 「まあ、いい。腹が減ったときはうちに来い。飯くらい食わせてやる」
+						PRINTFORML 尤魔は少し残念そうだ
+						PRINTW 
+					ELSE
+						PRINTFORML 「気にするな。多めに作ったんでどうしようかと思っていたところだ」
+						PRINTFORML 「ほら、遠慮はいらんから食え」
+						PRINTW 
+						PRINTFORML 「どうだ、美味いか？」
+						PRINTL 
+						PRINTFORML もぐ…　もにゅ…
+						PRINTW 
+						PRINTFORML %TEXTR("苦手な野菜が入っている？　好き嫌いするな。大きくなれんぞ/美味いか。そうか、そうか/悪くない？　生意気な奴だな/おいおい、泣くほどのことか？")%
+						PRINTL 
+						PRINTFORML ぐぁつ　ぐぁつ　ぐぁつ
+						PRINTW 
+						PRINTFORML %TEXTR("くっくっく。いい食べっぷりじゃないか/よーく味わって食うんだぞ/おかわりはいくらでもあるからな/焦るな焦るな。ほら、水")%
+						PRINTW 
+						PRINTFORML 「くっくっく。皿が空になっちまったぞ」
+						PRINTFORML 「いい、いい。気にするな。私が遠慮するなと言ったんだ」
+						PRINTFORML 「腹が減ったときはいつでも来い。飯を食わせてやるからな」
+						PRINTW 
+						IF TALENT:恋慕 || TALENT:恋人
+							PRINTFORM 尤魔の愛情
+						ELSE
+							PRINTFORM 尤魔の愛情？
+						ENDIF
+							PRINTFORML 料理で生きる気力が湧いてきた…！
+							PRINTW 
+						BASE:MASTER:体力 += 1000
+						BASE:MASTER:気力 += 1000
+						BASE:MASTER:精力 += 1000
+					ENDIF
+			;観光客
+			ELSE
+				IF TALENT:恋慕 || TALENT:恋人
+					PRINTFORML 「%CALLNAME:MASTER%じゃないか。待ち遠しかったぞ」
+					PRINTFORML 「腹が減ってないか？　私が腕を振るうぞ」
+					PRINTW 
+					;おなかがすいてない
+					IF !TIME_PROGRESS(TCVAR:MASTER:空腹時刻)
+						PRINTFORML 「何？　今はおなかがいっぱい？　そうか…」
+						PRINTFORML 「まあ、いい。腹が減ったときはうちに来い。いつでも飯くらい食わせてやる」
+						PRINTFORML 尤魔は少し残念そうだ
+						PRINTW 
+						PRINTFORML 「…もちろん、腹が減ってなくてもいつでも来ていいんだからな？」
+						PRINTW 
+					ELSE
+						PRINTFORML 「気にするな。お前が飯を食っているところを見るのは好きなんだ」
+						PRINTFORML 「ほら、遠慮はいらんから食え。見られていると食べづらい？　気にするな」
+						PRINTW 
+						PRINTFORML 「どうだ、美味いか？」
+						PRINTL 
+						PRINTFORML もぐ…　もにゅ…
+						PRINTW 
+						PRINTFORML %TEXTR("苦手な野菜が入っている？　好き嫌いするな。大きくなれんぞ/美味いか。そうか、そうか/悪くない？　生意気な奴だな/おいおい、泣くほどのことか？")%
+						PRINTL 
+						PRINTFORML ぐぁつ　ぐぁつ　ぐぁつ
+						PRINTW 
+						PRINTFORML %TEXTR("くっくっく。いい食べっぷりじゃないか/よーく味わって食うんだぞ/おかわりはいくらでもあるからな/焦るな焦るな。ほら、水")%
+						PRINTW 
+						PRINTFORML 「くっくっく。皿が空になっちまったぞ」
+						PRINTFORML 「いい、いい。気にするな。私が遠慮するなと言ったんだ」
+						PRINTFORML 「腹が減ったときはいつでも来い。飯を食わせてやるからな」
+						PRINTW 
+						PRINTFORML 「…もちろん、腹が減っていなくともいつでも来ていいんだからな？」
+						PRINTW 
+						PRINTFORML 尤魔の愛情料理で生きる気力が湧いてきた…！
+						PRINTW 
+						BASE:MASTER:体力 += 1000
+						BASE:MASTER:気力 += 1000
+						BASE:MASTER:精力 += 1000
+					ENDIF
+				;恋慕・陥落以外
+				ELSE
+					PRINTFORML 「おお、%CALLNAME:MASTER%か。よく来たな」
+					PRINTFORML 「何か土産話でもあるのか？　まあ、飯を食いながらでも聞こうじゃないか」
+					PRINTW 
+					;おなかがすいてない
+					IF !TIME_PROGRESS(TCVAR:MASTER:空腹時刻)
+						PRINTFORML 「何？　今はおなかがいっぱい？　そうか…」
+						PRINTFORML 「まあ、いい。腹が減ったときはうちに来い。いつでも飯くらい食わせてやる」
+						PRINTFORML 尤魔は少し残念そうだ
+						PRINTW 
+						PRINTFORML 「飯は食えなくても茶くらいは飲めるだろう？　好きなところに座れ。今淹れるから」
+						PRINTW 
+					ELSE
+						PRINTFORML 「気にするな。お前が飯を食っているところを見るのは好きなんだ」
+						PRINTFORML 「ほら、遠慮はいらんから食え。見られていると食べづらい？　気にするな」
+						PRINTW 
+						PRINTFORML 「どうだ、美味いか？」
+						PRINTL 
+						PRINTFORML もぐ…　もにゅ…
+						PRINTW 
+						PRINTFORML %TEXTR("苦手な野菜が入っている？　好き嫌いするな。大きくなれんぞ/美味いか。そうか、そうか/悪くない？　生意気な奴だな/おいおい、泣くほどのことか？")%
+						PRINTL 
+						PRINTFORML ぐぁつ　ぐぁつ　ぐぁつ
+						PRINTW 
+						PRINTFORML %TEXTR("くっくっく。いい食べっぷりじゃないか/よーく味わって食うんだぞ/おかわりはいくらでもあるからな/焦るな焦るな。ほら、水")%
+						PRINTW 
+						PRINTFORML 「くっくっく。皿が空になっちまったぞ」
+						PRINTFORML 「いい、いい。気にするな。私が遠慮するなと言ったんだ」
+						PRINTFORML 「腹が減ったときはいつでも来い。飯を食わせてやるからな」
+						PRINTW 
+						PRINTFORML 尤魔の料理で生きる気力が湧いてきた…！
+						PRINTW 
+						BASE:MASTER:体力 += 1000
+						BASE:MASTER:気力 += 1000
+						BASE:MASTER:精力 += 1000
+					ENDIF
+				ENDIF
+			ENDIF
+		;尤魔のリビング以外、または敵対組織に所属
+		ELSE
+			IF K143C_鬼傑組 == 1 ||  K143C_勁牙組 == 1
+				;リビング（厨房）
+				IF CFLAG:MASTER:現在位置 == 653
+					IF TALENT:恋慕 || TALENT:恋人
+						PRINTFORML 「おお、来てくれたか。待っていたぞ、%CALLNAME:MASTER%」
+						PRINTFORML 「腹、減ってないか？　飯くらい私が用意してやるぞ？」
+						PRINTW 
+						;おなかがすいてない
+						IF !TIME_PROGRESS(TCVAR:MASTER:空腹時刻)
+							PRINTFORML 「何？　今はおなかがいっぱい？　そうか…」
+							PRINTFORML 「まあ、いい。腹が減ったときはいつでもうちに来い。お前なら、飯なんていくらでも食わせてやる」
+							PRINTFORML 尤魔は少し残念そうだ
+							PRINTW 
+						ELSE
+							PRINTFORML 「くっくっく。その様子だと、腹が減っているようだな」
+							PRINTFORML 「ほら、遠慮はいらんから食え」
+							PRINTW 
+							PRINTFORML 「どうだ、美味いか？」
+							PRINTL 
+							PRINTFORML もぐ…　もにゅ…
+							PRINTW 
+							PRINTFORML %TEXTR("苦手な野菜が入っている？　好き嫌いするな。大きくなれんぞ/美味いか。そうか、そうか/悪くない？　生意気な奴だな/おいおい、泣くほどのことか？")%
+							PRINTL 
+							PRINTFORML ぐぁつ　ぐぁつ　ぐぁつ
+							PRINTW 
+							PRINTFORML %TEXTR("くっくっく。いい食べっぷりじゃないか/よーく味わって食うんだぞ/おかわりはいくらでもあるからな/焦るな焦るな。ほら、水")%
+							PRINTW 
+							PRINTFORML 「くっくっく。皿が空になっちまったぞ」
+							PRINTFORML 「いい、いい。気にするな。私が遠慮するなと言ったんだ」
+							PRINTFORML 「腹が減ったときはいつでも来い。飯を食わせてやるからな」
+							PRINTW 
+							PRINTFORML 尤魔の愛情料理で生きる気力が湧いてきた…！
+							BASE:MASTER:体力 += 1000
+							BASE:MASTER:気力 += 1000
+							BASE:MASTER:精力 += 1000
+						ENDIF
+					ELSEIF TALENT:愛欲 || TALENT:セフレ
+						PRINTFORML 「%CALLNAME:MASTER%か…ウチの者の目をかいくぐって私に会いに来るのも一苦労だろう」
+						PRINTFORML 「まあ、障害がある方がお互い燃えるってもんだ。くっくっく」
+						PRINTW 
+						PRINTFORML 「だが、ヤるってんなら寝室か風呂にするぞ」
+						PRINTFORML 「厨房を汚したら、お前でも殺すから。いいな」
+						PRINTW 
+					ELSE
+						PRINTFORML 「んん？　お前確か、\@ K143C_鬼傑組 == 1 ? 吉弔の # 驪駒 \@のところの者じゃないか」
+						PRINTFORML 「%CALLNAME:MASTER%といったか。くっくっく。カチコミにでも来たか？」
+						PRINTW 
+						PRINTFORMW 「威勢がいいのは結構だが…厨房は荒らすなよ」
+						PRINTFORMW 尤魔はニヤニヤとした笑みを引っ込め、山羊のような瞳に剣呑な光を宿らせる
+						PRINTFORML 「殺すから。いいな」
+						PRINTW 
+					ENDIF
+				;尤魔の寝室
+				ELSEIF CFLAG:MASTER:現在位置 == 654
+					IF TALENT:恋慕 || TALENT:恋人
+						PRINTFORML 「ああ、お前か」
+						PRINTFORML 「女の寝室に忍び込むのはマナー違反だぞ」
+						PRINTFORML 「まあ、お前だけは特別に許してやるよ」
+						PRINTW 
+					ELSEIF TALENT:愛欲 || TALENT:セフレ
+						PRINTFORML 「ああ、お前か」
+						PRINTFORML 「女の寝室に忍び込むのはマナー違反だぞ」
+						PRINTW 
+						PRINTFORML 「それともあれか？　さっそくヤりにきたのか？」
+						PRINTFORML 「私は構わないがな。くっくっく」
+						PRINTW 
+					ELSE
+						PRINTFORML 「お前…\@ K143C_鬼傑組 == 1 ? 吉弔の # 驪駒 \@のところの者か」
+						PRINTFORML 「女の寝室に忍び込むのはマナー違反だぞ」
+						PRINTW 
+						PRINTFORML 「それともあれか？　寝込みを襲いに来たか？」
+						PRINTFORML 「まったく…事を急ぐ奴はモテんぞ。もっと前戯を楽しめよ。くっくっく」
+						PRINTW 
+					ENDIF
+				;尤魔の風呂
+				ELSEIF CFLAG:MASTER:現在位置 == 655
+					IF TALENT:恋慕 || TALENT:恋人
+					ELSEIF TALENT:愛欲 || TALENT:セフレ
+					ELSE
+						PRINTFORML 「…ったく…人がのんびりと風呂に浸かっているといるというのに、無粋な奴だ」
+						PRINTFORML 「それとも、私の裸でも拝みに来たのか？　くっくっく」
+						PRINTW 
+						CALL ASK_YN("違う","そうです")
+						IF !RESULT
+							PRINTFORML 「くっくっく。だろうなあ」
+							PRINTFORML 「だったらここで愛し合うか？　激しく、情熱的にな」
+							PRINTFORML いつの間にか尤魔の手にはスプーン状の獲物が握られており、先端が%CALLNAME:MASTER%の喉元に突きつけられていた…
+							PRINTW 
+						ELSE
+							PRINTFORML 「マジか…お前、なかなか物好きだな…」
+							PRINTFORML 「自分で言うのもなんだが、私の裸なんて見て楽しいのか？　そうか…」
+							PRINTFORMW 「……」
+							PRINTFORMW 「なんか恥ずかしいだろ。あんまりジロジロ見るなよ…」
+							PRINTW 
+						ENDIF
+					ENDIF
+				;尤魔の自宅以外
+				ELSE
+					PRINTFORML 「んん？　お前確か、\@ K143C_鬼傑組 == 1 ? 吉弔の # 驪駒 \@の…」
+					PRINTFORML 「そうだ、%CALLNAME:MASTER%だったな。ここいらじゃ見慣れんからな。逆に目立つんだよ。お前は」
+					PRINTW 
+					PRINTFORML 「私に用か？　それともデートのお誘いか？　くっくっく」
+				ENDIF
+			;敵対組織以外
+			ELSE
+				IF K143C_剛欲同盟 == 1
+					IF TALENT:恋慕 || TALENT:恋人
+						;下っ端
+						IF K143C_地位 <= 1
+							PRINTFORML 「んん＞　お前、確か新入りの%CALLNAME:MASTER%だったか…」
+							PRINTFORML 「動物霊だらけのところだからな。目立つんだよ。お前は」
+							PRINTW 
+							PRINTFORML 「どうだ？　シノギは見つかったか？」
+							PRINTFORML 「結果さえ出せば手段は問わん。この畜生界は実力がすべてだからな」
+							PRINTW 
+							PRINTFORML 「腕力でも頭脳でも商売でも話術でも、自分の持ち味を生かせ。そして己の欲を満たせ」
+							PRINTFORML 「精進しろよ。私は部下を持つことにこだわりはしないが、使える部下は重宝するからな」
+						ELSE
+							PRINTFORML 「おお、%CALLNAME:MASTER%じゃないか。うまくやっているようだな」
+							PRINTFORML 「うちに来たばかりのころはすぐに野垂れ死ぬかと思っていたが…人間にしちゃ骨のあるやつだ」
+							PRINTFORML 「頼りにしているぞ。お前のような奴がいてくれると、私も自由に動くことができるからな」
+							PRINTW 
+						ENDIF
+					ELSE
+						;下っ端
+						IF K143C_地位 <= 1
+							PRINTFORML 「んん＞　お前、確か新入りの%CALLNAME:MASTER%だったか…」
+							PRINTFORML 「動物霊だらけのところだからな。目立つんだよ。お前は」
+							PRINTW 
+							PRINTFORML 「どうだ？　シノギは見つかったか？」
+							PRINTFORML 「結果さえ出せば手段は問わん。この畜生界は実力がすべてだからな」
+							PRINTW 
+							PRINTFORML 「腕力でも頭脳でも商売でも話術でも、自分の持ち味を生かせ。そして己の欲を満たせ」
+							PRINTFORML 「精進しろよ。私は部下を持つことにこだわりはしないが、使える部下は重宝するからな」
+						ELSE
+							PRINTFORML 「おお、%CALLNAME:MASTER%じゃないか。うまくやっているようだな」
+							PRINTFORML 「うちに来たばかりのころはすぐに野垂れ死ぬかと思っていたが…人間にしちゃ骨のあるやつだ」
+							PRINTFORML 「頼りにしているぞ。お前のような奴がいてくれると、私も自由に動くことができるからな」
+							PRINTW 
+						ENDIF
+					ENDIF
+				;あなたが観光客
+				ELSE
+				ENDIF
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;外出先で一日最初の挨拶
+	;ARG:1にデート相手、ARG:1が0の場合は非デート
+	;注、このあと通常の外出先で遭遇した口上、ARG==6 OR ARG==7に接続します
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 9
+		;ARG:1とデート中
+		IF ARG:1
+			IF TALENT:恋慕 || TALENT:恋人
+				IF CFLAG:1006 == 1
+					PRINTFORML 「……お前、色々な意味で堂々としているな」
+					PRINTFORML 尤魔は呆れとも怒りとも感心ともつかぬ複雑な表情を浮かべている
+				ELSE
+					PRINTFORML 「ほう、どこかへフラフラ出ていったかと思ったら、私を差し置いて女を連れ帰って来たか」
+				ENDIF
+			ELSE
+				IF K143C_鬼傑組 == 1 ||  K143C_勁牙組 == 1
+					PRINTFORML 「…お前、親に怒られたりしないのか？」
+					PRINTFORML 尤魔に妙な心配をされてしまった
+				ELSEIF K143C_剛欲同盟 == 1
+					PRINTFORML 「…お前、女を捕まえるのは上手いよなぁ」
+					PRINTFORML 「まあ、下の者にとやかく言うのはうちの主義じゃない。好きにやれ」
+				ELSE
+					PRINTFORML 「ほう、お前も隅におけんな」
+				ENDIF
+			ENDIF
+		;一人で外出
+		ELSE
+			IF TALENT:恋慕 || TALENT:恋人
+				IF K143C_鬼傑組 == 1 ||  K143C_勁牙組 == 1
+					PRINTFORML 「畜生界から姿を消したとは思っていたが…思ったより元気そうだな」
+					PRINTFORML 「しかし、お前のところの親はよくフラフラするのを許しているな」
+					PRINTFORML 「剛欲同盟（うち）のほうがお前に向いているんじゃないか？　うるさいことは言われんぞ？」
+				ELSEIF K143C_剛欲同盟 == 1
+					PRINTFORML 「ほう、元気にやっていたか」
+					PRINTFORML 「私がお前にご執心なのを知ってフラフラとどこかへ行ってしまうんだからな」
+					PRINTFORML 「まあ、お前はある意味一番剛欲同盟に向いている奴だよ」
+				ELSE
+					PRINTFORML 「まったく、お前はすぐにフラフラどこかへ行ってしまうな」
+					PRINTFORML 「お前は私のものなんだから、近くにいろといっただろう？」
+				ENDIF
+			ELSE
+				IF K143C_鬼傑組 == 1 ||  K143C_勁牙組 == 1
+					PRINTFORML 「なんだ？　組を抜けて自由人にでもなったのか？」
+					PRINTFORML 「案外向こうの組も規律が緩いんだな」
+				ELSEIF K143C_剛欲同盟 == 1
+					PRINTFORML 「なんだ、いなくなったと思ったらひょっこり現れて」
+					PRINTFORML 「クック、私は単独行動が好きなだけで、別に子に関心がないわけじゃないぞ」
+					PRINTFORML 「立ち話もなんだ、どこかで飯でも食っていくか？」
+				ELSE
+					PRINTFORML 「お前は本当に自由なやつだなぁ」
+					PRINTFORML 「まあ、好き勝手やってる私がとやかく言える立場でもないがな」
+				ENDIF
+			ENDIF
+			PRINTL 
+		ENDIF
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;朝起きたとき（おはよう口上）
+;==================================================
+@M_KOJO_EVENT_K143_2(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;非同棲かつ相手が先に起きてる
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		;-------------------------------------------------
+		;TARGET私室にMASTERが入っている（恋慕時添い寝中就寝時のみ？
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && !ARG:1
+			PRINTFORMW 
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;MASTER私室にTARGETが入ってきてる(恋慕無しでも入ってくる可能性有り
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORMW 
+			RETURN 1
+		ENDIF
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;同棲かつ相手が起きている
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;同棲かつ相手が寝ている
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;MASTERが起きていて、相手が起きてきた
+	;添い寝時TARGET起床はこちら（TARGET衰弱or添い寝中TARGET睡魔負け後そのままMASTERが起き続けた上で相手が起床した場合限定
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		;-------------------------------------------------
+		;非同棲
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && !ARG:1
+			PRINTFORMW 
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;同棲中
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORMW 
+			RETURN 1
+		ENDIF
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;夜寝るとき（おやすみ口上）
+;==================================================
+@M_KOJO_EVENT_K143_3(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;自室に帰って寝る（～は【現在地】から【キャラの自室】に戻りました）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		IF ARG:1
+			;デート中に眠くて帰って寝る（拠点キャラのみ）
+			PRINTFORMW 
+		ELSEIF CFLAG:うふふ
+			;うふふ中に眠くて自室に帰って寝る（拠点キャラのみ）
+			PRINTFORMW 
+		ELSE
+			PRINTFORMW 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;眠そうにしている（～は眠そうにしている）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;睡眠中（～は眠っている）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;イタズラ中
+	;記入チェック（=0, 非表示、1, 表示）
+	;LOCAL:1 = 0
+	;-------------------------------------------------
+	;IF LOCAL:1 && ARG == 4
+		;PRINTFORMW 
+		;RETURN 1
+	;ENDIF
+	;-------------------------------------------------
+	;衰弱して寝る（体力500以下,うふふ時はうふふ強制終了）
+	;（キャラの自室以外：～を【現在地】から【キャラの自室】に運びました）
+	;（キャラの自室　　：～は疲れたと言って、横になりました）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		IF CFLAG:うふふ
+			;うふふ中にダウン
+			PRINTFORMW 
+		ELSE
+			PRINTFORMW 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;MASTERがダウン（恋慕のみ,そのまま一日が終了）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		;お酒でダウン
+		IF BASE:MASTER:酒気 >= MAXBASE:MASTER:酒気
+			IF ARG:1
+				;自室でダウン,（～が【MASTER】をベッド（布団）へと運んでくれた…）
+				IF TALENT:MASTER:年齢 == -1 || (TALENT:MASTER:年齢 < 1 && TALENT:MASTER:幼児／幼児退行)
+					PRINTFORML 「まったく…ガキのくせにしこたま飲むから…世話が焼けるぜ」
+					PRINTFORML 尤魔は、眠る%CALLNAME:MASTER%の髪に手櫛を入れた
+					PRINTW 
+					IF CFLAG:TARGET:溜まってる度 >= 800
+						;あなたがチンポ持ち
+						IF TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3
+							PRINTFORML 「……\@ INROOM(CFLAG:MASTER:現在位置) == 2 ? ベッド # 布団 \@まで運んでやったんだ。これくらいご褒美にいいだろ」
+							PRINTFORML 尤魔は、%CALLNAME:MASTER%の衣服と下着を脱がしにかかる
+							PRINTW 
+							IF TALENT:処女 == 0
+								;フェラ
+								SELECTCASE RAND:3
+								CASE 0
+									PRINTFORML 「くくっ、美味そうなチンポしてやがるぜ」
+									PRINTFORML 尤魔は舌なめずりでもしそうな表情で、外気に晒された%TINKO(PLAYER)%に見入っている
+									PRINTW 
+									PRINTFORML 「それじゃ、いただくとすっか…ちゅっ」
+									PRINTFORML 始まりの儀式のように、尤魔は亀頭に恭しいキスをする
+									PRINTW 
+									PRINTFORML そのまま、唇を竿の根元まで這わせるように動かしていく
+									PRINTFORML 時折、舌でチロチロと刺激してやることも忘れない
+									PRINTW 
+									SELECTCASE TALENT:MASTER:形状
+									CASE 6,10;巨根、馬並み
+										CALL HPH_PRINT,@"「くくっ、ガキのくせにとんでもねぇデカさだぜ…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで吉弔のやつをよがり狂わせてんのか…たまんねぇなあ、おいHPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで驪駒のやつを堕としたってわけか…たまんねぇなあ、おいHPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「このクソデカいちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+											
+									CASE 1,2;粗チン
+										CALL HPH_PRINT,@"「くくっ、ガキらしく、可愛いチンポしてやがる…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「吉弔のやつ、こんな子供チンポに屈したってワケか…HPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「驪駒のやつ、こんな子供チンポに堕とされたワケか…HPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「こんなお子様ちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+									CASEELSE
+										CALL HPH_PRINT,@"「くくっ、ガキのくせに、いいモン持ってるじゃないか…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで吉弔のやつをよがり狂わせてんのか…HPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで驪駒のやつを堕としたってわけか…HPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「この具合のいいちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+									ENDSELECT
+									PRINTW 
+									CALL HPH_PRINT,@"「そろそろメインディッシュといくか…あむっHPH」","L"
+									PRINTFORML 尤魔は涎を垂らしながら、%TINKO(PLAYER)%を口腔に収めていく
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ちゅぼっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　ちゅぼっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"（くくっ、ガキのちんぽの臭いが鼻を通り抜けていきやがる…HPH）","L"
+									CALL HPH_PRINT,@"（この少しションベンくさい感じ、いかにもって感じだぜ…HPH）","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　くぽっHPH　くぽっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　くぽっHPH　くぽっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"（ほれほれ、尤魔様のお口の中でペロペロされっと気持ちいいだろHPH）","L"
+									CALL HPH_PRINT,@"（ちゃあんと、チンカスも掃除してやっからな…HPH）","L"
+									CALL HPH_PRINT,@"（くくっ、感じてんのか？　寝てるくせに、亀頭が膨らんできてるぜHPH）","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　じゅっぷHPH　じゅっぷHPH　じゅっぷHPH　じゅっぷHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　じゅっぷHPH　じゅっぷHPH　じゅっぷHPH　じゅっぷHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"（おらっHPH　イケッHPH）","L"
+									CALL HPH_PRINT,@"（金玉の中のモン、全部私の口ん中にぶちまけろっHPHHPH）","L"
+									PRINTW 
+									CALL HPH_PRINT,@"ごぷっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「HPH　んっHPH　んぶっHPH」","L"
+									PRINTFORML %CALLNAME:MASTER%のペニスは限界を迎え、熱々の精液を尤魔の口腔内に吐き出した
+									PRINTFORML 尤魔は精液の量に面食らいながらも、一滴も零すまいと必死に嚥下していく
+									PRINTW 
+									CALL HPH_PRINT,@"にゅうう～～～っ、ちゅぽんっ…HPH","L"
+									PRINTW 
+									CALL HPH_PRINT,@"「くっくっく…いい味だったぜ、ご馳走さんHPH」","L"
+									CALL HPH_PRINT,@"「こんな濃厚で芳醇な精液…誰かにくれてやるもんかよHPH」","L"
+									PRINTW 
+									PRINTFORML 満足した尤魔は、何事もなかったかのように%CALLNAME:MASTER%の衣服を整えてやり、布団を掛け直してやった
+									PRINTFORML 「じゃあな。いい夢見ろよ」
+									PRINTW 
+								;手コキ
+								CASE 1
+									SELECTCASE TALENT:MASTER:形状
+									CASE 6,10;巨根、馬並み
+										CALL HPH_PRINT,@"「くくっ、ガキのくせにとんでもねぇデカさだぜ…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで吉弔のやつをよがり狂わせてんのか…たまんねぇなあ、おいHPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで驪駒のやつを堕としたってわけか…たまんねぇなあ、おいHPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「このクソデカいちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+									CASE 1,2;粗チン
+										CALL HPH_PRINT,@"「くくっ、ガキらしく、可愛いチンポしてやがる…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「吉弔のやつ、こんな子供チンポに屈したってワケか…HPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「驪駒のやつ、こんな子供チンポに堕とされたワケか…HPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「こんなお子様ちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+									CASEELSE
+										CALL HPH_PRINT,@"「くくっ、ガキのくせに、いいモン持ってるじゃないか…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで吉弔のやつをよがり狂わせてんのか…HPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで驪駒のやつを堕としたってわけか…HPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「この具合のいいちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+									ENDSELECT
+									CALL HPH_PRINT,@"「一発ハメようかと思ったが…さすがにしんどいだろうからな。抜くだけで勘弁してやるよHPH」","L"
+									PRINTFORML 尤魔は指で輪っかを作ると、%CALLNAME:MASTER%の亀頭をシコシコと擦り始めた
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ちゅこっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　ちゅこっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"（くくっ、ちょっとしごいてやるだけで、気持ちよさそうにビクビクしてやがる…HPH）","L"
+									CALL HPH_PRINT,@"（…HPH）","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　カリッHPH　カリカリッHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　カリカリッHPH　カリッHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"（ほれほれ、亀頭を指で掻かれるの、気持ちいいだろHPH）","L"
+									CALL HPH_PRINT,@"（竿の部分はどうだぁ？　くくっ、こっちも感度良好じゃねぇかHPH）","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　シコシコシコシコッHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　シコシコシコシコッHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「おらっ、ヌルヌルのちんぽぉ、全力でシコシコされんの気持ちいいだろぉっHPH」","L"
+									CALL HPH_PRINT,@"「我慢せずにびゅっびゅしちまえよォHPH　私の顔にぶっかけてHPH　私の顔をお前の精子で汚してっHPH」","L"
+									PRINTFORML 尤魔は意識のない%CALLNAME:MASTER%の耳元で囁きながら、肉竿を握りしめ、手筒を上下に激しく動かした
+									PRINTW 
+									CALL HPH_PRINT,@"どびゅるっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「ははっHPH　出たっHPH」","L"
+									PRINTW 
+									CALL HPH_PRINT,@"びちゃびちゃっHPH　びちゃっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「んっHPH　んんうっHPH」","L"
+									PRINTW 
+									CALL HPH_PRINT,@"「へ、へへっ…顔中ザーメンまみれですっげぇ臭ぇ…HPH」","L"
+									CALL HPH_PRINT,@"「じゅる、じゅぞぞっ、ちゅるっ、こくっ…ああ、こいつの精液は美味ぇなぁ…HPH」","L"
+									PRINTW 
+									CALL HPH_PRINT,@"「くっくっく…いい味だったぜ、ご馳走さんHPH」","L"
+									CALL HPH_PRINT,@"「こんな濃厚で芳醇な精液…誰かにくれてやるもんかよHPH」","L"
+									PRINTW 
+									PRINTFORML 満足した尤魔は、何事もなかったかのように%CALLNAME:MASTER%の衣服を整えてやり、布団を掛け直してやった
+									PRINTFORML 「じゃあな。いい夢見ろよ」
+									PRINTW 
+								;Ｖセックス
+								CASE 2
+									CALL HPH_PRINT,@"「くくくっ、私を前にして、そんな無防備に寝てるのが悪いんだぜHPH」","L"
+									PRINTFORML 尤魔自身も下半身を露わにし、%CALLNAME:MASTER%にまたがると、鼠径部が引きつるほどに股を広げ、%TINKO(PLAYER)%を秘裂にあてがった
+									PRINTFORML そこは、前戯もろくにしていないにもかかわらず、多量の愛液を滴らせていた
+									PRINTW 
+									SELECTCASE TALENT:MASTER:形状
+									CASE 6,10;巨根、馬並み
+										CALL HPH_PRINT,@"「くくっ、ガキのくせにとんでもねぇデカさだぜ…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで吉弔のやつをよがり狂わせてんのか…たまんねぇなあ、おいHPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで驪駒のやつを堕としたってわけか…たまんねぇなあ、おいHPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「このクソデカいちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+											
+									CASE 1,2;粗チン
+										CALL HPH_PRINT,@"「くくっ、ガキらしく、可愛いチンポしてやがる…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「吉弔のやつ、こんな子供チンポに屈したってワケか…HPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「驪駒のやつ、こんな子供チンポに堕とされたワケか…HPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「こんなお子様ちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+									CASEELSE
+										CALL HPH_PRINT,@"「くくっ、ガキのくせに、いいモン持ってるじゃないか…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで吉弔のやつをよがり狂わせてんのか…HPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで驪駒のやつを堕としたってわけか…HPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「この具合のいいちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+									ENDSELECT
+									CALL HPH_PRINT,@"「ほらっ、入っちまうぞ……んんうっHPH　%CALLNAME:MASTER%の、すっげぇ硬ぇな…HPH」","L"
+									PRINTFORML 亀頭が肉穴にじわじわと埋没していく。ほどなく雁首が膣の門を潜り抜け、がっちりと根元まではまり込んだ
+									PRINTW 
+									CALL HPH_PRINT,@"「もう我慢できねぇ…動くからなHPH　う、うぅん、んんっHPH　ああっ、これだっHPH　これが欲しかったんだよぉHPH」","L"
+									PRINTFORML 尤魔はペニスを味わうように、ゆっくりと腰を動かし始める。それは、ほどなくして牝の本能剥き出しで丸い尻を太ももに叩きつける動きに変わる
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ぱんっHPH　ぱんっHPH　ぱんっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　　ぱんっHPH　ぱんっHPH　ぱんっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「んおぉっHPH　おっほHPH　い、いいぞっ、お前の%TEXTR("チンポ/ちんぽ/ちんちん")%は最高だっHPH　お、おっ！」","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ぬちゅっHPH　ぬちゅっHPH　ぬちゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　　ずちゅっHPH　ずちゅっHPH　ずちゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「んおぉっHPH　おっほHPH　い、いいぞっ、お前の%TEXTR("チンポ/ちんぽ/ちんちん")%は最高だっHPH　お、おっ！」","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ぱんHPHぱんHPHぱんHPHぱんHPHぱんHPHぱんHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　　ぱんHPHぱんHPHぱんHPHぱんHPHぱんHPHぱんHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「膣内で%TEXTR("チンポ/ちんぽ/ちんちん")%が膨らんできたぞっHPH　イクのかっ？　イっていいぞっHPH　私もイくっHPH」","L"
+									PRINTW 
+									PRINTFORML 意識がない状態にも関わらず、%CALLNAME:MASTER%はあっという間に絶頂に追い詰められ、尤魔の膣に中出しした
+									PRINTL 
+									CALL HPH_PRINT,@"どびゅるっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　びゅるるるるっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　びゅびゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　　びゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「ひ、ひっHPH　出たっHPH　膣内に出したなっHPH　クッ、イク、イクイクイクイクッHPH　あ、あっ！」","L"
+									PRINTFORML 膣内に射精されたにも関わらず、尤魔は肉棒が萎えるまで腰を振り続けた
+									PRINTW 
+									CALL HPH_PRINT,@"にゅうう～～～っ、ちゅぽんっ…HPH","L"
+									PRINTW 
+									CALL HPH_PRINT,@"「っはぁ～～～～、はぁ～～～～…く、くっくっく…よかったぜ、ご馳走さんHPH」","L"
+									CALL HPH_PRINT,@"「中出しされた精液が染み渡るぜ…ああ、美味ぇなぁHPH」","L"
+									PRINTW 
+									PRINTFORML 満足した尤魔は、何事もなかったかのように%CALLNAME:MASTER%の衣服を整えてやり、布団を掛け直してやった
+									PRINTFORML 「じゃあな。いい夢見ろよ」
+									PRINTW 
+								ENDSELECT
+							;尤魔が処女のときはＶセックスなし
+							ELSE
+								;フェラ
+								SELECTCASE RAND:2
+								CASE 0
+									PRINTFORML 「くくっ、美味そうなチンポしてやがるぜ」
+									PRINTFORML 尤魔は舌なめずりでもしそうな表情で、外気に晒された%TINKO(PLAYER)%に見入っている
+									PRINTW 
+									PRINTFORML 「それじゃ、いただくとすっか…ちゅっ」
+									PRINTFORML 始まりの儀式のように、尤魔は亀頭に恭しいキスをする
+									PRINTW 
+									PRINTFORML そのまま、唇を竿の根元まで這わせるように動かしていく
+									PRINTFORML 時折、舌でチロチロと刺激してやることも忘れない
+									PRINTW 
+									SELECTCASE TALENT:MASTER:形状
+									CASE 6,10;巨根、馬並み
+										CALL HPH_PRINT,@"「くくっ、ガキのくせにとんでもねぇデカさだぜ…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで吉弔のやつをよがり狂わせてんのか…たまんねぇなあ、おいHPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで驪駒のやつを堕としたってわけか…たまんねぇなあ、おいHPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「このクソデカいちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+											
+									CASE 1,2;粗チン
+										CALL HPH_PRINT,@"「くくっ、ガキらしく、可愛いチンポしてやがる…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「吉弔のやつ、こんな子供チンポに屈したってワケか…HPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「驪駒のやつ、こんな子供チンポに堕とされたワケか…HPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「こんなお子様ちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+									CASEELSE
+										CALL HPH_PRINT,@"「くくっ、ガキのくせに、いいモン持ってるじゃないか…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで吉弔のやつをよがり狂わせてんのか…HPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで驪駒のやつを堕としたってわけか…HPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「この具合のいいちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+									ENDSELECT
+									PRINTW 
+									CALL HPH_PRINT,@"「そろそろメインディッシュといくか…あむっHPH」","L"
+									PRINTFORML 尤魔は涎を垂らしながら、%TINKO(PLAYER)%を口腔に収めていく
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ちゅぼっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　ちゅぼっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"（くくっ、ガキのちんぽの臭いが鼻を通り抜けていきやがる…HPH）","L"
+									CALL HPH_PRINT,@"（この少しションベンくさい感じ、いかにもって感じだぜ…HPH）","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　くぽっHPH　くぽっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　くぽっHPH　くぽっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"（ほれほれ、尤魔様のお口の中でペロペロされっと気持ちいいだろHPH）","L"
+									CALL HPH_PRINT,@"（ちゃあんと、チンカスも掃除してやっからな…HPH）","L"
+									CALL HPH_PRINT,@"（くくっ、感じてんのか？　寝てるくせに、亀頭が膨らんできてるぜHPH）","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　じゅっぷHPH　じゅっぷHPH　じゅっぷHPH　じゅっぷHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　じゅっぷHPH　じゅっぷHPH　じゅっぷHPH　じゅっぷHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"（おらっHPH　イケッHPH）","L"
+									CALL HPH_PRINT,@"（金玉の中のモン、全部私の口ん中にぶちまけろっHPHHPH）","L"
+									PRINTW 
+									CALL HPH_PRINT,@"ごぷっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「HPH　んっHPH　んぶっHPH」","L"
+									PRINTFORML %CALLNAME:MASTER%のペニスは限界を迎え、熱々の精液を尤魔の口腔内に吐き出した
+									PRINTFORML 尤魔は精液の量に面食らいながらも、一滴も零すまいと必死に嚥下していく
+									PRINTW 
+									CALL HPH_PRINT,@"にゅうう～～～っ、ちゅぽんっ…HPH","L"
+									PRINTW 
+									CALL HPH_PRINT,@"「くっくっく…いい味だったぜ、ご馳走さんHPH」","L"
+									CALL HPH_PRINT,@"「こんな濃厚で芳醇な精液…誰かにくれてやるもんかよHPH」","L"
+									PRINTW 
+									PRINTFORML 満足した尤魔は、何事もなかったかのように%CALLNAME:MASTER%の衣服を整えてやり、布団を掛け直してやった
+									PRINTFORML 「じゃあな。いい夢見ろよ」
+									PRINTW 
+								;手コキ
+								CASE 1
+									SELECTCASE TALENT:MASTER:形状
+									CASE 6,10;巨根、馬並み
+										CALL HPH_PRINT,@"「くくっ、ガキのくせにとんでもねぇデカさだぜ…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで吉弔のやつをよがり狂わせてんのか…たまんねぇなあ、おいHPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで驪駒のやつを堕としたってわけか…たまんねぇなあ、おいHPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「このクソデカいちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+									CASE 1,2;粗チン
+										CALL HPH_PRINT,@"「くくっ、ガキらしく、可愛いチンポしてやがる…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「吉弔のやつ、こんな子供チンポに屈したってワケか…HPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「驪駒のやつ、こんな子供チンポに堕とされたワケか…HPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「こんなお子様ちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+									CASEELSE
+										CALL HPH_PRINT,@"「くくっ、ガキのくせに、いいモン持ってるじゃないか…HPH」","L"
+										SIF K143C_鬼傑組 == 1 && TALENT:130:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで吉弔のやつをよがり狂わせてんのか…HPH」","L"
+										SIF K143C_勁牙組 == 1 && TALENT:133:処女 == 0 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「これで驪駒のやつを堕としたってわけか…HPH」","L"
+										SIF K143C_剛欲同盟 == 1 && EXP:Ｖ性交経験 > 100
+											CALL HPH_PRINT,@"「この具合のいいちんぽに、堕とされちまったんだよなぁ…HPH」","L"
+									ENDSELECT
+									CALL HPH_PRINT,@"「一発ハメようかと思ったが…さすがにしんどいだろうからな。抜くだけで勘弁してやるよHPH」","L"
+									PRINTFORML 尤魔は指で輪っかを作ると、%CALLNAME:MASTER%の亀頭をシコシコと擦り始めた
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ちゅこっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　ちゅこっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"（くくっ、ちょっとしごいてやるだけで、気持ちよさそうにビクビクしてやがる…HPH）","L"
+									CALL HPH_PRINT,@"（…HPH）","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　カリッHPH　カリカリッHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　カリカリッHPH　カリッHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"（ほれほれ、亀頭を指で掻かれるの、気持ちいいだろHPH）","L"
+									CALL HPH_PRINT,@"（竿の部分はどうだぁ？　くくっ、こっちも感度良好じゃねぇかHPH）","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　シコシコシコシコッHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　シコシコシコシコッHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「おらっ、ヌルヌルのちんぽぉ、全力でシコシコされんの気持ちいいだろぉっHPH」","L"
+									CALL HPH_PRINT,@"「我慢せずにびゅっびゅしちまえよォHPH　私の顔にぶっかけてHPH　私の顔をお前の精子で汚してっHPH」","L"
+									PRINTFORML 尤魔は意識のない%CALLNAME:MASTER%の耳元で囁きながら、肉竿を握りしめ、手筒を上下に激しく動かした
+									PRINTW 
+									CALL HPH_PRINT,@"どびゅるっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「ははっHPH　出たっHPH」","L"
+									PRINTW 
+									CALL HPH_PRINT,@"びちゃびちゃっHPH　びちゃっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「んっHPH　んんうっHPH」","L"
+									PRINTW 
+									CALL HPH_PRINT,@"「へ、へへっ…顔中ザーメンまみれですっげぇ臭ぇ…HPH」","L"
+									CALL HPH_PRINT,@"「じゅる、じゅぞぞっ、ちゅるっ、こくっ…ああ、こいつの精液は美味ぇなぁ…HPH」","L"
+									PRINTW 
+									CALL HPH_PRINT,@"「くっくっく…いい味だったぜ、ご馳走さんHPH」","L"
+									CALL HPH_PRINT,@"「こんな濃厚で芳醇な精液…誰かにくれてやるもんかよHPH」","L"
+									PRINTW 
+									PRINTFORML 満足した尤魔は、何事もなかったかのように%CALLNAME:MASTER%の衣服を整えてやり、布団を掛け直してやった
+									PRINTFORML 「じゃあな。いい夢見ろよ」
+									PRINTW 
+								ENDSELECT
+							ENDIF
+						;あなたにチンポなし
+						ELSE
+							PRINTFORML 「……\@ INROOM(CFLAG:MASTER:現在位置) == 2 ? ベッド # 布団 \@まで運んでやったんだ。これくらいご褒美にいいだろ」
+							PRINTFORML 尤魔は、%CALLNAME:MASTER%の衣服と下着を脱がしにかかる
+							PRINTW 
+							IF TALENT:MASTER:処女 == 1
+								;尤魔がふたなり
+								IF TALENT:性別 == 3
+									PRINTFORML 「…まぁ、処女をいただくのは勘弁してやろう。やはり、起きてる時の反応が見たいからな」
+									PRINTFORML 「くっくっく。可愛いマンコしてやがるぜ。そんな無防備な寝顔見せてたら、犯してくれって言ってるようなもんだろ？」
+									PRINTFORML 尤魔は%CALLNAME:MASTER%の幼い女陰に指をかけ、左右に割り開く
+									PRINTW 
+									CALL HPH_PRINT,@"「くくっ、ガキのまんこはションベンくせぇなあ。まあ、その方が興奮するがな…HPH」","L"
+									PRINTFORML 劣悪な環境を生き抜いてきた尤魔にとっては、アンモニア臭などフェロモン同然だ
+									PRINTW 
+									CALL HPH_PRINT,@"「ちょっとくらいは準備しておいてやるか…使い物にならなくなったら困るからなHPH」","L"
+									PRINTFORML 乱暴な言葉とは裏腹に、尤魔は腫物でも扱うかのように、丁寧に、慎重に、舌や指で未成熟な膣穴をほぐしていった
+									PRINTW 
+									CALL HPH_PRINT,@"「くくっ、大分濡れてきたな…そろそろ、頃合いかHPH」","L"
+									PRINTFORML 尤魔は自身も衣服を脱ぎ捨て、下半身を外気に晒した
+									PRINTW 
+									PRINTFORML クリトリスに当たる部分には、本来女性にはないはずの男根が存在感を誇示していた
+									PRINTFORML 赤黒い怒張はすでに鈴口から先走り汁を滲ませ、蜜壺への侵入を待ちわびている
+									PRINTW 
+									CALL HPH_PRINT,@"「くくっ、ほーら、入っちまうぞ～…ぐぅっ、やっぱり狭ぇな…HPH」","L"
+									PRINTFORML 前戯をしたにも関わらず、まだ誰も受け入れたことのない幼い%CALLNAME:MASTER%の桃色の粘膜は、尤魔の猛った肉棒を押し返してくる
+									PRINTW 
+									PRINTFORML 「加減が難しいな、これ…うっかり破ってしまいそうだ…よし、先端が入ったぞ」
+									CALL HPH_PRINT,@"「く、うぅ…入り口でこの狭さか…これで、奥まで入れたらどれくらいのものなんだろうな…クク…HPH」","L"
+									PRINTFORML 雁首が膣門をくぐり抜けた手ごたえを感じ取り、尤魔は腰を浅く突き入れする
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ぬちゅっHPH　ぬちゅっHPH　ぬちゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　　ぬちゅっHPH　ぬちゅっHPH　ぬちゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「くく、いいぞ…少しずつだが、硬さがほぐれてきた…HPH」","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ぷちゅっHPH　ぷちゅっHPH　ぷちゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　　ぷちゅっHPH　ぷちゅっHPH　ぷちゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「ほら、ここをトントンしてやろう…ククッ、寝ているのに感じているようだな…HPH」","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ぬちゅっHPH　ぬちゅっHPH　ぬちゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　　ぷちゅっHPH　ぷちゅっHPH　ぷちゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「イクぞ、どうする、このまま膣内に出すか、く、うぅぅっHPH」","L"
+									PRINTW 
+									PRINTFORML %CALLNAME:MASTER%の膣口の収縮によって絶頂に追い詰められ、尤魔はギリギリのところで肉棒を引き抜いた
+									PRINTL 
+									CALL HPH_PRINT,@"どびゅるっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　びゅるるるるっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　びゅびゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　　びゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「ひ、ひっHPH　出たっHPH　まだ出るっHPH　く、うぉぉっ、おぉっHPH」","L"
+									PRINTFORML 尤魔は肉棒が萎えるまで手で扱き続け、
+									PRINTFORML %CALLNAME:MASTER%のプックリとしたワレメ、すべすべとした腹部、あどけない寝顔に白濁液を降らせた
+									PRINTW 
+									CALL HPH_PRINT,@"「っはぁ～～～～、はぁ～～～～…く、くっくっく…よかったぜ、ご馳走さんHPH」","L"
+									CALL HPH_PRINT,@"「次こそはお前の処女をいただきたいもんだな…楽しみにしているぞHPH」","L"
+									PRINTW 
+									PRINTFORML 満足した尤魔は、鈴口から溢れ出る残り汁を%CALLNAME:MASTER%の膣口になすりつけてふき取ると、衣服を整えてやり、布団を掛け直してやった
+									PRINTFORML 「じゃあな。いい夢見ろよ」
+									PRINTW 
+								;尤魔にチンポなし
+								ELSE
+								ENDIF
+							ELSE
+								;尤魔がふたなり
+								IF TALENT:性別 == 3
+									PRINTFORML 「くっくっく。可愛いマンコしてやがるぜ。そんな無防備な寝顔見せてたら、犯してくれって言ってるようなもんだろ？」
+									PRINTFORML 尤魔は%CALLNAME:MASTER%の幼い女陰に指をかけ、左右に割り開く
+									PRINTW 
+									CALL HPH_PRINT,@"「くくっ、ガキのまんこはションベンくせぇなあ。まあ、その方が興奮するがな…HPH」","L"
+									PRINTFORML 劣悪な環境を生き抜いてきた尤魔にとっては、アンモニア臭などフェロモン同然だ
+									PRINTW 
+									CALL HPH_PRINT,@"「ちょっとくらいは準備しておいてやるか…使い物にならなくなったら困るからなHPH」","L"
+									PRINTFORML 乱暴な言葉とは裏腹に、尤魔は腫物でも扱うかのように、丁寧に、慎重に、舌や指で未成熟な膣穴をほぐしていった
+									PRINTW 
+									CALL HPH_PRINT,@"「くくっ、大分濡れてきたな…そろそろ、頃合いかHPH」","L"
+									PRINTFORML 尤魔は自身も衣服を脱ぎ捨て、下半身を外気に晒した
+									PRINTW 
+									PRINTFORML クリトリスに当たる部分には、本来女性にはないはずの男根が存在感を誇示していた
+									PRINTFORML 赤黒い怒張はすでに鈴口から先走り汁を滲ませ、蜜壺への侵入を待ちわびている
+									PRINTW 
+									CALL HPH_PRINT,@"「くくっ、ほーら、入っちまうぞ～…ぐぅっ、やっぱり狭ぇな…HPH」","L"
+									PRINTFORML 既に貫通済みでたっぷり前戯をしたにも関わらず、幼い%CALLNAME:MASTER%の桃色の粘膜は、尤魔の猛った肉棒を押し返してくる
+									PRINTW 
+									CALL HPH_PRINT,@"「おらっ、観念しろ…よっ！　おぉっ、ほぉぉ…やべぇ、すぐ、イっちまいそうだ…HPH」","L"
+									PRINTFORML 雁首が膣門をくぐり抜けた手ごたえを感じ取り、一気に腰を突き入れる
+									PRINTFORML 無意識化でも粘膜はキュウキュウと肉棒を締め付け、射精を促そうと襞の一つ一つがうねり始める
+									PRINTW 
+									CALL HPH_PRINT,@"「こいつを気遣う余裕なんてなさそうだ…動く、からな…HPH」","L"
+									PRINTFORML 下半身に生えた牡の本能に促されるまま、尤魔は腰を前後に動かし始める
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ぱんっHPH　ぱんっHPH　ぱんっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　　ぱんっHPH　ぱんっHPH　ぱんっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「んおぉっHPH　おらっ、どうだっ、私のちんぽはっHPH　意識がなくても気持ちいいだろうっHPH」","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ぬちゅっHPH　ぬちゅっHPH　ぬちゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　　ずちゅっHPH　ずちゅっHPH　ずちゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「締め付けがやべぇっ、子宮のコリコリした感じ、たまんねぇ…もう、出ちまいそうだ…HPH」","L"
+									PRINTW 
+									CALL HPH_PRINT,@"　　　　　ぱんHPHぱんHPHぱんHPHぱんHPHぱんHPHぱんHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　　ぱんHPHぱんHPHぱんHPHぱんHPHぱんHPHぱんHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「おらっ、イクぞ！　私の精子で孕めっHPH　私の子を産めっHPH　イクぞ、お、おぉぉぉっHPH」","L"
+									PRINTW 
+									PRINTFORML 意識がない状態にも関わらず、%CALLNAME:MASTER%の肉襞のうねりによって絶頂に追い詰められ、尤魔は膣に中出しした
+									PRINTL 
+									CALL HPH_PRINT,@"どびゅるっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　びゅるるるるっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　びゅびゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"　　　　　　　　　びゅっHPH","L"
+									PRINTL 
+									CALL HPH_PRINT,@"「ひ、ひっHPH　出たっHPH　まだ出るっHPH　く、うぉぉっ、おぉっHPH」","L"
+									PRINTFORML 尤魔は肉棒が萎えるまで腰を振り続け、何度も何度も%CALLNAME:MASTER%の未成熟な子宮に濃厚な精子をご馳走してやった
+									PRINTW 
+									CALL HPH_PRINT,@"にゅうう～～～っ、ちゅぽんっ…HPH","L"
+									PRINTW 
+									CALL HPH_PRINT,@"「っはぁ～～～～、はぁ～～～～…く、くっくっく…よかったぜ、ご馳走さんHPH」","L"
+									CALL HPH_PRINT,@"「ちんぽがちぎれるかと思ったぜ…やっぱ、お前のまんこ最高だわ…HPH」","L"
+									PRINTW 
+									PRINTFORML 満足した尤魔は、%CALLNAME:MASTER%の膣口から溢れ出る愛液混じりの精液をふき取ると、衣服を整えてやり、布団を掛け直してやった
+									PRINTFORML 「じゃあな。いい夢見ろよ」
+									PRINTW 
+								ELSE
+								ENDIF
+							ENDIF
+						ENDIF
+					ELSEIF CFLAG:TARGET:溜まってる度 >= 500
+						PRINTFORML 「……\@ INROOM(CFLAG:MASTER:現在位置) == 2 ? ベッド # 布団 \@まで運んでやったんだ。これくらいご褒美にいいだろ」
+						PRINTFORML 尤魔は、そっと%CALLNAME:MASTER%と唇を重ね合わせる
+						CALL AddEXP("キス経験", MASTER, 1)
+						CALL AddEXP("キス経験", TARGET, 1)
+						PRINTW 
+						PRINTFORML 「くくっ、ごちそうさん。いい夢見ろよ」
+						PRINTW 
+					ELSE
+						PRINTFORML 「饕餮尤魔ともあろうものが、ガキのお守どころか惚れちまってるんだからなぁ」
+						PRINTFORML 「まったく、責任取れよ、お前は」
+						PRINTFORML 尤魔は、あどけない表情で寝息を立てる%CALLNAME:MASTER%の頬にそっと口付けした
+						PRINTW 
+						PRINTFORML 「くくっ、いい夢見ろよ」
+						PRINTW 
+					ENDIF
+				;子供／幼児以外
+				ELSE
+					PRINTFORML 「まったく…酒が弱いくせにガブガブ飲んでよ…世話が焼けるぜ」
+				ENDIF
+			ELSE
+				;部屋まで運ばれる,（～が【MASTER】を私室へと運んでくれた…）
+				PRINTFORMW 
+			ENDIF
+		;体力切れでダウン
+		ELSE
+			IF ARG:1
+				;自室でダウン,（～が【MASTER】をベッド（布団）へと運んでくれた…）
+				PRINTFORMW 
+			ELSE
+				;部屋まで運ばれる,（～が【MASTER】を私室へと運んでくれた…）
+				PRINTFORMW 
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;TARGETが寝るために自室まで戻ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		;-------------------------------------------------
+		;そのまま着替えて寝た（【TARGET】が部屋に戻ってきた→寝間着へと着替え、寝床に潜った）
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 0
+			PRINTFORMW 
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;部屋から追い出して寝た（眠そうな【TARGET】に追い出された…）
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			IF CFLAG:前ターン位置 == CFLAG:現在位置
+				;前のターンまで一緒に部屋にいた
+				PRINTFORMW 
+			ELSE
+				;寝るために部屋に帰ってきたところ
+				PRINTFORMW 
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;他キャラとのＨを止めさせて寝た（【TARGET】が部屋に戻ってきた→唇をとがらせる【TARGET】に、【MASTER】は渋々【Ｈの相手】から離れた）
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 2
+			PRINTFORMW 
+			RETURN 1
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;来訪キャラが拠点で休憩（～は疲れ切っている→ちょっと休んでいきなよ）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 8
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;寝室に居る状態でその場で寝る（～は眠気に負け、眠りについた…）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 9
+		IF CFLAG:うふふ
+			;うふふ中に寝る
+			PRINTFORMW 
+		ELSE
+			PRINTFORMW 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;拠点外で自宅前に居るキャラが自室に帰って寝る（眠くなった～は自室に帰って行きました）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 10
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;移動時すれちがい
+;==================================================
+@M_KOJO_EVENT_K143_4(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;立ち止まった
+	;この後遭遇口上に接続
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		IF TALENT:恋人
+			IF K143C_鬼傑組 == 1
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「お前か、待ちわびたぞ」
+				CASE 1
+					PRINTFORML 「いいのか？　敵対組織の長と逢引きなんかして」
+					PRINTFORML 「なんて、な。私だってそうだし、何より、私たちは恋人同士なんだ。憚ってやるもんか」
+				CASE 2
+					PRINTFORML 「くっくっく、今日も存分にイチャつこうじゃないか」
+					PRINTFORML 「そして吉弔に報告してこい。今日も剛欲同盟長と存分に愛し合ってきましたってな」
+				ENDSELECT
+			ELSEIF K143C_勁牙組 == 1
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「お前か、待ちわびたぞ」
+				CASE 1
+					PRINTFORML 「いいのか？　敵対組織の長と逢引きなんかして」
+					PRINTFORML 「なんて、な。私だってそうだし、何より、私たちは恋人同士なんだ。憚ってやるもんか」
+				CASE 2
+					PRINTFORML 「くっくっく、今日も存分にイチャつこうじゃないか」
+					PRINTFORML 「そして驪駒に報告してこい。今日も剛欲同盟長と存分に愛し合ってきましたってな」
+				ENDSELECT
+			ELSEIF K143C_剛欲同盟 == 1
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「待っていたぞ」
+					PRINTFORML 尤魔は%CALLNAME:MASTER%に腕を絡みつかせてきた
+					PRINTFORML 「まずは飯でも食いに行くか？　美味いものを食わせてやるぞ」
+				CASE 1
+					PRINTFORML %CALLNAME:MASTER%の姿を見つけた尤魔は満面の笑みを浮かべた
+				CASE 2
+					PRINTFORML 「くっくっく、今日も存分にイチャつこうじゃないか」
+					PRINTFORML 「私たちは恋人同士なんだからな。周りにもっと見せつけてやるぞ」
+					PRINTFORML 「恋人のいない吉弔と驪駒に見せつけにいくのも悪くないなぁ」
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「お前が会いに来てくれるのが私の楽しみなんだ」
+					PRINTFORML 「それで？　今日は私とどうしたい？」
+				CASE 1
+					PRINTFORML 「浮かれてる？　そう言うな。剛欲同盟長様だって女なんだ」
+					PRINTFORML 「好いた奴が目の前にいれば浮かれもするさ」
+				CASE 2
+					PRINTFORML 「ほら、何をしている？　お前の恋人は抱擁をご所望だぞ」
+					PRINTFORML 尤魔は両手を大きく広げて%CALLNAME:MASTER%を待ち構えている
+				ENDSELECT
+			ENDIF
+		ELSEIF TALENT:恋慕
+			IF K143C_鬼傑組 == 1
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「お前か、会えて嬉しいぞ」
+				CASE 1
+					PRINTFORML 「なんだ、吉弔から虐められたのか？　私が慰めてやるぞ」
+				CASE 2
+					PRINTFORML 「どうだ？　吉弔のところが辛かったら私のところで預かってやるぞ」
+				ENDSELECT
+			ELSEIF K143C_勁牙組 == 1
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「お前か、会えて嬉しいぞ」
+				CASE 1
+					PRINTFORML 「なんだ、驪駒から虐められたのか？　私が慰めてやるぞ」
+				CASE 2
+					PRINTFORML 「どうだ？　驪駒の人使いが荒いんなら私のところで預かってやるぞ」
+				ENDSELECT
+			ELSEIF K143C_剛欲同盟 == 1
+				SELECTCASE RAND:4
+				CASE 0
+					PRINTFORML 「お前か、会いたかったぞ」
+				CASE 1
+					PRINTFORML 「もっと顔を見せに来い。私はお前が来るのが楽しみなんだ」
+				CASE 2
+					PRINTFORML 「立ち話でもなんだ。一緒に飯でも食いに行くか？　いい店があるんだ」
+				CASE 3
+					PRINTFORML 「お前か。どれ、小遣いをやろうじゃないか
+					PRINTFORML ｛\\MONEY += RAND:500｝をもらった
+					MONEY += RAND:500
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:4
+				CASE 0
+					PRINTFORML 「待ちわびていたぞ。ほら、もっと近くに寄れ」
+				CASE 1
+					PRINTFORML 「今日はゆっくりできるのか？　なら良かった」
+				CASE 2
+					PRINTFORML 「お前に会いたいと思っていたところだ」
+				CASE 3
+					PRINTFORML 「なんだ、私に会いに来てくれたのか？　そいつは嬉しいな」
+				ENDSELECT
+			ENDIF
+		ELSE
+			IF K143C_鬼傑組 == 1
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「お前、なかなか度胸のある奴だな。悪くない」
+				CASE 1
+					PRINTFORML 「吉弔のから私のことを探ってこいと言われたのか？　ご苦労なことだなぁ」
+				CASE 2
+					PRINTFORML 「どうだ？　吉弔のところが辛かったら私のところで預かってやるぞ」
+				ENDSELECT
+			ELSEIF K143C_勁牙組 == 1
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「お前、なかなか度胸のある奴だな。悪くない」
+				CASE 1
+					PRINTFORML 「吉弔のから私のことを探ってこいと言われたのか？　ご苦労なことだなぁ」
+				CASE 2
+					PRINTFORML 「どうだ？　驪駒のところが辛かったら私のところで預かってやるぞ」
+				ENDSELECT
+			ELSEIF K143C_剛欲同盟 == 1
+				IF K143C_性に貪欲 > 0
+					SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「お前はうちの者にしちゃよく見かけるな」
+					CASE 1
+						PRINTFORML 「なんだ？　報告でもあるのか？」
+					CASE 2
+						PRINTFORML 「くっく、なんだ？　私に搾り取られに来たのか？」
+						IF K143C_性に貪欲 == 3
+							PRINTFORML 尤魔は口を開けて舌を艶めかしく動かしている…
+						ELSEIF K143C_性に貪欲 == 4
+							PRINTFORML 尤魔は自らの下腹部を撫でさすりながらニヤニヤと笑っている
+						ELSEIF K143C_性に貪欲 == 5
+							PRINTFORML 尤魔は挑発的に尻を突き出しながらニヤニヤと笑っている
+						ELSEIF K143C_性に貪欲 == 6
+							PRINTFORML 尤魔は胸を揉みながら下腹部を撫でさすり、挑発的な笑みを浮かべている
+						ELSEIF K143C_性に貪欲 == 7
+							PRINTFORML 尤魔は手で逸物をしごくような仕草を見せてニヤニヤと笑っている
+						ENDIF
+					ENDSELECT
+				ELSE
+					SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「お前はうちの者にしちゃよく見かけるな」
+					CASE 1
+						PRINTFORML 「なんだ？　報告でもあるのか？」
+					ENDSELECT
+				ENDIF
+			ELSE
+				PRINTFORML 「くっく、まだ無事だったか」
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;軽く会釈して通り過ぎた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		IF TALENT:恋人
+			IF K143C_鬼傑組 == 1 || K143C_勁牙組 == 1
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「忙しそうだな。どれ、後で膝枕で労ってやるとしよう」
+				CASE 1
+					PRINTFORML 「組の仕事で走り回っているかもしれんが、恋人をほっぽらかすのは感心せんなあ」
+				ENDSELECT
+			ELSEIF K143C_剛欲同盟 == 1
+				PRINTFORML 「なんだ、恋人の私より組の仕事が優先だというのか」
+				PRINTFORML 尤魔は腰に手を当て、フンと鼻を鳴らした
+			ELSE
+				PRINTFORML 「なんだ、てっきりデートのお誘いかと思ったんだが」
+			ENDIF
+		ELSEIF TALENT:恋慕
+			IF K143C_鬼傑組 == 1 || K143C_勁牙組 == 1
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「あいつもさっさと組から足を洗ってこっちに来ればいいものを」
+				CASE 1
+					PRINTFORML 「慌ただしい奴だ。親にコキ使われているのか？」
+					PRINTFORML 「後で会いに来たら尻の一つでも撫でさせてやるか」
+				ENDSELECT
+			ELSEIF K143C_剛欲同盟 == 1
+				PRINTFORML 「なんだ、私より組の仕事が優先だというのか」
+				PRINTFORML 「ちょっとくらい構ってくれてもいいだろうに」
+				PRINTFORML 尤魔は腰に手を当て、フンと鼻を鳴らした
+			ELSE
+				PRINTFORML 「なんだ、てっきり私に会いに来たものかと思ったんだが」
+			ENDIF
+		ELSE
+			IF K143C_鬼傑組 == 1
+				PRINTFORML 「ふん、まだあいつはこの辺りをうろつきまわっているのか」
+			ELSEIF K143C_勁牙組 == 1
+				PRINTFORML 「ふん、まだあいつはこの辺りをうろつきまわっているのか」
+			ELSEIF K143C_剛欲同盟 == 1
+				PRINTFORML 「随分と慌ただしい奴だな」
+			ELSE
+				PRINTFORML 「なんだ、私に用はないのか。つまらん」
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;無視して通り過ぎた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		IF TALENT:恋人
+			IF K143C_鬼傑組 == 1 || K143C_勁牙組 == 1
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「まあ、しがらみがあるとはいえ…恋人に一声すら掛けず通り過ぎるっていうのはなぁ」
+				CASE 1
+					PRINTFORML 「さすがに完全無視というのは傷付くもんだなぁ」
+				ENDSELECT
+			ELSEIF K143C_剛欲同盟 == 1
+				PRINTFORML 「いくら好き勝手にやっていいとはいえ…長を、いや、恋人を無視するとはなぁ」
+				PRINTFORML 「これは夜にオシオキが必要だなぁ」
+				PRINTFORML 尤魔は唇をペロリと舐めた
+			ELSE
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「いくら私がヤクザ者といってもな…恋人に無視されたら傷付くぞ」
+				CASE 1
+					PRINTFORML 「……%CALLNAME:MASTER%なんてキライだ」
+					PRINTFORML 尤魔はムスッとした顔で遠ざかる%CALLNAME:MASTER%の背中を見つめている…
+				ENDSELECT
+			ENDIF
+		ELSEIF TALENT:恋慕
+			IF K143C_鬼傑組 == 1 || K143C_勁牙組 == 1
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「あいつもさっさと組から足を洗ってこっちに来ればいいものを」
+				CASE 1
+					PRINTFORML 「慌ただしい奴だ。親にコキ使われているのか？」
+					PRINTFORML 「後で会いに来たら尻の一つでも撫でさせてやるか」
+				ENDSELECT
+			ELSEIF K143C_剛欲同盟 == 1
+				PRINTFORML 「なんだ、私より組の仕事が優先だというのか」
+				PRINTFORML 「ちょっとくらい構ってくれてもいいだろうに」
+				PRINTFORML 尤魔は腰に手を当て、フンと鼻を鳴らした
+			ELSE
+				PRINTFORML 「なんだ、てっきり私に会いに来たものかと思ったんだが」
+			ENDIF
+		ELSE
+			IF K143C_鬼傑組 == 1
+				PRINTFORML 「ふん、まだあいつはこの辺りをうろつきまわっているのか」
+			ELSEIF K143C_勁牙組 == 1
+				PRINTFORML 「ふん、まだあいつはこの辺りをうろつきまわっているのか」
+			ELSEIF K143C_剛欲同盟 == 1
+				PRINTFORML 「随分と慌ただしい奴だな」
+			ELSE
+				PRINTFORML 「なんだ、私に用はないのか。つまらん」
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;他者介入でムード変化
+;==================================================
+@M_KOJO_EVENT_K143_5(ARG,ARG:1)
+;口上主はTARGET
+;ARGに入ってきたキャラ（人数が膨大なので、自己把握自己責任で
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;霊夢が入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML 「…なんだよ」
+		PRINTFORML 「人の情事を覗き見るなんて、幻想郷の巫女っていうのは随分破廉恥なんだなぁ」
+		PRINTFORML 「それとも、お前も混ざりたいのか？　私は優しいからな
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;フランが入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 50
+		IF TALENT:50:恋人
+			PRINTFORML 「悪いな、フランドール。お前の恋人、味見させてもらっているぞ」
+			IF TALENT:恋慕
+				PRINTFORML 「なんでって？　私もこいつのことを好きなんだ。いいだろう？」
+				PRINTFORML 「なんなら、フランドールも今から混ざるか？」
+			ELSE
+				PRINTFORML 「なんでって？　こいつ、結構具合がよくってなぁ」
+				PRINTFORML 「お前、いっつもこんなことしてもらってるのか。羨ましい限りだよ」
+			ENDIF
+		ELSE
+			PRINTFORML 「どうした？　他人の情事に興味津々か？」
+			PRINTFORML 「いいぞ、そこでしっかりと見ているといい」
+			IF TALENT:恋人
+				PRINTFORML 「恋人同士がイチャイチャとセックスするところをな…♥」
+			ELSE
+				PRINTFORML 「『大人のセックス』ってやつをな…♥」
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;八千慧が入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 130
+		IF TALENT:130:恋人
+			PRINTFORML 「悪いな、吉弔の。お前の恋人、味見させてもらっているぞ」
+			IF TALENT:恋慕
+				PRINTFORML 「ずるいじゃないか。こんな素敵な相手を独り占めにするなんて」
+				IF TEQUIP:Ｖセックス
+					PRINTFORML 「ほら、見てみろよ。私の膣内にお前の恋人のおちんちんが深々と刺さっている様を」
+					SIF EX:膣内精液 > 0
+					PRINTFORML 「おまけにたぁっぷりと子宮に濃厚なモノをご馳走してくれてな…これは孕んだかもしれんなぁ♥」
+					IF EXP:Ｖ性交経験 >= EXP:130:Ｖ性交経験
+						PRINTFORML 「お前、全然こいつの相手をしてあげてないんだろう？　可哀そうに」
+						PRINTFORML 「恋人なのに可哀そうになぁ。なぁ%CALLNAME:MASTER%、今からでも私の恋人になるか？」
+						PRINTFORML 「私ならいつでもどこでも、お前のしたいことをさせてやるぞ♥」
+					ELSE
+						PRINTFORML 「お前の体はもう飽きたらしいぞ」
+						PRINTFORML 「いかんぞぉ？　恋人の性欲もしっかり管理してこその恋人だろう？」
+						PRINTFORML 「こうやって、ちゃあんとおちんちんを悦ばせてやらんとなぁ…♥」
+						PRINTFORML 尤魔の膣襞がキュンキュンと締まり、%CALLNAME:MASTER%の肉棒を扱き上げる…
+					ENDIF
+				ELSEIF TEQUIP:Ａセックス
+					PRINTFORML 「ほら、見てみろよ。私の尻穴にお前の恋人のおちんちんがズッボリ入ってる様を」
+					SIF EX:アナル内精液 > 0
+					PRINTFORML 「おまけにたぁっぷりと腸内に濃厚なモノをご馳走してくれてな…尻で孕みそうだよ♥」
+					IF EXP:Ａ性交経験 >= EXP:130:Ａ性交経験
+						PRINTFORML 「お前、尻穴であまり相手をしてやったことがないんだろう？」
+						PRINTFORML 「恋人なのに可哀そうになぁ。なぁ%CALLNAME:MASTER%、今からでも私の恋人になるか？」
+						PRINTFORML 「私ならいつでもどこでも、お尻でさせてやるぞ♥」
+					ELSE
+						PRINTFORML 「お前の体はもう飽きたらしいぞ」
+						PRINTFORML 「いかんぞぉ？　恋人の性欲もしっかり管理してこその恋人だろう？」
+						PRINTFORML 「こうやって、ちゃあんとおちんちんを悦ばせてやらんとなぁ…♥」
+						PRINTFORML 尤魔の腸壁がキュンキュンと締まり、%CALLNAME:MASTER%の肉棒を扱き上げる…
+					ENDIF
+				ELSEIF TEQUIP:シックスナイン
+				ELSE
+				ENDIF
+			ELSE
+				PRINTFORML 「なんでって？　こいつ、結構具合がよくってなぁ」
+				PRINTFORML 「お前、いっつもこんなことしてもらってるのか。羨ましい限りだよ」
+			ENDIF
+		ELSE
+			PRINTFORML 「どうした？　他人の情事に興味津々か？」
+			PRINTFORML 「いいぞ、そこでしっかりと見ているといい」
+			IF TALENT:恋人
+				PRINTFORML 「恋人同士がイチャイチャとセックスするところをな…♥」
+			ELSE
+				PRINTFORML 「『大人のセックス』ってやつをな…♥」
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;磨弓が入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 131
+		IF TALENT:131:恋人
+			PRINTFORML 「悪いな、フランドール。お前の恋人、味見させてもらっているぞ」
+			IF TALENT:恋慕
+				PRINTFORML 「なんでって？　私もこいつのことを好きなんだ。いいだろう？」
+				PRINTFORML 「なんなら、フランドールも今から混ざるか？」
+			ELSE
+				PRINTFORML 「なんでって？　こいつ、結構具合がよくってなぁ」
+				PRINTFORML 「お前、いっつもこんなことしてもらってるのか。羨ましい限りだよ」
+			ENDIF
+		ELSE
+			PRINTFORML 「どうした？　他人の情事に興味津々か？」
+			PRINTFORML 「いいぞ、そこでしっかりと見ているといい」
+			IF TALENT:恋人
+				PRINTFORML 「恋人同士がイチャイチャとセックスするところをな…♥」
+			ELSE
+				PRINTFORML 「『大人のセックス』ってやつをな…♥」
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;袿姫が入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 132
+		IF TALENT:132:恋人
+			PRINTFORML 「悪いな、フランドール。お前の恋人、味見させてもらっているぞ」
+			IF TALENT:恋慕
+				PRINTFORML 「なんでって？　私もこいつのことを好きなんだ。いいだろう？」
+				PRINTFORML 「なんなら、フランドールも今から混ざるか？」
+			ELSE
+				PRINTFORML 「なんでって？　こいつ、結構具合がよくってなぁ」
+				PRINTFORML 「お前、いっつもこんなことしてもらってるのか。羨ましい限りだよ」
+			ENDIF
+		ELSE
+			PRINTFORML 「どうした？　他人の情事に興味津々か？」
+			PRINTFORML 「いいぞ、そこでしっかりと見ているといい」
+			IF TALENT:恋人
+				PRINTFORML 「恋人同士がイチャイチャとセックスするところをな…♥」
+			ELSE
+				PRINTFORML 「『大人のセックス』ってやつをな…♥」
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;早鬼が入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 133
+		IF TALENT:133:恋人
+			PRINTFORML 「悪いな、フランドール。お前の恋人、味見させてもらっているぞ」
+			IF TALENT:恋慕
+				PRINTFORML 「なんでって？　私もこいつのことを好きなんだ。いいだろう？」
+				PRINTFORML 「なんなら、フランドールも今から混ざるか？」
+			ELSE
+				PRINTFORML 「なんでって？　こいつ、結構具合がよくってなぁ」
+				PRINTFORML 「お前、いっつもこんなことしてもらってるのか。羨ましい限りだよ」
+			ENDIF
+		ELSE
+			PRINTFORML 「どうした？　他人の情事に興味津々か？」
+			PRINTFORML 「いいぞ、そこでしっかりと見ているといい」
+			IF TALENT:恋人
+				PRINTFORML 「恋人同士がイチャイチャとセックスするところをな…♥」
+			ELSE
+				PRINTFORML 「『大人のセックス』ってやつをな…♥」
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;その他（キャラ指定なし
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;情事を目撃した
+;==================================================
+@M_KOJO_EVENT_K143_6(ARG,ARG:1)
+;口上主はTARGET
+;ARGに情事相手
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;情事を目撃した（馴れ合い度:低）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;負けじと参加（馴れ合い度:高）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;気まずそうに立ち去る
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 3
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;情事を見られた
+;==================================================
+@M_KOJO_EVENT_K143_7(ARG,ARG:1)
+;口上主はTARGET
+;ARGに目撃者
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;情事を見られた（目撃者の馴れ合い度:低）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 1
+		;フランに見られた
+		IF K143_FIND_AROUND() == 50
+			PRINTFORML 「誰かと思えば吸血鬼のお嬢ちゃんじゃないか」
+			IF TALENT:50:恋人 == 1
+				PRINTFORML 「なに怖い顔して睨んでるんだ？　ああ、そうか。お前ら、恋人同士だったのか」
+				PRINTFORML 「こいつは悪いことしたなあ。終わったら丁重にお返しするからよ、ちょっと向こう行っててくれよ、な」
+				PRINTW 
+			ELSE
+				PRINTFORML 「お前も交ざるか？　私は全然かまわんぞ。なあ、%CALLNAME:MASTER%？」
+				PRINTW 
+			ENDIF
+			;隠岐奈に見られた
+		ELSEIF K143_FIND_AROUND() == 124
+			PRINTFORML 「あぁん？　摩多羅か。どこにでも現れやがって。お楽しみの邪魔すんじゃない」
+			IF TALENT:124:恋人 == 1
+				PRINTFORML 「どうした？　いつもの憎たらしいほどの余裕がないじゃないか。ああ、そうか。こいつ、お前の恋人だったっけなぁ」
+				PRINTFORML 「そんなに怖い顔すんじゃない。共同管理はお前の得意技だろ。こいつも共同管理しようや、なぁ？」
+				PRINTW 
+			ELSE
+				PRINTFORML 「気が散るから向こう行けよ。それとも、交ぜてほしいのか？　あ？」
+				PRINTW 
+			ENDIF
+		;八千慧に見られた
+		ELSEIF K143_FIND_AROUND() == 130
+			IF K143C_鬼傑組 == 1
+				PRINTFORML 「よう、吉弔。お前んとこの若いやつ、借りてるぜ♪」
+				IF TALENT:130:恋人 == 1
+					PRINTFORML 「『私の恋人に何を…』って？　見りゃ分かんだろ。セックスだよ、セックス♪」
+					PRINTFORML 「終わったら丁重にお返しするからよ、ちょっと向こう行っててくれよ、な」
+					PRINTW 
+				ELSE
+					PRINTFORML 「何をしてるって、見りゃ分かんだろ。セックスだよ、セックス♪」
+					PRINTFORML 「邪魔だから向こう行けよ。私たちは楽しんでるんだからさ」
+					PRINTW 
+				ENDIF
+			ELSE
+				PRINTFORML 「…見りゃ分かんだろ。セックスしてんだよ、セックス」
+				IF TALENT:130:恋人 == 1
+					PRINTFORML 「ああ、そういやこいつ、お前の恋人だったっけなぁ」
+					PRINTFORML 「悪ぃな。終わったら丁重にお返しするからよ、ちょっと向こう行っててくれよ、な」
+				ELSE
+					PRINTFORML 「邪魔だから向こう行けよ。私たちは楽しんでるんだからさ」
+				ENDIF
+			ENDIF
+		;袿姫に見られた
+		ELSEIF K143_FIND_AROUND() == 132
+			PRINTFORML 「これはこれは、霊長園の偶像神様がわざわざ出張って情事を覗き見に来られるとは畏れ多い」
+			IF TALENT:132:恋人 == 1
+				PRINTFORML 「貴女様の恋人はほれ見ての通り、私に夢中のようでして。困ったことに離してくれないのですよ。くっくっく」
+				PRINTW 
+			ELSE
+				PRINTFORML 「まさか貴女様に出歯亀という趣味がおありだったとは驚きですなあ。くっくっく」
+				PRINTW 
+			ENDIF
+		;驪駒に見られた
+		ELSEIF K143_FIND_AROUND() == 133
+			IF K143C_勁牙組 == 1
+				PRINTFORML 「よう、驪駒。お前んとこの若いやつ、借りてるぜ♪」
+				IF TALENT:恋人
+					PRINTFORML 「お前の恋人、具合がいいなあ。普段、相当ヒンヒン言わされてんじゃねぇのか？　なあ？」
+					PRINTW 
+				ELSE
+					PRINTFORML 「仕事がブラックで辛い%CALLNAME:MASTER%を、私が文字通り慰めてやってんのさ。可哀そうに、おお、よしよし」
+					PRINTW 
+				ENDIF
+			ELSE
+				PRINTFORML 「何ジロジロ見てんだよ。セックス中ってことくらい一目で分かんだろうが」
+				IF TALENT:133:恋人 == 1
+					PRINTFORML 「ああ、そういやこいつ、お前の恋人だったっけなぁ」
+					PRINTFORML 「悪ぃな。終わったら丁重にお返しするからよ、ちょっと向こう行っててくれよ、な」
+				ELSE
+					PRINTFORML 「邪魔だから向こう行けよ。私たちは楽しんでるんだからさ」
+				ENDIF
+			ENDIF
+		ELSE
+			PRINTFORML 「なんだよ、これからってときに闖入者かよ…」
+			PRINTW 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;目撃者が負けじと参加（目撃者の馴れ合い度:高）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 2
+		;フラン
+		IF K143_FIND_AROUND() == 50
+			IF TALENT:50:恋人
+				PRINTFORML 「おっ、恋人を取り返すつもりか？　お嬢ちゃんよぉ」
+				PRINTFORML 「どっちがお前のことを気持ちよくしてやれるか、勝負だなぁ」
+				PRINTW 
+			ELSE
+				PRINTFORML 「ほう、まさかこいつに体を許すなんてなぁ」
+				IF TALENT:恋人
+					PRINTFORML 「面白れぇ。こいつの恋人が誰かってことを分からせてやろうじゃないか」
+				ELSE
+					PRINTFORML 「面白れぇ。どっちがこいつを自分の身体に夢中にさせられるか勝負といこうじゃないか」
+				ENDIF
+			ENDIF
+		;隠岐奈
+		ELSEIF K143_FIND_AROUND() == 124
+			IF TALENT:恋人
+				PRINTFORML 「裏で糸引いてばっかりいるから、糸がいつの間にか切れてることに気付かねーんだよ」
+				PRINTFORML 「交ざるのは勝手だが、私とこいつが愛し合っているところ、指咥えて見てろよ」
+				SIF TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3
+				PRINTFORML 「こいつのチンポは咥えさせてやらねーけどな♪」
+				PRINTW 
+			ELSE
+				IF TALENT:恋人
+					PRINTFORML 「何でもかんでも私から掠め取ろうとすんじゃねぇぞ。てめぇも私に劣らず強欲なヤツだな」
+					PRINTW 
+				ELSE
+					PRINTFORML 「いっつも偉そうに椅子の上でふんぞり返ってて、あっちの方は上手にできんのかぁ？　奉仕してもらうだけがセックスじゃねぇぞ」
+					PRINTW 
+				ENDIF
+			ENDIF
+		ELSEIF K143_FIND_AROUND() == 130
+			IF TALENT:130:恋人
+				PRINTFORML 「くくっ、吉弔よぉ。慌てて恋人を取り返そうとしたってもう遅いんじゃないか？」
+				PRINTFORML 「見ろよ、こいつの顔。私にぞっこんだぜ？　頑張ってすんごいご奉仕してやんねぇとなぁ♪　参考にさせてくれよ」
+				PRINTW 
+			ELSE
+				IF TALENT:恋人
+					PRINTFORML 「面白れぇ。こいつが誰に夢中なのか、分からせてやろうじゃないか」
+					PRINTW 
+				ELSE
+					PRINTFORML 「くくっ。鬼傑のトップは策を弄することだけじゃなくて売春（ウリ）も得意なところ、見せてくれよ」
+					PRINTW 
+				ENDIF
+			ENDIF
+		ELSEIF K143_FIND_AROUND() == 132
+			IF TALENT:132:恋人
+				PRINTFORML 「神様が、たった一人の信仰を取り戻すために必死だなぁ」
+				PRINTFORML 「こいつを取り返すために、私の目の前で浅ましく腰を振ってみてくれよ。くっくっく」
+				PRINTW 
+			ELSE
+				IF TALENT:恋人
+					PRINTFORML 「神といえど、いや、神だからこそ、こいつをお前に譲るわけにはいかんなぁ」
+					PRINTFORML 「あんたは私のケツの穴でも舐めてろよ。こいつとは私が愛し合うんでなぁ」
+					PRINTW 
+				ELSE
+					PRINTFORML 「こいつは私が手を付けたんだ。勝手に参加するのは構わんが、隅っこでオナってろよ」
+					PRINTW 
+				ENDIF
+			ENDIF
+		ELSEIF K143_FIND_AROUND() == 133
+			IF TALENT:133:恋人
+				PRINTFORML 「私の強欲さは知っているだろう？」
+				PRINTFORML 「お前の恋人なら、なおさら譲るわけにはいかんなぁ」
+				PRINTW 
+			ELSE
+				IF TALENT:恋人
+					PRINTFORML 「畜生界のトップの座も、こいつの恋人であることも、どっちも譲るつもりはないからな」
+					PRINTW 
+				ELSE
+					PRINTFORML 「なんだ？　交ざろうってのか？　メインは私だからな。邪魔すんじゃねぇぞ」
+					PRINTW 
+				ENDIF
+			ENDIF
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;目撃者が立ち去る
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 3
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;目撃した情事を問い詰める（現在無し
+;==================================================
+@M_KOJO_EVENT_K143_8(ARG,ARG:1)
+RETURN 1
+
+;==================================================
+;パンツ没収された
+;==================================================
+@M_KOJO_EVENT_K143_9(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;押し倒した
+;==================================================
+@M_KOJO_EVENT_K143_10(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;うふふ==2（開始時）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		;-------------------------------------------------
+		;MASTERを押し倒した（開始時）
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1 && !ARG:1
+			IF K143C_鬼傑組 == 1
+				PRINTFORML 「くくっ。吉弔には黙っておけよ」
+				PRINTFORML 「これから楽しい裸のお付き合いだ」
+				PRINTW 
+			ELSEIF K143C_勁牙組 == 1
+				PRINTFORML 「弱肉強食がモットーのお前んとこに倣って、今から私がお前を食ってやるよ」
+				PRINTFORML 「ただし、性的な意味でだがな…♪　楽しませてくれよ」
+				PRINTW 
+			ELSEIF K143C_剛欲同盟 == 1
+				PRINTFORML 「何って、親睦を深めよーとしてるんだヨ♪」
+				PRINTFORML 「ただし、裸の付き合いだがな。くっくっく」
+				SIF TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3
+					PRINTFORML 「１発や２発じゃ満足しねーからな。覚悟しろよ♪」
+					PRINTW 
+			ELSE
+				PRINTFORML 「悪ぃな。ムラムラきちまったもんでよ」
+				PRINTFORML 「ちぃっとばかし、私の性欲解消に付き合ってくれよ。なぁに、染みの数だかなんだか数えてりゃすぐ終わる」
+				PRINTW 
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;MASTERに抱きついた（開始時）
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;なだめられた（終了時）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		;-------------------------------------------------
+		;抜け出した
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && !ARG:1
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;抱き着きモード満足終了
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;抱き着きモード強制終了
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 2
+			PRINTFORML
+			RETURN 1
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;抜け出す失敗
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		;-------------------------------------------------
+		;好きにして状態から抜け出せなかった
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;欲求不満が高くて抜け出せなかった
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 2
+			PRINTFORML
+			RETURN 1
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;誘ってきた（人目につかない場所に行きたがるやつ）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		;ARG:1=TARGETの欲求不満度（最高1000）
+		;必要ならばこれで分岐を作ってください
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;浴場で遭遇
+;==================================================
+@M_KOJO_EVENT_K143_11(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;追い出された
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+	IF K143C_剛欲同盟 == 1
+		PRINTFORML 「親の入浴を堂々と覗き見とは、お前も偉くなったもんだな」
+		PRINTFORML 「一人でゆっくりしたいんだ。出ていけ」
+		PRINTW 
+	ELSE
+		PRINTFORML 「…んだよ。見りゃ分かんだろ。今は私が風呂入ってんだよ」
+		PRINTFORML 「一人でゆっくりしたいんだ。出ていけ」
+		PRINTW 
+	ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;目が合った（追い出されない）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;寝床に忍び込み
+;==================================================
+@M_KOJO_EVENT_K143_12(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;追い出される（怒り）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;寝床に侵入
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;寝床に侵入（相手が恋慕）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;寝床に侵入（相手が恋慕・衰弱）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 3
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;追い出される
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 4
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;追い出される（衰弱）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG:1 == 5
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;お仕事中
+;==================================================
+@M_KOJO_EVENT_K143_13(ARG,ARG:1)
+;口上主はTARGET
+;ARG:1に残っている仕事量
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;仕事開始（職場へ移動する）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;業務中
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;仕事終了
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;食事系
+;==================================================
+@M_KOJO_EVENT_K143_14(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;持っていた食物を食べられた
+	;TCVAR:盗み食い抑制で持っていた食物を食われるのを回避できる
+	;仕様例（薬が入ってたら食わない）
+	;IF DISH_DRG
+	;	TCVAR:盗み食い抑制 = 1
+	;ENDIF
+
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == -1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+
+;==================================================
+;MASTERが押し倒した
+;==================================================
+@M_KOJO_EVENT_K143_15(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;未実装（押し倒しコマンドに統合？
+	;MASTERが押し倒した（ウフフ開始時）
+	;記入チェック（=0, 非表示、1, 表示）
+	;LOCAL:1 = 0
+	;-------------------------------------------------
+	;IF LOCAL:1 && ARG == 1
+		;PRINTFORML
+		;RETURN 1
+	;ENDIF
+	;-------------------------------------------------
+	;逢瀬終了（ウフフ終了時）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		IF K143C_妊娠レベル == 1 && (TALENT:恋慕 || TALENT:恋人) && TCVAR:TARGET:ピル == 0
+			;不妊フラグ進行
+			SIF EX:膣内精液 > 0 || EX:子宮内精液 > 0
+			;K143C_妊娠レベル = 2
+			CFLAG:143:1009 = 2
+		ENDIF
+
+		IF K143C_妊娠レベル < 8 &&  K143C_妊娠レベル > 0
+			BASE:体力 += EX:膣内精液 / 4
+			BASE:気力 += EX:膣内精液 / 8
+			EX:膣内精液 = 0
+			EX:子宮内精液 = 0
+		ENDIF
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+	;-------------------------------------------------
+	;事後描写
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		;-------------------------------------------------
+		;精液が垂れてきた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;愛液が垂れてきた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 2
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;事後のムード
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 3
+			PRINTFORML
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;服を着る
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 4
+			PRINTFORML
+			RETURN 1
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;添い寝する
+;==================================================
+@M_KOJO_EVENT_K143_16(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;添い寝を始めた（開始時）(存在せず
+	;記入チェック
+	;LOCAL:1 = 0
+	;-------------------------------------------------
+	;IF LOCAL:1 && ARG == 1
+		;PRINTFORML
+		;RETURN 1
+	;ENDIF
+	;-------------------------------------------------
+	;添い寝を終了した（終了時）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+;==================================================
+;時止め終了時
+;==================================================
+@M_KOJO_EVENT_K143_17(ARG,ARG:1)
+;口上主はTARGET
+;排他と明記されていないモノは状況によっては連続で表示されるので注意
+;ARGに射精状況
+;ARG:1に射精状態
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+
+IF LOCAL
+	;K143C_時止め吸収 += EX:膣内精液
+	CFLAG:143:1009 += EX:膣内精液
+	BASE:体力 += EX:膣内精液 / 4
+	BASE:気力 += EX:膣内精液 / 8
+	EX:膣内精液 = 0
+	EX:子宮内精液 = 0
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;ARG=1～3は排他
+	;謎の快感
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;絶頂
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;パンツ紛失
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML 「…ああ？」
+		PRINTFORML 「股がスースーすると思ったら…一体、どいつの仕業だ…！」
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;【無自覚口内射精】
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		;精液中毒低精飲
+		IF ARG:1 == 1
+		;精液中毒低吐き出し
+		ELSEIF ARG:1 == 2
+		;精液中毒低手で覆う
+		ELSEIF ARG:1 == 3
+		;精液中毒高精飲
+		ELSEIF ARG:1 == 4
+		;濃厚精液＆精液中毒低吐き出し
+		ELSEIF ARG:1 == 5
+		;濃厚精液＆精液中毒高精飲
+		ELSEIF ARG:1 == 6
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;【無自覚顔面射精】
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		;無知持ち＆精液経験100未満
+		IF ARG:1 == 1
+		;通常ぬぐい取り
+		ELSEIF ARG:1 == 2
+		;顔射精液舐めとり
+		ELSEIF ARG:1 == 3
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;【無自覚手淫射精】
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		;ぬぐい取り
+		IF ARG:1 == 1
+		;舐めとり
+		ELSEIF ARG:1 == 2
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;【無自覚アナル射精】
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		;Ａ感覚2以下
+		IF ARG:1 == 1
+		;ソレ以外
+		ELSEIF ARG:1 == 2
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;【無自覚処女喪失】
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 8
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;【無自覚膣内射精】
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 9
+		;非処女膣内射精ピルなし
+		IF ARG:1 == 1
+		;非処女膣内射精ピルあり
+		ELSEIF ARG:1 == 2
+		;処女膣内射精
+		ELSEIF ARG:1 == 3
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;時間停止解除共通
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 0
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;ナマでやらせろ時
+;==================================================
+@M_KOJO_EVENT_K143_18(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;避妊要求台詞
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML 「あ？　何言ってんだよ。子どもができたら仕事がやりづらくなるだろ。こう見えて私は真面目に仕事してるんだよ」
+		PRINTFORML 「どうしても生でヤリたきゃ薬をよこせ。あるんだろ？　そういうのが」
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;断った
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML 「駄目だと言っているだろうが。二度と言わせるなよ」
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;断ったのに粘られて切れた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		IF K143C_鬼傑組 == 1
+		ELSEIF K143C_勁牙組 == 1
+		ELSEIF K143C_剛欲同盟 == 1
+		ELSE
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;危険日以外許可
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		PRINTFORML 「ちっ…しゃーねーなー…」
+		PRINTFORML 「本当にヤベー日以外は生でさせてやるよ」
+		PRINTL 
+		PRINTFORML 「…ま、生のが気持ちいいだろうしな」
+		PRINTFORML 「何でもねーよ。おら、続きするぞ。続き」
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;危険日許可
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		IF K143C_鬼傑組 == 1 ||  K143C_勁牙組 == 1
+			PRINTFORML 「ったくよぉ、いくら生でヤリたいからって、ライバル組織の奴に頭まで下げるかフツー？」
+			PRINTFORML 「お前んとこの親に、いったいどういう教育してんだって問いただしたくなってくるな」
+			PRINTL 
+			PRINTFORML 「しゃーねーなー…いいよ。ヤらせてやるよ」
+			PRINTFORML 「その代わり、出すときは外に出せよな。ガキができたら、色々と面倒だしな」
+			PRINTW 
+		ELSEIF K143C_剛欲同盟 == 1
+			PRINTFORML 「お前…そこまでして親と生でヤリてぇってのか？」
+			PRINTFORML 「しゃーねーなー…いいよ。ヤらせてやるよ」
+			PRINTL 
+			PRINTFORML 「うぉっ、気持ち悪ぃくらい笑顔が輝いてやがるな…」
+			PRINTFORML 「その代わり、出すときは外に出せよな。子供ができたら、色々と面倒だしな」
+			PRINTW 
+		ELSE
+			PRINTFORML 「すげぇな。ここまで完璧な土下座みたことないぜ」
+			PRINTFORML 「しゃーねーなー…いいよ。ヤらせてやるよ」
+			PRINTL 
+			PRINTFORML 「そんな嬉しそうな顔すんじゃねーよ…なんか照れるじゃねーか」
+			PRINTFORML 「その代わり、出すときは外に出せよな。子供ができたら、色々と面倒だしな」
+			PRINTW 
+		ENDIF
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;神社暮らしを承認して貰う
+;==================================================
+@M_KOJO_EVENT_K143_19(ARG,ARG:1)
+;口上主はARG
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;認められる
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML 「くっくっく。地上の巫女も惚けたもんだなぁ。私を神社に住まわせるとか」
+		PRINTFORML 「それとも、自分の実力に絶対の自信でもあるってのか？　あんときは私の能力になすすべなくて退散したくせに」
+		PRINTL 
+		PRINTFORML 「…なんだよ。わーってるよ。お前に迷惑はかけないって」
+		PRINTFORML 「分かった、分かった。神社にも迷惑かけないから」
+		PRINTW 
+		PRINTFORML 「一緒に住めるようになって嬉しくないのかって？　そりゃあ…」
+		PRINTFORML 「…嬉しいに、決まってんだろーがよ…」
+		PRINTFORML 「居心地は血の池の方が圧倒的にいいがな」
+		PRINTL 
+		PRINTFORML 「うわ、お前の顔クッソむかつく。一度ヤキ入れっゾ、あぁ？」
+		PRINTFORML 「うるせぇ！　照れ隠しじゃねぇ！　おいこら！　笑いながら逃げんな！」
+		PRINTW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;認められない
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML 「まあ、居心地は畜生界や血の池の方が圧倒的にいいからな」
+		PRINTFORML 「…なんだよ、負け惜しみじゃないぞ」
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;あなたの私室変更により同居
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;帰宅時
+;==================================================
+@M_KOJO_EVENT_K143_20(ARG,ARG:1)
+;口上主はLOCALS or RESULT
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+IF LOCAL
+	IF K143C_妊娠レベル < 8
+		EX:膣内精液 = 0
+		EX:子宮内精液 = 0
+	ENDIF
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;通常帰宅
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		IF CFLAG:うふふ
+			IF K143C_妊娠レベル < 8
+				EX:膣内精液 = 0
+				EX:子宮内精液 = 0
+			ENDIF
+			;うふふ中に眠くて帰る
+			PRINTFORMW 
+		ELSE
+			PRINTFORMW 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;デート中帰宅
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		IF CFLAG:うふふ
+			IF CFLAG:衰弱
+				;うふふ中に疲れて帰る
+				IF K143C_妊娠レベル < 8
+					EX:膣内精液 = 0
+					EX:子宮内精液 = 0
+				ENDIF
+				PRINTFORMW 
+			ELSE
+				;うふふ中に眠くて帰る
+				IF K143C_妊娠レベル < 8
+					EX:膣内精液 = 0
+					EX:子宮内精液 = 0
+				ENDIF
+				PRINTFORMW 
+			ENDIF
+		ELSE
+			PRINTFORMW 
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;玄関先でお見送り（キャラの自宅位置、またはキャラの部屋でデート終了）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;デート終了時に部屋に来ないかと誘う（～から部屋に来ないかと誘われた）
+	;（来訪キャラのみ,自宅が無いキャラでも発生します）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		PRINTFORML 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;部屋に来ないか→「行く」を選択（～に誘われるまま、【MASTER】は【TARGET】の部屋へと向かった……）
+	;（これが発生すると十中八九押し倒されます）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;部屋に来ないか→「やめとく」を選択（～は心なしか寂しそうだ……）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;今夜は帰りたくないと言い出す（～は今夜は帰りたくないと言い出した…）
+	;（来訪キャラの帰宅時に欲求不満と欲望が高いと発生）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;今夜は帰りたくない→「泊める」を選択（～は【MASTERの自室】に泊まっていくことになりました）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 8
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;今夜は帰りたくない→「泊めない」を選択、または家主が居る（【MASTER】は丁重に断った）
+	;（家主が居る＝MASTERの私室に他のキャラの私室を設定している）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 9
+		PRINTFORMW 
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;疲れて帰宅（疲れきった～は帰って行きました）
+	;（～は疲れ切っている→（入り口）まで送るよ でも発生）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 10
+		IF K143C_妊娠レベル < 8
+			EX:膣内精液 = 0
+			EX:子宮内精液 = 0
+		ENDIF
+
+		IF CFLAG:うふふ
+			;うふふ中に疲れて帰る
+			PRINTFORMW 
+		ELSE
+			PRINTFORMW 
+		ENDIF
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;陥落素質取得時
+;==================================================
+@M_KOJO_EVENT_K143_21(ARG,ARG:1)
+;口上主はARG
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;恋慕取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;思慕取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;愛欲取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;愛人取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;セフレ取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;キス魔取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;自慰狂い取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;ポルチオ性感取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 8
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;おもらし癖取得
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 9
+		PRINTFORML
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;調教終了時に自慰
+;==================================================
+@M_KOJO_EVENT_K143_22(ARG,ARG:1)
+;口上主はARG
+;ARG:0に自慰状況
+;ARG:1に自慰種類
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;通常自慰
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		PRINTFORML  
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;同室時自慰
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		PRINTFORML  
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;中だし精液自慰
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		PRINTFORML  
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;無知持ち（自慰経験(調教自慰経験は差し引き)による分岐あり
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		LOCAL:2 = EXP:自慰経験 - EXP:調教自慰経験
+		;無知消去イベントあり（表示は一度だけ
+		IF LOCAL:1 >= 25
+		;地の文分岐。書きたい場合は[SKIPSTART][SKIPEND]を削除してください
+		[SKIPSTART]
+		ELSEIF LOCAL:1 >= 20
+		ELSEIF LOCAL:1 >= 15
+		ELSEIF LOCAL:1 >= 10
+		ELSEIF LOCAL:1 >= 5
+		[SKIPEND]
+		ELSE
+		ENDIF
+		PRINTFORML  
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;陥落素質あり自慰中毒高め
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		;-------------------------------------------------
+		;Ｃ敏感orＣ感覚10以上
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;Ｖ敏感orＶ感覚10以上
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 2
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;Ａ敏感orＡ感覚10以上
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 3
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;Ｂ敏感orＢ感覚10以上
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 4
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;部位指定無し
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 5
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;その他
+		;上の分岐を一切書かずに、ここに書くことで陥落素質あり自慰中毒高め自慰の共通口上を表示することが出来ます
+		PRINTFORML  
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;自慰中毒高め
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		;-------------------------------------------------
+		;尻穴膣腔同時
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 1
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		;膣腔のみ
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1 && ARG:1 == 2
+			PRINTFORML  
+			RETURN 1
+		ENDIF
+		;その他
+		;上の分岐を一切書かずに、ここに書くことで自慰中毒高め自慰の共通口上を表示することが出来ます
+		PRINTFORML  
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;我慢
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		PRINTFORML 
+		RETURN 1
+	ENDIF
+	;その他
+	;上の分岐を一切書かずに、ここに書くことで自慰の共通口上を表示することが出来ます
+	PRINTFORML  
+	RETURN 1
+ENDIF
+RETURN 1
+;==================================================
+;浴場連れだし
+;==================================================
+@M_KOJO_EVENT_K143_23(ARG,ARG:1)
+;口上主はLOCAL
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;断られた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;一緒に入ってくれた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+;==================================================
+;懐妊
+;==================================================
+@M_KOJO_EVENT_K143_24(ARG,ARG:1)
+;口上主はLOCAL
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;恋慕
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;思慕
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;陥落素質無し
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;無自覚
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+;==================================================
+;出産
+;==================================================
+@M_KOJO_EVENT_K143_25(ARG,ARG:1)
+;口上主はLOCAL
+;ARG:1	何人目の子供か
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;恋慕
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;思慕
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;陥落素質無し
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;無自覚
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		RETURN 1
+	ENDIF
+	;その他
+	PRINTFORML  
+ENDIF
+RETURN 1
+;==================================================
+;オナバレ
+;==================================================
+@M_KOJO_EVENT_K143_26(ARG,ARG:1)
+
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	SELECTCASE ARG
+		;-------------------------------------------------
+		CASE 0
+		;見られた瞬間
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 1
+		;何もしない
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 2
+		;そのまま続行
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 3
+		;追い出し
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 4
+		;やっちゃう
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 5
+		;事後
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 6
+		;事後お泊り
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+	ENDSELECT
+ENDIF
+
+;オナバレックス判定用関数
+;RETURN -1で強制失敗、RETURN 1で強制成功
+@M_KOJO_EVENT_K143_26_1(ARGS)
+#DIM 補正値
+IF ARGS == "どうぞそのまま"
+
+ELSEIF ARGS == "二人で"
+
+ENDIF
+
+;使用例
+;IF !TALENT:XX:恋慕
+;	PRINTFORMW %CALLNAME:XX%はガードが堅いぞ！
+;	RETURN -1
+;ENDIF
+;IF TALENT:MASTER:濃厚精液
+;	PRINTFORMW %CALLNAME:XX%はちんぽに弱いぞ！
+;	RETURN 1
+;ENDIF
+;==================================================
+;相手からデートのお誘い
+;==================================================
+@M_KOJO_EVENT_K143_27(ARG,ARG:1)
+;口上主はLOCAL
+;ARG:1は目的地
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	SELECTCASE ARG
+		;-------------------------------------------------
+		CASE 0
+		;誘い文句
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			IF K143C_鬼傑組 == 1
+				PRINTFORML 「暇そうじゃないか。ちょっと付き合え」
+				PRINTFORML 「組の仕事がって、お前仕事らしい仕事してないだろ。いいからいいから」
+			ELSEIF K143C_勁牙組 == 1
+				PRINTFORML 「そんなところで油売ってる暇があるなら、全部買ってやるから付き合え」
+				PRINTFORML 「組の仕事がって、お前仕事らしい仕事してないだろ。いいからいいから」
+			ELSEIF K143C_剛欲同盟 == 1
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「お前に仕事を与える」
+					PRINTFORML 「私をデートに連れて行って楽しませろ。行き先は私が決めるが内容はお前に任せる」
+					PRINTFORML 「くっくっく、頑張れよ」
+				CASE 1
+					PRINTFORML 「出るぞ。すぐ支度しろ」
+					PRINTFORML 「……どこへ向かうのかって？　くっくっく、とってもいい所だよ」
+					IF ABL:MASTER:戦闘能力 >= 3
+						PRINTFORML 「お前は頼りになるからな。ボディーガードとしてもうってつけだ」
+						PRINTFORML 「まあ、今日の外出は物騒なことにはならんから気楽に構えてろ」
+					ELSE
+						PRINTFORML 「もっと強い奴を護衛に連れていったらどうだって？」
+						PRINTFORML 「いいんだよ。今日のはそういうのじゃないんだから。いいからついてこい」
+					ENDIF
+				ENDSELECT
+			ELSE
+				PRINTFORML 「暇だろ？　ちょっと付き合え」
+				PRINTFORML 「剛欲同盟長のデートのお誘いなんて、滅多にあることじゃないぞ。光栄に思え。なんてな」
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 1
+		;受けた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 2
+		;断った
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 3
+		;部屋に誘われた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 4
+		;部屋に誘われたのを受けた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 5
+		;部屋に誘われたのを断った
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			RETURN 1
+		ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+
+;==================================================
+;脱衣口上
+;==================================================
+@M_KOJO_EVENT_K143_28(ARG,ARG:1)
+;口上主はTARGET
+;ARGに脱がし方選択
+;ARG:1（ARG=3の場合のみあり）地の文の反応
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	SELECTCASE ARG
+		;-------------------------------------------------
+		CASE 0
+		;全裸にする
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			;時間停止時
+			IF FLAG:70
+			;通常
+			ELSE
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 1
+		;下着姿にする
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			;時間停止時
+			IF FLAG:70
+			;通常
+			ELSE
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 2
+		;半脱ぎ
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			;時間停止時
+			IF FLAG:70
+			;通常
+			ELSE
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 3
+		;パンツちょうだい
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 0
+		;-------------------------------------------------
+		IF LOCAL:1
+			SELECTCASE ARG:1
+				;-------------------------------------------------
+				CASE 0
+				;交換です
+				;記入チェック（=0, 非表示、1, 表示）
+				LOCAL:1 = 0
+				;-------------------------------------------------
+				IF LOCAL:1
+					RETURN 1
+				ENDIF
+				;-------------------------------------------------
+				CASE 1
+				;OK（嬉々
+				;記入チェック（=0, 非表示、1, 表示）
+				LOCAL:1 = 0
+				;-------------------------------------------------
+				IF LOCAL:1
+					RETURN 1
+				ENDIF
+				;-------------------------------------------------
+				CASE 2
+				;OK（渋々
+				;記入チェック（=0, 非表示、1, 表示）
+				LOCAL:1 = 0
+				;-------------------------------------------------
+				IF LOCAL:1
+					RETURN 1
+				ENDIF
+				;-------------------------------------------------
+				CASE 3
+				;嫌です
+				;記入チェック（=0, 非表示、1, 表示）
+				LOCAL:1 = 0
+				;-------------------------------------------------
+				IF LOCAL:1
+					RETURN 1
+				ENDIF
+				RETURN 1
+			ENDSELECT
+		ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+
+;==================================================
+;怒り口上
+;==================================================
+@M_KOJO_EVENT_K143_29(ARG,ARG:1)
+;口上主はTARGET
+;ARGはTARGETの度胸で分岐
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;怒らせてしまった
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;泣かせてしまった　[臆病]持ち
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;相手が押し倒しを解除
+;==================================================
+@M_KOJO_EVENT_K143_30(ARG,ARG:1)
+;口上主はTARGET
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+
+IF LOCAL
+	;-------------------------------------------------
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 1
+	;疲れた
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+	;満足して解放
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+	;満足したところを押し倒された
+		PRINTFORML
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+	;壊れるまでしてあげる
+		PRINTFORML
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+
+;==================================================
+;一日の終了時(AFTERTRAニーの前)、面識がなければ呼び出されない
+;==================================================
+@M_KOJO_EVENT_K143_31(ARG,ARG:1)
+;口上主はTARGET
+;ARGは会ってない日数
+;何日以上会ってなかったら愚痴を言うとかできます
+;CFLAG:オナバレで分岐入れてもよさそう
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;今日会っていない
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;今日会っている
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 0
+		RETURN 1
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;自由行動中
+;ARG:1      0=行動中,1=完了時
+;技能系の行動は技能レベルが1以上なら発生
+;==================================================
+@M_KOJO_EVENT_K143_32(ARG,ARG:1)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	SELECTCASE ARG
+	CASE 0
+		;▼考え事,（～は考えに耽っている。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 1
+		;▼遊ぶ,（～は走り回っている。）
+		;※[幼稚]持ちのみ
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 2
+		;▼食事,（～は食事を摂っている。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 3
+		;▼つまみ食い（～はこっそりつまみ食いをしている。）
+		;※[妖精]持ちとルーミア、こいし、幽々子、紫苑のみ
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 4
+		;▼掃除,（～はテキパキと部屋の掃除をしている。）
+		;※[掃除係]持ちまたは汚臭耐性-1以下のみ
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 5
+		;▼運動,（～は張り切って運動している。）
+		;※[音楽知識]持ちは除く（演奏になる）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 6
+		;▼読書,（～は黙々と本を読んでいる。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 7
+		;▼料理,
+		IF !ARG:1
+			;行動中
+			IF Activity_Duration:TARGET > 30
+				;料理中（～は軽快に料理をしている。）
+				PRINTFORML 
+			ELSE
+				;食事中（～は作った料理を食べている。）
+				PRINTFORML 
+			ENDIF
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 8
+		;▼演奏
+		;※[音楽知識]持ちのみ（TALENT:音楽知識で変化）
+		;1,～は小気味よく演奏している。
+		;2,～は気ままに歌っている。
+		;3,～は華麗に踊っている。
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 9
+		;▼採集,（～使える素材を探している。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 10
+		;▼釣り,（～はのんびり釣りをしている。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 11
+		;▼実験,（～は怪しい実験をしている。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 12
+		;▼のんびり,（～はのんびりしている。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 13
+		;▼晩酌,（～はまったりとお酒を飲んでいる。）
+		;※酒耐性0以上のみ
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 14
+		;▼買い物,（～は気ままに買い物している。）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 15
+		;▼説教,（～はじっと聞いている…）
+		;※神霊・蓬莱人は除く
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 16
+		;▼落とし穴,（～は落とし穴を増やしている）
+		;※三月精・チルノ・クラウンピースのみ
+		;それ以外は落ちる側
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時,
+			;（仕掛け人（失敗時）,誰も引っかからないので～は飽きてしまったようだ…）
+			;（落ちた側（戦闘能力2～4）,～はすぐに穴から飛び出して周りをキョロキョロ見回している…）
+			PRINTFORML 
+		ENDIF
+	CASE 17
+		;▼雪だるま作り（～は雪を集めている）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	CASE 18
+		;▼炬燵でのんびり（～は炬燵に入って温まっている）
+		IF !ARG:1
+			;行動中
+			PRINTFORML 
+		ELSE
+			;完了時
+			PRINTFORML 
+		ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+
+;==================================================
+;ハッピーニューイヤー
+;年越しの瞬間に同じ部屋に居ると発生
+;==================================================
+@M_KOJO_EVENT_K143_33(ARG,ARG:1)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	PRINTFORMW 
+ENDIF
+RETURN 1
+
+;==================================================
+;技能レベルアップ
+;各ABL値はレベルアップ後の値になってます
+;==================================================
+@M_KOJO_EVENT_K143_34(ARG,ARG:1)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	SELECTCASE ARG
+	CASE 1
+		;戦闘技能
+		PRINTFORMW 
+	CASE 2
+		;話術技能
+		PRINTFORMW 
+	CASE 3
+		;清掃技能
+		PRINTFORMW 
+	CASE 4
+		;教養
+		PRINTFORMW 
+	CASE 5
+		;料理技能
+		PRINTFORMW 
+	CASE 6
+		;採集Lv
+		PRINTFORMW 
+	CASE 7
+		IF ARG:1 == 0
+			;音楽技能
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【音楽知識】取得
+			PRINTFORMW 
+		ELSEIF ARG:1 == 2
+			;【相対音感】取得
+			PRINTFORMW 
+		ENDIF
+	CASE 8
+		;釣りLv
+		PRINTFORMW 
+	CASE 9
+		IF ARG:1 == 0
+			;調合Lv
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【調合知識】取得
+			PRINTFORMW 
+		ENDIF
+	CASE 10
+		;伐採Lv
+		PRINTFORMW 
+	CASE 11
+		IF ARG:1 == 0
+			;指
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【器用な指】取得
+			PRINTFORMW 
+		ENDIF
+	CASE 12
+		IF ARG:1 == 0
+			;舌
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【舌使い】取得
+			PRINTFORMW 
+		ENDIF
+	CASE 13
+		IF ARG:1 == 0
+			;胸
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【淫乳】取得
+			PRINTFORMW 
+		ENDIF
+	CASE 14
+		;腰
+		PRINTFORMW 
+	CASE 15
+		IF ARG:1 == 0
+			;膣
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【淫壺】取得
+			PRINTFORMW 
+		ENDIF
+	CASE 16
+		IF ARG:1 == 0
+			;アナル
+			PRINTFORMW 
+		ELSEIF ARG:1 == 1
+			;【尻穴狂い】取得
+			PRINTFORMW 
+		ENDIF
+	ENDSELECT
+	PRINTL 
+ENDIF
+RETURN 1
+
+;==================================================
+;デイリーイベント2,夢精
+;親密5以上で発生（来訪キャラのみ）
+;▼地の文--------------------------------------------------
+;【MASTER】が夢精で汚した下着を洗っていると【TARGET】が飛んできた！
+;【TARGET】はそんなもの他の洗濯物と一緒に洗わないでと抗議すると、【MASTER】の手に収まった下着をふんだくり戻っていった…
+;【TARGET】　欲情の珠＋1000
+;==================================================
+@M_KOJO_DAILY_EVENT_K143_2(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+;地の文を変えたければコメントアウト
+;※コメントアウトすると欲情の珠＋1000（JUEL:11 += 1000）もカットされるので注意
+CALL DAILY_MESSAGE_2(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	PRINTFORMW 
+ENDIF
+RETURN 1
+
+;==================================================
+;デイリーイベント4,物思い
+;濃厚精液状態で発生
+;▼地の文--------------------------------------------------
+;とりとめもない思考に耽っていた【TARGET】は、いつの間にか【MASTER】のことを考えていたことに気づいた
+;【TARGET】は明日【MASTER】に会いに行くことにしたようだ
+;==================================================
+@M_KOJO_DAILY_EVENT_K143_4(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+;地の文を変えたければコメントアウト
+CALL DAILY_MESSAGE_4(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	PRINTFORMW 
+ENDIF
+RETURN 1
+
+;==================================================
+;デイリーイベント12,特訓
+;信頼100以上で発生（拠点キャラのみ）
+;==================================================
+@M_KOJO_DAILY_EVENT_K143_12(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+;地の文を変えたければコメントアウト
+;コメントアウトできるのはARG:1=1,2のみです
+CALL DAILY_MESSAGE_12(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------
+IF LOCAL
+	SELECTCASE ARG:1
+	CASE 1
+		;特訓を頼まれる
+		;～から新技の訓練に付き合って欲しいと言われた
+		PRINTFORML 
+	CASE 2
+		;断る
+		;～は残念そうだ
+		PRINTFORML 
+	CASE 3
+		;～の攻撃！
+		;※ここはWAITしないでください
+		PRINTFORML 
+	CASE 4
+		IF ARG:2
+			;時間停止して回避
+			PRINTFORML 
+		ELSE
+			;回避成功
+			PRINTFORML 
+		ENDIF
+	CASE 5
+		;回避失敗
+		PRINTFORML 
+	ENDSELECT
+ENDIF
+RETURN 1
+
+
+[SKIPSTART]
+;-------------------------------------------------
+;オナバレ遭遇時の地の文をデフォルトのものから変更したい場合用。
+;その場合は上下のSKIPSTART~SKIPENDを外してください。
+;CFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります。
+;-------------------------------------------------
+@M_KOJO_EVENT_K143_ONABARE_1(ARG)
+;-------------------------------------------------
+:口上色を付けるならコメントアウトを外しXをキャラ番号に
+;CALL M_KOJO_COLOR_K143
+
+IF ARG
+	PRINTFORML A弄ってる場合
+ELSE
+	PRINTFORML V弄ってる場合
+ENDIF
+;-------------------------------------------------
+[SKIPEND]
+
+
+[SKIPSTART]
+;-------------------------------------------------
+;オナバレでそのまま続けてもらう場合の地の文をデフォルトのものから変更したい場合用。
+;その場合は上下のSKIPSTART~SKIPENDを外してください。
+;CFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります。
+;-------------------------------------------------
+@M_KOJO_EVENT_K143_ONABARE_2(ARG)
+;-------------------------------------------------
+:口上色を付けるならコメントアウトを外しXをキャラ番号に
+;CALL M_KOJO_COLOR_K143
+
+IF ARG
+	PRINTFORML A弄ってる場合
+ELSE
+	PRINTFORML V弄ってる場合
+ENDIF
+;-------------------------------------------------
+[SKIPEND]
+
+
+[SKIPSTART]
+;-------------------------------------------------
+;オナバレなし崩しックスの地の文をデフォルトのものから変更したい場合用。
+;その場合は上下のSKIPSTART~SKIPENDを外してください。
+;CFLAG等のキャラ変数を使う場合、キャラ番号の指定が必要になります。
+;-------------------------------------------------
+@M_KOJO_EVENT_K143_ONABARE_3(前戯１,本番はどっちか,回数,注入量)
+;-------------------------------------------------
+#DIM 前戯１
+;1=C 2=B 3=M
+#DIM 本番はどっちか
+;0でＶ、1でＡ
+#DIM 注入量
+#DIM 回数
+
+:口上色を付けるならコメントアウトを外しXをキャラ番号に
+;CALL M_KOJO_COLOR_K143
+
+SELECTCASE 前戯１
+	CASE 1
+		PRINTFORML Ｃ責め
+	CASE 2
+		PRINTFORML Ｂ責め
+	CASE 3
+		PRINTFORML Ｍ責め
+ENDSELECT
+
+IF 本番はどっちか
+	PRINTFORML Aで本番
+ELSE
+	PRINTFORML Vで本番
+ENDIF
+;-------------------------------------------------
+[SKIPEND]
+
+
+;-------------------------------------------------
+;処女・無自覚非処女に挿入する直前の口上
+;RETURN 1するとコマンドをキャンセルします
+;RETURN 0なら通します
+;CFLAG:破瓜キャンセル口上有がオンになってないと読み込まれないので注意
+;-------------------------------------------------
+@M_KOJO_EVENT_K143_LOST_VIRGIN_STOP
+;-------------------------------------------------
+PRINTFORML 
+RETURN 1
+
+;-------------------------------------------------
+;CFLAG:口上内抱き寄せ判定_初回がオンになっている場合のみ有効。
+;初めて押し倒した時、ここでRETURN -1すると押し倒しを強制的にキャンセルします。
+;RETURN 0なら通常の判定を行い、RETURN 1すると無条件に成功させます。
+;特定のイベント（デート帰りキスなど）を見るまでうふふできないようにしたいときなどにどうぞ。
+;-------------------------------------------------
+@M_KOJO_EVENT_K143_PERMISSION_1
+;-------------------------------------------------
+PRINTFORML 
+;RETURN -1
+;RETURN 0
+IF TALENT:恋慕 || TALENT:恋人
+	PRINTFORML 「どうした？　我慢できなくなったか？」
+	PRINTFORML 「いいぞ。お前の溜まりに溜まった性欲、私が全部吸い尽くしてやる」
+	PRINTFORML 「やるからには、ちゃんと気持ちよくしてくれよ。なんでもしていいからさ」
+ELSEIF K143C_剛欲同盟 == 1
+	PRINTFORML 「おいおい、落ち着け」
+	PRINTFORML 「いいのか？　今からヤろうとする相手はお前の〝親〟だぞ」
+	PRINTFORML 「堅気の相手でもなければ、そこいらのチンピラってわけでもない」
+	PRINTL 
+	PRINTFORML 「……それでも覚悟を決めたなら、最後までしっかり私を抱いてみろ」
+	PRINTFORML 「私はお前の〝親〟だからな。お前の性欲、全部受け止めてやるさ」
+	PRINTL 
+ELSEIF K143C_鬼傑組 == 1
+	PRINTFORML 「……これは何のつもりだ？」
+	PRINTFORML 「敵対組織の長相手にヤりたいとか、お前は種馬か何かか？」
+	IF TALENT:[[八千慧]]:恋慕 == 1 || TALENT:[[八千慧]]:恋人 == 1 || TALENT:[[八千慧]]:セフレ == 1 || TALENT:[[八千慧]]:愛欲 == 1
+		PRINTFORML 「なるほど、こうやって自分のところの親も落としてきたってわけだな」
+		PRINTFORML 「性格はともかく、あいつの手腕は私はかっているんだ」
+		PRINTFORML 「剛欲同盟の長も落とせるか試してみろよ」
+	ELSE
+		PRINTFORML 「それとも、こうやって落としてこいと命令されてきたか？」
+		PRINTFORML 「いいぞ。お前の性欲、私にぶつけてみろ。全部私が食い尽くしてやるよ」
+	ENDIF
+ELSEIF K143C_勁牙組 == 1
+	PRINTFORML 「……これは何のつもりだ？」
+	PRINTFORML 「敵対組織の長相手にヤりたいとか、お前は種馬か何かか？」
+	IF TALENT:[[早鬼]]:恋慕 == 1 || TALENT:[[早鬼]]:恋人 == 1 || TALENT:[[早鬼]]:セフレ == 1 || TALENT:[[早鬼]]:愛欲 == 1
+		PRINTFORML 「なるほど、こうやって自分のところの親も落としてきたってわけだな」
+		PRINTFORML 「あいつ、プライドは高いが妙に素直なところがあるからな。案外、チョロいかもしれん」
+		PRINTFORML 「さて、剛欲同盟の長には同じ手が通じるかな？　試してみろよ」
+	ELSE
+		PRINTFORML 「それとも、こうやって落としてこいと命令されてきたか？」
+		PRINTFORML 「いいぞ。お前の性欲、私にぶつけてみろ。全部私が食い尽くしてやるよ」
+	ENDIF
+ELSE
+	PRINTFORML 「……お前、そういう奴だったのか」
+	PRINTFORML 「まあいい。欲望に素直な奴は嫌いじゃあない」
+	PRINTFORML 「お前のヤりたい欲望、せいぜい吸い尽くされんように頑張ることだな」
+ENDIF
+RETURN 1
+;-------------------------------------------------
+
+
+;-------------------------------------------------
+;CFLAG:口上内抱き寄せ判定_通常がオンになっている場合のみ有効。
+;合意付きで押し倒した時、ここでRETURN -1すると押し倒しを強制的にキャンセルします。
+;RETURN 0なら通常通り成功させます。
+;合意があっても何らかの理由でうふふできないようにしたいときなどにどうぞ。
+;-------------------------------------------------
+@M_KOJO_EVENT_K143_PERMISSION_2
+;-------------------------------------------------
+PRINTFORML 
+RETURN 0
+;RETURN -1
+;-------------------------------------------------
+
+;-------------------------------------------------
+;部屋描写用関数
+;口上キャラのOMANEKIBEYAか拠点の描写に使います
+;記入する際はコメントアウトを外してください
+;-------------------------------------------------
+;@K143_ROOM_DESCRIPTION
+;PRINTFORML 例）生活感のない殺風景な部屋だ
+;-------------------------------------------------
+
+
+;==================================================
+;贈り物イベント
+;==================================================
+@M_KOJO_EVENT_K143_GIFT(ARG, GIFT_ID, 評価点, GIFT_NAME, SENSE)
+#DIM GIFT_ID
+#DIM 評価点
+#DIMS GIFT_NAME
+#DIMS SENSE
+;---------------------------------------------------------------------------------------------------
+;評価点       贈り物の評価点（1～999）,口上主があげた場合でも口上主の評価点
+;GIFT_NAME    贈り物の名称
+;SENSE        贈り物に設定された属性。STRCOUNT(DISH_TASTE, "ほげほげ/")を使うと特定の属性を判定できます。
+;GIFT_ID      これ単体では使いません。以下の式内関数を使うとデータを抽出できます（こだわりたい人用）
+;　GET_GIFTDATA(GIFT_ID, "回数")    貰った（あげた）回数
+;　GET_GIFTDATA(GIFT_ID, "得点")    得点（1～999）,口上テンプレ内では用意されてます。
+;　GET_GIFTDATA(GIFT_ID, "日付")    貰った（あげた）日付（1～9999）
+;　GET_GIFTDATA(GIFT_ID, "場所")    買った場所（デートの行き先）
+;　GET_GIFTDATA(GIFT_ID, "形容詞")  形容詞番号（贈り物_形容詞.erb参照）
+;　GET_GIFTDATA(GIFT_ID, "本体")    本体番号（贈り物_本体.erb参照）
+;--------------------------------------------------------------------------------------------------
+;デート帰りに口上主があなたに贈り物を渡す（陥落や好感度に関わらず親密5以上から発生）
+;評価点は701～999（渡すキャラ本人の評価）
+;--------------------------------------------------------------------------------------------------
+IF ARG == 1
+	;PRINTFORMW 「%GIFT_NAME%をあげるから大事に使って」
+	RETURN 1
+;--------------------------------------------------------------------------------------------------
+;一日の終わりに今日貰った贈り物を大事にする（700点以上）
+;--------------------------------------------------------------------------------------------------
+ELSEIF ARG == 2
+	;IF STRCOUNT(SENSE, "かわいい/")
+	;	PRINTFORMW 「かわいいプレゼントを貰っちゃった」
+	;ELSEIF 評価点 >= 800
+	;	PRINTFORMW 「とっても素敵なプレゼントを貰っちゃった」
+	;ELSE
+	;	PRINTFORMW 「素敵なプレゼントを貰っちゃった」
+	;ENDIF
+	RETURN 1
+;--------------------------------------------------------------------------------------------------
+;一日の終わりに今日貰った贈り物をお気に入りにする（↑の大事にするから続き）（700点以上かつ最高得点）
+;--------------------------------------------------------------------------------------------------
+ELSEIF ARG == 3
+	;IF STRCOUNT(SENSE, "身につける/")
+	;	PRINTFORMW 「明日からこれを付けて行こうっと」
+	;ELSE
+	;	PRINTFORMW 「明日からこれを持って行こうっと」
+	;ENDIF
+	RETURN 1
+;--------------------------------------------------------------------------------------------------
+;一日の終わりに今日貰った贈り物をとりあえず保管する（400～699点）
+;--------------------------------------------------------------------------------------------------
+ELSEIF ARG == 4
+	;PRINTFORMW 「とりあえず飾っておこう」
+	RETURN 1
+;--------------------------------------------------------------------------------------------------
+;一日の終わりに今日貰った贈り物をこっそり質に入れる（400点未満）
+;--------------------------------------------------------------------------------------------------
+ELSEIF ARG == 5
+	;PRINTFORMW 「私これ嫌いなのよね～」
+	RETURN 1
+ENDIF
+RETURN 1
+
+
+;==================================================
+;ムシバトル
+;ムシバトルの口上は少し特殊で、PRINTを使うのではなく、
+;台詞一行のみをRESULTSに入れてください
+;ムシの名前は %MUSHI_NAME% で表示できます
+;ムシの名前の最長はアレキサンドラトリバネアゲハの全角14文字です
+;文字数制限があります。はみ出ないように気をつけてください
+;ARGは残りムシ数か順位です
+;==================================================
+@M_KOJO_MESSAGE_COM_K143_MUSHI_BATTLE(ARGS, ARG)
+#DIM 残りムシ数
+#DIM 順位
+SELECTCASE ARGS
+CASE "試合前"
+	;-------------------------------------------------
+	;キャラセレクト時,ARGは使えません
+	;全角50文字くらいまで
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1
+;		RESULTS = 「ぶっとばしてさしあげますわ！」
+	ENDIF
+CASE "戦場に出した"
+	;-------------------------------------------------
+	;"【（キャラ）】は《（ムシ）》を戦場に出した！」"の直後
+	;全角40文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	残りムシ数 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+;		RESULTS = 「%MUSHI_NAME%！キミにきめた！」
+	ENDIF
+CASE "攻撃時"
+	;-------------------------------------------------
+	;"【（キャラ）】《（ムシ）》の『（攻撃名）』！」"の直前
+	;全角40文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	残りムシ数 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+;		RESULTS = 「ぶっとばせ！%MUSHI_NAME%！」
+	ENDIF
+CASE "倒れた時"
+	;-------------------------------------------------
+	;"【（キャラ）】《（ムシ）》は倒れた！！"の直後
+	;全角40文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	残りムシ数 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+;		RESULTS = 「ああっ！私の%MUSHI_NAME%がっ！」
+	ENDIF
+CASE "敗退時"
+	;-------------------------------------------------
+	;"【（キャラ）】敗退！！"の直後
+	;全角40文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	残りムシ数 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+;		RESULTS = 「私のムシが全滅めつめつ……」
+	ENDIF
+CASE "タイマン：勝ち"
+	;-------------------------------------------------
+	;順位は1位
+	;全角20文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	順位 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+;		RESULTS = 「%CALLNAME:MASTER%よわーい！」
+	ENDIF
+CASE "タイマン：負け"
+	;-------------------------------------------------
+	;順位は2位
+	;全角20文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	順位 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+;		RESULTS = 「%CALLNAME:MASTER%つよーい！」
+	ENDIF
+CASE "バトルロイヤル：優勝"
+	;-------------------------------------------------
+	;順位は1位
+	;全角30文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	順位 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+;		RESULTS = 「やったー！」
+	ENDIF
+CASE "バトルロイヤル：２位以下"
+	;-------------------------------------------------
+	;順位は2～4位
+	;全角30文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	順位 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+;		RESULTS = 「くやし～！」
+	ENDIF
+CASE "チーム戦：勝ち"
+	;-------------------------------------------------
+	;順位は1位（やられていても）
+	;全角32文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	順位 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+;		RESULTS = 「私のおかげね！」
+	ENDIF
+CASE "チーム戦：負け"
+	;-------------------------------------------------
+	;順位は2位
+	;全角32文字まで（カギカッコ含む）
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	順位 = ARG
+	;-------------------------------------------------
+	IF LOCAL:1
+;		RESULTS = 「味方が弱い！！」
+	ENDIF
+ENDSELECT
+SIF RESULTS != ""
+	RETURN 1
+
+;==================================================
+;引力操作
+;TCVAR:引力点に場所IDを入れるとその地点に引っ張られていきます
+;場所IDと同じ拠点マップでしか効果はありません（博麗神社の境内なら拠点が博麗神社のときだけ）
+;条件を付けないと永久に引っ張られ続けるので注意
+;RANDは基本的に使えません。CFLAG:今日の運勢にその日のランダム数値（0～999）が入っているのでこれを使うと良いです
+;==================================================
+@M_KOJO_EVENT_K143_GRAVITY(ARG)
+
+SIF 0
+	TCVAR:引力点 = 0
+
+;▼共通設定で使われているサンプル
+[SKIPSTART]
+	;平日の昼間はランダムで遊びに行く
+	IF YOUBI_MATCH(DAY, "月火水木金") && INRANGE(TIME, 600, 960)
+		SELECTCASE CFLAG:今日の運勢 % 5
+		CASE 1
+			TCVAR:引力点 = P2境内
+		CASE 2
+			TCVAR:引力点 = P10縁側
+		CASE 3
+			TCVAR:引力点 = P11庭
+		CASE 4
+			TCVAR:引力点 = P25鎮守の森
+		CASEELSE
+			TCVAR:引力点 = 0
+		ENDSELECT
+	ENDIF
+	;水木曜日に2分の1の確率で遊びに行く
+	SIF YOUBI_MATCH(DAY, "水木") && INRANGE(TIME, 720, 1020) && CFLAG:今日の運勢 % 2 == 0
+		TCVAR:引力点 = P213鈴奈庵
+	;特定の人物が特定の場所にいるとそこへ引っ張られる
+		SIF CFLAG:[[白蓮]]:現在位置 == P103本堂 && !CFLAG:[[白蓮]]:うふふ && SHIRAHU([[白蓮]])
+			TCVAR:引力点 = P103本堂
+	;土日に10分の1の確率で特定の人物にくっついてまわる
+	SIF YOUBI_MATCH(DAY, "土日") && CFLAG:今日の運勢 % 10 == 0 && !CFLAG:[[さとり]]:うふふ && SHIRAHU([[さとり]])
+		TCVAR:引力点 = CFLAG:[[さとり]]:現在位置
+[SKIPEND]
+
+;==================================================
+;スイカ割り
+;スイカ割りの口上はムシバトル同様、PRINTを使うのではなく、
+;台詞一行のみをRESULTSに入れてください
+;カギ括弧は自動で付きます
+;"衝突","結果"のみ、口上色が自動で付きます
+;"衝突","結果"以外は半角26文字（全角13文字）までの文字数制限があります。はみ出ないように気をつけてください
+;数パターンあると雰囲気が出ます（%TEXTR( / )%を使うと良い）
+;==================================================
+@M_KOJO_MESSAGE_COM_K143_SUIKA(ARGS, ARG)
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL:1 = 0
+;-------------------------------------------------
+IF LOCAL:1
+	SELECTCASE ARGS
+	CASE "衝突"
+		;-------------------------------------------------
+		;場外に出てあなたがキャラと衝突した際の台詞
+		;文字数制限はありません,汎用台詞もありません
+		;-------------------------------------------------
+		RESULTS = いたっ！ ちょっと、危ないじゃないのよ！
+	CASE "そこだ！"
+		RESULTS = %TEXTR("そこ！/今！")%
+	CASE "近い"
+		RESULTS = %TEXTR("近い！近いよ！/近づいてるよ！/あとちょっと！")%
+	CASE "遠い"
+		RESULTS = %TEXTR("まだ遠いよ/まだまだ～")%
+	CASE "かなり遠い"
+		RESULTS = %TEXTR("全然遠いよー/まだまだずっと遠いー")%
+	CASE "前"
+		RESULTS = %TEXTR("前にあるよ/そのまま、そのまま/そっちそっち")%
+	CASE "少し前"
+		RESULTS = %TEXTR("ちょっとだけ前！/すこーし前/あと一歩！")%
+	CASE "後ろ"
+		RESULTS = %TEXTR("後ろ向いてる！/逆、逆！/そっちじゃないよー")%
+	CASE "少し後ろ"
+		RESULTS = %TEXTR("すぐ後ろだよ！/すこーし後ろ/一歩後ろ！")%
+	CASE "右"
+		RESULTS = %TEXTR("右だよ/右、右/もっと右")%
+	CASE "少し右"
+		RESULTS = %TEXTR("ちょっとだけ右/まだ右かな")%
+	CASE "左"
+		RESULTS = %TEXTR("左だよ/左、左/もっと左")%
+	CASE "少し左"
+		RESULTS = %TEXTR("ちょっとだけ左/まだ左かな")%
+	CASE "結果"
+		;-------------------------------------------------
+		;終了後の一言
+		;文字数制限はありません,汎用台詞もありません
+		;TFLAG:193,
+		;   -1=失敗
+		;    0=成功
+		;    1=大成功
+		;    2=木刀で大成功（ボーナス点）
+		;ARG
+		;    0=正直者
+		;    1=ウソつき
+		;-------------------------------------------------
+		SELECTCASE TFLAG:193
+		CASE -1
+			RESULTS = ざんね～ん
+		CASE 0
+			RESULTS = やったね！
+		CASE 1
+			RESULTS = すごーい！
+		CASE 2
+			RESULTS = すごい綺麗に割れた！
+		ENDSELECT
+	ENDSELECT
+ENDIF
