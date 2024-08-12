@@ -1,18 +1,18 @@
-;==========================================================
-;���ݔ���
-;0���Ɠ��L�͏�����܂���B
+﻿;==========================================================
+;存在判定
+;0だと日記は書かれません。
 ;==========================================================
 @DIARY_K70_EXIST
 RETURN 1
 
 ;==========================================================
-;�펞�`�F�b�N�������L�̏�ԏ��
-;�ȈՔłł�CHARA�ɔԍ�������Ύ����ŏ������Ă���܂�
-;MAX_DIARY_PAGE�̗L���͈͂�2�`100�ł�
+;常時チェックされる日記の状態情報
+;簡易版ではCHARAに番号を入れれば自動で処理してくれます
+;MAX_DIARY_PAGEの有効範囲は2～100です
 ;==========================================================
 @DIARY_BEFORE_CHECK_K70
 #DIM CHARA
-CHARA = [[����]]
+CHARA = [[小鈴]]
 MAX_DIARY_PAGE:CHARA:0 = 100
 FOR LOCAL, 1, MAX_DIARY_PAGE:CHARA:0 + 1
 	RESULT = 0
@@ -27,561 +27,561 @@ FOR LOCAL, 1, MAX_DIARY_PAGE:CHARA:0 + 1
 NEXT
 
 ;==========================================================
-;�f�C���[�C�x���g�œ��L���ǂ܂ꂽ�ۂ̌㏈���B
-;�t���O�̊Ǘ������R�Ɉ����ėǂ��B
+;デイリーイベントで日記が読まれた際の後処理。
+;フラグの管理等自由に扱って良い。
 ;==========================================================
 @DIARY_AFTER_CHECK_K70
 
 ;==========================================================
-;���L�̓��e
-;PAGENUM   = ���L�ԍ��i���L�̃p�^�[���j
-;MODE      = "�f�C���[":����I�����̃f�C���[�C�x���g�ł̓ǂݏグ
-;          = "�R�}���h":[���L��ǂ�]�R�}���h�ł̓ǂݏグ
-;PAGECOUNT = ���y�[�W�ڂɏ�����Ă��邩
+;日記の内容
+;PAGENUM   = 日記番号（日記のパターン）
+;MODE      = "デイリー":一日終了時のデイリーイベントでの読み上げ
+;          = "コマンド":[日記を読む]コマンドでの読み上げ
+;PAGECOUNT = 何ページ目に書かれているか
 ;==========================================================
 @DIARY_TEXT_K70(PAGENUM, MODE, PAGECOUNT)
 #DIM PAGENUM
 #DIMS MODE
 #DIM PAGECOUNT
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
-;�O���[�v�}�b�`�ɓ��L��ID�����āA�\������������G��\������
-;�\��E�����E����摜���I�v�V�����w��ŕ\���i�ȗ��j
-;������\resources\��.CSV�Ɖ��̗���Q��
-;�ȉ��̓T���v��
-IF MODE == "�f�C���["
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;グループマッチに日記のIDを入れて、表示させたい顔絵を表示する
+;表情・服装・特殊画像をオプション指定で表示（省略可）
+;書式は\resources\顔.CSVと下の例を参照
+;以下はサンプル
+IF MODE == "デイリー"
 ;	IF GROUPMATCH(PAGENUM, 1) 
-;		CALL PRINT_FACE, XX, "����", "��", "_1"
+;		CALL PRINT_FACE, XX, "発情", "裸", "_1"
 ;	ELSEIF GROUPMATCH(PAGENUM, 2)
-;		CALL PRINT_FACE, XX, "�Ί�", "��1"
+;		CALL PRINT_FACE, XX, "笑顔", "服1"
 ;	ELSEIF GROUPMATCH(PAGENUM, 3)
-;		CALL PRINT_FACE, XX, "�{��"
+;		CALL PRINT_FACE, XX, "怒り"
 ;	ELSE
 ;		CALL PRINT_FACE, XX
 ;	ENDIF
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
-PRINTFORMDL - ���������L�@�Ńm%M_KOJO_K70_�������ϊ�(PAGECOUNT)% --------------------------------------------------------------------------------------
-CALL M_KOJO_K70_�K�����t�ݒ�(PAGECOUNT)
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+PRINTFORMDL - こすず日記　頁ノ%M_KOJO_K70_漢数字変換(PAGECOUNT)% --------------------------------------------------------------------------------------
+CALL M_KOJO_K70_適当日付設定(PAGECOUNT)
 PRINTL 
-;���ȈՔłł͂������玩���ŕ\������܂�
+;▼簡易版ではここから自動で表示されます
 CALLFORM DIARY_K70_{PAGENUM}
 
 ;==========================================================
-;���L�̔��������i@DIARY_KX_YY_HAPPEN�j
-;RETURN    �����F1�Ȃ甭��
-;RESULT:1  �`���F2�Ȃ�f�C���[�C�x���g�œǂ܂��
-;                  �����̓��L�������ɔ�������Ɣԍ������������̂�����1�ǂ܂�A
-;                  ����ȊO�͈�U���Z�b�g�����
-;                3�Ȃ�f�C���[�C�x���g�œǂ܂�Ȃ�
-;                  �v���C���[������I�ɓǂ܂Ȃ�����ǂ܂�Ȃ�
-;                  �����������_�ŏ������܂�A������������ƕ����������܂��
-;                0�͓ǂ߂Ȃ�,1�͊��ǂȂ̂Őݒ肵�Ȃ��悤��
-;RESULT:2  ���s�[�g�F1������Ɠ������L���J��Ԃ��������܂��
-;                    ���̓������L���ȃt���O�iTCVAR��TFLAG�Ȃǁj���g���Ēe���Ȃ��Ƒ�ʂɏ������܂��̂Œ���
+;日記の発生条件（@DIARY_KX_YY_HAPPEN）
+;RETURN    発生：1なら発生
+;RESULT:1  形式：2ならデイリーイベントで読まれる
+;                  複数の日記が同時に発生すると番号が小さいものだけが1つ読まれ、
+;                  それ以外は一旦リセットされる
+;                3ならデイリーイベントで読まれない
+;                  プレイヤーが自主的に読まない限り読まれない
+;                  発生した時点で書き込まれ、複数発生すると複数書き込まれる
+;                0は読めない,1は既読なので設定しないように
+;RESULT:2  リピート：1を入れると同じ日記が繰り返し書き込まれる
+;                    その日だけ有効なフラグ（TCVARやTFLAGなど）を使って弾かないと大量に書き込まれるので注意
 ;
-;����̃R�}���h��C�x���g���ɓ��L�𔭐����������ꍇ�͒��ڂ��̌������"DIARY:XX:YY = 2"�������Ă�������
-;"DIARY:XX:YY = 3"�ɂ������ꍇ�͈ȉ��̖��߂����킹�Ă�������
+;特定のコマンドやイベント時に日記を発生させたい場合は直接その口上内で"DIARY:XX:YY = 2"を加えてください
+;"DIARY:XX:YY = 3"にしたい場合は以下の命令も合わせてください
 ;"CALL CHARA_DIARY_PAGESETTING(XX, YY)"
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
-;���L�̓��e�i@DIARY_KX_YY�j
-;PRINT���߂����ŃI�b�P�[
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+;日記の内容（@DIARY_KX_YY）
+;PRINT命令だけでオッケー
 ;==========================================================
 @DIARY_K70_1_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
+;条件を設定する
 SIF 1
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_1
-PRINTFORML ���������L�������B
-PRINTFORML �Ȃ�ł��O�̐��E�̕��炵���B
-PRINTFORML �s���Ƃɔ������������Ă����Y��ɏ�����B
-PRINTFORML �������������Ƃ����͓̂�V���B
-PRINTFORML �����́A�u�����͉��������K�v�ȋZ�\�Ȃ񂾁v�Ƃ������Ă����B
-PRINTFORML ����Ȏ��͂ǂ��ł��ǂ��񂾂��ǁA���������̒��i�������L���ɂ��鎖�ɂ����B
+PRINTFORML 阿求から手記を貰った。
+PRINTFORML なんでも外の世界の物らしい。
+PRINTFORML 行ごとに薄い線が入っていて綺麗に書ける。
+PRINTFORML しかし横書きというのは難儀だ。
+PRINTFORML 阿求は、「今時は横書きも必要な技能なんだ」とか言っていた。
+PRINTFORML そんな事はどうでも良いんだけど、せっかくの珍品だし日記帳にする事にした。
 ;==========================================================
 @DIARY_K70_2_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
+;条件を設定する
 SIF 1
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_2
-PRINTFORML �݂̂܂��낯���Ђɂ�����
+PRINTFORML みのましろけそひにすうむ
 PRINTFORML 
-PRINTFORML �������@���@���₦�����@���݂��Ӂ@��񂼂Ӂ@���@�����@���݂������B
-PRINTFORML ���悻�@�܁@�ׂ����@�Ă��@�ʂ���@�������Ȃ݁B
-PRINTFORML ���Ӂ@������ӁB
+PRINTFORML がえあ　し　もやえせこ　もみもふ　わんぞふ　し　きせ　あみせいう。
+PRINTFORML もつよそ　ま　べちう　てご　ぬぞる　あちぐなみ。
+PRINTFORML こふ　たれもふ。
 ;==========================================================
 @DIARY_K70_3_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
+;条件を設定する
 SIF 1
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_3
-PRINTFORML �����Ɖ����ɍs������ܔM���Ղ�Ƃ����̂�����Ă����B
-PRINTFORML �~�Ƃ͎v���Ȃ������ŋC�����������ɂȂ����B
-PRINTFORML ����Ȃ̐�΂ɗd���̎d�Ƃ��B
-PRINTFORML �ł��₽�����ł�͔������������B
+PRINTFORML 阿求と縁日に行ったら灼熱炎祭りというのをやっていた。
+PRINTFORML 冬とは思えない暑さで気が狂いそうになった。
+PRINTFORML あんなの絶対に妖怪の仕業だ。
+PRINTFORML でも冷たいおでんは美味しかった。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_4_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF DAY >= 40 - ABL:[[�A���X]]:�e�� && ABL:[[����]]:�e�� >= 1 && ABL:[[�A���X]]:�e�� >= 1
+;条件を設定する
+SIF DAY >= 40 - ABL:[[アリス]]:親密 && ABL:[[小鈴]]:親密 >= 1 && ABL:[[アリス]]:親密 >= 1
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_4
-PRINTFORML �����o���ɍs������l�`��������Ă����B
-PRINTFORML ���S�q�̏��̐l���d���Ȃ̂͊F�m���Ă�̂��낤���B
-PRINTFORML �q���ɗD�������Ă��闠�ŁA���̐l�͉����l���Ă���񂾂낤�B
-PRINTFORML �|���Ȃ��Ă����B
+PRINTFORML 買い出しに行ったら人形劇をやっていた。
+PRINTFORML 傀儡子の女の人が妖怪なのは皆知ってるのだろうか。
+PRINTFORML 子供に優しくしている裏で、あの人は何を考えているんだろう。
+PRINTFORML 怖くなってきた。
 PRINTFORML 
-PRINTFORML ����Ȃ��B
+PRINTFORML 眠れない。
 ;==========================================================
 @DIARY_K70_5_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF DAY >= 80 - ABL:[[����]]:�e�� && ABL:[[����]]:�e�� >= 3 && ABL:[[����]]:�e�� >= 3
+;条件を設定する
+SIF DAY >= 80 - ABL:[[阿求]]:親密 && ABL:[[小鈴]]:親密 >= 3 && ABL:[[阿求]]:親密 >= 3
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_5
-PRINTFORML �����̒a����ɂ��Ă΂ꂵ���B
-PRINTFORML ����Ȏ��ɂ����g��Ȃ��A��ԍ��������𒅂čs�����B
-PRINTFORML ���ς�炸���߂₩�ȕ��͋C�ƍ��؂ȐH���B
-PRINTFORML �̂ɘA���ꂽ�ۂɑ�R�̋�s�𕷂����ꂽ�B
-PRINTFORML �u���ꂪ�Ō�̒a����ɂȂ邩���v�Ȃ�ĉ��N�ł��Ȃ����������B
-PRINTFORML �����̈����Ȃ��B
+PRINTFORML 阿求の誕生会にお呼ばれした。
+PRINTFORML こんな時にしか使わない、一番高い着物を着て行った。
+PRINTFORML 相変わらずしめやかな雰囲気と豪華な食事。
+PRINTFORML 厠に連れられた際に沢山の愚痴を聞かされた。
+PRINTFORML 「これが最後の誕生会になるかも」なんて縁起でもない事を言う。
+PRINTFORML あいつの悪い癖だ。
 FONTSTYLE 1
 PRINTL 
-PRINTFORML ���N����΍s���Ă��B
+PRINTFORML 来年も絶対行ってやる。
 PRINTL 
 FONTREGULAR
-PRINTFORML �A��ɂ���܂��������r㻂������̂ŁA���ꂳ��ɂ������B
-PRINTFORML ��������ɂ͖ق��Ă����B
+PRINTFORML 帰りにこれまたお高い羊羹を貰ったので、お母さんにあげた。
+PRINTFORML お父さんには黙っておく。
 ;==========================================================
 @DIARY_K70_6_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF DAY >= 30 - ABL:[[���Ƃ�]]:�e�� && ABL:[[����]]:�e�� >= 1 && ABL:[[���Ƃ�]]:�e�� >= 1 && !CFLAG:[[����]]:1051
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1051 = DAY
+;条件を設定する
+IF DAY >= 30 - ABL:[[さとり]]:親密 && ABL:[[小鈴]]:親密 >= 1 && ABL:[[さとり]]:親密 >= 1 && !CFLAG:[[小鈴]]:1051
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1051 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_6
-PRINTFORML �ŋ߁A�̑��T��Ƃ����̂��\�ɂȂ��Ă���B
-PRINTFORML ��̉����`���Ă���񂾂낤�B
-PRINTFORML ���������������猩�����Ȃ��B
+PRINTFORML 最近、販促探偵というのが噂になっている。
+PRINTFORML 一体何を宣伝しているんだろう。
+PRINTFORML 推理小説だったら見逃せない。
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_7_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF CFLAG:[[����]]:1051 && DAY >= CFLAG:[[����]]:1051 + 5
+;条件を設定する
+SIF CFLAG:[[小鈴]]:1051 && DAY >= CFLAG:[[小鈴]]:1051 + 5
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_7
-PRINTFORML �����T�ゾ�����B
-PRINTFORML �������g���ĉ��ł������o����炵���B
-PRINTFORML �����̃l�^�Ƃ��Ă͍���B
+PRINTFORML 反則探偵だった。
+PRINTFORML 反則を使って何でも解決出来るらしい。
+PRINTFORML 小説のネタとしては今一。
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_8_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF DAY >= 55 - ABL:[[����]]:�e�� && ABL:[[����]]:�e�� >= 1 && ABL:[[����]]:�e�� >= 1 && !CFLAG:[[����]]:1052
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1052 = DAY
+;条件を設定する
+IF DAY >= 55 - ABL:[[美宵]]:親密 && ABL:[[小鈴]]:親密 >= 1 && ABL:[[美宵]]:親密 >= 1 && !CFLAG:[[小鈴]]:1052
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1052 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_8
-PRINTFORML �����O�����Ǔے��ŗd���������������B
-PRINTFORML �ǂ����������q�̌����������Ƃ�������Ă���̂��낤�B
-PRINTFORML �ł��A���Ă��ėd���Ƃ͂��������������琶�܂��B
-PRINTFORML ������ƌ��ɍs���Ă݂����B
+PRINTFORML 数日前から鯢呑亭で妖怪騒ぎが相次ぐ。
+PRINTFORML どうせ酔った客の見た酔夢が独り歩きしているのだろう。
+PRINTFORML でも、得てして妖怪とはそういった事から生まれる。
+PRINTFORML ちょっと見に行ってみたい。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_9_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF CFLAG:[[����]]:1052 && DAY >= CFLAG:[[����]]:1052 + 1
+;条件を設定する
+SIF CFLAG:[[小鈴]]:1052 && DAY >= CFLAG:[[小鈴]]:1052 + 1
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_9
-PRINTFORML �������Ǔے��ɍs������얲����ɒǂ��Ԃ��ꂽ�B
-PRINTFORML �����̂Ƃ��떈�ӌ������Ă�炵���B
-PRINTFORML ���������΂����ɗǂ��Ȃ��\�����ꂽ���������������Ă����B
-PRINTFORML �{���ɗd��������̂����B
+PRINTFORML さっき鯢呑亭に行ったら霊夢さんに追い返された。
+PRINTFORML ここのところ毎晩見張ってるらしい。
+PRINTFORML そういえばうちに良くない噂が流れた時も同じ事をしていた。
+PRINTFORML 本当に妖怪が居るのかも。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_10_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF DAY >= CFLAG:[[����]]:1052 && DAY >= CFLAG:[[����]]:1052 + 7
+;条件を設定する
+SIF DAY >= CFLAG:[[小鈴]]:1052 && DAY >= CFLAG:[[小鈴]]:1052 + 7
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_10
-PRINTFORML �}�~�]�E����Ƌv���Ԃ�ɉ�����B
-PRINTFORML �ߍ��͖�ɓۂ݂ɗ��Ă��邩�璋�͂��������Ȃ񂾂Ƃ��B
-PRINTFORML �ǂ��œۂ�ł���񂾂낤�B�Ђ���Ƃ����Ǔے��Ȃ̂ł́B
-PRINTFORML �j�āA�C�ɂȂ�B
+PRINTFORML マミゾウさんと久しぶりに会った。
+PRINTFORML 近頃は夜に呑みに来ているから昼はご無沙汰なんだとか。
+PRINTFORML どこで呑んでいるんだろう。ひょっとして鯢呑亭なのでは。
+PRINTFORML 嗚呼、気になる。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_11_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF DAY >= CFLAG:[[����]]:1052 && DAY >= CFLAG:[[����]]:1052 + 12
+;条件を設定する
+SIF DAY >= CFLAG:[[小鈴]]:1052 && DAY >= CFLAG:[[小鈴]]:1052 + 12
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_11
-PRINTFORML �얲����Ɩ���������ƎO�l���Ǔے��ɍs�����B
-PRINTFORML ����܂肨���͓ۂ܂Ȃ��������ǁA�ϕ��������������������炢���������ĂȂ��B
-PRINTFORML �����������C���B
+PRINTFORML 霊夢さんと魔理沙さんと三人で鯢呑亭に行った。
+PRINTFORML あんまりお酒は呑まなかったけど、煮物が美味しかった事くらいしか憶えてない。
+PRINTFORML 何か損した気分。
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_12_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF DAY >= 10 && ABL:[[����]]:�e�� >= 3
+;条件を設定する
+SIF DAY >= 10 && ABL:[[阿求]]:親密 >= 3
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_12
-PRINTFORML �����̔����������B
-PRINTFORML �����̔��͂��炳��̂��łƂĂ��Y��B
-PRINTFORML ���{����t�����炩�킢�������B
+PRINTFORML 阿求の髪を結った。
+PRINTFORML 阿求の髪はさらさらのつやつやでとても綺麗。
+PRINTFORML リボンを付けたらかわいかった。
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_13_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF DAY >= 30 && ABL:[[����]]:�e�� >= 5
+;条件を設定する
+SIF DAY >= 30 && ABL:[[阿求]]:親密 >= 5
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_13
-PRINTFORML �������炷�����ǂ����肪�����B
-PRINTFORML �����ƚk���ł������������A�����ɋA���Ă��܂����B
+PRINTFORML 阿求からすごく良い香りがした。
+PRINTFORML もっと嗅いでいたかったが、すぐに帰ってしまった。
 PRINTFORML 
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_14_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF DAY >= 50 && ABL:[[����]]:�e�� >= 7
+;条件を設定する
+SIF DAY >= 50 && ABL:[[阿求]]:親密 >= 7
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_14
-PRINTFORML �����Ǝ���q���ł�����p���������ƌ���ꂽ�B
-PRINTFORML �̂��炵�Ă�̂ɁB�V���b�N�B
+PRINTFORML 阿求と手を繋いでいたら恥ずかしいと言われた。
+PRINTFORML 昔からしてるのに。ショック。
 PRINTFORML 
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_15_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF DAY >= 150 + ABL:[[����]]:�e�� && !CFLAG:[[����]]:1053
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1053 = DAY
+;条件を設定する
+IF DAY >= 150 + ABL:[[阿求]]:親密 && !CFLAG:[[小鈴]]:1053
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1053 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_15
-PRINTFORML �����̑̒����D��Ȃ��B�S�z�B
+PRINTFORML 阿求の体調が優れない。心配。
 PRINTFORML 
 PRINTFORML 
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_16_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF CFLAG:[[����]]:1053 && DAY >= CFLAG:[[����]]:1053 + MAX(18 - ABL:[[����]]:�e��, 3)
+;条件を設定する
+SIF CFLAG:[[小鈴]]:1053 && DAY >= CFLAG:[[小鈴]]:1053 + MAX(18 - ABL:[[阿求]]:親密, 3)
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_16
-PRINTFORML �����̑̒����ǂ��Ȃ����B����S�B
+PRINTFORML 阿求の体調が良くなった。一安心。
 PRINTFORML 
 PRINTFORML 
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_17_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF FLAG:�f�[�g���� == [[����]] && ABL:[[����]]:�e�� >= 1 && M_KOJO_K70_BALANCE([[����]], [[����]]) == 6
+;条件を設定する
+SIF FLAG:デート相手 == [[阿求]] && ABL:[[小鈴]]:親密 >= 1 && M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == "揶揄"
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_17
-PRINTFORML ������%CALLNAME:MASTER%���񂪃f�[�g���Ă���̂������B
-PRINTFORML �ւ�ւ�Ǝ��Ɍ��������̖����Ί�����Ă����B
-PRINTFORML �{���ɍK�������B
-PRINTFORML ������������ȏΊ�ɂȂ���������̂��낤���B
-PRINTFORML �A�܂����B
+PRINTFORML 阿求と%CALLNAME:MASTER%さんがデートしているのを見た。
+PRINTFORML へらへらと私に見せた事の無い笑顔をしていた。
+PRINTFORML 本当に幸せそう。
+PRINTFORML 私もいつかあんな笑顔になれる日が来るのだろうか。
+PRINTFORML 羨ましい。
 ;==========================================================
 @DIARY_K70_18_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF FLAG:�f�[�g���� == [[����]] && ABL:[[����]]:�e�� >= 1 && M_KOJO_K70_BALANCE([[����]], [[����]]) == 2
+;条件を設定する
+SIF FLAG:デート相手 == [[阿求]] && ABL:[[小鈴]]:親密 >= 1 && M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == "応援"
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_18
-PRINTFORML ������%CALLNAME:MASTER%���񂪃f�[�g���Ă���̂������B
-PRINTFORML ���������̂������������Č����̂��ȁB
-PRINTFORML �����A�܂����B
-PRINTFORML ��������
+PRINTFORML 阿求と%CALLNAME:MASTER%さんがデートしているのを見た。
+PRINTFORML ああいうのをお似合いって言うのかな。
+PRINTFORML 正直羨ましい。
+PRINTFORML 私もいつか
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_19_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF FLAG:�f�[�g���� == [[����]] && ABL:[[����]]:�e�� >= 1 && GROUPMATCH(M_KOJO_K70_BALANCE([[����]], [[����]]), 1, 3, 4, 5, 7, 8)
+;条件を設定する
+SIF FLAG:デート相手 == [[阿求]] && ABL:[[小鈴]]:親密 >= 1 && !GROUPMATCH(M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]), "揶揄", "応援")
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_19
-PRINTFORML ������%CALLNAME:MASTER%���񂪃f�[�g���Ă���̂������B
-PRINTFORML �t�������Ă�̂��낤���B
-PRINTFORML ����Șb�����ĂȂ��B
-PRINTFORML ���x�����ɖ₢�����Ă��B
+PRINTFORML 阿求と%CALLNAME:MASTER%さんがデートしているのを見た。
+PRINTFORML 付き合ってるのだろうか。
+PRINTFORML そんな話聞いてない。
+PRINTFORML 今度阿求に問い糾してやる。
 PRINTFORML 
 PRINTFORML 
-PRINTFORML �C�ɂȂ��Ė���Ȃ��B
+PRINTFORML 気になって眠れない。
 ;==========================================================
 @DIARY_K70_20_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF TALENT:[[����]]:���� && ABL:[[����]]:�e�� >= 1 && M_KOJO_K70_BALANCE([[����]], [[����]]) == 2 && !CFLAG:[[����]]:1054
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1054 = DAY
+;条件を設定する
+IF TALENT:[[阿求]]:恋慕 && ABL:[[小鈴]]:親密 >= 1 && M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == "応援" && !CFLAG:[[小鈴]]:1054
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1054 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_20
-PRINTFORML �����ɍD���Ȑl���ł����B%CALLNAME:MASTER%���񂾁B
-PRINTFORML �i����B
-PRINTFORML �ʖځB��Ԃ��B�������悤�B
-PRINTFORML ����ɁA������������B
+PRINTFORML 阿求に好きな人ができた。%CALLNAME:MASTER%さんだ。
+PRINTFORML 妬ける。
+PRINTFORML 駄目。我儘だ。応援しよう。
+PRINTFORML それに、嬉しくもある。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_21_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF TALENT:[[����]]:���� && ABL:[[����]]:�e�� >= 1 && M_KOJO_K70_BALANCE([[����]], [[����]]) == 4 && !CFLAG:[[����]]:1054
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1054 = DAY
+;条件を設定する
+IF TALENT:[[阿求]]:恋慕 && ABL:[[小鈴]]:親密 >= 1 && M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == "敵対" && !CFLAG:[[小鈴]]:1054
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1054 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_21
-PRINTFORML �����ɍD���Ȑl���ł����B%CALLNAME:MASTER%���񂾁B
-PRINTFORML ���G�ȋC�����B
-PRINTFORML ����Ȃ��B
+PRINTFORML 阿求に好きな人ができた。%CALLNAME:MASTER%さんだ。
+PRINTFORML 複雑な気持ち。
+PRINTFORML 譲れない。
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_22_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF TALENT:[[����]]:���� && ABL:[[����]]:�e�� >= 1 && M_KOJO_K70_BALANCE([[����]], [[����]]) == 5 && !CFLAG:[[����]]:1054
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1054 = DAY
+;条件を設定する
+IF TALENT:[[阿求]]:恋慕 && ABL:[[小鈴]]:親密 >= 1 && M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == "信頼" && !CFLAG:[[小鈴]]:1054
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1054 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_22
-PRINTFORML �����ɍD���Ȑl���ł����B%CALLNAME:MASTER%���񂾁B
-PRINTFORML ��l�œ����l���D���ɂȂ�Ȃ�āA����ȂɊ��������͖����B
-PRINTFORML ���̒m��Ȃ������B���̒m��Ȃ�%CALLNAME:MASTER%����B
-PRINTFORML ��������L�o����񂾁B�Ȃ�đf�G�Ȃ̂��낤�B
-PRINTFORML ���B�͂����ƍK���̒��ɂ���B
+PRINTFORML 阿求に好きな人ができた。%CALLNAME:MASTER%さんだ。
+PRINTFORML 二人で同じ人を好きになるなんて、こんなに嬉しい事は無い。
+PRINTFORML 私の知らない阿求。私の知らない%CALLNAME:MASTER%さん。
+PRINTFORML それを共有出来るんだ。なんて素敵なのだろう。
+PRINTFORML 私達はきっと幸せの中にいる。
 ;==========================================================
 @DIARY_K70_23_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF TALENT:[[����]]:���� && ABL:[[����]]:�e�� >= 1 && M_KOJO_K70_BALANCE([[����]], [[����]]) == 8 && !CFLAG:[[����]]:1054
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1054 = DAY
+;条件を設定する
+IF TALENT:[[阿求]]:恋慕 && ABL:[[小鈴]]:親密 >= 1 && M_KOJO_K70_BALANCE([[小鈴]], [[阿求]]) == "独占" && !CFLAG:[[小鈴]]:1054
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1054 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_23
-PRINTFORML �����ɍD���Ȑl���ł����B%CALLNAME:MASTER%���񂾁B
-PRINTFORML ���l�̗��l�ɗ~���Ȃ�ĕs�����B
-PRINTFORML �����ɂ͈������Ǐ���C�͖����B
-PRINTFORML %CALLNAME:MASTER%����͎��̕����B
+PRINTFORML 阿求に好きな人ができた。%CALLNAME:MASTER%さんだ。
+PRINTFORML 他人の恋人に欲情するなんて不埒だ。
+PRINTFORML 阿求には悪いけど譲る気は無い。
+PRINTFORML %CALLNAME:MASTER%さんは私の物だ。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_24_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF TALENT:[[����]]:���l && ABL:[[����]]:�e�� >= 1 && !TALENT:[[����]]:���� && !CFLAG:[[����]]:1055
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1055 = DAY
+;条件を設定する
+IF TALENT:[[阿求]]:恋人 && ABL:[[小鈴]]:親密 >= 1 && !TALENT:[[小鈴]]:恋慕 && !CFLAG:[[小鈴]]:1055
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1055 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_24
-PRINTFORML ������%CALLNAME:MASTER%���񂪕t�������Ă���ƒm�����B
-PRINTFORML �����͖������y�������B
-PRINTFORML �����҂������ǁA��΂��������B
-PRINTFORML �����̏Ί������邱�Ƃ����̍K�����B
+PRINTFORML 阿求と%CALLNAME:MASTER%さんが付き合っていると知った。
+PRINTFORML 阿求は毎日が楽しそう。
+PRINTFORML 少し淋しいけど、喜ばしい事だ。
+PRINTFORML 阿求の笑顔を見れることが私の幸せだ。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_25_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF TALENT:[[����]]:���l && ABL:[[����]]:�e�� >= 1 && TALENT:[[����]]:���� && CFLAG:[[����]]:�M���x < 1000 && !CFLAG:[[����]]:1055
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1055 = DAY
+;条件を設定する
+IF TALENT:[[阿求]]:恋人 && ABL:[[小鈴]]:親密 >= 1 && TALENT:[[小鈴]]:恋慕 && CFLAG:[[小鈴]]:信頼度 < 1000 && !CFLAG:[[小鈴]]:1055
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1055 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_25
-PRINTFORML ������%CALLNAME:MASTER%���񂪕t�������Ă���ƒm�����B
-PRINTFORML ����z���ꂽ�B�������������������B
-PRINTFORML �ł��A�m��Ȃ��N�����܂����B
-PRINTFORML �����ŗǂ������B
-PRINTFORML �����v�������B
+PRINTFORML 阿求と%CALLNAME:MASTER%さんが付き合っていると知った。
+PRINTFORML 先を越された。悔しい悔しい悔しい。
+PRINTFORML でも、知らない誰かよりましだ。
+PRINTFORML 阿求で良かった。
+PRINTFORML そう思いたい。
 ;==========================================================
 @DIARY_K70_26_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF TALENT:[[����]]:���l && ABL:[[����]]:�e�� >= 1 && TALENT:[[����]]:���� && CFLAG:[[����]]:�M���x >= 1000 && !CFLAG:[[����]]:1055
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1055 = DAY
+;条件を設定する
+IF TALENT:[[阿求]]:恋人 && ABL:[[小鈴]]:親密 >= 1 && TALENT:[[小鈴]]:恋慕 && CFLAG:[[小鈴]]:信頼度 >= 1000 && !CFLAG:[[小鈴]]:1055
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1055 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_26
-PRINTFORML ������%CALLNAME:MASTER%���񂪕t�������Ă���ƒm�����B
-PRINTFORML ����z���ꂽ�B�������Ɖ����������X�B
-PRINTFORML �Ƃ͂����ς�炸���B�̓��X�͉~�����B
-PRINTFORML ������
+PRINTFORML 阿求と%CALLNAME:MASTER%さんが付き合っていると知った。
+PRINTFORML 先を越された。嬉しさと悔しさが半々。
+PRINTFORML とはいえ変わらず私達の日々は円満だ。
+PRINTFORML 阿求が
 FONTSTYLE 4
-PRINTFORML �S��
+PRINTFORML 亡く
 FONTREGULAR
-PRINTFORML �ފ݂֍s�������́A���B�Œ����Ă�������B
+PRINTFORML 彼岸へ行った時は、私達で弔ってあげられる。
 FONTSTYLE 4
-PRINTFORML ���̌�͎���%CALLNAME:MASTER%����
+PRINTFORML その後は私と%CALLNAME:MASTER%さんが
 FONTREGULAR
-PRINTFORML �ׂȍl���͖Y��悤�B
+PRINTFORML 邪な考えは忘れよう。
 ;==========================================================
 @DIARY_K70_27_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF TALENT:[[����]]:�v�� && !CFLAG:[[����]]:1056
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1056 = DAY
+;条件を設定する
+IF TALENT:[[小鈴]]:思慕 && !CFLAG:[[小鈴]]:1056
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1056 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_27
-PRINTFORML ���������𗧂đ����ɓǂ񂾂�A�����������Ă݂����Ȃ����B
-PRINTFORML �p���������B
-PRINTFORML ���肪���Ȃ��B
+PRINTFORML 恋愛小説を立て続けに読んだら、私も恋をしてみたくなった。
+PRINTFORML 恥ずかしい。
+PRINTFORML 相手が居ない。
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_28_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF CFLAG:[[����]]:1056 && DAY >= CFLAG:[[����]]:1056 + 1
+;条件を設定する
+SIF CFLAG:[[小鈴]]:1056 && DAY >= CFLAG:[[小鈴]]:1056 + 1
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_28
 FONTSTYLE 4
-PRINTFORML %CALLNAME:MASTER%����
+PRINTFORML %CALLNAME:MASTER%さん
 FONTREGULAR
 PRINTFORML 
 PRINTFORML 
@@ -589,344 +589,344 @@ PRINTFORML
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_29_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF CFLAG:[[����]]:1056 && DAY >= CFLAG:[[����]]:1056 + 2 && !CFLAG:[[����]]:1057 && TALENT:[[����]]:���l
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1057 = DAY
+;条件を設定する
+IF CFLAG:[[小鈴]]:1056 && DAY >= CFLAG:[[小鈴]]:1056 + 2 && !CFLAG:[[小鈴]]:1057 && TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1057 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_29
-PRINTFORML �����ɑ��k�����B
-PRINTFORML �{���邩�Ǝv�����B
-PRINTFORML �l���Ă݂�Α��l�̗��l�Ɏ���o�����Ƃ����̂��B�s���B
-PRINTFORML �ł������͏΂��Ă��ꂽ�B
-PRINTFORML �]�����Ă邭�炢���A�ϗ��ς��������̂����B
+PRINTFORML 阿求に相談した。
+PRINTFORML 怒られるかと思った。
+PRINTFORML 考えてみれば他人の恋人に手を出そうというのだ。不埒。
+PRINTFORML でもあいつは笑ってくれた。
+PRINTFORML 転生してるくらいだ、倫理観が可怪しいのかも。
 ;==========================================================
 @DIARY_K70_30_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF CFLAG:[[����]]:1056 && DAY >= CFLAG:[[����]]:1056 + 2 && !CFLAG:[[����]]:1057 && TALENT:[[����]]:����
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1057 = DAY
+;条件を設定する
+IF CFLAG:[[小鈴]]:1056 && DAY >= CFLAG:[[小鈴]]:1056 + 2 && !CFLAG:[[小鈴]]:1057 && TALENT:[[阿求]]:恋慕
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1057 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_30
-PRINTFORML �����ɑ��k�����B
-PRINTFORML %CALLNAME:MASTER%����̗ǂ�������ł����Ƃ������������ꂽ�B
-PRINTFORML ����ƁA�s�v�c�Ȑl�Ƃ����F���͋��ʂ��Ă����B
-PRINTFORML �s�v�c�Ȑl�B�ǂ��������B
+PRINTFORML 阿求に相談した。
+PRINTFORML %CALLNAME:MASTER%さんの良さをこれでもかという程聞かされた。
+PRINTFORML それと、不思議な人という認識は共通していた。
+PRINTFORML 不思議な人。良い響きだ。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_31_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF CFLAG:[[����]]:1056 && DAY >= CFLAG:[[����]]:1056 + 2 && !CFLAG:[[����]]:1057 && TALENT:[[����]]:�v��
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1057 = DAY
+;条件を設定する
+IF CFLAG:[[小鈴]]:1056 && DAY >= CFLAG:[[小鈴]]:1056 + 2 && !CFLAG:[[小鈴]]:1057 && TALENT:[[阿求]]:思慕
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1057 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_31
-PRINTFORML �����ɑ��k�����B
-PRINTFORML ���߂ė��̘b�������B
-PRINTFORML ���������Ɠ����݂����B
-PRINTFORML �y�����B�����Ƙb�������B
+PRINTFORML 阿求に相談した。
+PRINTFORML 初めて恋の話をした。
+PRINTFORML あいつも私と同じみたい。
+PRINTFORML 楽しい。もっと話したい。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_32_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF CFLAG:[[����]]:1056 && DAY >= CFLAG:[[����]]:1056 + 2 && !CFLAG:[[����]]:1057 &&!TALENT:[[����]]:���� && !TALENT:[[����]]:�v��
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1057 = DAY
+;条件を設定する
+IF CFLAG:[[小鈴]]:1056 && DAY >= CFLAG:[[小鈴]]:1056 + 2 && !CFLAG:[[小鈴]]:1057 &&!TALENT:[[阿求]]:恋慕 && !TALENT:[[阿求]]:思慕
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1057 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_32
-PRINTFORML �����ɑ��k�����B
-PRINTFORML �������������������B
-PRINTFORML ����Ȃ���ǂ������B
+PRINTFORML 阿求に相談した。
+PRINTFORML 興味無さそうだった。
+PRINTFORML 言わなきゃ良かった。
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_33_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF TALENT:[[����]]:���� && !CFLAG:[[����]]:1058 && TALENT:[[����]]:���l
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1058 = DAY
+;条件を設定する
+IF TALENT:[[小鈴]]:恋慕 && !CFLAG:[[小鈴]]:1058 && TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1058 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_33
-PRINTFORML %CALLNAME:MASTER%���񂪍D���B
-PRINTFORML ���ꂪ���Ȃ񂾁B
-PRINTFORML �S�Ɏ׈��̎킪�A����ꂽ�C���B
-PRINTFORML �����Ȃ����Ȃ͔̂����Ă�B
-PRINTFORML �ł��A
-PRINTFORML �ǂ����悤
-PRINTFORML ����Ȃ��B
-PRINTFORML �h���B
+PRINTFORML %CALLNAME:MASTER%さんが好き。
+PRINTFORML これが恋なんだ。
+PRINTFORML 心に邪悪の種が植えられた気分。
+PRINTFORML いけない事なのは判ってる。
+PRINTFORML でも、
+PRINTFORML どうしよう
+PRINTFORML 判らない。
+PRINTFORML 辛い。
 ;==========================================================
 @DIARY_K70_34_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF TALENT:[[����]]:���� && !CFLAG:[[����]]:1058 && TALENT:[[����]]:���� && !TALENT:[[����]]:���l
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1058 = DAY
+;条件を設定する
+IF TALENT:[[小鈴]]:恋慕 && !CFLAG:[[小鈴]]:1058 && TALENT:[[阿求]]:恋慕 && !TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1058 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_34
-PRINTFORML %CALLNAME:MASTER%���񂪍D���B
-PRINTFORML ���ꂪ���Ȃ񂾁B
-PRINTFORML �S�ɍK���̎킪�A����ꂽ�C���B
-PRINTFORML �����͓G�B
-PRINTFORML �����v�����ɂ����B
-PRINTFORML �ł��A�~�������z���B
-PRINTFORML ����͑�c�~�ŏI���̂���ԍD���B
-PRINTFORML ���B�̍s�����́A�A�A
+PRINTFORML %CALLNAME:MASTER%さんが好き。
+PRINTFORML これが恋なんだ。
+PRINTFORML 心に幸せの種が植えられた気分。
+PRINTFORML 阿求は敵。
+PRINTFORML そう思う事にした。
+PRINTFORML でも、円満が理想だ。
+PRINTFORML 物語は大団円で終わるのが一番好き。
+PRINTFORML 私達の行く末は、、、
 ;==========================================================
 @DIARY_K70_35_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF TALENT:[[����]]:���� && !CFLAG:[[����]]:1058 && !TALENT:[[����]]:���� && !TALENT:[[����]]:���l
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1058 = DAY
+;条件を設定する
+IF TALENT:[[小鈴]]:恋慕 && !CFLAG:[[小鈴]]:1058 && !TALENT:[[阿求]]:恋慕 && !TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1058 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_35
-PRINTFORML %CALLNAME:MASTER%���񂪍D���B
-PRINTFORML ���ꂪ���Ȃ񂾁B
-PRINTFORML �S�ɍK���̎킪�A����ꂽ�C���B
-PRINTFORML ���������Ƙb�������B
-PRINTFORML ���������邩��̑z�������B
-PRINTFORML �����ƉԂ��炩���Ă݂���B
+PRINTFORML %CALLNAME:MASTER%さんが好き。
+PRINTFORML これが恋なんだ。
+PRINTFORML 心に幸せの種が植えられた気分。
+PRINTFORML 早く阿求と話したい。
+PRINTFORML 何を言われるか大体想像がつく。
+PRINTFORML きっと花を咲かせてみせる。
 ;==========================================================
 @DIARY_K70_36_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF CFLAG:[[����]]:1058 && DAY >= CFLAG:[[����]]:1058 + 2 && !CFLAG:[[����]]:1059 && TALENT:[[����]]:���l
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1059 = DAY
+;条件を設定する
+IF CFLAG:[[小鈴]]:1058 && DAY >= CFLAG:[[小鈴]]:1058 + 2 && !CFLAG:[[小鈴]]:1059 && TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1059 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_36
-PRINTFORML �v���؂��Ĉ����ɑł��������B
-PRINTFORML ������}���Ă�����A�������߂Ă��ꂽ�B
-PRINTFORML �����č߉߂��S���ł��ꂽ�B
-PRINTFORML ���̗D�������h���B
-PRINTFORML �ւ荂���A���̐e�F���B
+PRINTFORML 思い切って阿求に打ち明けた。
+PRINTFORML 私が愚図ついていたら、抱きしめてくれた。
+PRINTFORML そして罪過を禊いでくれた。
+PRINTFORML その優しさが辛い。
+PRINTFORML 誇り高き、私の親友だ。
 ;==========================================================
 @DIARY_K70_37_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF CFLAG:[[����]]:1058 && DAY >= CFLAG:[[����]]:1058 + 2 && !CFLAG:[[����]]:1059 && TALENT:[[����]]:���� && !TALENT:[[����]]:���l
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1059 = DAY
+;条件を設定する
+IF CFLAG:[[小鈴]]:1058 && DAY >= CFLAG:[[小鈴]]:1058 + 2 && !CFLAG:[[小鈴]]:1059 && TALENT:[[阿求]]:恋慕 && !TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1059 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_37
-PRINTFORML �����ɐ��z���������B
-PRINTFORML ���肾�������A����܂���C���ᖳ�������B
-PRINTFORML �Ƃ�ŔM���Ȃ��Ă����̂��낤���B
-PRINTFORML ����A���ꂪ�����̑�l�т��]�T�Ȃ̂��B
-PRINTFORML ���f�Ȃ�Ȃ��B
+PRINTFORML 阿求に宣戦布告をした。
+PRINTFORML つもりだったが、あんまり乗り気じゃ無さそう。
+PRINTFORML 独りで熱くなっていたのだろうか。
+PRINTFORML いや、それが阿求の大人びた余裕なのだ。
+PRINTFORML 油断ならない。
 ;==========================================================
 @DIARY_K70_38_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-IF CFLAG:[[����]]:1058 && DAY >= CFLAG:[[����]]:1058 + 2 && !CFLAG:[[����]]:1059 && !TALENT:[[����]]:���� && !TALENT:[[����]]:���l
-	;�������񂾓���ۑ�����
-	CFLAG:[[����]]:1059 = DAY
+;条件を設定する
+IF CFLAG:[[小鈴]]:1058 && DAY >= CFLAG:[[小鈴]]:1058 + 2 && !CFLAG:[[小鈴]]:1059 && !TALENT:[[阿求]]:恋慕 && !TALENT:[[阿求]]:恋人
+	;書き込んだ日を保存する
+	CFLAG:[[小鈴]]:1059 = DAY
 	RETURN 1
 ENDIF
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_38
-PRINTFORML �����Ɍ����Ă݂��B
-PRINTFORML �Ă̒�΂�ꂽ�B
-PRINTFORML ����Ȃɘb���e�񂾂̂͏��߂āB
-PRINTFORML �����Ɩ������b�����낤�B
-PRINTFORML ���ꂪ�t�Ƃ�����Ȃ̂��B
+PRINTFORML 阿求に言ってみた。
+PRINTFORML 案の定笑われた。
+PRINTFORML あんなに話が弾んだのは初めて。
+PRINTFORML きっと明日も話すだろう。
+PRINTFORML これが青春というやつなのか。
 ;==========================================================
 @DIARY_K70_39_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;���̓��L�́�405,�o�|����
-;������ݒ肷��
+;この日記は＠405,出掛ける
+;条件を設定する
 SIF 0
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_39
-PRINTFORML %CALLNAME:MASTER%����ƃf�[�g�����B
-IF TALENT:MASTER:���� == 2
-	PRINTFORM �j�̐l�Ɖ�������
+PRINTFORML %CALLNAME:MASTER%さんとデートした。
+IF TALENT:MASTER:性別 == 2
+	PRINTFORM 男の人と何処かへ
 ELSE
-	PRINTFORM ������얲����ȊO�̐l�Ɖ�������
+	PRINTFORM 阿求や霊夢さん以外の人と何処かへ
 ENDIF
-PRINTFORML �o�|����Ȃ�ď��߂āB
-PRINTFORML �ǂ������炢���̂��S�R����Ȃ��āA�S�����[�h���Ė�����B
-PRINTFORML �܂�Ȃ������Ǝv���Ă����B
-PRINTFORML ��ꂽ�B
+PRINTFORML 出掛けるなんて初めて。
+PRINTFORML どうしたらいいのか全然判らなくて、全部リードして貰った。
+PRINTFORML つまらない女だと思われてそう。
+PRINTFORML 疲れた。
 ;==========================================================
 @DIARY_K70_40_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;���̓��L�́��L�X�L�����Z��
-;������ݒ肷��
+;この日記は＠キスキャンセル
+;条件を設定する
 SIF 0
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_40
-PRINTFORML �n���B
-PRINTFORML �v���؂���%CALLNAME:MASTER%����ɔ��낤�Ƃ������ǁA�ʖڂ������B
-PRINTFORML ���O�B
-PRINTFORML ���ɂ����ƗE�C���L��΁B
+PRINTFORML 馬鹿。
+PRINTFORML 思い切って%CALLNAME:MASTER%さんに迫ろうとしたけど、駄目だった。
+PRINTFORML 無念。
+PRINTFORML 私にもっと勇気が有れば。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_41_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF !FIRSTTIME("�t�@�[�X�g�L�X", 1, [[����]])
+;条件を設定する
+SIF !FIRSTTIME("ファーストキス", 1, [[小鈴]])
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_41
-PRINTFORML %CALLNAME:MASTER%����ƃL�X����������B
-PRINTFORML �S�������ł��h�L�h�L���Ă�B
-PRINTFORML �����^�����ŉ��ɂ�����Ȃ��B
+PRINTFORML %CALLNAME:MASTER%さんとキスしちゃった。
+PRINTFORML 心臓が今でもドキドキしてる。
+PRINTFORML 頭が真っ白で何にも判らない。
 PRINTFORML 
 PRINTFORML 
-PRINTFORML ����Ȃ��̂ŉ����������B
-PRINTFORML �L�X�͍��g���Ɣw�����̓��荬�������A���m�̊��o�������B
-PRINTFORML ��������ĊF��l�ɂȂ��Ă����̂��ȁB
-PRINTFORML ������얲��������Ă���񂾂낤���B
-PRINTFORML ���ɂ͒m��Ȃ�������R����B
-PRINTFORML �����͂����m�����B
+PRINTFORML 眠れないので何か書こう。
+PRINTFORML キスは高揚感と背徳感の入り混じった、未知の感覚だった。
+PRINTFORML こうやって皆大人になっていくのかな。
+PRINTFORML 阿求や霊夢さんもしているんだろうか。
+PRINTFORML 私には知らない事が沢山ある。
+PRINTFORML 今日はそれを知った。
 ;==========================================================
 @DIARY_K70_42_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;���̓��L�́��f�[�g�A��ɍ���
-;������ݒ肷��
+;この日記は＠デート帰りに告白
+;条件を設定する
 SIF 0
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_42
-PRINTFORML %CALLNAME:MASTER%����̔n���B
-PRINTFORML ����M��ł�񂾁B
-PRINTFORML ���B�����Ȃ��B
-PRINTFORML ����ł����̑z���͏����Ȃ��B
-PRINTFORML �h���B�ꂵ���B
+PRINTFORML %CALLNAME:MASTER%さんの馬鹿。
+PRINTFORML 私を弄んでるんだ。
+PRINTFORML 狡い。許せない。
+PRINTFORML それでもこの想いは消えない。
+PRINTFORML 辛い。苦しい。
 ;==========================================================
 @DIARY_K70_43_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;���̓��L�́��f�[�g�A��ɍ���/352,��������
-;������ݒ肷��
+;この日記は＠デート帰りに告白/352,告白する
+;条件を設定する
 SIF 0
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_43
-PRINTFORML %CALLNAME:MASTER%����Ƃ��t���������鎖�ɂȂ����B
-PRINTFORML �M�����Ȃ��B
-PRINTFORML �������ŋ�������􂯂����B
-PRINTFORML �_�Ђɑ��ɂ��ʂ����b�オ�������B
-PRINTFORML ���肪�Ƃ��얲����B
-PRINTFORML ���̋C������\������ɂ͂��̎�L�͋�������B
-PRINTFORML �����Ă��܂��B%CALLNAME:MASTER%����B
+PRINTFORML %CALLNAME:MASTER%さんとお付き合いする事になった。
+PRINTFORML 信じられない。
+PRINTFORML 嬉しさで胸が張り裂けそう。
+PRINTFORML 神社に足繁く通った甲斐があった。
+PRINTFORML ありがとう霊夢さん。
+PRINTFORML この気持ちを表現するにはこの手記は狭すぎる。
+PRINTFORML 愛しています。%CALLNAME:MASTER%さん。
 ;==========================================================
 @DIARY_K70_44_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;���̓��L�́�352,��������
-;������ݒ肷��
+;この日記は＠352,告白する
+;条件を設定する
 SIF 0
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_44
-PRINTFORML %CALLNAME:MASTER%����Ƃ��t���������鎖�ɂȂ����B
-PRINTFORML �ˑR�̎��ŋh���������ǁA
-PRINTFORML %CALLNAME:MASTER%����̎��͑O����C�ɂȂ��Ă������A����ŗǂ������Ǝv���B
-PRINTFORML �Ƃ���ŗ��l���Ăǂ�Ȏ�������΂����񂾂낤�B
+PRINTFORML %CALLNAME:MASTER%さんとお付き合いする事になった。
+PRINTFORML 突然の事で吃驚したけど、
+PRINTFORML %CALLNAME:MASTER%さんの事は前から気になっていたし、これで良かったと思う。
+PRINTFORML ところで恋人ってどんな事をすればいいんだろう。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_45_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;���̓��L�́��f�[�g�A��ɍ���/352,��������
-;������ݒ肷��
+;この日記は＠デート帰りに告白/352,告白する
+;条件を設定する
 SIF 0
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_45
-PRINTFORML %CALLNAME:MASTER%����Ƃ��t���������鎖�ɂȂ����B
-PRINTFORML ���̑z�����������񂾁B
-PRINTFORML �ǂ������B�{���ɗǂ������B
-PRINTFORML �_�Ђɑ��ɂ��ʂ����b�オ�������B
-PRINTFORML ���肪�Ƃ��얲����B
-PRINTFORML ���̋C������\������ɂ͂��̎�L�͋�������B
-PRINTFORML �����Ă��܂��B%CALLNAME:MASTER%����B
+PRINTFORML %CALLNAME:MASTER%さんとお付き合いする事になった。
+PRINTFORML 私の想いが勝ったんだ。
+PRINTFORML 良かった。本当に良かった。
+PRINTFORML 神社に足繁く通った甲斐があった。
+PRINTFORML ありがとう霊夢さん。
+PRINTFORML この気持ちを表現するにはこの手記は狭すぎる。
+PRINTFORML 愛しています。%CALLNAME:MASTER%さん。
 ;==========================================================
 @DIARY_K70_46_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF GETBIT(CFLAG:[[����]]:��������, 1)
+;条件を設定する
+SIF GETBIT(CFLAG:[[小鈴]]:既成事実, 1)
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_46
 PRINTFORML %UNICODE(0x2764)%
 PRINTFORML 
@@ -935,92 +935,92 @@ PRINTFORML
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_47_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;���̓��L�́����^���������r��
-;������ݒ肷��
+;この日記は＠正真正銘処女喪失
+;条件を設定する
 SIF 0
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_47
-PRINTFORML �����A���͑�؂Ȑl�ɑ�؂ȕ���������B
-PRINTFORML �s���ň�t���������ǁA��؂ɑz���Ă����Ƃ����C�����̂��A�ŁA�ْ��͘a�炢���B
-PRINTFORML �K���ŋ�����t�B
-PRINTFORML ��l�̊K�i�����������������B
+PRINTFORML 今日、私は大切な人に大切な物を捧げた。
+PRINTFORML 不安で一杯だったけど、大切に想ってくれるという気持ちのお陰で、緊張は和らいだ。
+PRINTFORML 幸せで胸が一杯。
+PRINTFORML 大人の階段を上った感じがする。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_48_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF GET_GIFTDATA(TCVAR:[[����]]:�����̑��蕨, "�{��") == 369 && GET_GIFTDATA(TCVAR:[[����]]:�����̑��蕨, "���_") < 700
+;条件を設定する
+SIF TCVAR:[[小鈴]]:381 == 1
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_48
-PRINTFORML %CALLNAME:MASTER%���񂩂�d���{�������B
-PRINTFORML ���e�͖�̒������@�������B
-PRINTFORML �͂��݂A�C���A���̉ԁA�P���̔��B
-PRINTFORML �̐S�̌��\�͍ڂ��ĂȂ��B��������B
+PRINTFORML %CALLNAME:MASTER%さんから妖魔本を貰った。
+PRINTFORML 内容は薬の調合方法だった。
+PRINTFORML はちみつ、辰砂、湯の花、鳳凰の尾。
+PRINTFORML 肝心の効能は載ってない。がっかり。
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_49_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF GET_GIFTDATA(TCVAR:[[����]]:�����̑��蕨, "�{��") == 369 && GET_GIFTDATA(TCVAR:[[����]]:�����̑��蕨, "���_") >= 700
+;条件を設定する
+SIF TCVAR:[[小鈴]]:381 == 2
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_49
-PRINTFORML %CALLNAME:MASTER%���񂩂�d���{�������B
-PRINTFORML �m���Ɨd���̖`����杂������B�哖����B
-PRINTFORML ��C�ɓǂނ̂͂��������Ȃ�����A����������Ƃ��ǂ����B
+PRINTFORML %CALLNAME:MASTER%さんから妖魔本を貰った。
+PRINTFORML 僧侶と妖怪の冒険奇譚だった。大当たり。
+PRINTFORML 一気に読むのはもったいないから、毎日ちょっとずつ読もう。
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 @DIARY_K70_50_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 3
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
-SIF GET_GIFTDATA(TCVAR:[[����]]:�����̑��蕨, "�{��") == 473
+;条件を設定する
+SIF GET_GIFTDATA(TCVAR:[[小鈴]]:今日の贈り物, "本体") == 473
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_K70_50
-PRINTFORML %CALLNAME:MASTER%���񂩂�X�y���J�[�h�������B
-PRINTFORML ���������e�������������Ă݂����B
-PRINTFORML ���̓������閘�A����͕ۊǂ��Ă����B
+PRINTFORML %CALLNAME:MASTER%さんからスペルカードを貰った。
+PRINTFORML 私もいつか弾幕ごっこをしてみたい。
+PRINTFORML その日が来る迄、これは保管しておく。
 PRINTFORML 
 PRINTFORML 
 ;==========================================================
 
 
 ;==========================================================
-;���y�[�W�𑝂₷�Ȃ�ȉ��̃e���v����X��YY�������Ďg���Ă�������
+;▼ページを増やすなら以下のテンプレにXとYYを代入して使ってください
 [SKIPSTART]
 ;==========================================================
 @DIARY_KX_YY_HAPPEN
-;�f�C���[�œǂ܂��Ȃ�2,�ǂ܂�Ȃ��Ȃ�3
+;デイリーで読まれるなら2,読まれないなら3
 RESULT:1 = 
-;���s�[�g����Ȃ�1,���Ȃ��Ȃ�0
+;リピートするなら1,しないなら0
 RESULT:2 = 0
-;������ݒ肷��
+;条件を設定する
 SIF 0
 	RETURN 1
-;�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|�|
+;－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 @DIARY_KX_YY
 PRINTFORML 
 ;==========================================================
 [SKIPEND]
 
 ;=============================
-;406,���L��ǂ�
+;406,日記を読む
 ;=============================
 @M_KOJO_MESSAGE_COM_K70_406
 CALL TRAIN_MESSAGE
@@ -1028,108 +1028,108 @@ CALL M_KOJO_MESSAGE_COM_K70_406_1
 RETURN RESULT
 
 ;=============================
-;�R�}���h����
-;TFLAG:194�i�N�̓��L��ǂ�ł��邩�j
-;TFLAG:194��XX�łȂ��ꍇ�͑��l�̓��L�Ȃ̂Œ��ӁB
-;PAGE�͏�����Ă���y�[�W���B
-;SHIRAHU(XX)�̓L����XX�̏�Ԃ����킩�ǂ����B
+;コマンド口上
+;TFLAG:194（誰の日記を読んでいるか）
+;TFLAG:194がXXでない場合は他人の日記なので注意。
+;PAGEは書かれてあるページ数。
+;SHIRAHU(XX)はキャラXXの状態が正常かどうか。
 ;=============================
 @M_KOJO_MESSAGE_COM_K70_406_1
-IF SHIRAHU([[����]]) && TFLAG:194 == [[����]]
-	PRINTFORMW �u���ւցc�c����ς�p���������ł�\/\/\/�v
+IF SHIRAHU([[小鈴]]) && TFLAG:194 == [[小鈴]]
+	PRINTFORMW 「えへへ……やっぱり恥ずかしいです\/\/\/」
 ENDIF
 
 ;=============================
 @M_KOJO_DIARYSETTING_K70(ARG)
-;���L���������̈ꊇ�Ǘ��֐�
+;日記発生処理の一括管理関数
 ;=============================
-SIF DIARY:[[����]]:ARG != 0
+SIF DIARY:[[小鈴]]:ARG != 0
 	RETURN
-DIARY:[[����]]:ARG = 3
-CALL CHARA_DIARY_PAGESETTING([[����]], ARG)
+DIARY:[[小鈴]]:ARG = 3
+CALL CHARA_DIARY_PAGESETTING([[小鈴]], ARG)
 
 ;=============================
-@M_KOJO_K70_�������ϊ�(ARG)
+@M_KOJO_K70_漢数字変換(ARG)
 #FUNCTIONS
-;���L�p�ɍ����������������ɂ��ĕԂ��֐�
-;1�`99�܂�
+;日記用に作った漢数字文字列にして返す関数
+;1～99まで
 ;=============================
 LOCALS = 
 SELECTCASE ARG / 10
 CASE 1
-	LOCALS += "�\"
+	LOCALS += "十"
 CASE 2
-	LOCALS += "��\"
+	LOCALS += "二十"
 CASE 3
-	LOCALS += "�O�\"
+	LOCALS += "三十"
 CASE 4
-	LOCALS += "�l�\"
+	LOCALS += "四十"
 CASE 5
-	LOCALS += "�܏\"
+	LOCALS += "五十"
 CASE 6
-	LOCALS += "�Z�\"
+	LOCALS += "六十"
 CASE 7
-	LOCALS += "���\"
+	LOCALS += "七十"
 CASE 8
-	LOCALS += "���\"
+	LOCALS += "八十"
 CASE 9
-	LOCALS += "��\"
+	LOCALS += "九十"
 ENDSELECT
 SELECTCASE ARG % 10
 CASE 1
-	LOCALS += "��"
+	LOCALS += "一"
 CASE 2
-	LOCALS += "��"
+	LOCALS += "二"
 CASE 3
-	LOCALS += "�O"
+	LOCALS += "三"
 CASE 4
-	LOCALS += "�l"
+	LOCALS += "四"
 CASE 5
-	LOCALS += "��"
+	LOCALS += "五"
 CASE 6
-	LOCALS += "�Z"
+	LOCALS += "六"
 CASE 7
-	LOCALS += "��"
+	LOCALS += "七"
 CASE 8
-	LOCALS += "��"
+	LOCALS += "八"
 CASE 9
-	LOCALS += "��"
+	LOCALS += "九"
 ENDSELECT
 RETURNF LOCALS
 
 ;=============================
-@M_KOJO_K70_�K�����t�ݒ�(ARG)
-;���L�p�ɍ�����K���ɓ��t��t����֐�
+@M_KOJO_K70_適当日付設定(ARG)
+;日記用に作った適当に日付を付ける関数
 ;=============================
 SELECTCASE ARG % 12
 CASE 1, 2, 3
-	PRINT ����
+	PRINT ○月
 CASE 4, 5, 6
-	PRINT ����
+	PRINT □月
 CASE 7, 8, 9
-	PRINT ����
+	PRINT △月
 CASEELSE
-	PRINT ����
+	PRINT ☆月
 ENDSELECT
 SELECTCASE ARG % 10
 CASE 1
-	PRINT �~��
+	PRINT ×日
 CASE 2
-	PRINT ����
+	PRINT ■日
 CASE 3
-	PRINT ����
+	PRINT ●日
 CASE 4
-	PRINT ����
+	PRINT ▲日
 CASE 5
-	PRINT ����
+	PRINT ★日
 CASE 6
-	PRINT ����
+	PRINT ◆日
 CASE 7
-	PRINT ����
+	PRINT ☆日
 CASE 8
-	PRINT ����
+	PRINT □日
 CASE 9
-	PRINT ����
+	PRINT △日
 CASE 0
-	PRINT ����
+	PRINT ○日
 ENDSELECT

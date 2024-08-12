@@ -141,6 +141,8 @@ IF LOCAL
 							ENDSELECT
 						ENDIF
 					ENDIF
+					SIF CFLAG:1101 == 1
+					CALL EIKI_REACTION
 				ELSE
 					SELECTCASE RAND:5
 					CASE 0
@@ -291,6 +293,8 @@ IF LOCAL
 						PRINTFORML さすがの小町も仕事中の上司を目の前にイチャつく度胸はないようだ
 						PRINTW 
 					ENDSELECT
+					SIF CFLAG:1101 == 1
+					CALL EIKI_REACTION
 				ELSE
 					SELECTCASE RAND:3
 					CASE 0
@@ -306,7 +310,7 @@ IF LOCAL
 					ENDSELECT
 				ENDIF
 			ELSE
-				SELECTCASE RAND:3
+				SELECTCASE RAND:6
 				CASE 0
 					PRINTFORML 「%CALLNAME:MASTER%は甘えんぼだねぇ%UNICODE(0x2665) *1%」
 					PRINTFORML 小町は優しい笑みを浮かべ%CALLNAME:MASTER%を抱きしめ返した
@@ -317,11 +321,21 @@ IF LOCAL
 				CASE 2
 					PRINTFORML 手を伸ばし、尻たぶの内側に指を這わせる
 					PRINTFORMW 「こら、助平%UNICODE(0x2665) *1%」
+				CASE 3
+					PRINTFORML 「どうしたんだい？　あたいに甘えたくなったのかい？」
+					PRINTFORMW 小町のボリュームのある双丘の感触が心地よい…
+				CASE 4
+					PRINTFORML 「こーら。抱き付きながら胸とかお腹とかみだりに触るもんじゃないよ。特にお腹」
+					PRINTFORMW 「死神だって女なんだ。デリカシーってもんが必要だよ」
+				CASE 5
+					PRINTFORML 「ふふーん。お前さんの魂胆はお見通しだよ♪」
+					PRINTFORML 小町は%CALLNAME:MASTER%の顔をグイっと自身の豊かな胸に押し付けた
+					PRINTFORMW 「これがご所望だろう？　%CALLNAME:MASTER%は特別だよ♪」
 				ENDSELECT
 			ENDIF
 		ENDIF
 	ELSEIF TALENT:思慕
-		SELECTCASE RAND:3
+		SELECTCASE RAND:5
 		CASE 0
 			PRINTFORML 「はいはい、好きにしな」
 			PRINTFORMW あきれたような笑みを浮かべながらも、小町は拒絶しなかった
@@ -331,9 +345,16 @@ IF LOCAL
 		CASE 2
 			PRINTFORML 「あたいでいいのかい？　ほかにもっといい人がいるんじゃないのかい？」
 			PRINTFORMW 小町はそこまで悪い気分でもなさそうだ
+		CASE 3
+			PRINTFORML 「うわっ！？　後ろからびっくりしたぁ」
+			PRINTFORML 「って、この胸を揉んでいる手はなんだい？」
+			PRINTFORMW 小町に手の甲をつねられた…
+		CASE 4
+			PRINTFORML 「抱きつくふりして、本当は胸が目的だったんだろ？　この助平」
+			PRINTFORMW 
 		ENDSELECT
 	ELSE
-		SELECTCASE RAND:3
+		SELECTCASE RAND:5
 		CASE 0
 			PRINTFORML 「遠慮しないにもほどがあるねぇ」
 			PRINTFORMW 小町は%CALLNAME:MASTER%の顔をぐいっと押し返した
@@ -343,6 +364,12 @@ IF LOCAL
 		CASE 2
 			PRINTFORML 「いやいや、そういうのはもうちょっと親しい者にやることじゃない？」
 			PRINTFORMW 小町はあきれ返った表情をしている
+		CASE 3
+			PRINTFORML 「うわっ、いきなり何するんだい」
+			PRINTFORMW 「って、どさくさに紛れて胸に顔を埋めるんじゃないよ。まったく」
+		CASE 4
+			PRINTFORML 「うわっ、後ろから抱きついてきたら危ないだろ」
+			PRINTFORMW 「……って、どさくさに紛れて胸を揉むんじゃない」
 		ENDSELECT
 	ENDIF
 
@@ -416,6 +443,8 @@ IF LOCAL
 						PRINTFORML 
 						PRINTW 
 					ENDSELECT
+					SIF CFLAG:1101 == 1
+					CALL EIKI_REACTION
 				ELSE
 					SELECTCASE RAND:3
 					CASE 0
@@ -518,13 +547,12 @@ IF LOCAL
 				;2022/04/25更新分
 				;現在位置が法廷かつ映姫が仕事中
 				IF CFLAG:現在位置 == 612 && 仕事中チェック(30) && CFLAG:30:現在位置 == 612
-					;問題なければセクハラするたびに映姫の怒りが増加していく処理を入れてみたい
-					;IF BASE:30:怒り >= 600
-					;ELSEIF BASE:30:怒り >= 300
-					;ELSE
-					;ENDIF
-					;BASE:30:怒り += 50
-					;とりあえずただの分岐で
+					;2023/08/22
+					;実験的に映姫の怒りが増加していく処理
+					;映姫様が恋慕かつ欲望がLV5以上なら欲求不満度も溜まっていく
+					BASE:30:怒り += 50
+					SIF TALENT:恋慕 && ABL:欲望 >= 5
+						CFLAG:30:溜まってる度 += 100
 					;スケベスイッチ
 					IF CFLAG:1100 > 0
 						SELECTCASE RAND:4
@@ -562,6 +590,7 @@ IF LOCAL
 							PRINTW 
 						ENDSELECT
 					ENDIF
+					CALL EIKI_REACTION
 				ELSE
 					SELECTCASE RAND:3
 					CASE 0
@@ -608,7 +637,7 @@ IF LOCAL
 			PRINTFORMW 小町は%CALLNAME:MASTER%にデコピンした
 		CASE 1
 			PRINTFORML 「楽しいかい？　んー、そりゃよかった」
-			PRINTFORMW 小町は
+			PRINTFORMW 小町は困ったような呆れたような笑みを浮かべている
 		CASE 2
 			PRINTFORML 「いやまあ、減るもんじゃないんだけどさ……」
 			PRINTFORMW 小町はあきれ返った表情をしている
@@ -634,7 +663,265 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-
+	IF FLAG:70
+		IF ABL > 3
+			CALL HPH_PRINT,@"「ううっ…HPH　ふうっ…HPH　ふっ…HPH」","L"
+			PRINTW 
+		ELSE
+		SELECTCASE RAND:2
+		CASE 0
+			PRINTFORML 「う…うう…」
+			PRINTW 
+		CASE 1
+			PRINTFORML 「あ…うう…」
+			PRINTW 
+		ENDSELECT
+		ENDIF
+	ELSEIF CFLAG:TARGET:睡眠 || TCVAR:泥酔 == 1
+	ELSEIF CFLAG:うふふ == 2
+		IF TCVAR:20 == 72 || TEQUIP:シックスナイン
+			SELECTCASE RAND:3
+			CASE 0
+				CALL HPH_PRINT,@"「お尻の穴を舐めたいだなんて、とんだ変態がいたもんだ…HPH」","L"
+				PRINTW 
+			CASE 1
+				CALL HPH_PRINT,@"「ああンッHPH　舌で尻穴穿られてるよおッHPH」","L"
+				PRINTW 
+			CASE 2
+				CALL HPH_PRINT,@"「おおッHPH　おおおッHPH　尻穴、拡げられちゃってるよお…HPH」","L"
+				PRINTW 
+			ENDSELECT
+		ELSE
+			IF ABL:Ａ感覚 > 3
+				SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「ああっHPH　お尻穿られてるよおっHPH」","L"
+					PRINTW 
+				CASE 1
+					CALL HPH_PRINT,@"「あたいの弱い所、全部知り尽くしちゃって…HPH」","L"
+					PRINTW 
+				CASE 2
+					CALL HPH_PRINT,@"「HPH」","L"
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「こらあっ、そんなところ触ったらエッチなことに集中できないだろう…HPH」","L"
+					PRINTW 
+				CASE 1
+					CALL HPH_PRINT,@"「触ってほしいのはそっちじゃないのに…お前さん、好きものだねぇ…HPH」","L"
+					PRINTW 
+				CASE 2
+					CALL HPH_PRINT,@"「ひゃっ！？　そ、そっちはよしとくれよう…HPH」","L"
+					PRINTW 
+				ENDSELECT
+			ENDIF
+		ENDIF
+	ELSEIF TALENT:恋慕 || TALENT:恋人
+		;２人以上いる
+		IF GET_TARGETNUM() >= 2
+			;2022/04/25更新分
+			;現在位置が法廷かつ映姫が仕事中
+			IF (CFLAG:現在位置 == CFLAG:30:現在位置) && 仕事中チェック(30) && (CFLAG:30:現在位置 == CFLAG:30:職場)
+				;スケベスイッチ
+				IF CFLAG:1100 == 1
+					IF ABL:Ａ感覚 > 3
+						SELECTCASE RAND:3
+						CASE 0
+							CALL HPH_PRINT,@"（ちょっとおHPH　法廷で、しかも四季様の前で尻を穿るのはおやめよお…HPH）","L"
+							PRINTW 
+						CASE 1
+							CALL HPH_PRINT,@"（ほらあHPH　四季様の仕事のしちゃ駄目だよお…HPH）","L"
+							CALL HPH_PRINT,@"（あたい、いやらしい声が出ちゃうからさあ…HPH)","L"
+							PRINTW 
+						CASE 2
+							CALL HPH_PRINT,@"(おっHPH　やめっHPH　イクッHPH)","L"
+							CALL HPH_PRINT,@"(法廷で尻ほじられてイクッHPHHPH)","L"
+							PRINTW 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							CALL HPH_PRINT,@"（駄目、だよお…HPH　変な声、法廷で出しちまうからさあ…HPH）","L"
+							PRINTW 
+						CASE 1
+							CALL HPH_PRINT,@"（ここじゃ駄目だよお…HPH　四季様が、もの凄い形相で睨んでるじゃないのさあ…HPH）","L"
+							PRINTW 
+						ENDSELECT
+					ENDIF
+				ELSE
+					IF ABL:Ａ感覚 > 3
+						SELECTCASE RAND:2
+						CASE 0
+							CALL HPH_PRINT,@"「あふぅんHPH」","L"
+							PRINTFORML 「あっ、し、四季様っ、すみませんっ！」
+							PRINTFORML （ばっ、馬鹿ぁ…いやらしい声、出しちまったじゃないのさあ…）
+							PRINTFORML （うわあ…四季様がもの凄い顔でこっち見てる…後でお説教だねえ、これは…）
+							PRINTW 
+						CASE 1
+							CALL HPH_PRINT,@"「きゃんっHPH」","L"
+							PRINTFORML （馬鹿っ、馬鹿馬鹿っ、こんなところで尻穴穿られて感じてるって四季様にバレたらあっHPH）
+							PRINTW 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「ばっ馬鹿っ、なんてことっ」
+							PRINTFORML 「あ…四季様、す、すみません…」
+							PRINTFORML （%CALLNAME:MASTER%、後で覚えときなよ～～）
+							PRINTW 
+						CASE 1
+							PRINTFORML 「うひゃっ！？」
+							PRINTFORML 「あ…し、四季様、なんでもありません…大声出して、すみませんでした…」
+							PRINTFORML （%CALLNAME:MASTER%、よりによってこんなところで尻を穿るとか駄目だよ…！）
+							PRINTW 
+						ENDSELECT
+					ENDIF
+				ENDIF
+				SIF CFLAG:1101 == 1
+				CALL EIKI_REACTION
+			ELSE
+				IF K76_FIND_AROUND() == 30
+					PRINTFORML 「ばっ、馬鹿っ、四季様の前でなんてことっ」
+					IF ABL:Ａ感覚 > 3
+						SELECTCASE RAND:2
+						CASE 0
+							CALL HPH_PRINT,@"「だっ、駄目だよおっHPH　お尻で感じてるのっ、ばれちまうよおッHPH」","L"
+							PRINTW 
+						CASE 1
+							CALL HPH_PRINT,@"「四季様の前だよ、お、およしってばあ…HPH」","L"
+							CALL HPH_PRINT,@"「二人っきりなら、触らせてやるから…今は我慢しとくれよお…HPH」","L"
+							PRINTW 
+						ENDSELECT
+					ELSE
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「ちょっ、ちょおっ！？　四季様の前でなんてことをっ！？」
+							PRINTW 
+						CASE 1
+							PRINTFORML 「うひいっ！？　ちょ、ちょっとお、四季様の前でそういうことを…」
+							PRINTW 
+						ENDSELECT
+					ENDIF
+				ELSE
+					PRINTFORML 「ばっ、馬鹿っ、人前でそんなところ触るのはおよしよお…」
+					PRINTFORML 「……誰もいなければ、いいから…」
+					PRINTW 
+				ENDIF
+			ENDIF
+		;二人きり
+		ELSE
+			IF ABL:Ａ感覚 > 3
+				SELECTCASE RAND:4
+				CASE 0
+					CALL HPH_PRINT,@"「やんっHPH　もう、お尻ばっかり悪戯してさあ…HPH」","L"
+					PRINTW 
+				CASE 1
+					CALL HPH_PRINT,@"「はあ、あ…HPH　そんなにかきまぜないでおくれよお…HPH」","L"
+					PRINTW 
+				CASE 2
+					CALL HPH_PRINT,@"「あっHPH　指、いいよお…HPH」","L"
+					PRINTW 
+				CASE 3
+					CALL HPH_PRINT,@"「うっHPH　ふうっHPH」","L"
+					CALL HPH_PRINT,@"「もう、あたいのお尻、こんなにしちゃってさあ…HPH」","L"
+					PRINTW 
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「お尻じゃなくて、もうちょっと下の穴を弄っておくれよお…」
+					PRINTW 
+				CASE 1
+					PRINTFORML 「あっ、馬鹿ぁ…そこは、駄目だよお…」
+					PRINTW 
+				CASE 2
+					PRINTFORML 「お尻…はあっ、勘弁しておくれよお…っ」
+					PRINTW 
+				ENDSELECT
+			ENDIF
+		ENDIF
+	ELSEIF TALENT:愛欲 || TALENT:セフレ
+		IF GET_TARGETNUM() >= 2
+			IF ABL:Ａ感覚 > 3
+				SELECTCASE RAND:4
+				CASE 0
+					CALL HPH_PRINT,@"「馬鹿あっ、人前で尻を穿られて声が出ちゃうよお…HPH」","L"
+					PRINTW 
+				CASE 1
+					CALL HPH_PRINT,@"「駄目だよお…あたい、人前で、お尻で感じちゃうよお…HPH」","L"
+					PRINTW 
+				CASE 2
+					CALL HPH_PRINT,@"「そんなに激しく出し入れしたらぁ…バレちゃうよお…HPH」","L"
+					PRINTW 
+				CASE 3
+					CALL HPH_PRINT,@"「うっHPH　ふうっHPH」","L"
+					CALL HPH_PRINT,@"「駄目っHPH　声っHPH　出っHPH　バレるっHPH　バレるよおっHPH」","L"
+					PRINTW 
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ばっ、馬鹿あ、人前で触るような場所じゃあ…あっ、あぁっ」
+					PRINTW 
+				CASE 1
+					PRINTFORML 「あっ、馬鹿ぁ…そこは、お尻の穴だよお…」
+					PRINTW 
+				CASE 2
+					PRINTFORML 「お尻、弄るなら人の居ない所でしておくれよお…」
+					PRINTW 
+				ENDSELECT
+			ENDIF
+		ELSE
+			IF ABL:Ａ感覚 > 3
+				SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「そんなに激しく出し入れしたら、拡がっちまうよお…HPH」","L"
+					PRINTW 
+				CASE 1
+					CALL HPH_PRINT,@"「いいよお…HPH　もっと、穿っておくれよお…HPH」","L"
+					PRINTW 
+				CASE 2
+					CALL HPH_PRINT,@"「お前さんの指が、出たり入ったりしてるよお…HPH」","L"
+					PRINTW 
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「お尻じゃなくて、もうちょっと下の穴を弄っておくれよお…」
+					PRINTW 
+				CASE 1
+					PRINTFORML 「あっ、馬鹿ぁ…そこは、お尻の穴だよお…」
+					PRINTW 
+				CASE 2
+					PRINTFORML 「お尻、弄りたいのかい…？」
+					PRINTW 
+				ENDSELECT
+			ENDIF
+		ENDIF
+	ELSEIF TALENT:思慕
+		SELECTCASE RAND:2
+		CASE 0
+			PRINTFORML 「お、おやめっていってるだろう…」
+			PRINTW 
+		CASE 1
+			PRINTFORML 「だ、だからっ、や、やめっ…ううっ…」
+			PRINTW 
+		CASE 2
+			PRINTFORML 「お前さんなんてところ触るんだよっ…！」
+			PRINTW 
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:2
+		CASE 0
+			PRINTFORML 「ばっ、馬鹿あっ、なんてとこ触るんだいっ！」
+			PRINTFORML 小町にはたかれた…
+			PRINTW 
+		CASE 1
+			PRINTFORML 「ひいィッ！？　何するんだいっ！」
+			PRINTW 
+		ENDSELECT
+	ENDIF
 ENDIF
 RETURN 1
 ;==================================================
@@ -709,6 +996,8 @@ IF LOCAL
 					PRINTW 
 				ENDSELECT
 			ENDIF
+			SIF CFLAG:1101 == 1
+			CALL EIKI_REACTION
 		ELSE
 			IF ABL:Ｃ感覚 >= 6
 				SELECTCASE RAND:3
@@ -837,6 +1126,8 @@ IF LOCAL
 					PRINTW 
 				ENDSELECT
 			ENDIF
+			SIF CFLAG:1101 == 1
+			CALL EIKI_REACTION
 		ELSE
 			;小町は初期からＶ感覚１。周回で弄っている場合は考慮していません
 			SELECTCASE ABL:Ｖ感覚
@@ -1079,6 +1370,8 @@ IF LOCAL
 						PRINTW 
 					ENDSELECT
 				ENDIF
+				SIF CFLAG:1101 == 1
+				CALL EIKI_REACTION
 			ELSE
 				IF ABL:露出癖 >= 5
 					IF EQUIP:TARGET:下半身下着１ || EQUIP:TARGET:下半身下着２
@@ -1632,3 +1925,363 @@ IF CFLAG:76:1100 > 0
 	SOURCE:露出 = 900
 ENDIF
 
+@EIKI_REACTION
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+;2023/08/22
+;実験的に映姫の怒りが増加していく処理
+;映姫様が好感度1000以上かつ欲望がLV5以上なら欲求不満度、潤滑も増加
+;ただし裁判中は怒りのみ、かつ溜まるのも早い（３回やったらアウト）
+;映姫様の反応に関して、映姫様口上の法廷内会話を参考にさせていただいています
+;━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+;お仕事時間帯で反応が変化
+SELECTCASE TIME:0
+;裁判中
+CASE 540 TO 719
+	BASE:30:怒り += 400
+	CFLAG:1102 += 400
+	IF CFLAG:1102 >= 400
+		PRINTFORMW 
+		PRINTFORML 「…………」
+		PRINTFORML 映姫は二人がその場にいないかのように淡々と裁判を続けている
+		PRINTFORML しかし、小町の艶っぽい声が漏れるたび、映姫の眉がピクリと動く…
+		PRINTW 
+	ELSEIF CFLAG:1102 >= 800
+		PRINTFORMW 
+		PRINTFORML 「………………！！」
+		PRINTFORML 映姫が怒気をはらんだ瞳ででこちらを睨みつけた
+		PRINTFORML 次に同じことをやったらとんでもないことになりそうだ…
+		PRINTW 
+	ELSEIF BASE:30:怒り >= 1000 && CFLAG:1102 >= 1000
+		PRINTFORML 厳粛な法廷の場での淫行に堪忍袋の緒が切れた
+		PRINTFORML 静かに、だが有無を言わせぬ口調で映姫は二人に退廷を命じた
+		PRINTL 
+		CFLAG:MASTER:現在位置 = 避難先
+		CFLAG:現在位置 = 避難先
+	ENDIF
+;昼休み
+CASE 720 TO 779
+	BASE:30:怒り += 50 + RAND:50
+	CFLAG:1102 += 50 + RAND:50
+	IF CFLAG:好感度 >= 3000 && ABL:欲望 >= 5
+		CFLAG:30:溜まってる度 += 100
+		PALAM:30:潤滑 += 100
+		IF TCVAR:30:発情 || TCVAR:30:媚薬
+			CFLAG:30:溜まってる度 += 100
+			PALAM:30:潤滑 += 200
+			IF TALENT:30:恋慕 || TALENT:30:恋人
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 『ああ…私も、小町のように…』
+					PRINTFORML 映姫は悟られぬように努めているが、テーブルの下で%TEXTR("秘所をクニクニと/クリトリスをクリクリと")%弄っている…
+					PRINTW 
+				CASE 1
+					IF PALAM:30:潤滑 >= PALAMLV:3
+						PRINTFORML 『あうっ…♥』
+						PRINTFORML 映姫がそっと秘所に指を忍ばせると、ニュルンという感触とともに易々と飲み込んでいった
+						PRINTFORML 『嘘…私、こんなに、濡れて…♥』
+					ELSE
+						PRINTFORML 『やだ…私、法廷で…』
+						PRINTFORML 映姫がそっと秘所に指を忍ばせると、そこはすでに湿り気を帯びていた
+						PRINTFORML 『駄目、駄目よ…こんなことをしては…♥』
+					ENDIF
+				CASE 2
+					IF TCVAR:350 == 1
+						PRINTFORML 『もう…さっきあれほど抜いてあげたというのに、また乳繰り合いなどと…』
+						PRINTW 
+					ELSE
+						;条件は映姫様口上に準じる形で
+						IF HAS_PENIS(MASTER) && ABL:30:技巧 > 3 && ABL:30:精液中毒 > 5 && EXP:30:精飲経験 > 100
+							CALL K76_BLOW_JOB_IN_COURT
+						ELSE
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 『ああ…私も、小町のように…』
+								PRINTFORML 映姫は悟られぬように努めているが、テーブルの下で%TEXTR("秘所をクニクニと/クリトリスをクリクリと")%弄っている…
+								PRINTW 
+							CASE 1
+								PRINTFORML 『昼休みとはいえ、閻魔である私が職場で自慰行為など…』
+								PRINTFORML 映姫は艶っぽい声を噛み殺しながら、テーブルの下で自慰行為に耽っている…
+								PRINTW 
+							ENDSELECT
+						ENDIF
+					ENDIF
+				ENDSELECT
+			ELSE
+				PRINTFORML 『小町、羨ましい…　　！！　　わ、私は職務中に何を考えているのでしょう…』
+				PRINTFORML 映姫は、休憩中とはいえふしだらな妄想に囚われてしまったことを反省し、かぶりを振っている…
+				PRINTW 
+			ENDIF
+		ELSE
+			IF TALENT:30:恋慕 || TALENT:30:恋人
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 『仕事の時間帯でなければ、私だって…』
+					PRINTFORML 映姫はテーブルの下で太ももをモジモジと擦り合わせている…
+					PRINTW 
+				CASE 1
+					IF CFLAG:TARGET:溜まってる度 >= 800
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 『ああ…私も、小町のように…』
+							PRINTFORML 映姫は悟られぬように努めているが、テーブルの下で%TEXTR("秘所をクニクニと/クリトリスをクリクリと")%弄っている…
+							PRINTW 
+						CASE 1
+							PRINTFORML 『今は休憩中、休憩中だから…』
+							PRINTFORML 映姫は小町がされていることを自分もしてもらっていると妄想しながら、衣服越しに秘所を擦っている…
+							PRINTW 
+						ENDSELECT
+					ELSE
+						PRINTFORML 『す、少しくらいなら…』
+						PRINTFORML 映姫は乳繰り合う二人を横目に、股間へ指を延ばし──弾かれたかのように手を引っ込めた
+						PRINTFORML 『何を考えているの映姫。休憩中とはいえ、ここは法廷よ…』
+						PRINTW 
+					ENDIF
+				ENDSELECT
+			ELSE
+				PRINTFORML 『あの二人、何をやっているというの…』
+				PRINTFORML 映姫は苛立ちながらも、二人の行為から目が離せないでいるようだ…
+				PRINTW 
+			ENDIF
+		ENDIF
+	ELSE
+		PRINTDATAL
+			DATAFORM 『貴重な昼休みに…あなたたちは嫌がらせですか』
+			DATAFORM 『男女の睦みあい自体を否定はしません。ですが、時と場所くらい選んでください…』
+			DATAFORM 『小町…それは普段私が貴女に説教していることへの意趣返しですか？』
+		ENDDATA
+		PRINTFORML 午後の仕事に向けた憩いの時間を邪魔され、映姫はげんなりしている…
+		PRINTW 
+	ENDIF
+	IF BASE:30:怒り >= 1000 && CFLAG:1102 >= 1000
+		PRINTFORML 仕事中に散々イチャつく姿を見せつけられ、さしもの映姫も堪忍袋の緒が切れた
+		PRINTFORML 静かに、だが有無を言わせぬ口調で映姫は二人に退廷を命じた
+		PRINTL 
+		CFLAG:MASTER:現在位置 = 避難先
+		CFLAG:現在位置 = 避難先
+	ENDIF
+;事務処理
+CASE 780 TO 1019
+	BASE:30:怒り += 50
+	CFLAG:1102 += 50
+	IF CFLAG:好感度 >= 3000 && ABL:欲望 >= 5
+		IF TCVAR:30:発情 || TCVAR:30:媚薬
+			CFLAG:30:溜まってる度 += 100
+			PALAM:30:潤滑 += 200
+			IF TALENT:30:恋慕 || TALENT:30:恋人
+				PRINTFORML 『ああ…私も触れてほしいのに、まだこんなに仕事が…うう…』
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 映姫は悟られぬように努めているが、テーブルの下で『少しだけ、少しだけ…』と%TEXTR("秘所をクニクニと/クリトリスをクリクリと")%弄っている…
+				CASE 1
+					PRINTFORML 映姫は心の中で涙を流しながら、必死に雑務を片付けている…
+				CASE 2
+					IF TCVAR:350 == 1
+						PRINTFORML 『もう…さっきあれほど抜いてあげたというのに、また乳繰り合いなどと…』
+						PRINTW 
+					ELSE
+						;条件は映姫様口上に準じる形で
+						IF HAS_PENIS(MASTER) && ABL:30:技巧 > 3 && ABL:30:精液中毒 > 5 && EXP:30:精飲経験 > 100
+							CALL K76_BLOW_JOB_IN_COURT
+						ELSE
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 『ああ…私も、小町のように…』
+								PRINTFORML 映姫は悟られぬように努めているが、テーブルの下で%TEXTR("秘所をクニクニと/クリトリスをクリクリと")%弄っている…
+								PRINTW 
+							CASE 1
+								PRINTFORML 『閻魔である私が職場で、ましてや仕事中に自慰行為など…』
+								PRINTFORML 映姫は艶っぽい声を噛み殺しながら、テーブルの下で自慰行為に耽っている…
+								PRINTW 
+							ENDSELECT
+						ENDIF
+					ENDIF
+				ENDSELECT
+				PRINTW 
+			ELSE
+				PRINTFORML 『小町、羨ましい…　　！！　　わ、私は職務中に何を考えているのでしょう…』
+				PRINTFORML 映姫は、休憩中とはいえふしだらな妄想に囚われてしまったことを反省し、かぶりを振っている…
+				PRINTW 
+			ENDIF
+		ELSE
+			IF TALENT:30:恋慕 || TALENT:30:恋人
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 『仕事の時間帯でなければ、私だって…』
+					PRINTFORML 映姫はテーブルの下で太ももをモジモジと擦り合わせている…
+					PRINTW 
+				CASE 1
+					IF CFLAG:TARGET:溜まってる度 >= 800
+						SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 『ああ…私も、小町のように…』
+							PRINTFORML 映姫は悟られぬように努めているが、テーブルの下で%TEXTR("秘所をクニクニと/クリトリスをクリクリと")%弄っている…
+							PRINTW 
+						CASE 1
+							PRINTFORML 『ああ、まだたくさん仕事が残っているというのに…』
+							PRINTFORML 映姫は小町がされていることを自分もしてもらっていると妄想しながら、躊躇いがちに秘所を擦っている…
+							PRINTW 
+						ENDSELECT
+					ELSE
+						PRINTFORML 『す、少しくらいなら…』
+						PRINTFORML 映姫は乳繰り合う二人を横目に、股間へ指を延ばし──弾かれたかのように手を引っ込めた
+						PRINTFORML 『何を考えているの映姫。休憩中とはいえ、ここは法廷よ…』
+						PRINTW 
+					ENDIF
+				ENDSELECT
+			ELSE
+				PRINTFORML 『あの二人、何をやっているというの…』
+				PRINTFORML 映姫は苛立ちながらも、二人の行為から目が離せないでいるようだ…
+				PRINTW 
+			ENDIF
+		ENDIF
+	ELSE
+		PRINTDATAL
+			DATAFORM 『人が仕事をしているという時に…あなたたちは嫌がらせですか』
+			DATAFORM 『男女の睦みあい自体を否定はしません。ですが、時と場所くらい選んでください…』
+			DATAFORM 『小町…それは普段私が貴女に説教していることへの意趣返しですか？』
+		ENDDATA
+		PRINTFORML 仕事を邪魔され、映姫はげんなりしている…
+		PRINTW 
+	ENDIF
+	IF BASE:30:怒り >= 1000 && CFLAG:1102 >= 1000
+		PRINTFORML 仕事中に散々イチャつく姿を見せつけられ、さしもの映姫も堪忍袋の緒が切れた
+		PRINTFORML 『 貴方たちは………!　人前で………!　遠慮もなしに………!　時と場所を………!』
+		PRINTFORML 映姫は二人にカミナリを落とすと二人に退廷を命じた
+		PRINTL 
+		CFLAG:MASTER:現在位置 = 避難先
+		CFLAG:現在位置 = 避難先
+	ENDIF
+;書類整理
+CASE 1020 TO 1139
+	BASE:30:怒り += 50
+	CFLAG:1102 += 50
+	IF CFLAG:好感度 >= 3000 && ABL:欲望 >= 5
+		IF TCVAR:30:発情 || TCVAR:30:媚薬
+			CFLAG:30:溜まってる度 += 100
+			PALAM:30:潤滑 += 200
+			IF TALENT:30:恋慕 || TALENT:30:恋人
+				SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 『ああ…早く、早く仕事を終わらせないと…終わらせたら…♥』
+					PRINTFORM 映姫は書類に目を通しながらも、
+					IF CFLAG:ノーパン
+						PRINTFORM 剥き出しの濡れた膣孔に、ペンを抜き差ししている…
+					ELSE
+						PRINTFORM %PANTS_DESCRIPTION(EQUIP:TARGET:下半身下着２, TARGET)%%SHOW_BOTTOM(TARGET)%をずらし、
+					ENDIF
+					PRINTFORML %TEXTR("ペン/指")%を抜き差ししている…
+					PRINTW 
+				CASE 1
+					PRINTFORML 『我慢…我慢よ、映姫…終わったら、%CALLNAME:MASTER%と…♥』
+					PRINTFORML 頭の中をほぼピンク一色に染めながら、映姫は複雑な表情を浮かべつつ書類を整理している…
+				CASE 2
+					IF TCVAR:350 == 1
+						PRINTFORML 『もう…さっきあれほど抜いてあげたというのに、また乳繰り合いなどと…』
+						PRINTW 
+					ELSE
+						;条件は映姫様口上に準じる形で
+						IF HAS_PENIS(MASTER) && ABL:30:技巧 > 3 && ABL:30:精液中毒 > 5 && EXP:30:精飲経験 > 100
+							CALL K76_BLOW_JOB_IN_COURT
+						ELSE
+							SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 『ああ…私も、小町のように…』
+								PRINTFORML 映姫は悟られぬように努めているが、テーブルの下で%TEXTR("秘所をクニクニと/クリトリスをクリクリと")%弄っている…
+								PRINTW 
+							CASE 1
+								PRINTFORML 『昼休みとはいえ、閻魔である私が職場で自慰行為など…』
+								PRINTFORML 映姫は艶っぽい声を噛み殺しながら、テーブルの下で自慰行為に耽っている…
+								PRINTW 
+							ENDSELECT
+						ENDIF
+					ENDIF
+				ENDSELECT
+			ELSE
+				PRINTFORML 『ああ…小町…私に見られて気になってしょうがないのに、あんな表情をして…』
+				PRINTFORML 映姫は、仕事を妨害される苛立ちと湧き上がる劣情に心をかき乱され、まったく仕事が手に付かない…
+				PRINTW 
+			ENDIF
+		ELSE
+			IF TALENT:30:恋慕 || TALENT:30:恋人
+				PRINTFORML 『私だって、%CALLNAME:MASTER%ともっと触れあいたいのに…早く、仕事を終わらせないと…』
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 映姫はテーブルの下で太ももをモジモジと擦り合わせている…
+				CASE 1
+					PRINTFORML 映姫は仕事を片付けつつ、何度も股間に手を延ばしては引っ込め…を繰り返している
+				ENDSELECT
+				PRINTW 
+			ELSE
+				PRINTFORML 『仕事を手伝うどころか、』
+				PRINTFORML 映姫は苛立ちながらも、二人の行為から目が離せないでいるようだ…
+				PRINTW 
+			ENDIF
+		ENDIF
+	ELSE
+		PRINTDATAL
+			DATAFORM 『人が仕事をしているという時に…あなたたちは嫌がらせですか』
+			DATAFORM 『男女の睦みあい自体を否定はしません。ですが、時と場所くらい選んでください…』
+			DATAFORM 『小町…それは普段私が貴女に説教していることへの意趣返しですか？』
+		ENDDATA
+		PRINTFORML 仕事を邪魔され、映姫はげんなりしている…
+		PRINTW 
+	ENDIF
+	IF BASE:30:怒り >= 1000 && CFLAG:1102 >= 1000
+		PRINTFORML 仕事中に散々イチャつく姿を見せつけられ、さしもの映姫も堪忍袋の緒が切れた
+		PRINTFORML 『貴方たちは………!　人前で………!　遠慮もなしに………!　時と場所を………!』
+		IF TALENT:30:恋人
+			PRINTFORML 『私だって………!　イチャイチャ………!　仕事時間外に………!　あんなことやこんなこと………!』
+		ELSE
+			PRINTFORML 『………!　………!　………!　………!』
+		ENDIF
+		PRINTFORML 映姫は二人にカミナリを落とすと二人に退廷を命じた
+		PRINTL 
+		CFLAG:MASTER:現在位置 = 避難先
+		CFLAG:現在位置 = 避難先
+	ENDIF
+ENDSELECT
+
+;=================================================================================
+;映姫様が仕事中にフェラ抜きしてくれるイベント
+;オリジナルであるK30_BLOW_JOB_IN_COURTに条件等極力沿う形で
+;流れに若干違いがあるものの、映姫口上作者様のものを参考にさせていただいております
+;お堅い女性がよりによって職場でスケベ行為してくれるとか控えめに言って最高ですね
+;--------------------------------------------------------------------------------
+@K76_BLOW_JOB_IN_COURT
+PRINTFORML 『小町、少々%CALLNAME:MASTER%をお借りします。いいですね』
+PRINTL 
+PRINTFORML 一瞬呆気にとられたものの、慌てて声をかけようとする小町を映姫は眼光だけで沈黙させる
+PRINTFORML 映姫は有無を言わさず%CALLNAME:MASTER%の手を取ると、引きつった表情の小町を置き去りにして物陰に消えていった…
+PRINTW 
+PRINTFORM %TEXTR("れろっ♥　れろぉっ♥/ちゅ♥　ちゅっ♥　ちゅぱっ♥/ぢゅっぷ♥　ぢゅっぷ♥　ぢゅぷっ♥/んっ♥　んぐっ♥　ふんんっ♥　ぢゅるるるぅっ♥")%
+PRINTFORML 『早く…お口に出してください…私\@ INRANGE(TIME, 720, 749) ? の休憩、無くなっちゃいます # はまだ仕事中なの \@よ♥』
+PRINTFORML 映姫は裁判時の凛とした佇まいをかなぐり捨て、愛しい%CALLNAME:MASTER%の肉棒に敢えて下品な音を立てながらむしゃぶりついている
+PRINTW 
+SELECTCASE RAND:3
+CASE 0
+	PRINTFORML 『れろっ♥　れろれろっ♥　ふふ、ここが弱いんですね♥　れろれろぉっ♥』
+	PRINTFORML 映姫の艶めかしく光る舌は亀頭や肉竿を這いずり回り、溢れ出る先走り汁を貪欲に啜る
+CASE 1
+	PRINTFORML 『んふっ♥　ふんんっ♥　んぼっ♥　おごぉっ♥』
+	PRINTFORML 映姫は自ら喜んで肉棒を喉奥まで咥えこみ、ひょっとこのように唇を窄ませて竿に吸い付く
+CASE 2
+	PRINTFORML 『ちゅ♥　ちゅっ♥　ちゅばっ♥　ちゅばっ♥　ぢゅるるるぅ♥』
+	PRINTFORML 映姫はビンビンにそそり立つ肉棒に対して横から何度も熱烈に口付け、時には舌をねっとりと這わせる
+ENDSELECT
+PRINTW 
+PRINTFORML 法廷で厳かに判決を下す楽園の裁判長の唇は、%CALLNAME:MASTER%のザーメンを搾り取る性器と化している
+PRINTFORML 情熱的な口淫に%CALLNAME:MASTER%の肉棒は膨張し、睾丸がせり上がる
+PRINTL 
+PRINTFORML ちゅぱっ♥　ちゅぱっ♥　ぢゅぷっ♥　んっ♥　んぐっ♥　ぢゅるるるぅっ♥　ッ♥　ッ♥♥♥♥
+PRINTFORML ペニスの変化を察知した映姫によるバキュームフェラがとどめとなり、%CALLNAME:MASTER%はガクガクと震えながら口腔内に精を放った…
+PRINTW 
+PRINTFORML …………
+PRINTFORML 『ふぅ…ご馳走様でした♥』
+PRINTFORML 『さて、私は\@ INRANGE(TIME, 720, 749) ? 休憩に # 仕事に \@戻りますね』
+PRINTFORML 映姫は口許をハンカチで拭うと、先ほどの痴態が嘘であるかのようにわずかな時間で衣服の乱れを直し、表情を凛としたものに切り替えた
+PRINTW 
+PRINTFORML 『まったく…仕事中にあんなものを見せつけられる私の気にもなってください…』
+PRINTFORML 『仕事が終わったら、もちろん小町だけでなく私のことも可愛がってくれるわよね』
+PRINTFORML 『それが、あなたにできる善行です…♥』
+PRINTW 
+TCVAR:350 = 1

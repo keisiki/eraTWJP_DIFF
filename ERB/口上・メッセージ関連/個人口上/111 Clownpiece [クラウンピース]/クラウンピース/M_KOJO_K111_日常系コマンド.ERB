@@ -554,11 +554,11 @@ IF LOCAL
 	ELSEIF !RAND:256
 		PRINTFORMW 「へっくちっ！」
 	;▼状況会話集
-	;1-1,大雨,台風
-	ELSEIF !GETBIT(TCVAR:111:359, 1) && (GROUPMATCH(天候, 5) || FLAG:異常気象 == 9)
+	;1-1,大雨,猛烈な雨,台風
+	ELSEIF !GETBIT(TCVAR:111:359, 1) && (GROUPMATCH(天候, 5, 14) || FLAG:異常気象 == 9)
 		CALL M_KOJO_K111_TALKSET("状況会話", 1, 1)
 	;1-2,吹雪,猛吹雪
-	ELSEIF !GETBIT(TCVAR:111:359, 1) && (GROUPMATCH(天候, 10) || FLAG:異常気象 == 10)
+	ELSEIF !GETBIT(TCVAR:111:359, 1) && (GROUPMATCH(天候, 9) || FLAG:異常気象 == 10)
 		CALL M_KOJO_K111_TALKSET("状況会話", 1, 2)
 	;2,敏感,桃色の風
 	ELSEIF !GETBIT(TCVAR:111:359, 2) && GROUPMATCH(FLAG:異常気象, 1, 2, 3, 4, 5, 8)
@@ -632,8 +632,8 @@ IF LOCAL
 	;25,恋人になったばかりの話
 	ELSEIF !GETBIT(TCVAR:111:359, 25) && FIRSTTIME("恋人", 1) && TALENT:[[クラウンピース]]:恋人
 		CALL M_KOJO_K111_TALKSET("状況会話", 25)
-	;26,眠いときの会話（確率）
-	ELSEIF !GETBIT(TCVAR:111:359, 26) && TIME >= 1200 && !RAND:10
+	;26,眠いときの会話
+	ELSEIF !GETBIT(TCVAR:111:359, 26) && TIME >= 1200
 		CALL M_KOJO_K111_TALKSET("状況会話", 26)
 	;27,えっちした後（満足した）
 	ELSEIF !GETBIT(TCVAR:111:359, 27) && TCVAR:[[クラウンピース]]:355 && TALENT:[[クラウンピース]]:機嫌 > 0
@@ -3489,7 +3489,7 @@ ELSEIF ARGS == "恋慕"
 	CASE 2
 		PRINTFORMDL クラウンピースは%CALLNAME:MASTER%にゆっくりと顔を近づけて、口づけを迫った…
 		PRINTW 
-		PRINTFORML 「んー…❤」
+		PRINTFORMW 「んー…❤」
 		PRINTFORMW 「……キスはイチゴの味がするって聞いてたんだけどさ、そんなことなくない？」
 	CASE 3
 		PRINTFORMDL クラウンピースがねだるように口をすぼめて%CALLNAME:MASTER%を見つめると、%CALLNAME:MASTER%は優しく口づけで応えた…
@@ -4875,8 +4875,7 @@ IF LOCAL
 			PRINTFORML 「え、いや！ ちがうよ！」
 			PRINTFORMW 「%CALLNAME:MASTER%にどんなイタズラしようかなんて考えてないから！」
 		ELSE
-			PRINTFORML 「う～ん、ちょっとねー」
-			SELECTCASE RAND:8
+			SELECTCASE DAY % 8
 			CASE 1
 				PRINTFORMW 「スパゲッティを食べる時、右巻きと左巻きどっちがいいのかな～って」
 			CASE 2
@@ -6476,11 +6475,13 @@ IF LOCAL
 	PRINTFORMD %CALLNAME:MASTER%は%CALLNAME:TARGET%と
 	SELECTCASE CFLAG:[[クラウンピース]]:現在位置
 	CASE 商家町
-		SELECTCASE RAND:3
+		SELECTCASE RAND:4
 		CASE 1
 			PRINTFORMD 食事処で
 		CASE 2
 			PRINTFORMD 蕎麦屋で
+		CASE 3
+			PRINTFORMD 鯢呑亭で
 		CASEELSE
 			PRINTFORMD 料理店で
 		ENDSELECT
@@ -7078,7 +7079,7 @@ IF LOCAL
 			PRINTFORMW 「んむ…………」
 		ENDIF
 	ELSE
-		IF  TALENT:[[クラウンピース]]:恋人
+		IF TALENT:[[クラウンピース]]:恋人
 			CALL M_KOJO_K111_KISSSET("恋人")
 		ELSEIF TALENT:[[クラウンピース]]:恋慕
 			CALL M_KOJO_K111_KISSSET("恋慕")

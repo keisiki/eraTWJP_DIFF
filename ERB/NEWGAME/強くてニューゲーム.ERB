@@ -300,6 +300,59 @@ VARSET 前回のパンツ
 #DIM DYNAMIC 口上カウント
 #DIM DYNAMIC 口上数
 #DIM DYNAMIC 口上実装数
+#DIMS DYNAMIC kojoNamesList, 4
+#DIM DYNAMIC kojoIdList, 4
+#DIM DYNAMIC vernier
+;同キャラ口上複数確認 and record the name of kojo
+FOR 口上カウント,0,5
+	RESULT = 0
+	IF 口上カウント
+		TRYCALLFORM M_KOJO_K{C_ID}_{口上カウント}
+	ELSE
+		TRYCALLFORM M_KOJO_K{C_ID}
+	ENDIF
+	IF RESULT
+		SIF RESULTS:1 == ""
+			RESULTS:1 = 初期
+		kojoNamesList:vernier = %CALLNAME:C_ID%%RESULTS:1%口上
+		kojoIdList:vernier = 口上カウント
+		vernier ++
+		IF !GETBIT(CFLAG:C_ID:口上実装状況,口上カウント)
+			口上数 += 1
+			口上実装数 += 1
+			SETBIT CFLAG:C_ID:口上実装状況,口上カウント
+		ELSEIF GETBIT(CFLAG:C_ID:口上実装状況,口上カウント)
+			口上実装数 += 1
+		ENDIF
+	ENDIF
+NEXT
+IF !口上数
+	SIF 口上実装数
+		RETURN 1
+RETURN 0
+ENDIF
+IF 口上実装数 > 1
+	PRINTFORML %CALLNAME:C_ID%には複数の口上が存在します
+	PRINTFORML 変更しますか
+	CALL ASK_YN
+	;口上選択
+	IF !RESULT
+		LOCALS:0 = どの口上を使いますか
+		CALL CHOICE("どの口上を使いますか", kojoNamesList:0, kojoNamesList:1, kojoNamesList:2, kojoNamesList:3)
+		CFLAG:C_ID:口上セレクタ = kojoIdList:RESULT
+		RETURN 2
+	ELSE
+		PRINTFORML 変更しませんでした
+		RETURN 1
+	ENDIF
+ELSE
+	RETURN 2
+ENDIF
+[SKIPSTART]
+#DIM C_ID
+#DIM DYNAMIC 口上カウント
+#DIM DYNAMIC 口上数
+#DIM DYNAMIC 口上実装数
 VARSET LOCALS
 ;同キャラ口上複数確認
 FOR 口上カウント,0,5
@@ -374,7 +427,7 @@ ENDIF
 SIF 口上実装数
 	RETURN 1
 RETURN 0
-
+[SKIPEND]
 ;-----------------------------------------------------------
 ;ユーザー定義の広域変数クリア
 ;-----------------------------------------------------------

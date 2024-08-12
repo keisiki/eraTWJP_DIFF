@@ -1,68 +1,977 @@
-;��������������������������������������������������
-;�����n�R�}���h
-;��������������������������������������������������
+﻿;※※※※※※※※※※※※※※※※※※※※※※※※※
+;性交系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
 ;==================================================
-;���o���i�}�����Ɏː�����Ƃ�����,����������ѐ����n�R�}���h�����s�����ꍇ,�L�X�͕ʓr�j
+;中出し（挿入中に射精するとき愛撫,胸愛撫および性交系コマンドを実行した場合,キスは別途）
 ;==================================================
 @M_KOJO_K70_NAKADASHI
-;�ꉞ�\���h�~
-SIF !CFLAG:70:1006
+;一応暴発防止
+SIF !M_KOJO_K70_UFUFU()
 	RETURN 
-SIF !NOWEX:MASTER:�ː�
+SIF !NOWEX:MASTER:射精
 	RETURN
-SIF FLAG:���Ԓ�~
+SIF FLAG:時間停止
 	RETURN
-;����ʁi�����ʁj,�Ζʍ���
-IF TEQUIP:70:�̈� == 1 || TEQUIP:70:�̈� == 4
-	;�J�E���^�[�̂������カ�z�[���h���Ăт܂�
-	CALL M_KOJO_MESSAGE_COUNTER_K70_86_1
-	;�J�E���^�[�����WAIT���Ȃ��̂�WAIT���܂�
-	WAIT
-;��w�ʁi�����ʁj,;�w�ʍ���
-ELSEIF TEQUIP:70:�̈� == 2 || TEQUIP:70:�̈� == 5
+IF TEQUIP:MASTER:コンドーム || TCVAR:[[小鈴]]:ピル 
+	;だいしゅきホールドを呼ぶ
+	CALL M_KOJO_K70_DAISHUKI_HOLD("コンドーム")
+;後背位（立ち位）,背面座位
+ELSEIF TEQUIP:70:体位 == 2 || TEQUIP:70:体位 == 5
+	PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 3)%%M_KOJO_K70_AUTO("喘ぎ：急", "❤")% おっ❤」
+	IF CFLAG:[[小鈴]]:生解禁 == 2 && !TALENT:[[小鈴]]:妊娠
+		CALL M_KOJO_K70_NAKADASHISET("後背位_子作り")
+	ELSE
+		CALL M_KOJO_K70_NAKADASHISET("後背位")
+	ENDIF
+;騎乗位
+ELSEIF TEQUIP:70:体位 == 3
+	;＞素股,素股→騎乗位の分岐って昔YMかJ+で見て滾った
+	IF PREVCOM == 83
+		CALL M_KOJO_K70_NAKADASHISET("騎乗位_素股")
+	ELSE
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 3)%%M_KOJO_K70_AUTO("喘ぎ：急", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		IF CFLAG:[[小鈴]]:生解禁 == 2 && !TALENT:[[小鈴]]:妊娠
+			CALL M_KOJO_K70_NAKADASHISET("騎乗位_子作り")
+		ELSE
+			CALL M_KOJO_K70_NAKADASHISET("騎乗位")
+		ENDIF
+	ENDIF
+;その他の体位,正常位（立ち位）,対面座位,体位リセット時（押し倒され中）
+ELSE
+	;だいしゅきホールドを呼ぶ
+	CALL M_KOJO_K70_DAISHUKI_HOLD("中出し")
+ENDIF
+RETURN 1
+
+;==================================================
+;だいしゅきホールド
+;紆余曲折を経て半分中出し口上化してしまったうえに関数が分かれた
+;めんどくさいだけなので参考にしないほうがいいです
+;==================================================
+@M_KOJO_K70_DAISHUKI_HOLD(ARGS)
+IF TEQUIP:MASTER:コンドーム || TCVAR:MASTER:コンドーム || ARGS == "コンドーム" || TCVAR:[[小鈴]]:ピル 
 	SELECTCASE RAND:3
 	CASE 1
-		PRINTFORML �u�͂�%UNICODE(0x2764)% ������%UNICODE(0x2764)% ����%UNICODE(0x2764)% �����Ƃ�%UNICODE(0x2764)% �����ɂ�%UNICODE(0x2764)%�v
-		PRINTFORMW �u����A�킽���̂����ɂ�%UNICODE(0x2764)% �����΂񂨂��ɂ�%UNICODE(0x2764)% �����ς����[�������Ă����������`�`��%UNICODE(0x2764)%%UNICODE(0x2764)%�v
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% かんじますっ❤ んっ❤ %CALLNAME:MASTER%さんとひとつにっ❤ もっとっ❤」
 	CASE 2
-		PRINTFORML �u���%UNICODE(0x2764)% ���%UNICODE(0x2764)% ����%UNICODE(0x2764)% ����������%UNICODE(0x2764)% %CALLNAME:MASTER%����̂��[����%UNICODE(0x2764)%�v
-		PRINTFORMW �u�킽���̃i�J�ɂ�%UNICODE(0x2764)% �����ς�����������%UNICODE(0x2764)% �͂�܂��Ă��������`�`��%UNICODE(0x2764)%%UNICODE(0x2764)%�v
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんっ❤ あついっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% いっぱいっ❤ だしてっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
 	CASEELSE
-		PRINTFORML �u����%UNICODE(0x2764)% ����%UNICODE(0x2764)% �����Ƃ�%UNICODE(0x2764)% ���Ă�%UNICODE(0x2764)% ���A�������ɂƂǂ����炢%UNICODE(0x2764)%�v
-		PRINTFORMW �u���������̂��Ƃ���������%UNICODE(0x2764)% �킽���ɂ�������񂭂������`�`��%UNICODE(0x2764)%%UNICODE(0x2764)%�v
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんっ❤ すきですっ❤ しゅきっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
 	ENDSELECT
-;�R���
-ELSEIF TEQUIP:70:�̈� == 3
-	;���f��,�f�ҁ��R��ʂ̕�����Đ�YM��J+�Ō��ğ�����
-	IF PREVCOM == 83
-		PRINTFORMW �u���͂��� ���߂�Ȃ����A�͂������Ⴂ�܂�����%UNICODE(0x2764)%%UNICODE(0x2764)%�v
-		SELECTCASE RAND:3
-		CASE 1
-			PRINTFORML �u���������ł���˂�%UNICODE(0x2764)% �͂���%UNICODE(0x2764)% ���̂܂܃i�J�ɂ�%UNICODE(0x2764)% �����%UNICODE(0x2764)%�v
-			PRINTFORMW �u�i�J�ɂ����Ă�%UNICODE(0x2764)% �킽���̃i�J�ł���Ԃ����Ă���������%UNICODE(0x2764)%%UNICODE(0x2764)% �����ς������Ă���������%UNICODE(0x2764)%�v
-		CASE 2
-			PRINTFORML �u%CALLNAME:MASTER%�����%UNICODE(0x2764)% �C�������ł���˂�%UNICODE(0x2764)% ���߂�Ȃ�����%UNICODE(0x2764)%�v
-			PRINTFORMW �u�킽���ق�������%UNICODE(0x2764)% %CALLNAME:MASTER%����̂��[����%UNICODE(0x2764)% �i�J�ɂ����ς��ق����ł���%UNICODE(0x2764)% ���Ƃɂ����Ȃ�ăC���ł�����%UNICODE(0x2764)%�v
-		CASEELSE
-			PRINTFORML �u�����Ă�%UNICODE(0x2764)% %CALLNAME:MASTER%���񂪂�%UNICODE(0x2764)% �������%UNICODE(0x2764)% �C�������������%UNICODE(0x2764)%�v
-			PRINTFORMW �u���%UNICODE(0x2764)% �ق�����ł���%UNICODE(0x2764)% %CALLNAME:MASTER%����̂��[����%UNICODE(0x2764)% ����������%UNICODE(0x2764)% �����������[�������ς�����������%UNICODE(0x2764)%�v
-		ENDSELECT
+ELSE
+	;カウンター中のコマンド選択時は既に表示されているので省略
+	SIF !GROUPMATCH(ARGS, "キスする", "胸愛撫", "クリ愛撫")
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 3)%%M_KOJO_K70_AUTO("喘ぎ：急", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	;カウンター中は体位不明なので汎用のみ,正常位（立ち位）と対面座位は共通
+	IF CFLAG:[[小鈴]]:うふふ == 2
+		IF CFLAG:[[小鈴]]:生解禁 == 2 && !TALENT:[[小鈴]]:妊娠
+			CALL M_KOJO_K70_NAKADASHISET("汎用_子作り", ARGS == "カウンター")
+		ELSE
+			CALL M_KOJO_K70_NAKADASHISET("汎用", ARGS == "カウンター")
+		ENDIF
 	ELSE
-		SELECTCASE RAND:3
-		CASE 1
-			PRINTFORML �u�͂���%UNICODE(0x2764)% �͂���%UNICODE(0x2764)% ���%UNICODE(0x2764)% %CALLNAME:MASTER%�����%UNICODE(0x2764)% �C�������ł�������%UNICODE(0x2764)%�v
-			PRINTFORMW �u�����A�����ł����%UNICODE(0x2764)% ���̂܂܂�%UNICODE(0x2764)% �i�J�ɂ����Ă�%UNICODE(0x2764)% �킽���̃i�J�ɂ���Ԃ����Ă���������%UNICODE(0x2764)%%UNICODE(0x2764)%�v
-		CASE 2
-			PRINTFORML �u�͂���%UNICODE(0x2764)% �͂���%UNICODE(0x2764)% ����%UNICODE(0x2764)% �C�������Ȃ�ł��˂�%UNICODE(0x2764)% �͂���%UNICODE(0x2764)%�v
-			PRINTFORMW �u���̂܂܂�%UNICODE(0x2764)% �킽�������ڂ��Ă����܂���%UNICODE(0x2764)% �����炢���ς���%UNICODE(0x2764)% �����ς������Ă���������%UNICODE(0x2764)%�v
-		CASEELSE
-			PRINTFORML �u�͂���%UNICODE(0x2764)% �͂���%UNICODE(0x2764)% %CALLNAME:MASTER%����C�������ł�������%UNICODE(0x2764)% ���Ⴀ���̂܂܂�%UNICODE(0x2764)%�v
-			PRINTFORMW �u�킽�������ڂ肾���Ă����܂���%UNICODE(0x2764)% �����ς��������悭�Ȃ��Ă�%UNICODE(0x2764)% �킽���ł������悭�Ȃ��Ă���������%UNICODE(0x2764)%�v
-		ENDSELECT
+		IF CFLAG:[[小鈴]]:生解禁 == 2 && !TALENT:[[小鈴]]:妊娠
+			CALL M_KOJO_K70_NAKADASHISET("正常位_子作り")
+		ELSE
+			CALL M_KOJO_K70_NAKADASHISET("正常位")
+		ENDIF
 	ENDIF
 ENDIF
+RETURN 1
+
 ;==================================================
-;60,�����
+;中出し口上セット
+;ARGS=体位
+;ARG=カウンター（WAITしない）
+;元々は体位パターン＋汎用パターンの複合型だったのだが、子作りパターンも増えて二重パターン処理をしていたが
+;結局体位パターンだけでよくねってことになり汎用パターンは押し倒され中のみになった
+;==================================================
+@M_KOJO_K70_NAKADASHISET(ARGS, ARG)
+#DIM 汎用中出し
+#DIM 正常位中出し
+#DIM 後背位中出し
+#DIM 騎乗位中出し
+汎用中出し= 17
+正常位中出し= 10
+後背位中出し= 11
+騎乗位中出し= 10
+SELECTCASE ARGS
+CASE "正常位_子作り"
+	SELECTCASE RAND:(4 + 正常位中出し)
+	CASE 1
+		PRINTFORML 「%CALLNAME:MASTER%さんっ❤ いいですよっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「あかちゃんつくりましょっ❤ %CALLNAME:MASTER%さんとわたしのっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 2
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんっ❤ なかでだしてっ❤」
+		PRINTFORMW 「わたしにっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% あかちゃんくださいっ❤」
+	CASE 3
+		PRINTFORML 「そのままっ❤ なかがいいですっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「%CALLNAME:MASTER%さんの…っ❤ あかちゃんくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 4
+		PRINTFORML 「はいっ❤ はらみますっ❤ %CALLNAME:MASTER%さんのあかちゃんうみますっ❤」
+		PRINTFORMW 「だからわたしにいっぱいくださいっ❤ じゅせいさせてください～～っ❤❤」
+	CASEELSE
+		ARGS = 正常位
+		RESTART
+	ENDSELECT
+CASE "正常位"
+	SELECTCASE RAND:正常位中出し
+	CASE 1
+		PRINTFORML 「あっ❤ んっ❤ %CALLNAME:MASTER%さんっ❤ ぎゅってしてくださいっ❤ ぎゅって❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「あぁっ❤ うれしいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% そのままきてっ❤ %CALLNAME:MASTER%さんっ❤」
+	CASE 2
+		PRINTFORML 「%CALLNAME:MASTER%さんっ❤ はなしちゃいやっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「このままっ❤ きてくださいっ❤ わたしにぜんぶくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 3
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% もっとっ❤ ぎゅってっ❤」
+		PRINTFORMW 「いっしょにっ❤ イきましょっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 4
+		PRINTFORML 「%CALLNAME:MASTER%さんっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% だっこがいいですっ❤」
+		PRINTFORMW 「だっこしてっ❤ んっ❤ あぁっ❤ そのままきてくださいっ❤ わたしにくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 5
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% かんじますっ❤ んっ❤」
+		PRINTFORMW 「%CALLNAME:MASTER%さんとっ❤ ひとつになってるっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 6
+		PRINTFORML 「うれしいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんとひとつにっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんをかんじますっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 7
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% このままっ❤ %CALLNAME:MASTER%さんとっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「もっとっ❤ ずっとっ❤ つながっていたいですっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 8
+		PRINTFORML 「%CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%っ❤ すごくあついっ❤」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%くっ❤ くるっ❤ %CALLNAME:MASTER%さんのしあわせみるくくりゅ～～っ❤❤」
+	CASE 9
+		PRINTFORML 「はいっ❤ わたしは%CALLNAME:MASTER%さんのおちんぽケースですぅっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%」
+		PRINTFORMW 「だからだしてくださいっ❤ わたしにいっぱいせーしくださいぃ～～っ❤❤」
+	CASEELSE
+		PRINTFORML 「あぁっ❤ %CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%きもちいぃっ❤」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% このままじゅぽじゅぽしてっ❤ イってくださいっ❤」
+	ENDSELECT
+CASE "後背位_子作り"
+	SELECTCASE RAND:(5 + 後背位中出し)
+	CASE 1
+		PRINTFORML 「はっ❤ はっ❤ あっ❤ くださいっ❤ %CALLNAME:MASTER%さんのせーしっ❤」
+		PRINTFORMW 「わたしのナカにっ❤ いっぱいくださいっ❤ はらませてください～～っ❤❤」
+	CASE 2
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% おっ❤ もっとっ❤ ついてっ❤ しきうにとどくくらいっ❤」
+		PRINTFORMW 「あかちゃんのもとくださいっ❤ わたしにあかちゃんください～～っ❤❤」
+	CASE 3
+		PRINTFORML 「はっ❤ はっ❤ %CALLNAME:MASTER%さんっ❤ あついっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%せーしきちゃうっ❤ あかちゃんできちゃう～～っ❤❤」
+	CASE 4
+		PRINTFORML 「はっ❤ はらむぅっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「%CALLNAME:MASTER%さんのあかちゃんっ❤ はらんじゃうぅ～～っ❤❤」
+	CASE 5
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんごめんなさいぃっ❤ ゆるひてぇっ❤」
+		PRINTFORMW 「じゅせいしちゃうっ❤ あかちゃんできちゃう～～っ❤」
+	CASEELSE
+		ARGS = 後背位
+		RESTART
+	ENDSELECT
+CASE "後背位"
+	SELECTCASE RAND:後背位中出し
+	CASE 1
+		PRINTFORML 「いいですっ❤ はっ❤ はっ❤ おくっ❤ おっ❤」
+		PRINTFORMW 「わたしのおくにっ❤ いちばんおくにっ❤ せーしぶちまけてください～～っ❤❤」
+	CASE 2
+		PRINTFORML 「はっ❤ はっ❤ くっ❤ くりゅっ❤ あついのくりゅっ❤」
+		PRINTFORMW 「%CALLNAME:MASTER%さんのっ❤ あっついおちんぽみるくいっぱいくりゅ～～っ❤❤」
+	CASE 3
+		PRINTFORML 「あうっ❤ おっ❤ おなかがっ❤ あぅっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「このままっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)% きてぇっ❤」
+	CASE 4
+		PRINTFORML 「%CALLNAME:MASTER%さんっ❤ もっとついてっ❤ こわれるくらいっ❤」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%わたしのおまんこっ❤ ぶちこわすくらいついてください～～っ❤❤」
+	CASE 5
+		PRINTFORML 「お"っ❤ おぐっ❤ ふかぃっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% イぐぅっ❤ おまんここわれちゃうぅ～～っ❤」
+	CASE 6
+		PRINTFORML 「%CALLNAME:MASTER%さぁんっ❤ ついてっ❤ もっとぉっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%わたしのおくにっ❤ ぜんぶながしこんでください～～っ❤❤」
+	CASE 7
+		PRINTFORML 「ちょっ❤ ちょっとっ❤ はげしっ❤ あぅっ❤」
+		PRINTFORMW 「んんっ❤ いいですよっ❤ すきなだけっ❤ ついてくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 8
+		PRINTFORML 「いいですっ❤ %CALLNAME:MASTER%さんのっ❤ おすきになようにっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% すきなだけついてっ❤ イってくださいっ❤」
+	CASE 9
+		PRINTFORML 「%CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%っ❤ すごくあついっ❤」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%くっ❤ くるっ❤ %CALLNAME:MASTER%さんのしあわせみるくくりゅ～～っ❤❤」
+	CASE 10
+		PRINTFORML 「はいっ❤ わたしは%CALLNAME:MASTER%さんのおちんぽケースですぅっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%」
+		PRINTFORMW 「だからだしてくださいっ❤ わたしにいっぱいせーしくださいぃ～～っ❤❤」
+	CASEELSE
+		PRINTFORML 「あぁっ❤ %CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%きもちいぃっ❤」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% このままじゅぽじゅぽしてっ❤ イってくださいっ❤」
+	ENDSELECT
+CASE "騎乗位_素股"
+	PRINTFORMW 「あはぁ♪ ごめんなさい、はいっちゃいましたぁ❤❤」
+	SELECTCASE RAND:4
+	CASE 1
+		PRINTFORML 「もういいですよねっ❤ はぁっ❤ このままナカにっ❤ あんっ❤」
+		PRINTFORMW 「ナカにだしてっ❤ わたしのナカでぜんぶだしてくださいっ❤❤ いっぱいだしてくださいっ❤」
+	CASE 2
+		PRINTFORML 「%CALLNAME:MASTER%さんっ❤ イきそうですよねっ❤ ごめんなさいっ❤」
+		PRINTFORMW 「わたしほしくって❤ %CALLNAME:MASTER%さんのせーしっ❤ ナカにいっぱいほしいですっ❤ そとにだすなんてイヤですぅっ❤」
+	CASE 3
+		PRINTFORML 「だってぇ❤ %CALLNAME:MASTER%さんがっ❤ あぁんっ❤ イきそうだからっ❤」
+		PRINTFORMW 「んっ❤ ほしいんですっ❤ %CALLNAME:MASTER%さんのせーしっ❤ くださいっ❤ あったかせーしいっぱいくださいっ❤」
+	CASEELSE
+		PRINTFORML 「わたしのおまんこがっ❤ %CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%ほしいっていうからっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「ごめんなさいぃっ❤ ガマンできませんでしたぁっ❤ あぁっ❤ あぁ～～っ❤」
+	ENDSELECT
+CASE "騎乗位_子作り"
+	SELECTCASE RAND:(4 + 騎乗位中出し)
+	CASE 1
+		PRINTFORML 「%CALLNAME:MASTER%さんっ❤ きてくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「いっしょにあかちゃんつくりましょっ❤ %CALLNAME:MASTER%さんとわたしのっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 2
+		PRINTFORML 「いいですっ❤ このままっ❤ なかにだしてくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「わたしっ❤ %CALLNAME:MASTER%さんのあかちゃんうみますっ❤ だからっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 3
+		PRINTFORML 「くるっ❤ %M_KOJO_K70_MASTER_TINKO()%みるくきちゃうっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「はいっ❤ じゅせいしましゅっ❤ %CALLNAME:MASTER%さんのあかちゃんうみます～～っ❤❤」
+	CASE 4
+		PRINTFORML 「くださいっ❤ %CALLNAME:MASTER%さんのぜんぶっ❤ わたしにくださいっ❤」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんのせーしでっ❤ わたしをはらませてください～～っ❤❤」
+	CASEELSE
+		ARGS = 騎乗位
+		RESTART
+	ENDSELECT
+CASE "騎乗位"
+	SELECTCASE RAND:騎乗位中出し
+	CASE 1
+		PRINTFORML 「はぁっ❤ はぁっ❤ んっ❤ %CALLNAME:MASTER%さんっ❤ イきそうですかぁっ❤」
+		PRINTFORMW 「いっ、いいですよっ❤ このままっ❤ ナカにだしてっ❤ わたしのナカにぜんぶだしてくださいっ❤❤」
+	CASE 2
+		PRINTFORML 「はぁっ❤ はぁっ❤ いっ❤ イきそうなんですねっ❤ はいっ❤」
+		PRINTFORMW 「このままっ❤ わたしがしぼってあげますっ❤ だからいっぱいっ❤ いっぱいだしてくださいっ❤」
+	CASE 3
+		PRINTFORML 「はぁっ❤ はぁっ❤ %CALLNAME:MASTER%さんイきそうですかぁっ❤ じゃあこのままっ❤」
+		PRINTFORMW 「わたしがしぼりだしてあげますっ❤ いっぱいきもちよくなってっ❤ わたしできもちよくなってくださいっ❤」
+	CASE 4
+		PRINTFORML 「はぁっ❤ はぁっ❤ %CALLNAME:MASTER%さんっ❤ だめですよっ❤ %CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%はっ❤」
+		PRINTFORMW 「わたしにせーえきどぴゅどぴゅするんですっ❤ わたしのおまんこにちょくせつっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 5
+		PRINTFORML 「はぁっ❤ あぁっ❤ %CALLNAME:MASTER%さんのイくんですねっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「ぜんぶくださいっ❤ わたしにっ❤ %CALLNAME:MASTER%さんのせーしはっ❤ ぜんぶわたしのものですっ❤」
+	CASE 6
+		PRINTFORML 「はぁっ❤ んぁっ❤ いいっ❤ %M_KOJO_K70_MASTER_TINKO()%ぉっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「くるっ❤ %M_KOJO_K70_MASTER_TINKO()%せーえきくりゅっ❤ んぁっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 7
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% かんじますっ❤ んっ❤」
+		PRINTFORMW 「%CALLNAME:MASTER%さんとっ❤ ひとつになってるっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 8
+		PRINTFORML 「うれしいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんとひとつにっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんをかんじますっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASE 9
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% このままっ❤ %CALLNAME:MASTER%さんとっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		PRINTFORMW 「もっとっ❤ ずっとっ❤ つながっていたいですっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+	CASEELSE
+		PRINTFORML 「%CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%っ❤ すごくあついっ❤」
+		PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%くっ❤ くるっ❤ %CALLNAME:MASTER%さんのしあわせみるくくりゅ～～っ❤❤」
+	ENDSELECT
+;汎用中出し口上……というか押し倒され中の口上およびカウンター口上,カウンター口上はコマンド前に出るやつ
+;もともと共通口上のつもりだったけどボツにした
+CASE "汎用_子作り"
+	SELECTCASE RAND:(3 + 汎用中出し)
+	CASE 1
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% くださいっ❤ %CALLNAME:MASTER%さんのぜんぶっ❤ せーしぜんぶくださいっ❤ あかちゃんくださいぃーっ❤❤」
+	CASE 2
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% はひっ❤ はらみますっ❤ %CALLNAME:MASTER%さんのあかちゃんはらみますぅーっ❤」
+	CASE 3
+		PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)% できちゃうっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% あかちゃんできちゃうーっ❤」
+	CASEELSE
+		ARGS = 汎用
+		RESTART
+	ENDSELECT
+	;カウンター口上はWAITしない
+	SIF !ARG
+		WAIT
+CASEELSE
+	PRINTDATAL
+		DATAFORM 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんっ❤ あついっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% いっぱいっ❤ だしてっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		DATAFORM 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 2)% %CALLNAME:MASTER%さんのせーしっ❤ おくにいっぱいくりゅ～っ❤」
+		DATAFORM 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% こっ❤ このままっ❤ ナカにっ❤ いっぱいナカにだしてくださぃ～っ❤❤」
+		DATAFORM 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんっ❤ すきですっ❤ しゅきっ❤ だしてっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		DATAFORM 「%CALLNAME:MASTER%さんっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% おくにっ❤ くださいっ❤ せーしくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		DATAFORM 「きもちいいですっ❤ すごくっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんもっ❤ イってっ❤ だしてっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		DATAFORM 「どうぞっ❤ %CALLNAME:MASTER%さんっ❤ わたしにっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% くださいっ❤ おちんぽみるくいっぱいくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		DATAFORM 「%CALLNAME:MASTER%さんのっ❤ せーしっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% いっぱいっ❤ くださいっ❤ なかにくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		DATAFORM 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% くっ❤ くるっ❤ %CALLNAME:MASTER%さんのっ❤ あったかせーしくるぅーっ❤」
+		DATAFORM 「はいっ❤ くださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんのせーしっ❤ いっぱいくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		DATAFORM 「%CALLNAME:MASTER%さんっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% すきですっ❤ だいすきっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% きてくださいっ❤」
+		DATAFORM 「すきですっ❤ %CALLNAME:MASTER%さんっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)% しゅきぃっ❤」
+		DATAFORM 「くださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% みるくっ❤ %CALLNAME:MASTER%さんのおちんぽみるくっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% わたしにぜんぶくださいっ❤」
+		DATAFORM 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% いいですよっ❤ このままっ❤ ナカにっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% いっぱいだしてくださいっ❤」
+		DATAFORM 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% ナカだしっ❤ いいですよっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% すきなだけっ❤ しゃせーしてくださいっ❤」
+		DATAFORM 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%くっ❤ くるっ❤ %CALLNAME:MASTER%さんのしあわせみるくくりゅ～～っ❤❤」
+		DATAFORM 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% あついっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんのっ❤ せーしっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% せーしくださいっ❤」
+		DATAFORM 「%CALLNAME:MASTER%さぁんっ❤ きてぇっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% あっ❤ あぁ～～っ❤」
+		DATAFORM 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)% くださいぃっ❤ いっぱいどぴゅどぴゅしてくださいぃ～～っ❤」
+		DATAFORM 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)% くださいぃっ❤ %CALLNAME:MASTER%さんのせーしっ❤ わたしにください～～っ❤」
+	ENDDATA
+	;カウンター口上はWAITしない
+	SIF !ARG
+		WAIT
+ENDSELECT
+
+;--------------------------------------------------
+;共通のＶ性交口上
+;ARGS=体位
+;色々と使いまわしたくなったのでセット関数をデータベース化して出力する形式に
+;--------------------------------------------------
+@M_KOJO_K70_VSEX(ARGS)
+SIF FLAG:時間停止
+	RETURN 1
+SIF !M_KOJO_K70_UFUFU()
+	RETURN 1
+IF NOWEX:MASTER:射精
+	CALL M_KOJO_K70_NAKADASHI
+ELSE
+	SELECTCASE ARGS
+	CASE "正常位"
+		IF TCVAR:70:破瓜 == 1
+			PRINTFORML 「あぁ…ついにこの時が来たんですね……！ %CALLNAME:MASTER%さんに捧げられて……わたし、しあわせです…❤」
+			PRINTFORMW 「はい……ど、どうぞ…❤ わたしのはじめて……うけとってください❤❤」
+		;挿入継続
+		ELSEIF TCVAR:[[小鈴]]:100 == PLAYER
+			;射精した直後
+			IF TCVAR:[[小鈴]]:102
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：急", "…❤")% ちょっと…っ！ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+				CALL M_KOJO_K70_VSEXSET("経験", "続行", "正常位")
+			ELSEIF M_KOJO_K70_FUNARE()
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！ ")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "…！")% %M_KOJO_K70_AUTO("喘ぎ：急", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+				CALL M_KOJO_K70_VSEXSET("不慣れ", "継続", "正常位")
+			ELSE
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 2)%%M_KOJO_K70_AUTO("喘ぎ：急", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+				CALL M_KOJO_K70_VSEXSET("経験", "継続", "正常位")
+			ENDIF
+		ELSEIF M_KOJO_K70_FUNARE()
+			PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% %M_KOJO_K70_AUTO("喘ぎ：冷静", "…❤")%」
+			CALL M_KOJO_K70_VSEXSET("不慣れ", "挿入", "正常位")
+		ELSE
+			PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：小", "…❤")% %M_KOJO_K70_AUTO("喘ぎ：冷静", "…❤")%」
+			CALL M_KOJO_K70_VSEXSET("経験", "挿入", "正常位")
+		ENDIF
+	CASE "後背位"
+		IF TCVAR:70:破瓜 == 1
+			PRINTFORML 「こ、この格好でするんですかぁ……ちょっと怖いです……」
+			PRINTFORMW 「でも%CALLNAME:MASTER%さんがしたいなら……ど、どうぞ…❤ わたしのはじめて…うけとってください…❤❤」
+		;挿入継続
+		ELSEIF TCVAR:[[小鈴]]:100 == PLAYER
+			;射精した直後
+			IF TCVAR:[[小鈴]]:102
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% ちょっと…っ！ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：急", "❤")%」
+				CALL M_KOJO_K70_VSEXSET("経験", "続行", "後背位")
+			ELSEIF M_KOJO_K70_FUNARE()
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！ ", 2)%%M_KOJO_K70_AUTO("喘ぎ：急", "❤")% おっ❤」
+				CALL M_KOJO_K70_VSEXSET("不慣れ", "継続", "後背位")
+			ELSE
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 2)%%M_KOJO_K70_AUTO("喘ぎ：急", "❤")% おっ❤」
+				CALL M_KOJO_K70_VSEXSET("経験", "継続", "後背位")
+			ENDIF
+		ELSEIF M_KOJO_K70_FUNARE()
+			PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% はぁ…❤」
+			CALL M_KOJO_K70_VSEXSET("不慣れ", "挿入", "後背位")
+		ELSE
+			PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…❤")% はぁ…❤」
+			CALL M_KOJO_K70_VSEXSET("経験", "挿入", "後背位")
+		ENDIF
+	CASE "対面座位"
+		IF TCVAR:70:破瓜 == 1
+			ARGS = 正常位
+			RESTART
+		;挿入継続
+		ELSEIF TCVAR:[[小鈴]]:100 == PLAYER
+			;射精した直後
+			IF TCVAR:[[小鈴]]:102
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：急", "…❤")% ちょっと…っ！ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+				CALL M_KOJO_K70_VSEXSET("経験", "続行", "対面座位")
+			ELSEIF M_KOJO_K70_FUNARE()
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！ ")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "…！")% %M_KOJO_K70_AUTO("喘ぎ：急", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+				CALL M_KOJO_K70_VSEXSET("不慣れ", "継続", "対面座位")
+			ELSE
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 2)%%M_KOJO_K70_AUTO("喘ぎ：急", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+				CALL M_KOJO_K70_VSEXSET("経験", "継続", "対面座位")
+			ENDIF
+		ELSEIF M_KOJO_K70_FUNARE()
+			SELECTCASE RAND:4
+			CASE 1
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% あぁ…❤ %CALLNAME:MASTER%さんちかい…❤」
+			CASE 2
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% あぁ…❤ %CALLNAME:MASTER%さんとひとつに…❤」
+			CASE 3
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% あぁ…❤ だっこ…❤ すきぃ…❤」
+			CASEELSE
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% あぁ…❤ %CALLNAME:MASTER%さん……%M_KOJO_K70_AUTO("キス：前", "❤")%」
+			ENDSELECT
+			CALL M_KOJO_K70_VSEXSET("不慣れ", "挿入", "対面座位")
+		ELSE
+			SELECTCASE RAND:4
+			CASE 1
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：小", "…❤")% %M_KOJO_K70_AUTO("喘ぎ：冷静", "…❤")% そ、そんなに見つめられると恥ずかしいです…❤」
+			CASE 2
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：小", "…❤")% %M_KOJO_K70_AUTO("喘ぎ：冷静", "…❤")% %CALLNAME:MASTER%さんとひとつになってる…❤」
+			CASE 3
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：小", "…❤")% %M_KOJO_K70_AUTO("喘ぎ：冷静", "…❤")% %CALLNAME:MASTER%さんにだっこしてもらうの…❤ だいすきっ❤」
+			CASEELSE
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：小", "…❤")% %M_KOJO_K70_AUTO("喘ぎ：冷静", "…❤")% %CALLNAME:MASTER%さん……%M_KOJO_K70_AUTO("キス：前", "❤")% %M_KOJO_K70_AUTO("キス：後", "❤")%」
+			ENDSELECT
+			CALL M_KOJO_K70_VSEXSET("経験", "挿入", "対面座位")
+		ENDIF
+	CASE "背面座位"
+		IF TCVAR:70:破瓜 == 1
+			ARGS = 後背位
+			RESTART
+		;挿入継続
+		ELSEIF TCVAR:[[小鈴]]:100 == PLAYER
+			;射精した直後
+			IF TCVAR:[[小鈴]]:102
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% ちょっと…っ！ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：急", "❤")%」
+				CALL M_KOJO_K70_VSEXSET("経験", "続行", "背面座位")
+			ELSEIF M_KOJO_K70_FUNARE()
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！ ", 2)%%M_KOJO_K70_AUTO("喘ぎ：急", "❤")% おっ❤」
+				CALL M_KOJO_K70_VSEXSET("不慣れ", "継続", "背面座位")
+			ELSE
+				CALL M_KOJO_K70_VSEXSET("経験", "継続", "背面座位")
+			ENDIF
+		ELSEIF M_KOJO_K70_FUNARE()
+			SELECTCASE RAND:4
+			CASE 1
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% はぁ…❤ は…はずかしいです…❤」
+			CASE 2
+				PRINTFORML 「そんな…後から……あっ…❤ %M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% はぁ…❤」
+			CASE 3
+				PRINTFORML 「膝の上に乗るんですか…？ %M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% はぁ…❤ 」
+			CASEELSE
+				PRINTFORML 「う、後ろ向きですか……あっ…❤ %M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% はぁ…❤」
+			ENDSELECT
+			CALL M_KOJO_K70_VSEXSET("不慣れ", "挿入", "背面座位")
+		ELSE
+			SELECTCASE RAND:4
+			CASE 1
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…❤")% はぁ…❤ しっかり捕まえてくださいね…❤」
+			CASE 2
+				PRINTFORML 「後からしてくれるんですか……はい…❤ %M_KOJO_K70_AUTO("喘ぎ：被虐", "…❤")% はぁ…❤」
+			CASE 3
+				PRINTFORML 「%CALLNAME:MASTER%さんの膝の上…❤ %M_KOJO_K70_AUTO("喘ぎ：被虐", "…❤")% はぁ…❤ 」
+			CASEELSE
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…❤")% はぁ…❤ 捕まっちゃいましたぁ…❤」
+			ENDSELECT
+			CALL M_KOJO_K70_VSEXSET("経験", "挿入", "背面座位")
+		ENDIF
+	CASE "騎乗位"
+		IF TCVAR:70:破瓜 == 1
+			PRINTFORMW 「は、はい…❤ わたしのはじめてを……%CALLNAME:MASTER%さんに捧げます…❤」
+			PRINTFORMW 「では……い、挿入れますね…❤ どうぞ……うけとってください…❤❤」
+		;＞素股
+		ELSEIF PREVCOM == 83
+			PRINTFORMW 「あはぁ♪ ごめんなさい、はいっちゃいましたぁ❤❤」
+			SELECTCASE RAND:3
+			CASE 1
+				PRINTFORMW 「んっ❤ はっ❤ %CALLNAME:MASTER%さんもいれたかったですよねっ❤ いいんですよっ❤」
+				PRINTFORMW 「わたしがいっぱい❤ きもちよくしてあげますからっ❤」
+			CASE 2
+				PRINTFORMW 「わたしのおまんこがっ❤ %CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%ほしいっていうからっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+				PRINTFORMW 「ごめんなさいぃっ❤ ガマンできませんでしたぁっ❤ あぁっ❤ あぁ～～っ❤」
+			CASEELSE
+				PRINTFORMW 「あっ❤ んっ❤ だって❤ きもちよくって❤」
+				PRINTFORMW 「ごめんなさいっ❤ とまんないですぅ～っ❤ きもちよくってごめんなさぁいっ❤」
+			ENDSELECT
+		;挿入継続
+		ELSEIF TCVAR:[[小鈴]]:100 == PLAYER
+			;※射精した直後なし
+			IF M_KOJO_K70_FUNARE()
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "！ ", 2)%%M_KOJO_K70_AUTO("喘ぎ：急", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+				CALL M_KOJO_K70_VSEXSET("不慣れ", "継続", "騎乗位")
+			ELSE
+				PRINTFORML 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 2)%%M_KOJO_K70_AUTO("喘ぎ：急", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+				CALL M_KOJO_K70_VSEXSET("経験", "継続", "騎乗位")
+			ENDIF
+		;経験パターンとあんま変わらないので廃止
+;		ELSEIF M_KOJO_K70_SADISTIC(70)
+;			SELECTCASE RAND:4
+;			CASE 1
+;				PRINTFORML 「わ、わたしが きもちよくしてあげます……！」
+;				PRINTFORMW 「では……い、いれますね……❤ ん…！ ぁう…！」
+;			CASE 2
+;				PRINTFORMW 「わ、わたしがごほーししてさしあげます……❤」
+;				PRINTFORMW 「んぁっ…！ あつぃ……っ！ ふぁんっ❤」
+;				PRINTFORMW 「あっ❤ あっ❤ あんっ❤ どうですかっ❤ きもちいですよねっ❤ んっ❤」
+;			CASE 3
+;				PRINTFORML 「ふふ…❤ %CALLNAME:MASTER%さん…わたしに身を任せてください……❤」
+;				PRINTFORMW 「いっぱいきもちよくしてあげますね……❤」
+;				PRINTFORMW 「ん…っ！ はぁ…はいってきたぁ…❤ あはぁ……❤」
+;			ENDSELECT
+		ELSEIF M_KOJO_K70_FUNARE()
+			SELECTCASE RAND:4
+			CASE 1
+				PRINTFORML 「わたしがのるんですかぁ…？ わ、わかりました……」
+			CASE 2 
+				PRINTFORML 「はい……ごほーしさせてください…❤」
+			CASE 3
+				PRINTFORML 「は、はい……が、がんばります……」
+			CASEELSE
+				PRINTFORML 「お、おもかったらごめんなさい……」
+			ENDSELECT
+			CALL M_KOJO_K70_VSEXSET("不慣れ", "挿入", "騎乗位")
+		ELSE
+			SELECTCASE RAND:8
+			CASE 1
+				PRINTFORML 「あはぁっ❤ %CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%ぜんぶはいっちゃいましたぁっ❤」
+			CASE 2
+				PRINTFORML 「みていてください……わたしのナカに…❤ %CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%が…❤ %M_KOJO_K70_AUTO("喘ぎ：急", "❤")%」
+			CASE 3
+				PRINTFORML 「では……%M_KOJO_K70_MASTER_TINKO()%いただきますね…❤」
+			CASE 4
+				PRINTFORML 「うふふ❤ わたしがごほーししてさしあげます…❤」
+			CASE 5
+				PRINTFORML 「%CALLNAME:MASTER%さんはそのままでいいですよ…❤ わたしに身を任せてください…❤」
+			CASE 6
+				PRINTFORML 「わたしが%CALLNAME:MASTER%さんをきもちよくしてあげますね…❤」
+			CASE 7
+				PRINTFORML 「わたしがシてあげますから、%CALLNAME:MASTER%さんは力を抜いて……❤」
+			CASEELSE
+				PRINTFORML 「あぁ…❤ %CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%はいってくるぅ…っ❤」
+			ENDSELECT
+			CALL M_KOJO_K70_VSEXSET("経験", "挿入", "騎乗位")
+		ENDIF
+	CASE "挿入Ｇスポット責め"
+		IF M_KOJO_K70_FUNARE()
+			PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：急", "❤")% そこ…っ！ %M_KOJO_K70_AUTO("喘ぎ：挿入", "！ ", 1)% いいっ❤ %M_KOJO_K70_AUTO("喘ぎ：急", "❤")%」
+		ELSE
+			PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：急", "❤")% そこ…っ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)% すごいぃっ❤ %M_KOJO_K70_AUTO("喘ぎ：急", "❤")%」
+		ENDIF
+	CASE "挿入子宮口責め"
+		IF M_KOJO_K70_FUNARE()
+			PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% お゛っ❤ くっ、くるし…っ！ %M_KOJO_K70_AUTO("喘ぎ：被虐", "…！")% %M_KOJO_K70_AUTO("喘ぎ：小", "…！")%」
+		ELSE
+			PRINTFORMW 「%M_KOJO_K70_AUTO("喘ぎ：被虐", "❤")% お゛っ❤ おくっ❤ すごいぃっ❤ %M_KOJO_K70_AUTO("喘ぎ：被虐", "❤")% %M_KOJO_K70_AUTO("喘ぎ：小", "❤")%」
+		ENDIF
+	CASEELSE
+		PRINTFORMDW ※未設定の体位 【%ARGS%】
+	ENDSELECT
+ENDIF
+RETURN 1
+
+;==================================================
+;性交口上セット
+;パターン多すぎて分岐大変だったのでデータベース化して状況に応じたものを出力する形式に
+;練度,不慣れor経験
+;状況,続行or継続or挿入,"続行"は練度関係なし
+;体位,"正常位", "後背位", "対面座位", "背面座位", "騎乗位", すべてに対応したものは1
+;==================================================
+@M_KOJO_K70_VSEXSET(練度, 状況, 体位)
+#DIMS 状況
+#DIMS 体位
+#DIMS 練度
+VARSET LOCALS
+WHILE LOCALS == ""
+	IF 状況 == "続行"
+		;続行は練度関係なし
+		SELECTCASE RAND:7
+		CASE 1
+			SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+				LOCALS = 「まだつづけるんですかっ❤ んぁっ❤ はいっ❤ つづけてくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		CASE 2
+			SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+				LOCALS = 「つづけてするんですかっ❤ %CALLNAME:MASTER%さんっ❤ げんきですねっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		CASE 3
+			SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+				LOCALS = 「このままするんですかっ❤ んぁっ❤ はひっ❤ どうぞっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		CASE 4
+			SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+				LOCALS = 「まってっ…！ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% そんなぁっ❤」
+		CASE 5
+			SIF GROUPMATCH(体位, "後背位", "背面座位")
+				LOCALS = 「ひぃっ❤ ゆるしてぇっ❤ あぁんっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		CASE 6
+			SIF GROUPMATCH(体位, "後背位", "背面座位")
+				LOCALS = 「そんなっ❤ ごめんなさいぃっ❤ んぁっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		CASEELSE
+			SIF 1
+				LOCALS = 「もういっかいしますっ？ ふふっ❤ いいですよっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+		ENDSELECT
+	ELSEIF 練度 == "不慣れ"
+		IF 状況 == "継続"
+			;不慣れ,継続
+			SELECTCASE RAND:144
+			CASE 1
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「あっ❤ そこがいいですっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)% もっとっ❤」
+			CASE 2
+				SIF 1
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% おくっ❤ すごいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)% もっとっ❤」
+			CASE 3
+				SIF 1
+					LOCALS = 「はっ❤ はいっ❤ きもちいいですっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 4
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「いいですっ❤ %CALLNAME:MASTER%さんのおすきになようにっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 5
+				SIF GROUPMATCH(体位, "正常位", "対面座位", "背面座位")
+					LOCALS = 「やっ❤ やだっ❤ ヤラシイおとたてないでっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 6
+				SIF GROUPMATCH(体位, "正常位", "対面座位", "騎乗位")
+					LOCALS = 「あぁっ❤ %CALLNAME:MASTER%さんのおちんちんっ❤ かたくなってるっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 7
+				SIF GROUPMATCH(体位, "後背位", "背面座位")
+					LOCALS = 「このかっこう…❤ はっ❤ はずかしいです…っ❤ %M_KOJO_K70_AUTO("喘ぎ：被虐", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 8
+				SIF GROUPMATCH(体位, "後背位", "背面座位")
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% これっ❤ ふかいぃっ❤ %M_KOJO_K70_AUTO("喘ぎ：被虐", "❤")%」
+			CASE 9
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「はっ❤ はげしいっ❤ んぁっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 10
+				SIF GROUPMATCH(体位, "後背位")
+					LOCALS = 「いたっ…！ もっ、もっとゆっくり…っ！ んぁっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 11
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「わっ、わたしがうごきますっ❤ んっ❤ んっ❤ %CALLNAME:MASTER%さんっ❤ きもちいいですかっ❤」
+			CASE 12
+				SIF 1
+					LOCALS = 「あぁっ❤ おちんちんすごいぃっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 13
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「あぁっ❤ %CALLNAME:MASTER%さんっ❤ きもちよさそうっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%わたしもですっ❤」
+			CASEELSE
+				SIF GROUPMATCH(体位, "正常位", "背面座位")
+					LOCALS = 「やだぁっ❤ あしひろげないでくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% はずかしいですぅっ❤」
+			ENDSELECT
+		ELSE
+			;不慣れ,挿入
+			SELECTCASE RAND:27
+			CASE 1
+				SIF GROUPMATCH(体位, "正常位", "対面座位", "背面座位")
+					LOCALS = 「やさしくしてください…❤」
+			CASE 2
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「ゆ、ゆっくりしてくださいね…❤」
+			CASE 3
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「お、おてやわらかにお願いします…❤」
+			CASE 4
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「だ、だいじょうぶです……いつでもどうぞ…❤」
+			CASE 5
+				SIF GROUPMATCH(体位, "正常位", "対面座位", "背面座位", "騎乗位")
+					LOCALS = 「%CALLNAME:MASTER%さんを感じますぅ❤」
+			CASE 6
+				SIF GROUPMATCH(体位, "正常位", "背面座位")
+					LOCALS = 「あし、もっとひろげるんですか……はい…❤」
+			CASE 7
+				SIF GROUPMATCH(体位, "正常位", "対面座位")
+					LOCALS = 「や、やだぁ……そんなに顔見ないでくださいよぉ…❤」
+			CASE 8
+				SIF GROUPMATCH(体位, "正常位", "後背位")
+					LOCALS = 「は、はい…どうぞ…❤ わたしのお、おまんこに……%CALLNAME:MASTER%さんのおちんちん入れてください…❤」
+			CASE 9
+				SIF 1
+					LOCALS = 「%CALLNAME:MASTER%さんのおちんちんはいってくる…❤」
+			CASE 10
+				SIF GROUPMATCH(体位, "後背位", "背面座位")
+					LOCALS = 「お、おくまできてる…❤」
+			CASE 11
+				SIF GROUPMATCH(体位, "後背位", "背面座位")
+					LOCALS = 「すごいぃ…❤ ぜんぶはいってる…❤」
+			CASE 12
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「あぁ～…❤ ぜんぶはいった…❤」
+			CASE 13
+				SIF GROUPMATCH(体位, "後背位")
+					LOCALS = 「どうぞ……突いていいですよ…❤」
+			CASE 14
+				SIF GROUPMATCH(体位, "正常位", "後背位", "背面座位")
+					LOCALS = 「は、はい…❤ お願いします…❤」
+			CASE 15
+				SIF GROUPMATCH(体位, "後背位")
+					LOCALS = 「この姿勢……犯されてるみたいで……ちょっと…❤」
+			CASE 16
+				SIF GROUPMATCH(体位, "対面座位", "騎乗位")
+					LOCALS = 「いっしょにきもちよくなりましょ…❤」
+			CASE 17
+				SIF GROUPMATCH(体位, "対面座位")
+					LOCALS = 「も、もっとちかく…❤ ぎゅっ…❤」
+			CASE 18
+				SIF GROUPMATCH(体位, "対面座位")
+					LOCALS = 「もっとくっつきましょ…❤ ぎゅっ❤」
+			CASE 19
+				SIF GROUPMATCH(体位, "背面座位")
+					LOCALS = 「つつまれてるみたいで…あんしんします…❤」
+			CASE 20
+				SIF GROUPMATCH(体位, "背面座位")
+					LOCALS = 「あぁんっ❤ ひっ、ひろげちゃだめ…！ やぁんっ❤」
+			CASE 21
+				SIF GROUPMATCH(体位, "背面座位")
+					LOCALS = 「全身で%CALLNAME:MASTER%さんを感じます…❤」
+			CASE 22
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「んっ…！ あ…っ❤ あぁぁ～…っ❤」
+			CASE 23
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「ん…っ！ ぁ…❤ は、はいってくる…！ あ…❤ はぁぁ…❤」
+			CASE 24
+				SIF GROUPMATCH(体位, "正常位")
+					LOCALS = 「き、緊張します……❤」
+			CASE 25
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「き、緊張しますね……❤」
+			CASE 26
+				SIF 1
+					LOCALS = 「ぁ…❤ おちんちんくる…❤ んぁぁ……っ❤」
+			CASEELSE
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「これ…わたしが犯してるみたいで……❤」
+			ENDSELECT
+		ENDIF
+	ELSE
+		IF 状況 == "継続"
+			;経験,継続
+			SELECTCASE RAND:37
+			CASE 1
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「あっ❤ そこがいいですっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)% もっとっ❤」
+			CASE 2
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% おくっ❤ すごいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)% もっとっ❤」
+			CASE 3
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「きもちいですっ❤ もっとじゅぽじゅぽしてくださいぃっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 4
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% いいっ❤ ずぼずぼしてぇっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 5
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% いっぱいつかれてっ❤ すごいいぃっ❤ もっとしてくださぃぃっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 6
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「もうすきにしてくださいっ❤ めちゃめちゃにしてほしいですっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 7
+				SIF GROUPMATCH(体位, "正常位", "対面座位", "背面座位", "騎乗位")
+					LOCALS = 「やらぁっ❤ わたしのおまんこっ❤ ヤラシイおとでちゃうっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 8
+				SIF 1
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%っ❤ すごくかたいぃっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 9
+				SIF 1
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_MASTER_TINKO()%っ❤ すごいぃっ❤ あたまおかひくなっちゃうっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 10
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さんっ❤ しゅごいぃっ❤ いいでひゅっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 11
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_MASTER_TINKO()%っ❤ しゅごいぃっ❤ いいでひゅっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 12
+				SIF 1
+					LOCALS = 「おくっ❤ すごいっ❤ きてますっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% きちゃうぅっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 13
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% すきぃっ❤ それしゅきぃっ❤ もっとしてくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 14
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% これいいっ❤ とまんないですぅっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 15
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「きもちいいですっ❤ もっとおくまでっ❤ おくにきてくださいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 16
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「きもちいいですっ❤ もっとおくっ❤ ふかくにっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 17
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「んぁっ❤ すごっ❤ おちんちんはげしいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 18
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「んぁっ❤ すごっ❤ おちんちんしゅごいぃっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 19
+				SIF 1
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_MASTER_TINKO()%はいってるっ❤ しきうにキスしてるぅっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 20
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「%M_KOJO_K70_MASTER_TINKO()%おいしいですっ❤ もっとほしいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 21
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「あっ❤ まってっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% はげしすぎですっ❤ あ"っ❤ だめぇっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 22
+				SIF 1
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% いいっ❤ きもちいいところにっ❤ あたってますっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 23
+				SIF 1
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %CALLNAME:MASTER%さぁんっ❤ おちんちんすごいっ❤ きてるっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 24
+				SIF 1
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% ああああ～～っ❤ しゅごいいぃ～っ❤ おちんちんしゅごいですぅ～っ❤」
+			CASE 25
+				SIF GROUPMATCH(体位, "後背位", "背面座位")
+					LOCALS = 「はいぃっ❤ きもちいいですぅっ❤ もっと犯してくださいぃっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 26
+				SIF GROUPMATCH(体位, "後背位", "背面座位")
+					LOCALS = 「いいですぅっ❤ おくにあたってっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% もっとっ❤ ふかくっ❤ ついてくださいっ❤」
+			CASE 27
+				SIF 1
+					LOCALS = 「あうぅっ❤ あたってますっ❤ %CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%っ❤ わたしのおなかにっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 28
+				SIF 1
+					LOCALS = 「あぁ～～っ❤ あっ❤ あっ❤ ふかいぃ～～っ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 2)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 29
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「%CALLNAME:MASTER%さん❤ もっとっ❤ もっとついてっ❤ こわれるくらいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 30
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% あぁぁ～っ❤ しゅごいぃ～～っ❤ あたまおかひくなっちゃうぅ～～っ❤」
+			CASE 31
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% あぁぁ～っ❤ きもちよくてとまらないですぅ～～っ❤」
+			CASE 32
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「わたしばっかりきもちよくてごめんなさいぃっ❤ でもこれっ❤ しゅごいっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 33
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「あぁんっ❤ いいですっ❤ もっとずぼずぼしてぇっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 34
+				SIF GROUPMATCH(体位, "後背位")
+					LOCALS = 「やだやだぁっ❤ おしりみないでぇっ❤ はずかしすぎますっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤ ", 1)%%M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASE 35
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「わたしがきもちよくしてあげますっ❤ んっ❤ んっ❤ どうですっ❤ きもちいいですかっ❤」
+			CASE 36
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「%CALLNAME:MASTER%さんのとろけがおっ❤ かわいいですっ❤ あんっ❤ つよくしないでっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			CASEELSE
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「きもちよくてっ❤ とまらないですぅ～っ❤ んっ❤ んっ❤ %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")% %M_KOJO_K70_AUTO("喘ぎ：挿入", "❤")%」
+			ENDSELECT
+		ELSE
+			;経験,挿入
+			SELECTCASE RAND:31
+			CASE 1
+				SIF GROUPMATCH(体位, "正常位", "後背位", "背面座位")
+					LOCALS = 「はげしくしてもいいですよ…❤」
+			CASE 2
+				SIF GROUPMATCH(体位, "対面座位")
+					LOCALS = 「この姿勢のときは……やさしくしてほしいです…❤」
+			CASE 3
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「えへへ…❤ 今日はがんばっちゃいます…❤」
+			CASE 4
+				SIF GROUPMATCH(体位, "正常位", "対面座位", "騎乗位")
+					LOCALS = 「%CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%あったかぁい…❤」
+			CASE 5
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「どうぞ…❤ わたしのおまんこ使ってください…❤」
+			CASE 6
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「どうぞ…❤ わたしできもちよくなってください…❤」
+			CASE 7
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「わたしが%CALLNAME:MASTER%さんを癒やしてあげます…❤」
+			CASE 8
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「たっぷりかわいがってください…❤」
+			CASE 9
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「たっぷりかわいがってあげます…❤」
+			CASE 10
+				SIF GROUPMATCH(体位, "正常位", "対面座位")
+					LOCALS = 「そ、そんなに見つめられると恥ずかしいです…❤」
+			CASE 11
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「わたしのおまんこに…%CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%つっこんでください…❤」
+			CASE 12
+				SIF 1
+					LOCALS = 「%CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%きたぁ…❤」
+			CASE 13
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「いいですよ…❤ 好きなだけわたしを使ってください…❤」
+			CASE 14
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「はい…❤ わたしのおまんこは%CALLNAME:MASTER%さんのものですから…❤」
+			CASE 15
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「今だけはわたしのものです…❤」
+			CASE 16
+				SIF GROUPMATCH(体位, "後背位", "背面座位")
+					LOCALS = 「はい…❤ %CALLNAME:MASTER%さん専用おまんこで気持ちよくなってください…❤」
+			CASE 17
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「わたしのおまんこ…%CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%でぐちゅぐちゅにしてください…❤」
+			CASE 18
+				SIF GROUPMATCH(体位, "正常位", "後背位", "対面座位", "背面座位")
+					LOCALS = 「わたしの中を……%CALLNAME:MASTER%さんでいっぱいにしてください…❤」
+			CASE 19
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「あぁ…❤ %CALLNAME:MASTER%さんで満たされていくぅ…❤」
+			CASE 20
+				SIF GROUPMATCH(体位, "後背位", "背面座位")
+					LOCALS = 「ごめんなさいぃ❤ %M_KOJO_K70_MASTER_TINKO()%には勝てませんでしたぁ…❤」
+			CASE 21
+				SIF 1
+					LOCALS = 「あぁん…❤ %M_KOJO_K70_MASTER_TINKO()%すごいぃ…❤」
+			CASE 22
+				SIF GROUPMATCH(体位, "正常位", "後背位")
+					LOCALS = 「どうぞ…❤ いっぱい突いてください…❤」
+			CASE 23
+				SIF GROUPMATCH(体位, "後背位", "後背位")
+					LOCALS = 「準備できました…❤ 今から%CALLNAME:MASTER%の%M_KOJO_K70_MASTER_TINKO()%にぶち犯されます…❤」
+			CASE 24
+				SIF GROUPMATCH(体位, "後背位", "後背位")
+					LOCALS = 「はい…❤ %CALLNAME:MASTER%さんの%M_KOJO_K70_MASTER_TINKO()%でこすずまんこ犯してください…❤」
+			CASE 25
+				SIF GROUPMATCH(体位, "正常位", "対面座位", "騎乗位")
+					LOCALS = 「いっしょにきもちよくなりましょ…❤」
+			CASE 26
+				SIF GROUPMATCH(体位, "対面座位")
+					LOCALS = 「もっとちからづよく…❤ ぎゅっ❤」
+			CASE 27
+				SIF GROUPMATCH(体位, "対面座位")
+					LOCALS = 「ん……❤ %CALLNAME:MASTER%さん……すきぃ❤」
+			CASE 28
+				SIF GROUPMATCH(体位, "背面座位")
+					LOCALS = 「…つつまれてるみたいで…あんしんします…❤」
+			CASE 29
+				SIF GROUPMATCH(体位, "背面座位")
+					LOCALS = 「あぁんっ❤ ひっ、ひろげちゃだめ…！ やぁんっ❤」
+			CASE 30
+				SIF GROUPMATCH(体位, "後背位", "背面座位")
+					LOCALS = 「たまには乱暴にしてもいいですよ…❤」
+			CASEELSE
+				SIF GROUPMATCH(体位, "騎乗位")
+					LOCALS = 「どうでしょうっ❤ きもちぃですかぁっ❤ わたしはとってもっ❤ きもちぃですぅっ❤」
+			ENDSELECT
+		ENDIF
+	ENDIF
+WEND
+PRINTFORMW %LOCALS%
+RETURN 1
+
+;==================================================
+;おねだりおちんぽ
+;クラウンピース口上のものを流用してたけど、他の口上の関数使うの良くないなと思って独立化
+;==================================================
+@M_KOJO_K70_MASTER_TINKO
+#FUNCTIONS
+IF TALENT:MASTER:形状 == 1
+	LOCALS = ぴょっこりおちんぽ
+ELSEIF TALENT:MASTER:形状 == 2
+	LOCALS = へなちょこおちんぽ
+ELSEIF TALENT:MASTER:形状 == 4
+	LOCALS = フラッシュおちんぽ
+ELSEIF TALENT:MASTER:形状 == 5
+	LOCALS = 凶悪おちんぽ
+ELSEIF TALENT:MASTER:形状 == 6
+	LOCALS = ごんぶとおちんぽ
+ELSE
+	IF TALENT:MASTER:濃厚精液
+		LOCALS = 濃厚おちんぽ
+	ELSE
+		LOCALS = おちんぽ
+	ENDIF
+ENDIF
+RETURNF LOCALS
+
+;==================================================
+;60,正常位
 ;==================================================
 @M_KOJO_MESSAGE_COM_K70_60
 CALL TRAIN_MESSAGE
@@ -71,33 +980,14 @@ RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K70_60_1
 ;-------------------------------------------------
-;����ʁ������ʋ���
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = CFLAG:70:1006
+;正常位＆立ち位共通
 ;-------------------------------------------------
-IF LOCAL
-	IF FLAG:���Ԓ�~
-	ELSEIF TCVAR:70:�j�Z == 1
-		PRINTFORML �u�����c���ɂ��̎���������ł��ˁc�c�I �킽�� �����킹�ł��c%UNICODE(0x2764)%�v
-		PRINTFORMW �u�͂��c�c�ǁA�ǂ����c�c%UNICODE(0x2764)% �킽���̂͂��߂āc�����Ƃ��Ă��������c�c%UNICODE(0x2764)%%UNICODE(0x2764)%�v
-	ELSEIF NOWEX:MASTER:�ː�
-		CALL M_KOJO_K70_NAKADASHI
-	ELSE
-		SELECTCASE RAND:3
-		CASE 1
-			PRINTFORMW �u�͂��c�I �͂��c%UNICODE(0x2764)% ��A�������Łc�c���˂������܂��c%UNICODE(0x2764)%�v
-		CASE 2
-			PRINTFORMW �u�񂟂��c�I �͂��c%UNICODE(0x2764)% %CALLNAME:MASTER%����������܂���%UNICODE(0x2764)%�v
-		CASEELSE
-			PRINTFORMW �u�������c�I �͂��c%UNICODE(0x2764)% �������������c%UNICODE(0x2764)%�v
-		ENDSELECT
-		RETURN 1
-	ENDIF
-ENDIF
+;共通の口上
+CALL M_KOJO_K70_VSEX("正常位")
 RETURN 1
 
 ;==================================================
-;61,��w��
+;61,後背位
 ;==================================================
 @M_KOJO_MESSAGE_COM_K70_61
 CALL TRAIN_MESSAGE
@@ -106,346 +996,14 @@ RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K70_61_1
 ;-------------------------------------------------
-;��w�ʁ������ʋ���
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = CFLAG:70:1006
+;後背位＆立ち位共通
 ;-------------------------------------------------
-IF LOCAL
-	IF FLAG:���Ԓ�~
-	ELSEIF TCVAR:70:�j�Z == 1
-		PRINTFORML �u���c���̊i�D�ł����ł������c�c ������ƕ|���ł����`�c�v
-		PRINTFORMW �u�ŁA�ł�%CALLNAME:MASTER%���񂪂������Ȃ�c�c�@�ǁA�ǂ����c�c%UNICODE(0x2764)% �킽���̂͂��߂āc�����Ƃ��Ă��������c�c%UNICODE(0x2764)%%UNICODE(0x2764)%�v
-	ELSEIF NOWEX:MASTER:�ː�
-		CALL M_KOJO_K70_NAKADASHI
-	ELSE
-		SELECTCASE RAND:3
-		CASE 1
-			PRINTFORMW �u�񂠂��c�I �́c%UNICODE(0x2764)% ���A�����܂ł��Ă�c%UNICODE(0x2764)%�v
-		CASE 2
-			PRINTFORMW �u�ӂ�����I �́c%UNICODE(0x2764)% ���߂�Ȃ����c�c%ONEDARI_MASTER_TINKO()%�ɂ͏��Ă܂���ł������c%UNICODE(0x2764)%�v
-		CASEELSE
-			PRINTFORMW �u�������c�I �́c%UNICODE(0x2764)% �˂��āc�c�����ς��˂��Ă��������c%UNICODE(0x2764)%�v
-		ENDSELECT
-		RETURN 1
-	ENDIF
-ENDIF
+;共通の口上
+CALL M_KOJO_K70_VSEX("後背位")
 RETURN 1
 
 ;==================================================
-;62,����ʃA�i��
-;==================================================
-@M_KOJO_MESSAGE_COM_K70_62
-CALL TRAIN_MESSAGE
-CALL M_KOJO_MESSAGE_COM_K70_62_1
-RETURN RESULT
-
-@M_KOJO_MESSAGE_COM_K70_62_1
-;-------------------------------------------------
-;����
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = 0
-;-------------------------------------------------
-IF LOCAL && TFLAG:193
-	;-------------------------------------------------
-	;������
-	;-------------------------------------------------
-	;���߂�
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-		;�A�i������
-		IF TCVAR:�`�j�Z
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;-------------------------------------------------
-	;�}���p��
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && TCVAR:101 == PLAYER
-		;�O��ː�����
-		IF TCVAR:104
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;��{�Z�b�g
-	;������
-	IF FLAG:70
-		PRINTFORMW 
-		RETURN 1
-	;����
-	ELSEIF TALENT:����
-		PRINTFORMW 
-		RETURN 1
-	;����3
-	ELSEIF MARK:�s������ == 3
-		PRINTFORMW 
-		RETURN 1
-	;����ȊO
-	ELSE
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-ENDIF
-;-------------------------------------------------
-;�����
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = 0
-;-------------------------------------------------
-IF LOCAL
-	;-------------------------------------------------
-	;������
-	;-------------------------------------------------
-	;���߂�
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-		;�A�i������
-		IF TCVAR:�`�j�Z
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;-------------------------------------------------
-	;�}���p��
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && TCVAR:101 == PLAYER
-		;�O��ː�����
-		IF TCVAR:104
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;��{�Z�b�g
-	;������
-	IF FLAG:70
-		PRINTFORMW 
-		RETURN 1
-	;����
-	ELSEIF TALENT:����
-		PRINTFORMW 
-		RETURN 1
-	;����3
-	ELSEIF MARK:�s������ == 3
-		PRINTFORMW 
-		RETURN 1
-	;����ȊO
-	ELSE
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-ENDIF
-RETURN 1
-
-;==================================================
-;63,��w�ʃA�i��
-;==================================================
-@M_KOJO_MESSAGE_COM_K70_63
-CALL TRAIN_MESSAGE
-CALL M_KOJO_MESSAGE_COM_K70_63_1
-RETURN RESULT
-
-@M_KOJO_MESSAGE_COM_K70_63_1
-;-------------------------------------------------
-;����
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = 0
-;-------------------------------------------------
-IF LOCAL && TFLAG:193
-	;-------------------------------------------------
-	;������
-	;-------------------------------------------------
-	;���߂�
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-		;�A�i������
-		IF TCVAR:�`�j�Z
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;-------------------------------------------------
-	;�}���p��
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && TCVAR:101 == PLAYER
-		;�O��ː�����
-		IF TCVAR:104
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;��{�Z�b�g
-	;������
-	IF FLAG:70
-		PRINTFORMW 
-		RETURN 1
-	;����
-	ELSEIF TALENT:����
-		PRINTFORMW 
-		RETURN 1
-	;����3
-	ELSEIF MARK:�s������ == 3
-		PRINTFORMW 
-		RETURN 1
-	;����ȊO
-	ELSE
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-ENDIF
-;-------------------------------------------------
-;��w��
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = 0
-;-------------------------------------------------
-IF LOCAL
-	;-------------------------------------------------
-	;������
-	;-------------------------------------------------
-	;���߂�
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-		;�A�i������
-		IF TCVAR:�`�j�Z
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;-------------------------------------------------
-	;�}���p��
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && TCVAR:101 == PLAYER
-		;�O��ː�����
-		IF TCVAR:104
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;��{�Z�b�g
-	;������
-	IF FLAG:70
-		PRINTFORMW 
-		RETURN 1
-	;����
-	ELSEIF TALENT:����
-		PRINTFORMW 
-		RETURN 1
-	;����3
-	ELSEIF MARK:�s������ == 3
-		PRINTFORMW 
-		RETURN 1
-	;����ȊO
-	ELSE
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-ENDIF
-RETURN 1
-
-;==================================================
-;64,�t���C�v
-;==================================================
-@M_KOJO_MESSAGE_COM_K70_64
-CALL TRAIN_MESSAGE
-CALL M_KOJO_MESSAGE_COM_K70_64_1
-RETURN RESULT
-
-@M_KOJO_MESSAGE_COM_K70_64_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = 0
-;-------------------------------------------------
-IF LOCAL
-	;-------------------------------------------------
-	;������
-	;-------------------------------------------------
-	;���߂�
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-		;�����҂�����
-		IF TCVAR:PLAYER:�j�Z == 1
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;-------------------------------------------------
-	;�}���p��
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && TCVAR:PLAYER:100 == TARGET
-		;�O��ː�����
-		IF TCVAR:PLAYER:102
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;��{�Z�b�g
-	;����
-	IF TALENT:����
-		PRINTFORMW 
-		RETURN 1
-	;����3
-	ELSEIF MARK:�s������ == 3
-		PRINTFORMW 
-		RETURN 1
-	;����ȊO
-	ELSE
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-ENDIF
-RETURN 1
-
-;==================================================
-;65,�R���
+;65,騎乗位
 ;==================================================
 @M_KOJO_MESSAGE_COM_K70_65
 CALL TRAIN_MESSAGE
@@ -453,130 +1011,12 @@ CALL M_KOJO_MESSAGE_COM_K70_65_1
 RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K70_65_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = CFLAG:70:1006
-;-------------------------------------------------
-IF LOCAL
-	IF FLAG:���Ԓ�~
-	ELSEIF TCVAR:70:�j�Z == 1
-		PRINTFORMW �u%CALLNAME:MASTER%����ɕ������āA�킽�� �����킹�ł��c%UNICODE(0x2764)%�v
-		PRINTFORMW �u�ł́c�c���A�}����܂��ˁc�c%UNICODE(0x2764)% �����Ƃ��Ă��������c�c%UNICODE(0x2764)%%UNICODE(0x2764)%�v
-	ELSEIF NOWEX:MASTER:�ː�
-		CALL M_KOJO_K70_NAKADASHI
-	ELSEIF PREVCOM == 83
-		PRINTFORMW �u���͂��� ���߂�Ȃ����A�͂������Ⴂ�܂�����%UNICODE(0x2764)%%UNICODE(0x2764)%�v
-		SELECTCASE RAND:2
-		CASE 1
-			PRINTFORMW �u���%UNICODE(0x2764)% �͂�%UNICODE(0x2764)% %CALLNAME:MASTER%��������ꂽ�������ł���˂�%UNICODE(0x2764)% ������ł����%UNICODE(0x2764)%�v
-			PRINTFORMW �u�킽���������ς�%UNICODE(0x2764)% �������悭���Ă����܂������%UNICODE(0x2764)%�v
-		CASEELSE
-			PRINTFORMW �u����%UNICODE(0x2764)% ���%UNICODE(0x2764)% ������%UNICODE(0x2764)% �������悭����%UNICODE(0x2764)%�v
-			PRINTFORMW �u���߂�Ȃ�����%UNICODE(0x2764)% �Ƃ܂�Ȃ��ł����`��%UNICODE(0x2764)% �������悭���Ă��߂�Ȃ�������%UNICODE(0x2764)%�v
-		ENDSELECT
-	ELSEIF M_KOJO_K70_SADISTIC(70)
-		SELECTCASE RAND:3
-		CASE 1
-			PRINTFORMW �u��A�킽���� �������悭���Ă����܂��c�c�I�v
-			PRINTFORMW �u�ł́c�c���A����܂��ˁc�c%UNICODE(0x2764)% ��c�I �����c�I�v
-		CASE 2
-			PRINTFORMW �u��A�킽�������ف[�����Ă��������܂��c�c%UNICODE(0x2764)%�v
-			PRINTFORMW �u�񂟂��c�I �����c�c���I �ӂ����%UNICODE(0x2764)%�v
-			PRINTFORMW �u����%UNICODE(0x2764)% ����%UNICODE(0x2764)% �����%UNICODE(0x2764)% �ǂ��ł�����%UNICODE(0x2764)% ���������ł���˂�%UNICODE(0x2764)% ���%UNICODE(0x2764)%�v
-		CASEELSE
-			PRINTFORML �u�ӂӁc%UNICODE(0x2764)% %CALLNAME:MASTER%����c�킽���ɐg��C���Ă��������c�c%UNICODE(0x2764)%�v
-			PRINTFORMW �u�����ς��������悭���Ă����܂��ˁc�c%UNICODE(0x2764)%�v
-			PRINTFORMW �u��c���I �͂��c�͂����Ă������c%UNICODE(0x2764)% ���͂��c�c%UNICODE(0x2764)%�v
-		ENDSELECT
-	ELSE
-		SELECTCASE RAND:3
-		CASE 1
-			PRINTFORML �u�킽���� �����ɂȂ��ł������c�H�v
-			PRINTFORMW �u��A�킩��܂����c ���A�����������炲�߂�Ȃ����c�c�v
-			PRINTFORMW �u�ł́c�I ����c�I ���c%UNICODE(0x2764)% �������`�c%UNICODE(0x2764)%�v
-		CASE 2 
-			PRINTFORML �u�͂��c�c���ف[�������Ă��������c�c%UNICODE(0x2764)%�v
-			PRINTFORMW �u�񂟁c�c���I ���c%UNICODE(0x2764)% �������%UNICODE(0x2764)% �₟%UNICODE(0x2764)%�v
-			PRINTFORMW �u�ǁc�ǂ��ł������`%UNICODE(0x2764)% ���������ł������`%UNICODE(0x2764)% �킽���͂Ƃ��Ă�%UNICODE(0x2764)% ���������ł���%UNICODE(0x2764)%�v
-		CASEELSE
-			PRINTFORML �u�����c �킽���� �����ł������c�c�v
-			PRINTFORMW �u�́A�͂��c ���A����΂�܂��c�c�I�v
-			PRINTFORMW �u��c���I ���c%UNICODE(0x2764)% �́A�͂����Ă���c�I ���c%UNICODE(0x2764)% �͂����c%UNICODE(0x2764)%�v
-		ENDSELECT
-		RETURN 1
-	ENDIF
-ENDIF
+;共通の口上
+CALL M_KOJO_K70_VSEX("騎乗位")
 RETURN 1
 
 ;==================================================
-;66,�R��ʃA�i��
-;==================================================
-@M_KOJO_MESSAGE_COM_K70_66
-CALL TRAIN_MESSAGE
-CALL M_KOJO_MESSAGE_COM_K70_66_1
-RETURN RESULT
-
-@M_KOJO_MESSAGE_COM_K70_66_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = 0
-;-------------------------------------------------
-IF LOCAL
-	;-------------------------------------------------
-	;������
-	;-------------------------------------------------
-	;���߂�
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-		;�A�i������
-		IF TCVAR:�`�j�Z
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;-------------------------------------------------
-	;�}���p��
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && TCVAR:101 == PLAYER
-		;�O��ː�����
-		IF TCVAR:104
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;��{�Z�b�g
-	;������
-	IF FLAG:70
-		PRINTFORMW 
-		RETURN 1
-	;����
-	ELSEIF TALENT:����
-		PRINTFORMW 
-		RETURN 1
-	;����3
-	ELSEIF MARK:�s������ == 3
-		PRINTFORMW 
-		RETURN 1
-	;����ȊO
-	ELSE
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-ENDIF
-RETURN 1
-
-;==================================================
-;67,�Ζʍ���
+;67,対面座位
 ;==================================================
 @M_KOJO_MESSAGE_COM_K70_67
 CALL TRAIN_MESSAGE
@@ -584,34 +1024,12 @@ CALL M_KOJO_MESSAGE_COM_K70_67_1
 RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K70_67_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = CFLAG:70:1006
-;-------------------------------------------------
-IF LOCAL
-	IF FLAG:���Ԓ�~
-	ELSEIF TCVAR:70:�j�Z == 1
-		;����ʂƓ���
-		PRINTFORML �u�����c���ɂ��̎���������ł��ˁc�c�I �킽�� �����킹�ł��c%UNICODE(0x2764)%�v
-		PRINTFORMW �u�͂��c�c�ǁA�ǂ����c�c%UNICODE(0x2764)% �킽���̂͂��߂āc�����Ƃ��Ă��������c�c%UNICODE(0x2764)%%UNICODE(0x2764)%�v
-	ELSEIF NOWEX:MASTER:�ː�
-		CALL M_KOJO_K70_NAKADASHI
-	ELSE
-		SELECTCASE RAND:2
-		CASE 1
-			PRINTFORML �u�͂����c�I �����c%UNICODE(0x2764)% %CALLNAME:MASTER%���񂿂����c%UNICODE(0x2764)%�v
-			PRINTFORMW �u��������� �������悭�Ȃ�܂���c%UNICODE(0x2764)%�v
-		CASEELSE
-			PRINTFORML �u�񂠂��c�I �����c%UNICODE(0x2764)% %CALLNAME:MASTER%����ƂЂƂɁc%UNICODE(0x2764)%�v
-			PRINTFORMW �u���A�����Ƃ������c�c%UNICODE(0x2764)% ������c%UNICODE(0x2764)%�v
-		ENDSELECT
-		RETURN 1
-	ENDIF
-ENDIF
+;共通の口上
+CALL M_KOJO_K70_VSEX("対面座位")
 RETURN 1
 
 ;==================================================
-;68,�w�ʍ���
+;68,背面座位
 ;==================================================
 @M_KOJO_MESSAGE_COM_K70_68
 CALL TRAIN_MESSAGE
@@ -619,199 +1037,12 @@ CALL M_KOJO_MESSAGE_COM_K70_68_1
 RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K70_68_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = CFLAG:70:1006
-;-------------------------------------------------
-IF LOCAL
-	IF FLAG:���Ԓ�~
-	ELSEIF TCVAR:70:�j�Z == 1
-		;��w�ʂƓ���
-		PRINTFORML �u���c���̊i�D�ł����ł������c�c ������ƕ|���ł����`�c�v
-		PRINTFORMW �u�ŁA�ł�%CALLNAME:MASTER%���񂪂������Ȃ�c�c�@�ǁA�ǂ����c�c%UNICODE(0x2764)% �킽���̂͂��߂āc�����Ƃ��Ă��������c�c%UNICODE(0x2764)%%UNICODE(0x2764)%�v
-	ELSEIF NOWEX:MASTER:�ː�
-		CALL M_KOJO_K70_NAKADASHI
-	ELSE
-		SELECTCASE RAND:2
-		CASE 1
-			PRINTFORML �u�͂����c�I �͂��c%UNICODE(0x2764)% �́c�͂��������ł����c\/\/\/�v
-			PRINTFORMW �u�ł��c�܂�Ă�݂����Łc���񂵂񂵂܂��c%UNICODE(0x2764)%�v
-		CASEELSE
-			PRINTFORML �u�񂠂��c�I �͂��c%UNICODE(0x2764)%�v
-			PRINTFORMW �u�������%UNICODE(0x2764)% �Ђ��A�Ђ낰���Ⴞ�߁c�I �₟���%UNICODE(0x2764)%�v
-		ENDSELECT
-		RETURN 1
-	ENDIF
-ENDIF
+;共通の口上
+CALL M_KOJO_K70_VSEX("背面座位")
 RETURN 1
 
 ;==================================================
-;69,�Ζʍ��ʃA�i��
-;==================================================
-@M_KOJO_MESSAGE_COM_K70_69
-CALL TRAIN_MESSAGE
-CALL M_KOJO_MESSAGE_COM_K70_69_1
-RETURN RESULT
-
-@M_KOJO_MESSAGE_COM_K70_69_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = 0
-;-------------------------------------------------
-IF LOCAL
-	;-------------------------------------------------
-	;������
-	;-------------------------------------------------
-	;���߂�
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-		;�A�i������
-		IF TCVAR:�`�j�Z
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;-------------------------------------------------
-	;�}���p��
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && TCVAR:101 == PLAYER
-		;�O��ː�����
-		IF TCVAR:104
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;��{�Z�b�g
-	;����
-	IF TALENT:����
-		PRINTFORMW 
-		RETURN 1
-	;����3
-	ELSEIF MARK:�s������ == 3
-		PRINTFORMW 
-		RETURN 1
-	;����ȊO
-	ELSE
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-ENDIF
-RETURN 1
-
-;==================================================
-;70,�w�ʍ��ʃA�i��
-;==================================================
-@M_KOJO_MESSAGE_COM_K70_70
-CALL TRAIN_MESSAGE
-CALL M_KOJO_MESSAGE_COM_K70_70_1
-RETURN RESULT
-
-@M_KOJO_MESSAGE_COM_K70_70_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = 0
-;-------------------------------------------------
-IF LOCAL
-	;-------------------------------------------------
-	;������
-	;-------------------------------------------------
-	;���߂�
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-		;�A�i������
-		IF TCVAR:�`�j�Z
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;-------------------------------------------------
-	;�}���p��
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && TCVAR:101 == PLAYER
-		;�O��ː�����
-		IF TCVAR:104
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;��{�Z�b�g
-	;����
-	IF TALENT:����
-		PRINTFORMW 
-		RETURN 1
-	;����3
-	ELSEIF MARK:�s������ == 3
-		PRINTFORMW 
-		RETURN 1
-	;����ȊO
-	ELSE
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-ENDIF
-RETURN 1
-
-;==================================================
-;71,�񌊑}��
-;==================================================
-@M_KOJO_MESSAGE_COM_K70_71
-CALL TRAIN_MESSAGE
-CALL M_KOJO_MESSAGE_COM_K70_71_1
-RETURN RESULT
-
-@M_KOJO_MESSAGE_COM_K70_71_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = 0
-;-------------------------------------------------
-IF LOCAL
-	;�l�����镪�򂪑�������̂Œn�̕��̑�܂��ȕ��򂾂�
-	;�A��
-	IF PREVCOM == SELECTCOM
-		PRINTFORMW 
-		RETURN 1
-	;��lV�}��������A�}��
-	ELSEIF TCVAR:100 == MASTER
-		PRINTFORMW 
-		RETURN 1
-	;��lA�}��������V�}��
-	ELSEIF TCVAR:101 == MASTER
-		PRINTFORMW 
-		RETURN 1
-	;����V�}������lA�}��
-	ELSEIF TCVAR:100 == ASSI
-		PRINTFORMW 
-		RETURN 1
-	;����A�}������lV�}��
-	ELSEIF TCVAR:101 == ASSI
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-ENDIF
-RETURN 1
-
-;==================================================
-;72,�}���f�X�|�b�g�ӂ�
+;72,挿入Ｇスポット責め
 ;==================================================
 @M_KOJO_MESSAGE_COM_K70_72
 CALL TRAIN_MESSAGE
@@ -819,28 +1050,12 @@ CALL M_KOJO_MESSAGE_COM_K70_72_1
 RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K70_72_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = CFLAG:70:1006
-;-------------------------------------------------
-IF LOCAL
-	IF FLAG:���Ԓ�~
-	ELSEIF NOWEX:MASTER:�ː�
-		CALL M_KOJO_K70_NAKADASHI
-	ELSE
-		SELECTCASE RAND:2
-		CASE 1
-			PRINTFORMW �u����%UNICODE(0x2764)% ����%UNICODE(0x2764)% �₟�c�I ������%UNICODE(0x2764)% �񂠂�%UNICODE(0x2764)% ������%UNICODE(0x2764)% �ӂ�����%UNICODE(0x2764)%�v
-		CASEELSE
-			PRINTFORMW �u�񂠂�%UNICODE(0x2764)% ����%UNICODE(0x2764)% �����c�I ������%UNICODE(0x2764)% �͂����%UNICODE(0x2764)% ������%UNICODE(0x2764)%�v
-		ENDSELECT
-		RETURN 1
-	ENDIF
-ENDIF
+;共通の口上
+CALL M_KOJO_K70_VSEX("挿入Ｇスポット責め")
 RETURN 1
 
 ;==================================================
-;73,�}���q�{���ӂ�
+;73,挿入子宮口責め
 ;==================================================
 @M_KOJO_MESSAGE_COM_K70_73
 CALL TRAIN_MESSAGE
@@ -848,184 +1063,6 @@ CALL M_KOJO_MESSAGE_COM_K70_73_1
 RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K70_73_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = CFLAG:70:1006
-;-------------------------------------------------
-IF LOCAL
-	IF FLAG:���Ԓ�~
-	ELSEIF NOWEX:MASTER:�ː�
-		CALL M_KOJO_K70_NAKADASHI
-	ELSE
-		SELECTCASE RAND:2
-		CASE 1
-			PRINTFORMW �u���J��%UNICODE(0x2764)% ���J��%UNICODE(0x2764)% �����A���邵��%UNICODE(0x2764)% ���J��%UNICODE(0x2764)%�v
-		CASEELSE
-			PRINTFORMW �u����%UNICODE(0x2764)% ���J��%UNICODE(0x2764)% �����܂ł�%UNICODE(0x2764)% ���Ă܂���%UNICODE(0x2764)% �񂠁J��%UNICODE(0x2764)%�v
-		ENDSELECT
-		RETURN 1
-	ENDIF
-ENDIF
-RETURN 1
-;==================================================
-;74,�r�󌋒��ӂ�
-;==================================================
-@M_KOJO_MESSAGE_COM_K70_74
-CALL TRAIN_MESSAGE
-CALL M_KOJO_MESSAGE_COM_K70_74_1
-RETURN RESULT
-
-@M_KOJO_MESSAGE_COM_K70_74_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = 0
-;-------------------------------------------------
-IF LOCAL
-	;-------------------------------------------------
-	;������
-	;-------------------------------------------------
-	;���߂�
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-	ENDIF
-	;-------------------------------------------------
-	;�}���p��
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && TCVAR:101 == PLAYER
-		;�O��ː�����
-		IF TCVAR:104
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;��{�Z�b�g
-	;����
-	IF TALENT:����
-		PRINTFORMW 
-		RETURN 1
-	;����3
-	ELSEIF MARK:�s������ == 3
-		PRINTFORMW 
-		RETURN 1
-	;����ȊO
-	ELSE
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-ENDIF
-RETURN 1
-;==================================================
-;75,�S���ӂ�
-;==================================================
-@M_KOJO_MESSAGE_COM_K70_75
-CALL TRAIN_MESSAGE
-CALL M_KOJO_MESSAGE_COM_K70_75_1
-RETURN RESULT
-
-@M_KOJO_MESSAGE_COM_K70_75_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = 0
-;-------------------------------------------------
-IF LOCAL
-	;-------------------------------------------------
-	;������
-	;-------------------------------------------------
-	;���߂�
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-	ENDIF
-	;-------------------------------------------------
-	;�}���p��
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && TCVAR:101 == PLAYER
-		;�O��ː�����
-		IF TCVAR:104
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;��{�Z�b�g
-	;����
-	IF TALENT:����
-		PRINTFORMW 
-		RETURN 1
-	;����3
-	ELSEIF MARK:�s������ == 3
-		PRINTFORMW 
-		RETURN 1
-	;����ȊO
-	ELSE
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-ENDIF
-RETURN 1
-;==================================================
-;77,���l�I�i�z(�j���ۗp�H
-;==================================================
-@M_KOJO_MESSAGE_COM_K70_77
-CALL TRAIN_MESSAGE
-CALL M_KOJO_MESSAGE_COM_K70_77_1
-RETURN RESULT
-
-@M_KOJO_MESSAGE_COM_K70_77_1
-;-------------------------------------------------
-;�L���`�F�b�N�i=0, ��\���A1, �\���j
-LOCAL = 0
-;-------------------------------------------------
-IF LOCAL
-	;-------------------------------------------------
-	;������
-	;-------------------------------------------------
-	;���߂�
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-	ENDIF
-	;-------------------------------------------------
-	;�}���p��
-	;�L���`�F�b�N
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && TCVAR:101 == PLAYER
-		;�O��ː�����
-		IF TCVAR:104
-			PRINTFORMW 
-			RETURN 1
-		ELSE
-			PRINTFORMW 
-			RETURN 1
-		ENDIF
-	ENDIF
-	;��{�Z�b�g
-	;����
-	IF TALENT:����
-		PRINTFORMW 
-		RETURN 1
-	;����3
-	ELSEIF MARK:�s������ == 3
-		PRINTFORMW 
-		RETURN 1
-	;����ȊO
-	ELSE
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-ENDIF
+;共通の口上
+CALL M_KOJO_K70_VSEX("挿入子宮口責め")
 RETURN 1

@@ -188,6 +188,9 @@ SIF CSVABL(CHARA, GETNUM(ABL, "戦闘能力")) > 0
 	SENSE_CHARA_GOOD += "スペルカード/" * 3
 ;キャノンボールはみんなが欲しがる
 SENSE_CHARA_GOOD += "キャノンボール/"
+;ローターはセフレ,愛欲だと好き
+SIF TALENT:CHARA:セフレ || TALENT:CHARA:愛欲
+	SENSE_CHARA_BAD += "ローター/"
 
 ;共通設定：嫌い
 ;粗悪はみんな嫌い
@@ -220,7 +223,16 @@ ENDIF
 ;CSVの戦闘能力がないならスペルカードはちょっと…
 SIF CSVABL(CHARA, GETNUM(ABL, "戦闘能力")) <= 0
 	SENSE_CHARA_BAD += "スペルカード/"
-
+;ローターはセフレ,愛欲じゃないと嫌い,恋慕,恋人だとちょっと軽減
+IF !TALENT:CHARA:セフレ && !TALENT:CHARA:愛欲
+	IF TALENT:CHARA:恋人
+		SENSE_CHARA_BAD += "ローター/" * 2
+	ELSEIF TALENT:CHARA:恋慕
+		SENSE_CHARA_BAD += "ローター/" * 3
+	ELSE
+		SENSE_CHARA_BAD += "ローター/" * 6
+	ENDIF
+ENDIF
 ;評価得点
 SENSE_GOOD = 300 + 100 * STR_MULTI_COUNT(SENSE_CHARA_GOOD, SENSE_GIFT)
 

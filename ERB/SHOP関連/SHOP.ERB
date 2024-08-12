@@ -23,7 +23,9 @@ IF (TIME:3 >= LOCAL:1 && (TIME:3 - LOCAL:1) < 240) || (TIME:3 < 240 && (1440 + T
 ENDIF
 ;---------------------
 DRAWLINE
-PRINTFORML {DAY}日目(%GET_DAY()%)　所持金:%金額表示(MONEY)%
+PRINTFORM {DAY}日目(
+CALL COLOR_YOUBI
+PRINTFORML )　所持金:%金額表示(MONEY)%
 PRINTL
 
 CALL BASE_BAR(MASTER, "体力", 28, "緑")
@@ -136,6 +138,12 @@ PRINTL
 SIF MONEY:2
 	PRINTFORML [600] - カリスマ売却
 
+;record who have custon shop button
+CALL createKojoShopButtonTargetList()
+;show
+CALL showKojoShopButton()
+PRINTL
+
 DRAWLINE
 
 ;FileName_SHOP.ERB -------------------------------- Rev1.00
@@ -229,6 +237,21 @@ ELSEIF RESULT == 600
 ;起床時間設定
 ELSEIF RESULT == 2400
 	CALL 起床時間設定()
+;custom shop button use
+ELSEIF RESULT == 797
+	CALL choiceButtonTarget()
+ELSEIF RESULT == 798
+	IF ShopButtonTargetId > 0
+		ShopButtonTargetId --
+		ShopButtonTarget = ShopButtonTargetList:ShopButtonTargetId
+	ENDIF
+ELSEIF RESULT == 799
+	IF ShopButtonTargetId + 1 < ShopButtonTargetNum
+		ShopButtonTargetId ++
+		ShopButtonTarget = ShopButtonTargetList:ShopButtonTargetId
+	ENDIF
+ELSEIF INRANGE(RESULT, 800, 800 + MAX_CUSTOM_SHOP)
+	CALL useKojoShopButton(RESULT - 800)
 ENDIF
 
 

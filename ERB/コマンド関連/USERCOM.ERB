@@ -24,7 +24,7 @@ IF RESULT >= 0 && RESULT < 800
 		RETURN 0
 	ENDIF
 	;コマンド登録チェック
-	SIF TRAINNAME:RESULT == ""
+	SIF TRAINNAME:RESULT == "" && !INRANGE(RESULT, 270, 299)
 		RETURN 0
 	;SELECTCOMとTFLAG:3(SELECTCOM退避)に入力値セット
 	SELECTCOM = RESULT
@@ -308,7 +308,7 @@ ELSEIF RESULT == 813 && GETBIT(TALENT:MASTER:劣情察知, 1) && !CFLAG:うふ�
 	ENDSELECT
 
 ;フィルタ----------------------------
-ELSEIF RESULT == 839
+ELSEIF RESULT == 840
 	FLAG:家事アンフィルタ = !FLAG:家事アンフィルタ
 	RETURN -1
 ELSEIF RESULT == 4000
@@ -503,7 +503,15 @@ ELSEIF RESULT == 999 && CFLAG:添い寝中
 	RETURN 1
 ;デート終了
 ELSEIF RESULT == 999 && CHK_DATENOW(CFLAG:MASTER:デート中) && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
-	CALL 外出先から帰宅
+	PRINTL 帰りますか？
+	PRINTL [1] - 帰る
+	PRINTL [0] - 帰らない
+	INPUT
+	IF !RESULT
+		RETURN 0
+	ELSE
+		CALL 外出先から帰宅
+	ENDIF
 	RETURN 1
 ELSEIF RESULT == 3000
 	TFLAG:PALAM非表示 = !TFLAG:PALAM非表示

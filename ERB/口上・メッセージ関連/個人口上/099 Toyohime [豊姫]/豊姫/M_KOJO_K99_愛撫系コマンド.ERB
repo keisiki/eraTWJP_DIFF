@@ -160,7 +160,7 @@ IF LOCAL
 					CALL HPH_PRINT,@"「そのまま、続けて頂戴……HPH」","L"
 					IF !CFLAG:99:1998
 						PRINTFORMDL 豊姫と唇を重ねながら、彼女の豊かな胸を捏ねるように撫で回す
-						PRINTFORMDW マシュマロのように柔らかい。いつまでも触っていたいとあなたに思わせた
+						PRINTFORMDW マシュマロのように柔らかい。いつまでも触っていたいと%CALLNAME:MASTER%に思わせた
 					ENDIF
 			ENDSELECT
 			RETURN 1
@@ -1580,15 +1580,17 @@ RETURN 1
 ;==================================================
 @M_KOJO_MESSAGE_COM_K99_21
 ;CALL TRAIN_MESSAGE
+DRAWLINE
 CALL M_KOJO_MESSAGE_COM_K99_21_1
 RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K99_21_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
+CALL M_KOJO_COLOR_K99
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -1605,20 +1607,317 @@ IF LOCAL
 	IF FLAG:70
 		PRINTFORMW 
 		RETURN 1
-	;恋慕
-	ELSEIF TALENT:恋慕
+	;口上推奨設定に変更済みかつ露出癖５以上で屋外の場合発生
+	ELSEIF !CFLAG:99:1997 && CFLAG:99:1000 && ABL:露出癖 > 4 && OUTROOF(CFLAG:MASTER:現在位置)
+		PRINTFORMDW 休憩中、%CALLNAME:MASTER%はふとこんなことを思った
+		SETCOLOR C_YELLOW
+		PRINTFORML 遠隔調教イベントをオンにしますか？
+		PRINTFORML 【寝取らせっていいよね】を選ぶと、以降【何もしない】が遠隔調教に置き換わります
+		PRINTFORML 【お腹空いてきたな】を選ぶとキャンセルされ、以降表示されません
 		PRINTFORMW 
-		RETURN 1
-	;屈服3
-	ELSEIF MARK:不埒刻印 == 3
-		PRINTFORMW 
-		RETURN 1
-	;それ以外
-	ELSE
-		PRINTFORMW 
-		RETURN 1
+		CALL M_KOJO_COLOR_K99
+		;選択肢
+		CALL ASK_YN("寝取らせっていいよね","お腹空いてきたな")
+		;判定
+		SELECTCASE RESULT
+			;はい
+			CASE 0
+				PRINTFORMDL 寝取らせっていいよね……
+				PRINTFORMDW というわけで、%CALLNAME:MASTER%は豊姫に寝取らせプレイを提案してみた
+				PRINTFORMW 「――え？ 嫌よそんなの」
+				PRINTFORMDW そこをなんとかと%CALLNAME:MASTER%は豊姫に土下座する
+				PRINTFORMDL 豊姫が誰かに抱かれている姿を見せて欲しい
+				PRINTFORMDL それを見ることでしか摂取できない栄養があるんだ
+				PRINTFORMDW %CALLNAME:MASTER%は豊姫にそう力説した
+				PRINTFORML 「……うーん……そこまで言うなら……」
+				PRINTFORMW 「でも、本当に嫌なのよ？ 貴方以外に抱かれるなんて……」
+				PRINTFORMDW お願いします。そう言い避妊薬を差し出すと、豊姫は渋々とそれを受け取った
+				CFLAG:99:1997 += 1
+				PRINTFORMDL 
+				PRINTFORMDL 豊姫を送り出します
+				PRINTFORMDW 
+				GOTO TOYOHIME_NETORASE
+			;いいえ
+			CASE 1
+				PRINTFORMDL お腹空いたし、あとでご飯食べに行こう
+				PRINTFORMDW %CALLNAME:MASTER%は豊姫を抱きしめながら、心の中でそう決めた
+				CFLAG:99:1997 += 2
+		ENDSELECT
+	;遠隔調教スイッチオン
+	ELSEIF CFLAG:99:1997 == 1
+		SETCOLOR C_PINK
+		PRINTFORML 【遠隔調教】
+		PRINTFORMDL 
+		PRINTFORMDW %CALLNAME:MASTER%は豊姫に避妊薬を渡し、送り出した
+		$TOYOHIME_NETORASE
+		SIF !TCVAR:ピル
+			TCVAR:ピル = 1
+		SELECTCASE RAND:3
+			;村人
+			CASE 0
+				PRINTFORMDL 豊姫は通りすがりの村人に声をかけたようだ……
+				PRINTFORMDW 
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORMDL 村人は豊姫をジロジロと見た後、『股を開け』と命令してきた
+						PRINTFORMDL 豊姫は木にもたれかかると、スカートをたくし上げ脚を広げた
+						PRINTFORMDL 豊姫のそこは、既にじんわりと湿っている
+						PRINTFORMDW 村人は一物を取り出すと、前戯を省略し豊姫の膣にペニスを突き込んだ……
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL いきずりの男女が交わる音が物陰から漏れてくる
+						PRINTFORMDL 対面立位の姿勢で交わる二人は、目も合わせず性器同士を打ち付け合っている
+						PRINTFORMDL 村人は短く息を吐きながら、一定のペースで腰を振っている
+						PRINTFORMDL 豊姫の漏らす声に甘さが混じってくる。そこでようやく、二人は目を合わせた
+						PRINTFORMDL 一つになった状態で、じっと見つめ合う二人
+						PRINTFORMDL 自然に唇が触れ合う。そして、村人が腰を振る速度を上げていく
+						PRINTFORMDL 豊姫もそれに応え、村人の背に手を回し膣を締める
+						PRINTFORMDW やがて村人が射精すると、豊姫も口をキュッと結び甘い絶頂に達した
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 行為が終わると、村人は衣服を整え足早にその場を立ち去った
+						PRINTFORMDW 後に残ったのはたっぷりと注がれた精液と、僅かばかりの喪失感だった
+					CASE 1
+						PRINTFORMDL 豊姫が声をかけた村人はいかにも農作業の帰りといった風体だ
+						PRINTFORMDL 「道に迷ってしまって」豊姫がそう言うと村人は親切に道案内をしようとした
+						PRINTFORMDW 豊姫は彼以外に人がいないことを確認すると、隣に並び彼の手を握った
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 案内の途中、豊姫は村人を誘い行為に及んだ
+						PRINTFORMDL 最初は驚いていた村人だが、豊姫がお礼がしたいと言うとすぐにその気になった
+						PRINTFORMDL 当然だろう。こんな女を抱ける機会など、生まれ変わったとしてもそうそう無いのだから
+						PRINTFORMDL たった一度の機会ならと、村人は雌を孕ませる腰遣いで豊姫を犯している
+						PRINTFORMDL 逞しい一物で膣奥を突かれ、豊姫は気持ち良さそうに腰をくねらせる
+						PRINTFORMDL 言葉も交わさず、ただがむしゃらに腰を打ち合う二人
+						PRINTFORMDL 村人が『ぐっ』とくぐもった声を上げる。そしてピッタリと腰を密着させると、大量の精液を豊姫のナカに注ぎ込んだ
+						PRINTFORMDL ご無沙汰ぶりの膣内射精に、村人は頭が真っ白になるような快感を味わう
+						PRINTFORMDW 豊姫はきゅうっと膣を締めながら、子宮に溜まっていく雄の熱を感じていた
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 気が済むまで交わった後、村人は当初の予定通り豊姫を安全な場所まで案内した
+						PRINTFORMDW 『また会えるか』そう言う村人に、豊姫は肯定も否定もしなかった
+					CASE 2
+						PRINTFORMDL いかにも女性に免疫が無さそうな村人は、豊姫を見て顔を赤らめている
+						PRINTFORMDL つっかえながら、なぜか敬語で喋る村人に豊姫はもたれかかった
+						PRINTFORMDL 驚く村人の耳元に顔を寄せ、「急に眩暈が…」と豊姫が囁く
+						PRINTFORMDW 村人は一切の下心なく、親切心で豊姫を小屋に案内した……
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 薄暗い小屋の中に、グチュグチュとペニスを咀嚼する音が響く
+						PRINTFORMDL その音の発生源で、豊姫は村人と騎乗位で交わっていた
+						PRINTFORMDL 豊姫に童貞を奪われた村人は、大きく口を開け喘いでいる
+						PRINTFORMDL ピッタリと恋人のように寄り添う膣肉の感触は、手とは比べ物にならないほどの快感を村人に与える
+						PRINTFORMDL 村人の頬に手を添え聖母のように微笑む豊姫だが、その腰遣いに一切の容赦はない
+						PRINTFORMDW 村人が射精する瞬間、豊姫はグッと腰を密着させ子宮で精液をすべて貪り喰った
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL あれから何度も交わった後、腰を抜かした村人を小屋に残し豊姫は立ち去った
+						PRINTFORMDW 残された村人は、それから女性恐怖症になり恋人を作ることもなかったという……
+				ENDSELECT
+				CFLAG:99:1001 += 1
+			;子供
+			CASE 1
+				PRINTFORMDL 豊姫は道で遊んでいた子供に声をかけたようだ……
+				PRINTFORMDW 
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORMDL 茂みの中で、豊姫は子供の小さなペニスをしゃぶっている
+						PRINTFORMDL 子供は豊姫を妖怪だと思っているのか、怯えて動くことすらできない
+						PRINTFORMDL だが躰ば敏感に反応し、小指サイズのペニスはピクピクと痙攣している
+						PRINTFORMDW 『怖がらなくていいからね』豊姫はそう言うと、子供に跨りゆっくりと腰をおろした……
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 豊姫はゆったりと腰を遣い、子供の反応を見て楽しんでいる
+						PRINTFORMDL 子供はいままで経験したことのない快感に喘ぎ、酸欠のように口をパクつかせている
+						PRINTFORMDW 不意に豊姫が膣を締めると、子供はビクンと躰を震わせた
+						SETCOLOR C_PINK
+						PRINTFORMW ……ぴゅくっ……ぴゅっ……びくっ……ぴゅっ……
+						CALL M_KOJO_COLOR_K99
+						PRINTFORMDL 膣肉に包まれた子供ペニスが小さく痙攣し、精液が吐き出されていく
+						PRINTFORMDL 『ごめんなさい』と子供が謝る。きっとおもらしをしてしまったのだと思ったのだろう
+						PRINTFORMDW 豊姫は「いいのよ」と言うと、子供の唇にそっと口付けをした
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 子供との行為を終えた豊姫が戻ってくる
+						PRINTFORMDW 隣に並んだ豊姫は、なんだかいつもより肌が艶々としている気がした
+						CFLAG:99:1001 += 1
+					CASE 1
+						PRINTFORMDL 豊姫は子供を物陰に連れ込むと、スカートの裾をたくし上げ熟れた女の部分を見せつけた
+						PRINTFORMDL 子供は顔を真っ赤にし、恥ずかしそうに目を逸らしている
+						PRINTFORMDW その初々しい反応に興が乗ってきた豊姫は、「触ってみる？」と子供に囁きかけた
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 子供は豊姫の蜜穴にゆっくりと指を抜き差ししている
+						PRINTFORMDL 粘っこく濡れた秘所は指の侵入を嬉々として受け入れ、キュッキュッと膣の肉でもって締め付けている
+						PRINTFORMDL 遠慮しながらも、その光景に目を奪われる子供
+						PRINTFORMDL 豊姫は気持ち良さそうに喘ぎながら、子供の拙い愛撫を褒めそやす
+						PRINTFORMDL 不意に、子供が『あっ』と声を上げビクビクと躰を震わせる
+						PRINTFORMDL どうしたのかと豊姫が目を向けると、子供のズボンにじんわりと染みが広がっていた
+						PRINTFORMDL あまりに興奮しすぎて、ズボンに擦れただけで射精してしまったのだ
+						PRINTFORMDW 豊姫はクスリと笑うと、半泣きになっている子供を抱き寄せポンポンと頭を撫でた
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 子供を見送ると、豊姫は%CALLNAME:MASTER%のもとに戻ってきた
+						PRINTFORMDW 『どうだった？』%CALLNAME:MASTER%がそう言うと、豊姫はスカートをたくし上げグショグショに濡れた秘所を見せつけきた
+						CFLAG:99:1001 += 1
+					CASE 2
+						PRINTFORMDL 豊姫が子供と話していると、ゾロゾロと他の子供たちが集まってきた
+						PRINTFORMDL かくれんぼの途中だったらしい。どの子も二次性徴を迎えたばかりといった感じだ
+						PRINTFORMDW 丁度良い。そう思った豊姫は、子供たちをまとめて筆おろしすることにした……
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 豊姫は子供たちを順番に筆おろししている
+						PRINTFORMDL 初めて女体の気持ち良さを知った子供は、まるで猿のように腰を振りたくっている
+						PRINTFORMDL 一人は豊姫にペニスをしゃぶられ、もう二人は手でペニスを扱かれている
+						PRINTFORMDL 膣に挿入していた子供が射精すると、今度はしゃぶられていた子供が豊姫の膣にペニスを挿入した
+						PRINTFORMDL 愛液と精液でヌルヌルに濡れた膣肉が、子供のペニスに絡みつく
+						PRINTFORMDL あまりの気持ち良さにすぐに射精してしまう子供
+						PRINTFORMDL 「次はどっち？」と豊姫が言う
+						PRINTFORMDL 『俺！』『いや僕だ！』と、ペニスを扱いてあげていた子供が喧嘩を始める
+						PRINTFORMDW まだ子供だが、雌を奪い合うその姿は立派な雄そのものだった
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 行為が終わると、子供たちはまるで何も無かったかのようにかくれんぼの続きを始めた
+						PRINTFORMDW 豊姫は子宮にたっぷりと子供精液を溜めたまま、暫しその光景を眺めていた……
+						CFLAG:99:1001 += 4
+				ENDSELECT
+			;妖怪
+			CASE 2
+				PRINTFORMDL 豊姫は森の中で妖怪に声をかけたようだ……
+				PRINTFORMDW 
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORMDL 妖怪は鼻息を荒くしながら豊姫を茂みに連れ込んだ
+						PRINTFORMDL そして乱暴に押し倒すと、舌なめずりをし服をはぎ取った
+						PRINTFORMDL 服の下からでも存在を主張していた巨乳がブルンとまろびでる
+						PRINTFORMDL 妖怪はそれを鷲掴みにすると、先端の桃色の乳首にむしゃぶりついた
+						PRINTFORMDL ジュルジュルと女体を貪る音が茂みの中から響く
+						PRINTFORMDW 豊姫は目を伏せ、辱めに耐えている……
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 妖怪は豊姫に股を広げさせると、はち切れんばかりに勃起した肉棒を取り出した
+						PRINTFORMDL 人間のものとは違う、グロテスクな形をしたそれに目を奪われる豊姫
+						PRINTFORMDW 妖怪は数度、豊姫の秘所に肉棒を擦り付けると、ゆっくりと、馴染ませるように挿入していった
+						SETCOLOR C_PINK
+						PRINTFORML ……ぐちゅ……ちゅ……
+						PRINTFORMW ……はぁ……はぁ……
+						CALL M_KOJO_COLOR_K99
+						PRINTFORMDL 膣の肉を掻き分け、グロテスクなそれが出入りする
+						PRINTFORMDL あまりの気持ち良さに、妖怪はおとがいを上げダラダラと涎を垂らしている
+						PRINTFORMDW 豊姫も慣れてきたのか、漏れる声には少しずつ甘さが混じっていく
+						SETCOLOR C_PINK
+						PRINTFORMW ……ぎちゅ……ぐちゅ……ぱん……ぱん……
+						CALL M_KOJO_COLOR_K99
+						PRINTFORMDL 妖怪の動きは激しさを増していく
+						PRINTFORMDW 子宮ごと押し上げるような激しい抽挿に、豊姫は気持ち良さを隠せなくなっていく
+						SETCOLOR C_PINK
+						PRINTFORMW ……ずんっ……びちっ……びゅっ……どくっ……どくっ……
+						CALL M_KOJO_COLOR_K99
+						PRINTFORMDL 絶頂の瞬間、妖怪は腰を深く突き入れると豊姫の一番奥に精を放った
+						PRINTFORMDW 豊姫はふぅふぅと鼻息を荒くしながら、獣の種付けを受け入れている……
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						SETCOLOR C_PINK
+						PRINTFORMW ……ずるんっ……
+						CALL M_KOJO_COLOR_K99
+						PRINTFORMDL 妖怪が腰を引くと、一回り小さくなった肉棒が豊姫の膣から引き抜かれた
+						PRINTFORMDW ぱっくりと口を開けたままの膣口からは、注がれた精液がとめどなく溢れ出ていた……
+					CASE 1
+						PRINTFORMDL 妖怪は自分のねぐらである洞窟に豊姫を連れ込んだ
+						PRINTFORMDL じめじめとした空気、散乱した骨のようなもの。月人でなくても目を顰めたくなるような光景だ
+						PRINTFORMDL 妖怪は粗末なベッドのようなものに豊姫を座らせた
+						PRINTFORMDL ふと目をやると、シラミのような生き物が這っているのが見えた
+						PRINTFORMDW 豊姫は早くも、ここに来たことを後悔し始めていた……
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 妖怪は豊姫の隣に座ると、さっそく胸を揉みしだいてきた
+						PRINTFORMDL ぐにぐにと、まるで初めて触ったかのように下手な愛撫
+						PRINTFORMDL 不細工な顔をさらに不細工に歪め、ブヒブヒと豚のように鳴いている
+						PRINTFORMDL 早く終わって欲しい。そう思った豊姫はベッドに横になると、脚を広げ妖怪を誘った
+						PRINTFORMDW 妖怪は垂れた涎を拭うこともなく、息を荒げ豊姫に覆い被さった……
+						SETCOLOR C_PINK
+						PRINTFORMW ……ぐちゅっ……ぎしっ……ぎしっ……ぐちゅっ……
+						CALL M_KOJO_COLOR_K99
+						PRINTFORMDL 薄暗い洞窟にベッドが軋む音と男女が交わる音が響く
+						PRINTFORMDL 妖怪は豊姫の負担を一切考えるこなく、獣のように腰を振っている
+						PRINTFORMDL 月人のおまんこの気持ち良さに、妖怪は完全に理性を飛ばしていた
+						PRINTFORMDW ぶるんぶるんと揺れる胸を揉みしだき、子宮を小突き、臭い息を吐きながら舌を絡ませている
+						SETCOLOR C_PINK
+						PRINTFORMW ……ぼびゅっ！……びゅっ！……どくっ！……どくんっ！……
+						CALL M_KOJO_COLOR_K99
+						PRINTFORMDL 汚泥のような精液を注ぎ込まれ、豊姫は嫌悪感に息を震わせる
+						PRINTFORMDW 妖怪は精液を注ぎ終えると、再び腰を動かし始めた……
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 最後の一滴を吐き出し終えると、妖怪は豊姫と繋がったまま眠りに落ちた
+						PRINTFORMDW 豊姫のお腹は、まるで妊娠したかのように大きく膨らんでいた……
+					CASE 2
+						PRINTFORMDL 豊姫が声をかけた妖怪は筋肉質な妖怪だった
+						PRINTFORMDL 妖怪は豊姫の腰に手をまわすと、『本当にいいんだな』と囁いた
+						PRINTFORMDW 豊姫はチラリと%CALLNAME:MASTER%の方を見ると、コクリと微笑み頷いた……
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 妖怪は豊姫を壁に押さえつけ、その躰を貪っている
+						PRINTFORMDL 巧みな愛撫に豊姫はすっかりその気になっており、秘所をしとどに濡らしている
+						PRINTFORMDW 妖怪が立派な一物を取り出すと、豊姫は尻を突き出し挿入をねだった……
+						SETCOLOR C_PINK
+						PRINTFORMW ……ぬちっ……ずっ……ぐちゅっ……
+						CALL M_KOJO_COLOR_K99
+						PRINTFORMDL 立ちバックの姿勢で豊姫と妖怪は交わっている
+						PRINTFORMDL 妖怪が腰を打ち付ける度に尻肉が波打ち、豊姫が嬌声を上げる
+						PRINTFORMDL 翻弄してやろうと思っていた妖怪は、極上の名器の感触にすっかり我を忘れてしまっていた
+						PRINTFORMDW 一度目の射精の後、腰を抜かした妖怪に豊姫は跨ると、腰をグラインドさせペニスを膣で扱き倒した
+						SETCOLOR C_PINK
+						PRINTFORMW ……たんっ……ぬちっ……たんっ……ぬちゅっ……
+						CALL M_KOJO_COLOR_K99
+						PRINTFORMDL 二度、三度と射精しても豊姫は妖怪を解放しない
+						PRINTFORMDL 萎えそうになっても、豊姫の膣がそれを許さないのだ
+						PRINTFORMDL 豊姫は%CALLNAME:MASTER%の名前を呼びながら、髪を振り乱し喘いでいる
+						PRINTFORMDW 喘ぐだけの存在になった妖怪は、自分がただのバイブに過ぎなかったことを知り涙を流した
+						PRINTFORMDL ………
+						PRINTFORMDL ……
+						PRINTFORMDW …
+						PRINTFORMDL 五度目の射精が終わると、豊姫はようやく腰を持ち上げた
+						PRINTFORMDL 引き抜かれたペニスはすっかり元気を無くし、フニャフニャの粗チンになっている
+						PRINTFORMDW 豊姫は服を整えると、気絶した妖怪を放置して%CALLNAME:MASTER%のもとに戻った
+				ENDSELECT
+				CFLAG:99:1001 += 1
+		ENDSELECT
+		PRINTFORMDL 
+		PRINTFORMDL 豊姫の感想
+		CALL M_KOJO_COLOR_K99
+		SELECTCASE RAND:3
+			CASE 0
+				CALL HPH_PRINT,@"「まあ……良くなかったと言ったら嘘になるけど……HPH」","L"
+			CASE 1
+				PRINTFORML 「うーん……普通、かしら……」
+			CASE 2
+				PRINTFORML 「私はやっぱり、貴方の方が……」
+		ENDSELECT
+		PRINTFORMDW 
+		BASE:99:体力 -= 500
+		BASE:99:気力 -= 500
+		TIME += 30
 	ENDIF
 ENDIF
+RESETCOLOR
 RETURN 1
 
 ;==================================================
