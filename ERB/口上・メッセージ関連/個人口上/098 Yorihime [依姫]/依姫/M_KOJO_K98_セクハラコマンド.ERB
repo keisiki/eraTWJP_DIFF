@@ -1,0 +1,1070 @@
+﻿;※※※※※※※※※※※※※※※※※※※※※※※※※
+;セクハラ系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;310,尻を撫でる
+;TFLAG:193(1=不快(TALENT:臆病なら涙目) 2&&3=恥ずかしがる(TALENT:男嫌い兼MASTERが男なら、身をすくめる) 4=されるがまま)
+;CFLAG:うふふ==2&&TCVAR:20(パンツ無し顔面騎乗(70=クンニ強制 71=フェラチオ強制 72=アナル奉仕) 35=スカート内見せつけ 52=素股)
+;CFLAG:うふふ==2&&TEQUIP:シックスナイン(パンツありTCVAR:20(70～72)はこちら)
+;PREVCOM(305=膝枕
+;TFLAG:400(1=デート先or地底のモブが反応する)
+;==================================================
+@M_KOJO_SUCCESS_COM_K98_310
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;（任意）:通常の地の文を表示するかスキップするか決定する。
+;MESSAGECHECK関数は、以下のような戻り値を返す
+;RETURN 0;通常地の文と口上を表示
+;RETURN 1;口上のみ表示
+;RETURN 2;通常地の文のみ表示
+;RETURN 3;どちらも表示しない
+;以下原文
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K98_310
+RETURN 1
+
+@M_KOJO_MESSAGE_COM_K98_310
+CALL D_LINE
+CALL M_KOJO_MESSAGE_COM_K98_310_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K98_310_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:時間停止
+		CALL TRAIN_MESSAGE
+		RETURN 1
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		CALL TRAIN_MESSAGE
+		RETURN 1
+	;押し倒され
+	ELSEIF CFLAG:うふふ == 2
+		CALL TRAIN_MESSAGE
+		RETURN 1
+	;通常
+	ELSE
+		PRINTFORMDL あなたは\@ PREVCOM == 305 ? 膝に寝転んだまま # 背後から \@%CALLNAME:TARGET%の%HIP(TARGET)%に手を伸ばした
+		;恋人
+		IF TALENT:恋人
+			PRINTFORMDL %CALLNAME:TARGET%は照れくさそうな表情を浮かべながらもあなたにされるがままになっている……
+			PRINTFORMDW 
+			;発情顔絵を表示（オプションでオンにしていないと表示されない）
+			;お風呂
+			IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+				CALL PRINT_FACE, [[依姫]], "恥発情", "裸", "", ""
+			;それ以外
+			ELSE
+				CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+			ENDIF
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL あなたは%CALLNAME:TARGET%の尻を鷲掴みにし、いやらしく揉みしだいた
+					CALL HPH_PRINT,@"「…………HPH」","L"
+					PRINTFORMDW %CALLNAME:TARGET%はなにか言いたげにあなたを見ている……
+				CASE 1
+					CALL HPH_PRINT,@"「……今更やめろとは言いませんけど……でも、人前では……HPH」","L"
+					PRINTFORMDL 恋人なんだからこれくらい当然だろう
+					PRINTFORMDW あなたはそう言って、%CALLNAME:TARGET%の尻を揉み続けた
+				CASE 2
+					PRINTFORMDL あなたは%CALLNAME:TARGET%の尻を揉みしだきながら耳元で行為のお誘いをした
+					CALL HPH_PRINT,@"「――シたいって……ぇ、今から……？HPH」","L"
+					PRINTFORMDW もう少し押せば、%CALLNAME:TARGET%は普通に受け入れてくれそうだ……
+			ENDSELECT
+		;恋慕
+		ELSEIF TALENT:恋慕
+			PRINTFORMDL %CALLNAME:TARGET%は顔を赤らめて %CALLNAME:PLAYER%の手を払いのけた……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					;顔絵を表示（オプションでオンにしていないと表示されない）
+					;お風呂
+					IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+						CALL PRINT_FACE, [[依姫]], "通常", "裸", "", ""
+					;それ以外
+					ELSE
+						CALL PRINT_FACE, [[依姫]], "通常", "服", "", ""
+					ENDIF
+					PRINTFORML 「――反応がつまらない？」
+					PRINTFORML 「いい加減慣れましたよ、もう」
+					PRINTFORMDW %CALLNAME:TARGET%は溜息をつくと、あなたの手の甲を軽く抓った
+				CASE 1
+					PRINTFORMDL あなたはお尻を撫でながら%CALLNAME:TARGET%を褒めた
+					;顔絵を表示（オプションでオンにしていないと表示されない）
+					;お風呂
+					IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+						CALL PRINT_FACE, [[依姫]], "通常", "裸", "", ""
+					;それ以外
+					ELSE
+						CALL PRINT_FACE, [[依姫]], "通常", "服", "", ""
+					ENDIF
+					PRINTFORML 「……お尻を撫でながら言うことがそれですか？」
+					PRINTFORMDW %CALLNAME:TARGET%はジト目であなたを見ている……
+				CASE 2
+					PRINTFORML 「甘いっ！」
+					PRINTFORMDW お尻を撫でようとした手を%CALLNAME:TARGET%にガシッと掴まれた
+					;発情顔絵を表示（オプションでオンにしていないと表示されない）
+					;お風呂
+					IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+						CALL PRINT_FACE, [[依姫]], "恥発情", "裸", "", ""
+					;それ以外
+					ELSE
+						CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+					ENDIF
+					PRINTFORML 「ふふっ。来ると分かっていれば不覚を取ることなど――なぁっ！？」
+					PRINTFORMDW 『まだまだ甘い』そう言って、あなたは自由な方の手で%CALLNAME:TARGET%の尻を揉みしだいた
+			ENDSELECT
+		;思慕
+		ELSEIF TALENT:思慕
+			PRINTFORMDL %CALLNAME:TARGET%は小さく悲鳴を上げて身を竦めた……
+			PRINTFORMDW 
+			;発情顔絵を表示（オプションでオンにしていないと表示されない）
+			;お風呂
+			IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+				CALL PRINT_FACE, [[依姫]], "恥発情", "裸", "", ""
+			;それ以外
+			ELSE
+				CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+			ENDIF
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ふゃっ！？」
+					PRINTFORMDL お尻を撫でると%CALLNAME:TARGET%が情けない声を上げるのが面白い
+					PRINTFORMW 「貴方もお姉様も……はぁ、もう……」
+				CASE 1
+					PRINTFORML 「ひゃんっ！？」
+					PRINTFORMDL %CALLNAME:TARGET%の形の良いお尻をあなたの手が這いまわる
+					PRINTFORMDW 普段はお堅いくせに、お尻のガードは笑ってしまうくらいユルユルだ……
+				CASE 2
+					PRINTFORML 「ああ、もうっ！ いつまで撫でてるんですかっ！」
+					PRINTFORMDL しつこくお尻を撫でていたらついに%CALLNAME:TARGET%が怒った
+					PRINTFORMDW プンプンと怒る姿も凛々しくて美しい
+			ENDSELECT
+		;それ以外
+		ELSE
+			PRINTFORMDL %CALLNAME:TARGET%は不快感をあらわにした表情であなたの手を払いのけた…
+			PRINTFORMDW 
+			;発情顔絵を表示（オプションでオンにしていないと表示されない）
+			;お風呂
+			IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+				CALL PRINT_FACE, [[依姫]], "恥発情", "裸", "", ""
+			;それ以外
+			ELSE
+				CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+			ENDIF
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL あなたは丁度そこにあった%CALLNAME:TARGET%のお尻をつるんと撫で上げた
+					PRINTFORML 「ふぇあっ！？」
+					PRINTFORMDW %CALLNAME:TARGET%は奇妙な声を上げて飛び上がった後、プルプルと震えながらあなたを睨みつけた
+				CASE 1
+					PRINTFORML 「っ、お姉様！ あれほどお尻は触らないでと……え？」
+					PRINTFORMDL あなたと目が合った%CALLNAME:TARGET%がピキッと凍り付く
+					PRINTFORMDW 『ナイスアス！』あなたがサムズアップするのと同時に%CALLNAME:TARGET%の平手が頬を打ち付けた
+				CASE 2
+					PRINTFORML 「っ……いい加減にしないと成敗しますよ？」
+					PRINTFORMDL %CALLNAME:TARGET%があなたの手を掴み上げる
+					PRINTFORMDW 『ごめんなさい』と謝罪すると、%CALLNAME:TARGET%は「……ふぅ」と息を吐いてあなたの手を離した
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;311,抱き付く
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;CFLAG:うふふ==2&&TCVAR:20(32=前から抱きつく 60=ディープキス 73=ぱふぱふ 74=乳合わせ 77=乳を吸わせる ＶＡ性交(85=Ｖ挿入する 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ) 86=だいしゅきホールド)
+;TFLAG:400(1=デート先or地底のモブが反応する)
+;==================================================
+@M_KOJO_SUCCESS_COM_K98_311
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K98_311
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K98_311
+CALL M_KOJO_MESSAGE_COM_K98_311_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K98_311_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:時間停止
+		PRINTFORML
+		RETURN 1
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		PRINTFORML
+		RETURN 1
+	;押し倒され
+	ELSEIF CFLAG:うふふ == 2
+		PRINTFORML
+		RETURN 1
+	;通常
+	ELSE
+		;恋人
+		IF TALENT:恋人
+			;笑顔絵を表示（オプションでオンにしていないと表示されない）
+			;お風呂
+			IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+				CALL PRINT_FACE, [[依姫]], "笑顔", "裸", "", ""
+			;それ以外
+			ELSE
+				CALL PRINT_FACE, [[依姫]], "笑顔", "服", "", ""
+			ENDIF
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL %CALLNAME:TARGET%は辺りを見回した後……
+					PRINTFORML 「……ふふっ♪」
+					PRINTFORMDW 嬉しそうに、あなたの胸に飛び込んだ……
+				CASE 1
+					PRINTFORMDL %CALLNAME:TARGET%があなたの背中に手を回す
+					PRINTFORML 「……愛しています。%CALLNAME:MASTER%」
+					PRINTFORMDW 自分もだと、あなたは%CALLNAME:TARGET%の背を優しく擦った
+				CASE 2
+					PRINTFORML 「いつでもこうして触れ合えるのに、離れたくないと思ってしまう……」
+					PRINTFORML 「私は……我儘なのでしょうか……」
+					PRINTFORMDW そんなことはない。そう言うかのように、あなたは%CALLNAME:TARGET%を強く抱きしめた
+			ENDSELECT
+		;恋慕
+		ELSEIF TALENT:恋慕
+			;笑顔絵を表示（オプションでオンにしていないと表示されない）
+			;お風呂
+			IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+				CALL PRINT_FACE, [[依姫]], "笑顔", "裸", "", ""
+			;それ以外
+			ELSE
+				CALL PRINT_FACE, [[依姫]], "笑顔", "服", "", ""
+			ENDIF
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「……いつまでもこうしているわけにはいきませんね」
+					PRINTFORMDL %CALLNAME:TARGET%はそう言うと名残惜しそうにあなたから離れた
+					PRINTFORMDW これで少しは彼女を癒すことができただろうか
+				CASE 1
+					PRINTFORML （……温かい……）
+					PRINTFORML （凄く……安心する……）
+					PRINTFORMDW %CALLNAME:TARGET%はあなたの胸に顔を埋め、目を閉じた……
+				CASE 2
+					PRINTFORMDL %CALLNAME:TARGET%を抱きしめる。恥ずかしいのか、彼女の心臓の鼓動はとても早い
+					PRINTFORML 「か、揶揄わないでください……」
+					PRINTFORMDW と言いつつも、%CALLNAME:TARGET%の手はしっかりとあなたの背に回っていた
+			ENDSELECT
+		;思慕
+		ELSEIF TALENT:思慕
+			;発情顔絵を表示（オプションでオンにしていないと表示されない）
+			;お風呂
+			IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+				CALL PRINT_FACE, [[依姫]], "恥発情", "裸", "", ""
+			;それ以外
+			ELSE
+				CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+			ENDIF
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「――緊張してるのかって……そりゃあ、少しくらいは……」
+					PRINTFORML 「…………それを言うなら貴方だって」
+					PRINTFORMDW 二人は抱き合ったまま互いの心臓の音を感じ合った
+				CASE 1
+					PRINTFORML 「う”っ……」
+					PRINTFORMDL そんな嫌そうな反応をしなくても、とあなたは傷付いたフリをしてみせた
+					PRINTFORMW 「そんなことは……っていつまで抱き付いてるんですか」
+				CASE 2
+					PRINTFORML 「んっ……」
+					PRINTFORMDL %CALLNAME:TARGET%を抱きしめると、ふわりと彼女の甘い香りがする
+					PRINTFORMDW まだ慣れないのか、%CALLNAME:TARGET%の方から手を回してくることはなかった
+			ENDSELECT
+		;それ以外
+		ELSE
+			;発情顔絵を表示（オプションでオンにしていないと表示されない）
+			;お風呂
+			IF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+				CALL PRINT_FACE, [[依姫]], "恥発情", "裸", "", ""
+			;それ以外
+			ELSE
+				CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+			ENDIF
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「――な、ちょっ！ 離しなさい！」
+					PRINTFORML （こんなところ、誰かに見られたら……っ！）
+					PRINTFORMDW %CALLNAME:TARGET%はあなたを押しのけながら、キョロキョロと辺りを見回している……
+				CASE 1
+					PRINTFORMDL あなたは正面から堂々と%CALLNAME:TARGET%を抱き締めた
+					PRINTFORML 「くっ、ふざけるのも大概に……っ！」
+					PRINTFORMDW %CALLNAME:TARGET%は間に手を入れ、密着を阻止している……
+				CASE 2
+					PRINTFORMDL ガバッと%CALLNAME:TARGET%に抱きつくと、思いっきり突き飛ばされてしまった
+					PRINTFORML 「っ、いきなり何を……っ！」
+					PRINTFORMDW %CALLNAME:TARGET%は顔を真っ赤にして、尻もちをつくあなたを睨んでいる……
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;312,キスする
+;TFLAG:193(99=拒絶(キス不可) 1=大成功 0=成功 -1=失敗)
+;CFLAG:うふふ==2&&TCVAR:20(32=前から抱きつく 50=手淫 60=キス 性交(85=Ｖ挿入する 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ) 86=だいしゅきホールド)
+;PREVCOM(305=膝枕
+;TFLAG:400(1=デート先or地底のモブが反応する)
+;==================================================
+@M_KOJO_SUCCESS_COM_K98_312
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K98_312
+RETURN 1
+
+@M_KOJO_MESSAGE_COM_K98_312
+CALL D_LINE
+CALL M_KOJO_MESSAGE_COM_K98_312_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K98_312_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:時間停止
+		CALL TRAIN_MESSAGE
+		RETURN 1
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		CALL TRAIN_MESSAGE
+		RETURN 1
+	;押し倒され
+	ELSEIF CFLAG:うふふ == 2
+		CALL TRAIN_MESSAGE
+		RETURN 1
+	;失敗
+	ELSEIF TFLAG:193 == 99
+		PRINTFORMDL キスをしようとしたが、%CALLNAME:TARGET%にドン引きされてしまった……
+		PRINTFORMDW 
+		;怒り顔絵を表示（オプションでオンにしていないと表示されない）
+		CALL PRINT_FACE, [[依姫]], "怒り", "服", "", ""
+		PRINTFORML 「……弁明があるのなら聞きますが」
+		PRINTFORMDL %CALLNAME:TARGET%は今にも斬りかかってきそうな殺気を放っている
+		PRINTFORMDW ここは素直に謝っておいたほうがよさそうだ……
+	;通常
+	ELSE
+		;前回膝枕
+		IF PREVCOM == 305
+			PRINTFORMDL %CALLNAME:PLAYER%は膝元から身体を起こし%CALLNAME:TARGET%の唇にそっと口づけした
+		ELSE
+			PRINTFORMDL %CALLNAME:PLAYER%は%CALLNAME:TARGET%の口を、自分の口で塞いだ
+		ENDIF
+		;恋人
+		IF TALENT:恋人
+			PRINTFORMDL %CALLNAME:TARGET%はあなたの口唇をこじ開けて舌を絡めてきた……
+			PRINTFORMDW 
+			SELECTCASE RAND:3
+				CASE 0
+					;発情顔絵を表示（オプションでオンにしていないと表示されない）
+					CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+					PRINTFORMDL 唇をこじ開け舌を絡ませてくる%CALLNAME:TARGET%の肩を、あなたは遠慮がちにトントンと叩いた
+					CALL HPH_PRINT,@"「んむ……ぷはぁ……っHPH ぁ……私ったら何を……」","L"
+					PRINTFORMDW 積極的だなとあなたが言うと、%CALLNAME:TARGET%は顔を赤面させ恥ずかしそうに項垂れた
+				CASE 1
+					;笑顔絵を表示（オプションでオンにしていないと表示されない）
+					CALL PRINT_FACE, [[依姫]], "笑顔", "服", "", ""
+					CALL HPH_PRINT,@"「んむ……ん……HPH」","L"
+					PRINTFORMDL ゆっくりと顔を離すと、触れ合っていた%CALLNAME:TARGET%の唇が名残を惜しむように吸い付いてくる
+					PRINTFORMDW ほぅっと息を漏らす%CALLNAME:TARGET%を、あなたは優しく抱きしめた
+				CASE 2
+					;笑顔絵を表示（オプションでオンにしていないと表示されない）
+					CALL PRINT_FACE, [[依姫]], "笑顔", "服", "", ""
+					CALL HPH_PRINT,@"「ちゅ……ちゅ……はぁ……んむ……っHPH」","L"
+					PRINTFORMDL %CALLNAME:TARGET%を抱き寄せ、甘い唇を何度も啄む
+					PRINTFORMDW 唇を離すと、%CALLNAME:TARGET%はあなたの頬に手を添え、一度だけ啄み返してきた
+			ENDSELECT
+		;恋慕
+		ELSEIF TALENT:恋慕
+			PRINTFORMDL %CALLNAME:TARGET%は頬を赤く染めている……
+			PRINTFORMDW 
+			;発情顔絵を表示（オプションでオンにしていないと表示されない）
+			CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ま、待ってください……目を閉じますから……」
+					PRINTFORMDL まるでぶたれる前の子供のように%CALLNAME:TARGET%がギュッと目を閉じる
+					PRINTFORMDW 受け入れてくれるのは嬉しいが、もう少し余裕を持って欲しい
+				CASE 1
+					CALL HPH_PRINT,@"「ふむっ！？HPH んん……ちゅ……っHPH」","L"
+					PRINTFORMDL 唇を奪った瞬間、微かに目を見開いた%CALLNAME:TARGET%だが、
+					PRINTFORMDW あなたがもう一度唇を重ねると、すぐに目を細め肩の力を抜いた……
+				CASE 2
+					CALL HPH_PRINT,@"「ん……HPH」","L"
+					PRINTFORMDL 数秒、あなたと%CALLNAME:TARGET%の唇が触れ合う
+					PRINTFORMDW それだけだが、それで十分にお互いを感じることができた
+			ENDSELECT
+		;思慕
+		ELSEIF TALENT:思慕
+			PRINTFORMDL %CALLNAME:TARGET%は照れくさそうにしている……
+			PRINTFORMDW 
+			;発情顔絵を表示（オプションでオンにしていないと表示されない）
+			CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「キス……って、ぇ、あっ！」
+					PRINTFORMDL %CALLNAME:TARGET%の腰に手を回し、顔を近付け唇を触れ合わせる
+					PRINTFORMDW %CALLNAME:TARGET%は目を見開いたまま、完全に思考停止している……
+				CASE 1
+					PRINTFORML 「んん……っ」
+					PRINTFORMDL %CALLNAME:TARGET%は口を真一文字に結んだまま固まっている
+					PRINTFORMDW もう少し柔らかい感触が欲しいと思ったあなたは、唇を離すと今度は彼女の頬にキスをした
+				CASE 2
+					PRINTFORML 「ん……ふぅ……っ」
+					PRINTFORMDL %CALLNAME:TARGET%の首元に手を添え、軽く引き寄せキスをする
+					PRINTFORMDW 顔にかかる%CALLNAME:TARGET%の鼻息が少しだけこそばゆい
+			ENDSELECT
+		;それ以外
+		ELSE
+			PRINTFORMDL %CALLNAME:TARGET%は突然の事に驚いているようだ……
+			PRINTFORMDW 
+			;発情顔絵を表示（オプションでオンにしていないと表示されない）
+			CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL あなたは隣で%CALLNAME:TARGET%の名前を呼んだ
+					PRINTFORML 「はい――んむっ！？」
+					PRINTFORMDW 振り向きざまに唇を奪うと、%CALLNAME:TARGET%は驚き目を見開いた
+				CASE 1
+					PRINTFORML 「っ、んんっ！？」
+					PRINTFORMDL 不意打ち気味に唇を奪うと、すぐに平手が飛んでくる
+					PRINTFORMDW あなたはそれを華麗に避けると、%CALLNAME:TARGET%にニッコリと微笑んだ
+				CASE 2
+					PRINTFORML 「……っ！」
+					PRINTFORMDL 間に合わないと思ったのか%CALLNAME:TARGET%は反射的に目を閉じた
+					PRINTFORMDW そんなに緊張しなくても。あなたは苦笑いを浮かべつつ、%CALLNAME:TARGET%にそっと口付けた
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;313,胸愛撫
+;CFLAG:うふふ==2&&TCVAR:20(27=谷間を見せる 33=胸を揉ませる 53=パイズリ(小分岐は地の文EVENT_MESSAGE_COM_セクハラ.ERB参照) 73=ぱふぱふ 77=乳を吸わせる 性交(85=Ｖ挿入する 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ) 86=だいしゅきホールド)
+;ABL:Ｂ感覚(2未満=性的には感じてない 5未満=多少感じてる 5以上=カイカン)
+;TFLAG:400(1=デート先or地底のモブが反応する)
+;乳のサイズでも変わる場合があるので、地の文EVENT_MESSAGE_COM_セクハラ.ERB参照
+;==================================================
+@M_KOJO_SUCCESS_COM_K98_313
+;成否判定
+;TFLAG:192(-1＝強制失敗
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K98_313
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K98_313
+CALL M_KOJO_MESSAGE_COM_K98_313_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K98_313_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:時間停止
+		PRINTFORML
+		RETURN 1
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		PRINTFORML
+		RETURN 1
+	;押し倒され
+	ELSEIF CFLAG:うふふ == 2
+		PRINTFORML
+		RETURN 1
+	;合意未取得
+	ELSEIF !GETBIT(CFLAG:既成事実 , 1)
+		;発情顔絵を表示（オプションでオンにしていないと表示されない）
+		CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+		PRINTFORMDL ……今ならいける。１００％いける
+		PRINTFORMDL そう確信したあなたは、正面から%CALLNAME:TARGET%の胸をガシッと鷲掴みにした
+		PRINTFORML 「きゃあぁあっっ！？！？」
+		PRINTFORMDW 柔らかい。そう思った時には、%CALLNAME:TARGET%の硬い拳があなたの顔面をしたたかに打ち据えていた
+		BASE:MASTER:体力 -= 250
+	;通常
+	ELSE
+		;発情顔絵を表示（オプションでオンにしていないと表示されない）
+		CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+		;恋慕orＢ感覚が１０以上
+		IF TALENT:恋慕 || ABL:Ｂ感覚 > 9
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「ま、まだ触るのですか……？HPH」","L"
+					PRINTFORMDL %CALLNAME:TARGET%は誰か来ないか気になって仕方がないらしい
+					PRINTFORMDW これだけ乳首が勃ってたら、今さら遅い気がするが……
+				CASE 1
+					CALL HPH_PRINT,@"「っ、もう……っHPH」","L"
+					PRINTFORMDL いきなり胸を触っても、%CALLNAME:TARGET%はちょっとした小言だけで許してくれるようになった
+					PRINTFORMDW だからといって調子に乗ると、長い長いお説教が始まるのだが……
+				CASE 2
+					CALL HPH_PRINT,@"「触るのは、いいですから……せめて……っHPH」","L"
+					PRINTFORM 「お布団…の……上で……」
+					PRINTFORMDL と消え入りそうな声でそう言う%CALLNAME:TARGET%
+					PRINTFORMDW あなたは胸から手を離すと、俯く彼女をギュッと抱きしめた
+			ENDSELECT
+		;思慕orＢ感覚が５以上
+		ELSEIF TALENT:思慕 || ABL:Ｂ感覚 > 4
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「ん、ぅ……っHPH」","L"
+					PRINTFORMDL 背後から%CALLNAME:TARGET%の胸をじっくりと揉みしだく
+					PRINTFORMDW 一度許してしまっているからか、抵抗は薄い……
+				CASE 1
+					CALL HPH_PRINT,@"「ん……んん……っHPH」","L"
+					PRINTFORMDL 会話をエッチな流れに持っていきつつ、さりげなくボディタッチを増やす
+					PRINTFORMDW そうして抵抗感が薄くなってきたところで、あなたは%CALLNAME:TARGET%の胸に手を伸ばした
+				CASE 2
+					PRINTFORMDL ……遠くから誰かの足音が聞こえてくる
+					PRINTFORML 「っっ！！」
+					PRINTFORMDW %CALLNAME:TARGET%はあなたから離れると、急いで着衣の乱れを整えた
+			ENDSELECT
+		;それ以外
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「っ、お願いですから、今は……っ」
+					PRINTFORMDL 背後から胸を揉みしだくあなたの手を%CALLNAME:TARGET%が掴む
+					PRINTFORMDW 引きはがそうとするが、上手く力が入らないようだ……
+				CASE 1
+					PRINTFORML 「っ！？ 貴方はまたそうやって！」
+					PRINTFORMDL 顔を真っ赤にして%CALLNAME:TARGET%が怒る
+					PRINTFORMDW ちょっとしつこすぎたかもしれない……
+				CASE 2
+					PRINTFORML 「だめ……服に皺が……っ」
+					PRINTFORMDL 服にシワがあるからって、胸を揉まれたなんて誰も思わないだろう
+					PRINTFORMDW もちろん、自分も気にしない……
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;314,アナル愛撫
+;CFLAG:うふふ==2&&TCVAR:20(72=アナル奉仕
+;CFLAG:うふふ==2&&TEQUIP:シックスナイン(パンツありTCVAR:20(70～72)はこちら)
+;ABL:Ａ感覚(2未満=受け入れられない 4未満=異物感に翻弄 4以上=カイカン)
+;TFLAG:400(1=デート先or地底のモブが反応する)
+;==================================================
+@M_KOJO_SUCCESS_COM_K98_314
+;成否判定
+;TFLAG:192(-1＝強制失敗
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K98_314
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K98_314
+CALL M_KOJO_MESSAGE_COM_K98_314_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K98_314_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:時間停止
+		PRINTFORML
+		RETURN 1
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		PRINTFORML
+		RETURN 1
+	;押し倒され
+	ELSEIF CFLAG:うふふ == 2
+		PRINTFORML
+		RETURN 1
+	;合意未取得or初めてアナルを触られた
+	ELSEIF !GETBIT(CFLAG:既成事実 , 1) || EXP:Ａ経験 == 1
+		;発情顔絵を表示（オプションでオンにしていないと表示されない）
+		CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+		PRINTFORMDL 『ケツがガラ空きだぜ！』とあなたは%CALLNAME:TARGET%のお尻にカンチョーを見舞った
+		PRINTFORML 「へぁあっ！？」
+		PRINTFORMDW %CALLNAME:TARGET%はお尻を押さえて飛び上がった後、ヘナヘナと崩れ落ちた……
+	;通常
+	ELSE
+		;発情顔絵を表示（オプションでオンにしていないと表示されない）
+		CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+		;Ａ感覚が１０以上
+		IF ABL:Ａ感覚 > 9
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"（認めたくない……こんなこと……HPH）","L"
+					CALL HPH_PRINT,@"（でも……気持ち良い……っHPH）","L"
+					PRINTFORMDW お尻をほじくられて、%CALLNAME:TARGET%は股を濡らしている……
+				CASE 1
+					CALL HPH_PRINT,@"「んん、ふぅっHPH んふ……ふぅ……っHPH」","L"
+					PRINTFORMDL つぷりと指を挿入すると、%CALLNAME:TARGET%のアヌスがキュッと締まった
+					PRINTFORMDW 『続けていいか』と囁くが、%CALLNAME:TARGET%は俯いたままうんともすんとも言わなかった
+				CASE 2
+					CALL HPH_PRINT,@"「っ、だ……だめ……っHPH」","L"
+					PRINTFORMDL 最後に残った僅かばかりの理性で止めるように懇願する%CALLNAME:TARGET%
+					CALL HPH_PRINT,@"「んふぁっHPH 奥、んんっHPH くふぅっHPH」","L"
+					PRINTFORMDW あなたが奥まで指を挿入れてやると、その理性もすぐに消えて無くなった
+			ENDSELECT
+		;Ａ感覚が４以上
+		ELSEIF ABL:Ａ感覚 > 3
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「ちょっと、そこは……っHPH」","L"
+					PRINTFORMDL 指先が臀裂へと近づく。何をされるか察した%CALLNAME:TARGET%が身動ぎをし侵入を防ぐ
+					PRINTFORMDW だが、本気で拒むつもりはないようだ。あなたは少しだけ手を動かして、指先を窄まりまで滑り込ませた
+				CASE 1
+					CALL HPH_PRINT,@"「っ、こんな時まで……っHPH」","L"
+					PRINTFORMDL お尻を弄られて感じているなんてことがバレたら%CALLNAME:TARGET%は終わりだろう
+					PRINTFORMDW だから%CALLNAME:TARGET%は努めて平静に、されるがままになるしかなかった
+				CASE 2
+					CALL HPH_PRINT,@"「い、今は止めてください……っHPH」","L"
+					PRINTFORMDL 『今』じゃなければ、いくらでも弄っていいのだろうか
+					PRINTFORMDW %CALLNAME:TARGET%のことだ。きっとそこまで考えていないだろう……
+			ENDSELECT
+		;それ以外
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「なぁっ！ どこを触って……っ！」
+					PRINTFORMDL %CALLNAME:TARGET%が慌てた様子であなたの手を振り払う
+					PRINTFORMDW そんなに恥ずかしがらなくてもいいのに……
+				CASE 1
+					PRINTFORML 「くぅっ、かくなる上は……っ！」
+					PRINTFORMDL 乱心した%CALLNAME:TARGET%が刀を抜こうとする
+					PRINTFORMDW 命の危険を感じたあなたは、慌てて%CALLNAME:TARGET%にジャンピング土下座した
+				CASE 2
+					PRINTFORML 「うっ！ そこはやめてくださいと、あれほど……っ！」
+					PRINTFORMDL %CALLNAME:TARGET%がお尻を押さえながらあなたから距離を取る
+					PRINTFORMDW まだまだ、慣れてもらうには時間が掛かりそうだ……
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;315,クリ愛撫
+;CFLAG:うふふ==2&&TCVAR:20(35=スカートの中を見せる 70=クンニ強制 85=Ｖ挿入する 86=だいしゅきホールド 87=Ａ挿入する 88=腰振りＶ 89=腰振り
+;ABL:Ｃ感覚(4未満=くすぐったい 6未満=ちょっといいかも 6以上=カイカン)
+;TFLAG:400(1=デート先or地底のモブが反応する)
+;==================================================
+@M_KOJO_SUCCESS_COM_K98_315
+;成否判定
+;TFLAG:192(-1＝強制失敗
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K98_315
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K98_315
+CALL M_KOJO_MESSAGE_COM_K98_315_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K98_315_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:時間停止
+		PRINTFORML
+		RETURN 1
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		PRINTFORML
+		RETURN 1
+	;押し倒され
+	ELSEIF CFLAG:うふふ == 2
+		PRINTFORML
+		RETURN 1
+	;合意未取得
+	ELSEIF !GETBIT(CFLAG:既成事実 , 1)
+		;発情顔絵を表示（オプションでオンにしていないと表示されない）
+		CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+		PRINTFORML 「へ……？」
+		PRINTFORMDL %CALLNAME:TARGET%のスカートの中に手を入れ、下着の上からぷにっと秘所に触れる
+		PRINTFORMDW %CALLNAME:TARGET%は一瞬フリーズした後、殺気剥き出しであなたの頬を引っ叩いた
+		BASE:MASTER:体力 -= 250
+	;通常
+	ELSE
+		;発情顔絵を表示（オプションでオンにしていないと表示されない）
+		CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+		;恋慕orＣ感覚が１０以上
+		IF TALENT:恋慕 || ABL:Ｃ感覚 > 9
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「こ、こんなところで……っHPH」","L"
+					PRINTFORMDL そう言う%CALLNAME:TARGET%だが、満更でもなさそうだ
+					PRINTFORMDW 現に、彼女は差し込まれた手を拒もうとはしていない……
+				CASE 1
+					CALL HPH_PRINT,@"「はぁ……はぁ……っHPH %CALLNAME:MASTER%……っHPH」","L"
+					PRINTFORMDL %CALLNAME:TARGET%が潤んだ瞳でこちらを見つめてくる
+					PRINTFORMDW 首筋にキスをすると、つーっと愛液が太ももを伝い落ちた
+				CASE 2
+					CALL HPH_PRINT,@"「――ぁっHPH」","L"
+					PRINTFORMDL グリグリと、%CALLNAME:TARGET%のお尻に硬いモノが押し付けられる
+					PRINTFORMDW %CALLNAME:TARGET%はゴクリと生唾を飲むと、あなたのそれを衣服の上から撫でまわした……
+			ENDSELECT
+		;思慕orＣ感覚が６以上
+		ELSEIF TALENT:思慕 || ABL:Ｃ感覚 > 5
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL あなたは手を動かしながら、%CALLNAME:TARGET%の耳元で『どうだ』と囁いた
+					CALL HPH_PRINT,@"「――っ、なってません……気持ち良くなんて……っHPH」","L"
+					PRINTFORMDW 自分は『どうだ』としか言ってないのだが、%CALLNAME:TARGET%は簡単に自白してくれた
+				CASE 1
+					CALL HPH_PRINT,@"「んんっHPH ――っ、ふぅHPH っんHPH」","L"
+					PRINTFORMDL 壁に%CALLNAME:TARGET%を押し付け、スカートの中に手を差し入れる
+					PRINTFORMDW %CALLNAME:TARGET%は声が漏れないように、自ら口を押えている……
+				CASE 2
+					CALL HPH_PRINT,@"「だ、誰か来たらどうするんですか……っHPH」","L"
+					PRINTFORMDL 『%CALLNAME:TARGET%を愛撫してるだけだから何も問題はない』とあなたは言った
+					CALL HPH_PRINT,@"「そんなの、問題しか……っあHPH 待っ……HPH」","W"
+			ENDSELECT
+		;それ以外
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ま、待って……待ちなさい……っ」
+					PRINTFORMDL スカートの中に手を差し入れると%CALLNAME:TARGET%は拒むように脚を閉じた
+					PRINTFORMDW が、あなたは気にせず%CALLNAME:TARGET%の秘所の辺りを撫で続けた……
+				CASE 1
+					PRINTFORML 「――っ、どうして嫌がるんだって……っ」
+					PRINTFORML 「この前は、仕方なく躰を重ねただけで……っんん」
+					PRINTFORMDW セックスはＯＫでセクハラはＮＧなんて、よく分からない子だ……
+				CASE 2
+					PRINTFORML 「――っっ」
+					PRINTFORMDL %CALLNAME:TARGET%の秘所を軽く撫でると、指先にぬるりとした感触があった
+					PRINTFORMDW あなたは敢えてそれを指摘せずに、%CALLNAME:TARGET%への愛撫を続けた
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;316,指挿入れ
+;CFLAG:うふふ==2&&TCVAR:20(35=スカートの中を見せる 70=クンニ強制 87=Ａ挿入する 89=腰振りＡ
+;TALENT:処女(指挿入れ連続時喪失注意、基本拒否ぎみ)
+;ABL:Ｖ感覚(1未満=違和感に戸惑う 5未満=ちょっと気持ちいい 5以上＝カイカン)
+;TFLAG:400(1=デート先or地底のモブが反応する)
+;==================================================
+@M_KOJO_SUCCESS_COM_K98_316
+;成否判定
+;TFLAG:192(-1＝強制失敗
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K98_316
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K98_316
+CALL M_KOJO_MESSAGE_COM_K98_316_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K98_316_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:時間停止
+		PRINTFORML
+		RETURN 1
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		PRINTFORML
+		RETURN 1
+	;押し倒され
+	ELSEIF CFLAG:うふふ == 2
+		PRINTFORML
+		RETURN 1
+	;合意未取得or処女
+	ELSEIF !GETBIT(CFLAG:既成事実 , 1) || TALENT:処女
+		;発情顔絵を表示（オプションでオンにしていないと表示されない）
+		CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+		PRINTFORML 「っ、今……まさか挿入れようと……っ！」
+		PRINTFORMDL あなたの腕を掴む%CALLNAME:TARGET%の手は微かに震えている
+		PRINTFORMDW 怖がらせるつもりはなかった。そう言うと、%CALLNAME:TARGET%はようやく手を離した
+	;通常
+	ELSE
+		;発情顔絵を表示（オプションでオンにしていないと表示されない）
+		CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+		;恋慕orＶ感覚が１０以上
+		IF TALENT:恋慕 || ABL:Ｖ感覚 > 9
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「ああ、もう……っHPH あぁ……っHPH」","L"
+					PRINTFORMDL 文句の一つでも言ってやりたいが、それはもう叶わない
+					PRINTFORMDW 自らの躰がこの指を求めていると、さすがの%CALLNAME:TARGET%も理解していた
+				CASE 1
+					PRINTFORMDL あなたは%CALLNAME:TARGET%の膣から指を抜くと、彼女の口に押し込み掃除するよう命令した
+					CALL HPH_PRINT,@"「んぐ、んっHPH ふぅ……んふぅ……っHPH」","L"
+					PRINTFORMDW %CALLNAME:TARGET%は何か言いたげな目でこちらを見た後、控えめに舌を遣い始めた……
+				CASE 2
+					CALL HPH_PRINT,@"「ほ、解すのは……もういいですから……っHPH」","L"
+					CALL HPH_PRINT,@"「――え？ まだって……あ、ぁっHPH」","L"
+					PRINTFORMDW あなたは自分好みに調教された%CALLNAME:TARGET%の穴を、グチュグチュと掻き回した……
+			ENDSELECT
+		;思慕orＶ感覚が５以上
+		ELSEIF TALENT:思慕 || ABL:Ｖ感覚 > 4
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「――っんんHPH」","L"
+					CALL HPH_PRINT,@"（嘘……指、挿入って……っHPH）","L"
+					PRINTFORMDW %CALLNAME:TARGET%は指を拒もうと膣を締めるが、それが却ってあなたを悦ばせた
+				CASE 1
+					CALL HPH_PRINT,@"「ちょっ……挿入れるなんて、何を考えて……っHPH」","L"
+					PRINTFORMDL 何を考えてなんて、そんなの決まってるだろう
+					PRINTFORMDW あなたはそれを分からせるように、指をより深くまで挿入した
+				CASE 2
+					CALL HPH_PRINT,@"「――解すって……今そんなこと……っHPH」","L"
+					PRINTFORMDL %CALLNAME:TARGET%はだいぶ感じるようになってきたが、まだ完全には慣れていない
+					PRINTFORMDW あなたは自分好みの穴にする為、彼女の膣を指で掻き回した
+			ENDSELECT
+		;それ以外
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「――い、いい加減にしてくださいっ！」
+					PRINTFORML 「こんな……こんなこと……っ！」
+					PRINTFORMDW 愛液の付着した指を見せると、%CALLNAME:TARGET%はそれ以上なにも言えなくなってしまった
+				CASE 1
+					CALL HPH_PRINT,@"「な、なにをして……っ！ あっHPH」","L"
+					PRINTFORMDL %CALLNAME:TARGET%の膣に浅く指を挿入し、小刻みに抜き差しする
+					PRINTFORMDW %CALLNAME:TARGET%のそこはとても熱く、そして潤っていた
+				CASE 2
+					PRINTFORMDL あなたは%CALLNAME:TARGET%の温かさを楽しんだ後、ゆっくりと指を引き抜いた
+					PRINTFORML （嘘……私、あんなに濡れて……っ）
+					PRINTFORMDW 愛液で濡れ光るあなたの指を見て、%CALLNAME:TARGET%は自らの浅ましい躰を恥じた
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;317,腰を動かす
+;ABL:Ｖ感覚(2未満=まだ気持ち良くない 5未満=ちょっと気持ちいい 5以上=カイカン
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K98_317
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K98_317
+CALL M_KOJO_MESSAGE_COM_K98_317_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K98_317_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;318,腰を動かす（Ａ）
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K98_318
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K98_318
+CALL M_KOJO_MESSAGE_COM_K98_318_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K98_318_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;====================================================================================================
+;320,相手主導正常位
+;====================================================================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K98_320
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K98_320
+CALL M_KOJO_MESSAGE_COM_K98_320_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K98_320_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+ENDIF
+RETURN 1
+;====================================================================================================
+;322,相手主導後背位
+;====================================================================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K98_322
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K98_322
+CALL M_KOJO_MESSAGE_COM_K98_322_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K98_322_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+ENDIF
+RETURN 1
+;==================================================
+;330,スカートめくり
+;TFLAG:193(-5=拒絶（ビンタ） -3=拒絶（つねり） -1=いやがる 0=いやがる（嬉しげ） 1=受け入れ)
+;TFLAG:193=1&&ABL:露出癖(5以上=人目のある場所で、自らスカートをまくり上げる 4以下=人目のある場所でめくられるさいに弱い抵抗 3以上=人目のない場所で自らスカートをまくり上げる 3未満=弱い抵抗)
+;TFLAG:400(1=デート先or地底のモブが反応する)
+;後ろからピラリ、ではなく、前からペラって感じ（そうじゃなかったら、めくり上げようとするのを止めて即座にビンタとか無理、めくり上げられた後にしかならないしその状況ならビンタ食らうより普通に弾幕で一発ＫＯにならないほうがおかしい
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K98_330
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K98_330
+CALL M_KOJO_MESSAGE_COM_K98_330_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K98_330_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:時間停止
+		PRINTFORML
+		RETURN 1
+	;押し倒され
+	ELSEIF CFLAG:うふふ == 2
+		PRINTFORML
+		RETURN 1
+	;普通に嫌がる
+	ELSEIF TFLAG:193 < 0
+		;発情顔絵を表示（オプションでオンにしていないと表示されない）
+		CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+		PRINTFORMDL あなたはホイッと%CALLNAME:TARGET%のスカートをめくりあげた
+		PRINTFORML 「――なっ、なな、なぁあっ！？」
+		PRINTFORMDW %CALLNAME:TARGET%はめちゃくちゃ動揺している……
+	;通常
+	ELSE
+		;発情顔絵を表示（オプションでオンにしていないと表示されない）
+		CALL PRINT_FACE, [[依姫]], "発情", "服", "", ""
+		;露出癖が６以上or恋人
+		IF ABL:露出癖 > 5 || TALENT:恋人
+			;はいてる
+			IF TEQUIP:0 > 1
+				PRINTFORML 「す、少しだけなら……」
+				PRINTFORMDL %CALLNAME:TARGET%はそう言うと、自らスカートの裾を持ち上げた
+				PRINTFORMDW 露出に興奮しているのか、下着のクロッチの部分に愛液の染みができている……
+			;はいてない
+			ELSE
+				PRINTFORML 「……っ、み……」
+				PRINTFORML 「見るだけで……いいのですか……？」
+				PRINTFORMDW %CALLNAME:TARGET%はそう言うと、より見えやすいようにスカートをたくし上げた……
+			ENDIF
+		;露出癖が４以上
+		ELSEIF ABL:露出癖 > 3
+			;はいてる
+			IF TEQUIP:0 > 1
+				PRINTFORML 「もう……いいでしょうか……」
+				PRINTFORMDL 『もうちょっと』そう言って、あなたは%CALLNAME:TARGET%の下着に顔を近付けた
+				PRINTFORMW 「くぅ……っ」
+			;はいてない
+			ELSE
+				PRINTFORML 「――どうして、はいてないんだって……」
+				PRINTFORML 「それは……その……っ」
+				PRINTFORMDW %CALLNAME:TARGET%は必死に言い訳を考えている……
+			ENDIF
+		;それ以外
+		ELSE
+			;はいてる
+			IF TEQUIP:0 > 1
+				PRINTFORML 「は、早く手を放してください……っ」
+				PRINTFORMDL %CALLNAME:TARGET%だってこの状況を楽しんでる癖に……
+				PRINTFORMW 「――なっ、そんなわけ……っ！」
+			;はいてない
+			ELSE
+				PRINTFORML （こ、こんな時に限って……っ）
+				PRINTFORMDL あなたが何故なにもはいていないのかと問うと、%CALLNAME:TARGET%は心底恥ずかしそうに顔をそむけた
+				PRINTFORMW 「っ、そういう日も……あります……っ」
+			ENDIF
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1

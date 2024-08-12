@@ -1,18 +1,19 @@
 ﻿;-------------------------------------------------
-; eraTheWorld 4.860用 鈴瑚口上（キャラクターの名前を入れる、下にコンセプトなど一言あれば入れる）
+; eraTheWorld 4.920用 鈴瑚口上（キャラクターの名前を入れる、下にコンセプトなど一言あれば入れる）
 ;-------------------------------------------------
 ;他者による修正、加筆、改変については、同梱のライセンス条項に従ってください。
 
 ;------ ｷﾘﾄﾘ ｶｲｼ -----------
 ;eraTheWorld proto4.07パッチ取り込み用 Ver1.13
 ;テンプレートの使い方
-;初めに置換コマンド等により KX を K(キャラNo) に変更して下さい  
-;キャラNoはCSVフォルダのCharaファイルを参照　例(霧雨 魔理沙の場合)：KX =置換=> K11
+;初めに置換コマンド等により K108 を K(キャラNo) に変更して下さい  
+;キャラNoはCSVフォルダのCharaファイルを参照　例(霧雨 魔理沙の場合)：K108 =置換=> K11
 ;
 ;------ ｷﾘﾄﾘ ｵﾜﾘ -----------
 
 ;**** FlagManagement **********************************************************
 ;本口上にて使用しているCFLAG・TCVAR等
+;　睡姦、時姦口上あり時姦口上あり
 ;
 ;
 ;******************************************************************************
@@ -38,10 +39,10 @@ CFLAG:108:眠姦口上有 = 1
 CFLAG:108:時間停止口上有 = 1
 ;CFLAG:X:なりきり口上有 = 0
 
-;破瓜キャンセル口上有に1を入れると、@M_KOJO_EVENT_KX_LOST_VIRGIN_STOPでキャンセルの成否を操作できます
+;破瓜キャンセル口上有に1を入れると、@M_KOJO_EVENT_K108_LOST_VIRGIN_STOPでキャンセルの成否を操作できます
 ;CFLAG:X:破瓜キャンセル口上有 = 0
 
-;口上内抱き寄せ判定_初回と口上内抱き寄せ判定_通常に1を入れると、M_KOJO_EVENT_KX_PERMISSIONで押し倒しの成否を操作できます
+;口上内抱き寄せ判定_初回と口上内抱き寄せ判定_通常に1を入れると、M_KOJO_EVENT_K108_PERMISSIONで押し倒しの成否を操作できます
 ;CFLAG:X:口上内抱き寄せ判定_初回 = 0
 ;CFLAG:X:口上内抱き寄せ判定_通常 = 0
 
@@ -66,7 +67,6 @@ CFLAG:108:時間停止口上有 = 1
 
 ;ここでSETCOLORすることで口上に色を付けられます
 ;例：SETCOLOR 0xC07070
-
 SETCOLOR 0xEE9900
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
 ;"UPDATE判定"
@@ -131,16 +131,31 @@ ELSE
 ENDIF
 RETURN 1
 
-;@K108_BEFORETRAIN
-;一日の開始時、正確には来訪判定時に読み込む関数,使うときはコメントアウトを外すこと
+@K108_BEFORETRAIN
+;一日の開始時、正確には来訪判定時に読み込む関数
 ;ここでCFLAG:XX:翌日来訪を設定して確実に来訪させたりTCVAR:XX:発情で朝っぱらからサカらせることもできる
-;ただし「毎朝例外なく読み込まれる」
+;ただし「毎朝例外なく読み込まれる」ため、条件を設定しておくことが望ましい
+
+
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
 ;"SP_EVENT"系イベント
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
 ;==================================================
 ;デート帰りにファーストKISS（合意も付く）
 ;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;（任意）:通常の地の文を表示するかスキップするか決定する。
+;RETURN 0;通常地の文と口上を表示
+;RETURN 1;口上のみ表示
+;RETURN 2;通常地の文のみ表示
+;RETURN 3;どちらも表示しない
+;==================================================
+@M_KOJO_SPEVENT_MESSAGECHECK_K108_1
+
+RETURN 1
+
 @M_KOJO_SPEVENT_K108_1(ARG,ARG:1)
 ;口上主はTARGET
 ;地の文表示
@@ -166,9 +181,22 @@ IF LOCAL
 ENDIF
 RETURN 1
 
+
 ;==================================================
 ;デート帰りに告白（恋人が付く）
 ;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;（任意）:通常の地の文を表示するかスキップするか決定する。
+;RETURN 0;通常地の文と口上を表示
+;RETURN 1;口上のみ表示
+;RETURN 2;通常地の文のみ表示
+;RETURN 3;どちらも表示しない
+;==================================================
+@M_KOJO_SPEVENT_MESSAGECHECK_K108_2
+RETURN 1
+
 @M_KOJO_SPEVENT_K108_2(ARG,ARG:1)
 ;口上主はTARGET
 ;地の文表示
@@ -241,10 +269,21 @@ IF LOCAL
 	ENDIF
 ENDIF
 RETURN 1
-
 ;==================================================
 ;デート帰り
 ;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;（任意）:通常の地の文を表示するかスキップするか決定する。
+;RETURN 0;通常地の文と口上を表示
+;RETURN 1;口上のみ表示
+;RETURN 2;通常地の文のみ表示
+;RETURN 3;どちらも表示しない
+;==================================================
+@M_KOJO_SPEVENT_MESSAGECHECK_K108_3
+RETURN 0
+
 @M_KOJO_SPEVENT_K108_3(ARG,ARG:1)
 ;口上主はTARGET
 ;地の文表示
@@ -308,7 +347,7 @@ IF LOCAL
 					PRINTFORML MGMG
 					SETCOLOR 0xEE9900
 					PRINTFORMDL "…………。"
-					PRINTFORML 「……もう、わかったよ～…はい、どうぞ…！」
+					PRINTFORML 「……もう、わかったよ～！…はい、どうぞ…♪」
 					PRINTFORMDW 鈴瑚に分けてもらった団子を食べながら帰路についた。
 				CASE 2
 					PRINTFORML 「ふ～……やっと着いたね。疲れた～…」
@@ -398,365 +437,376 @@ IF LOCAL
 		IF (DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1) || (DAY:2 == 4 && DAY:3 == 14 && CFLAG:2 >= 1000) || (DAY:2 == 3 && DAY:3 == 30) || (DAY:2 == 4 && DAY:3 == 25)
 			CALL SPECIALDAY_EVENT_K108
 		ELSEIF CFLAG:318 == 1
-			PRINTFORML 「ん…？……ああ、%CALLNAME:MASTER%か……」
-			PRINTFORMDW 鈴瑚は何だか機嫌が悪そうだ…
-		;仕事中ではなく、今日会ってない。
-		ELSEIF !TCVAR:108:今日会ったか
-			SELECTCASE TIME:2
-				;朝
-				CASE 1,2
-					IF TALENT:恋慕
-						PRINTFORML 「やあ、おはよう%CALLNAME:MASTER%！朝ご飯食べた？」
-						PRINTFORMW 「まだなら作ってあげようか？なんて…♪」
-					ELSE
-						PRINTFORMW 「おはよう%CALLNAME:MASTER%。ちゃんと朝ご飯食べた？」
-					ENDIF
-				;昼
-				CASE 3,4
-					IF TALENT:恋慕
-						PRINTFORML 「あ、%CALLNAME:MASTER%。今朝は一体何処に―」
-						PRINTFORML 「…！…くんくん……この匂い、私に内緒で美味しい物食べてきたな～？」
-						PRINTFORMDW まるで犬だ……
-					ELSE
-						PRINTFORML 「こんにちは%CALLNAME:MASTER%～…」
-						PRINTFORML 「ふあぁ……！お昼食べた後って、どうしても眠くなるんだよね～……」
-					ENDIF
-				;夜
-				CASE 5,6,7
-					IF TALENT:恋慕
-						PRINTFORML 「こんばんは%CALLNAME:MASTER%」
-						PRINTFORMW 「……今日、寂しかったよ…？」
-					ELSE
-						PRINTFORML 「ん？こんばんは%CALLNAME:MASTER%ー。今帰ってきたの？」
-						CALL COLORMESSAGE("「私はディナー後のデザートを堪能してるところさ」", C_ORANGE, 0, 0)
-						SETCOLOR 0xFFFF00
-						PRINTFORMW MGMG
-					ENDIF
-			ENDSELECT
-		ELSE
-			SELECTCASE RAND:2
-				CASE 0
-					CALL COLORMESSAGE("「やあ。さっきぶり」", C_ORANGE, 0, 0)
-					SETCOLOR 0xFFFF00
-					PRINTFORMW MGMG
-				CASE 1
-					CALL COLORMESSAGE("「今日はよく会うね」", C_ORANGE, 0, 0)
-					SETCOLOR 0xFFFF00
-					PRINTFORMW MGMG
-			ENDSELECT
-		ENDIF
-		RETURN 1
-		;-------------------------------------------------
-		;TARGETが入ってきた
-		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 1
-		;-------------------------------------------------
-		IF LOCAL:1 && ARG == 2
-			;正月、バレンタイン、ハロウィン、クリスマスの場合
-			IF (DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1) || (DAY:2 == 4 && DAY:3 == 14 && CFLAG:2 >= 1000) || (DAY:2 == 3 && DAY:3 == 30) || (DAY:2 == 4 && DAY:3 == 25)
-				CALL SPECIALDAY_EVENT_K108
-			ELSEIF CFLAG:318 == 1
-				PRINTFORML 「…………。」
-				PRINTFORMDW 鈴瑚は部屋に入ってきても、こちらと目を合わせようとしない…
-			IF TALENT:恋人
-				PRINTFORML 「来たよ%CALLNAME:MASTER%。はい、これお土産」
-				CALL COLORMESSAGE("「よっと……お腹空いた～…団子団子♪」", C_ORANGE, 0, 0)
+			IF !TCVAR:108:今日会ったか
+				PRINTFORML 「ん…？……ああ、%CALLNAME:MASTER%か……」
+				PRINTFORMDW 鈴瑚は何だか機嫌が悪いようだ…
+			ELSE
+				CALL COLORMESSAGE("「…さっきから何やってんの？」", C_ORANGE, 0, 0)
 				SETCOLOR 0xFFFF00
-				PRINTFORML MGMG
-				PRINTFORMDW 当前の様に、鈴瑚は隣に座って寛ぎ始めた。
-			ELSEIF TALENT:恋慕
-				CALL HPH_PRINT,@"「%CALLNAME:MASTER%…HPHお、お邪魔します…HPH」","L"
-				PRINTFORMDW 鈴瑚はおずおずと部屋に入ってきた。
-			ELSEIF TALENT:思慕
-				PRINTFORML 「お邪魔しま～す」
-				PRINTFORML 「―では早速、キミが隠しているであろう"ナニか"の調査を……♪」
-				PRINTFORMDW 追い返した方がいいだろうか……
-			ELSE
-				PRINTFORML 「やあ%CALLNAME:MASTER%、遊びに来たよ」
-				PRINTFORML 「手ぶらじゃ何だと思って、団子作ってきたよ。どうぞ♪」
-				PRINTFORMDW 鈴瑚に団子を貰った。後で一緒に食べるとしよう。
+				PRINTFORMW MGMG
+				PRINTFORMDW 鈴瑚の機嫌はまだ直っていないようだ……
 			ENDIF
-		ENDIF
-		RETURN 1
-		;-------------------------------------------------
-		;TARGETが風呂に入ってきて一緒に入る
-		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 1
-		;-------------------------------------------------
-		IF LOCAL:1 && ARG == 3
-			IF TALENT:恋人
-				PRINTFORMW 「あら？%CALLNAME:MASTER%、お風呂入ってたんだ」
-				PRINTFORML 「丁度いいや♪私も入るから背中流してよ。いいでしょ？」
-				PRINTFORMDW 鈴瑚と一緒に風呂に入ることになった。
-			ELSEIF TALENT:恋慕
-				PRINTFORML 「―ッ！？%CALLNAME:MASTER%！？」
-				PRINTFORML 「……えっと、その……！」
-				PRINTFORML 「い、一緒に……入ってもいい…かな…？」
-				PRINTFORMDW 鈴瑚はおずおずと風呂に入ってきた…
-			ELSE
-				PRINTFORML 「―ッ！？%CALLNAME:MASTER%！？」
-				PRINTFORML 「……あはは…い、いいよそのまま入ってて…！」
-				PRINTFORML 「身体洗ったら、すぐ出るからさ……」
-				PRINTFORMDW 鈴瑚と一緒に風呂に入ることになった……
-			ENDIF
-		ENDIF
-		RETURN 1
-	ENDIF
-		;-------------------------------------------------
-		;TARGETが風呂に入ってきて出て行った
-		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 1
-		;-------------------------------------------------
-		IF LOCAL:1 && ARG == 4
-			PRINTFORML 「―っ！？…ゴ、ゴメン！すぐに出るから…！」
-			PRINTFORMDW こちらが呼び止める前に、鈴瑚はいそいそと引き返していった……
-			RETURN 1
-		ENDIF
-		;-------------------------------------------------
-		;TARGETが風呂に入ってきて追い出された
-		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 1
-		;-------------------------------------------------
-		IF LOCAL:1 && ARG == 5
-			PRINTFORML 「…えっ！？%CALLNAME:MASTER%―」
-			PRINTFORMDL 咄嗟に時を止め、%CALLNAME:MASTER%は風呂場から脱出した……！
-			PRINTFORML 「ゴ、ゴメン！すぐに―」
-			PRINTFORMW 「…あれ？%CALLNAME:MASTER%は……？」
-			RETURN 1
-		ENDIF
-		;-------------------------------------------------
-		;外出先で遭遇した
-		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 1
-		;-------------------------------------------------
-		IF LOCAL:1 && ARG == 6
-			;正月、バレンタイン、ハロウィン、クリスマスの場合
-			IF (DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1) || (DAY:2 == 4 && DAY:3 == 14 && CFLAG:2 >= 1000) || (DAY:2 == 3 && DAY:3 == 30) || (DAY:2 == 4 && DAY:3 == 25)
-				CALL SPECIALDAY_EVENT_K108
-			ELSEIF CFLAG:318 == 1
-				PRINTFORML 「……何でここにいるのさ」
-				PRINTFORMDW 鈴瑚に睨まれてしまった…
-			ELSE
-				SELECTCASE CFLAG:現在位置
-					;人間の里
-					CASE 201,202,203,204,205,206,230,240,210,220,230,240,250,270
-						SELECTCASE RAND:3
-							CASE 0
-								PRINTFORML 「いらっしゃ～い♪鈴瑚屋にようこそ～！」
-								PRINTFORMDW 今日の鈴瑚は団子屋の仕事をしているようだ。
-							CASE 1
-								PRINTFORML 「はい！毎度♪」
-								PRINTFORMDW 折角なので、団子を一本購入した。
-							CASE 2
-								PRINTFORML 「いらっしゃ―あら、%CALLNAME:MASTER%」
-								PRINTFORMW 「今日は何にする？」
-						ENDSELECT
-					CASEELSE
-						PRINTFORML 「あれ？%CALLNAME:MASTER%？」
-						IF TALENT:恋人
-							CALL COLORMESSAGE("「私がキミに捨てられて傷心してるって時に、ここで何してんのさ？」", C_ORANGE, 0, 0)
-							SETCOLOR 0xFFFF00
-							PRINTFORML MGMG
-							PRINTFORMDW 人聞きの悪い……
-						ELSEIF TALENT:恋慕
-							PRINTFORMW 「こんな所で会えるなんて、嬉しいなぁ…♪」
+		ELSE
+			;仕事中ではなく、今日会ってない。
+			IF !TCVAR:108:今日会ったか
+				SELECTCASE TIME:2
+					;朝
+					CASE 1,2
+						IF TALENT:恋慕
+							PRINTFORML 「やあ、おはよう%CALLNAME:MASTER%！朝ご飯食べた？」
+							PRINTFORMW 「まだなら作ってあげようか？なんて…♪」
 						ELSE
-							CALL COLORMESSAGE("「こんな所で何してんの？」", C_ORANGE, 0, 0)
+							PRINTFORMW 「おはよう%CALLNAME:MASTER%。ちゃんと朝ご飯食べた？」
+						ENDIF
+					;昼
+					CASE 3,4
+						IF TALENT:恋慕
+							PRINTFORML 「あ、%CALLNAME:MASTER%。今朝は一体何処に―」
+							PRINTFORML 「…！…くんくん……この匂い、私に内緒で美味しい物食べてきたな～？」
+							PRINTFORMDW まるで犬だ……
+						ELSE
+							PRINTFORML 「こんにちは%CALLNAME:MASTER%～…」
+							PRINTFORML 「ふあぁ……！お昼食べた後って、どうしても眠くなるんだよね～……」
+						ENDIF
+					;夜
+					CASE 5,6,7
+						IF TALENT:恋慕
+							PRINTFORML 「こんばんは%CALLNAME:MASTER%」
+							PRINTFORMW 「……今日、寂しかったよ…？」
+						ELSE
+							PRINTFORML 「ん？こんばんは%CALLNAME:MASTER%ー。今帰ってきたの？」
+							CALL COLORMESSAGE("「私はディナー後のデザートを堪能してるところさ」", C_ORANGE, 0, 0)
 							SETCOLOR 0xFFFF00
 							PRINTFORMW MGMG
 						ENDIF
 				ENDSELECT
-			ENDIF
-		RETURN 1
-		ENDIF
-		;-------------------------------------------------
-		;他キャラとデート中に遭遇した
-		;ARG:1にデート相手
-		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 1
-		;-------------------------------------------------
-		IF LOCAL:1 && ARG == 7
-			IF FLAG:デート相手 == 52;鈴仙
-				IF TALENT:108:恋人
-					PRINTFORMW 「楽しそうだね～？%CALLNAME:MASTER%に鈴仙♪」
-					PRINTFORMDL よく知る人物の声に思わず反応してしまう鈴仙と%CALLNAME:MASTER%。
-					PRINTFORMDW 振り向くと、鈴瑚が満面の笑顔で団子を食べていた…
-					CALL COLORMESSAGE("「あー、いいよいいよお構いなく♪存分に二人でイチャイチャしててよ…♪」", C_ORANGE, 0, 0)
-					SETCOLOR 0xFFFF00
-					PRINTFORML MGMG
-					PRINTFORMDW 言葉が上手く出ず、口をパクパクとする二人の脇を、鈴瑚は気にもせず通り過ぎて行く…
-					PRINTFORML （今夜、私の部屋で"じっくり"お話ししようね%CALLNAME:MASTER%…♪）
-					PRINTFORMDW すれ違いざま、鈴瑚は凍り付くような笑顔で耳打ちしてきた……
-				ELSEIF TALENT:52:恋人
-					CALL COLORMESSAGE("「やあ二人とも。相変わらず仲いいねぇ」", C_ORANGE, 0, 0)
-					SETCOLOR 0xFFFF00
-					PRINTFORML MGMG
-					SETCOLOR 0xEE9900
-					PRINTFORMW 「―はいはい。言われなくてもお邪魔虫は退散しますよ～っと…」
-					PRINTFORML （鈴仙を泣かせたら承知しないからね）
-					PRINTFORMDW すれ違いざま、鈴瑚が%CALLNAME:MASTER%に耳打ちしてきた…
-				ELSEIF TALENT:108:恋慕
-					PRINTFORML （%CALLNAME:MASTER%と鈴仙……楽しそうだなぁ…）
-					PRINTFORML （そうだよね…鈴仙は綺麗だし優しいし、%CALLNAME:MASTER%もきっと私より鈴仙の方が……）
-					PRINTFORMDW …鈴瑚が物陰からジッとこちらを見ている。
-				ELSE
-					PRINTFORML 「おっ？%CALLNAME:MASTER%と…鈴仙？」
-					CALL COLORMESSAGE("「……もしかしてお邪魔だったかな？」", C_ORANGE, 0, 0)
-					SETCOLOR 0xFFFF00
-					PRINTFORML MGMG
-					PRINTFORMDW 鈴瑚はちょっと気まずそうだ。
-				ENDIF
-			ELSEIF FLAG:デート相手 == 62;輝夜
-				PRINTFORML （……この人……もしかして姫様？）
-				PRINTFORMW （%CALLNAME:MASTER%やるなぁ…）
-			ELSEIF FLAG:デート相手 == 72;永琳
-				PRINTFORML （%CALLNAME:MASTER%と八意様…二人でどこ行くんだろ…？）
-				PRINTFORMW （―臨床実験？…いや、まさかね…）
-			ELSEIF FLAG:デート相手 == 98;依姫
-				PRINTFORML （%CALLNAME:MASTER%と…依姫様！？）
-				PRINTFORML （%CALLNAME:MASTER%…一体何やらかしたんだ…？）
-				PRINTFORMDW 鈴瑚は心配そうな顔をしている……
-			ELSEIF FLAG:デート相手 == 99;豊姫
-				PRINTFORML （豊姫様と%CALLNAME:MASTER%…二人で何してるんだろ？）
-				PRINTFORML （あの方は、何考えてるのかよく分からないからなぁ……）
-				PRINTFORMDW 鈴瑚はジッとこちらを見ている……
-			ELSEIF FLAG:デート相手 == 100;レイセン
-				PRINTFORML 「…君って依姫様の直属だし、すっごい真面目な玉兎だと思ってたけど…」
-				PRINTFORML 「以外とやることやってんだね～？」
-				PRINTFORMDW 鈴瑚は悪戯っぽく笑いながらレイセンを見ている…
-			ELSEIF FLAG:デート相手 == 107;清蘭
-				IF TALENT:108:恋人
-					PRINTFORML 『清蘭、ダメじゃない。私から%CALLNAME:MASTER%取っちゃ』
-					SETCOLOR 0x00A9D4
-					PRINTFORML 「―えっ！？り、鈴瑚！？何処にいるの！？」
-					PRINTFORMDW 突然清蘭がビクッと身体を震わせた。察するに、鈴瑚からのテレパシーを受け取ったようだ。
-					IF TALENT:107:恋慕
-						SETCOLOR 0x00A9D4
-						PRINTFORML 『ご、ごめん……だって！私も%CALLNAME:MASTER%とデートしたかったんだもん！』
-						SETCOLOR 0xEE9900
-						PRINTFORMW 『今日は私の番って約束だったでしょ？…しょうがないなぁ、清蘭は…♪』
-					ELSE
-						SETCOLOR 0x00A9D4
-						PRINTFORML 『ち、違うの！たまたま%CALLNAME:MASTER%と会ったってだけで…！別に取るとかそう言うんじゃ…！』
-						SETCOLOR 0xEE9900
-						PRINTFORMW 『ホントに～？…まあ、そういう事にしとくか』
-					ENDIF
-					SETCOLOR 0xEE9900
-					PRINTFORML 「―じゃあ今度は、キミの言い分を聞かせて貰おうか%CALLNAME:MASTER%♪」
-					PRINTFORMDW 後ろから鈴瑚の声が聞こえてきたのと同時に、肩に手が置かれた……
-				ELSEIF TALENT:107:恋人
-					PRINTFORMW 「うんうん、ちゃんと清蘭と仲良くしてるね%CALLNAME:MASTER%」
-					IF TALENT:108:恋慕
-						CALL HPH_PRINT,@"（でも…たまには私の事もかまって欲しいな…HPH）","L"
-						PRINTFORMDW 鈴瑚に耳元で囁かれた……
-						SETCOLOR 0x00A9D4
-						PRINTFORML 「はい、そこまでー。堂々と誘惑しないでくださーい」
-						SETCOLOR 0xEE9900
-						PRINTFORMW 「はは、バレたか」
-					ELSE
-						PRINTFORML 「わかってると思うけど、浮気なんかしたら私が絶対に許さないからね」
-						SETCOLOR 0x00A9D4
-						PRINTFORMW 「…心配してくれるのは嬉しいけど、今はデート中なんですけど～？」
-					ENDIF
-				ELSEIF TALENT:恋慕
-					PRINTFORML （清蘭…あんなに楽しそうに%CALLNAME:MASTER%と遊んでる…）
-					PRINTFORML （%CALLNAME:MASTER%も、清蘭みたいな明るい子の方がいいに決まってるよね……）
-					PRINTFORMDW 鈴瑚は物陰からジッと%CALLNAME:MASTER%たちを見ている。
-				ELSE
-					CALL COLORMESSAGE("「いや～お似合いですなぁ、お二人さん♪」", C_ORANGE, 0, 0)
-					SETCOLOR 0xFFFF00
-					PRINTFORML MGMG
-					SETCOLOR 0x00A9D4
-					PRINTFORML 「あ～！また団子食べてる！そんなに食べてばっかだと太るわよ？」
-					SETCOLOR 0xEE9900
-					PRINTFORMW 「大丈夫だよ～♪私は清蘭と違って、栄養が胸に行くタイプだから」
-					SETCOLOR 0x00A9D4
-					PRINTFORML 『こちら清蘭。これより鈴瑚を浄化する』
-					PRINTFORMDW 鈴瑚と清蘭はとても仲が良いようだ。
-				ENDIF
-			ELSEIF FLAG:デート相手 == 109;ドレミー
-				IF TALENT:108:恋慕
-					PRINTFORML 「……これが君の見せる悪夢ってわけ？」
-					PRINTFORML 「はは…！だとしたら、本当に悪趣味だな…！」
-					PRINTFORMDW 鈴瑚はドレミーに敵意を向けているようだ……
-				ELSE
-					CALL COLORMESSAGE("「バクって確か草食の筈だけど…君は違うみたいだね」", C_ORANGE, 0, 0)
-					SETCOLOR 0xFFFF00
-					PRINTFORML MGMG
-					PRINTFORMDW ドレミーは隣で笑みを浮かべている。
-				ENDIF
-			ELSEIF FLAG:デート相手 == 110;サグメ
-				IF TALENT:108:恋慕
-					PRINTFORML （%CALLNAME:MASTER%と一緒にいるサグメ様…楽しそうだな…）
-					CALL COLORMESSAGE("「はぁ～…いいなぁ……」", C_ORANGE, 0, 0)
-					SETCOLOR 0xFFFF00
-					PRINTFORML MGMG
-					PRINTFORMDW 鈴瑚は遠巻きにこちらを見ながら団子を食べている…
-				ELSE
-					PRINTFORML （サグメ様だ。粗相の無いようにっと……）
-					PRINTFORMDW 鈴瑚は頭を垂れている…
-				ENDIF
-			ELSEIF FLAG:デート相手 == 111;クラウンピース
-				IF TALENT:108:恋慕
-					PRINTFORML 「…%CALLNAME:MASTER%。その妖精は危険だから、あまり関わらない方がいいよ」
-					PRINTFORMDW クラウンピースは鈴瑚に"べー"と舌を出している…
-				ELSE
-					PRINTFORML 「君は確か…前に月を襲撃しに来た妖精だね」
-					PRINTFORML 「先に言っとくけど、その松明は私達玉兎には効かないよ」
-					PRINTFORMDW 何だか険悪な雰囲気だ……
-				ENDIF
-			ELSEIF FLAG:デート相手 == 112;純狐
-				IF TALENT:108:恋慕
-					PRINTFORML 「…%CALLNAME:MASTER%。キミはその女が何者か、わかってて一緒にいるの？」
-					PRINTFORML 「私はキミを信じてるからね……」
-					PRINTFORMDW 鈴瑚は悲しそうな表情で%CALLNAME:MASTER%を見つめている…
-				ELSE
-					PRINTFORML （この女が…嫦娥様をつけ狙ってる奴か…！）
-					PRINTFORML 「…我々と貴女方は休戦中の筈ですが…こんな所で何をしておられるので？」
-					PRINTFORMDW 警戒している鈴瑚を、純狐は無言で見つめている…
-				ENDIF
-			ELSEIF FLAG:デート相手 == 113;ヘカーティア
-				IF TALENT:108:恋慕
-					PRINTFORML 「…えっと…大丈夫だよ、%CALLNAME:MASTER%……」
-					PRINTFORML 「私はキミがどんな格好をしても、嫌いになったりしないから……」
-					PRINTFORMDW ペアルックでも想像しているのだろうか、鈴瑚はヘカーティアのTシャツをチラチラと見ている…
-				ELSE
-					PRINTFORML （"ウェルカム・ヘル"…？ 何だ？あの変なTシャツ……）
-					CALL COLORMESSAGE("（…関わらないようにしよっと……）", C_ORANGE, 0, 0)
-					SETCOLOR 0xFFFF00
-					PRINTFORML MGMG
-					PRINTFORMDW 鈴瑚は遠巻きにこちらを見ている……
-				ENDIF
-			ELSEIF TALENT:108:恋人
-				PRINTFORML 「あれ～？%CALLNAME:MASTER%、その人はお友達かな～？」
-				PRINTFORMDL 他の女性とのデートを鈴瑚に見られてしまった…声色は明るいが、その目は全く笑っていない…
-				PRINTFORMDW 必ず埋め合わせはするから、と逃げるようにその場を後にした…
-			ELSEIF TALENT:恋慕
-				CALL COLORMESSAGE("（……私といる時より、ずっと楽しそう…）", C_ORANGE, 0, 0)
-				SETCOLOR 0xFFFF00
-				PRINTFORML MGMG
-				PRINTFORMDW …鈴瑚の視線をどこかから感じる。
 			ELSE
-				SELECTCASE CFLAG:現在位置
-					;人間の里
-					CASE 201,202,203,204,205,206,230,240,210,220,230,240,250,270
-						SELECTCASE RAND:2
-							CASE 0
-								PRINTFORML 「いらっしゃ～い♪鈴瑚屋にようこそ～！」
-								PRINTFORML 「そこのお二方♪デートのお供に団子はいかが？」
-								PRINTFORMDW せっかくなので、一本購入した。
-							CASE 1
-								PRINTFORML 「お～い！%CALLNAME:MASTER%～♪」
-								PRINTFORML （彼女に団子買ってあげて、いい所見せてやりなよ♪）
-								PRINTFORMDW 仕方なく団子を購入し、二人で食べた。
-						ENDSELECT
-					CASEELSE
-						CALL COLORMESSAGE("（お邪魔虫は退散っと……）", C_ORANGE, 0, 0)
+				SELECTCASE RAND:2
+					CASE 0
+						CALL COLORMESSAGE("「やあ。さっきぶり」", C_ORANGE, 0, 0)
 						SETCOLOR 0xFFFF00
-						PRINTFORML MGMG
-						PRINTFORMDW 何かを察したのか、鈴瑚は近づいてこなかった。
+						PRINTFORMW MGMG
+					CASE 1
+						CALL COLORMESSAGE("「今日はよく会うね」", C_ORANGE, 0, 0)
+						SETCOLOR 0xFFFF00
+						PRINTFORMW MGMG
 				ENDSELECT
 			ENDIF
+		ENDIF
+	ENDIF
+	RETURN 1
+	;-------------------------------------------------
+	;TARGETが入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 2
+		;正月、バレンタイン、ハロウィン、クリスマスの場合
+		IF (DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1) || (DAY:2 == 4 && DAY:3 == 14 && CFLAG:2 >= 1000) || (DAY:2 == 3 && DAY:3 == 30) || (DAY:2 == 4 && DAY:3 == 25)
+			CALL SPECIALDAY_EVENT_K108
+		ELSEIF CFLAG:318 == 1
+			PRINTFORML 「…………。」
+			PRINTFORMDW 鈴瑚は部屋に入ってきても、こちらと目を合わせようとしない…
+		ELSEIF TALENT:恋人
+			PRINTFORML 「来たよ%CALLNAME:MASTER%。はい、これお土産」
+			CALL COLORMESSAGE("「よっと……お腹空いた～…団子団子♪」", C_ORANGE, 0, 0)
+			SETCOLOR 0xFFFF00
+			PRINTFORML MGMG
+			PRINTFORMDW 当前の様に、鈴瑚は隣に座って寛ぎ始めた。
+		ELSEIF TALENT:恋慕
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%…HPHお、お邪魔します…HPH」","L"
+			PRINTFORMDW 鈴瑚はおずおずと部屋に入ってきた。
+		ELSEIF TALENT:思慕
+			PRINTFORML 「お邪魔しま～す」
+			PRINTFORML 「―では早速、キミが隠しているであろう"ナニか"の調査を……♪」
+			PRINTFORMDW 追い返した方がいいだろうか……
+		ELSE
+			PRINTFORML 「やあ%CALLNAME:MASTER%、遊びに来たよ」
+			PRINTFORML 「手ぶらじゃ何だと思って、団子作ってきたよ。どうぞ♪」
+			PRINTFORMDW 鈴瑚に団子を貰った。後で一緒に食べるとしよう。
+		ENDIF
+		RETURN 1
+	ENDIF
+	
+	;-------------------------------------------------
+	;TARGETが風呂に入ってきて一緒に入る
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 3
+		IF TALENT:恋人
+			PRINTFORMW 「あら？%CALLNAME:MASTER%、お風呂入ってたんだ」
+			PRINTFORML 「丁度いいや♪私も入るから背中流してよ。いいでしょ？」
+			PRINTFORMDW 鈴瑚と一緒に風呂に入ることになった。
+		ELSEIF TALENT:恋慕
+			PRINTFORML 「―ッ！？%CALLNAME:MASTER%！？」
+			PRINTFORML 「……えっと、その……！」
+			PRINTFORML 「い、一緒に……入ってもいい…かな…？」
+			PRINTFORMDW 鈴瑚はおずおずと風呂に入ってきた…
+		ELSE
+			PRINTFORML 「―ッ！？%CALLNAME:MASTER%！？」
+			PRINTFORML 「……あはは…い、いいよそのまま入ってて…！」
+			PRINTFORML 「身体洗ったら、すぐ出るからさ……」
+			PRINTFORMDW 鈴瑚と一緒に風呂に入ることになった……
+		ENDIF
+		RETURN 1
+	ENDIF
+	
+	
+	;-------------------------------------------------
+	;TARGETが風呂に入ってきて出て行った
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 4
+		PRINTFORML 「―っ！？…ゴ、ゴメン！すぐに出るから…！」
+		PRINTFORMDW こちらが呼び止める前に、鈴瑚はいそいそと引き返していった……
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;TARGETが風呂に入ってきて追い出された
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 5
+		PRINTFORML 「…えっ！？%CALLNAME:MASTER%―」
+		PRINTFORMDL 咄嗟に時を止め、%CALLNAME:MASTER%は風呂場から脱出した……！
+		PRINTFORML 「ゴ、ゴメン！すぐに―」
+		PRINTFORMW 「…あれ？%CALLNAME:MASTER%は……？」
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;外出先で遭遇した
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 6
+		;正月、バレンタイン、ハロウィン、クリスマスの場合
+		IF (DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1) || (DAY:2 == 4 && DAY:3 == 14 && CFLAG:2 >= 1000) || (DAY:2 == 3 && DAY:3 == 30) || (DAY:2 == 4 && DAY:3 == 25)
+			CALL SPECIALDAY_EVENT_K108
+		ELSEIF CFLAG:318 == 1
+			PRINTFORML 「……何でここにいるのさ」
+			PRINTFORMDW 鈴瑚に睨まれてしまった…
+		ELSE
+			SELECTCASE CFLAG:現在位置
+				;人間の里
+				CASE 201,202,203,204,205,206,230,240,210,220,230,240,250,270
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「いらっしゃ～い♪鈴瑚屋にようこそ～！」
+							PRINTFORMDW 今日の鈴瑚は団子屋の仕事をしているようだ。
+						CASE 1
+							PRINTFORML 「はい！毎度♪」
+							PRINTFORMDW 折角なので、団子を一本購入した。
+						CASE 2
+							PRINTFORML 「いらっしゃ―あら、%CALLNAME:MASTER%」
+							PRINTFORMW 「今日は何にする？」
+					ENDSELECT
+				CASEELSE
+					PRINTFORML 「あれ？%CALLNAME:MASTER%？」
+					IF TALENT:恋人
+						CALL COLORMESSAGE("「私がキミに捨てられて傷心してるって時に、ここで何してんのさ？」", C_ORANGE, 0, 0)
+						SETCOLOR 0xFFFF00
+						PRINTFORML MGMG
+						PRINTFORMDW 人聞きの悪い……
+					ELSEIF TALENT:恋慕
+						PRINTFORMW 「こんな所で会えるなんて、嬉しいなぁ…♪」
+					ELSE
+						CALL COLORMESSAGE("「こんな所で何してんの？」", C_ORANGE, 0, 0)
+						SETCOLOR 0xFFFF00
+						PRINTFORMW MGMG
+					ENDIF
+			ENDSELECT
+		ENDIF
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;他キャラとデート中に遭遇した
+	;ARG:1にデート相手
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 7
+		IF FLAG:デート相手 == 52;鈴仙
+			IF TALENT:108:恋人
+				PRINTFORMW 「楽しそうだね～？%CALLNAME:MASTER%に鈴仙♪」
+				PRINTFORMDL よく知る人物の声に思わず反応してしまう鈴仙と%CALLNAME:MASTER%。
+				PRINTFORMDW 振り向くと、鈴瑚が満面の笑顔で団子を食べていた…
+				CALL COLORMESSAGE("「あー、いいよいいよお構いなく♪存分に二人でイチャイチャしててよ…♪」", C_ORANGE, 0, 0)
+				SETCOLOR 0xFFFF00
+				PRINTFORML MGMG
+				PRINTFORMDW 言葉が上手く出ず、口をパクパクとする二人の脇を、鈴瑚は気にもせず通り過ぎて行く…
+				PRINTFORML （今夜、私の部屋で"じっくり"お話ししようね%CALLNAME:MASTER%…♪）
+				PRINTFORMDW すれ違いざま、鈴瑚は凍り付くような笑顔で耳打ちしてきた……
+			ELSEIF TALENT:52:恋人
+				CALL COLORMESSAGE("「やあ二人とも。相変わらず仲いいねぇ」", C_ORANGE, 0, 0)
+				SETCOLOR 0xFFFF00
+				PRINTFORML MGMG
+				SETCOLOR 0xEE9900
+				PRINTFORMW 「―はいはい。言われなくてもお邪魔虫は退散しますよ～っと…」
+				PRINTFORML （鈴仙を泣かせたら承知しないからね）
+				PRINTFORMDW すれ違いざま、鈴瑚が%CALLNAME:MASTER%に耳打ちしてきた…
+			ELSEIF TALENT:108:恋慕
+				PRINTFORML （%CALLNAME:MASTER%と鈴仙……楽しそうだなぁ…）
+				PRINTFORML （そうだよね…鈴仙は綺麗だし優しいし、%CALLNAME:MASTER%もきっと私より鈴仙の方が……）
+				PRINTFORMDW …鈴瑚が物陰からジッとこちらを見ている。
+			ELSE
+				PRINTFORML 「おっ？%CALLNAME:MASTER%と…鈴仙？」
+				CALL COLORMESSAGE("「……もしかしてお邪魔だったかな？」", C_ORANGE, 0, 0)
+				SETCOLOR 0xFFFF00
+				PRINTFORML MGMG
+				PRINTFORMDW 鈴瑚はちょっと気まずそうだ。
+			ENDIF
+		ELSEIF FLAG:デート相手 == 62;輝夜
+			PRINTFORML （……この人……もしかして姫様？）
+			PRINTFORMW （%CALLNAME:MASTER%やるなぁ…）
+		ELSEIF FLAG:デート相手 == 72;永琳
+			PRINTFORML （%CALLNAME:MASTER%と八意様…二人でどこ行くんだろ…？）
+			PRINTFORMW （―臨床実験？…いや、まさかね…）
+		ELSEIF FLAG:デート相手 == 98;依姫
+			PRINTFORML （%CALLNAME:MASTER%と…依姫様！？）
+			PRINTFORML （%CALLNAME:MASTER%…一体何やらかしたんだ…？）
+			PRINTFORMDW 鈴瑚は心配そうな顔をしている……
+		ELSEIF FLAG:デート相手 == 99;豊姫
+			PRINTFORML （豊姫様と%CALLNAME:MASTER%…二人で何してるんだろ？）
+			PRINTFORML （あの方は、何考えてるのかよく分からないからなぁ……）
+			PRINTFORMDW 鈴瑚はジッとこちらを見ている……
+		ELSEIF FLAG:デート相手 == 100;レイセン
+			PRINTFORML 「…君って依姫様の直属だし、すっごい真面目な玉兎だと思ってたけど…」
+			PRINTFORML 「以外とやることやってんだね～？」
+			PRINTFORMDW 鈴瑚は悪戯っぽく笑いながらレイセンを見ている…
+		ELSEIF FLAG:デート相手 == 107;清蘭
+			IF TALENT:108:恋人
+				PRINTFORML 『清蘭、ダメじゃない。私から%CALLNAME:MASTER%取っちゃ』
+				SETCOLOR 0x00A9D4
+				PRINTFORML 「―えっ！？り、鈴瑚！？何処にいるの！？」
+				PRINTFORMDW 突然清蘭がビクッと身体を震わせた。察するに、鈴瑚からのテレパシーを受け取ったようだ。
+				IF TALENT:107:恋慕
+					SETCOLOR 0x00A9D4
+					PRINTFORML 『ご、ごめん……だって！私も%CALLNAME:MASTER%とデートしたかったんだもん！』
+					SETCOLOR 0xEE9900
+					PRINTFORMW 『今日は私の番って約束だったでしょ？…しょうがないなぁ、清蘭は…♪』
+				ELSE
+					SETCOLOR 0x00A9D4
+					PRINTFORML 『ち、違うの！たまたま%CALLNAME:MASTER%と会ったってだけで…！別に取るとかそう言うんじゃ…！』
+					SETCOLOR 0xEE9900
+					PRINTFORMW 『ホントに～？…まあ、そういう事にしとくか』
+				ENDIF
+				SETCOLOR 0xEE9900
+				PRINTFORML 「―じゃあ今度は、キミの言い分を聞かせて貰おうか%CALLNAME:MASTER%♪」
+				PRINTFORMDW 後ろから鈴瑚の声が聞こえてきたのと同時に、肩に手が置かれた……
+			ELSEIF TALENT:107:恋人
+				PRINTFORMW 「うんうん、ちゃんと清蘭と仲良くしてるね%CALLNAME:MASTER%」
+				IF TALENT:108:恋慕
+					CALL HPH_PRINT,@"（でも…たまには私の事もかまって欲しいな…HPH）","L"
+					PRINTFORMDW 鈴瑚に耳元で囁かれた……
+					SETCOLOR 0x00A9D4
+					PRINTFORML 「はい、そこまでー。堂々と誘惑しないでくださーい」
+					SETCOLOR 0xEE9900
+					PRINTFORMW 「はは、バレたか」
+				ELSE
+					PRINTFORML 「わかってると思うけど、浮気なんかしたら私が絶対に許さないからね」
+					SETCOLOR 0x00A9D4
+					PRINTFORMW 「…心配してくれるのは嬉しいけど、今はデート中なんですけど～？」
+				ENDIF
+			ELSEIF TALENT:恋慕
+				PRINTFORML （清蘭…あんなに楽しそうに%CALLNAME:MASTER%と遊んでる…）
+				PRINTFORML （%CALLNAME:MASTER%も、清蘭みたいな明るい子の方がいいに決まってるよね……）
+				PRINTFORMDW 鈴瑚は物陰からジッと%CALLNAME:MASTER%たちを見ている。
+			ELSE
+				CALL COLORMESSAGE("「いや～お似合いですなぁ、お二人さん♪」", C_ORANGE, 0, 0)
+				SETCOLOR 0xFFFF00
+				PRINTFORML MGMG
+				SETCOLOR 0x00A9D4
+				PRINTFORML 「あ～！また団子食べてる！そんなに食べてばっかだと太るわよ？」
+				SETCOLOR 0xEE9900
+				PRINTFORMW 「大丈夫だよ～♪私は清蘭と違って、栄養が胸に行くタイプだから」
+				SETCOLOR 0x00A9D4
+				PRINTFORML 『こちら清蘭。これより鈴瑚を浄化する』
+				PRINTFORMDW 鈴瑚と清蘭はとても仲が良いようだ。
+			ENDIF
+		ELSEIF FLAG:デート相手 == 109;ドレミー
+			IF TALENT:108:恋慕
+				PRINTFORML 「……これが君の見せる悪夢ってわけ？」
+				PRINTFORML 「はは…！だとしたら、本当に悪趣味だな…！」
+				PRINTFORMDW 鈴瑚はドレミーに敵意を向けているようだ……
+			ELSE
+				CALL COLORMESSAGE("「バクって確か草食の筈だけど…君は違うみたいだね」", C_ORANGE, 0, 0)
+				SETCOLOR 0xFFFF00
+				PRINTFORML MGMG
+				PRINTFORMDW ドレミーは隣で笑みを浮かべている。
+			ENDIF
+		ELSEIF FLAG:デート相手 == 110;サグメ
+			IF TALENT:108:恋慕
+				PRINTFORML （%CALLNAME:MASTER%と一緒にいるサグメ様…楽しそうだな…）
+				CALL COLORMESSAGE("「はぁ～…いいなぁ……」", C_ORANGE, 0, 0)
+				SETCOLOR 0xFFFF00
+				PRINTFORML MGMG
+				PRINTFORMDW 鈴瑚は遠巻きにこちらを見ながら団子を食べている…
+			ELSE
+				PRINTFORML （サグメ様だ。粗相の無いようにっと……）
+				PRINTFORMDW 鈴瑚は頭を垂れている…
+			ENDIF
+		ELSEIF FLAG:デート相手 == 111;クラウンピース
+			IF TALENT:108:恋慕
+				PRINTFORML 「…%CALLNAME:MASTER%。その妖精は危険だから、あまり関わらない方がいいよ」
+				PRINTFORMDW クラウンピースは鈴瑚に"べー"と舌を出している…
+			ELSE
+				PRINTFORML 「君は確か…前に月を襲撃しに来た妖精だね」
+				PRINTFORML 「先に言っとくけど…その松明は、私達玉兎には効かないよ」
+				PRINTFORMDW 何だか険悪な雰囲気だ……
+			ENDIF
+		ELSEIF FLAG:デート相手 == 112;純狐
+			IF TALENT:108:恋慕
+				PRINTFORML 「…%CALLNAME:MASTER%。キミはその女が何者か、わかってて一緒にいるの？」
+				PRINTFORML 「私はキミを信じてるからね……」
+				PRINTFORMDW 鈴瑚は悲しそうな表情で%CALLNAME:MASTER%を見つめている…
+			ELSE
+				PRINTFORML （この女が…嫦娥様をつけ狙ってる奴か…！）
+				PRINTFORML 「…我々と貴女方は休戦中の筈ですが…こんな所で何をしておられるので？」
+				PRINTFORMDW 警戒している鈴瑚を、純狐は無言で見つめている…
+			ENDIF
+		ELSEIF FLAG:デート相手 == 113;ヘカーティア
+			IF TALENT:108:恋慕
+				PRINTFORML 「…えっと…大丈夫だよ、%CALLNAME:MASTER%……」
+				PRINTFORML 「私はキミがどんな格好をしても、嫌いになったりしないから……」
+				PRINTFORMDW ペアルックでも想像しているのだろうか、鈴瑚はヘカーティアのTシャツをチラチラと見ている…
+			ELSE
+				PRINTFORML （"ウェルカム・ヘル"…？ 何だ？あの変なTシャツ……）
+				CALL COLORMESSAGE("（…関わらないようにしよっと……）", C_ORANGE, 0, 0)
+				SETCOLOR 0xFFFF00
+				PRINTFORML MGMG
+				PRINTFORMDW 鈴瑚は遠巻きにこちらを見ている……
+			ENDIF
+		ELSEIF TALENT:108:恋人
+			PRINTFORML 「あれ～？%CALLNAME:MASTER%、その人はお友達かな～？」
+			PRINTFORMDL 他の女性とのデートを鈴瑚に見られてしまった…声色は明るいが、その目は全く笑っていない…
+			PRINTFORMDW "必ず埋め合わせはするから"と、逃げるようにその場を後にした…
+			ELSEIF TALENT:恋慕
+			CALL COLORMESSAGE("（……私といる時より、ずっと楽しそう…）", C_ORANGE, 0, 0)
+			SETCOLOR 0xFFFF00
+			PRINTFORML MGMG
+			PRINTFORMDW …鈴瑚の視線をどこかから感じる。
+		ELSE
+			SELECTCASE CFLAG:現在位置
+				;人間の里
+				CASE 201,202,203,204,205,206,230,240,210,220,230,240,250,270
+					SELECTCASE RAND:2
+						CASE 0
+							PRINTFORML 「いらっしゃ～い♪鈴瑚屋にようこそ～！」
+							PRINTFORML 「そこのお二方♪デートのお供に団子はいかが？」
+							PRINTFORMDW せっかくなので、一本購入した。
+						CASE 1
+							PRINTFORML 「お～い！%CALLNAME:MASTER%～♪」
+							PRINTFORML （彼女に団子買ってあげて、いい所見せてやりなよ♪）
+							PRINTFORMDW 仕方なく団子を購入し、二人で食べた。
+					ENDSELECT
+				CASEELSE
+					CALL COLORMESSAGE("（お邪魔虫は退散っと……）", C_ORANGE, 0, 0)
+					SETCOLOR 0xFFFF00
+					PRINTFORML MGMG
+					PRINTFORMDW 何かを察したのか、鈴瑚は近づいてこなかった。
+			ENDSELECT
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -815,7 +865,7 @@ IF LOCAL
 					ENDSELECT
 				CASEELSE
 					PRINTFORML 「%CALLNAME:MASTER%おはよう」
-					PRINTFORML 「…いや、おそよう…かな？」
+					PRINTFORML 「いや、おそよう…かな？」
 					PRINTFORMDW どうやら寝すぎてしまったようだ……
 			ENDSELECT
 			RETURN 1
@@ -867,7 +917,7 @@ IF LOCAL
 		SELECTCASE TIME:2
 		;朝
 		CASE 1,2
-			SELECTCASE RAND:3
+			SELECTCASE RAND:4
 				CASE 0
 					PRINTFORML 「%CALLNAME:MASTER%ー！おーい、起きろー！」
 					PRINTFORMDL ゆさゆさと%CALLNAME:MASTER%の体を揺さぶるが起きる気配は無い。
@@ -1015,8 +1065,8 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 1
 		IF ARG:1
 			;デート中に眠くて帰って寝る（拠点キャラのみ）
-			PRINTFORML 「%CALLNAME:MASTER%～悪いけど、明日早いから今日は帰るね～…」
-			PRINTFORML 「また誘ってね～おやすみ～……」
+			PRINTFORML 「%CALLNAME:MASTER%～…悪いけど明日早いから、今日は帰るね～…」
+			PRINTFORML 「また誘ってね～…おやすみ～……」
 			PRINTFORMDW 鈴瑚はふらつく足取りで家に帰っていった…
 		ELSEIF CFLAG:うふふ
 			;うふふ中に眠くて自室に帰って寝る（拠点キャラのみ）
@@ -1148,8 +1198,8 @@ IF LOCAL
 			ELSE
 				;部屋まで運ばれる,（～が【MASTER】を私室へと運んでくれた…）
 				PRINTFORML 「…%CALLNAME:MASTER%～？お～い！」
-				PRINTFORML 「もう…"酒は飲んでも飲まれるな"ってあれほど言ったのに…」
-				PRINTFORML 「ほら、肩貸してあげるから―うっ！酒くさっ！どんだけ飲んだのよ…！」
+				PRINTFORML 「もう…"酒は飲んでも飲まれるな"ってあれほど言ったのに…ほら、肩貸してあげるから―」
+				PRINTFORML 「うっ！？酒くさっ！どんだけ飲んだのよ…！」
 				PRINTFORMDW %CALLNAME:MASTER%は何とか帰宅したが、鈴瑚にこっぴどく叱られた…
 			ENDIF
 		;体力切れでダウン
@@ -1162,9 +1212,10 @@ IF LOCAL
 			ELSE
 				;部屋まで運ばれる,（～が【MASTER】を私室へと運んでくれた…）
 				PRINTFORMDL  …………。
-				PRINTFORML 「…ん？目覚めた？%CALLNAME:MASTER%。覚えてないかもだけど、キミ急にぶっ倒れたんだよ」
+				PRINTFORML 「…ん？目覚めた？%CALLNAME:MASTER%」
+				PRINTFORML 「覚えてないかもだけど、キミ急にぶっ倒れたんだよ」
 				PRINTFORML 「多分疲れてたんだろうね…お粥作っといたから、元気になったら食べて」
-				PRINTFORMDW 鈴瑚に礼を言い、再び眠りに落ちた……
+				PRINTFORMDW 鈴瑚に礼を言い、再び眠りについた……
 			ENDIF
 		ENDIF
 		RETURN 1
@@ -1204,7 +1255,7 @@ IF LOCAL
 		IF LOCAL:1 && ARG:1 == 2
 			PRINTFORML 「…色々言いたい事はあるけど、眠いから勘弁してあげるよ……」
 			IF TALENT:恋人
-				PRINTFORML 「とりあえず%CALLNAME:MASTER%は明日死刑ね……」
+				PRINTFORML 「とりあえず%CALLNAME:MASTER%は、明日話があるから……」
 				PRINTFORMDW 明日が怖い……
 			ELSE
 				PRINTFORML 「気が変わらない内にさっさと帰って……」
@@ -1930,7 +1981,7 @@ IF LOCAL
 			;上記以外
 			ELSE
 				PRINTFORML 「さて…じゃあ私もシてもらおうかなっと…♪」
-				CALL HPH_PRINT,@"「まさか…嫌だなんて言わないよね？%CALLNAME:MASTER%…HPH」","L"
+				CALL HPH_PRINT,@"「まさか、嫌だなんて言わないよね？%CALLNAME:MASTER%…HPH」","L"
 				PRINTFORMDW 鈴瑚は服を脱ぎ捨て、情事に混ざってきた…！
 			ENDIF
 		ELSE
@@ -2383,7 +2434,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 		IF TALENT:恋人
-			CALL HPH_PRINT,@"「ふぃ～…♪気持ちいい…HPH」","L"
+			CALL HPH_PRINT,@"「ふぅ～…♪気持ちいい…HPH」","L"
 			PRINTFORML 「…そんなとこで見てないで、%CALLNAME:MASTER%もおいでよ♪」
 			PRINTFORMDW 気付かれていたようだ…鈴瑚のお言葉に甘えて、一緒に入浴する事にした。
 		ELSEIF TALENT:恋慕
@@ -2888,7 +2939,7 @@ IF LOCAL
 				;バレてるっぽいけどバレてない。多分
 				CALL HPH_PRINT,@"「……%CALLNAME:MASTER%…HPH…もっと、ちょうだい…HPH」","L"
 				PRINTFORMDW 鈴瑚が瞳を爛々と輝かせながら迫ってきた……！
-				TCVAR:107:発情 = 1
+				TCVAR:108:発情 = 1
 			ELSE
 				CALL HPH_PRINT,@"「おいしい……HPH」","W"
 			ENDIF
@@ -3103,7 +3154,7 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 4
 		PRINTFORMDL "もし出来てしまったら責任を取る"と鈴瑚を説得した。
 		IF TALENT:恋人 || TALENT:恋慕
-			PRINTFORMW 「…はぁ……全く、キミって奴は…♪」
+			PRINTFORML 「…はぁ……全く、キミって奴は…♪」
 			CALL HPH_PRINT,@"「優しくシてね……HPH」","W"
 		ELSE
 			PRINTFORML 「…もう、わかったよ…仕方ないなぁ……」
@@ -3823,10 +3874,6 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 		PRINTFORMDL 
-		CALL COLORMESSAGE("「…………。」", C_ORANGE, 0, 0)
-		SETCOLOR 0xFFFF00
-		PRINTFORML MGMG
-		SETCOLOR 0xEE9900
 		PRINTFORML 「―ッ！？ うっ…！うぇぇっ…げぇっ！ぇぇっ……！ゲホッ！ゲホッ…！」
 		PRINTFORML 「はぁ…はぁ…！ うぅ…気持ち悪い……」
 		PRINTFORMW 「今日は仕事休んで、八意様に診てもらおう……病気じゃなきゃいいけど」
@@ -3842,10 +3889,6 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
 		PRINTFORMDL 
-		CALL COLORMESSAGE("「…………。」", C_ORANGE, 0, 0)
-		SETCOLOR 0xFFFF00
-		PRINTFORML MGMG
-		SETCOLOR 0xEE9900
 		PRINTFORML 「―ッ！？ うっ…！うぇぇっ…げぇっ！ぇぇっ……！ゲホッ！ゲホッ…！」
 		PRINTFORML 「はぁ…はぁ…！ うぅ…気持ち悪い……」
 		PRINTFORMW 「今日は仕事休んで、八意様に診てもらおう……病気じゃなきゃいいけど」
@@ -3861,7 +3904,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 4
 		PRINTFORMDL 
-		CALL COLORMESSAGE("「…………。」", C_ORANGE, 0, 0)
+		CALL COLORMESSAGE("（…気のせいかな？なんか最近、お腹が出てきたような…）", C_ORANGE, 0, 0)
 		SETCOLOR 0xFFFF00
 		PRINTFORML MGMG
 		SETCOLOR 0xEE9900
@@ -3915,7 +3958,7 @@ IF LOCAL
 			PRINTFORMDW 産後で消耗しているだろうに…自分に心配をかけまいとする鈴瑚が愛おしくなり、彼女をギュッと抱きしめた。
 		ELSE
 			PRINTFORML 
-			PRINTFORML （痛っ…！…この感じ、もう産まれそうだな……）
+			PRINTFORML （痛っ…！…この感じ、そろそろ産まれそうだな……）
 			PRINTFORML 「%CALLNAME:MASTER%。私は永遠亭に行くから、キミに頼みたい事が―」
 			PRINTFORMDW …………。
 			PRINTFORML 「%CALLNAME:MASTER%おかえり～♪ちゃんと買ってきてくれた？」
@@ -3951,7 +3994,7 @@ IF LOCAL
 			PRINTFORMDW 産後で消耗しているだろうに…自分に心配かけまいとする鈴瑚が愛おしくなり、彼女をギュッと抱きしめた。
 		ELSE
 			PRINTFORML 
-			PRINTFORML （痛っ…！…この感じ、もう産まれそうだな……）
+			PRINTFORML （痛っ…！…この感じ、そろそろ産まれそうだな……）
 			PRINTFORML 「%CALLNAME:MASTER%。私は永遠亭に行くから、キミに頼みたい事が―」
 			PRINTFORMDW …………。
 			PRINTFORML 「%CALLNAME:MASTER%おかえり～♪ちゃんと買ってきてくれた？」
@@ -4021,11 +4064,11 @@ IF LOCAL
 		IF LOCAL:1
 			IF TALENT:恋人
 				CALL HPH_PRINT,@"「はぁ…HPH あぁっHPH あーHPH HPH %CALLNAME:MASTER%っHPH %CALLNAME:MASTER%HPH」","L"
-				CALL HPH_PRINT,@"「……♪　%CALLNAME:MASTER%っHPH そこ…もっとこすってぇ…HPH」","L"
+				CALL HPH_PRINT,@"「……♪ %CALLNAME:MASTER%っHPH そこ…もっとこすってぇ…HPH」","L"
 				PRINTFORMDW 一瞬目が合ったが、鈴瑚は気にせず自慰を続けている……
 			ELSEIF TALENT:恋慕
 				CALL HPH_PRINT,@"「%CALLNAME:MASTER%…HPH そのまま、奥まできてぇ……HPH」","L"
-				CALL HPH_PRINT,@"「んっ…HPH…あぁ…HPH %CALLNAME:MASTER%のが、入ってき―」","L"
+				CALL HPH_PRINT,@"「んっ…HPH…あぁ…HPH %CALLNAME:MASTER%の、おっきい―」","L"
 				PRINTFORMDW 部屋に入ると、鈴瑚が自分の名を呼びながら自慰をしていた……
 			ELSE
 				CALL HPH_PRINT,@"「はぁ…HPH んんっHPH あ…HPHこれ、きそう…HPH」","L"
@@ -4041,7 +4084,7 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			PRINTFORMDW 見なかった事にして、%CALLNAME:MASTER%はそそくさとその場を離れた……
+			PRINTFORMDL 見なかった事にして、%CALLNAME:MASTER%はそそくさとその場を離れた……
 				IF TALENT:恋人
 					PRINTFORML （%CALLNAME:MASTER%ったら、あんなにおちんちん膨らませちゃって…♪）
 					CALL HPH_PRINT,@"（私、後でオカズにされちゃったり……HPH）","L"
@@ -4088,7 +4131,7 @@ IF LOCAL
 				PRINTFORMDW 鈴瑚に部屋を追い出された……
 			ELSE
 				PRINTFORML 「で……出てってーーーっ！！」
-				PRINTFORMDL 大声を上げた鈴瑚に驚き、%CALLNAME:MASTER%は慌てて部屋を出た……
+				PRINTFORMDL 大声を上げた鈴瑚に驚き、%CALLNAME:MASTER%は慌てて部屋を飛び出した……
 				PRINTFORMW （ああ、もう！何で鍵かけてないんだよ私……！）
 			ENDIF
 		RETURN 1
@@ -4252,7 +4295,7 @@ IF LOCAL
 				PRINTFORML 「わ、私の家で……なんて……」
 			ELSE
 				PRINTFORML 「ねえ、%CALLNAME:MASTER%。偶には私の家においでよ」
-				PRINTFORML 「美味しい団子をご馳走してあげるよ～？」
+				PRINTFORML 「美味しいダンゴをご馳走してあげるよ～？」
 			ENDIF
 			PRINTFORMDW 今日は鈴瑚の家で過ごそうか……
 			RETURN 1
@@ -4975,15 +5018,26 @@ IF LOCAL
 	PRINTL 
 ENDIF
 RETURN 1
-
 ;==================================================
 ;デイリーイベント2,夢精
-;親密5以上で発生（来訪キャラのみ）
+;濃厚精液状態で発生
 ;▼地の文--------------------------------------------------
 ;【MASTER】が夢精で汚した下着を洗っていると【TARGET】が飛んできた！
 ;【TARGET】はそんなもの他の洗濯物と一緒に洗わないでと抗議すると、【MASTER】の手に収まった下着をふんだくり戻っていった…
 ;【TARGET】　欲情の珠＋1000
 ;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;（任意）:通常の地の文を表示するかスキップするか決定する。
+;RETURN 0;通常地の文と口上を表示
+;RETURN 1;口上のみ表示
+;RETURN 2;通常地の文のみ表示
+;RETURN 3;どちらも表示しない
+;==================================================
+@M_KOJO_DAILY_EVENT_MESSAGECHECK_K108_2
+RETURN 0
+
 @M_KOJO_DAILY_EVENT_K108_2(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
 ;地の文を変えたければコメントアウト
 ;※コメントアウトすると欲情の珠＋1000（JUEL:11 += 1000）もカットされるので注意
@@ -4998,11 +5052,23 @@ RETURN 1
 
 ;==================================================
 ;デイリーイベント4,物思い
-;濃厚精液状態で発生
+;親密5以上で発生（来訪キャラのみ）
 ;▼地の文--------------------------------------------------
 ;とりとめもない思考に耽っていた【TARGET】は、いつの間にか【MASTER】のことを考えていたことに気づいた
 ;【TARGET】は明日【MASTER】に会いに行くことにしたようだ
 ;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;（任意）:通常の地の文を表示するかスキップするか決定する。
+;RETURN 0;通常地の文と口上を表示
+;RETURN 1;口上のみ表示
+;RETURN 2;通常地の文のみ表示
+;RETURN 3;どちらも表示しない
+;==================================================
+@M_KOJO_DAILY_EVENT_MESSAGECHECK_K108_4
+RETURN 0
+
 @M_KOJO_DAILY_EVENT_K108_4(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
 ;地の文を変えたければコメントアウト
 ;--------------------------------------------------
@@ -5018,6 +5084,18 @@ RETURN 1
 ;デイリーイベント12,特訓
 ;信頼100以上で発生（拠点キャラのみ）
 ;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;（任意）:通常の地の文を表示するかスキップするか決定する。
+;RETURN 0;通常地の文と口上を表示
+;RETURN 1;口上のみ表示
+;RETURN 2;通常地の文のみ表示
+;RETURN 3;どちらも表示しない
+;==================================================
+@M_KOJO_DAILY_EVENT_MESSAGECHECK_K108_12
+RETURN 0
+
 @M_KOJO_DAILY_EVENT_K108_12(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
 ;地の文を変えたければコメントアウト
 ;コメントアウトできるのはARG:1=1,2のみです
@@ -5191,7 +5269,7 @@ RETURN 0
 ;---------------------------------------------------------------------------------------------------
 ;評価点       贈り物の評価点（1～999）,口上主があげた場合でも口上主の評価点
 ;GIFT_NAME    贈り物の名称
-;SENSE        贈り物に設定された属性。STRCOUNT(DISH_TASTE, "ほげほげ/")を使うと特定の属性を判定できます。
+;SENSE        贈り物に設定された属性。STRCOUNT(SENSE, "ほげほげ/")を使うと特定の属性を判定できます。
 ;GIFT_ID      これ単体では使いません。以下の式内関数を使うとデータを抽出できます（こだわりたい人用）
 ;　GET_GIFTDATA(GIFT_ID, "回数")    貰った（あげた）回数
 ;　GET_GIFTDATA(GIFT_ID, "得点")    得点（1～999）,口上テンプレ内では用意されてます。
@@ -5414,8 +5492,8 @@ SIF 0
 	SIF YOUBI_MATCH(DAY, "水木") && INRANGE(TIME, 720, 1020) && CFLAG:今日の運勢 % 2 == 0
 		TCVAR:引力点 = P213鈴奈庵
 	;特定の人物が特定の場所にいるとそこへ引っ張られる
-		SIF CFLAG:[[白蓮]]:現在位置 == P103本堂 && !CFLAG:[[白蓮]]:うふふ && SHIRAHU([[白蓮]])
-			TCVAR:引力点 = P103本堂
+	SIF CFLAG:[[白蓮]]:現在位置 == P103本堂 && !CFLAG:[[白蓮]]:うふふ && SHIRAHU([[白蓮]])
+		TCVAR:引力点 = P103本堂
 	;土日に10分の1の確率で特定の人物にくっついてまわる
 	SIF YOUBI_MATCH(DAY, "土日") && CFLAG:今日の運勢 % 10 == 0 && !CFLAG:[[さとり]]:うふふ && SHIRAHU([[さとり]])
 		TCVAR:引力点 = CFLAG:[[さとり]]:現在位置
@@ -5493,6 +5571,54 @@ IF LOCAL:1
 	ENDSELECT
 ENDIF
 
+;外出先特殊遭遇イベント
+@RUN_INTO_K108(MAP_ID)
+#DIM MAP_ID
+;K108をキャラ番号に置換
+;最後に必ずRETURN 1すること
+;面識がない場合発生させないなど、あえて不発にさせたい場合RETURN -1すること
+;	SIF !CFLAG:XX:面識
+;		RETURN -1
+;	PRINTFORML %CALLNAME:XX%がいた
+;	PRINTFORML 「どうも」
+;	CFLAG:XX:好感度 += 5
+;	RETURN 1
+
+;セフレ契約用
+;"補正"でRETURNした数値が理性判定に加算されるので、
+;簡単にセフレにしたいならマイナス、難易度を上げたかったり実質不可能にしたいならプラスすべし
+@KOJO_SF_CONTRACT_EVENT_K108(ARGS)
+SELECTCASE ARGS
+	CASE "導入"
+		PRINTFORMW 「……それはつまり、"私と身体だけの関係でいよう"って事？」
+	CASE "補正"
+		;PRINTFORML （サクッとヤりたいなあ）
+		;RETURN -1000
+	CASE "成功"
+		IF TALENT:恋慕
+			PRINTFORML 「…いいよ」
+			PRINTFORML 「キミが私の方を見てくれるなら、何だっていい……」
+			PRINTFORMDW 鈴瑚は寂しそうな笑顔を浮かべながらも、%CALLNAME:MASTER%に抱きついてきた…！
+		ELSE
+			PRINTFORML 「…まあ、これも調査の一環という事にしとこうかな」
+			CALL HPH_PRINT,@"「でも…私の身体は安くないよ～？HPH」","L"
+			PRINTFORMDW 鈴瑚からの了承を得た……！
+		ENDIF
+	CASE "失敗"
+		IF TALENT:恋慕
+			PRINTFORML 「そんなの嫌！！だって私は…！」
+			PRINTFORML 「……とにかく嫌…」
+			PRINTFORMDW それきり、鈴瑚はうつむいて黙ってしまった……
+		ELSE
+			PRINTFORML 「はぁ……やっぱり、キミってそういう事しか考えてないんだ」
+			PRINTFORML 『報告。調査の結果、%CALLNAME:MASTER%はやはり危険人物でしたっと……』
+			PRINTFORMDW %CALLNAME:MASTER%の悪評が、月全体に広まってしまった……
+		ENDIF
+ENDSELECT
+
+;一般依頼の抑制
+;ARG is request number
+;If this function returns 1, that request will not occur for this character
 @M_KOJO_CHECK_K108_IRAI_BLOCKED(ARGS,ARG,ARG:1)
-SIF GROUPMATCH(ARG, 2, 10, 11)
-    RETURN 1
+; SIF GROUPMATCH(ARG, 2)
+;     RETURN 1

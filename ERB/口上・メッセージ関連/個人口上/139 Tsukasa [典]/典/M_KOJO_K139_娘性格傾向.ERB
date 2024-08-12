@@ -1,0 +1,178 @@
+﻿;-------------------------------------------------
+;娘の性格傾向を決める関数
+;eramegatenのEVENT_K3501「あなたの娘」の「@MUSUME_SEIKAKU_KETTEI」をベースにさせていただいております
+;作者様に感謝を
+;処理の順番の関係上、男の子でも出てしまう
+;-------------------------------------------------
+@K139_PERSONALITY
+PRINTFORML  %CALLNAME:MASTER%と典の子が無事誕生しました
+PRINTL 娘の性格は…
+CALL ASK_M("デフォルト口上を使用する", 1,"ランダムで決定", 1,"ランダムで決定（あなたの素質が影響）", 1)
+SELECTCASE RESULT
+CASE 0
+	PRINTL デフォルトの口上です
+	PRINTL 性格「普通」になります
+	CFLAG:1983 = 1
+CASE 1
+	PRINTL ランダムで決定します…
+	SELECTCASE RAND:4
+	CASE 0
+		PRINTL 性格「普通」になります
+		CFLAG:1983 = 1
+	CASE 1
+		PRINTL 性格「無邪気」になります
+		CFLAG:1983 = 2
+	CASE 2
+		PRINTL 性格「大人しい」になります
+		CFLAG:1983 = 3
+	CASE 3
+		PRINTL 性格「メスガキ」になります
+		CFLAG:1983 = 4
+	ENDSELECT
+CASE 2
+	PRINTFORML %CALLNAME:MASTER%の素質を基に、ランダムで性格を決定します
+	;性格：普通
+	;お母さんと一緒。エッチは好きだけど割とノーマル
+	;────────────────
+	SIF TALENT:MASTER:態度 == -1
+	LOCAL:1 += 1
+
+	SIF TALENT:MASTER:性的興味 == 1
+	LOCAL:1 += 2
+
+	SIF TALENT:MASTER:貞操 == -1
+	LOCAL:1 += 1
+
+	SIF TALENT:MASTER:痛覚 == 1
+	LOCAL:1 += 1
+
+	SIF TALENT:MASTER:習得速度 == 1
+	LOCAL:1 += 1
+
+	SIF TALENT:MASTER:献身的
+	LOCAL:1 += 2
+
+	SIF TALENT:MASTER:小悪魔
+	LOCAL:1 += 3
+
+	SIF TALENT:MASTER:妖狐
+	LOCAL:1 += 1
+
+	SIF TALENT:MASTER:魅惑
+	LOCAL:1 += 1
+
+	SIF TALENT:MASTER:鼓舞
+	LOCAL:1 += 1
+
+
+	;性格：無邪気
+	;子どもっぽい性格だけどエッチのときは一番恥じらう。甘々寄り
+	;────────────────
+	SIF TALENT:MASTER:態度 == -1
+	LOCAL:2 += 3
+
+	SIF TALENT:MASTER:応答 == 1
+	LOCAL:2 += 1
+
+	SIF TALENT:MASTER:陽気／陰気 == 1
+	LOCAL:2 += 2
+
+	SIF TALENT:MASTER:無知
+	LOCAL:2 += 2
+
+	SIF TALENT:MASTER:貞操 == -1
+	LOCAL:2 += 1
+
+	SIF TALENT:MASTER:羞恥心 == 1
+	LOCAL:2 += 1
+
+	SIF TALENT:MASTER:鼓舞
+	LOCAL:2 += 1
+
+	SIF TALENT:MASTER:幼稚
+	LOCAL:2 += 1
+
+	;性格：大人しい
+	;心優しいけどムッツリスケベ。エッチなことなら何でも好き
+	;────────────────
+	SIF TALENT:MASTER:度胸 == -1
+	LOCAL:3 += 1
+
+	SIF TALENT:MASTER:応答 == -1
+	LOCAL:3 += 1
+
+	SIF TALENT:MASTER:性的興味 == 1
+	LOCAL:3 += 3
+
+	SIF TALENT:MASTER:陽気／陰気 == -1
+	LOCAL:3 += 1
+
+	SIF TALENT:MASTER:自己愛 == -1
+	LOCAL:3 += 2
+
+	SIF TALENT:MASTER:羞恥心 == -1
+	LOCAL:3 += 1
+
+	SIF TALENT:MASTER:献身的
+	LOCAL:3 += 1
+
+	SIF TALENT:MASTER:中毒しやすい
+	LOCAL:3 += 2
+
+	;性格：メスガキ
+	;分からせなきゃ…（使命感）一見口は悪いですがパパ大好き
+	;────────────────
+	SIF TALENT:MASTER:態度 == -1
+	LOCAL:4 += 1
+
+	SIF TALENT:MASTER:応答 == -1
+	LOCAL:4 += 2
+
+	SIF TALENT:MASTER:ツンデレ
+	LOCAL:4 += 3
+
+	SIF TALENT:MASTER:気分屋
+	LOCAL:4 += 1
+
+	SIF TALENT:MASTER:自己愛 == 1
+	LOCAL:4 += 1
+
+	SIF TALENT:MASTER:献身的
+	LOCAL:4 += 1
+
+	SIF TALENT:MASTER:即落ち
+	LOCAL:4 += 1
+
+	SIF TALENT:MASTER:小悪魔
+	LOCAL:4 += 2
+
+	;繰り返し1～4
+	FOR LOCAL, 1, 5
+		;おっきければ
+		IF LOCAL:5 < LOCAL:LOCAL
+			;それに合わせます
+			LOCAL:5 = LOCAL:LOCAL
+			;暫定一位
+			CFLAG:1983 = LOCAL
+			;以上ではなくより大きいなので1から優先されるはず　はず
+		ENDIF
+	NEXT
+
+	;どのLOCALも合計が3に達しなければ性格が1になる
+	;LOCAL:5は1～4の中での最大値
+	SIF LOCAL:5 < 2
+		CFLAG:1983 = 1
+ENDSELECT
+
+	PRINT この子は将来、
+	SELECTCASE CFLAG:1983
+	CASE 1
+		PRINT 素直そうだが典に似てエッチな
+	CASE 2
+		PRINT 元気いっぱいな
+	CASE 3
+		PRINT 優しそうだが引っ込み思案な
+	CASE 4
+		PRINTFORM ざぁこ%UNICODE(0x2665) *1%　ざぁこ%UNICODE(0x2665) *1%　と父を罵ってきそうな
+	ENDSELECT
+	PRINTFORML 子に育つかもしれない……そんな気がした

@@ -19,8 +19,8 @@ SIF FLAG:口上色
 	;小分岐
 	;-------------------------------------------------
 	;戦闘前
-	HANDICAP_FIXED = 0
-	HANDICAP_RAND = 0
+	;HANDICAP_FIXED = 0
+	;HANDICAP_RAND = 0
 	;ハンデをつけることができ、数値が大きいほどあなたが不利になる　数値が負ならあなたが有利に
 	;キャラの能力に関わらずクッソ強くしたり弱くしたりできる
 	;記入チェック（=0, 非表示、1, 表示）
@@ -32,14 +32,25 @@ SIF FLAG:口上色
 			PRINTFORML 「ほら、%CALLNAME:MASTER%どのってとっても強いじゃないですか」
 			PRINTFORML 「一方的な勝負になっちゃってもつまらないし、%CALLNAME:MASTER%どのは弱い者いじめとかしないよね？」
 			PRINTFORML 「だから、お姉ちゃんにちょっとだけ手加減してくれないかな…♪」
+			CALL ASK_YN("いいよ","だめ")
+			IF !RESULT
+				HANDICAP_FIXED += ABL:MASTER:戦闘能力 * 50
+			ELSE
+				PRINTFORMW 「ふみゅう…%CALLNAME:MASTER%どのの、イジワル…」
+			ENDIF
 		ELSE
 			PRINTFORML 「%CALLNAME:MASTER%どの。私は所詮つまらぬ管狐でございます」
 			PRINTFORML 「そのような弱い相手に全力を振るうおつもりですか？」
 			PRINTFORML 「弱い相手をいたぶるなど、%CALLNAME:MASTER%どのの戦歴が傷付くというもの」
 			PRINTFORML 「どうでしょう？　ここはひとつ、手心を加えていただけませんか？」
 			PRINTW 
+			CALL ASK_YN("いいよ","ならぬ。完膚なきまでに叩き潰す")
+			IF !RESULT
+				HANDICAP_FIXED += ABL:MASTER:戦闘能力 * 50
+			ELSE
+				PRINTFORMW 「ひ、ひえぇ…」
+			ENDIF
 		ENDIF
-		RETURN 0
 	ENDIF
 	;-------------------------------------------------
 	;ハンデ
@@ -48,7 +59,6 @@ SIF FLAG:口上色
 	;-------------------------------------------------
 	IF LOCAL:1 && ARGS == "ハンデ"
 		;ハンデつけなかったら表示されないので無記入でよい
-		HANDICAP_FIXED += ABL:MASTER:戦闘能力 * 50
 		IF (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行)
 			PRINTFORML 「嬉しい♪　%CALLNAME:MASTER%どのはお姉ちゃんに優しいですねぇ♪」
 			IF ABL:MASTER:戦闘能力 >= 3
@@ -69,7 +79,6 @@ SIF FLAG:口上色
 			PRINTFORML （ちょろいですねぇ…扱いやすくて、本当に助かります♪）
 			PRINTW 
 		ENDIF
-		RETURN 0
 	ENDIF
 	;-------------------------------------------------
 	;戦闘中TARGET被弾時口上
@@ -322,217 +331,234 @@ SIF FLAG:口上色
 		;残り残機4が表示されうるのは【洽覧深識】持ちのみ
 		;残機が1以上ならあなたの負け、0の場合はあなたの勝利
 		SELECTCASE 相手残機
-			CASE 4
-				PRINTFORML 
-			CASE 3
-				;ハンデ付き負け。ここぞとばかりに煽られる
-				;あなたの素質で煽り内容が変化（増加）
-				IF HANDICAP_FIXED > 0
-					CALL HPH_PRINT,@"「ざぁこHPH　ざぁこHPH」","L"
-					CALL HPH_PRINT,@"「調子にのってハンデをつけて、管狐にすら完敗HPH」","L"
-					SIF TALENT:MASTER:非童貞 == 0
-						CALL HPH_PRINT,@"「童貞HPH」","L"
-					SIF (TALENT:MASTER:形状 == 1 || TALENT:MASTER:形状 == 2)
-						CALL HPH_PRINT,@"「短小HPH　包茎HPH」","L"
-					SIF TALENT:MASTER:応答 == -1
-						CALL HPH_PRINT,@"「コミュ障HPH」","L"
-					SIF TALENT:MASTER:度胸 == -1
-						CALL HPH_PRINT,@"「甲斐性なしHPH　強い相手にはすぐ下手に出るHPH」","L"
-					SIF ABL:MASTER:話術技能 < 1
-						CALL HPH_PRINT,@"「自分の好きなことだけ饒舌HPH　話題のレパートリーが乏しいHPH」","L"
-					SIF ABL:MASTER:料理技能 < 1
-						CALL HPH_PRINT,@"「作れないくせにすぐレシピを無視して料理を不味くするHPH」","L"
-					SIF ABL:MASTER:音楽技能 < 1
-						CALL HPH_PRINT,@"「形から入って楽器の持ち腐れHPH」","L"
-					SIF (TALENT:MASTER:酒耐性 == -2 || TALENT:MASTER:形状 == -1)
-						CALL HPH_PRINT,@"「お酒を飲んだら顔がすぐ真っ赤HPH」","L"
-					CALL HPH_PRINT,@"「ほんと、救いようがない雑魚ですねぇHPH」","L"
-					SIF TALENT:恋慕
-						CALL HPH_PRINT,@"「でも大好きHPH」","L"
-					
-					;自虐用
-					;CALL HPH_PRINT,@"「ざぁこHPH　ざこ口上作者HPH」","L"
-					;CALL HPH_PRINT,@"「仕様を理解してないのにすぐ新しい機能を使いたがるHPH」","L"
-					;CALL HPH_PRINT,@"「そのくせデバッグはユーザー任せHPH」","L"
-					;CALL HPH_PRINT,@"「空欄埋めなきゃ病に罹ってるくせに好きな部分と温度差が激しすぎるHPH」","L"
-					;CALL HPH_PRINT,@"「スレで感想がないと『自分の口上って、実は需要ない…？』ってすぐ落ち込むHPH」","L"
-					
+		CASE 4
+			PRINTFORML 
+		CASE 3
+			;ハンデ付き負け。ここぞとばかりに煽られる
+			;あなたの素質で煽り内容が変化（増加）
+			IF HANDICAP_FIXED > 0
+				CALL HPH_PRINT,@"「ざぁこHPH　ざぁこHPH」","L"
+				CALL HPH_PRINT,@"「調子にのってハンデをつけて、管狐にすら完敗HPH」","L"
+				SIF TALENT:MASTER:非童貞 == 0
+					CALL HPH_PRINT,@"「童貞HPH」","L"
+				SIF (TALENT:MASTER:形状 == 1 || TALENT:MASTER:形状 == 2)
+					CALL HPH_PRINT,@"「短小HPH　包茎HPH」","L"
+				SIF TALENT:MASTER:応答 == -1
+					CALL HPH_PRINT,@"「コミュ障HPH」","L"
+				SIF TALENT:MASTER:度胸 == -1
+					CALL HPH_PRINT,@"「甲斐性なしHPH　強い相手にはすぐ下手に出るHPH」","L"
+				SIF ABL:MASTER:話術技能 < 1
+					CALL HPH_PRINT,@"「自分の好きなことだけ饒舌HPH　話題のレパートリーが乏しいHPH」","L"
+				SIF ABL:MASTER:料理技能 < 1
+					CALL HPH_PRINT,@"「作れないくせにすぐレシピを無視して料理を不味くするHPH」","L"
+				SIF ABL:MASTER:音楽技能 < 1
+					CALL HPH_PRINT,@"「形から入って楽器の持ち腐れHPH」","L"
+				SIF (TALENT:MASTER:酒耐性 == -2 || TALENT:MASTER:形状 == -1)
+					CALL HPH_PRINT,@"「お酒を飲んだら顔がすぐ真っ赤HPH」","L"
+				CALL HPH_PRINT,@"「ほんと、救いようがない雑魚ですねぇHPH」","L"
+				SIF TALENT:恋慕
+					CALL HPH_PRINT,@"「でも大好きHPH」","L"
+				
+				;自虐用
+				;CALL HPH_PRINT,@"「ざぁこHPH　ざこ口上作者HPH」","L"
+				;CALL HPH_PRINT,@"「仕様を理解してないのにすぐ新しい機能を使いたがるHPH」","L"
+				;CALL HPH_PRINT,@"「そのくせデバッグはユーザー任せHPH」","L"
+				;CALL HPH_PRINT,@"「空欄埋めなきゃ病に罹ってるくせに好きな部分と温度差が激しすぎるHPH」","L"
+				;CALL HPH_PRINT,@"「スレで感想がないと『自分の口上って、実は需要ない…？』ってすぐ落ち込むHPH」","L"
+				
+				IF CFLAG:1045 == 1
+					CALL K139_GAMBLING
+				ENDIF
+			;ハンデなし
+			ELSE
+				IF ABL:MASTER:戦闘能力 > 2
+					CALL HPH_PRINT,@"「あれぇHPH　どうしたんですかぁHPH　調子が悪かったんですかぁHPH」","L"
+					CALL HPH_PRINT,@"「私が言った通り、ハンデを付けておけば言い訳もできたのにHPH」","L"
+					CALL HPH_PRINT,@"「どうしてハンデを付けなかったんですかぁHPH　プライドってやつですかぁHPH」","L"
+					CALL HPH_PRINT,@"「でも格下に負けちゃったらプライドも何もないですねぇHPH」","L"
+					PRINTW 
+					CALL HPH_PRINT,@"「あれぇ、顔真っ赤ですよHPH　どうしたんですかHPH」","L"
+					CALL HPH_PRINT,@"「まさか勝負に負けて八つ当たりとかしないですよねHPH　格上ともあろうものがHPH」","L"
+					CALL HPH_PRINT,@"「今のあなたのこと、何て言うか、知ってます？HPH　言ってほしいですかぁ？HPH」","L"
+					PRINTW 
+					CALL HPH_PRINT,@"「ざぁこHPH　ざぁこHPH　ざこ%CALLNAME:MASTER%HPH」","L"
+					PRINTW 
 				ELSE
-					IF ABL:MASTER:戦闘能力 > 2
-						CALL HPH_PRINT,@"「あれぇHPH　どうしたんですかぁHPH　調子が悪かったんですかぁHPH」","L"
-						CALL HPH_PRINT,@"「私が言った通り、ハンデを付けておけば言い訳もできたのにHPH」","L"
-						CALL HPH_PRINT,@"「どうしてハンデを付けなかったんですかぁHPH　プライドってやつですかぁHPH」","L"
-						CALL HPH_PRINT,@"「でも格下に負けちゃったらプライドも何もないですねぇHPH」","L"
-						PRINTW 
-						CALL HPH_PRINT,@"「あれぇ、顔真っ赤ですよHPH　どうしたんですかHPH」","L"
-						CALL HPH_PRINT,@"「まさか勝負に負けて八つ当たりとかしないですよねHPH　格上ともあろうものがHPH」","L"
-						CALL HPH_PRINT,@"「今のあなたのこと、何て言うか、知ってます？HPH　言ってほしいですかぁ？HPH」","L"
-						PRINTW 
-						CALL HPH_PRINT,@"「ざぁこHPH　ざぁこHPH　ざこ%CALLNAME:MASTER%HPH」","L"
-						PRINTW 
-					ELSE
-						CALL HPH_PRINT,@"「ざぁこHPH　ざぁこHPH　ざこ%CALLNAME:MASTER%HPH」","L"
-						CALL HPH_PRINT,@"「あなたみたいな雑魚が私を相手にしようなんて百年早いですHPH」","L"
-						CALL HPH_PRINT,@"「残念でしたねぇHPH　もし私に勝てたら、とっても気持ちいいことしてあげようと思ったのにHPH」","L"
-						CALL HPH_PRINT,@"「雑魚のくせに悔しがるんですかHPH　安いプライドだけは一人前ですねHPH」","L"
-						PRINTW 
-					ENDIF
+					CALL HPH_PRINT,@"「ざぁこHPH　ざぁこHPH　ざこ%CALLNAME:MASTER%HPH」","L"
+					CALL HPH_PRINT,@"「あなたみたいな雑魚が私を相手にしようなんて百年早いですHPH」","L"
+					CALL HPH_PRINT,@"「残念でしたねぇHPH　もし私に勝てたら、とっても気持ちいいことしてあげようと思ったのにHPH」","L"
+					CALL HPH_PRINT,@"「雑魚のくせに悔しがるんですかHPH　安いプライドだけは一人前ですねHPH」","L"
+					PRINTW 
+				ENDIF
+				
+				IF TALENT:恋慕 || TALENT:恋人
+					PRINTFORML 「えぇと…真に受けたらいけませんよ…？」
+					PRINTFORML 「負けたら罵ってほしいって仰ったの、%CALLNAME:MASTER%どのじゃないですかぁ～」
+					PRINTW 
+					PRINTFORML 「もう、メンタルよわよわ%CALLNAME:MASTER%どのなんですから…%UNICODE(0x2665) *1%」
+					CALL HPH_PRINT,@"「ほーら、いーこ、いーこHPH」","L"
+					CALL HPH_PRINT,@"「弾幕勝負頑張ってえらいえらいHPH」","L"
+					CALL HPH_PRINT,@"「本当はつよつよなんだよねHPH　\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@のために手加減してくれたんだよねHPH」","L"
+					CALL HPH_PRINT,@"「はい\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@にぎゅーってしてHPH　泣き止んでえらいえらいHPH」","L"
+					CALL HPH_PRINT,@"「本当に%CALLNAME:MASTER%どのは、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@がいないと駄目なんですから…HPH」","L"
 					
-					IF TALENT:恋慕 || TALENT:恋人
-						PRINTFORML 「えぇと…真に受けたらいけませんよ…？」
-						PRINTFORML 「負けたら罵ってほしいって仰ったの、%CALLNAME:MASTER%どのじゃないですかぁ～」
-						PRINTW 
-						PRINTFORML 「もう、メンタルよわよわ%CALLNAME:MASTER%どのなんですから…%UNICODE(0x2665) *1%」
-						CALL HPH_PRINT,@"「ほーら、いーこ、いーこHPH」","L"
-						CALL HPH_PRINT,@"「弾幕勝負頑張ってえらいえらいHPH」","L"
-						CALL HPH_PRINT,@"「本当はつよつよなんだよねHPH　\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@のために手加減してくれたんだよねHPH」","L"
-						CALL HPH_PRINT,@"「はい\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@にぎゅーってしてHPH　泣き止んでえらいえらいHPH」","L"
-						CALL HPH_PRINT,@"「本当に%CALLNAME:MASTER%どのは、\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@がいないと駄目なんですから…HPH」","L"
-						
-						IF TCVAR:発情 == 1 && ((EXP:Ｖ性交経験 > 50 && EXP:Ｖ絶頂経験 > 100) || (EXP:Ａ絶頂経験 > 100 && EXP:Ａ性交経験 > 50)) && PALAM:欲情 >= PALAMLV:3
-							SETCOLOR 0xFF69B4
-							CALL HPH_PRINT,@"「それに…%CALLNAME:MASTER%にはとってもすごい取柄があるじゃないですかぁ…HPH」","L"
+					IF TCVAR:発情 == 1 && ((EXP:Ｖ性交経験 > 50 && EXP:Ｖ絶頂経験 > 100) || (EXP:Ａ絶頂経験 > 100 && EXP:Ａ性交経験 > 50)) && PALAM:欲情 >= PALAMLV:3
+						SETCOLOR 0xFF69B4
+						CALL HPH_PRINT,@"「それに…%CALLNAME:MASTER%にはとってもすごい取柄があるじゃないですかぁ…HPH」","L"
+						RESETCOLOR
+						PRINTFORML 典は好色っぽい笑みを浮かべ、%CALLNAME:MASTER%にそっと耳打ちする
+						SETCOLOR 0xFF69B4
+						CALL HPH_PRINT,@"「おセックスですよ、おセックスHPH」","L"
+						IF TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3
+							CALL HPH_PRINT,@"「殿方の本領は野蛮な戦いに非ず…HPH　まぐわいでこそ真価を測るべきですHPH」","L"
+							CALL HPH_PRINT,@"「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@を分からせたこの大業物…HPH」","L"
+							CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのは本当はよわよわじゃないところ、今ここでお見せくださいHPHHPHHPH」","L"
+							PRINTL
+							PRINTL 
 							RESETCOLOR
-							PRINTFORML 典は好色っぽい笑みを浮かべ、%CALLNAME:MASTER%にそっと耳打ちする
+							CALL HPH_PRINT,@"ぱんっHPHぱんっHPHぱんっHPH","L"
+							CALL HPH_PRINT,@"　　　ぱんっHPHぱんっHPHぱんっHPH","L"
 							SETCOLOR 0xFF69B4
-							CALL HPH_PRINT,@"「おセックスですよ、おセックスHPH」","L"
-							IF TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3
-								CALL HPH_PRINT,@"「殿方の本領は野蛮な戦いに非ず…HPH　まぐわいでこそ真価を測るべきですHPH」","L"
-								CALL HPH_PRINT,@"「\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@を分からせたこの大業物…HPH」","L"
-								CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのは本当はよわよわじゃないところ、今ここでお見せくださいHPHHPHHPH」","L"
-								PRINTL
-								PRINTL 
-								RESETCOLOR
-								CALL HPH_PRINT,@"ぱんっHPHぱんっHPHぱんっHPH","L"
-								CALL HPH_PRINT,@"　　　ぱんっHPHぱんっHPHぱんっHPH","L"
-								SETCOLOR 0xFF69B4
-								CALL HPH_PRINT,@"「お゛んっHPH」","L"
-								CALL HPH_PRINT,@"　　　　「お゛んっHPH」","L"
-								PRINTL 
-								RESETCOLOR
-								CALL HPH_PRINT,@"どちゅHPHどちゅHPHどちゅHPH","L"
-								CALL HPH_PRINT,@"　　　どちゅHPHどちゅHPHどちゅHPH","L"
-								SETCOLOR 0xFF69B4
-								CALL HPH_PRINT,@"「なんてっ女子泣かせなっHPHHPH」","L"
-								IF EXP:Ｖ絶頂経験 > EXP:Ａ絶頂経験
-									CALL HPH_PRINT,@"　　　　「子宮っ悦んでるっっHPHHPH」","L"
-								ELSE
-									CALL HPH_PRINT,@"　　　　「尻穴が孕みたがってるっっHPHHPH」","L"
-								ENDIF
-								CALL HPH_PRINT,@"「セックスっっHPHHPH　お上手ですっっHPHHPHHPH」","L"
-								PRINTL 
-								RESETCOLOR
-								CALL HPH_PRINT,@"ぐりんっHPHぐりんっHPHぐりんっHPH","L"
-								CALL HPH_PRINT,@"　　　ぐりんっHPHぐりんっHPHぐりんっHPH","L"
-								SETCOLOR 0xFF69B4
-								IF EXP:Ｖ絶頂経験 > EXP:Ａ絶頂経験
-									CALL HPH_PRINT,@"「膣内で暴れてますっHPHHPH」","L"
-								ELSE
-									CALL HPH_PRINT,@"「腸内で暴れてますっHPHHPH」","L"
-								ENDIF
-								CALL HPH_PRINT,@"　　　　「カリで抉られてぇっHPHHPH」","L"
-								PRINTL 
-								PRINTL 
-								RESETCOLOR
-								CALL HPH_PRINT,@"バスッHPHバスッHPHバスッHPH","L"
-								CALL HPH_PRINT,@"　　　バスッHPHバスッHPHバスッHPH","L"
-								SETCOLOR 0xFF69B4
-								CALL HPH_PRINT,@"「お゛っイ゛グっっHPHPH」","L"
-								CALL HPH_PRINT,@"　　　　「ま゛だイ゛グっっっHPHPHPH」","L"
-								PRINTL 
-								RESETCOLOR
-								CALL HPH_PRINT,@"ぱんHPHぱんHPHぱんHPHぱんHPHぱんHPHぱんHPH","L"
-								CALL HPH_PRINT,@"　　　ぱんHPHぱんHPHぱんHPHぱんHPHぱんHPHぱんHPH","L"
-								SETCOLOR 0xFF69B4
-								CALL HPH_PRINT,@"「イきますかっ！？HPH　チンポイキますかっ！？HPHHPH」","L"
-								IF EXP:Ｖ絶頂経験 > EXP:Ａ絶頂経験
-									CALL HPH_PRINT,@"　　　　「孕ませてっっHPHHPH%CALLNAME:MASTER%どのの子種でっHPHHPHHPH」","L"
-									CALL HPH_PRINT,@"　　　　「一番奥でっっHPHHPH　種付けっっHPHHPHHPHお射精っっHPHHPHHPH　あ゛っイ゛グっっHPHHPHHPH」","L"
-								ELSE
-									CALL HPH_PRINT,@"　　　　「ケツアクメしますっっHPHHPH」","L"
-									CALL HPH_PRINT,@"　　　　「発情ケツまんこっっHPHHPH　受胎しちゃうっっHPH　あ゛っイ゛グっっHPHHPHHPH」","L"
-								ENDIF
-								PRINTL 
-								RESETCOLOR
-								CALL HPH_PRINT,@"ドプン！！！！！HPH","L"
-								CALL HPH_PRINT,@"びゅるっHPH　びゅるるるるっHPHHPHHPH","L"
-								CALL HPH_PRINT,@"　　　びゅーーーっHPH　びゅびゅーーーーーーーーーっっHPHHPHHPH","L"
-								CALL HPH_PRINT,@"びゅっHPH　びゅるっHPHHPHHPH","L"
-								SETCOLOR 0xFF69B4
-								IF EXP:Ｖ絶頂経験 > EXP:Ａ絶頂経験
-									CALL HPH_PRINT,@"「お゛HPHHPH　んおおおぉ、子宮に、チンポ押し付けられてるぅ……HPHHPHHPH」","L"
-								ELSE
-									CALL HPH_PRINT,@"「お゛HPHHPH　んおおおぉ、お尻HPH　本気で孕むぅ……HPHHPHHPH」","L"
-								ENDIF
-								PRINTL 
-								PRINTL 
-								PRINTW 
-								CALL HPH_PRINT,@"「あぁん…もう、さいこうれひはぁ…HPH」","L"
-								PRINTFORML 典は全身精液塗れになりながら、%CALLNAME:MASTER%の半萎えのチンポを口でお清めしている
-								PRINTL 
-								CALL HPH_PRINT,@"「ん～～～～～～～、んふっHPH」","L"
-								CALL HPH_PRINT,@"ちゅぽんっHPHHPH","L" 
-								CALL HPH_PRINT,@"「はいHPH　これで綺麗になりましたよHPH」","L"
-								PRINTW 
-								CALL HPH_PRINT,@"「やっぱり%CALLNAME:MASTER%どののおちんぽ様…最高ですHPH」","L"
-								CALL HPH_PRINT,@"「自信持ってくださいね？　%CALLNAME:MASTER%どのは、決してよわよわなんかじゃありませんHPH」","L"
-								PRINTL 
-								PRINTFORML 典は、肉棒に頬ずりしながら%CALLNAME:MASTER%を見上げる
-								CALL HPH_PRINT,@"「だって、こんなに最強つよつよちんぽをお持ちなんですから…HPH」","L"
-								PRINTW 
+							CALL HPH_PRINT,@"「お゛んっHPH」","L"
+							CALL HPH_PRINT,@"　　　　「お゛んっHPH」","L"
+							PRINTL 
+							RESETCOLOR
+							CALL HPH_PRINT,@"どちゅHPHどちゅHPHどちゅHPH","L"
+							CALL HPH_PRINT,@"　　　どちゅHPHどちゅHPHどちゅHPH","L"
+							SETCOLOR 0xFF69B4
+							CALL HPH_PRINT,@"「なんてっ女子泣かせなっHPHHPH」","L"
+							IF EXP:Ｖ絶頂経験 > EXP:Ａ絶頂経験
+								CALL HPH_PRINT,@"　　　　「子宮っ悦んでるっっHPHHPH」","L"
+							ELSE
+								CALL HPH_PRINT,@"　　　　「尻穴が孕みたがってるっっHPHHPH」","L"
+							ENDIF
+							CALL HPH_PRINT,@"「セックスっっHPHHPH　お上手ですっっHPHHPHHPH」","L"
+							PRINTL 
+							RESETCOLOR
+							CALL HPH_PRINT,@"ぐりんっHPHぐりんっHPHぐりんっHPH","L"
+							CALL HPH_PRINT,@"　　　ぐりんっHPHぐりんっHPHぐりんっHPH","L"
+							SETCOLOR 0xFF69B4
+							IF EXP:Ｖ絶頂経験 > EXP:Ａ絶頂経験
+								CALL HPH_PRINT,@"「膣内で暴れてますっHPHHPH」","L"
+							ELSE
+								CALL HPH_PRINT,@"「腸内で暴れてますっHPHHPH」","L"
+							ENDIF
+							CALL HPH_PRINT,@"　　　　「カリで抉られてぇっHPHHPH」","L"
+							PRINTL 
+							PRINTL 
+							RESETCOLOR
+							CALL HPH_PRINT,@"バスッHPHバスッHPHバスッHPH","L"
+							CALL HPH_PRINT,@"　　　バスッHPHバスッHPHバスッHPH","L"
+							SETCOLOR 0xFF69B4
+							CALL HPH_PRINT,@"「お゛っイ゛グっっHPHPH」","L"
+							CALL HPH_PRINT,@"　　　　「ま゛だイ゛グっっっHPHPHPH」","L"
+							PRINTL 
+							RESETCOLOR
+							CALL HPH_PRINT,@"ぱんHPHぱんHPHぱんHPHぱんHPHぱんHPHぱんHPH","L"
+							CALL HPH_PRINT,@"　　　ぱんHPHぱんHPHぱんHPHぱんHPHぱんHPHぱんHPH","L"
+							SETCOLOR 0xFF69B4
+							CALL HPH_PRINT,@"「イきますかっ！？HPH　チンポイキますかっ！？HPHHPH」","L"
+							IF EXP:Ｖ絶頂経験 > EXP:Ａ絶頂経験
+								CALL HPH_PRINT,@"　　　　「孕ませてっっHPHHPH%CALLNAME:MASTER%どのの子種でっHPHHPHHPH」","L"
+								CALL HPH_PRINT,@"　　　　「一番奥でっっHPHHPH　種付けっっHPHHPHHPHお射精っっHPHHPHHPH　あ゛っイ゛グっっHPHHPHHPH」","L"
+							ELSE
+								CALL HPH_PRINT,@"　　　　「ケツアクメしますっっHPHHPH」","L"
+								CALL HPH_PRINT,@"　　　　「発情ケツまんこっっHPHHPH　受胎しちゃうっっHPH　あ゛っイ゛グっっHPHHPHHPH」","L"
+							ENDIF
+							PRINTL 
+							RESETCOLOR
+							CALL HPH_PRINT,@"ドプン！！！！！HPH","L"
+							CALL HPH_PRINT,@"びゅるっHPH　びゅるるるるっHPHHPHHPH","L"
+							CALL HPH_PRINT,@"　　　びゅーーーっHPH　びゅびゅーーーーーーーーーっっHPHHPHHPH","L"
+							CALL HPH_PRINT,@"びゅっHPH　びゅるっHPHHPHHPH","L"
+							SETCOLOR 0xFF69B4
+							IF EXP:Ｖ絶頂経験 > EXP:Ａ絶頂経験
+								CALL HPH_PRINT,@"「お゛HPHHPH　んおおおぉ、子宮に、チンポ押し付けられてるぅ……HPHHPHHPH」","L"
+							ELSE
+								CALL HPH_PRINT,@"「お゛HPHHPH　んおおおぉ、お尻HPH　本気で孕むぅ……HPHHPHHPH」","L"
+							ENDIF
+							PRINTL 
+							PRINTL 
+							PRINTW 
+							CALL HPH_PRINT,@"「あぁん…もう、さいこうれひはぁ…HPH」","L"
+							PRINTFORML 典は全身精液塗れになりながら、%CALLNAME:MASTER%の半萎えのチンポを口でお清めしている
+							PRINTL 
+							CALL HPH_PRINT,@"「ん～～～～～～～、んふっHPH」","L"
+							CALL HPH_PRINT,@"ちゅぽんっHPHHPH","L" 
+							CALL HPH_PRINT,@"「はいHPH　これで綺麗になりましたよHPH」","L"
+							PRINTW 
+							CALL HPH_PRINT,@"「やっぱり%CALLNAME:MASTER%どののおちんぽ様…最高ですHPH」","L"
+							CALL HPH_PRINT,@"「自信持ってくださいね？　%CALLNAME:MASTER%どのは、決してよわよわなんかじゃありませんHPH」","L"
+							PRINTL 
+							PRINTFORML 典は、肉棒に頬ずりしながら%CALLNAME:MASTER%を見上げる
+							CALL HPH_PRINT,@"「だって、こんなに最強つよつよちんぽをお持ちなんですから…HPH」","L"
+							PRINTW 
 
-								CALL AddEXP("挿入経験", MASTER, 1)
-								CALL AddEXP("射精経験", MASTER, 1)
-								CALL AddEXP("Ｃ絶頂経験", MASTER, 1)
-								CALL AddEXP("絶頂経験", MASTER, 1)
+							CALL AddEXP("挿入経験", MASTER, 1)
+							CALL AddEXP("射精経験", MASTER, 1)
+							CALL AddEXP("Ｃ絶頂経験", MASTER, 1)
+							CALL AddEXP("絶頂経験", MASTER, 1)
 
-								CALL AddEXP("絶頂経験", TARGET, 10)
-								CALL AddEXP("精液経験", TARGET, 1)
-								CALL AddEXP("奉仕快楽経験", TARGET, 2)
-								CALL AddEXP("口淫経験", TARGET, 1)
-								CALL AddEXP("愛情経験", TARGET, 10)
+							CALL AddEXP("絶頂経験", TARGET, 10)
+							CALL AddEXP("精液経験", TARGET, 1)
+							CALL AddEXP("奉仕快楽経験", TARGET, 2)
+							CALL AddEXP("口淫経験", TARGET, 1)
+							CALL AddEXP("愛情経験", TARGET, 10)
 
-								IF EXP:Ｖ絶頂経験 > 100
-									CALL AddEXP("Ｖ絶頂経験", TARGET, 10)
-									CALL AddEXP("Ｖ経験", TARGET, 1)
-									CALL AddEXP("膣射経験", TARGET, 1)
-									EX:膣内精液 = 100
-								ELSEIF EXP:Ａ絶頂経験 > 100
-									CALL AddEXP("Ａ絶頂経験", TARGET, 10)
-									CALL AddEXP("Ａ経験", TARGET, 1)
-									CALL AddEXP("肛射経験", TARGET, 1)
-									EX:アナル内精液 = 100
-								ENDIF
+							IF EXP:Ｖ絶頂経験 > 100
+								CALL AddEXP("Ｖ絶頂経験", TARGET, 10)
+								CALL AddEXP("Ｖ経験", TARGET, 1)
+								CALL AddEXP("膣射経験", TARGET, 1)
+								EX:膣内精液 = 100
+							ELSEIF EXP:Ａ絶頂経験 > 100
+								CALL AddEXP("Ａ絶頂経験", TARGET, 10)
+								CALL AddEXP("Ａ経験", TARGET, 1)
+								CALL AddEXP("肛射経験", TARGET, 1)
+								EX:アナル内精液 = 100
 							ENDIF
 						ENDIF
 					ENDIF
 				ENDIF
-			CASE 2
-				IF HANDICAP_FIXED > 0
-					PRINTFORML 「おやおやぁ～？　自信満々のご様子でしたが～？」
-					PRINTFORML 「典、強すぎてごめんなさいー♪」
-				ELSE
-					PRINTFORML 「%CALLNAME:MASTER%どのは手の内を見せすぎです♪」
-					PRINTFORML 「弱い私でも、戦い方によってはこれだけやれるのですよ♪」
-				ENDIF
-			CASE 1
-				PRINTFORML 「いやいや、危ないところでした…」
-			CASE 0
-				IF HANDICAP_FIXED > 0
-					PRINTFORML 「完敗です…ぐうの音も出ません」
-					PRINTFORML （悔しい～ハンデを付けて油断していたところをコテンパンにして、煽ってやるはずだったのに～）
+			ENDIF
+		CASE 2
+			IF HANDICAP_FIXED > 0
+				PRINTFORML 「おやおやぁ～？　自信満々のご様子でしたが～？」
+				PRINTFORML 「典、強すぎてごめんなさいー♪」
+			ELSE
+				PRINTFORML 「%CALLNAME:MASTER%どのは手の内を見せすぎです♪」
+				PRINTFORML 「弱い私でも、戦い方によってはこれだけやれるのですよ♪」
+			ENDIF
+			
+			IF CFLAG:1045 == 1
+				CALL K139_GAMBLING
+			ENDIF
+		CASE 1
+			PRINTFORML 「いやいや、危ないところでした…」
+		;あなたの勝ち
+		CASE 0
+			IF HANDICAP_FIXED > 0
+				PRINTFORML 「完敗です…ぐうの音も出ません」
+				PRINTFORML （悔しい～ハンデを付けて油断していたところをコテンパンにして、煽ってやるはずだったのに～）
+				PRINTW 
+			ELSE
+				IF ABL:MASTER:戦闘能力 > 2
+					PRINTFORML 「私ごときでは%CALLNAME:MASTER%どのに勝てるはずもありませんよね…」
+					IF TALENT:恋慕 || TALENT:恋人
+						PRINTFORML （ふふ…私が見初めただけのことはあるわ…%UNICODE(0x2665) *1%　本当に頼もしいお方♪）
+					ELSE
+						PRINTFORML （少しは手加減くらいしなさいよね、この脳筋…！）
+					ENDIF
 					PRINTW 
 				ELSE
-					IF ABL:MASTER:戦闘能力 > 2
-						PRINTFORML 「私ごときでは%CALLNAME:MASTER%どのに勝てるはずもありませんよね…」
-						PRINTFORML （少しは手加減くらいしなさいよね、この脳筋…！）
-						PRINTW 
+					PRINTFORML 「いやはや…%CALLNAME:MASTER%どのを見くびっていたようです。参りました」
+					IF TALENT:恋慕 || TALENT:恋人
+						PRINTFORML （どうやら強いのはこちらもだったみたいね…%UNICODE(0x2665) *1%　この人を選んで正解だったわ♪）
 					ELSE
-						PRINTFORML 「いやはや…%CALLNAME:MASTER%どのを見くびっていたようです。参りました」
 						PRINTFORML （%CALLNAME:MASTER%がこんなに強いなんて…人を見る目には自信があったのに）
-						PRINTW 
 					ENDIF
+					PRINTW 
 				ENDIF
+			ENDIF
 		ENDSELECT
 	ENDIF
 RESETCOLOR

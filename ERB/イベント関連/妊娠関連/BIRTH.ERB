@@ -4,9 +4,9 @@ DRAWLINE
 ;妊娠消去、出産経験、性別の決定、誕生日決定
 TALENT:ARG:妊娠 = 0
 EXP:ARG:出産経験 += 1
-CHILDNUM = EXP:ARG:出産経験 % 10
-SIF !EXP:ARG:出産経験 % 10
-	CHILDNUM = 10
+CHILDNUM = EXP:ARG:出産経験 % MAXCHILD
+SIF !EXP:ARG:出産経験 % MAXCHILD
+	CHILDNUM = MAXCHILD
 IF FLAG:子供の性別
 	CHILD_SEX:ARG:CHILDNUM = FLAG:子供の性別
 ELSE
@@ -88,9 +88,9 @@ ENDIF
 #DIM YOME
 #DIM CHILDNUM
 #DIMS PROPOSED_NAME, 10
-CHILDNUM = EXP:YOME:出産経験 % 10
-SIF !EXP:YOME:出産経験 % 10
-	CHILDNUM = 10
+CHILDNUM = EXP:YOME:出産経験 % MAXCHILD
+SIF !EXP:YOME:出産経験 % MAXCHILD
+	CHILDNUM = MAXCHILD
 IF CHILD_SEX:YOME:CHILDNUM == 1
 	PROPOSED_NAME:0 = %ランダムキャラ_命名(YOME)%
 ELSE
@@ -170,7 +170,7 @@ CALL ASK_DIARY(@"%CALLNAME:YOME%に\@ CHILD_SEX:YOME:CHILDNUM == 1? 女# 男\@�
 SIF !CFLAG:ARG:育児人数
 	RETURNF 0
 
-FOR LOCAL, 1, 11
+FOR LOCAL, 1, MAXCHILD + 1
 	年齢 = DAY - CHILD_BIRTHDAY:ARG:LOCAL
 	SIF INRANGE(年齢,ARG:1,ARG:2-1)
 		RETURNF LOCAL
@@ -194,7 +194,7 @@ RETURNF 0
 FOR CHARA, 1, CHARANUM
 	SIF !CFLAG:CHARA:子供人数
 		CONTINUE
-	FOR CHILDNUM, 1, MIN(11, CFLAG:CHARA:子供人数 + 1)
+	FOR CHILDNUM, 1, MIN(MAXCHILD + 1, CFLAG:CHARA:子供人数 + 1)
 		;名無し≒未登録なら次のキャラへ
 		SIF !STRLENS(CHILDNAME:CHARA:CHILDNUM)
 			BREAK
@@ -213,7 +213,7 @@ RETURNF CNT_BIRTHDAY
 #DIM C_ID
 FOR C_ID,1,CHARANUM
 	;"FOR LOCAL,0,10"から修正
-	FOR LOCAL,1,11
+	FOR LOCAL,1, MAXCHILD + 1
 		SIF CHILDNAME:C_ID:LOCAL == ARGS
 			CALL COLORMESSAGE(@"%CALLNAME:C_ID%に同名の子供がいます",C_YELLOW,1)
 	NEXT

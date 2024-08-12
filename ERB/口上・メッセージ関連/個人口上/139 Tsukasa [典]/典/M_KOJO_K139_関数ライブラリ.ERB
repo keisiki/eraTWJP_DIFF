@@ -424,3 +424,104 @@ ELSE
 		PRINTL 
 	ENDIF
 ENDIF
+
+;==================================================
+;典のイベントON・OFF一覧
+;-------------------------------------------------
+@K139_OPTION
+#DIM 娘の悪戯設定
+PRINTFORML [0] オナニーサポート　　　　　　現在の設定：{CFLAG:1008}
+PRINTFORML [1] 娘の悪戯設定　　　　　　　　現在の設定：{CFLAG:1997}
+PRINTFORML [2] モブ天狗イベント設定　　　　現在の設定：{CFLAG:1045}
+PRINTFORML [3] モブ河童イベント設定　　　　現在の設定：{CFLAG:1046}
+PRINTFORML [4] げせんなきつねイベント設定　現在の設定：{CFLAG:1047}
+PRINTFORML [999] 設定完了
+$INPUT_LOOP
+INPUT
+IF RESULT == 0
+	IF CFLAG:1008 == 2
+		PRINTFORML 「ふふ、また私に自慰のお手伝いをしてほしくなりましたか？」
+		CALL ASK_M("再開をお願いする", 1,"保留", 1,"完全に打ち切る", 1)
+		SELECTCASE RESULT
+		CASE 0
+			PRINTFORML 「了解いたしました。では、その時が来ましたら、またお手伝いしますね♪」
+			PRINTFORML フラグがオン(1)になりました
+			CFLAG:1008 = 1
+		CASE 1
+			PRINTFORML 「そうですか。必要ならまた声をお掛けください」
+			PRINTFORML フラグが保留(2)になりました
+		CASE 2
+			PRINTFORML 「あら、それは残念ですねぇ。お気に召さなかったですか？」
+			PRINTFORML 「無理強いはできませんしね。では、契約は終了ということで…」
+			PRINTFORML 「これまで、御贔屓にしてくださりありがとうございました」
+			PRINTFORML フラグが完全停止(3)になりました
+			CFLAG:1008 = 3
+		ENDSELECT
+	ENDIF
+	RESTART
+ELSEIF RESULT == 1
+;娘があなたにいけない悪戯してくるフラグ
+	IF (CFLAG:139:1997 > 0)
+		PRINTFORML 娘の悪戯は…
+		CALL ASK_M("あなたON", 1,"描写OFF", 1,"あなた・生徒ON", 1,"あなたと一線を越えるON・生徒OFF", 1,"あなたと一線を越える・生徒ON", 1)
+		SELECTCASE RESULT
+		CASE 0
+			PRINTFORML 幼少期以降、あなたに対して性的な接触をする描写をオン(1)にします
+			CFLAG:139:1997 = 1
+		CASE 1
+			PRINTFORML 幼少期以降、あなたと寺子屋の生徒に対して性的な接触をする描写をオフ(2)にします
+			CFLAG:139:1997 = 2
+		CASE 2
+			PRINTFORML 幼少期以降、あなたと寺子屋の生徒に対して性的な接触をする描写をオン(3)にします
+			CFLAG:139:1997 = 3
+		CASE 3
+			PRINTFORML 幼少期以降、あなたに対して性交する描写をオン、生徒描写をオフ(4)にします
+			CFLAG:139:1997 = 4
+		CASE 4
+			PRINTFORML 幼少期以降、あなたに対して性交する描写・生徒描写をオン(5)にします
+			CFLAG:139:1997 = 5
+		ENDSELECT
+	ENDIF
+	RESTART
+ELSEIF RESULT == 2
+	PRINTL モブ天狗のイベント「ビュッビュッイクッ新聞」を…
+	CALL ASK_M("イベントをオフ", 1,"イベントをオン", 1)
+	SELECTCASE RESULT
+	CASE 0
+		PRINTL イベントをオフ(-1)にします
+		CFLAG:1045 = -1
+	CASE 1
+		PRINTL イベントをオン(0)にします
+		CFLAG:1045 = 0
+	ENDSELECT
+	RESTART
+ELSEIF RESULT == 3
+	PRINTL モブ河童のイベント「アクメしたチンポ漬けの河童」を…
+	CALL ASK_M("イベントをオフ", 1,"イベントをオン", 1)
+	SELECTCASE RESULT
+	CASE 0
+		PRINTL イベントをオフ(-1)にします
+		CFLAG:1046 = -1
+	CASE 1
+		PRINTL イベントをオン(0)にします
+		CFLAG:1046 = 0
+	ENDSELECT
+	RESTART
+ELSEIF RESULT == 4
+	PRINTL イベント「げせんなきつねは性欲を持て余す」の体力等減少を…
+	CALL ASK_M("減少をオフ", 1,"減少をオン（従来のまま）", 1)
+	SELECTCASE RESULT
+	CASE 0
+		PRINTL 減少をオフ(-1)にします
+		CFLAG:1047 = -1
+	CASE 1
+		PRINTL 減少をオン(0)にします
+		CFLAG:1046 = 0
+	ENDSELECT
+	RESTART
+ELSEIF RESULT == 999
+	RETURN 1
+ELSE
+	GOTO INPUT_LOOP
+ENDIF
+

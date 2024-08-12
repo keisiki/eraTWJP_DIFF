@@ -1,0 +1,348 @@
+﻿;==================================================
+;弾幕勝負 
+;==================================================
+;二回目以降かつ勝利済みだと純狐とピース参戦
+;口上色はそのまま拝借
+;共闘してる感出したかったので台詞勝手に書いてますが、ご容赦ください　問題ならOFF予定
+@M_KOJO_MESSAGE_COM_K113_DANMAKU(ARGS, 相手残機)
+#DIM 相手残機
+;全体の流れ
+;①【戦闘前】→②ダイスロールとプレイヤー選択肢、ハンデをつけた場合は【ハンデ口上】→③対応スキルが発動した場合【スキル口上】→④被弾判定、キャラが被弾したなら【被弾口上】→
+;どちらかの残機が0になっていなければ②に戻る→⑤【戦闘後口上】
+
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+SIF FLAG:口上色
+	TRYCALLFORM M_KOJO_COLOR_K{NO:TARGET}
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;戦闘前
+	HANDICAP_FIXED = 0
+	HANDICAP_RAND = 0
+	;ハンデをつけることができ、数値が大きいほどあなたが不利になる　数値が負ならあなたが有利に
+	;キャラの能力に関わらずクッソ強くしたり弱くしたりできる
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘前"
+		;初回のみ
+		IF FIRSTTIME(SELECTCOM)
+			PRINTFORML 「私と勝負ですって？……ふーん、どれどれ……」
+			PRINTFORMDW へカーティアは%CALLNAME:MASTER%を品定めするように観察している……
+			;あなた戦闘能力Ex
+			IF ABL:MASTER:戦闘能力 == 6
+				PRINTFORMW 「ごーかぁーく！相手してあげるわ%CALLNAME:MASTER%♪」
+			ELSE
+				PRINTFORML 「ふごぉーかーく！貴方の強さはまだ私と勝負できる程ではないわ」
+				PRINTFORMW 「……まあ、売られた喧嘩は買ってあげるとしましょう」
+			ENDIF
+			PRINTFORMDW へカーティアがパチンと指を鳴らすと、辺りの景色が悪夢のような世界に一瞬で変化した。
+			PRINTFORML 「ここなら周りを気にせず、思いっきり戦えるでしょう？」
+			PRINTFORMW 「貴方も…そして―」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「私"達"も……ってね♪」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「ようやく%CALLNAME:MASTER%と勝負できるのねぇ。腕がなるわー♪」
+			PRINTFORMDW 何処からともなく、地球と月のへカーティアも姿を現した。
+			SETCOLOR 0xC90B39
+			PRINTFORMW 「……そういうことよ、%CALLNAME:MASTER%。貴方に楽しい選択肢をあげましょう」
+			PRINTFORMW 「異界、地球、月……殺されたい身体を自分で選べ！」
+		ELSE
+			;勝利済み
+			IF CFLAG:113:弾幕勝負勝利
+				PRINTFORML 「また私と勝負するの？貴方も好きねぇ……♪」
+				PRINTFORMW 「前と同じじゃあつまんないし、ちょっとルールを変えましょうか♪」
+				PRINTFORMDL へカーティアがパチンと指を鳴らすと、辺りの景色が悪夢のような世界に切り替わった。
+				PRINTFORMDW 以前と違い、何故か純狐とクラウンピースもいる……
+				PRINTFORML 「どう？ギャラリーがいると、気分が盛り上がるでしょう？」
+				PRINTFORMW 「―ちなみに、二人も勝負に参加するからそのつもりで」
+				PRINTFORML 「異界『%TEXTR("逢魔ガ刻/地獄のノンイデアル弾幕")%』！」」
+				PRINTFORMDW 聞き違いだろうか？それを確かめる間もなく、へカーティアの攻撃が飛んできた！
+			;まだ勝ってない
+			ELSE
+				PRINTFORML 「私にリベンジですって？」
+				PRINTFORML 「その意気や良ーし！相手してあげましょう♪」
+				PRINTFORMDL へカーティアがパチンと指を鳴らすと、辺りの景色が悪夢のような世界に切り替わった。
+				PRINTFORMDL 以前と同じく、地球と月のヘカーティアもいる。
+				PRINTFORML 「長ったらしい前置きは省略して……」
+				PRINTFORMW 「異界、地球、月……殺されたい身体を自分で選べ！」
+			ENDIF
+		ENDIF
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;ハンデ
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "ハンデ"
+		;ハンデつけなかったら表示されないので無記入でよい
+		PRINTFORML てすと
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中TARGET被弾時口上
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "被弾"
+		SELECTCASE 相手残機
+			;残り残機3が表示されるのは【洽覧深識】持ちのみ
+			CASE 3
+				IF CFLAG:113:弾幕勝負勝利
+					SETCOLOR 0x2459F0
+					PRINTFORML 「次は地球の私がお相手するわよん♪」
+					PRINTFORML 「地球『%TEXTR("邪穢在身/地獄に降る雨")%』！」
+				ELSE
+					PRINTFORML 「身体も暖まってきたし……そろそろ"あれ"いっちゃいましょうか♪」
+					PRINTFORMW 「異界『逢魔ガ刻』！」
+				ENDIF
+			CASE 2
+				IF CFLAG:113:弾幕勝負勝利
+					SETCOLOR 0xF0D124
+					PRINTFORML 「はーい！月の私、いっきま～す♪」
+					PRINTFORML 「月『%TEXTR("アポロ反射鏡/ルナティックインパクト")%』！」
+				ELSE
+					PRINTFORML 「へぇ……それじゃあ次は―」
+					PRINTFORMW 「異界『地獄のノンイデアル弾幕』！」
+				ENDIF
+			CASE 1
+				IF CFLAG:113:弾幕勝負勝利
+					PRINTFORML 「%CALLNAME:MASTER%……最後に面白い物を見せてあげるわ」
+					PRINTFORML 「純狐ー！久々に"アレ"やりましょ♪」
+					CALL M_KOJO_COLOR_K112
+					PRINTFORML 「ええ、"アレ"ね」
+					PRINTFORMDW 純狐は頷くと、へカーティアの隣に移動した。
+					CALL M_KOJO_COLOR_K111
+					PRINTFORML 「こ、これはまさか……！」
+					PRINTFORML 「ご主人様と友人様による、禁断の…！？」
+					PRINTFORMDW 二人の手の中から、クラウンピースも慄く程の凄まじいエネルギーが溢れ始める…！
+					CALL M_KOJO_COLOR_K112
+					PRINTFORML 「へカーティア、いつでもいいわよ」
+					CALL M_KOJO_COLOR_K113
+					PRINTFORMW 「オーケー♪それじゃあ……」
+					PRINTFORML 「『最初で最後の無名の弾幕』」
+					CALL M_KOJO_COLOR_K112
+					PRINTFORMW 「『最初で最後の無名の弾幕』」
+				ELSE
+					PRINTFORML 「あはははは！思ったよりやるわねぇ%CALLNAME:MASTER%」
+					PRINTFORML 「ここからはちょっと趣向を変えて……『トリニタリアンラプソディ』」
+					PRINTFORMDL スペルカードの宣言と同時に、へカーティアの姿が消えた……！
+					PRINTFORMW 「今から90秒、この攻撃から逃げ切ってみせなさい」
+				ENDIF
+			CASE 0
+				IF CFLAG:113:弾幕勝負勝利
+					PRINTFORMW 「あはははは！まいったまいった、降参よん♪」
+				ELSE
+					PRINTFORMW 「驚いたわ…貴方がここまでやるとはねぇ♪」
+				ENDIF
+		ENDSELECT
+	ENDIF
+ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【残忍酷薄】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "残忍酷薄"
+		IF CFLAG:113:弾幕勝負勝利
+			IF 相手残機 == 1
+				CALL M_KOJO_COLOR_K111
+				PRINTFORML 「あたいが友人様の分も頑張らなきゃ！」
+				PRINTFORML 「地獄『ストライプドアビス』！」
+				PRINTFORMDW クラウンピースのレーザー攻撃を、咄嗟にボムを使って回避した…！
+			ELSE
+				SELECTCASE RAND:2
+					CASE 0
+						CALL M_KOJO_COLOR_K111
+						PRINTFORML 「%CALLNAME:MASTER%くらえー！」
+						PRINTFORML 「地獄『ストライプドアビス』！」
+						PRINTFORMDL クラウンピースのレーザー攻撃を、咄嗟にボムを使って回避した…！
+						CALL M_KOJO_COLOR_K113
+						PRINTFORMW 「ピース。不意打ちするなら静かにね」
+					CASE 1
+						CALL M_KOJO_COLOR_K112
+						PRINTFORML 「『%TEXTR("袋の鼠を追い詰める為の単純な弾幕/人を殺める為の純粋な弾幕")%』」
+						PRINTFORMDL 突如飛んできた純狐の弾幕を、ボムを使って何とか回避した……！
+						PRINTFORML 「あの状況で躱すなんて……見事ね%CALLNAME:MASTER%」
+						CALL M_KOJO_COLOR_K113
+						PRINTFORMW （純狐、楽しそうねぇ…♪）
+				ENDSELECT
+			ENDIF
+		ELSE
+			SETCOLOR 0x2459F0
+			PRINTFORML 「%CALLNAME:MASTER%、%TEXTR("背中がお留守よん♪/油断したわねぇ？")%」
+			PRINTFORML 「地球『%TEXTR("邪穢在身/地獄に降る雨")%』！」
+			PRINTFORMDW 地球のへカーティアの攻撃を、咄嗟にボムを使って回避した…！
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【乾坤一擲】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "乾坤一擲"
+		IF CFLAG:113:弾幕勝負勝利
+			IF 相手残機 == 1
+				CALL M_KOJO_COLOR_K111
+				PRINTFORML 「ご主人様！あたいもお手伝いします！」
+				PRINTFORML 「獄符『スターアンドストライプ』！」
+				PRINTFORMDW クラウンピースのスペルカードによる激しいレーザー攻撃だ！
+			ELSE
+				SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「ピース、やっておしまい♪」
+						CALL M_KOJO_COLOR_K111
+						PRINTFORML 「%TEXTR("はっ！/はいっ！/がってん！")%」
+						PRINTFORML 「獄符『フラッシュアンドストライプ』！」
+						PRINTFORMDW クラウンピースのスペルカードによるレーザー攻撃だ！
+					CASE 1
+						CALL M_KOJO_COLOR_K112
+						PRINTFORML 「へカーティア、私もいいかしら？」
+						CALL M_KOJO_COLOR_K113
+						PRINTFORML 「もちろん♪頼んだわよ純狐」
+						CALL M_KOJO_COLOR_K112
+						PRINTFORML 「『%TEXTR("掌の純光/純粋なる狂気/殺意の百合")%』」
+						PRINTFORMDW 純狐のスペルカードによる追撃が%CALLNAME:MASTER%を襲う！
+				ENDSELECT
+			ENDIF
+		ELSE
+			SELECTCASE RAND:2
+				CASE 0
+					SETCOLOR 0x2459F0
+					PRINTFORML 「%TEXTR("それ、もう一丁！/私も忘れてもらっちゃ困るわよん♪/私も混ぜて頂戴な♪")%」
+					PRINTFORML 「地球『%TEXTR("邪穢在身/地獄に降る雨")%』！」
+					PRINTFORMDW 地球のヘカーティアが追撃してきた！
+				CASE 1
+					SETCOLOR 0xF0D124
+					PRINTFORML 「%TEXTR("それ、もう一丁！/私も忘れてもらっちゃ困るわよん♪/私も混ぜて頂戴な♪")%」
+					PRINTFORML 「月『%TEXTR("アポロ反射鏡/ルナティックインパクト")%』！」
+					PRINTFORMDW 月のヘカーティアが追撃してきた！
+			ENDSELECT
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【怪力乱神】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "怪力乱神"
+		IF CFLAG:113:弾幕勝負勝利
+			IF 相手残機 == 1
+				CALL M_KOJO_COLOR_K111
+				PRINTFORML 「あたいがご主人様達を守らなきゃ！」
+				SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「%TEXTR("獄符『地獄の蝕』/『アポロ捏造説』")%！」
+						PRINTFORMDL %CALLNAME:MASTER%の攻撃は、クラウンピースの呼び出した巨大な月にかき消された！
+					CASE 1
+						PRINTFORML 「獄炎『かすりの獄意』！」
+						PRINTFORMDL %CALLNAME:MASTER%の攻撃は、巨大な炎の壁によって防がれた！
+				ENDSELECT
+				CALL M_KOJO_COLOR_K113
+				PRINTFORMW 「でかしたわピース！あとでご褒美あげる♪」
+			ELSE
+				SELECTCASE RAND:2
+					CASE 0
+						CALL M_KOJO_COLOR_K111
+						PRINTFORML 「ご主人様はあたいが守る！」
+						SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 「%TEXTR("獄符『ヘルエクリプス』/『フェイクアポロ』")%！」
+								PRINTFORMDL %CALLNAME:MASTER%の攻撃は、クラウンピースの呼び出した月にかき消された！
+							CASE 1
+								PRINTFORML 「獄炎『グレイズインフェルノ』！」
+								PRINTFORMDL %CALLNAME:MASTER%の攻撃は、炎の壁によって防がれた！
+						ENDSELECT
+						CALL M_KOJO_COLOR_K113
+						PRINTFORMW 「よくやったわピース！次もその調子で頼むわよん♪」
+					CASE 1
+						CALL M_KOJO_COLOR_K112
+						PRINTFORML 「へカーティアを傷つけさせはしないわ」
+						SELECTCASE RAND:2
+							CASE 0
+								PRINTFORML 「『原始の神霊界』」
+								PRINTFORMDL 高密度の炎の弾幕により、攻撃がヘカーティアまで届かない！
+							CASE 1
+								PRINTFORML 「『震え凍える星』」
+								PRINTFORMDL 大量の弾幕に阻まれ、%CALLNAME:MASTER%の攻撃が届かない！
+						ENDSELECT
+						CALL M_KOJO_COLOR_K113
+						CALL HPH_PRINT,@"「きゃー！純狐素敵ーっHPH」","W"
+				ENDSELECT
+			ENDIF
+		ELSE
+			SETCOLOR 0xF0D124
+			PRINTFORML 「%TEXTR("私がいるのを忘れてないかしら？♪/はい、残念～♪")%」
+			PRINTFORML 「月『%TEXTR("アポロ反射鏡/ルナティックインパクト")%』！」
+			PRINTFORMDW %CALLNAME:MASTER%の攻撃は月のへカーティアに防がれてしまった……
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;戦闘後
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘後" 
+		PRINTFORML 
+		;残り残機4が表示されうるのは【洽覧深識】持ちのみ
+		;残機が1以上ならあなたの負け、0の場合はあなたの勝利
+		IF CFLAG:113:弾幕勝負勝利
+			SELECTCASE 相手残機
+				;残り残機3が表示されるのは【洽覧深識】持ちのみ
+				CASE 4
+					PRINTFORMW 「あははは！ごめんごめん、ちょっと遊んでみただけよ♪」
+				CASE 3
+					SETCOLOR 0x2459F0
+					PRINTFORMW 「あの状況で一発当てただけでも充分じゃない？%CALLNAME:MASTER%♪」
+				CASE 2
+					SETCOLOR 0xF0D124
+					PRINTFORMW 「流石に3vs1……いや、5vs1は厳しかったかしら？」
+				CASE 1
+					PRINTFORML 「どう？私達のコンビネーションは素晴らしかったでしょう？」
+					PRINTFORMW 「…やあねぇ怖い顔しちゃって。ちょっとした冗談よ♪」
+				CASE 0
+					;あなた勝利
+					PRINTFORML 「いやー……よくあの状況で勝てたわねぇ%CALLNAME:MASTER%」
+					PRINTFORML 「…やあねぇ怖い顔しちゃって。ちょっと遊んでみただけよ♪」
+					PRINTFORMDW 疲れ果てた%CALLNAME:MASTER%は、暫くその場で休憩した……
+			ENDSELECT
+		ELSE
+			SELECTCASE 相手残機
+				CASE 4
+					PRINTFORMW 「貴方ねぇ……せめて一発くらい当ててみせなさいよ」
+				CASE 3,2
+					PRINTFORMW 「今のを無かったことに……は、できませーん♪」
+				CASE 1
+					PRINTFORMW 「あはははは！惜しかったわねぇ♪」
+				CASE 0
+					PRINTFORML 「私の負けね。おめでとう%CALLNAME:MASTER%」
+					IF ABL:MASTER:戦闘能力 <= 5
+						;ズルい事したら反応する奴　自力で倒せた人はゴメンナサイ
+						PRINTFORML （…何か納得いかないけど、負けは負けだから仕方ないわねぇ……）
+						PRINTFORMDW へカーティアは怪訝そうな顔をしながらも、勝利を祝福してくれた。
+					ELSE
+						IF TALENT:113:恋慕 || TALENT:113:思慕
+							PRINTFORML 「今後も私の部下として、その力を奮って頂戴な♪」
+						ELSE
+							PRINTFORML 「是非とも私の部下に欲しいわ……なんて、冗談よ♪じょーだん」
+						ENDIF
+						PRINTFORMDL 果たしてへカーティアが本気を出していたのだろうか？
+						PRINTFORMDW 考えても分からないが…%CALLNAME:MASTER%は今暫くの間、勝利の余韻に浸る事にした。
+					ENDIF
+			ENDSELECT
+		ENDIF
+	ENDIF
+RESETCOLOR
+RETURN 1
+

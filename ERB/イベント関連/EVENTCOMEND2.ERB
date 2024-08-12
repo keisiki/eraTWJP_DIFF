@@ -284,26 +284,62 @@ ELSEIF CFLAG:TARGET:うふふ == 2
 		CALL KIGEN_CHANGE(TARGET,100,1)
 		BASE:怒り = 0
 		CFLAG:不機嫌 = 0
-		CALL ASK_M("抜け出す",1,"こっちはまだ満足してない",1,"もっと攻めて",ABL:サドっ気 >= 3)
-		SELECTCASE RESULT
-			CASE 0
-				PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%を解放した
-				CALL 押し倒され終了("満足")
-			CASE 1
-				PRINTFORML %CALLNAME:MASTER%は%CALLNAME:TARGET%を押し倒した
-				CALL KOJO_MESSAGE_SEND("EVENT",30,TARGET,3)
-				FOR LOCAL,0,CHARANUM
-					CFLAG:(TARGET:LOCAL):うふふ = 1
-					IF INROOM(CFLAG:MASTER:現在位置) == 2
-						CALL DATUI_SHOES(LOCAL,0)
-						CALL DATUI_SHOES(MASTER,0)
+		IF !FLAG:甲斐性無
+			CALL ASK_M("抜け出す", 1, "こっちはまだ満足してない", 1, "もっと攻めて", ABL:サドっ気 >= 3)
+			SELECTCASE RESULT
+				CASE 0
+					PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%を解放した
+					CALL 押し倒され終了("満足")
+				CASE 1
+					PRINTFORML %CALLNAME:MASTER%は%CALLNAME:TARGET%を押し倒した
+					CALL KOJO_MESSAGE_SEND("EVENT", 30, TARGET, 3)
+					CFLAG:MASTER:うふふ = 1
+					FOR LOCAL, 0, CHARANUM
+						CFLAG:(TARGET:LOCAL):うふふ = 1
+						IF INROOM(CFLAG:MASTER:現在位置) == 2
+							CALL DATUI_SHOES(LOCAL,0)
+							CALL DATUI_SHOES(MASTER,0)
+						ENDIF
+					NEXT
+				CASE 2
+					PRINTFORML %CALLNAME:TARGET%は目を細め、それなら壊れるまでしてあげると囁いた
+					CALL KOJO_MESSAGE_SEND("EVENT", 30, TARGET, 4)
+					TCVAR:TARGET:好きにして = 1
+			ENDSELECT
+		ELSE
+			CALL ASK_M("なにもしない", 1, "物欲しげな目で見つめる", 1, "もっと攻めて", ABL:サドっ気 >= 3 && ABL:MASTER:マゾっ気 >= 3)
+			SELECTCASE RESULT
+				CASE 0
+					PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%を解放した
+					CALL 押し倒され終了("満足")
+				CASE 1
+					IF ABL:サドっ気 >= 5 && RAND(2)
+						PRINTFORML %CALLNAME:TARGET%はしてほしいことがあるならちゃんとおねだりするよう命じてきた
+						IF ABL:MASTER:マゾっ気 >= 3
+							PRINTFORML %CALLNAME:MASTER%が消え入りそうな声で懇願すると
+							PRINTFORML %CALLNAME:TARGET%はゾクリと全身を震わせ、それなら壊れるまでしてあげると囁いた
+							CALL KOJO_MESSAGE_SEND("EVENT", 30, TARGET, 4)
+							TCVAR:TARGET:好きにして = 1
+						ELSE
+							PRINTFORML %CALLNAME:MASTER%は何も言うことができず、解放されてしまった…
+							CALL 押し倒され終了("満足")
+						ENDIF
+					ELSEIF ABL:サドっ気 >= 3 || (ABL:サドっ気 == 2 && RAND(6)) || (ABL:サドっ気 == 1 && RAND(2))
+						PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%の視線に嗜虐心をかきたてられたようだ
+						PRINTFORML そんな表情されたら我慢できないといった様子で、%CALLNAME:MASTER%に覆いかぶさってきた…
+						CALL KOJO_MESSAGE_SEND("EVENT", 30, TARGET, 4)
+						TCVAR:TARGET:好きにして = 1
+					ELSE
+						PRINTFORML %CALLNAME:TARGET%は%CALLNAME:MASTER%の視線の意味がわからず、そのまま解放した
+						CALL 押し倒され終了("満足")
 					ENDIF
-				NEXT
-			CASE 2
-				PRINTFORML %CALLNAME:TARGET%は目を細め、それなら壊れるまでしてあげると囁いた
-				CALL KOJO_MESSAGE_SEND("EVENT",30,TARGET,4)
-				TCVAR:TARGET:好きにして = 1
-		ENDSELECT
+				CASE 2
+					PRINTFORML %CALLNAME:MASTER%が消え入りそうな声で懇願すると
+					PRINTFORML %CALLNAME:TARGET%は目を細め、それなら壊れるまでしてあげると囁いた
+					CALL KOJO_MESSAGE_SEND("EVENT", 30, TARGET, 4)
+					TCVAR:TARGET:好きにして = 1
+			ENDSELECT
+		ENDIF
 	ENDIF
 ENDIF
 

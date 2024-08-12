@@ -31,6 +31,7 @@ IF TCVAR:30:385 == 1 || TCVAR:泥酔 || TCVAR:30:無理矢理
 	CALL K30_PALAMCNG_MAGURO
 	RETURN 1
 ENDIF
+
 ;Ａ絶頂かつＡ挿入中の三重絶頂or四重絶頂以上or別途専用フラグ時でアヘ顔
 IF (SUMARRAY(NOWEX:30:0, 7, 10) && NOWEX:Ａ絶頂) || TFLAG:194 == 045
 	SIF ((TEQUIP:アナルバイブ || TEQUIP:51 >= 0) && NOWEX:三重絶頂) || SUMARRAY(NOWEX:30:0, 8, 10) || TFLAG:194 == 045
@@ -41,6 +42,9 @@ IF (!TEQUIP:50 && NOWEX:Ｖ絶頂 > 1) || (!TEQUIP:51 && NOWEX:Ａ絶頂 > 1)
 	SEX_COUNT:(TEQUIP:体位) ++
 	SIF SEX_COUNT:(TEQUIP:体位) > 2
 		SETBIT TCVAR:30:389, TEQUIP:体位
+	;ついでに潮吹きで部屋を汚す
+	SIF AT_HOME(30)
+		YOGORE:(CFLAG:30:現在位置) += RAND:200 + 100 + (NOWEX:Ａ絶頂 > 1) * 200
 ENDIF
 ;子宮口責め超強絶頂をカウント
 IF TFLAG:50 == 7 && NOWEX:Ｖ絶頂 && !(NOWEX:Ｖ絶頂 % 3)
@@ -222,31 +226,58 @@ ELSE
 		;バイブデート中１
 		IF TCVAR:30:364 > 0 && !GROUPMATCH(CFLAG:現在位置, 連れ込み宿, ラブホ, OMANEKIBEYA())
 			LOCAL = K30_FIND_AROUND()
-			LOCAL:1 = GROUPMATCH(LOCAL, 0, 49)
+			LOCAL:1 = GROUPMATCH(LOCAL, 0, 49, RANDOM_CHARANUM)
 			CALL HPH_PRINT(@"「%UNICODE(0XFF5E)* RAND(5, 15)%%TEXTR("ッ/っ/")%%TEXTR("HPH/HPHHPH/")%HPH」", "W")
-			IF (!GROUPMATCH(LOCAL, 0, 49) || DATE_HITOGOMI()) && RAND:2
-				STRDATA LOCALS
-					DATAFORM （わたし…イってる…HPH）\n（%\@ LOCAL:1 ? 人 # %K30_C_NAME(LOCAL)%の \@%前で…イっちゃったHPH）
-					DATAFORM （すごく…気もちいいHPH）\n（%K30_C_NAME(LOCAL, 2)%も…いるのに、こんなにも…キモチイイ…HPH）
-					DATAFORM （あぁ…HPH　あたま…まっしろ、に…HPH）\n（人前、だから…こんなに、スゴいの…かしら…HPH）
+			PRINTFORML
+			IF K30_BE_SEEN()  && !TFLAG:デート道中
+				IF TCVAR:30:365 > 1
+					STRDATA LOCALS
+						DATAFORM （閻魔が…人知れず、こんな…はしたない、こと…して…）\n（もし…%\@ LOCAL:1 ? だれか # %K30_C_NAME(LOCAL)% \@%に、知られたら…HPH）\n（どうなるの、かしら…HPHHPH）
+						DATAFORM （あぁHPH　コワれそうな…くらい、気もち…いい…HPHHPH）\n（%\@ LOCAL:1 ? 人前な # %K30_C_NAME(LOCAL)%、いる \@%のにHPH　こんなに、スゴい…HPHHPH）
+						DATAFORM （おしりで…イっちゃッた…HPHHPH）\n（%\@ LOCAL:1 ? こんな、ところで # %K30_C_NAME(LOCAL)%の、前で \@%HPH　わたしHPH　イっちゃった…HPHHPH）
+					ENDDATA
+				ELSE
+					STRDATA LOCALS
+						DATAFORM （わたし…イってる…HPH）\n（%\@ LOCAL:1 ? 人 # %K30_C_NAME(LOCAL)%の \@%前で…イっちゃったHPH）
+						DATAFORM （すごく…気もちいいHPH）\n（%K30_C_NAME(LOCAL, 2)%も…いるのに、こんなにも…キモチイイ…HPH）
+						DATAFORM （あぁ…HPH　あたま…まっしろ、に…HPH）\n（人前、だから…こんなに、スゴいの…かしら…HPH）
+					ENDDATA
+				ENDIF
+			ELSE
+				IF TCVAR:30:365 > 1
+					STRDATA LOCALS
+						DATAFORM （あぅうHPH　声…抑える、だけで…精いっぱい…HPHHPH）
+						DATAFORM （この、次…もっと、スゴいの…きたらHPH　私…HPHHPH）
+						DATAFORM （壊れちゃう…HPH　わたし、コワれ…ちゃう…HPHHPH）
+						DATAFORM （おしりで…暴れてるHPH　気持ちいいHPH　きもちイイ…HPHHPH）
+					ENDDATA
+				ELSE
+					STRDATA LOCALS
+						DATAFORM （これ…いい…HPH　すごく、イイ…HPH）
+						DATAFORM （あぁ…HPH　わたし…イっちゃった…HPH）
+						DATAFORM （こんな、に…HPH　スゴ…い…HPH）
+						DATAFORM （んっ…HPH　くせに、なり…そう…HPH）
+					ENDDATA
+				ENDIF
+			ENDIF
+			CALL HPH_PRINT, LOCALS, "L"
+			PRINTFORMD %TEXTR("人知れず/声を殺し/息を潜め/")%静か\@ LOCAL > 1 && RAND:2 ? に激しい # な \@絶頂を迎え
+			IF TCVAR:30:365 > 1
+				PRINTDATADW
+					DATAFORM た後も映姫はまだ動けずにいる…
+					DATAFORM ると、映姫はビクンと身体を震わせた…
+					DATAFORM 、映姫はよだれを垂らし呆けている…
+					DATAFORM た映姫は息が詰まったように固まっている…
 				ENDDATA
 			ELSE
-				STRDATA LOCALS
-					DATAFORM （これ…いい…HPH　すごく、イイ…HPH）
-					DATAFORM （あぁ…HPH　わたし…イっちゃった…HPH）
-					DATAFORM （こんな、に…HPH　スゴ…い…HPH）
-					DATAFORM （んっ…HPH　くせに、なり…そう…HPH）
+				PRINTDATADW
+					DATAFORM た後も映姫は余韻に震えている…
+					DATAFORM 、映姫は満足気に微笑んだ…
+					DATAFORM てから、映姫は大きく息をはいた…
+					DATAFORM ると、映姫はそっと汗を拭いた…
+					DATAFORM た映姫は零れ落ちるよだれを慌てて拭った
 				ENDDATA
 			ENDIF
-			CALL HPH_PRINT(LOCALS, "L")
-			PRINTFORMD %TEXTR("人知れず/声を殺し/息を潜め/")%静か\@ LOCAL > 1 && RAND:2 ? に激しい # な \@絶頂を迎え
-			PRINTDATADW
-				DATAFORM た後も映姫は余韻に震えている…
-				DATAFORM 、映姫は満足気に微笑んだ…
-				DATAFORM てから、映姫は大きく息をはいた…
-				DATAFORM ると、映姫はそっと汗を拭いた…
-				DATAFORM た映姫は零れ落ちるよだれを慌てて拭った
-			ENDDATA
 		;バイブデート中２
 		ELSEIF TFLAG:193 == 350
 			CALL HPH_PRINT, @"「ああっ！　あっああんHPH　イくっ！　イくぅHPH」\n「おしりっHPH　イっくぅううHPHHPH」", "W"
@@ -327,7 +358,7 @@ ELSE
 			GOTO SKIP
 		;強絶頂Ａ
 		ELSEIF LOCAL == 2
-			IF TCVAR:30:392 > 5
+			IF TCVAR:30:392 > 5 || TCVAR:30:364
 				IF RAND:2 == 1
 					CALL HPH_PRINT("「おしりっHPH　きもちいいのっ…すごくいいのっHPH　あっ、あああぁあぁHPH」", "W")
 				ELSE
@@ -340,7 +371,7 @@ ELSE
 			ENDIF
 		;絶頂Ａ
 		ELSE
-			IF TCVAR:30:392 > 4
+			IF TCVAR:30:392 > 4 || TCVAR:30:364
 				IF RAND:2 == 1
 					CALL HPH_PRINT("「イっちゃうHPH　おしりでっ……またっ、イっちゃううHPH」", "W")
 				ELSE
@@ -492,6 +523,7 @@ SIF !GROUPMATCH(SELECTCOM, 21, 81, 352)
 RETURN 1
 
 @M_KOJO_MESSAGE_PALAMCNG_C_K30
+TCVAR:30:382 = NOWEX:Ａ絶頂 ? 1 # 0
 ;非うふふ時のフラグ掃除
 IF !CFLAG:うふふ
 	TCVAR:30:362 = 0
@@ -543,8 +575,6 @@ IF TCVAR:30:362 > 1 && TCVAR:30:361 != TIME
 	CALL K30_REVERT_POSITION
 	RETURN
 ENDIF
-SIF FLAG:99
-	GOTO HIDE
 ;縦 割 れ ア ナ ル
 IF EXP:Ａ性交経験 > 99 && ABL:Ａ感覚 > 4 && !GETBIT(CFLAG:1910, 7)
 	CALL K30_VERTICAL_ANUS
@@ -562,8 +592,7 @@ IF TEQUIP:50 == PLAYER && CFLAG:うふふ == 1 && TFLAG:194 != -99 && !CFLAG:180
 	RETURN 
 ENDIF
 RETURN
-
-$HIDE
+[SKIPSTART]
 ;物陰モードかつ他に誰かいるなら情景描写
 SIF GET_TARGETNUM() == 1
 	RETURN
@@ -605,7 +634,7 @@ SELECTCASE TOINT(TEXTR(LOCALS))
 ENDSELECT
 PRINTFORML 
 RETURN
-
+[SKIPEND]
 ;-------------------------------------------------
 ;射精に関する口上の表示
 ;一時的にTARGETを口上主に設定している

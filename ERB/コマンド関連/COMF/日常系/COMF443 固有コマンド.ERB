@@ -76,7 +76,7 @@ IF FLAG:新聞購読
 	PRINTFORML 「もうとってるじゃないですか」
 	RETURN -1
 ENDIF
-PRINTFORML 「月\\3000で幻想郷の「今」がわかる！　文々。新聞をとりませんか？」
+PRINTFORML 「月%金額表示(3000)%で幻想郷の「今」がわかる！　文々。新聞をとりませんか？」
 CALL ASK_M("いらない",1,"購読する",MONEY >= 3000,"カリスマで購読する",MONEY:2 >= 10)
 SELECTCASE RESULT
 	CASE 0
@@ -270,7 +270,7 @@ DO
 		ENDIF
 		PRINTFORML 「なるほど」
 		PRINTFORML 「ダウジングには多少のお布施を頂くけれど、構わないかな？」
-		CALL ASK_M("やめておく", 1, "\\1000を喜捨する", MONEY >= 1000, "5CMを喜捨する", MONEY:2 >= 5)
+		CALL ASK_M("やめておく", 1, @"%金額表示(1000)%を喜捨する", MONEY >= 1000, "5CMを喜捨する", MONEY:2 >= 5)
 		SELECTCASE RESULT
 		CASE 0
 			PRINTFORMW 「おや、それは残念だ」
@@ -298,7 +298,7 @@ DO
 			PRINTFORML 「結論が出たよ」
 			PRINTFORML 「%CALLNAME:TMP_ID%がキーパーソンだ」
 			PRINTFORML 「ついでに居場所も割り出しておこうか？」
-			CALL ASK_M("やめておく", 1, "\\500を喜捨する", MONEY >= 500, "3CMを喜捨する", MONEY:2 >= 3)
+			CALL ASK_M("やめておく", 1, @"%金額表示(500)%を喜捨する", MONEY >= 500, "3CMを喜捨する", MONEY:2 >= 3)
 			SELECTCASE RESULT
 			CASE 0
 				PRINTFORMW 「おや、それは残念だ」
@@ -323,7 +323,7 @@ DO
 			PRINTFORML 「君が目指すべき場所は“%STR:(5000 + GET_MAPID(TMP_ID))%”だ」
 			PRINTFORML 「もっと詳細な情報が必要かな？」
 			
-			CALL ASK_M("やめておく", 1, "\\2000を喜捨する", MONEY >= 2000, "10CMを喜捨する", MONEY:2 >= 10)
+			CALL ASK_M("やめておく", 1, @"%金額表示(2000)%を喜捨する", MONEY >= 2000, "10CMを喜捨する", MONEY:2 >= 10)
 			SELECTCASE RESULT
 			CASE 0
 				PRINTFORMW 「おや、それは残念だ」
@@ -421,7 +421,7 @@ CALL PRINT_GROUP(COMMENT, 3)
 @UNIQUE_COM_気配を探る
 PRINTFORML 「ふーん、誰か探してるの？」
 PRINTFORML 「そうねぇ……おこづかいちょうだい？」
-CALL ASK_M("やっぱやめ", 1, "\\500あげる", MONEY >= 500, "3CMあげる", MONEY:2 >= 3)
+CALL ASK_M("やっぱやめ", 1, @"%金額表示(500)%あげる", MONEY >= 500, "3CMあげる", MONEY:2 >= 3)
 SELECTCASE RESULT
 CASE 0
 	PRINTDATAW
@@ -519,7 +519,7 @@ DRAWLINE
 CALL LIST_ITEM("河童道具")
 DRAWLINE
 PRINTL 「今なら安くしとくよ」
-PRINTFORML 購入するアイテムを選んでください（所持金:\\%TOSTR(MONEY,"#,###")%）
+PRINTFORML 購入するアイテムを選んでください（所持金:%金額表示(MONEY)%）
 DRAWLINE
 CALL SHOW_SHOPPING("河童の道具屋", "河童道具", 割引)
 DRAWLINE
@@ -559,7 +559,7 @@ ENDIF
 #DIM 泡改造前提条件
 泡改造前提条件 = GETBIT (FLAG:プール, 0) && GETBIT (FLAG:プール, 1) && GETBIT (FLAG:プール, 2)
 DRAWLINE
-PRINTFORML 改造するアイテムを選んでください（所持金:\\%TOSTR(MONEY,"#,###")%）
+PRINTFORML 改造するアイテムを選んでください（所持金:%金額表示(MONEY)%）
 DRAWLINE
 FOR LOCAL, 0, 1000
 	CALL ITEMDATA(LOCAL, "TYPE:改造可能")
@@ -589,31 +589,31 @@ CASE GETNUM(ITEM, "簡易プール")
 	PRINTL
 	
 	IF !GETBIT (FLAG:プール, 0)
-		PRINTL [  1] - モーター（\5000）：移動の負担がなくなる
+		PRINTFORML [  1] - モーター（%金額表示(5000)%）：移動の負担がなくなる
 	ELSE
 		SETCOLOR C_GRAY
 		PRINTL [ 済] - モーター：移動の負担がなくなる
 		RESETCOLOR
 	ENDIF
 	IF !GETBIT (FLAG:プール, 1)
-		PRINTL [  2] - 温水機能（\5000）：広い場所でくつろげる
+		PRINTFORML [  2] - 温水機能（%金額表示(5000)%）：広い場所でくつろげる
 	ELSE
 		SETCOLOR C_GRAY
 		PRINTL [ 済] - 温水機能：広い場所でくつろげる・お風呂場プレイができる
 		RESETCOLOR
 	ENDIF
 	IF !GETBIT (FLAG:プール, 2)
-		PRINTL [  3] - シャワー（\5000）：シャワーで洗える・水やりもできる
+		PRINTFORML [  3] - シャワー（%金額表示(5000)%）：シャワーで洗える・水やりもできる
 	ELSE
 		SETCOLOR C_GRAY
 		PRINTL [ 済] - シャワー：シャワーで洗える・水やりもできる
 		RESETCOLOR
 	ENDIF
 	IF 泡改造前提条件 == 0
-		PRINTFORML [  4] - ３つとも改造（１つにつき\\5000）
+		PRINTFORML [  4] - ３つとも改造（１つにつき%金額表示(5000)%）
 		PRINTL [  ?] - ？？？？？
 	ELSEIF !GETBIT (FLAG:プール, 3)
-		PRINTL [  5] - 不思議な泡（\5000）：わかさぎ姫が自由に移動できるようになる
+		PRINTFORML [  5] - 不思議な泡（%金額表示(5000)%）：わかさぎ姫が自由に移動できるようになる
 	ELSE
 		SETCOLOR C_GRAY
 		PRINTL [ 済] - 不思議な泡：わかさぎ姫が自由に移動できるようになる
@@ -744,13 +744,13 @@ SIF TALENT:TARGET:恋慕 && LOCAL >= 20000
 	LOCAL /= 2
 
 SIF !FLAG:開運大紋購入回数
-	PRINTFORML 「今ならお試し価格の\\{LOCAL}！もってけドロボー！」
+	PRINTFORML 「今ならお試し価格の%金額表示(LOCAL)%！もってけドロボー！」
 IF LOCAL <= 10000
 ELSE
 	IF TALENT:TARGET:恋慕
-		PRINTFORML 「%CALLNAME:MASTER%なら\\{LOCAL}でいいよ」
+		PRINTFORML 「%CALLNAME:MASTER%なら%金額表示(LOCAL)%でいいよ」
 	ELSE
-		PRINTFORML 「それなら\\{LOCAL}になったよ」
+		PRINTFORML 「それなら%金額表示(LOCAL)%になったよ」
 	ENDIF
 	CALL ASK_M("ふざけんな",1, "買います", MONEY >= LOCAL, "そんな事言える立場なの？", CFLAG:TARGET:弱み握られ && !CFLAG:TARGET:弱み握り)
 	SELECTCASE RESULT
@@ -769,7 +769,7 @@ IF MONEY >= LOCAL
 	ITEM:130 ++
 	MONEY -= LOCAL
 	FLAG:開運大紋購入回数 ++
-	PRINTFORMW \\{LOCAL}を支払って兎符「開運大紋」を購入した
+	PRINTFORMW %金額表示(LOCAL)%を支払って兎符「開運大紋」を購入した
 ENDIF
 
 ;-------------------------------------------------
@@ -1366,7 +1366,7 @@ PRINTDATAW
 	DATAFORM 「誰かにそそのかされて…というわけでもなさそうだ。では、取引といこうか」
 	DATAFORM 「レアアースの供給元は多いに越したことはないしな。リスクヘッジ、というやつさ」
 ENDDATA
-PRINTFORML 「龍珠１個を\\{ORB_PRICE}で買い取ろう。どうかな？」
+PRINTFORML 「龍珠１個を%金額表示(ORB_PRICE)%で買い取ろう。どうかな？」
 PRINTL 
 DRAWLINE
 PRINTFORML 所持金:%金額表示(MONEY)%　　現在の￥/カリスマレート:%金額表示(CHARISMA_NOW())%←→1CM
@@ -1396,7 +1396,7 @@ SELECTCASE RESULT
 	CASE 1 TO ITEM:龍珠
 		CLEARLINE 2
 		SALES = RESULT
-		PRINTFORMW 「それでは龍珠を{SALES}つ、\\{ORB_PRICE * SALES}で買い取らせてもらおう」
+		PRINTFORMW 「それでは龍珠を{SALES}つ、%金額表示(ORB_PRICE * SALES)%で買い取らせてもらおう」
 		CALL GET_MONEY_YEN(ORB_PRICE * SALES, 1)
 		CALL LOST_ITEM("龍珠", SALES, 2)
 	CASEELSE

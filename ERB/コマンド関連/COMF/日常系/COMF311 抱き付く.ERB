@@ -9,10 +9,18 @@ IF FLAG:70 == 1
 		EXP:PLAYER:(50 + HETEROSEX(TARGET,PLAYER)) += 1
 	ENDIF
 ELSE
-	IF FLAG:甲斐性無 && !CFLAG:うふふ
-		DRAWLINE
-		PRINTFORMW %CALLNAME:MASTER%にはそんな度胸はない
-		RETURN -1
+	;甲斐性無しの場合、その場にいる全員が関係を公認してないと勇気がでない
+	IF FLAG:甲斐性無
+		FOR LOCAL, 1, GET_TARGETNUM() + 1
+			SIF TARGET:LOCAL == TARGET:0
+				CONTINUE
+			IF GET_UWAKI_HISTORY(TARGET:LOCAL, TARGET:0) < 2
+				DRAWLINE
+				PRINTFORML %CALLNAME:MASTER%は%CALLNAME:TARGET%に抱き着こうとしたが
+				PRINTFORMW 視界の端に%CALLNAME:(TARGET:LOCAL)%の姿が映ると思わず手を引いてしまった…
+				RETURN -1
+			ENDIF
+		NEXT
 	ENDIF
 	TFLAG:理性削り = 1
 	SELECTCASE TFLAG:192
@@ -169,6 +177,9 @@ SIF GLOBAL_COMABLE(311)
 IF !FLAG:70
 	;馴れ合い強度1
 	SIF TCVAR:MASTER:馴れ合い < 1 && !CFLAG:添い寝中
+		RETURN 0
+	;甲斐性なしはもう少し馴れ合い強度と既成事実が必要
+	SIF FLAG:甲斐性無 && ((TCVAR:MASTER:馴れ合い < 2 && !CFLAG:添い寝中) || (!CFLAG:うふふ && !GETBIT(CFLAG:既成事実, 1)))
 		RETURN 0
 	;睡眠中
 	SIF CFLAG:睡眠 && !CFLAG:添い寝中

@@ -6,6 +6,40 @@
 
 **********************************************************************************************************
 
+4/21
+TW4.920用慧ノ子龍正邪サグメ美宵口上修正
+TW妖夢別人改変版口上ver0.26
+TW典口上Ver0.36.1
+eraTW用綿月姉妹・レイセン口上
+eraTW4.920用色々修正２
+TW妖夢別人改変版ver0.22+α
+TW口上まとめ
+eraTW4.920_甲斐性・改パッチv2.0
+new蛮奇+new藍画像+ボテ画像詰め合わせ+α.zip
+TW用岡崎夢美口上ver.2.3_v4.920対応版
+TW清蘭鈴瑚ヘカーティア口上
+eraTW4.920 銭湯にゅーぷらんパッチ修正版
+TW映姫様口上Ver 1.8+TW4.920修正
+
+JukesBouver99氏のパッチによる不要な関数の削除・統合
+
+eraTW4.920\ERB\コマンド関連\COMF\COMF123 足コキ.ERB
+ERB\コマンド関連\COMF\依頼\固有依頼011_魔理沙.ERB
+ERB/口上・メッセージ関連/個人口上/112 Junko [純狐]/純狐/M_KOJO_K112_会話.ERB
+eraTW4.910\eraTW/ERB/MOVEMENTS/物件関連/00神社/GETMAP_00.ERB
+eraTW4.910\eraTW/ERB/MOVEMENTS/物件関連/00神社/PLACE_0.ERB
+eraTW4.910\eraTW/ERB/MOVEMENTS/物件関連/01寺/GETMAP_01.ERB
+eraTW4.910\eraTW/ERB/MOVEMENTS/物件関連/01寺/PLACE_1.ERB
+～中略～
+eraTW4.910\eraTW/ERB/MOVEMENTS/物件関連/10月/GETMAP_10.ERB
+eraTW4.910\eraTW/ERB/MOVEMENTS/物件関連/10月/PLACE_10.ERB
+
+子供記録数上限をMAXCHILDで指定することにしてとりあえず30に。
+子供に関するところは一通り直したと思うけど漏れがあったら報告求む。
+
+海外パッチより瑞霊追加。
+
+
 1/13
 eraTW4.911用金額表示関数利用パッチv1.1(本体用)
 

@@ -1,0 +1,325 @@
+﻿;==================================================
+;弾幕勝負
+;==================================================
+;
+@M_KOJO_別人版_MESSAGE_COM_K23_DANMAKU(ARGS, 相手残機)
+#DIM 相手残機
+;全体の流れ
+;①【戦闘前】→②ダイスロールとプレイヤー選択肢、ハンデをつけた場合は【ハンデ口上】→③対応スキルが発動した場合【スキル口上】→④被弾判定、キャラが被弾したなら【被弾口上】→
+;どちらかの残機が0になっていなければ②に戻る→⑤【戦闘後口上】
+
+;--------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------
+IF LOCAL
+	SIF FLAG:口上色
+		TRYCALLFORM M_KOJO_別人版_COLOR_K{NO:TARGET}
+	;-------------------------------------------------
+	;小分岐
+	;-------------------------------------------------
+	;戦闘前
+	HANDICAP_FIXED = 0
+	HANDICAP_RAND = 0
+	;ハンデをつけることができ、数値が大きいほどあなたが不利になる　数値が負ならあなたが有利に
+	;キャラの能力に関わらずクッソ強くしたり弱くしたりできる
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘前"
+		;泥酔
+		IF ALCOHOL_FACE(23) == "酔いどれ" || ALCOHOL_FACE(23) == "ぐでぐで"
+			PRINTFORML 「け、剣士たるもの、いかなるじょうきょうでも……」
+			PRINTFORMW ふらふらと刀を抜いた妖夢は明らかに足元がおぼつかない……
+		;ブチギレor反発刻印2以上
+		ELSEIF CFLAG:318 == 1 || MARK:23:反発刻印 > 1
+			PRINTFORML 「斬れば分かる……またと無い機会です」
+			PRINTFORMW 二刀を抜き放った妖夢は楼観剣の切先に%CALLNAME:MASTER%を捉えた……
+		;MASTERの方が強い
+		ELSEIF ABL:MASTER:戦闘能力 > ABL:戦闘能力
+			PRINTDATAL
+				DATAFORM 「全力でいきます……！」
+				DATAFORM 「%CALLNAME:MASTER%さん、胸を貸していただきます！」
+				DATAFORM 「己を量るには丁度良い相手です……！」
+			ENDDATA
+			PRINTFORMW 二刀を抜き放った妖夢は隙無く構えて%CALLNAME:MASTER%を見据えた
+		;MASTERと互角
+		ELSEIF ABL:MASTER:戦闘能力 == ABL:戦闘能力
+			PRINTDATAL
+				DATAFORM 「張り合いがありますね！」
+				DATAFORM 「いざ、尋常に！」
+				DATAFORM 「ほぼ互角……覚悟！」
+			ENDDATA
+			PRINTFORMW 二刀を抜き放った妖夢は悠然と構えて%CALLNAME:MASTER%と対峙した
+		;MASTERの方が弱い
+		ELSE
+			PRINTDATAL
+				DATAFORM 「サービスとして刀を……やっぱりやめときます」
+				DATAFORM 「鍛錬の一環ですか？　でしたらお相手しますよ」
+				DATAFORM 「成果を逸る気持ちは分からなくもないですが……」
+			ENDDATA
+			PRINTFORMW 楼観剣のみを抜いた妖夢は、正眼に構えて%CALLNAME:MASTER%の先手を待っている
+		ENDIF
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;ハンデ
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "ハンデ"
+		;ハンデつけなかったら表示されないので無記入でよい
+		PRINTFORML 
+		RETURN 0
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中TARGET被弾時口上
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "被弾" 
+		;別に一律で「やられたー」だけでもいいよ
+		SELECTCASE 相手残機
+			;残り残機3が表示されるのは【洽覧深識】持ちのみ
+			CASE 3
+				PRINTFORML
+			CASE 2
+				IF ALCOHOL_FACE(23) == "酔いどれ" || ALCOHOL_FACE(23) == "ぐでぐで"
+					PRINTFORML 「ぶ、分しん……！　いつの間にそんなわざを……！？」
+					PRINTFORMW どうやら妖夢には%CALLNAME:MASTER%が複数に見えているようだ……
+				ELSEIF CFLAG:318 == 1 || MARK:23:反発刻印 > 1
+					PRINTFORML 「ッ」
+					PRINTFORMW 被弾した妖夢はすぐさま体勢を立て直し、再び%CALLNAME:MASTER%に斬りかかった……
+				ELSEIF ABL:MASTER:戦闘能力 >= ABL:戦闘能力
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML （……強い！）
+							PRINTFORMW 「やはり不足はありません！」
+						CASE 1
+							PRINTFORML 「……流石！」
+							PRINTFORMW 「ですが勝負はここからです！」
+						CASE 2
+							PRINTFORML 「――っ！」
+							PRINTFORMW （押されてる……！）
+					ENDSELECT
+				ELSE
+					PRINTDATAL
+						DATAFORM 「あ、あれ……？」
+						DATAFORM 「わわっ……！」
+					ENDDATA
+					PRINTFORMW %CALLNAME:MASTER%の攻撃に被弾した妖夢はたじろぎつつ刀を構え直した
+				ENDIF
+			CASE 1
+				IF ALCOHOL_FACE(23) == "酔いどれ" || ALCOHOL_FACE(23) == "ぐでぐで"
+					PRINTFORML 「しかいが、回って……？　こんどはどんなじゅつを！」
+					PRINTFORMW 妖夢はいよいよ酔いを誤魔化せなくなってきたようだ……
+				ELSEIF CFLAG:318 == 1 || MARK:23:反発刻印 > 1
+					PRINTFORML 「ぐ、ぅ――ッ」
+					PRINTFORMW 被弾も厭わぬ妖夢の刃が%CALLNAME:MASTER%の顎を執拗に狙う……
+				ELSEIF ABL:MASTER:戦闘能力 >= ABL:戦闘能力
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML （一度冷静にならないと……！）
+							PRINTFORMW 体勢を崩した妖夢は仕切り直すべく%CALLNAME:MASTER%と大きく距離を取った
+						CASE 1
+							PRINTFORML 「……まだ、終わっていませんよ！」
+							PRINTFORMW 妖夢が刀で前方を大きく払うと、その軌跡から更に多くの弾幕が放たれた
+						CASE 2
+							PRINTFORML 「くっ……これは見切れますか！？」
+							PRINTFORMW 更に速度と密度を増した剣閃が%CALLNAME:MASTER%に迫る
+					ENDSELECT
+				ELSE
+					PRINTDATAL
+						DATAFORM （ま、まずいかも……）
+						DATAFORM （あんな所に安地が……！？）
+					ENDDATA
+					PRINTFORMW 追い詰められた妖夢は漸く白楼剣に手をかけた
+				ENDIF
+			CASE 0
+				IF ALCOHOL_FACE(23) == "酔いどれ" || ALCOHOL_FACE(23) == "ぐでぐで"
+					PRINTFORML 「きゃああああ！？」
+					PRINTFORMW 完全に出来上がった妖夢はあらぬ方向に突っ込んで自滅してしまった……
+				ELSEIF CFLAG:318 == 1 || MARK:23:反発刻印 > 1
+					PRINTFORML 「ぁ……」
+					PRINTFORMW 形振り構わぬ突貫を続けていた妖夢は遂に膝を着いた……
+				ELSEIF ABL:MASTER:戦闘能力 >= ABL:戦闘能力
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「うぅ……」
+							PRINTFORMW 「こ、ここまでです……」
+						CASE 1
+							PRINTFORML 「あう……！？」
+							PRINTFORMW 「ま、参りました……」
+						CASE 2
+							PRINTFORML 「そんな……！？」
+							PRINTFORMW 「お、お見事です……」
+					ENDSELECT
+				ELSE
+					PRINTFORMW 「みょん！？」
+				ENDIF
+		ENDSELECT
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【残忍酷薄】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "残忍酷薄"
+		
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【乾坤一擲】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "乾坤一擲"
+		IF ALCOHOL_FACE(23) == "酔いどれ" || ALCOHOL_FACE(23) == "ぐでぐで"
+			PRINTDATAL
+				DATAFORM 「さ、さんこん、きゅうはく……？」
+				DATAFORM 「じんき……いやざつねん……？」
+				DATAFORM 「庭の桜を剪定斬ー！！」
+			ENDDATA
+			PRINTFORMW 酔っぱらった妖夢が放った弾幕は、最早スペルカードの体をなしていない！
+		ELSE
+			SELECTCASE RAND:5
+				CASE 0
+					IF ABL:戦闘能力 > 4
+						PRINTFORML 「人鬼『未来永劫斬』！！」
+						PRINTFORMW 不可視の速度から放たれる数多の斬撃が空間を埋め尽くす！
+					ELSE
+						PRINTFORML 「人符『現世斬』！」
+						PRINTFORMW 神速の踏み込みからの一太刀が%CALLNAME:MASTER%に肉薄する！
+					ENDIF
+				CASE 1
+					IF ABL:戦闘能力 > 4
+						PRINTFORML 「断迷剣『迷津慈航斬』！」
+						PRINTFORMW 妖力で成された巨大な青の刃が%CALLNAME:MASTER%へと振り下ろされる！
+					ELSE
+						PRINTFORML 「断命剣『冥想斬』！」
+						PRINTFORMW 妖力で成された長大な緑の刃が%CALLNAME:MASTER%へと振り下ろされた！
+					ENDIF
+				CASE 2
+					IF ABL:戦闘能力 > 4
+						PRINTFORML 「天神剣『三魂七魄』！」
+						PRINTFORMW 五色の弾幕と同時に放たれた剣閃が%CALLNAME:MASTER%へと殺到する！
+					ELSE
+						PRINTFORML 「天上剣『天人の五衰』！」
+						PRINTFORMW 妖夢が撃ち出した五色の弾幕が%CALLNAME:MASTER%へと襲いかかる！
+					ENDIF
+				CASE 3
+					PRINTFORML 「六道剣『一念無量劫』！」
+					PRINTFORMW 斬撃で描かれた八芒星から弾幕が矢継ぎ早に繰り出される！
+				CASE 4
+					PRINTFORML 「桜花剣『閃々散華』！」
+					PRINTFORMW 妖夢の姿が搔き消えると、桜色の斬撃が周囲を乱れ飛び始めた！
+			ENDSELECT
+		ENDIF
+	ENDIF
+	;-------------------------------------------------
+	;戦闘中
+	;TARGETの【怪力乱神】発動時
+	;ARGはTARGETの残機
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 0
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "怪力乱神"
+		
+	ENDIF
+	
+	;-------------------------------------------------
+	;戦闘後
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARGS == "戦闘後" 
+		PRINTFORML 
+		;残り残機4が表示されうるのは【洽覧深識】持ちのみ
+		;残機が1以上ならあなたの負け、0の場合はあなたの勝利
+		;MASTER勝利
+		IF 相手残機 == 0
+			IF ALCOHOL_FACE(23) == "酔いどれ" || ALCOHOL_FACE(23) == "ぐでぐで"
+				PRINTFORML 「やっぱりひきょーです！　しらふのときにもーいちどです！！」
+				PRINTFORMW ぺたりと座り込んだ妖夢は暫くその場で駄々を捏ねていた……
+			ELSEIF CFLAG:318 == 1 || MARK:23:反発刻印 > 1
+				PRINTFORML 「……どう、して……ッ」
+				PRINTFORMW 絞り出すように呟いた妖夢はそれ以上何も言わなかった……
+			ELSEIF ABL:MASTER:戦闘能力 >= ABL:戦闘能力
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「敵いませんでしたか……」
+						PRINTFORMW 「いい経験になりました、よければまたお相手願えますか？」
+					CASE 1
+						PRINTFORML 「もう少し喰らい付けると思ったんですが……」
+						PRINTFORMW 「見通しの甘さも含め、未だ道は長そうです……」
+					CASE 2
+						PRINTFORML 「いたた……いえ、大丈夫です」
+						PRINTFORMW 「……す、すみません。やっぱり手を借りても……？」
+				ENDSELECT
+			ELSE
+				PRINTDATAL
+					DATAFORM 「……これも己の未熟故」
+					DATAFORM 「慢心……いえ、詭弁ですか」
+				ENDDATA
+				PRINTFORMW 「%CALLNAME:MASTER%さん、勉強させていただきました……」
+			ENDIF
+		;妖夢勝利
+		ELSE
+			IF ALCOHOL_FACE(23) == "酔いどれ" || ALCOHOL_FACE(23) == "ぐでぐで"
+				PRINTFORML 「どうです！　酒精で太刀筋が鈍るなど……うっ」
+				PRINTFORMW 「ご、ごめんなさい。ちょっとやすませて……」
+			ELSEIF CFLAG:318 == 1 || MARK:23:反発刻印 > 1
+				PRINTFORML 「……殺しませんよ、決まりですから」
+				PRINTFORMW 刀を鞘に納めた妖夢は静かに踵を返した……
+			ELSEIF ABL:MASTER:戦闘能力 >= ABL:戦闘能力
+				SELECTCASE 相手残機
+					CASE 4
+						PRINTFORML
+					CASE 3
+						PRINTDATAL
+							DATAFORM 「もしかして、どこか調子が……？」
+							DATAFORM 「……%CALLNAME:MASTER%さん、手加減を？」
+							DATAFORM （……何か、違う）
+						ENDDATA
+						PRINTFORMW 妖夢は完勝という結果に納得しきれていないようだ……
+					CASE 2
+						PRINTDATAL
+							DATAFORM 「ふう……今回は私の勝ちですね」
+							DATAFORM 「頑張れば弾幕だって斬れますよ」
+							DATAFORM 「己が知るより、私の腕は上なのかもしれません」
+						ENDDATA
+						PRINTFORMW 刀を鞘に納めた妖夢は静かに息を吐き出した
+					CASE 1
+						PRINTDATAL
+							DATAFORM 「か、勝てた……！！」
+							DATAFORM 「……迷えば、敗れます」
+							DATAFORM （少しだけ、掴めた……）
+						ENDDATA
+						PRINTFORMW 紙一重の勝負を制した妖夢は確かな手応えを感じ取ったようだ
+					CASE 0
+						PRINTFORMW 「ええ！？　ここは表示しちゃダメですよ！」
+				ENDSELECT
+			ELSE
+				PRINTFORML 「また……つまらぬ物を斬ってしまいました」
+					SELECTCASE 相手残機
+						CASE 4
+							PRINTFORMW
+						CASE 3
+							PRINTFORMW
+						CASE 2
+							PRINTFORMW （少し油断したかな……）
+						CASE 1
+							PRINTFORMW （あ、危ない所だった……！）
+						CASE 0
+							PRINTFORMW （ですから表示しちゃダメですってば！）
+					ENDSELECT
+			ENDIF
+		ENDIF
+	ENDIF
+RESETCOLOR
+ENDIF
+RETURN 1
+

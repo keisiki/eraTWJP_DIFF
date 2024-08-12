@@ -1,0 +1,5690 @@
+﻿;※※※※※※※※※※※※※※※※※※※※※※※※※
+;日常系コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;300,会話
+;TFLAG:193(1=大成功 0=成功 -1=失敗 -2=大失敗（TARGETがMASTERより教養が4以上高い)
+;TCVAR:302(0=会話可能 1>=非恋慕時会話不能)
+;MARK:反発刻印(3以上=会話不能)(4以上はバグ
+;TCVAR:泥酔(1=通常成功or大失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_300
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_300
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_300
+;コマンド共通メッセージ(TRAIN_MESSAGE) 
+;削除すると「～話をした。」とかが消えます。また、削除した場合は自動で口上色が付きません。
+;口上メイン呼出
+CALL M_KOJO_MESSAGE_COM_K113_300_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_300_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;初回会話
+	IF FIRSTTIME(SELECTCOM)
+		SETCOLOR 0xF0D124
+		PRINTFORML 「さーて、今日は何をして遊びましょうかねぇ」
+		PRINTFORMDL 赤色だったへカーティアの髪が、いつの間にか金色に変わっている。
+		PRINTFORMDW これがへカーティアの能力なのだろうか……？
+		SETCOLOR 0xC90B39
+		PRINTFORML 「なーに%CALLNAME:MASTER%？もしかして、私に見惚れていたのかしら？」
+		SETCOLOR 0x2459F0
+		PRINTFORML 「まあ嬉しい♪容姿を褒められるのは悪い気がしないわねぇ」
+		PRINTFORMDL 見知った赤髪のへカーティアと、新たに青髪のへカーティアも出現した。
+		PRINTFORMDW 事態を飲み込めず混乱する%CALLNAME:MASTER%に、へカーティアは指を立てて説明し始めた。
+		SETCOLOR 0xC90B39
+		PRINTFORMW 「私は異界・地球・月…三つの世界の地獄を管理するため、それぞれの世界に肉体を持っているの」
+		PRINTFORML 「貴方と初めて会った私が、"異界"…つまり幻想郷の私」
+		SETCOLOR 0x2459F0
+		PRINTFORML 「会うのは初めてだったわね。私は"地球"のへカーティアよ」
+		SETCOLOR 0xF0D124
+		PRINTFORMW 「そして…貴方の目の前にいるのが、"月"の私ね」
+		PRINTFORMW 「いつもならこんな風に…」
+		SETCOLOR 0xC90B39
+		PRINTFORMW 「頭の天体を切り替えて」
+		SETCOLOR 0x2459F0
+		PRINTFORMW 「肉体を入れ替えるワケだけど……」
+		SETCOLOR 0xC90B39
+		PRINTFORML 「その気になれば…」
+		SETCOLOR 0x2459F0
+		PRINTFORML 「三人同時に」
+		SETCOLOR 0xF0D124
+		PRINTFORML 「出てくる事も出来るわよん♪」
+		PRINTFORMDW 服装に負けず劣らずの、変わった能力だ……
+	;教養足りない
+	ELSEIF TFLAG:193 == -2
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「%CALLNAME:MASTER%に足りないもの？」
+				PRINTFORML 「んー、そうねぇ。強いて言うなら……」
+				PRINTFORMDW へカーティアに頭をつつかれた。
+			CASE 1
+				PRINTFORML 「%CALLNAME:MASTER%。貴方の話は、つまらないとか以前に意味が分からないわ」
+				PRINTFORMDW %CALLNAME:MASTER%の教養が足りなくて、話が噛み合わない…
+			CASE 2
+				PRINTFORML 「私の頭にあるコレが何なのか、ですって？」
+				PRINTFORML 「それにはまず、宇宙の誕生から説明しなくてはならないわね。今から約―」
+				PRINTFORMDW 教養の足りない%CALLNAME:MASTER%は、へカーティアの話を全く理解出来なかった……
+		ENDSELECT
+	;怒り
+	ELSEIF CFLAG:318 == 1
+		PRINTFORML 「…何か言った？聞いてなかったわ」
+		PRINTFORMDW ヘカーティアは機嫌が悪いようだ……
+	;喋りすぎ
+	ELSEIF TCVAR:302
+		SELECTCASE RAND:4
+			CASE 0
+				PRINTFORML 「あ゛～…喋りすぎて喉が渇いたわねぇ……」
+				PRINTFORMDW ヘカーティアにお茶でも淹れようか……
+			CASE 1
+				PRINTFORML 「%CALLNAME:MASTER%。私は今、とーっても退屈しているわ」
+				PRINTFORML 「何か面白い事やってちょうだいな」
+				PRINTFORMDW ヘカーティアに無茶振りされた……
+			CASE 2
+				PRINTFORML 「…さて。そろそろお出掛けでもしましょうか」
+				PRINTFORMDW ヘカーティアは何処かに行きたいようだ……
+			CASE 3
+				PRINTFORML 「はふ……ハイハイ、聞いてるわよん」
+				PRINTFORMDW お喋りに飽きたのか、ヘカーティアは欠伸をしている……
+		ENDSELECT
+	;酔っ払い時会話
+	;ぐでぐで
+	ELSEIF BASE:酒気 > (MAXBASE:酒気 / 10) * 8
+		IF TALENT:恋慕 || TALENT:思慕
+			SELECTCASE RAND:5
+				CASE 0
+					CALL HPH_PRINT,@"「%CALLNAME:MASTER%～HPHこっちにきて、ご主人様をたのしませなさいよぉ～HPH HPH」","L"
+					PRINTFORMDW へカーティアが、ゆらゆら揺れながら手招きしている……
+				CASE 1
+					PRINTFORML 「%CALLNAME:MASTER%～♪のんでるぅ～？？」
+					PRINTFORMDW へカーティアはふらついている……
+				CASE 2
+					PRINTFORML 「%CALLNAME:MASTER%……今日はぶれいこーよん」
+					PRINTFORML 「たまってるグチとか、ぜーんぶ吐き出しちゃいなさいな♪」
+					PRINTFORMDW %CALLNAME:MASTER%は笑って誤魔化した……
+				CASE 3
+					CALL HPH_PRINT,@"「純狐ぉ、愛してるわぁ～HPHもみもみぃーHPH」","L"
+					PRINTFORML 「……あら？何か、おっぱいしぼんでない？」
+					PRINTFORMDW %CALLNAME:MASTER%を純狐と間違えているようだ……
+				CASE 4
+					PRINTFORML 「ピースぅ～……ほっぺたがいつもよりかたいわよぉん……？」
+					PRINTFORMDW %CALLNAME:MASTER%をクラウンピースと間違えているようだ……
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:5
+				CASE 0
+					PRINTFORML 「うるっさいわねぇ～、よってないわよぉん♪」
+					PRINTFORMDW 酔いが回ってきたのか、へカーティアの顔が真っ赤だ……
+				CASE 1
+					PRINTFORML 「あっはははははは♪」
+					PRINTFORMDW へカーティアが急に笑いだした……
+				CASE 2
+					PRINTFORML 「%CALLNAME:MASTER%～……程々にしとかないと、純狐にしかられるわよぉ～……」
+					PRINTFORMDW かなり酔っているようだ……
+				CASE 3
+					CALL HPH_PRINT,@"「純狐ぉ～、もっとのみましょうよ～んHPH」","L"
+					PRINTFORMDW %CALLNAME:MASTER%を純狐と間違えているようだ……
+				CASE 4
+					CALL HPH_PRINT,@"「ピースぅ～♪ご主人様にダンス見せてちょーだーいHPH」","L"
+					PRINTFORMDW %CALLNAME:MASTER%をクラウンピースと間違えているようだ……
+			ENDSELECT
+		ENDIF
+	;酔いどれ
+	ELSEIF BASE:酒気 > (MAXBASE:酒気 / 10) * 5
+		IF TALENT:恋慕 || TALENT:思慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「%CALLNAME:MASTER%～、顔が赤いわよん♪」
+					PRINTFORML 「もう酔ってるなんて、まだまだ甘いわねぇ♪」
+					PRINTFORMDW そう言うへカーティアも頬が上気している。
+				CASE 1
+					PRINTFORML 「%CALLNAME:MASTER%、おつまみ無いの？」
+					PRINTFORML 「んもう、気が利かないわねぇ……」
+					PRINTFORMDW 何故か怒られた……
+				CASE 2
+					PRINTFORML 「こんな程度じゃ、飲んだうちにも入らないわ」
+					PRINTFORML 「%CALLNAME:MASTER%ー！おかわり～♪」
+					PRINTFORMDW へカーティアはまだまだ飲み足りないようだ。
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「いつかこの酒を、勝利の美酒としたいものねぇ……♪」
+				CASE 1
+					PRINTFORML 「……貴方、お酒が入ると静かになるのねぇ」
+					PRINTFORML 「せっかく一緒に飲んでるんだから、もっとお喋りしましょうよん」
+				CASE 2
+					PRINTFORML 「へぇ……貴方、結構いけるクチなのねぇ♪」
+			ENDSELECT
+			PRINTFORMDW ヘカーティアと酒を飲みながら談笑した。
+		ENDIF
+	ELSEIF TALENT:恋人
+		IF FLAG:デート相手 == 113
+			SELECTCASE RAND:2
+				CASE 0
+					CALL HECA_DATE
+				CASE 1
+					SELECTCASE RAND:4
+						CASE 0
+							CALL HECA_KOIBITO
+						CASE 1
+							CALL HECA_OTENKI
+						CASE 2
+							CALL HECA_SEASON
+						CASE 3
+							CALL HECA_FREETALK
+					ENDSELECT
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:7
+				CASE 0
+					CALL HECA_FREETALK
+				CASE 1
+					CALL HECA_KOIBITO
+				CASE 2
+					CALL HECA_SEASON
+				CASE 3
+					CALL HECA_OTENKI
+				CASE 4
+					CALL HECA_CP_TALK
+				CASE 5
+					CALL HECA_JUNKO_TALK
+				CASE 6
+					PRINTFORML 「%CALLNAME:MASTER%ー、ご主人様退屈～」
+					PRINTFORMDW ヘカーティアを誘って何処か出掛けようか……
+			ENDSELECT
+		ENDIF
+	ELSEIF TALENT:恋慕
+		IF FLAG:デート相手 == 113
+			SELECTCASE RAND:2
+				CASE 0
+					CALL HECA_DATE
+				CASE 1
+					SELECTCASE RAND:4
+						CASE 0
+							CALL HECA_RENBO
+						CASE 1
+							CALL HECA_OTENKI
+						CASE 2
+							CALL HECA_SEASON
+						CASE 3
+							CALL HECA_FREETALK
+					ENDSELECT
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:7
+				CASE 0
+					CALL HECA_FREETALK
+				CASE 1
+					CALL HECA_RENBO
+				CASE 2
+					CALL HECA_SEASON
+				CASE 3
+					CALL HECA_OTENKI
+				CASE 4
+					CALL HECA_CP_TALK
+				CASE 5
+					CALL HECA_JUNKO_TALK
+				CASE 6
+					PRINTFORML 「%CALLNAME:MASTER%ー、ご主人様退屈～」
+					PRINTFORMDW ヘカーティアを誘って何処か出掛けようか……
+			ENDSELECT
+		ENDIF
+	ELSEIF TALENT:思慕
+		IF FLAG:デート相手 == 113
+			SELECTCASE RAND:2
+				CASE 0
+					CALL HECA_DATE
+				CASE 1
+					SELECTCASE RAND:4
+						CASE 0
+							CALL HECA_SHIBO
+						CASE 1
+							CALL HECA_OTENKI
+						CASE 2
+							CALL HECA_SEASON
+						CASE 3
+							CALL HECA_FREETALK
+					ENDSELECT
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:7
+				CASE 0
+					CALL HECA_FREETALK
+				CASE 1
+					CALL HECA_SHIBO
+				CASE 2
+					CALL HECA_SEASON
+				CASE 3
+					CALL HECA_OTENKI
+				CASE 4
+					CALL HECA_CP_TALK
+				CASE 5
+					CALL HECA_JUNKO_TALK
+				CASE 6
+					PRINTFORML 「%CALLNAME:MASTER%ー、ご主人様退屈～」
+					PRINTFORMDW ヘカーティアを誘って何処か出掛けようか……
+			ENDSELECT
+		ENDIF
+	ELSE
+		IF FLAG:デート相手 == 113
+			SELECTCASE RAND:2
+				CASE 0
+					CALL HECA_NORMAL
+				CASE 1
+					CALL HECA_OTENKI
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:2
+				CASE 0
+					CALL HECA_NORMAL
+				CASE 1
+					CALL HECA_OTENKI
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;301,お茶を淹れる
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_301
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_301
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_301
+CALL M_KOJO_MESSAGE_COM_K113_301_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_301_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:318 == 1
+		PRINTFORML 「ふ～ん……まあ頂いておきましょう」
+		PRINTFORMDW ヘカーティアは怪訝そうな顔をしながら、お茶を受け取った。
+	ELSEIF TFLAG:193 == 1
+		SELECTCASE RAND:3
+		CASE 0
+			SELECTCASE RAND:4
+				CASE 0
+					PRINTFORML 「やだ、美味しいわ♪」
+					PRINTFORML 「%CALLNAME:MASTER%！おかわりの準備しておいて頂戴」
+				CASE 1
+					PRINTFORML 「温度・香り・味……」
+					PRINTFORML 「どれを取っても素晴らしい、良いお茶ですねぇ…♪」
+				CASE 2
+					PRINTFORML 「ふー……落ち着くわねぇ……♪」
+				CASE 3
+					PRINTFORML 「ご馳走様。次も期待してるわよん♪」
+			ENDSELECT
+			PRINTFORMDW へカーティアは%CALLNAME:MASTER%のお茶をとても気に入ってくれたようだ。
+		CASE 1
+			PRINTFORML 「%TEXTR("ズズ/ごくっ/ずずーっ")%……」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「%TEXTR("ズズ/ごくっ/ずずーっ")%……」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「%TEXTR("ズズ/ごくっ/ずずーっ")%……」
+			SETCOLOR 0xC90B39
+			PRINTFORML 「美味しい～♪」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「ねぇ♪ホッとするわ」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「%CALLNAME:MASTER%！おかわりー♪」
+			PRINTFORMDW %CALLNAME:MASTER%のお茶は、へカーティア達に好評だった。
+		CASE 2
+			PRINTFORML 「じゃあいくわよ……せーのっ―」
+			PRINTFORML 「%TEXTR("あー…何も無いわねぇ/あったわ茶柱♪")%」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「%TEXTR("ざーんねん、何も無かったわ……/あら茶柱だわ♪")%」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「%TEXTR("んもう、茶柱が無いじゃない/茶柱あったわよん♪")%」
+			PRINTFORMDW へカーティア達は茶柱の有無に一喜一憂している…とても楽しそうだ。
+		ENDSELECT
+	ELSEIF TFLAG:193 == 0
+		SELECTCASE RAND:2
+		CASE 0
+			SELECTCASE RAND:4
+				CASE 0
+					PRINTFORML 「んー、いい香り♪余程良いお茶っ葉使ってるのかしら？」
+				CASE 1
+					PRINTFORML 「ごぉーかーく！とってもいいお茶ねぇ♪」
+				CASE 2
+					PRINTFORML 「はぁ～……♪ホッとする味ねぇ……♪」
+				CASE 3
+					PRINTFORML 「美味しいわねぇ♪おかわり貰えるかしら？」
+			ENDSELECT
+			PRINTFORMDW へカーティアは%CALLNAME:MASTER%のお茶を気に入ってくれたようだ。
+		CASE 1
+			PRINTFORML 「%TEXTR("ズズ/ごくっ/ずずーっ")%……」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「%TEXTR("ズズ/ごくっ/ずずーっ")%……」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「%TEXTR("ズズ/ごくっ/ずずーっ")%……」
+			SETCOLOR 0xC90B39
+			PRINTFORML 「うーん……どう？」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「まあまあって感じ」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「及第点ってとこかしらねぇ」
+			PRINTFORMDW %CALLNAME:MASTER%のお茶は、へカーティア達からそれなりの評価を受けた。
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:3
+		CASE 0
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ヌルいお茶ねぇ……もうちょっと熱いのが飲みたいわ」
+				CASE 1
+					PRINTFORML 「んー……これは外れね」
+					PRINTFORML 「次からは違うのにしてちょうだい」
+				CASE 2
+					PRINTFORML 「ふごぉーかーく」
+			ENDSELECT
+			PRINTFORMDW へカーティアはお茶が気に入らなかったようだ……
+		CASE 1
+			PRINTFORML 「そうそう♪私は、この灼熱地獄の様に熱いのが好みで……」
+			PRINTFORML 「―程度って物を知らないのかしらね？貴方は」
+			PRINTFORMDW へカーティアがかけてきたボコボコと煮えたぎるお茶を、%CALLNAME:MASTER%は何とか回避した…
+		CASE 2
+			PRINTFORML 「%TEXTR("ズズ/ごくっ/ずずーっ")%……」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「%TEXTR("ズズ/ごくっ/ずずーっ")%……」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「%TEXTR("ズズ/ごくっ/ずずーっ")%……」
+			SETCOLOR 0xC90B39
+			PRINTFORML 「不味いわ」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「不味いわ」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「不味いわ」
+			PRINTFORMDW へカーティア達からの不評を受けた……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;302,スキンシップ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_302
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_302
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_302
+CALL M_KOJO_MESSAGE_COM_K113_302_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_302_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;怒り
+	IF CFLAG:318 == 1
+		PRINTFORML 「汚い手で触らないでほしいわねぇ」
+		PRINTFORMDW ヘカーティアに手を払い除けられた……
+	;お風呂
+	ELSEIF BATHCHECK(CFLAG:MASTER:現在位置) && IN_HOME(CFLAG:MASTER:現在位置)
+		SELECTCASE RAND:5
+			CASE 0
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「女神の柔肌を傷付けたら承知しないわよ」
+					CASE 1
+						CALL HPH_PRINT,@"「やーんHPH手つきがやらし～いHPH」","L"
+					CASE 2
+						PRINTFORML 「そうそう…♪上手よん%CALLNAME:MASTER%♪」
+				ENDSELECT
+				PRINTFORMDW へカーティアの身体を丁寧に洗った。
+			CASE 1
+				SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「痛゛ぁぁーー！！？」
+						PRINTFORML 「ヘタクソ！もっと優しくなさい！」
+					CASE 1
+						PRINTFORML 「ったく……力無いわねぇ貴方」
+				ENDSELECT
+				PRINTFORMDW 上手く身体を洗えず、へカーティアに怒られた……
+			CASE 2
+				PRINTFORML 「どう？綺麗でしょ私の髪！しっかり綺麗にしてちょうだいな♪」
+				PRINTFORMDL 洗う手を止め、へカーティアの髪をじっと見つめた。よく見ると枝毛が生えている……
+				PRINTFORML 「はぁ！？そんなワケ―」
+				PRINTFORML 「あ゛あ゛あ゛ああぁっ！目があぁぁーっ！！」
+				PRINTFORMDW 振り向いた拍子に、泡が目に入ったようだ……
+			CASE 3
+				PRINTFORML 「……ねえ、そろそろ身体の方を洗ってほしいのだけど？」
+				PRINTFORMDW へカーティアの頭の惑星を、ピカピカになるまで洗った。
+			CASE 4
+				CALL HPH_PRINT,@"「んっ……♪ふっ……んぅ……HPH」","L"
+				PRINTFORMDL へカーティアの肢体を、撫でるように洗う。
+				PRINTFORMDL 辛抱堪らず抱きしめようとした途端、手で制止された……
+				PRINTFORML 「…んもう、ここじゃ駄目よん」
+				CALL HPH_PRINT,@"「続きは部屋で……ねHPH」","W"
+		ENDSELECT
+	;酔っ払い強
+	ELSEIF BASE:酒気 > (MAXBASE:酒気 / 10) * 8
+		IF TALENT:恋慕 || TALENT:思慕
+			PRINTFORML 「あー！貴方は、ま～たスケべな事してぇ～！」
+			PRINTFORML 「これはぁ～…おしおきよぉん♪」
+			PRINTFORMDW へカーティアが地球を投げつけてきた……が、あらぬ方向へ飛んでいった……
+		ELSE
+			PRINTFORML 「あっはははは！！なんかたのしくなってきたわねぇ～♪」
+			PRINTFORMDW へカーティアが両手で月と地球を振り回し始めた。今は近づかない方が良さそうだ……
+		ENDIF
+	;酔っ払い弱
+	ELSEIF BASE:酒気 > (MAXBASE:酒気 / 10) * 5
+		IF TALENT:恋慕 || TALENT:思慕
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%～♪遊んでないで、もっと飲みなさいなHPH」","L"
+			PRINTFORMDW 今のへカーティアにスキンシップは危険かもしれない……
+		ELSE
+			PRINTFORML 「なーに？私を酔わせて押し倒そうとしてるの？」
+			PRINTFORML 「%CALLNAME:MASTER%ってば、スケべねぇ」
+			PRINTFORMDW 頭に拳骨をくらい、少し酔いが覚めた……
+		ENDIF
+	ELSEIF TALENT:恋人;一部恋慕と共通
+		SELECTCASE RAND:21
+			CASE 0
+				PRINTFORML 「%CALLNAME:MASTER%、早くいらっしゃい」
+				PRINTFORML 「ご主人様が求めてるんだから、はい駆け足！」
+				PRINTFORMDW へカーティアに慌てて近づくと、抱き寄せられた。
+			CASE 1
+				CALL HPH_PRINT,@"「ふふ……♪んんっHPH気持ちいいわ、%CALLNAME:MASTER%……HPH」","L"
+				PRINTFORML 「次は足もお願いしようかしら♪」
+				PRINTFORMDW へカーティアの身体をマッサージした。
+			CASE 2
+				CALL HPH_PRINT,@"「楽しいわ……HPH%CALLNAME:MASTER%は？」","L"
+				PRINTFORML 「……そう♪」
+				PRINTFORMDW へカーティアとのスキンシップを楽しんだ。
+			CASE 3
+				PRINTFORMW 「こーらっ、そんなにしたらTシャツが皺になっちゃうでしょう？」
+			CASE 4
+				PRINTFORML 「あはははは！楽しいわねぇ、%CALLNAME:MASTER%♪」
+				PRINTFORMDW 意味もなく、ヘカーティアと指を絡めて見つめ合った。
+			CASE 5
+				PRINTFORML 「うーん、今日は何して遊ぼうかしら……？」
+				PRINTFORML 「%CALLNAME:MASTER%ー？何かしたい事無いー？」
+				PRINTFORMDW %CALLNAME:MASTER%の背中に、へカーティアが寄りかかってきた……
+			CASE 6
+				PRINTFORML 「%CALLNAME:MASTER%。そろそろ観念して、私とペアルックなさい♪」
+				PRINTFORMDW へカーティアが突如服を脱がせようとしてきたので、%CALLNAME:MASTER%は必死に抵抗した……
+			CASE 7
+				PRINTFORML 「まあ、柔らか～い♪」
+				PRINTFORMDW へカーティアに手を握られた。
+			CASE 8
+				PRINTFORML 「%CALLNAME:MASTER%。何か私に隠してる事無い？」
+				PRINTFORML 「……あ～？今、目逸らしたわねぇ？」
+				PRINTFORMDW 頭に拳骨をグリグリと押し付けられた……
+			CASE 9
+				PRINTFORML 「ん～？どうしたの%CALLNAME:MASTER%？」
+				CALL HPH_PRINT,@"「……いいわよんHPH受け入れてあげるわ……HPH」","L"
+				PRINTFORMDW 触れ合っている内に、気持ちが昂ってきた……！
+			CASE 10
+				PRINTFORML 「それで？貴方が好きなのは、どの私なのかしら？」
+				SETCOLOR 0x2459F0
+				CALL HPH_PRINT,@"「言っとくけど、今日は逃がさないわよんHPH」","L"
+				SETCOLOR 0xF0D124
+				PRINTFORML 「ほぅら……観念して、早く言っちゃいなさい♪」
+				PRINTFORMDW 三人のへカーティアに囲まれ、密着された……！
+			CASE 11
+				PRINTFORML 「そんなに私に触れたかったの？」
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%って、本当に可愛いわねぇ……HPH」","W"
+			CASE 12
+				CALL HPH_PRINT,@"「……ずっと一緒よHPH%CALLNAME:MASTER%……HPH」","L"
+				PRINTFORMDW へカーティアに後ろから抱きしめられた……！
+			CASE 13
+				PRINTFORML 「%CALLNAME:MASTER%、こっちにいらっしゃい♪」
+				PRINTFORMDW へカーティアとくっついて過ごした。
+			CASE 14
+				PRINTFORML 「あら？もういいの？」
+				PRINTFORMW 「珍しいわねぇ。いっつも長い事ベタベタ触るのに」
+			CASE 15
+				PRINTFORMW 「ふふふ……♪もっと私に触れていいのよん？」
+			CASE 16
+				PRINTFORML 「どう？ドキドキするでしょう？」
+				PRINTFORML 「ふーん？そう……じゃあもう暫く、このままでも良いわよねぇ♪」
+				PRINTFORMDW へカーティアが指を絡めて握ってきた……！
+			CASE 17
+				PRINTFORML 「やだ、Tシャツにホコリが……」
+				PRINTFORML 「%CALLNAME:MASTER%、早く取ってちょうだい」
+				PRINTFORMDL へカーティアのTシャツに付いたホコリを手で払い落とした。
+				PRINTFORMDL 胸に少し触ってしまったが、へカーティアは気にしていないようだ……
+				PRINTFORMW （本当に……%CALLNAME:MASTER%って可愛いわねぇ♪）
+			CASE 18
+				PRINTFORML 「%CALLNAME:MASTER%～、マッサージは～？」
+				PRINTFORMDW へカーティアに催促され、マッサージをした。
+			CASE 19
+				CALL HPH_PRINT,@"「HPH%CALLNAME:MASTER%……HPH」","L"
+				PRINTFORMDW へカーティアが、そっと手を重ねてきた……！
+			CASE 20
+				PRINTFORML 「あははは！面白い顔ねぇ♪」
+				PRINTFORMDW へカーティアに顔をぐにぐにと弄ばれた。
+		ENDSELECT
+	ELSEIF TALENT:恋慕 || TALENT:セフレ
+		SELECTCASE RAND:7
+			CASE 0
+				PRINTFORML 「%CALLNAME:MASTER%、こっちにいらっしゃい♪」
+				PRINTFORMDW へカーティアとくっついて過ごした。
+			CASE 1
+				PRINTFORML 「あら？もういいの？」
+				PRINTFORMW 「珍しいわねぇ。いっつも長い事ベタベタ触るのに」
+			CASE 2
+				PRINTFORMW 「ふふふ……♪もっと私に触れていいのよん？」
+			CASE 3
+				PRINTFORML 「どう？ドキドキするでしょう？」
+				PRINTFORML 「ふーん？そう……じゃあもう暫く、このままでも良いわよねぇ♪」
+				PRINTFORMDW へカーティアが指を絡めて握ってきた……！
+			CASE 4
+				PRINTFORML 「やだ、Tシャツにホコリが……」
+				PRINTFORML 「%CALLNAME:MASTER%、早く取ってちょうだい」
+				PRINTFORMDL へカーティアのTシャツに付いたホコリを手で払い落とした。
+				PRINTFORMDL 胸に少し触ってしまったが、へカーティアは気にしていないようだ……
+				PRINTFORMW （本当に……%CALLNAME:MASTER%って可愛いわ♪）
+			CASE 5
+				PRINTFORML 「%CALLNAME:MASTER%～、マッサージは～？」
+				PRINTFORMDW へカーティアに催促され、マッサージをした。
+			CASE 6
+				CALL HPH_PRINT,@"「HPH%CALLNAME:MASTER%……HPH」","L"
+				PRINTFORMDW へカーティアが、そっと手を重ねてきた……！
+		ENDSELECT
+	ELSEIF TALENT:思慕
+		SELECTCASE RAND:5
+			CASE 0
+				PRINTFORML 「さーて♪今日は何して遊びましょうか？」
+				PRINTFORMDW へカーティアが密着してきた。
+			CASE 1
+				PRINTFORMW 「触れ合いたいなんて、まるでお子ちゃまねぇ……♪」
+			CASE 2
+				PRINTFORML 「%CALLNAME:MASTER%～、どうしたの？」
+				PRINTFORML 「ご主人様と一緒に遊んでるんだから、もっと嬉しそうにしなさいよん♪」
+				PRINTFORMDW へカーティアが肩を組んできた。 
+			CASE 3
+				PRINTFORML 「んもう、ちょっとだけよ？……はい♪」
+				PRINTFORMDW 何故か頭に地球を乗せられた……
+			CASE 4
+				PRINTFORML 「はいはい、そこまで」
+				PRINTFORML 「女性をそうベタベタと触るんじゃないの」
+				PRINTFORMDW へカーティアにスキンシップを中断させられた……
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:5
+			CASE 0
+				PRINTFORML 「気安いわよ。私を誰だと思ってるのかしら？」
+				PRINTFORMDW スキンシップをしようとしたら怒られた……
+			CASE 1
+				PRINTFORML 「今スカート捲ろうとしたでしょ？」
+				PRINTFORMDL "気のせいだ"
+				PRINTFORMW 「ならば良し」
+			CASE 2
+				PRINTFORML 「"私と触れ合いたい"ですって？冗談は顔だけになさい」
+				PRINTFORMDW スキンシップを断られた……
+			CASE 3
+				PRINTFORML 「あら、そんなに私のファッションが気になる？」
+				PRINTFORMDW へカーティアのTシャツは良い手触りだった。
+			CASE 4
+				PRINTFORML 「握手？……まあ、いいでしょう」
+				PRINTFORMDW へカーティアの手を握った。すべすべしていて柔らかい……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;303,謝る
+;TFLAG:193(2=菓子折成功 1=大成功 0=成功 -1=失敗 -2=菓子折失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_303
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_303
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_303
+CALL M_KOJO_MESSAGE_COM_K113_303_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_303_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193 
+		CASE 0,1
+			PRINTFORML 「ふーん……まあ、許してあげましょう」
+			PRINTFORML 「私の広い心に感謝なさい%CALLNAME:MASTER%」
+			PRINTFORMDW へカーティアは許してくれたようだ。
+		CASE 2
+			;ヘカテーの風習に蜂蜜入りの菓子を供えるというのがあるそうです
+			PRINTFORML 「ほほう……？私に貢物とは……♪殊勝な心掛けねぇ%CALLNAME:MASTER%」
+			PRINTFORML 「あら？このお菓子、蜂蜜が入ってるの？美味しそうねぇ♪」
+			PRINTFORMDW へカーティアは機嫌が直ったようだ。
+		CASE -1,-2
+			PRINTFORML 「謝れば済むと思ってるのかしら？」
+			IF TALENT:恋慕 || TALENT:思慕
+				PRINTFORML 「どうやらお仕置きが足りないみたいねぇ……」
+			ELSE
+				PRINTFORML 「今なら見逃してあげるから、とっとと失せなさい」
+			ENDIF
+			PRINTFORMDW へカーティアを更に怒らせてしまったようだ……
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;304,仕事を手伝う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;CFLAG:350(仕事内容(JOB_仕事内容.ERB参照のこと
+;TCVAR:手伝えない(=2 手伝っても早くは終わらない、時間停止中不可 永琳の診察等)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_304
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_304
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_304
+CALL M_KOJO_MESSAGE_COM_K113_304_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_304_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+	;通常
+	ELSE
+	ENDIF
+
+ENDIF
+RETURN 1
+;==================================================
+;305,膝枕してもらう
+;TFLAG:193(-5=MASTERがTARGETよりも巨体の場合(TALENT:MASTER:体型 > TALENT:体型 + 2) 1=大成功 0=成功 -1=失敗)(-5以外は地の文分岐無し)
+;ABL:親密(6以上=顔をのぞき込みながら頭を撫でてくれる 3以上=ただ頭を撫でてくれる 2以下=縮こまっている)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_305
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_305
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_305
+CALL M_KOJO_MESSAGE_COM_K113_305_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_305_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TALENT:恋人
+		SELECTCASE RAND:4
+			CASE 0
+				CALL HPH_PRINT,@"「ん……ちゅ…HPH」","L"
+				PRINTFORMDW へカーティアは身をかがめて、キスをしてきた。
+			CASE 1
+				PRINTFORML 「本当に貴方は甘えん坊ねぇ……♪」
+				PRINTFORMDW へカーティアに頭を撫でられながら、膝枕を堪能した。
+			CASE 2
+				PRINTFORML 「ねぇ、%CALLNAME:MASTER%……」
+				CALL HPH_PRINT,@"「後で私にも、膝枕して欲しいわ……HPH」","W"
+			CASE 3
+				PRINTFORMDL 膝枕でまどろんでいると、不意に頭を掴まれた。
+				PRINTFORMDL 目だけを動かして、%CALLNAME:MASTER%が見上げると……
+				PRINTFORML 「%CALLNAME:MASTER%。耳掃除してあげましょう♪」
+				PRINTFORMDW 見た事もない凶悪な形状をした耳かき棒を手に、へカーティアが微笑んでいた……
+		ENDSELECT
+	ELSEIF TALENT:恋慕 || TALENT:思慕
+		SELECTCASE RAND:4
+			CASE 0
+				PRINTFORML 「しょうがないわねぇ……終わったらちゃんとお仕事するのよ？」
+				PRINTFORMDW 返事もそこそこにしつつ、へカーティアの膝枕を堪能した。
+			CASE 1
+				PRINTFORML 「部下を労うのも主人の務めですから……♪」
+				PRINTFORMDW へカーティアに頭を撫でられながら、膝枕を堪能した。
+			CASE 2
+				PRINTFORML 「%CALLNAME:MASTER%。ご主人様の膝枕は気持ちいいでしょう♪」
+				PRINTFORMDW "気持ちいい"と言うと、へカーティアは満足気に頷いた。
+			CASE 3
+				PRINTFORMDL 膝枕でまどろんでいると、不意に頭を掴まれた。
+				PRINTFORMDL 目だけを動かして、%CALLNAME:MASTER%が見上げると……
+				PRINTFORML 「%CALLNAME:MASTER%。耳掃除してあげましょう♪」
+				PRINTFORMDW 見た事もない凶悪な形状をした耳かき棒を手に、へカーティアが微笑んでいた……
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:4
+			CASE 0
+				PRINTFORML 「地獄の女神の膝枕……堪能しなさいな…♪」
+				PRINTFORMDW 悪くない寝心地だ……
+			CASE 1
+				PRINTFORML 「私の膝枕は気持ちいいでしょう？」
+				PRINTFORMDW "あまり…"と言いかけ、拳骨で小突かれた……
+			CASE 2
+				PRINTFORML 「……今、これを落としたらどうなるかしら？」
+				PRINTFORMDW へカーティアが両手で%TEXTR("地球/月")%を抱え、%CALLNAME:MASTER%の眼前に持ってきた……
+			CASE 3
+				PRINTFORMDL 膝枕でまどろんでいると、不意に頭を掴まれた。
+				PRINTFORMDL 目だけを動かして、%CALLNAME:MASTER%が見上げると……
+				PRINTFORML 「%CALLNAME:MASTER%。耳掃除してあげましょう♪」
+				PRINTFORMDW 見た事もない凶悪な形状をした耳かき棒を手に、へカーティアが微笑んでいた……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;306,お腹を撫でる
+;TFLAG:193(1=ABL:親密6以上かつ妊娠時 0=成功 -1=ABL:親密5以下)
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_306
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_306
+CALL M_KOJO_MESSAGE_COM_K113_306_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_306_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+		IF TALENT:妊娠
+			PRINTFORMDL 妊娠しているヘカーティアのお腹を撫でた。
+			PRINTFORMDW どんな子供に育ってくれるのだろう……%CALLNAME:MASTER%は撫でながら、新たな生活に想いを馳せた。
+		ELSE
+			PRINTFORMDL %CALLNAME:MASTER%はヘカーティアのTシャツを捲り上げ、ペンを取り出した。
+			PRINTFORMDW まっさらなお腹に、"%TEXTR("変なTシャツヤロー/純化済/クラウンピース参上！/welcome❤Hell")%"と書き込んだ。
+		ENDIF
+	;怒り
+	ELSEIF CFLAG:318 == 1
+		PRINTFORML 「汚い手で触れないでほしいわねぇ」
+		PRINTFORMDW ヘカーティアに手を払い除けられた……
+	ELSEIF TALENT:妊娠
+		IF TALENT:恋慕 || TALENT:思慕
+			SELECTCASE RAND:7
+				CASE 0
+					PRINTFORML 「母親になるって、こんな気分なのねぇ……」
+					CALL HPH_PRINT,@"「…ええ。すっごく嬉しいわ……HPH」","W"
+				CASE 1
+					CALL HPH_PRINT,@"「中で動いているわ……もうすぐ産まれるのねぇ…HPH」","L"
+					PRINTFORMW 「私と貴方……どっちに似てるのかしら♪」
+				CASE 2
+					PRINTFORML 「どんな子に育つのかしら……楽しみねぇ…♪」
+					PRINTFORMDW へカーティアは愛おしそうにお腹を撫でている。
+				CASE 3
+					PRINTFORML 「ピースもそうやってよく触ってくるわ」
+					PRINTFORMW 「やっぱり気になるわよねぇ……♪」
+				CASE 4
+					PRINTFORMDL ヘカーティアとの愛の結晶が宿っているお腹を撫でた。
+					PRINTFORMW 「%CALLNAME:MASTER%も、ちゃんと子育て手伝うのよ？」
+				CASE 5
+					CALL HPH_PRINT,@"「ふふ……♪パパになった気分はどうかしら……HPH」","W"
+				CASE 6
+					PRINTFORML 「子育てについて、純狐から色々とアドバイスを貰ったわ」
+					PRINTFORML 「当然、貴方にも協力して貰うわよん♪」
+					PRINTFORMDW 頷きながら、へカーティアのお腹を撫でた。
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「―ッ！触らないで！！」
+					PRINTFORMDW お腹を触ろうとしたら、手を叩かれた……
+				CASE 1
+					PRINTFORML 「……"太った"？そんなワケないでしょう」
+					PRINTFORMDW へカーティアはお腹を撫でながらそっぽを向いた。
+				CASE 2
+					PRINTFORML 「……%TEXTR("早く産まれないかしら/大丈夫よ……産まれがどうであれ、この子は女神の子")%……」
+					PRINTFORMDW へカーティアは自分のお腹を撫でながら独り言を言っている……
+			ENDSELECT
+		ENDIF
+	ELSEIF EX:膣内精液 >= 1000
+		SELECTCASE RAND:3
+			CASE 0
+				CALL HPH_PRINT,@"「お腹……すっごくタプタプしてるわ……HPH」","W"
+			CASE 1
+				CALL HPH_PRINT,@"「んもう……射精しすぎよ……HPH」","W"
+			CASE 2
+				CALL HPH_PRINT,@"「……受精しちゃったHPH」","L"
+				PRINTFORMW 「あははは！なーんてねぇ♪」
+		ENDSELECT
+	ELSEIF TALENT:恋慕 || TALENT:思慕
+		SELECTCASE RAND:5
+			CASE 0
+				CALL HPH_PRINT,@"「手つきがいやらしいわよ%CALLNAME:MASTER%HPH」","W"
+			CASE 1
+				PRINTFORMW 「あははは！くすぐったいわ♪」
+			CASE 2
+				PRINTFORMW 「服にゴミでも付いてたかしら？」
+			CASE 3
+				PRINTFORMW 「なーに？かまって欲しいの？」
+			CASE 4
+				PRINTFORML 「これが、ご主人様におイタしちゃう悪い手かしら～？」
+				PRINTFORMDW へカーティアに腕を掴まれた……
+		ENDSELECT
+	;陥落無し
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「あ～！止めなさい！服が皺になるでしょうが！」
+			CASE 1
+				PRINTFORML 「このTシャツ、いい手触りでしょう？」
+				PRINTFORML 「"はい"と言えば、気安く触った事は許してあげるわ」
+			CASE 2
+				PRINTFORML 「……何してるの？」
+				PRINTFORML 「気持ち悪いというか、気味が悪いわ……」
+		ENDSELECT
+		PRINTFORMDW お腹を撫でたら怒られた……
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;307,頬をつまむ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐無し
+	;以下は先に書いた条件が優先される
+	;TALENT:恋慕(受け入れつつ笑顔でやり返す
+	;ABL:親密(6以上=おずおずとやり返す
+	;ABL:従順(5以上=されるがまま
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_307
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗(注、抱きつきモード中は自動成功)、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_307
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_307
+CALL M_KOJO_MESSAGE_COM_K113_307_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_307_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+		PRINTFORMDL 時を止められ、身動きの取れないへカーティアの頬をつまんで弄んだ。
+		PRINTFORMDW 楽しくなってきた%CALLNAME:MASTER%は、しばらく"ヘカーティア百面相"を堪能した。
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		PRINTFORML 「ピースぅ～……イタズラは程々にしなさい……」
+		PRINTFORMDW クラウンピースと間違えているようだ。
+	;怒り
+	ELSEIF CFLAG:318 == 1
+		PRINTFORML 「……何？」
+		PRINTFORMDW 頬をつまもうとしたが、怖いので止めた……
+	;通常
+	ELSEIF TALENT:恋慕 || TALENT:思慕
+		SELECTCASE RAND:3
+			CASE 0
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「止めなふぁいよん」
+					CASE 1
+						PRINTFORML 「そんな子供っぽいことしないの」
+					CASE 2
+						PRINTFORML 「地獄の女神は、これくらいでおふぉったりしないわ」
+						PRINTFORML 「寛大なごひゅじんふぁまにかんひゃふるのよん」
+					ENDSELECT
+				PRINTFORMDW へカーティアの頬をつまんだ。
+			CASE 1
+				PRINTFORML 「うーん、ピースの頬っぺたには負けるわねぇ」
+				PRINTFORMDW へカーティアに頬を引っ張られた……
+			CASE 2
+				PRINTFORML 「これが、ご主人様におイタしちゃう悪い手かしら～？」
+				PRINTFORMDW へカーティアに腕を掴まれた……
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「何かしらこの手は？」
+				PRINTFORML 「女神の顔に気安く触れようなんて、命知らずねぇ♪」
+				PRINTFORMDW へカーティアに腕を掴まれた……
+			CASE 1
+				PRINTFORML 「どこまで伸びるか試してみましょうか♪」
+				PRINTFORMDW へカーティアに頬をつままれた……
+			CASE 2
+				PRINTFORML 「私のほっぺは気に入ったかしら？」
+				PRINTFORMDW 頬をつままれても、へカーティアは気にしていないようだ。
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;308,頬をつつく
+;添い寝中or睡眠中限定
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_308
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗(注、抱きつきモード中は自動成功)、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_308
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_308
+CALL M_KOJO_MESSAGE_COM_K113_308_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_308_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+		PRINTFORMDL まるで人形の様に動かないヘカーティアの頬をつついた。
+		PRINTFORMDW しばらくの間、ぐりぐりと人差し指を押し付けて遊んだ。
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		PRINTFORML 「ピースぅ～……イタズラは程々にしなさい……」
+		PRINTFORMDW クラウンピースと間違えているようだ。
+	;怒り
+	ELSEIF CFLAG:318 == 1
+		PRINTFORML 「……何？」
+		PRINTFORMDW 頬をつつこうとしたが、怖いので止めた……
+	ELSE
+		SELECTCASE RAND:6
+			CASE 0
+				PRINTFORML 「%CALLNAME:MASTER%～……遊ぶのは程々にしなさい……」
+				PRINTFORMDW 眠そうなヘカーティアの頬をつついた。
+			CASE 1
+				PRINTFORML 「な～に？かまって欲しいのかしら？」
+				PRINTFORML 「……しょうがないわねぇ。ちょっとだけ遊んであげるわ♪」
+				PRINTFORMDW ヘカーティアに身体をくすぐられた。
+			CASE 2
+				PRINTFORML 「……それ位にしとかないと、指をへし折るわよ」
+				PRINTFORMDW 早く寝たいのか、ヘカーティアは機嫌が悪いようだ……
+			CASE 3
+				PRINTFORML 「もう……いい歳して子供みたいな事しないの」
+				PRINTFORMDW ヘカーティアにやんわりと注意された……
+			CASE 4
+				PRINTFORMW 「あははは！くすぐったい♪」
+			CASE 5
+				PRINTFORML 「―まだまだ甘いわねぇ%CALLNAME:MASTER%♪」
+				PRINTFORMDW 気付くと、ヘカーティアに頬をつつかれていた。
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;309,頭を撫でる
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;ABL:親密(6以上=通常成功時分岐
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_309
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗(注、抱きつきモード中は自動成功)、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_309
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_309
+CALL M_KOJO_MESSAGE_COM_K113_309_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_309_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;時間停止中
+	IF FLAG:70
+		PRINTFORMDL ヘカーティアの頭を撫でるため、頭の惑星を外そうと試みた。
+		PRINTFORMDW ……微動だにしないので、諦めた。
+	;睡眠中
+	ELSEIF CFLAG:睡眠
+		IF TALENT:恋慕 || TALENT:思慕
+			CALL HPH_PRINT,@"「ん……ふふ……♪もっとぉ……HPH」","L"
+			PRINTFORMDW 頭を撫でられ、ヘカーティアは微笑んでいる。
+		ELSE
+			CALL HPH_PRINT,@"「ふふ……♪純狐ぉ……HPH」","L"
+			PRINTFORMDW 純狐に撫でられる夢を見ているようだ……
+		ENDIF
+	;怒り
+	ELSEIF CFLAG:318 == 1
+		PRINTFORML 「汚い手で触れないでほしいわねぇ」
+		PRINTFORMDW ヘカーティアに手を払い除けられた……
+	ELSEIF TALENT:恋慕 || TALENT:思慕
+		SELECTCASE RAND:(TALENT:恋人 ? 7 # 5)
+			CASE 0
+				PRINTFORML 「ふふふ……お返しに、今度は私が撫でてあげましょう……♪」
+				PRINTFORMDW ヘカーティアがワキワキと指を動かしながら近づいてくる……
+			CASE 1
+				PRINTFORML 「しっかりお手入れしてちょうだい%CALLNAME:MASTER%」
+				PRINTFORML 「終わったら次は、地球と月の私よん♪」
+				PRINTFORMDW ヘカーティアの髪を優しく撫でた。
+			CASE 2
+				PRINTFORMW 「%CALLNAME:MASTER%、もっと愛情を込めて撫でて欲しいわ♪」
+			CASE 3
+				PRINTFORML 「……貴方、それ撫でるの好きねぇ」
+				PRINTFORMDW ヘカーティアの頭の惑星を撫でた。何故かクセになる手触りだ……
+			CASE 4
+				PRINTFORML 「いつも頑張ってる%CALLNAME:MASTER%を労ってあげましょう…ほれほれ～♪」
+				PRINTFORMDW ヘカーティアに頭をわしゃわしゃと撫でられた……
+			;以下恋人のみ
+			CASE 5
+				CALL HPH_PRINT,@"「これじゃ足りないわ……♪もっともっと撫でなさい……HPH」","L"
+				PRINTFORMDW しばらくヘカーティアの頭を優しく撫で続けた。
+			CASE 6
+				CALL HPH_PRINT,@"「貴方に撫でられるだけで、ドキドキしちゃうわ……HPH」","L"
+				CALL HPH_PRINT,@"「ご主人様をこんなにしちゃうなんて、イケナイ子ねぇ……HPH」","L"
+				PRINTFORMDW ヘカーティアが熱い視線を向けてくる……
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「私の髪、とっても綺麗でしょう？」
+				PRINTFORML 「純狐と同じシャンプー使ってるのよん♪」
+				PRINTFORMDW ヘカーティアの髪を優しく撫でた。
+			CASE 1
+				PRINTFORML 「あら、そんなに気になる？」
+				PRINTFORMDW ヘカーティアの頭の惑星を撫でた。硬くてツルツルしている……
+			CASE 2
+				PRINTFORML 「女神に気安く触っちゃ、"メッ"よ♪」
+				PRINTFORMDW 頭を撫でようと手を伸ばしたが、デコピンをされた……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;331,お茶を淹れる（薬入り）
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_331
+;成否判定
+;TFLAG:192(-2=強制失敗(注、非コマンド終了）、-1＝強制失敗、0=COM依存、1=強制成功or大成功(注、睡眠薬アイスティーは眠気を感じていると飲まない)
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_331
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_331
+CALL M_KOJO_MESSAGE_COM_K113_331_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_331_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == -1
+		PRINTFORMDL 不意に現れた二人のへカーティアに拘束され、身動きが取れなくなった！
+		PRINTFORML 「%CALLNAME:MASTER%、口を開けなさい。私がこのお茶を飲ませてあげましょう」
+		PRINTFORML 「"要らない"？…まさか、飲めない理由でも？」
+		PRINTFORMDW どうやら気付かれていたようだ……%CALLNAME:MASTER%はへカーティアに謝罪した。
+	ELSE
+		IF TCVAR:113:媚薬 == 210
+			CALL HPH_PRINT,@" 「ハァ……HPHハァ……HPH%CALLNAME:MASTER%……HPH」","L"
+			CALL HPH_PRINT,@" 「早くシましょう…HPHほらぁ……HPH　さっさとチンポ出しなさい……HPH」","L"
+			PRINTFORMDW へカーティアが息を荒げながら、%CALLNAME:MASTER%の服に手をかけてきた……！
+		ELSEIF TCVAR:113:利尿剤 == 210
+			PRINTFORML 「…く…っ…！」
+			PRINTFORMDL へカーティアは仕切りに"何か"を探している……
+			PRINTFORMDL %CALLNAME:MASTER%は敢えて、へカーティアが欲しているであろう物を指摘した。
+			PRINTFORML 「はあ！？め、女神がトイレなんて行くわけがないでしょう！？」
+			PRINTFORMW 「何でもないからっ…！…む、向こう行ってなさい……！」
+		ELSEIF TCVAR:113:惚れ薬 == 210
+			PRINTFORML 「…%CALLNAME:MASTER%。こっちにいらっしゃい」
+			CALL HPH_PRINT,@" （こんな物に頼らず、実力で私を夢中にさせてみなさい…HPH）","L"
+			PRINTFORMDW 気付かれていたようだ。へカーティアが挑発的な笑みを浮かべながら、耳元で囁いてくる……！
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;332,お酒をふるまう
+;TFLAG:193(0=下戸飲み成功 -1=下戸飲み失敗 -2=下戸飲み大失敗 -5=下戸飲みあきらめ)
+;COM_STR(酒の名称)
+;ALCOHOL_TASTE(TFLAG:194)(15以上=気に入る 9以下=口に合わない)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_332
+;成否判定
+;TFLAG:192(-1＝強制失敗、0=COM依存
+;TFLAG:口上特殊補正 (ここに数値を入れるとALCOHOL_TASTEを増減させられる)
+TFLAG:192 =0
+TFLAG:口上特殊補正 = 0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_332
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_332
+CALL M_KOJO_MESSAGE_COM_K113_332_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_332_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF FIRSTTIME(SELECTCOM)
+		;純狐邸に住んでる
+		IF CFLAG:MASTER:初期位置 == 1063
+			PRINTFORML 「へー……♪あの瓶はそういう意味があったのねぇ」
+		ELSE
+			PRINTFORML 「へー……♪これ、%CALLNAME:MASTER%が造ったの？」
+		ENDIF
+		PRINTFORML 「手作りの酒ってどんな味なのかしら？楽しみねぇ♪」
+		PRINTFORMDW へカーティアとグラスを合わせ、酒を飲んだ。
+		IF ALCOHOL_TASTE(TFLAG:194) >= 15
+			PRINTFORML 「あら、美味しい♪」
+			PRINTFORMDW へカーティアの口に合ったようだ。
+		ELSEIF ALCOHOL_TASTE(TFLAG:194) < 10
+			PRINTFORML 「……もういいわ。ご馳走様」
+			PRINTFORMDW ヘカーティアの口には合わなかったようだ…
+		ELSE
+			PRINTFORML 「んー……まあまあかしらねぇ」
+			PRINTFORMDW 反応を見るに、不味くはなかったようだ。
+		ENDIF
+	;酔ってる強
+	ELSEIF BASE:酒気 > (MAXBASE:酒気 / 10) * 6
+		PRINTFORML 「あら？もうなくなっちゃったわ……」
+		PRINTFORML 「%CALLNAME:MASTER%！おかわりよん！」
+		PRINTFORMDW へカーティアはまだまだ飲み足りないようだ……%CALLNAME:MASTER%は新しい酒を注いだ。
+		IF ALCOHOL_TASTE(TFLAG:194) >= 15
+			CALL HPH_PRINT,@" 「……あぁ～おいしーHPHおかわり～♪」","L"
+			PRINTFORMDW 余程気に入ったのか、とても良い飲みっぷりだ。
+		ELSEIF ALCOHOL_TASTE(TFLAG:194) < 10
+			PRINTFORML 「……こんな酒がのめると思ってんのかしら？」
+			PRINTFORMDW 口に合わなかったのか、据わった目で睨まれた……
+		ELSE
+			PRINTFORML 「うーん、おいしい？おいしい……わよん♪」
+			PRINTFORMDW 不味くはなかったようだが、言動が少しおかしくなってきている……
+		ENDIF
+	;酔ってる弱
+	ELSEIF BASE:酒気 > (MAXBASE:酒気 / 10) * 3
+		SELECTCASE TIME:2
+			;朝・昼
+			CASE 1,2,3,4
+				PRINTFORML 「……駄目ねぇ。一杯飲むと止まらなくなるわ」
+				PRINTFORMDW %CALLNAME:MASTER%は空になったへカーティアのグラスに新しい酒を注いだ。
+			;夜
+			CASE 5,6,7
+				PRINTFORML 「んー♪いい感じに気分が上がってきたわねぇ♪」
+				PRINTFORML 「%CALLNAME:MASTER%！お代わりちょうだい♪」
+				PRINTFORMDW 差し出されたグラスに新しい酒を次ぐと、へカーティアはそのまま中身を飲み干した。
+		ENDSELECT
+		IF ALCOHOL_TASTE(TFLAG:194) >= 15
+			CALL HPH_PRINT,@" 「……ぷはーーっ♪美味しいわ～HPH」","L"
+			PRINTFORMDW ヘカーティアは嬉しそうに微笑んでいる。
+		ELSEIF ALCOHOL_TASTE(TFLAG:194) < 10
+			PRINTFORML 「……ちょっと酔いが覚めたわ……」
+			PRINTFORMDW へカーティアの口には合わなかったようだ……
+		ELSE
+			PRINTFORML 「んー……普通？かしらねぇ♪」
+			PRINTFORMDW 反応を見るに、不味くはなかったようだ。
+		ENDIF
+	;素面
+	ELSE
+		SELECTCASE TIME:2
+			;朝
+			CASE 1,2
+				PRINTFORML 「%CALLNAME:MASTER%、こんな朝っぱらから酒？」
+				;純狐邸に住んでる
+				IF CFLAG:MASTER:初期位置 == 1063
+					PRINTFORML 「純狐に叱られるわよ」
+					PRINTFORMDL "バレなければ大丈夫"と、へカーティアの分も注いで差し出した。
+				ELSE
+					PRINTFORML 「ダメ人間まっしぐらねぇ」
+					PRINTFORMDL "一緒に飲もう"と、へカーティアの分も注いで差し出した。
+				ENDIF
+				PRINTFORMW 「ハァ……仕方ないわねぇ。一杯だけよ？」
+				IF ALCOHOL_TASTE(TFLAG:194) >= 15
+					PRINTFORML 「あー♪美味しいわ♪」
+					PRINTFORMDW へカーティアの口に合ったようだ。
+				ELSEIF ALCOHOL_TASTE(TFLAG:194) < 10
+					PRINTFORML 「うーん……今回のはイマイチねぇ……」
+					PRINTFORMDW ヘカーティアの口には合わなかったようだ…
+				ELSE
+					PRINTFORML 「んー……まあまあかしらねぇ」
+					PRINTFORMDW 反応を見るに、不味くはなかったようだ。
+				ENDIF
+			;昼
+			CASE 3,4
+				;純狐邸に住んでる
+				IF CFLAG:MASTER:初期位置 == 1063
+					PRINTFORML 「こんな真っ昼間から飲むなんて、ピースが真似したらどうしてくれんのよ」
+					PRINTFORMDL "バレなければ大丈夫"と、へカーティアの分も注いで差し出した。
+				ELSE
+					PRINTFORML 「こんな真っ昼間から飲んでんじゃないわよ、アル中」
+					PRINTFORMDL "飲みたい時に飲むのがいい"と、へカーティアの分も注いで差し出した。
+				ENDIF
+				PRINTFORMW 「ハァ……仕方ないわねぇ。一杯だけよ？」
+				IF ALCOHOL_TASTE(TFLAG:194) >= 15
+					PRINTFORML 「あー♪美味しいわ♪」
+					PRINTFORMDW へカーティアの口に合ったようだ。
+				ELSEIF ALCOHOL_TASTE(TFLAG:194) < 10
+					PRINTFORML 「うーん……今回のはイマイチねぇ……」
+					PRINTFORMDW ヘカーティアの口には合わなかったようだ…
+				ELSE
+					PRINTFORML 「んー……まあまあかしらねぇ」
+					PRINTFORMDW 反応を見るに、不味くはなかったようだ。
+				ENDIF
+			;夜
+			CASE 5,6,7
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「ほら%CALLNAME:MASTER%♪早く注いでちょうだいな♪」
+						PRINTFORMDL 既にグラスを取り出し、へカーティアは準備万端のようだ。
+						PRINTFORMW 「オーケーオーケー♪それじゃ、カンパーイ♪」
+					CASE 1
+						PRINTFORML 「それにしても、タダで酒が飲めるなんてラッキーよねぇ♪」
+						PRINTFORML 「……今"ケチくさい"とか聞こえたけど、気の所為かしら？」
+						PRINTFORMDL "気の所為"と返し、へカーティアのグラスに酒を注いだ。
+						PRINTFORMW 「ふーん、まあいいでしょう……乾杯♪」
+					CASE 2
+						PRINTFORML 「嫦娥を倒したら、ヤツの首を肴にして飲み明かしたいわねぇ……♪」
+						PRINTFORMDL それはちょっと……
+						PRINTFORMW 「あら、嫌だった？　まあいいわ……乾杯♪」
+				ENDSELECT
+				IF ALCOHOL_TASTE(TFLAG:194) >= 15
+					PRINTFORML 「あー♪美味しいわ♪」
+					PRINTFORMDW へカーティアの口に合ったようだ。
+				ELSEIF ALCOHOL_TASTE(TFLAG:194) < 10
+					PRINTFORML 「うーん……今回のはイマイチねぇ……」
+					PRINTFORMDW ヘカーティアの口には合わなかったようだ…
+				ELSE
+					PRINTFORML 「んー……まあまあかしらねぇ」
+					PRINTFORMDW 反応を見るに、不味くはなかったようだ。
+				ENDIF
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;333,愚痴を聞く
+;TFLAG:193(6=大成功(酔い) 5=成功(酔い) 4=失敗(酔い) 3=大成功 2=成功 1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_333
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_333
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_333
+CALL M_KOJO_MESSAGE_COM_K113_333_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_333_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1 
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		CASE 6
+		;大成功（酔い）
+			PRINTFORML 「あっはははは！！何だかたのしくなってきたわねぇ♪」
+			PRINTFORML 「ほら、%CALLNAME:MASTER%もジャンジャンのみなさいよん♪」」
+			PRINTFORMDW さっきまでの様子は何だったのか、へカーティアは楽しそうに笑っている。
+		CASE 5
+		;成功（酔い）
+			PRINTFORML 「……だからね、わたしのTシャツは変じゃないの。とっても素敵なのよん」
+			PRINTFORML 「%CALLNAME:MASTER%、ちゃんと分かってる？……ならいいでしょう♪」
+			PRINTFORMDW よく分からないが、へカーティアの気分は晴れたようだ……
+		CASE 4
+		;失敗（酔い）
+			PRINTFORML 「んもう、なによぉ～！」
+			PRINTFORML 「きょうのじゅんこ、なんだかつめた～い～！！」
+			PRINTFORMDW 酔っているのか、%CALLNAME:MASTER%を純狐と間違えているようだ……
+		CASE 3
+		;大成功
+			CALL HPH_PRINT,@"「あ～スッキリした♪ありがとねぇ%CALLNAME:MASTER%HPH」","L"
+			PRINTFORMDW へカーティアの気分は晴れたようだ。
+		CASE 2
+		;成功
+			PRINTFORML 「ふぅ～……スッキリしたわ」
+			PRINTFORML 「ありがとねぇ%CALLNAME:MASTER%♪」
+			PRINTFORMDW へカーティアの気分は晴れたようだ。
+		CASE 1
+		;失敗
+			PRINTFORML 「……まあ、貴方に言ったってしょーがないわよねぇ」
+			PRINTFORML 「今言った事は忘れてちょうだい」
+			PRINTFORMDW へカーティアの気分は晴れなかったようだ……
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;334,杯を交わす
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;CFLAG:妊娠自覚状態(1=食事)
+;TALENT:酒耐性(-2=食事)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_334
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_334
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_334
+CALL M_KOJO_MESSAGE_COM_K113_334_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_334_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		CASE 1
+		;大成功
+		CASE 0
+		;成功
+		CASE -1
+		;失敗
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;335,介抱する
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_335
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_335
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_335
+CALL M_KOJO_MESSAGE_COM_K113_335_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_335_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+		CASE 1
+		;大成功
+		CASE 0
+		;成功
+		CASE -1
+		;失敗
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;336,膝枕する
+;ABL:親密(4以下=居心地悪げ 9以下=恥ずかしげ それ以上=幸せそう
+;TIME_PROGRESS(TFLAG:膝枕した)(44以下=失敗
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_336
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_336
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_336
+CALL M_KOJO_MESSAGE_COM_K113_336_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_336_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;ねちゃった
+	IF TFLAG:193 > 0
+		PRINTFORML 「Zzz……♪」
+		PRINTFORMDW へカーティアは眠ってしまった。頭の惑星に太腿を圧迫されて少し痛い……
+	ELSEIF ABL:親密 > 4
+		PRINTFORML 「純狐の膝枕の方が気持ち良かったわ……」
+		PRINTFORMDW してもらった事があるのだろうか……？
+	ELSEIF TALENT:恋慕 || TALENT:思慕
+		SELECTCASE RAND:(TALENT:恋人 ? 5 # 3)
+			CASE 0
+				PRINTFORML 「%CALLNAME:MASTER%。ご主人様が眠れるように、頭を優しく撫でなさい♪」
+				PRINTFORMDW へカーティアの頭を、髪を梳くように優しく撫でた。
+			CASE 1
+				PRINTFORML 「"降りてほしい"？駄目よ」
+				PRINTFORML 「まだまだ膝枕を堪能させてもらうわよん♪」
+				PRINTFORMDW 足が痺れて感覚が無くなってきた……
+			CASE 2
+				PRINTFORML 「うーん、流石に三人同時は狭いわねぇ……」
+				SETCOLOR 0x2459F0
+				PRINTFORML 「Zzz……♪」
+				SETCOLOR 0xF0D124
+				PRINTFORML 「やだ、地球の私ったらもう寝てるわ」
+				PRINTFORMDW へカーティア達が三人揃って膝に頭を乗せている。足が重くて痛い……
+			CASE 3;ここから下は恋人限定
+				CALL HPH_PRINT,@"「ふふふ……♪もうこんなに硬くして……♪」","L"
+				CALL HPH_PRINT,@"「貴方もその気になってきたようねぇ……HPH」","L"
+				PRINTFORMDW へカーティアが手で股間を擦ってきた……！
+			CASE 4
+				CALL HPH_PRINT,@"「はぁ……HPH凄い匂いねぇ……♪興奮しちゃう……HPH」","L"
+				PRINTFORMDW へカーティアが股間に顔を埋めてきた……！
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:3
+			CASE 1
+				PRINTFORML 「私がいいと言うまでこのままよ、%CALLNAME:MASTER%」
+				PRINTFORMDW 足が痺れてきた……
+			CASE 2
+				PRINTFORML 「んー……」
+				PRINTFORMDL 寝てしまったのだろうか？へカーティアの顔を覗き込んだ。
+				PRINTFORML 「あっ♪いい事思いつい―たぁっ！？」
+				PRINTFORMDL へカーティアが急に起き上がったため、頭の惑星が顔面にぶつかった……
+			CASE 3
+				PRINTFORML 「地獄の女神を膝枕出来るなんて、全世界でも貴方だけよ♪光栄に思いなさい」
+				PRINTFORMDW ヘカーティアに膝枕をさせられた……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;350,押し倒す（時姦時イタズラする
+;TFLAG:194 (0=成功 1=人目がある　2=野外は嫌でござりまする　3=多人数プレイは勘弁　4=合意があってもムードが足りぬ　100=合意はあるが口上内特殊判定によって失敗）
+;TCVAR:抱き寄せ初回　1=普通に合意ゲット　2=先にキスぐらいしろよ　3=媚薬or発情には勝てなかったよお…　4=悔しい…刻印さえなければﾋﾞｸﾋﾞｸﾝ
+;5=強引に迫られると断れぬ(素質臆病持ち専用) 6=まんざらでもない　7=駄目　8=論外 98=口上内特殊判定による失敗 99=口上内特殊判定による成功
+;口上内特殊判定は該当するCFLAGが0だと無効
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_350
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_350
+CALL M_KOJO_MESSAGE_COM_K113_350_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_350_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+SETCOLOR 0xC90B39
+	IF FLAG:時間停止
+		PRINTFORMDL 時を止められ、ヘカーティアは身動きが取れない。
+		PRINTFORMDW いい機会だ。日頃の"お礼"をするとしよう……
+	ELSEIF TFLAG:194
+		SELECTCASE TFLAG:194
+			;人目がある
+			CASE 1
+			IF TALENT:恋人
+				PRINTFORML 「ご主人様の身体を、衆目に晒せとおっしゃるのねぇ？」
+				PRINTFORMDW ヘカーティアの笑顔が怖い……
+			ELSE
+				PRINTFORML 「"私、%CALLNAME:MASTER%は野外露出が大好きな変態です！"」
+				PRINTFORML 「……って、皆の前で言ってみせたら考えてあげるわ」
+				PRINTFORMDW %CALLNAME:MASTER%は渋々諦めた……
+			ENDIF
+			;野外は嫌でござりまする
+			CASE 2
+				PRINTFORML 「外でもお構い無し？まるで獣ねぇ……」
+				PRINTFORML 「私、動物とする趣味は無いの」
+				PRINTFORMDW ヘカーティアは乗り気ではないようだ…
+			;多人数プレイは勘弁
+			CASE 3
+				PRINTFORML 「"大勢でヤりたいです"って、そう言うのね？」
+				SETCOLOR 0x2459F0
+				PRINTFORML 「よーしよし可愛いねぇ♪」
+				SETCOLOR 0xF0D124
+				PRINTFORML 「%CALLNAME:MASTER%、ちょっとそこで"お話"しましょうか♪」
+				PRINTFORMDW へカーティア達に怒られた……
+			;合意があってもムードが足りぬ
+			CASE 4
+			IF TALENT:恋人 || TALENT:恋慕
+				PRINTFORML 「まだダメよん。がっつかないの」
+				PRINTFORMDW へカーティアにデコピンされた……
+			ELSE
+				PRINTFORML 「嫌よん♪今はそんな気分じゃないの」
+				PRINTFORMDW ヘカーティアは気が乗らないようだ……
+			ENDIF
+		ENDSELECT
+	ELSEIF TCVAR:抱き寄せ初回
+		SELECTCASE TCVAR:抱き寄せ初回
+			;普通に合意ゲット
+			CASE 1
+				IF TALENT:恋人
+					PRINTFORML 「んもう……やっと、その気になったのね……♪」
+					CALL HPH_PRINT,@"「待ちくたびれたわよん……HPH」","W"
+				ELSE
+					PRINTFORML 「あら、積極的ねぇ」
+					PRINTFORMW 「でも嫌いじゃないわよ、そういうの♪」
+				ENDIF
+			;先にキスぐらいしろよ
+			CASE 2
+				CALL HPH_PRINT,@"「……身体だけの関係ってのも、案外悪くないわねぇ……HPH」","L"
+				PRINTFORMDW そういえば、まだへカーティアとキスをしていない事に気づいた……
+			;媚薬or発情には勝てなかったよお…
+			CASE 3
+				CALL HPH_PRINT,@"「……っ…HPH」","L"
+				PRINTFORML 「情けないわねぇ……クスリに頼らなきゃ押し倒す事も出来ないなんて……！」
+				PRINTFORMDW 頬を上気させながら睨みつけてくるへカーティアに、%CALLNAME:MASTER%は覆いかぶさった……！
+			;悔しい…刻印さえなければﾋﾞｸﾋﾞｸﾝ
+			CASE 4
+				CALL HPH_PRINT,@"「んんっ……HPHい…挿入れるなら、早くなさい……！」","L"
+				PRINTFORMDW 強がるヘカーティアに、%CALLNAME:MASTER%は更に興奮した……！
+			;強引に迫られると断れぬ(素質臆病持ち専用)
+			CASE 5
+			
+			;まんざらでもない
+			CASE 6
+				PRINTFORML 「おっと。今はダメよん%CALLNAME:MASTER%」
+				PRINTFORML 「その時が来るまで、辛抱なさい……♪」
+				PRINTFORMDW よく分からないが、今はその時ではないらしい……
+			;駄目
+			CASE 7
+				PRINTFORML 「女神の私とシたいですって？」
+				PRINTFORML 「冗談は顔だけにして欲しいわ」
+				PRINTFORMDW ヘカーティアにキッパリ断られた……
+			;論外
+			CASE 8
+				PRINTFORML 「ちょっと甘い顔したら、すぐコレなんだから……」
+				PRINTFORML 「いい？貴方の命なんて、私の気まぐれでどうにでもなるって事を覚えておきなさい」
+				PRINTFORMDW へカーティアは%CALLNAME:MASTER%に身体を許す気は無いようだ……
+		ENDSELECT
+	;純狐邸
+	ELSEIF CFLAG:MASTER:現在位置 == 1063
+		SELECTCASE RAND:4
+				CASE 0
+					PRINTFORML 「ちょ……！ここで！？」
+					PRINTFORML 「%TEXTR("純狐/ピース")%に見つかっちゃうわよ……！」
+					PRINTFORMDW "その方が興奮する"と、へカーティアを押し倒した……！
+				CASE 1
+					PRINTFORML 「……貴方まさか、ここでする気？」
+					PRINTFORML 「%TEXTR("純狐/ピース")%に見られても知らないわよ……」
+					PRINTFORMDW "その方が興奮する"と、へカーティアを押し倒した……！
+				CASE 2
+					IF TALENT:111:恋人
+						IF TALENT:113:恋慕
+							CALL HPH_PRINT,@"「じゅるっHPHれるっHPHちゅっHPHあむぅっHPH」","L"
+							CALL HPH_PRINT,@"「ぷは……HPH情熱的なキスねぇ♪」","L"
+							CALL HPH_PRINT,@"「ピースに見られるかもって思って、興奮した……？HPH」","L"
+						ELSE
+							PRINTFORML 「ちょ……！貴方にはピースがいるでしょ！？」
+							CALL HPH_PRINT,@"「あ……！んっHPHちゅ……HPHんむぅっHPH HPH」","L"
+						ENDIF
+						PRINTFORMDW 大切な恋人を裏切る背徳感に興奮しながら、へカーティアを押し倒した……！
+					ELSE
+						PRINTFORML 「…ふ、二人に見つからないようにするのよ……♪」
+						PRINTFORMDW ヘカーティアも、この状況に興奮しているようだ……！
+					ENDIF
+				CASE 3
+					IF TALENT:112:恋人
+						IF TALENT:113:恋慕
+							CALL HPH_PRINT,@"「ん……HPHちゅ……HPHぷは……HPH」","L"
+							CALL HPH_PRINT,@"「ふふふ……HPH純狐に見つかったら、どうしましょ……HPH」","L"
+						ELSE
+							PRINTFORML 「あ、貴方ねぇ……！純狐がいながら……！」
+							CALL HPH_PRINT,@"「あ……！んっHPHちゅ……HPHんむぅっHPH HPH」","L"
+						ENDIF
+						PRINTFORMDW 大切な恋人を裏切る背徳感に興奮しながら、へカーティアを押し倒した……！
+					ELSE
+						PRINTFORML 「…ふ、二人に見つからないようにするのよ……♪」
+						PRINTFORMDW ヘカーティアも、この状況に興奮しているようだ……！
+					ENDIF
+			ENDSELECT
+	ELSEIF TALENT:妊娠
+		IF TALENT:恋慕 || TALENT:思慕
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「まだ産まれてもないのに、また孕ませる気？」
+					CALL HPH_PRINT,@"「ケ・ダ・モ・ノHPH」","L"
+				CASE 1
+					PRINTFORML 「ほんと……辛抱できないのねぇ貴方……」
+					CALL HPH_PRINT,@"「……でも、そういうの嫌いじゃないわHPH」","L"
+				CASE 2
+					CALL HPH_PRINT,@"「んもう……ほどほどにね……HPH」","L"
+			ENDSELECT
+			PRINTFORMDW 妊娠中のへカーティアを、そっと押し倒した。
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「あ…今は……」
+					PRINTFORML 「……いいえ、何でもないわ。優しくするのよ」
+				CASE 1
+					PRINTFORML 「…だから、太ってないと言っているでしょう」
+					PRINTFORML 「余計な事言うなら、もうさせてあげないわよ」
+				CASE 2
+					PRINTFORML 「いい？一回だけよ」
+					PRINTFORML 「……別に？今日はそういう気分なのよ」
+			ENDSELECT
+			PRINTFORMDW へカーティアを、そっと押し倒した。
+		ENDIF
+	ELSEIF TALENT:恋人 
+		SELECTCASE RAND:6
+			CASE 0
+				CALL HPH_PRINT,@"「今日は私が上になるつもりだったけど…まあいいわHPH」","W"
+			CASE 1
+				CALL HPH_PRINT,@"「今日もたくさん愛し合いましょ……HPH」","L"
+				CALL HPH_PRINT,@"「あ・な・たHPH」","W"
+			CASE 2
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%……HPH早く私をママにして欲しいわ……HPH」","L"
+				PRINTFORMDW 興奮を抑えきれず、へカーティアを押し倒した……！
+			CASE 3
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%…HPHんっHPH ちゅHPHれる…HPHぢゅるるっHPH」","L"
+				PRINTFORMDW %CALLNAME:MASTER%に押し倒されても動じる事無く、へカーティアは舌を絡めてきた……！
+			CASE 4
+				CALL HPH_PRINT,@"「さあ、いらっしゃい%CALLNAME:MASTER%…HPH」","L"
+				CALL HPH_PRINT,@"「たくさん気持ち良くしてあげるわHPH」","W"
+			CASE 5
+				;純狐邸
+				IF CFLAG:MASTER:現在位置 == 1063
+					SELECTCASE RAND:4
+						CASE 0
+							PRINTFORML 「ちょ……！ここで！？」
+							PRINTFORML 「%TEXTR("純狐/ピース")%に見つかっちゃうわよ……！」
+							PRINTFORMDW "その方が興奮する"と、へカーティアを押し倒した……！
+						CASE 1
+							PRINTFORML 「……貴方まさか、ここでする気？」
+							PRINTFORML 「%TEXTR("純狐/ピース")%に見られても知らないわよ……」
+							PRINTFORMDW "その方が興奮する"と、へカーティアを押し倒した……！
+						CASE 2
+							IF TALENT:111:恋人
+								IF TALENT:113:恋人 || TALENT:113:恋慕
+									CALL HPH_PRINT,@"「じゅるっHPHれるっHPHちゅっHPHあむぅっHPH」","L"
+									CALL HPH_PRINT,@"「ぷは……HPH情熱的なキスねぇ♪」","L"
+									CALL HPH_PRINT,@"「ピースに見られるかもって思って、興奮した……？HPH」","L"
+								ELSE
+									PRINTFORML 「ちょ……！貴方にはピースがいるでしょ！？」
+									CALL HPH_PRINT,@"「あ……！んっHPHちゅ……HPHんむぅっHPH HPH」","L"
+								ENDIF
+								PRINTFORMDW 大切な恋人を裏切る背徳感に興奮しながら、へカーティアを押し倒した……！
+							ELSE
+								PRINTFORML 「…ふ、二人に見つからないようにするのよ……♪」
+								PRINTFORMDW ヘカーティアも、この状況に興奮しているようだ……！
+							ENDIF
+						CASE 3
+							IF TALENT:112:恋人
+								IF TALENT:113:恋人 || TALENT:113:恋慕
+									CALL HPH_PRINT,@"「ん……HPHちゅ……HPHぷは……HPH」","L"
+									CALL HPH_PRINT,@"「ふふふ……HPH純狐に見つかったら、どうしましょ……HPH」","L"
+								ELSE
+									PRINTFORML 「あ、貴方ねぇ……！純狐がいながら……！」
+									CALL HPH_PRINT,@"「あ……！んっHPHちゅ……HPHんむぅっHPH HPH」","L"
+								ENDIF
+								PRINTFORMDW 大切な恋人を裏切る背徳感に興奮しながら、へカーティアを押し倒した……！
+							ELSE
+								PRINTFORML 「…ふ、二人に見つからないようにするのよ……♪」
+								PRINTFORMDW ヘカーティアも、この状況に興奮しているようだ……！
+							ENDIF
+					ENDSELECT
+				ELSE
+					CALL HPH_PRINT,@"「今日もたくさん愛し合いましょ……HPH」","L"
+					CALL HPH_PRINT,@"「あ・な・たHPH」","W"
+				ENDIF
+		ENDSELECT
+	ELSEIF TALENT:恋慕 || TALENT:セフレ
+		SELECTCASE RAND:4
+			CASE 0
+				PRINTFORML 「ふふふ♪……ムラムラしちゃった？」
+				CALL HPH_PRINT,@"「しょうがないわねぇ……HPH」","L"
+				PRINTFORMDW ヘカーティアは、そっと%CALLNAME:MASTER%に身体を預けてきた。
+			CASE 1
+				CALL HPH_PRINT,@"「ちゃんと私も、気持ち良くしてもらうわよんHPH」","W"
+			CASE 2
+				CALL HPH_PRINT,@"「ほら……HPHいらっしゃい……HPH」","L"
+				CALL HPH_PRINT,@"「ん……HPHちゅ……HPHれる……ぅっ……HPH」","W"
+			CASE 3
+				;純狐邸
+				IF CFLAG:MASTER:現在位置 == 1063
+					SELECTCASE RAND:4
+						CASE 0
+							PRINTFORML 「ちょ……！ここで！？」
+							PRINTFORML 「%TEXTR("純狐/ピース")%に見つかっちゃうわよ……！」
+							PRINTFORMDW "その方が興奮する"と、へカーティアを押し倒した……！
+						CASE 1
+							PRINTFORML 「……貴方まさか、ここでする気？」
+							PRINTFORML 「%TEXTR("純狐/ピース")%に見られても知らないわよ……」
+							PRINTFORMDW "その方が興奮する"と、へカーティアを押し倒した……！
+						CASE 2
+							IF TALENT:111:恋人
+								IF TALENT:113:セフレ
+									CALL HPH_PRINT,@"「じゅるっHPHれるっHPHちゅっHPHあむぅっHPH」","L"
+									CALL HPH_PRINT,@"「ぷは……HPH情熱的なキスねぇ♪」","L"
+									CALL HPH_PRINT,@"「ピースに見られるかもって思って、興奮した……？HPH」","L"
+								ELSE
+									PRINTFORML 「ちょ……！貴方にはピースがいるでしょ！？」
+									CALL HPH_PRINT,@"「あ……！んっHPHちゅ……HPHんむぅっHPH HPH」","L"
+								ENDIF
+								PRINTFORMDW 大切な恋人を裏切る背徳感に興奮しながら、へカーティアを押し倒した……！
+							ELSE
+								PRINTFORML 「…ふ、二人に見つからないようにするのよ……♪」
+								PRINTFORMDW ヘカーティアも、この状況に興奮しているようだ……！
+							ENDIF
+						CASE 3
+							IF TALENT:112:恋人
+								IF TALENT:113:セフレ
+									CALL HPH_PRINT,@"「ん……HPHちゅ……HPHぷは……HPH」","L"
+									CALL HPH_PRINT,@"「ふふふ……HPH純狐に見つかったら、どうしましょ……HPH」","L"
+								ELSE
+									PRINTFORML 「あ、貴方ねぇ……！純狐がいながら……！」
+									CALL HPH_PRINT,@"「あ……！んっHPHちゅ……HPHんむぅっHPH HPH」","L"
+								ENDIF
+								PRINTFORMDW 大切な恋人を裏切る背徳感に興奮しながら、へカーティアを押し倒した……！
+							ELSE
+								PRINTFORML 「…ふ、二人に見つからないようにするのよ……♪」
+								PRINTFORMDW ヘカーティアも、この状況に興奮しているようだ……！
+							ENDIF
+					ENDSELECT
+				ELSE
+					PRINTFORML 「ふふふ♪……ムラムラしちゃった？」
+					CALL HPH_PRINT,@"「しょうがないわねぇ……HPH」","L"
+					PRINTFORMDW ヘカーティアは、そっと%CALLNAME:MASTER%に身体を預けてきた。
+				ENDIF
+		ENDSELECT
+	ELSE
+		;純狐邸
+		IF CFLAG:MASTER:現在位置 == 1063
+			SELECTCASE RAND:4
+				CASE 0
+					PRINTFORML 「ちょ……！ここで！？」
+					PRINTFORML 「%TEXTR("純狐/ピース")%に見つかっちゃうわよ……！」
+					PRINTFORMDW "その方が興奮する"と、へカーティアを押し倒した……！
+				CASE 1
+					PRINTFORML 「……貴方まさか、ここでする気？」
+					PRINTFORML 「%TEXTR("純狐/ピース")%に見られても知らないわよ……」
+					PRINTFORMDW "その方が興奮する"と、へカーティアを押し倒した……！
+				CASE 2
+					IF TALENT:111:恋人
+						PRINTFORML 「ちょ……！貴方にはピースがいるでしょ！？」
+						CALL HPH_PRINT,@"「あ……！んっHPHちゅ……HPHんむぅっHPH HPH」","L"
+						PRINTFORMDW 大切な恋人を裏切る背徳感に興奮しながら、へカーティアを押し倒した……！
+					ELSE
+						PRINTFORML 「ちょ……！ここで！？」
+						PRINTFORML 「%TEXTR("純狐/ピース")%に見つかっちゃうわよ……！」
+						PRINTFORMDW "その方が興奮する"と、へカーティアを押し倒した……！
+					ENDIF
+				CASE 3
+					IF TALENT:112:恋人
+						PRINTFORML 「あ、貴方ねぇ……！純狐がいながら……！」
+						CALL HPH_PRINT,@"「あ……！んっHPHちゅ……HPHんむぅっHPH HPH」","L"
+						PRINTFORMDW 大切な恋人を裏切る背徳感に興奮しながら、へカーティアを押し倒した……！
+					ELSE
+						PRINTFORML 「……貴方まさか、ここでする気？」
+						PRINTFORML 「%TEXTR("純狐/ピース")%に見られても知らないわよ……」
+						PRINTFORMDW "その方が興奮する"と、へカーティアを押し倒した……！
+					ENDIF
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:4
+				CASE 0
+					IF TALENT:111:恋人
+						PRINTFORML 「ちょ……！貴方にはピースがいるでしょ！？」
+						CALL HPH_PRINT,@"「あ……！んっHPHちゅ……HPHんむぅっHPH HPH」","L"
+						PRINTFORMDW 大切な恋人を裏切る背徳感に興奮しながら、へカーティアを押し倒した……！
+					ELSE
+						PRINTFORML 「また私とシたいの？」
+						CALL HPH_PRINT,@"「しょうがないわねぇ、貴方は……HPH」","W"
+					ENDIF
+				CASE 1
+					IF TALENT:112:恋人
+						PRINTFORML 「あ、貴方ねぇ……！純狐がいながら……！」
+						CALL HPH_PRINT,@"「あ……！んっHPHちゅ……HPHんむぅっHPH HPH」","L"
+						PRINTFORMDW 大切な恋人を裏切る背徳感に興奮しながら、へカーティアを押し倒した……！
+					ELSE
+						PRINTFORML 「また私とシたいの？」
+						CALL HPH_PRINT,@"「しょうがないわねぇ、貴方は……HPH」","W"
+					ENDIF
+				CASE 2
+					
+					PRINTFORML 「分かってるでしょうけど、女神と致せるなんて名誉な事よ？」
+					PRINTFORMDW 返事もそこそこに、ヘカーティアを押し倒した……！
+				CASE 3
+					PRINTFORML 「ったく、こういう時だけ紳士なのねぇ……♪」
+					PRINTFORMDW へカーティアを優しく押し倒した……！
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;351,連れ出す
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_351
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_351
+;連れ出しにはTRAIN_MESSAGEが無い
+CALL M_KOJO_MESSAGE_COM_K113_351_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_351_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;酔っぱらってる状態で連れ出す
+	IF ALCOHOL_FACE(113) == "酔いどれ" || ALCOHOL_FACE(113) == "ぐでぐで"
+		PRINTFORML 「%CALLNAME:MASTER%～……どこ行くのよぉ～……」
+		IF TALENT:恋慕 || TALENT:思慕
+			PRINTFORML 「ご主人様に独りでさびしく飲めってのぉ～……？」
+		ELSE
+			PRINTFORML 「まだ宴は始まったばかりよぉ～ん……♪」
+		ENDIF
+		PRINTFORMDW へカーティアが千鳥足でついてきた……
+	ELSEIF TALENT:恋慕 || TALENT:思慕
+		SELECTCASE RAND:(TALENT:恋人 ? 5 # 3)
+			CASE 0
+				PRINTFORML 「さて……出掛けるわよ%CALLNAME:MASTER%」
+				PRINTFORML 「決まってるでしょう？楽しい事を探しに行くのよん♪」
+				PRINTFORMDW へカーティアと一緒に出掛ける事になった。
+			CASE 1
+				PRINTFORML 「%CALLNAME:MASTER%、出掛けるわよ。支度なさい」
+				PRINTFORML 「貴方はご主人様を護る、大事な仕事があるでしょう？」
+				PRINTFORMDW %CALLNAME:MASTER%は慌ててヘカーティアの後を追った。
+			CASE 2
+				PRINTFORML 「ほう……"私と出掛けたい"ですって？」
+				PRINTFORML 「可愛い%CALLNAME:MASTER%の頼みなら、仕方ないわねぇ……♪」
+				PRINTFORMDW へカーティアは微笑みながら%CALLNAME:MASTER%についてきた。
+			CASE 3;ここから下は恋人限定
+				PRINTFORML 「ふふ……今日は何処へ連れて行ってくれるのかしらねぇ……♪」
+				PRINTFORMDW %CALLNAME:MASTER%と肩を並べて歩くへカーティアは、とても楽しそうだ。
+			CASE 4
+				CALL HPH_PRINT,@"「それじゃ……行きましょうか%CALLNAME:MASTER%HPH」","L"
+				PRINTFORMDW へカーティアと腕を組んで歩き出した。
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「"一緒に来て欲しい"？違うでしょう%CALLNAME:MASTER%」
+				PRINTFORML 「私が、貴方を連れて出掛けるのよん♪」
+				PRINTFORMDW へカーティアに連れられ歩き出した。
+			CASE 1
+				PRINTFORML 「退屈ねぇ……そろそろ出掛けましょうか」
+				PRINTFORML 「%CALLNAME:MASTER%、ついてらっしゃい」
+				PRINTFORMDW へカーティアと一緒に出掛ける事になった。
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;352,告白する
+;FLAG:甲斐性無(1=失敗)
+;TFLAG:193 (1=成功 0=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_352
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_352
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_352
+CALL M_KOJO_MESSAGE_COM_K113_352_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_352_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+SETCOLOR 0xC90B39
+	IF TFLAG:193 == 1
+		IF TALENT:恋慕
+			CALL HPH_PRINT,@"「……HPHやっと、その気になったのねぇHPH」","L"
+			PRINTFORML 「ご主人様を長い事待たせた罰として……」
+			CALL HPH_PRINT,@"「分かってるわね？%CALLNAME:MASTER%…HPH」","L"
+			PRINTFORMDW %CALLNAME:MASTER%の恋人となったヘカーティアに、抱擁と口づけをした……！
+		ELSE
+			PRINTFORMDL "へカーティアの隣に、ずっと一緒に居たい"
+			PRINTFORMDW %CALLNAME:MASTER%はへカーティアに思いを告げた……！
+			PRINTFORML 「ええ、いいわよん♪」
+			CALL HPH_PRINT,@"「他ならぬ、%CALLNAME:MASTER%の頼みですものねぇHPH」","L"
+			PRINTFORMDW 思いの外あっさりと承諾され、%CALLNAME:MASTER%は少し拍子抜けした……
+		ENDIF
+	;振られた
+	ELSE
+		PRINTFORMDL "へカーティアの隣に、ずっと一緒に居たい"
+		PRINTFORMDW %CALLNAME:MASTER%はへカーティアに思いを告げた……！
+		PRINTFORML 「ん～……」
+		PRINTFORML 「ふごぉーかーく♪」
+		PRINTFORMDW %CALLNAME:MASTER%の告白は受けて貰えなかった……
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;353,イタズラする
+;FLAG:甲斐性無(1=失敗)
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_353
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_353
+CALL M_KOJO_MESSAGE_COM_K113_353_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_353_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMDW 日頃の"お礼"も兼ねて、ヘカーティアの肢体へと手を伸ばした……！
+ENDIF
+RETURN 1
+;==================================================
+;354,添い寝する（相手は起きて布団に招く感じ）
+;CFLAG:衰弱(1以上=起きない
+;CFLAG:お招き(0以外=起きない
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_354
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_354
+CALL M_KOJO_MESSAGE_COM_K113_354_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_354_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:睡眠 || CFLAG:衰弱
+		PRINTFORML 「んぅ……ぐぅ～……♪」
+		PRINTFORMDL 布団に入っていいか聞いたが、返事は無かった。
+		PRINTFORMDW 拒否はされなかったので、ヘカーティアの布団へ潜り込んだ。
+	ELSEIF TALENT:恋慕 || TALENT:思慕
+		SELECTCASE RAND:(TALENT:恋人 ? 5 # 4)
+			CASE 0
+				PRINTFORML 「まったく……%CALLNAME:MASTER%は寂しがり屋ねぇ……」
+				PRINTFORML 「ほら、いらっしゃい……♪」
+				PRINTFORMDW ヘカーティアの布団へ潜り込んだ。
+			CASE 1
+				PRINTFORML 「%CALLNAME:MASTER%。今日はちょっと寒いわ」
+				PRINTFORML 「こっち来て、私を温めなさい……♪」
+				PRINTFORMDW ご主人様の命令という事で、ヘカーティアの布団へ潜り込んだ。
+			CASE 2
+				PRINTFORML 「んもう～……ピースはあまえんぼーねぇ……♪」
+				PRINTFORMDW 寝ぼけているのか、クラウンピースと間違えているようだ……
+			CASE 3
+				PRINTFORML 「…………♪」
+				PRINTFORMDW ヘカーティアが手招きしている……%CALLNAME:MASTER%は、布団へと潜り込んだ。
+			;恋人のみ
+			CASE 4
+				CALL HPH_PRINT,@"「今夜は朝まで語り合いましょ……HPH」","L"
+				PRINTFORMDW 間近でみるヘカーティアの顔はとても魅力的に見える……！
+		ENDSELECT
+	;それ以外
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「しょうがないわねぇ……今日だけよ？」
+				PRINTFORMDW ヘカーティアの布団にお邪魔した。
+			CASE 1
+				PRINTFORML 「女神に添い寝して貰えるなんて、貴重な体験ねぇ♪」
+				PRINTFORMW 「あ、イタズラしたらダメよん」
+			CASE 2
+				PRINTFORML 「んふふ～……じゅんこぉ～いっしょにねましょ～……♪」
+				PRINTFORMDW 寝惚けているのか、純狐と間違えているようだ……
+		ENDSELECT
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;355,時止め（地の文の改変程度に留めるべき
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_355
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_355
+CALL M_KOJO_MESSAGE_COM_K113_355_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_355_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;356,物陰に誘う
+;ABL:露出癖 + TALENT:羞恥心で判定
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_356
+;成否判定
+;TFLAG:192(-1＝強制失敗、0=COM依存、1=強制成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_356
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_356
+CALL M_KOJO_MESSAGE_COM_K113_356_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_356_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;失敗
+	IF !TALENT:無知 && ABL:露出癖 + TALENT:羞恥心 < 3
+		PRINTFORML 「は？馬鹿じゃないの？」
+		PRINTFORMDW 即答で断られた……
+	;成功
+	ELSE
+		PRINTFORML 「はぁ～…仕方ないわねぇ……」
+		CALL HPH_PRINT,@"「……こっち来なさい…HPH」","L"
+		PRINTFORMDW ヘカーティアに手を引かれ、人気の少ない所に移動した……！
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;360,身を任せる
+;TCVAR:20(27=谷間を見せる 32=前から抱きつく 35=スカートの中を見せる 53=パイズリ 73=ぱふぱふ 77=乳を吸わせる 85=Ｖ挿入する 86=だいしゅきホールド 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_360
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_360
+CALL M_KOJO_MESSAGE_COM_K113_360_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_360_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TCVAR:20
+		;谷間を見せる
+		CASE 27
+			SELECTCASE RAND:2
+				CASE 0
+					CALL HPH_PRINT,@"「……あら、そんなに気になるのかしら……HPH」","L"
+					PRINTFORMDW へカーティアは、自分のTシャツの襟元をグイッと引っ張った……！
+				CASE 1
+					CALL HPH_PRINT,@"「んっ…♪は……ぁ…ぷ、ちゅっ…HPHちゅむ……HPHちゅ……HPH」","L"
+					PRINTFORMDL %CALLNAME:MASTER%の顔を抱きしめながら、へカーティアがキスをしてくる。
+					PRINTFORMDW ちらりと胸元に目をやると、勃起した乳首が見えた……！
+			ENDSELECT
+		;キス
+		CASE 30
+			CALL HECA_KISS
+		;前から抱きつく
+		CASE 32
+			SELECTCASE RAND:2
+				CASE 0
+					CALL HPH_PRINT,@"「%CALLNAME:MASTER%…HPH」","L"
+					PRINTFORMDW ヘカーティアが抱きついてきた。いい匂いがする……
+				CASE 1
+					CALL HPH_PRINT,@"「どう？　ドキドキするでしょう……？HPH」","L"
+					PRINTFORMDW ヘカーティアも興奮しているようだ……
+			ENDSELECT
+		;胸を揉ませる
+		CASE 33
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「ほぉら……HPH貴方の大好きな、おっぱいよんHPH」","L"
+				CASE 1
+					CALL HPH_PRINT,@"「ぼーっとしてないで、私を気持ち良くしてちょうだい……HPH」","L"
+				CASE 2
+					CALL HPH_PRINT,@"「んっHPHあんっHPHもっとさわってぇHPH HPH」","L"
+			ENDSELECT
+			PRINTFORMDW へカーティアは%CALLNAME:MASTER%の手を掴んで、胸元に押し当てている……！
+		;スカートの中を見せる
+		CASE 35
+			IF TEQUIP:TARGET:50 == MASTER
+				CALL HPH_PRINT,@"「見なさい%CALLNAME:MASTER%…HPH 貴方のチンポ、どうなってる…？HPH」","L"
+				PRINTFORMDW %CALLNAME:MASTER%のペニスは、ヘカーティアの膣に包まれ見えなくなっている…
+			ELSEIF !EQUIP:下半身下着２
+				CALL HPH_PRINT,@"「これ、今日の為にしつらえた勝負下着よんHPH」","L"
+				PRINTFORMDW パンツに大きく書かれた文字が、色々な意味で目を引く……
+			ELSE
+				CALL HPH_PRINT,@"「はぁ……HPHはぁ……HPH見て、%CALLNAME:MASTER%……HPH」","L"
+				PRINTFORMDW へカーティアがスカートをたくし上げると、彼女の秘所から愛液が垂れた……！
+			ENDIF
+		;挿入おねだり
+		CASE 41, 43, 44
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「ほら……♪%CALLNAME:MASTER%……HPH」","L"
+					CALL HPH_PRINT,@"「このガチガチになったチンポ……どうしたい……？HPH」","L"
+				CASE 1
+					CALL HPH_PRINT,@"「はぁーHPHはぁ、ふっHPHうぅHPHはぁーHPHはぁー…HPH」","L"
+				CASE 2
+					CALL HPH_PRINT,@"「んっ……HPHふっ……！……んんっ……HPH」","L"
+					CALL HPH_PRINT,@"「%CALLNAME:MASTER%……早く…挿入れさせてって、いいなさいよぉん……HPH」","L"
+			ENDSELECT
+			PRINTFORMDW へカーティアは%CALLNAME:MASTER%のペニスに性器を擦りつけ、%CALLNAME:MASTER%からのおねだりを待っているようだ……
+		;手淫
+		CASE 50
+			;技巧３以上
+			IF ABL:技巧 >= 3
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「イキそう？まだ駄目よん♪」
+						CALL HPH_PRINT,@"「もうちょっと、ご主人様を愉しませなさいなHPH」","L"
+					CASE 1
+						CALL HPH_PRINT,@"「%CALLNAME:MASTER%…HPHそんな切なそうな顔しちゃって、どうしたのよんHPH」","L"
+					CASE 2
+						CALL HPH_PRINT,@"「どう？イキそうでイケない感じが、クセになるでしょう？HPH」","L"
+				ENDSELECT
+				PRINTFORMDW へカーティアの手が、巧みにペニスを弄んでくる……！
+			;それ以外
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						CALL HPH_PRINT,@"「どう？%CALLNAME:MASTER%HPHご主人様にシゴかれる感想は……」","L"
+						PRINTFORML 「―え？痛いの？」
+					CASE 1
+						PRINTFORML （んんー……%CALLNAME:MASTER%のあの顔…）
+						PRINTFORML （もしかして、あまり気持ち良くないのかしら……？）
+					CASE 2
+						PRINTFORML 「ほれほれー♪」
+						CALL HPH_PRINT,@"「ビクビクして、ちょっと楽しいわHPH」","L"
+				ENDSELECT
+				PRINTFORMDW へカーティアの手で、ペニスを扱かれた……
+			ENDIF
+		;フェラチオ
+		CASE 51
+			CALL HECA_FELLATIO
+		;素股
+		CASE 52
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「%CALLNAME:MASTER%……HPHもっと抵抗しないと、挿入っちゃうわよぉん……HPH」","W"
+				CASE 1
+					PRINTFORML 「ん～？どうしたのかしら、%CALLNAME:MASTER%？」
+					CALL HPH_PRINT,@"「どうして欲しいのか、ちゃんと大きな声で言いなさい……HPH」","W"
+				CASE 2
+					CALL HPH_PRINT,@"「あっはははHPH擦ってるだけで、ビクビクしてるわ…HPH」","W"
+			ENDSELECT
+		;パイズリ
+		CASE 53
+			;胸技術２以上
+			IF ABL:胸 >= 2
+				SELECTCASE RAND:3
+					CASE 0
+						CALL HPH_PRINT,@"「ふふふ……♪乳首で、コリコリってねぇ…HPH」","L"
+					CASE 1
+						CALL HPH_PRINT,@"「%CALLNAME:MASTER%。ご主人様のパイズリ、気持ちいいでしょう？HPH」","L"
+					CASE 2
+						CALL HPH_PRINT,@"「私のおっぱいに…くっさいザーメン、ぶちまけなさいHPH」","L"
+				ENDSELECT
+				PRINTFORMDW ヘカーティアの巧みなパイズリに、%CALLNAME:MASTER%は射精を堪えるので精一杯だ…！
+			ELSE
+				SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「んっ…どう？…%CALLNAME:MASTER%♪」
+						CALL HPH_PRINT,@" 「ご主人様の、おっぱいは…HPH」","L"
+					CASE 1
+						PRINTFORML 「んっ…！ふぅ…っ…！」
+						PRINTFORML 「これ、結構疲れるわねぇ…」
+				ENDSELECT
+				PRINTFORMDW ヘカーティアが、拙いながらもパイズリをしてくれている。
+			ENDIF
+		;足コキ
+		CASE 54
+			IF ABL:技巧 >= 3 && ABL:サドっ気 >= 3
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「変態の%CALLNAME:MASTER%には、足だけで充分よん♪」
+					CASE 1
+						PRINTFORML 「あははは！足だけで、もうガチガチじゃないの♪」
+					CASE 2
+						PRINTFORML 「なに？"もう止めて"？」
+						CALL HPH_PRINT,@"「チンポおっ勃てながら言われてもねぇ…？HPH」","L"
+				ENDSELECT
+				PRINTFORMDW ヘカーティアは、とても愉しそうに%CALLNAME:MASTER%のペニスを足で扱いている……！
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「手でやるより、よっぽど疲れるわねぇ……」
+					CASE 1
+						PRINTFORML 「やだ、足がヌルヌルしてきたわ……♪」
+					CASE 2
+						PRINTFORML （……何故かしら……）
+						PRINTFORML （これ、すっごく楽しいわ……♪）
+				ENDSELECT
+				PRINTFORMDW ヘカーティアは、%CALLNAME:MASTER%のペニスを足で扱いている……
+			ENDIF
+		;アナル愛撫,アナル舐め
+		CASE 55, 56
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「くっさいケツ穴ねぇ……♪私が綺麗にしてあげるわ……HPH」","L"
+					CALL HPH_PRINT,@"「あー…HPHちろっHPHれる……HPHじゅるっHPHれろぉ……HPH」","L"
+				CASE 1
+					PRINTFORML 「貴方の身も心も、私の所有物よん♪」
+					CALL HPH_PRINT,@"「チンポからケツの穴まで、全部ね……HPH」","L"
+				CASE 2
+					CALL HPH_PRINT,@"「れるっHPHちる……HPHちゅるぅ……HPH―ちゅぽっHPH」","L"
+					CALL HPH_PRINT,@"「はぁ……HPHふふふ……HPH不味くて吐きそうだわ……HPH」","L"
+			ENDSELECT
+			PRINTFORMDW ヘカーティアにアナルを愛撫され、言い様のない興奮を覚えた……！
+		;胸愛撫
+		CASE 58
+			SELECTCASE RAND:3
+				CASE 0
+					SELECTCASE RAND:3
+						CASE 0
+							CALL HPH_PRINT,@"「ほぉら……HPH貴方の大好きな、おっぱいよんHPH」","L"
+						CASE 1
+							CALL HPH_PRINT,@"「ぼーっとしてないで、私を気持ち良くしてちょうだい……HPH」","L"
+						CASE 2
+							CALL HPH_PRINT,@"「んっHPHあんっHPHもっとさわってぇHPH HPH」","L"
+					ENDSELECT
+					PRINTFORMDW へカーティアは%CALLNAME:MASTER%の手を掴んで、胸元に押し当てている……！
+				CASE 1
+					CALL HPH_PRINT,@"「あぁっHPHそうよんHPHちくびもいじってぇっHPH」","L"
+					PRINTFORMDW 乳首を愛撫すると、ヘカーティアは甘い声を上げた……！
+				CASE 2
+					SELECTCASE RAND:3
+						CASE 0
+							CALL HPH_PRINT,@"「んっ……♪私が言う前に吸うなんて、偉いわ%CALLNAME:MASTER%……HPH」","L"
+						CASE 1
+							CALL HPH_PRINT,@"「早くおっぱい吸いなさい……♪赤ちゃんみたいにねぇ……HPH」","L"
+						CASE 2
+							CALL HPH_PRINT,@"「ほぉら……HPH貴方の大好きな、おっぱいよんHPH」","L"
+					ENDSELECT
+					PRINTFORMDW 口元に近づけられたヘカーティアの乳首に、反射的に吸い付いた……！
+			ENDSELECT
+		;乳首吸い
+		CASE 59
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「ん、ちゅーっHPHぢゅーーっHPH」","L"
+					CALL HPH_PRINT,@"「ちゅぱっ……♪ふふふHPH気持ちいいでしょう？HPH」","L"
+				CASE 1
+					CALL HPH_PRINT,@"「ちゅっHPHちゅぅぅHPH……♪―かぷっHPHぢうぅHPH」","L"
+				CASE 2
+					CALL HPH_PRINT,@"「ちゅっHPHぢゅーーっHPH……れるぅ…HPHぢゅーっHPH」","L"
+			ENDSELECT
+			PRINTFORMDW ヘカーティアの愛撫で、%CALLNAME:MASTER%の乳首はほんのりと赤みを帯びている……
+		;ディープキス
+		CASE 60
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ほら……口開けて……はぷっ―」
+					CALL HPH_PRINT,@"「じゅるっHPHじゅりゅHPHずじゅるるるうぅーーっHPH HPH HPH」","L"
+				CASE 1
+					CALL HPH_PRINT,@"「あむっHPHちゅっHPHじゅるHPHじゅうぅっHPHれりゅ…っHPHれるっHPHぢゅうぅHPH HPH」","L"
+				CASE 2
+					CALL HPH_PRINT,@"「んーHPHちゅっHPHぁ…っHPHれるっHPHじゅっHPHれりゅHPHれろっHPHじゅるっHPHぢゅうぅっHPH」","L"
+			ENDSELECT
+			PRINTFORMDW %CALLNAME:MASTER%の口内で、ヘカーティアの舌が暴れている……！
+		;クンニ強制
+		CASE 70
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「%CALLNAME:MASTER%……HPH早く舐めて……HPH」","L"
+				CASE 1
+					CALL HPH_PRINT,@"「今日の貴方は、ご主人様専属のおまんこ奴隷よん……HPH」","L"
+				CASE 2
+					CALL HPH_PRINT,@"「ご主人様のお汁……全部舐めとるのよん…HPH」","L"
+			ENDSELECT
+			PRINTFORMDW 眼前にまで迫ったヘカーティアの股座に、%CALLNAME:MASTER%はむしゃぶりついた……！
+		;顔面騎乗アナル
+		CASE 72
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「はぁっHPHあっHPHあぁっHPH」","L"
+					CALL HPH_PRINT,@"「%CALLNAME:MASTER%っHPHもっと奥まで舐めてぇっHPH」","L"
+				CASE 1
+					CALL HPH_PRINT,@"「さあ……ご主人様のケツまんこ、綺麗にしてちょうだい…HPH」","L"
+					CALL HPH_PRINT,@"「出来るわね？%CALLNAME:MASTER%…HPH」","L"
+				CASE 2
+					CALL HPH_PRINT,@"「やらしーわねぇHPHご主人様のケツ舐めて、チンポ大きくするなんて…HPH」","L"
+					CALL HPH_PRINT,@"「これ、どうして欲しい？HPHちゃんと言いなさい……HPH」","L"
+			ENDSELECT
+			PRINTFORMDW %CALLNAME:MASTER%は無我夢中で、ヘカーティアのアナルを舐め続けた…！
+		;ぱふぱふ
+		CASE 73
+			SELECTCASE RAND:2
+				CASE 0
+					CALL HPH_PRINT,@"「ほんと、おっぱい好きねぇ貴方……HPH」","W"
+				CASE 1
+					CALL HPH_PRINT,@"「ぱふぱふ、ぱふぱふ……ってねぇHPH」","W"
+			ENDSELECT
+		;乳合わせ
+		CASE 74
+			SELECTCASE RAND:2
+				CASE 0
+					CALL HPH_PRINT,@"「あぁっHPHあんっHPH乳首、こすれるわぁっHPH」","L"
+					PRINTFORMDW ヘカーティアとお互いの乳首を擦り合わせて愛撫し合った。
+				CASE 1
+					CALL HPH_PRINT,@"「%CALLNAME:MASTER%も……おっぱいで感じてるのねぇ…HPH」","L"
+					PRINTFORMDW ヘカーティアと乳首を擦り合わせ、快感を共有し合った…
+			ENDSELECT
+		;強制アソコ愛撫
+		CASE 76
+			IF TALENT:113:処女
+				CALL HPH_PRINT,@"「ふふふ…HPH気づいた？私、処女なのよんHPH」","L"
+				CALL HPH_PRINT,@"「私の純潔を奪う所を想像しながら、ご奉仕してちょうだい…HPH」","L"
+				PRINTFORMDW ヘカーティアの処女膜を破かぬよう、慎重に愛撫した……
+			ELSE
+				SELECTCASE RAND:2
+					CASE 0
+						CALL HPH_PRINT,@"「んっ…HPHそうよ…HPH優しく、ゆっくりとね……HPH」","L"
+					CASE 1
+						CALL HPH_PRINT,@"「あぁっHPHそこぉHPHもっと指でひっかいてぇHPH」","L"
+				ENDSELECT
+				PRINTFORMDW ヘカーティアの秘裂に指を挿入れ、愛撫をした…！
+			ENDIF
+		;乳を吸わせる
+		CASE 77
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「んっ……♪私が言う前に吸うなんて、偉いわ%CALLNAME:MASTER%……HPH」","L"
+				CASE 1
+					CALL HPH_PRINT,@"「早くおっぱい吸いなさい……♪赤ちゃんみたいにねぇ……HPH」","L"
+				CASE 2
+					CALL HPH_PRINT,@"「ほぉら……HPH貴方の大好きな、おっぱいよんHPH」","L"
+			ENDSELECT
+			PRINTFORMDW 口元に近づけられたヘカーティアの乳首に、反射的に吸い付いた……！
+		;85=Ｖ挿入する
+		CASE 85
+			IF TCVAR:破瓜 == 1
+				CALL HECA_SEX
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						CALL HPH_PRINT,@"「んっHPH熱……♪もうすっかりガチガチねぇ……HPH」","L"
+						CALL HPH_PRINT,@"「それじゃ…♪ん……っ！―ああぁぁっHPH HPH HPH」","L"
+						PRINTFORMDW ヘカーティアが腰を降ろした瞬間、強烈な快感が襲ってきた……！
+					CASE 1
+						PRINTFORML 「ねぇ%CALLNAME:MASTER%……♪これ、どうして欲しい？」
+						CALL HPH_PRINT,@"「ちゃんと自分の口で、ご主人様におねだりなさい……HPH」","L"
+						PRINTFORMDL %CALLNAME:MASTER%は大きな声で、己の欲望をヘカーティアに伝えた……！
+						CALL HPH_PRINT,@"「……HPH…いいわよ……んんぅっHPH HPH HPH」","W"
+					CASE 2
+						CALL HPH_PRINT,@"「ほぉら、見なさい%CALLNAME:MASTER%……HPH」","L"
+						CALL HPH_PRINT,@"「%CALLNAME:MASTER%のチンポが、ご主人様のおまんこに飲まれていくわよ……HPH」","L"
+						PRINTFORMDW ゆっくりとヘカーティアの膣内に埋没されていく己の肉棒を、%CALLNAME:MASTER%は食い入るように見つめた……！
+				ENDSELECT
+			ENDIF
+		;だいしゅきホールド
+		CASE 86
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「%CALLNAME:MASTER%、早くご主人様を孕ませてみせなさいHPH」","L"
+				CASE 1
+					CALL HPH_PRINT,@"「貴方のザーメン……子宮で全部搾り取ってあげるわHPH」","L"
+				CASE 2
+					CALL HPH_PRINT,@"「……いいわよHPH貴方、好きですものねぇHPH」","L"
+					CALL HPH_PRINT,@"「な・か・だ・し…HPH」","L"
+			ENDSELECT
+				PRINTFORMDW ヘカーティアが足を絡め、密着しながら囁いてきた……！
+		;87=Ａ挿入する
+		CASE 87
+			IF TCVAR:Ａ破瓜
+				CALL HECA_SEX
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						CALL HPH_PRINT,@"「変態の%CALLNAME:MASTER%は、おまんこじゃなくて……こっちの方が好きよねぇ……？HPH」","L"
+					CASE 1
+						CALL HPH_PRINT,@"「貴方のザーメン、ケツマンコで搾り取ってあげましょう…HPH」","L"
+					CASE 2
+						CALL HPH_PRINT,@"「ふぅ……っ！んっ…HPHんんーーっHPH HPH」","L"
+						CALL HPH_PRINT,@"「あ…♪…はは……HPHお尻でチンポ犯しちゃったわぁ……HPH」","L"
+				ENDSELECT
+				PRINTFORMDW ヘカーティアのアナルは、%CALLNAME:MASTER%のペニスを抵抗無く飲み込んだ……！
+			ENDIF
+		;88=腰振りＶ 89=腰振りＡ
+		CASE 88, 89
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「あぁっHPHあんっHPHあぁっHPHはあぁぁ……HPH HPH」","L"
+				CASE 1
+					CALL HPH_PRINT,@"「%CALLNAME:MASTER%っHPHはやくっHPHはやくザーメンちょうだぁいHPH HPH」","L"
+				CASE 2
+					CALL HPH_PRINT,@"「んんっHPHんっHPHす、すごぉ…HPHまだ、おおき……くぅっHPH」","L"
+			ENDSELECT
+			PRINTFORMDW ヘカーティアの激しいピストンに、%CALLNAME:MASTER%は歯を食いしばって射精を堪えた……！
+		CASEELSE
+			SELECTCASE RAND:2
+				CASE 0
+					CALL HPH_PRINT,@"「さーて……何して遊びましょうか……HPH」","L"
+					PRINTFORMDW ヘカーティアは%CALLNAME:MASTER%に跨りながら、妖しく微笑んでいる……
+				CASE 1
+					CALL HPH_PRINT,@"「あーHPH駄目よん%CALLNAME:MASTER%♪そんな目で見ちゃ……」","L"
+					CALL HPH_PRINT,@"「ますますイジメたくなっちゃうじゃないの……HPH」","W"
+			ENDSELECT
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;361,抵抗する
+;TCVAR:20(27=谷間を見せる 32=前から抱きつく 35=スカートの中を見せる 53=パイズリ 73=ぱふぱふ 77=乳を吸わせる 85=Ｖ挿入する 86=だいしゅきホールド 87=Ａ挿入する 88=腰振りＶ 89=腰振りＡ
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_361
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_361
+CALL M_KOJO_MESSAGE_COM_K113_361_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_361_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE RAND:3
+		CASE 0
+			PRINTFORMW 「あら、%CALLNAME:MASTER%のくせに生意気ねぇ♪」
+		CASE 1
+			PRINTFORMW 「大人しくヤられてなさいっての」
+		CASE 2
+			CALL HPH_PRINT,@"「嫌がってるのを無理やり……ってのも、興奮するわねぇ……HPH」","W"
+	ENDSELECT
+ENDIF
+RETURN 1
+
+;==================================================
+;363,読み聞かせ（[幼稚]持ち専用）
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐無し
+;CFLAG:添い寝中(1=布団orベッドの中で本を読む
+;MASTERがTARGETより大柄の場合、膝の上にTARGETを乗せる
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_363
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_363
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_363
+CALL M_KOJO_MESSAGE_COM_K113_363_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_363_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;364,豆まき(萃香、勇儀、スカーレット姉妹用
+;TFLAG:193(豆まきに参加してる人数
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_364
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_364
+CALL M_KOJO_MESSAGE_COM_K113_364_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_364_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;365,守矢神社へ移動(早苗、神奈子、諏訪子用
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_365
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_365
+CALL M_KOJO_MESSAGE_COM_K113_365_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_365_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;368,自由行動に付き合う 
+;技能系の行動は技能レベルが1以上なら発生
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_368
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_368
+CALL M_KOJO_MESSAGE_COM_K113_368_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_368_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE Activity_Type:TARGET
+		CASE 0
+			;▼考え事［なに考えてるの］
+			;TFLAG:193,-1=はぐらかされる
+			IF TFLAG:193 == -1
+				PRINTFORML 「ふふふ……♪何だと思う？」
+				PRINTFORMDW 含みのある笑みを浮かべつつも、はぐらかされた……
+			ELSE
+				SELECTCASE RAND:6
+				CASE 0
+					PRINTFORML 「…………♪」
+					PRINTFORMDL へカーティアがジッとこちらを見つめて笑っている。
+					PRINTFORMDW 何か言い様のない恐怖を感じた%CALLNAME:MASTER%は、引き攣った作り笑いを返した……
+				CASE 1
+					PRINTFORML 「嫦娥にどんな拷問をしてやろうか考えてたのよ」
+					PRINTFORML 「串刺し、鞭打ち……火炙りや水責めも良いわねぇ♪」
+					PRINTFORMDW 澄ました顔で恐ろしい事を考えていた……
+				CASE 2
+					PRINTFORML 「新しいTシャツのデザインよん♪」
+					PRINTFORML 「取り敢えず三つほど考えたんだけど、どれがいいかしら？」
+					PRINTFORMDW 差し出された紙に描かれたTシャツの絵を見た。どれも変なデザインだ……
+				CASE 3
+					PRINTFORML 「もちろん貴方の事よ？」
+					PRINTFORML 「今日はどんな事をしてからかってやろうかしら……♪」
+					PRINTFORMDW 特に大した事は考えていなかったようだ……
+				CASE 4
+					PRINTFORML 「純狐の二つ名を考えてたのよ」
+					PRINTFORML 「あの娘だけ何も無いなんて、なんだか寂しいじゃない」
+					PRINTFORMDW %CALLNAME:MASTER%も一緒に考える事にした。
+				CASE 5
+					PRINTFORML 「ピースの新しい振り付けを考えてたのよ」
+					PRINTFORML 「%CALLNAME:MASTER%、ちょっとやってみて」
+					PRINTFORMDW 物凄く恥ずかしいダンスを踊らされた……
+				ENDSELECT
+			ENDIF
+		CASE 1
+			;▼遊ぶ［一緒に遊ぶ］
+			;※[幼稚]持ちのみ
+			;TFLAG:193,1=大いに盛り上がる,-1=あまり盛り上がらない
+			;PRINTFORMW 
+		CASE 2
+			;▼食事［一緒に食事する］
+			;TFLAG:193,-1=MASTERはお腹が空いてなかった
+			IF TFLAG:193 == -1
+				PRINTFORML 「そう遠慮しないの♪」
+				PRINTFORMDW 料理を口に捻じ込まれた……
+			ELSE
+				SELECTCASE RAND:2
+					CASE 0
+						PRINTFORMW 「よく食べるわねぇ貴方」
+					CASE 1
+						PRINTFORMW 「そこまで言うなら分けてあげましょう」
+				ENDSELECT
+			ENDIF
+		CASE 3
+			;▼つまみ食い［一緒につまみ食い］
+			;※[妖精]持ちとルーミア、こいし、幽々子、紫苑のみ
+			;TFLAG:193,-1=MASTERはお腹が空いてなかった
+			;PRINTFORMW 
+		CASE 4
+			;▼掃除［掃除を手伝う］
+			;※[掃除係]持ちまたは汚臭耐性-1以下のみ
+			PRINTFORML 「%TEXTR("はい、頑張って～♪/ほら、そこにゴミ落ちてるわよ/はーい！きびきび動く！")%」
+			PRINTFORMDW ヘカーティアは何もしていない……
+		CASE 5
+			;▼運動［一緒に運動する］
+			;※[音楽知識]持ちは除く（演奏になる）
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「私の考案した"ヘカーティアズ・ブートキャンプ"はどうかしら？」
+					PRINTFORMDW しんどい……
+				CASE 1
+					PRINTFORML 「もうへばったの？だらしないわねぇ……」
+					PRINTFORMDW ヘカーティアは平気そうだ……
+				CASE 2
+					PRINTFORML 「ふ～！いい汗かいたわねぇ♪」
+					PRINTFORMDW 生地が黒い地獄Tシャツは、汗で濡れても透けない……
+			ENDSELECT
+		CASE 6
+			;▼読書［本の感想を聞く］
+			;TFLAG:193,-1=集中していて返事してくれない
+			IF TFLAG:193 == -1
+				PRINTFORML 「静かに！今いいトコなんだから」
+				PRINTFORMDW ヘカーティアは読書に熱中している……
+			ELSE
+				SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「これ面白いから、%CALLNAME:MASTER%も読みなさい」
+						PRINTFORMDW ヘカーティアに漫画を貸してもらった。
+					CASE 1
+						PRINTFORML 「本から知識を得るのは大切な事よ%CALLNAME:MASTER%」
+						PRINTFORMDW 漫画しか読んでいない気がするが……
+				ENDSELECT
+			ENDIF
+		CASE 7
+			;▼料理［料理を手伝う］→［料理を分けてもらう］
+			;TFLAG:193,2=料理を手伝う,0=作った料理を食べる,-1==MASTERはお腹が空いてなかった（食べる時）
+			IF TFLAG:193 == 2
+				;酔っ払い時
+				IF ALCOHOL_FACE(113) == "酔いどれ" || ALCOHOL_FACE(113) == "ぐでぐで"
+					PRINTFORML 「私の愛情をたっぷり込めてあげるわよん♪」
+					PRINTFORMDW 嫌な予感しかしないので手伝う事にした……
+				ELSE
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「…大さじ？小さじ？」
+							PRINTFORML 「よく分からないから適当に入れましょう」
+						CASE 1
+							PRINTFORML 「バターを入れれば美味しくなるって純狐が言ってたわ♪」
+						CASE 2
+							PRINTFORML 「あれ？何か忘れてるような……」
+							PRINTFORML 「―まあ、大丈夫でしょう♪」
+					ENDSELECT
+					PRINTFORMDW 完成したヘカーティアの手料理は、凄まじい見た目をしている……
+				ENDIF
+			ELSEIF TFLAG:193 == 0
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「%CALLNAME:MASTER%、食べさせてあげましょう」
+						PRINTFORMW 「いいのよ？遠慮しなくても♪」
+					CASE 1
+						PRINTFORML 「%CALLNAME:MASTER%どう？美味しいでしょう♪」
+						PRINTFORMW 「……あら？気絶してるわねぇ」
+					CASE 2
+						PRINTFORML 「完食するなんて、そんなに美味しかったのねぇ♪」
+						PRINTFORMDW 体調が悪くなってきた……
+				ENDSELECT
+			ELSEIF TFLAG:193 == -1;腹いっぱい
+				PRINTFORML 「遠慮しなくても、いっぱいあるから大丈夫よ♪」
+				PRINTFORMDW 料理を口に捻じ込まれた……
+			ENDIF
+		CASE 8
+			;▼演奏［セッションする］or［伴奏する］
+			;※[音楽知識]持ちのみ（TALENT:音楽知識で変化）
+			;TALENT:音楽知識,1=演奏してる,2=歌ってる,3=踊ってる
+			;TFLAG:193,1=ノリノリ,0=成功,-1=失敗,-2=楽器がなくて見てるだけ
+			;PRINTFORMW 
+		CASE 9
+			;▼採集［採集を手伝う］
+		CASE 10
+			;▼釣り［一緒に釣りをする］
+			;TFLAG:193,-1=釣り竿がなくて見てるだけ
+			;PRINTFORMW 
+		CASE 11
+			;▼実験［実験を手伝う］
+			SELECTCASE RAND:4
+				CASE 0
+					PRINTFORML 「嫦娥が10億回は死ぬ毒薬を作っているのよ」
+					PRINTFORMDW 凄まじい刺激臭がする……
+				CASE 1
+					PRINTFORML 「ああん、もう！また失敗しちゃったわ」
+					PRINTFORML 「え？実験？純狐に教えて貰ったお菓子を作ってたんだけど……」
+					PRINTFORMDW 実験ではなく料理だったようだ……
+				CASE 2
+					PRINTFORML 「貴方に飲ませる凄い薬を作ってるのよん」
+					PRINTFORML 「飲ませると貴方が二人、四人と倍々ゲームみたいに増えていくの♪」
+					PRINTFORMDW どこかで聞いたような効果だ……
+				CASE 3
+					PRINTFORML 「これ？飲むと寝ずに働けるようになる"ビタミン剤"よ♪」
+					PRINTFORMDW "ヘカーティアうそをつけっ"
+			ENDSELECT
+		CASE 12
+			;▼のんびり［一緒にのんびりする］
+			SELECTCASE RAND:4
+				CASE 0
+					IF TALENT:恋人
+						CALL HPH_PRINT,@"「ほら%CALLNAME:MASTER%……♪もっとこっちにいらっしゃい…HPH」","L"
+						PRINTFORMDW へカーティアと身体を寄せ合って過ごした。
+					ELSEIF TALENT:恋慕 || TALENT:思慕
+						PRINTFORML 「退屈ねぇ……」
+						PRINTFORML 「%CALLNAME:MASTER%、何か面白い事しなさい。ご主人様の命令よん」
+						PRINTFORMDW 無茶振りだ……
+					ELSE
+						PRINTFORML 「退屈ねぇ……」
+						PRINTFORMW 「%CALLNAME:MASTER%、何か面白い話ないの？」
+					ENDIF
+				CASE 1
+					PRINTFORML 「ふわぁ……暇ねぇ……」
+					PRINTFORMDL 頬杖をついた姿勢で寝そべり、欠伸をしているへカーティア。
+					PRINTFORMDW 地獄の支配者の威厳は微塵も感じられない……
+				CASE 2
+					PRINTFORML 「あ！%CALLNAME:MASTER%、それロン」
+					SETCOLOR 0x2459F0
+					PRINTFORML 「さあさあ、もう後が無いわよ？」
+					SETCOLOR 0xF0D124
+					PRINTFORML 「身ぐるみ剥いで全裸にしてあげるわ♪」
+					PRINTFORMDW へカーティアと実質3対1の麻雀をして過ごした……
+				CASE 3
+					PRINTFORML 「ほっ」
+					SETCOLOR 0x2459F0
+					PRINTFORML 「ほっ」
+					SETCOLOR 0xF0D124
+					PRINTFORML 「ほっ」
+					PRINTFORMDL 暇を持て余したへカーティアが、自身の三つの天体でお手玉をしている。
+					PRINTFORMDW 目まぐるしく変化する彼女の髪色を眺めて過ごした。
+			ENDSELECT
+		CASE 13
+			;▼晩酌［晩酌に付き合う］
+			;※酒耐性0以上のみ
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMW 「%CALLNAME:MASTER%、注いで頂戴」
+				CASE 1
+					PRINTFORML 「%CALLNAME:MASTER%ペース早いじゃない」
+					PRINTFORML 「そういうの嫌いじゃないわ♪」
+					PRINTFORMDW 空になったグラスに、ヘカーティアが新たな酒を注いでくれた。
+				CASE 2
+					PRINTFORML 「乾杯♪」
+					PRINTFORMDW グラス同士が触れ合い、小気味のいい音が響いた。
+			ENDSELECT
+		CASE 14
+			;▼買い物［買い物を手伝う］
+			SELECTCASE RAND:2
+				;多分使わない
+				CASE 0
+					PRINTFORML 「えーっと……純狐に頼まれた物は全部買ったわね」
+					PRINTFORML 「あ、ピースのおやつ買うの忘れてたわ」
+					PRINTFORMDW 大量の袋を抱えながら、ヘカーティアの後を追った……
+				CASE 1
+					PRINTFORML 「う～ん……うすしおとコンソメ、どっちがいいかしら……」
+					PRINTFORMDW どちらでもいいから早く決めて欲しい……
+			ENDSELECT
+		CASE 15
+			;▼説教［様子をうかがう］
+			;※神霊・蓬莱人は除く
+			;TFLAG:193,-1
+			;PRINTFORMW 
+		CASE 16
+			;▼落とし穴［いたずらに付き合う］or［様子をうかがう］
+			;※三月精・チルノ・クラウンピースのみ
+			;それ以外は落ちる側
+			;PRINTFORMW 
+		CASE 17
+			;▼雪だるま作り［一緒に雪作り］
+			;※冬の月のみ
+		CASE 18
+			;▼炬燵でのんびり［炬燵でくつろぐ］
+			;※冬の月のみ
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ぐぅ～…Zzz～……」
+					PRINTFORMDW 炬燵で眠るヘカーティアに毛布をかけてあげた。
+				CASE 1
+					PRINTFORML 「%CALLNAME:MASTER%～早くミカン剥いてちょうだいな」
+					SETCOLOR 0x2459F0
+					PRINTFORML 「ふぅ……寒い日は、温かいお茶にかぎるわねぇ…♪」
+					SETCOLOR 0xF0D124
+					PRINTFORML 「純狐ー…お汁粉食べた～い……むにゃ……」
+					PRINTFORMDW へカーティア達は、炬燵で思い思いにくつろいでいる。
+				CASE 2
+					CALL HPH_PRINT,@"「は～！あったか～HPH」","L"
+					PRINTFORMDW ヘカーティアは炬燵を気に入ったようだ。
+			ENDSELECT
+	ENDSELECT
+ENDIF
+RETURN 1
+;自由行動判定用関数
+;上記テンプレに対応するCASEでRETURN -1するとその自由行動をしなくなります
+@M_KOJO_自由行動判定_K113(ARG)
+SELECTCASE ARG
+	;CASE 1, 2, 5
+	;	RETURN -1
+	CASEELSE
+		RETURN 0
+ENDSELECT
+
+;==================================================
+;402,就寝
+;TFLAG:193(0=通常 1=子供と一緒に川の字で寝る)
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_402
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_402
+;就寝にTRAIN_MESSAGEは無い
+CALL M_KOJO_MESSAGE_COM_K113_402_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_402_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SETCOLOR 0xC90B39
+	IF CFLAG:睡眠
+		PRINTFORML 「ぐ～……Zzz……」
+		PRINTFORMDW ヘカーティアを起こさないよう、そっと彼女の部屋を後にした……
+	ELSEIF CFLAG:MASTER:初期位置 == CFLAG:113:初期位置 && CFLAG:MASTER:現在位置 == CFLAG:113:初期位置
+		;川の字で寝る
+		IF TFLAG:193 == 1
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「よしよーし……早く寝ちゃいなさい、%CHILDNAME:113:(TALENT:113:育児中)%……♪」
+					PRINTFORMDL %CHILDNAME:113:(TALENT:113:育児中)%を間に挟み、へカーティアと寝床に入った。
+					PRINTFORMDW 左右から頭を撫でられ、%CHILDNAME:113:(TALENT:113:育児中)%は気持ち良さそうに目を閉じて眠った……
+				CASE 1
+					CALL HPH_PRINT,@"「ふふ……♪%CHILDNAME:113:(TALENT:113:育児中)%……HPH」","L"
+					PRINTFORMDL へカーティアは%CHILDNAME:113:(TALENT:113:育児中)%を抱きしめ、幸せそうな寝顔を浮かべている。
+					PRINTFORMDW 一方の%CHILDNAME:113:(TALENT:113:育児中)%は、少し寝苦しそうだ……
+				CASE 2
+					PRINTFORML 「あら？……パパ、寝ちゃったわねぇ……♪」
+					PRINTFORML 「……ねぇ%CHILDNAME:113:(TALENT:113:育児中)%、パパは好き？」
+					CALL HPH_PRINT,@"「そう……♪ママもパパが大好きよHPH」","W"
+			ENDSELECT
+		ELSEIF TALENT:恋慕 || TALENT:思慕
+			SELECTCASE RAND:3
+				CASE 0
+					CALL HPH_PRINT,@"「ふふふ…♪今夜は寝かせないわよ、%CALLNAME:MASTER%…HPH」","L"
+					PRINTFORML 「今夜は朝までたっぷりと……」
+					PRINTFORML 「ぐぅ～……Zzz……」
+					PRINTFORMDW へカーティアは寝てしまった……
+				CASE 1
+					PRINTFORML 「%CALLNAME:MASTER%、ベッドメークは終わった？」
+					PRINTFORML 「……オーケー、上出来！じゃあ寝ましょうか♪」
+					PRINTFORMDW ぽんぽんと自分の隣を叩くへカーティアのお言葉に甘え、一緒に寝る事にした。
+				CASE 2
+					PRINTFORML 「いい？%CALLNAME:MASTER%。ご主人様をしっかり寝かしつけるのよん♪」
+					PRINTFORMDW へカーティアに添い寝し、眠くなるまでお喋りをした。
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「%CALLNAME:MASTER%、私の隣で寝られる事を光栄に思いなさい♪」
+					PRINTFORMDW 今夜はへカーティアと一緒に寝る事にした。
+				CASE 1
+					PRINTFORML 「んぅ……ぐぅ～……♪」
+					PRINTFORMDW 寝返りを打ったへカーティアの裏拳が腹に直撃した……
+				CASE 2
+					PRINTFORML 「私を途中で起こしたりしたら、承知しないわよ……じゃ、おやすみ」
+					PRINTFORMDW へカーティアは目を閉じ、寝息を立て始めた。
+			ENDSELECT
+		ENDIF
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				IF TALENT:恋慕 || TALENT:思慕
+					PRINTFORML 「ご主人様より先に寝るとは、感心しないわねぇ…」
+					PRINTFORMW 「……まあ、今日だけは許してあげましょう。おやすみ♪」
+				ELSE
+					PRINTFORML 「もう寝るの？つまらないわねぇ……」
+					PRINTFORMDW へカーティアは帰って行った。
+				ENDIF
+			CASE 1
+				PRINTFORML 「おやすみ、%CALLNAME:MASTER%」
+				PRINTFORMW 「明日も楽しいコトしましょうねぇ♪」
+			CASE 2
+				PRINTFORML 「そうだ%CALLNAME:MASTER%、私達が子守唄を歌ってあげましょう♪」
+				SETCOLOR 0x2459F0
+				PRINTFORML 「よかったわねぇ♪子守唄の三重奏<トリオ>なんてそうそう聴けないわよ？」
+				SETCOLOR 0xF0D124
+				CALL HPH_PRINT,@"「今夜はぐっすり眠れるわねぇ%CALLNAME:MASTER%HPH」","L"
+				PRINTFORMDW この後、%CALLNAME:MASTER%は悪夢にうなされた……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;403,休憩
+;CFLAG:TARGET:睡眠(1=TARGETが寝てる隣で休憩
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_403
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_403
+CALL M_KOJO_MESSAGE_COM_K113_403_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_403_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF FLAG:時間停止
+	;睡眠フラグ
+	ELSEIF CFLAG:睡眠
+		PRINTFORML 「くかー……♪」
+		PRINTFORMDW 地獄の支配者とは思えない、間の抜けた寝顔を眺めながら休憩した。
+	;怒り
+	ELSEIF CFLAG:318 == 1
+		PRINTFORML 「何その目は？文句があるなら言ってみなさい」
+		PRINTFORMDW 機嫌の悪いヘカーティアと一緒に休憩した…
+	;それ以外
+	ELSE
+		SELECTCASE RAND:5
+			CASE 0
+				IF TALENT:恋慕 || TALENT:思慕
+					CALL HPH_PRINT,@"「あーHPH気持ちいいわー♪」","L"
+					PRINTFORMDW ヘカーティアにマッサージをした。
+				ELSE
+					PRINTFORML 「……なーに？ジッと見て。私に見惚れてたのかしら？」
+					PRINTFORMDW 休憩しているヘカーティアと目が合った。
+				ENDIF
+			CASE 1
+				IF TALENT:恋慕 || TALENT:思慕
+					PRINTFORML 「疲れた時は、無理せずに休みなさい」
+					PRINTFORML 「というわけで%CALLNAME:MASTER%。お茶」
+					PRINTFORMDW 休ませてほしい……
+				ELSE
+					PRINTFORML 「……なーに？ジッと見て。私に見惚れてたのかしら？」
+					PRINTFORMDW 休憩しているヘカーティアと目が合った。
+				ENDIF
+			CASE 2
+				PRINTFORML 「たまには、こうやってだらけるのも悪くないわねぇ……♪」
+				PRINTFORMDW いつもだらけてる気がする……
+			CASE 3
+				PRINTFORML 「ちょっと昼寝でもしようかしら……ふわぁ……」
+				PRINTFORMDW ヘカーティアは寝そべりながら、大きな欠伸をした。
+			CASE 4
+				PRINTFORML 「あー疲れた……」
+				PRINTFORML 「%CALLNAME:MASTER%、%TEXTR("お茶淹れて/肩揉んで/何か作って")%」
+				PRINTFORMDW へカーティアの要求に応えた。
+		ENDSELECT
+	ENDIF
+ENDIF
+;==================================================
+;405,出掛ける(同行時デート
+;条件が厄介なので、COMF405 出掛ける.ERBを参照のこと
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_405
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_405
+;出掛けるにTRAIN_MESSAGEは無い
+CALL M_KOJO_MESSAGE_COM_K113_405_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_405_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+	;TARGETとデート
+	IF CFLAG:同行
+	;TARGET以外とデート
+	ELSEIF CFLAG:MASTER:同行
+	;お出かけお見送り
+	ELSE
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;410,掃除
+;FLAG:70(1=時間停止中
+;TFLAG:193(0=見てるだけ 1=一緒に掃除)
+;TFLAG:194(3=汚れ高 2=汚れ中 1=汚れ低 0=汚れ最小
+;OUTROOF(CFLAG:現在位置)(野外掃除（冬は雪かき
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_410
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_410
+CALL M_KOJO_MESSAGE_COM_K113_410_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_410_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:睡眠
+		PRINTFORMDW ヘカーティアを起こさないように、静かに掃除をした。
+	ELSEIF FLAG:時間停止
+		PRINTFORMDW 静止した時間の中で掃除をした。能力の有効活用というやつだ。
+	ELSEIF CFLAG:113:うふふ
+		PRINTFORMW 「……貴方、もしかして潔癖症？」
+	;一緒に掃除
+	ELSEIF TFLAG:193 == 1
+		;ブチギレ
+		IF CFLAG:318 == 1
+			PRINTFORML 「はい、後よろしく」
+			PRINTFORMDW ヘカーティアは早々に掃除を切り上げた…
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ったく、何で私がこんな事……」
+					PRINTFORMDW 文句を言いながらも、へカーティアは掃除を手伝ってくれた。
+				CASE 1
+					PRINTFORML 「私に労働させるなんて……」
+					PRINTFORML 「%CALLNAME:MASTER%、後で覚えてらっしゃい……」
+					PRINTFORMDW へカーティアに睨まれながら、一緒に掃除をした。
+				CASE 2
+					PRINTFORML 「えー！私もやるの！？」
+					PRINTFORML 「……んもう、わかったわよ……」
+					PRINTFORMDW へカーティアと一緒に掃除をした。
+			ENDSELECT
+		ENDIF
+	;見てるだけ
+	ELSE
+		IF CFLAG:318 == 1
+			PRINTFORML 「%CALLNAME:MASTER%、手が止まってるわよ」
+			PRINTFORMDW 機嫌の悪いヘカーティアに見守られながら掃除をした……
+		;汚れ高
+		IF TFLAG:194 >= 3
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「全く、誰が掃除すると思ってんのかしら……ねぇ%CALLNAME:MASTER%？」
+				CASE 1
+					PRINTFORML 「汚いわねぇ……地獄でもここまではいかないわよ」
+				CASE 2
+					PRINTFORML 「きったな！足の踏み場も無いじゃない！」
+					PRINTFORML 「%CALLNAME:MASTER%、さっさと片付けちゃいなさい」
+				ENDSELECT
+			PRINTFORMDW ヘカーティアに見守られながら掃除をした。
+			ENDIF
+		;汚れ中以下
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「ほら%CALLNAME:MASTER%！そこにもゴミ落ちてるわよ」
+				CASE 1
+					PRINTFORML 「おー、どんどん綺麗になってくわねぇ……♪」
+				CASE 2
+					PRINTFORML 「それ位にして、早く遊びに行きましょ♪」
+				ENDSELECT
+			PRINTFORMDW ヘカーティアに見守られながら掃除をした。
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;411,戦闘訓練
+;TFLAG:194(3=夏の昼間 2=ヤバい天気 1=悪天候 0=屋内or通常天気
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_411
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_411
+CALL M_KOJO_MESSAGE_COM_K113_411_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_411_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF FIRSTTIME(SELECTCOM)
+		PRINTFORML 「特訓したいですって？いいわよ♪」
+		PRINTFORML 「それじゃあ早速、私の考案した"ヘカーティアズ・ブートキャンプ"をやってみましょうか」
+		PRINTFORMDW もの凄く疲れた……
+	ELSEIF TFLAG:194 == 3 
+		PRINTFORML 「"暑い"？甘えた事言ってんじゃないわよ%CALLNAME:MASTER%」
+		PRINTFORML 「こんなの、焦熱地獄に比べりゃ涼しいものよ♪」
+		PRINTFORMDW うだるような暑さの中、へカーティアの攻撃を避け続けた……
+	ELSEIF TFLAG:194 == 1 || TFLAG:194 == 2
+		;地獄繋がり
+		PRINTFORML 「どーんな風が吹いても～♪」
+		SETCOLOR 0x2459F0
+		PRINTFORML 「負ーけなーい人になろう～♪」
+		SETCOLOR 0xF0D124
+		PRINTFORML 「YEAHー！！」
+		PRINTFORMDW 嵐の様な天候の中、へカーティア達の攻撃を避け続けた……
+	ELSE
+		SELECTCASE RAND:6
+			CASE 0
+				PRINTFORML 「ほらほらー、避けないと死ぬわよ～♪」
+				PRINTFORMDW へカーティアの猛攻を何とか回避し続けた……
+			CASE 1
+				PRINTFORMW 「ボムに頼るなんて軟弱な戦い方は許さないわ」
+			CASE 2
+				PRINTFORMW 「弾がクナイっぽいからって、別にニンジャが好きとかそういうんじゃないわよ」
+			CASE 3
+				PRINTFORML 「へカーティア の ちきゅうなげ！」
+				PRINTFORMDW 突如、へカーティアが地球を投げつけてきた……
+			CASE 4
+				PRINTFORML 「へカーティア の ムーンフォース！」
+				PRINTFORMDW 突如、へカーティアが月を投げつけてきた……
+			CASE 5
+				PRINTFORML 「貴方がどれだけ強くなったか、見てあげましょう♪」
+				PRINTFORMDL ヘカーティアは指で作った輪を通して、%CALLNAME:MASTER%を見定めた……
+				IF ABL:MASTER:戦闘能力 == 6
+					PRINTFORML 「……%CALLNAME:MASTER%。ちょっとあの姉妹に喧嘩売ってきなさい」
+					PRINTFORML 「大丈夫、貴方なら勝てるわよん♪」
+					PRINTFORMDW 綿月姉妹の事を言っているのだろうか……？
+				ELSEIF ABL:MASTER:戦闘能力 == 5
+					PRINTFORMW 「%CALLNAME:MASTER%凄いじゃない！多分、純狐の次くらいには強いわよ♪」
+				ELSEIF ABL:MASTER:戦闘能力 == 4
+					IF TALENT:恋慕 || TALENT:思慕
+						PRINTFORMW 「いい感じじゃない。ご主人様の為に、これからも励みなさい♪」
+					ELSE
+						PRINTFORMW 「なかなか強そうねぇ♪私ほどじゃないけど」
+					ENDIF
+				ELSEIF ABL:MASTER:戦闘能力 == 3
+					PRINTFORMW 「まあまあって所ねぇ。もうちょっと強くなって貰いたい所だわ」
+				ELSEIF ABL:MASTER:戦闘能力 == 2
+					PRINTFORMW 「ピースとなら、いい勝負になりそうねぇ」
+				ELSEIF ABL:MASTER:戦闘能力 == 1
+					PRINTFORMW 「まだまだねぇ。最初の頃よりはマシだけど」
+				ELSE
+					PRINTFORML 「そこらの妖精にすら劣るわね。もっとマジメに特訓なさい」
+					IF TALENT:恋慕 || TALENT:思慕
+						PRINTFORML 「貴方がそんなじゃあ、ご主人様の私までナメられるわ」
+						PRINTFORMDW もう少し真面目に訓練する事にした……
+					ELSE
+						PRINTFORML 「自分より年下の少女に馬鹿にされる所、想像できる？」
+						PRINTFORMDW %TEXTR("もう少し真面目に訓練する事にした……/意外とアリかも……")%
+					ENDIF
+				ENDIF
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;412,勉強
+;ABL:教養(ABL:MASTER:教養より大=MASTERが教えてもらう ABL:MASTER:教養より小=TARGETが教えてもらう
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_412
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_412
+CALL M_KOJO_MESSAGE_COM_K113_412_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_412_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF ABL:MASTER:教養 <= 0
+		SELECTCASE RAND:5
+			CASE 0
+				PRINTFORML 「%CALLNAME:MASTER%。1＋1は？」
+				PRINTFORMDL "2"
+				PRINTFORML 「あー良かった♪」
+				PRINTFORMW 「これすら分からないなら、いっそ殺して生まれ変わらせようかと思ってたわ」
+			CASE 1
+				PRINTFORMDL 『松明』
+				PRINTFORML 「これ、なんて読むか分かる？」
+				PRINTFORMW 「言っておくけど、"まつあき"じゃないわよ」
+			CASE 2
+				PRINTFORML 「ここの英文…"What"と"Why"、どっちを使うか分かる？」
+				PRINTFORMDL ヘカーティアは教師のつもりなのか、眼鏡をかけている。
+				PRINTFORMDL %CALLNAME:MASTER%は"似合っている"とヘカーティアを褒めた。
+				PRINTFORML 「ありがと♪で、どっちか分かる？」
+				PRINTFORMDW 聞き流された……
+			CASE 3
+				PRINTFORML 「ふむふむ……」
+				PRINTFORMDL ヘカーティアお手製のペーパーテストを解いた。
+				PRINTFORMDL 採点が終わったのか、ヘカーティアがこちらを向いて微笑んだ。
+				PRINTFORML 「全問不正解でーす♪」
+				PRINTFORMDW ×だらけの答案用紙を顔面に押し付けられた……
+			CASE 4
+				PRINTFORML 「何と言うか…そんな頭でよく今まで生きて来られたわねぇ……」
+				PRINTFORML 「貴方って相当運が良いのねぇ」
+				PRINTFORMDW ヘカーティアに褒められた。
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:7
+			CASE 0
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「地球の自転速度は、時速約1700kmと言われているわ」
+					PRINTFORML 「ジェット機の約2倍の速さ、と言えば伝わるかしら？」
+				CASE 1
+					PRINTFORML 「太陽系広しと言えど、生命体が確認されているのは地球だけだそうよ」
+					PRINTFORML 「そんな星に生まれる事が出来て、ラッキーだったわねぇ%CALLNAME:MASTER%♪」
+				ENDSELECT
+				PRINTFORMDW ヘカーティアは、地球を指で回しながら解説している。
+			CASE 1
+				SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「月は昔、太陽に対して太陰と呼ばれていたそうよ」
+				CASE 1
+					PRINTFORML 「月のクレーターってあるじゃない？」
+					PRINTFORML 「木の年輪みたく、中の小さいクレーターの数で年齢がわかるんですって♪」
+				ENDSELECT
+				PRINTFORMDW ヘカーティアは、月を手のひらの上で転がしながら解説している。
+			CASE 2
+				PRINTFORML 「太陽の表面温度は約6000℃」
+				PRINTFORML 「しかし太陽の周辺、コロナの温度はそれよりも高い約20000℃」
+				PRINTFORMW 「何故コロナの方が温度が高いのか？それは私にも分かりません」
+			CASE 3
+				PRINTFORML 「%CALLNAME:MASTER%。分からない所は、このヘカーティア先生に聞くのよん♪」
+				PRINTFORMDL 教師のつもりなのか、ヘカーティアは眼鏡をかけている。
+				PRINTFORMDL %CALLNAME:MASTER%は返事もそこそこに、勉強へと戻った。
+				PRINTFORMW 「んもう、ノリ悪いわねぇ……」
+			CASE 4
+				PRINTFORMDL 地獄地獄地獄地獄地獄地獄地獄地獄地獄地獄
+				PRINTFORMDL 地獄地獄地獄地獄地獄地獄地獄地獄地獄地獄
+				PRINTFORMDL 地獄地獄地獄地獄地獄地獄地獄地獄地獄地獄
+				PRINTFORML 「ハイ、後70回！頑張って～♪」
+				PRINTFORMDW ひたすらノートに"地獄"と書き続けた……
+			CASE 5
+				;英文間違ってたらごめんなさい
+				PRINTFORML 「Why aren't you wearing your Hell T-shirt?」
+				PRINTFORML （貴方、どうして地獄Tシャツを着ないの？）
+				PRINTFORMDL "I don't want to wear it because I'm embarrassed."
+				PRINTFORMDL （恥ずかしいから着たくありません）
+				PRINTFORML 「Why do you say that!? I'm very sad.」
+				PRINTFORML （どうしてそんな事を言うの！？私はとっても悲しいわ）
+				PRINTFORMDW ヘカーティアと英会話の勉強（？）をした。
+			CASE 6
+				PRINTFORML 「…私が頭いいのが以外って顔してるわねぇ」
+				PRINTFORML 「頭が良くないと、地獄の連中を統率する事が出来ないでしょう？」
+				PRINTFORML 「もし私の頭が悪ければ、地獄は今以上の無法地帯でしょうねぇ」
+				PRINTFORMDW 考えたくない……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;413,料理
+;TFLAG:194(100以上=禁断のメニュー 3=デザート 2=主食 1=軽食
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_413
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_413
+;TFLAG:194が100以上の場合のみ
+CALL M_KOJO_MESSAGE_COM_K113_413_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_413_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+;口上の表示タイミングが料理完成後なので、調理終了後の感想っぽくしました
+	;睡眠フラグ
+	IF CFLAG:睡眠
+	;怒り
+	ELSEIF CFLAG:318 == 1
+		PRINTFORML 「ふーん……やっと出来たの？」
+		PRINTFORMDW へカーティアは何だか機嫌が悪い……
+	ELSEIF DISHNAME == "三色地獄そぼろ丼"
+		PRINTFORML 「どう？%CALLNAME:MASTER%。とっても美味しそうでしょう？」
+		SETCOLOR 0x2459F0
+		PRINTFORML 「三つの世界の私をイメージした丼……」
+		SETCOLOR 0xF0D124
+		PRINTFORML 「三つの味を一度に楽しめる、素晴らしい料理よん♪」
+		PRINTFORMDW 色々な意味でへカーティアらしい料理だ。
+	ELSEIF DISHNAME == "アビスバーガー"
+		PRINTFORML 「ん？アビスバーガーじゃない！」
+		PRINTFORMW 「ピースに教えてもらったの？へぇ～♪」
+	ELSEIF DISHNAME == "月餅"
+		PRINTFORML 「それ、もしかして月餅？」
+		PRINTFORMW 「純狐とどっちが美味しいか、ジャッジしてあげましょう♪」
+	ELSE
+		SELECTCASE RAND:3
+		CASE 0
+			PRINTFORML 「とても美味しそうに出来たじゃない♪」
+			IF TALENT:恋人
+				CALL HPH_PRINT,@"「これも、私達の愛の力ってヤツねHPH」","W"
+			ELSE
+				PRINTFORMW 「私の助力に感謝しなさい%CALLNAME:MASTER%」
+			ENDIF
+		CASE 1
+			PRINTFORML 「あーら、美味しそう♪」
+			IF TALENT:恋人
+				PRINTFORML 「食べさせ合いっこでもしましょうか♪」
+				PRINTFORMDW ヘカーティアはとても楽しそうだ。
+			ELSE
+				PRINTFORML 「当然、私の分もあるのでしょう？」
+				PRINTFORMDW へカーティアにも分けてあげる事にした。
+			ENDIF
+		CASE 2
+			PRINTFORML 「んもう、待ちくたびれたわよん。早く食べましょ♪」
+			PRINTFORMDW へカーティアはお腹が空いているようだ。
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;414,食事を取る
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;TFLAG:194(1=ノーパンしゃぶしゃぶ 2=禁断のメニュー 31=ドーピングコンソメスープ 30=モッツァレラチーズとトマトのサラダ 34=ギンギー料理
+;TCVAR:MASTER:308(bit0=濃い味 bit1=薄味 bit3=激辛 bit4=激甘 bit5=わさび bit6=激酸っぱ
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_414
+;成否判定
+;TFLAG:192(-2=コマンド終了(非TARGET時強制失敗)、-1＝強制失敗、0=COM依存(非TARGET時強制成功)、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_414
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_414
+CALL M_KOJO_MESSAGE_COM_K113_414_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_414_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;睡眠フラグ
+	IF CFLAG:睡眠
+		PRINTFORML
+		RETURN 1
+	;怒り
+	ELSEIF CFLAG:318 == 1
+		PRINTFORML 「貴方も食べるの？好きになさい」
+		PRINTFORMDW へカーティアはこちらに一瞥もせず食べ始めた……
+	ELSEIF DISHNAME == "三色地獄そぼろ丼"
+		PRINTFORML 「それじゃ……」
+		PRINTFORML 「いただきまーっす♪」
+		SETCOLOR 0x2459F0
+		PRINTFORML 「いただきまーっす♪」
+		SETCOLOR 0xF0D124
+		PRINTFORML 「いただきまーっす♪」
+		PRINTFORMDW へカーティア達と一緒に料理を食べた。
+		;まずい
+		IF CFLAG:318 == -1
+			SETCOLOR 0xC90B39
+			PRINTFORML 「…………。」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「…………。」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「…………。」
+			PRINTFORMDW 美味しくなかったのか、へカーティア達の食べる手が止まった……
+		;うまい
+		ELSEIF CFLAG:318 == 0
+			SETCOLOR 0xC90B39
+			PRINTFORML 「うーん……美味しいけど、何か足りないわねぇ……」
+			PRINTFORML 「そうだわ♪%CALLNAME:MASTER%。七味唐辛子持ってきて」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「あ、ついでに醤油もお願いね」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「じゃあ私、マヨネーズがいいわ♪」
+			PRINTFORMDW へカーティア達は口々に調味料を要求してきた……
+		;超うまい
+		ELSEIF CFLAG:318 == 1
+			SETCOLOR 0xC90B39
+			PRINTFORML 「美味しいわ！%CALLNAME:MASTER%、お代わり♪」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「じゃあ、私も♪」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「私もー♪」
+			PRINTFORMDW へカーティア達は美味しそうに料理を平らげた。
+		ENDIF
+	ELSE
+		PRINTFORML 「それじゃ……いただきまーす♪」
+		PRINTFORMDW へカーティアと一緒に料理を食べた。
+		;まずい
+		IF CFLAG:318 == -1
+			PRINTFORML 「……貴方、分かってて私に食べさせたわね？」
+			PRINTFORML 「これはお仕置よ」
+			PRINTFORMDW 口に合わなかったのか、へカーティアに%TEXTR("地球/月")%を投げつけられた……
+		;うまい
+		ELSEIF CFLAG:318 == 0
+			PRINTFORML 「ふー……ご馳走様。美味しかったわよん♪」
+			PRINTFORMDW へカーティアは%CALLNAME:MASTER%の料理を気に入ってくれたようだ。
+		;超うまい
+		ELSEIF CFLAG:318 == 1
+			PRINTFORML 「ご馳走様♪とっても美味しかったわよん♪」
+			PRINTFORML 「%CALLNAME:MASTER%って料理上手なのねぇ。また作って頂戴な♪」
+			PRINTFORMDW へカーティアはとても満足気だ。
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;415,食事をふるまう
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;TCVAR:MASTER:308(bit0=濃い味 bit1=薄味 bit3=激辛 bit4=激甘 bit5=わさび bit6=激酸っぱ
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_415
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_415
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_415
+CALL M_KOJO_MESSAGE_COM_K113_415_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_415_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;睡眠フラグ
+	IF CFLAG:睡眠
+		PRINTFORML
+		RETURN 1
+	;怒り
+	ELSEIF CFLAG:318 == 1
+		PRINTFORML 「食べないの？じゃあ貰うわよ」
+		PRINTFORMDW へカーティアはこちらに一瞥もせず食べ始めた……
+	ELSEIF DISHNAME == "三色地獄そぼろ丼"
+		PRINTFORML 「えー！？%CALLNAME:MASTER%食べないの？」
+		SETCOLOR 0x2459F0
+		PRINTFORML 「美味しいのに……」
+		SETCOLOR 0xF0D124
+		PRINTFORML 「後で"ちょうだい"って言ってもあげないわよ？」
+		PRINTFORMDW へカーティア達は料理を食べ始めた。
+		;まずい
+		IF CFLAG:318 == -1
+			SETCOLOR 0xC90B39
+			PRINTFORML 「…………！」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「……うぇ…！」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「……%CALLNAME:MASTER%、コレ食べない？」
+			PRINTFORMDW 美味しくなかったのか、へカーティア達の反応は今ひとつだ……
+		;うまい
+		ELSEIF CFLAG:318 == 0
+			SETCOLOR 0xC90B39
+			PRINTFORML 「うーん……美味しいけど、もう一味欲しいわねぇ……」
+			PRINTFORML 「七味でもかけましょうか」
+			SETCOLOR 0x2459F0
+			PRINTFORML 「醤油の方がいいと思うわ」
+			SETCOLOR 0xF0D124
+			PRINTFORML 「え～？マヨネーズよ！」
+			PRINTFORMDW へカーティア達は楽しそうに食事をしている。
+		;超うまい
+		ELSEIF CFLAG:318 == 1
+			SETCOLOR 0xC90B39
+			CALL HPH_PRINT,@"「ん～♪美味しいHPH」","L"
+			SETCOLOR 0x2459F0
+			PRINTFORML 「%CALLNAME:MASTER%食べなさいな♪美味しいわよ？」
+			SETCOLOR 0xF0D124
+			CALL HPH_PRINT,@"「ほーら…一口あげましょう♪はい、あーんHPH」","L"
+			PRINTFORMDW お言葉に甘えて、一口食べさせて貰った……とても美味しかった。
+		ENDIF
+	ELSE
+		PRINTFORML 「あら、ご馳走してくれるの？」
+		PRINTFORML 「じゃあ遠慮なく……♪いただきまーす♪」
+		PRINTFORMDW へカーティアは%CALLNAME:MASTER%の作った料理を食べた。
+		;まずい
+		IF CFLAG:318 == -1
+			PRINTFORML 「……貴方、分かってて私に食べさせたわね？」
+			PRINTFORML 「これはお仕置よ」
+			PRINTFORMDW 口に合わなかったのか、へカーティアに%TEXTR("地球/月")%を投げつけられた……
+		;うまい
+		ELSEIF CFLAG:318 == 0
+			PRINTFORML 「ふー……ご馳走様。美味しかったわよん♪」
+			PRINTFORMDW へカーティアは%CALLNAME:MASTER%の料理を気に入ってくれたようだ。
+		;超うまい
+		ELSEIF CFLAG:318 == 1
+			PRINTFORML 「ご馳走様♪とっても美味しかったわよん♪」
+			PRINTFORML 「%CALLNAME:MASTER%って料理上手なのねぇ。また作って頂戴な♪」
+			PRINTFORMDW へカーティアはとても満足気だ。
+		ENDIF
+	ENDIF
+ENDIF
+;==================================================
+;416,演奏する
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;TFLAG:使用楽器(1=キーボード 2=ピアノ 3=ギター 4=トランペット 5=ヴァイオリン)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_416
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_416
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_416
+CALL M_KOJO_MESSAGE_COM_K113_416_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_416_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == 1
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「素晴らしい演奏だったわ%CALLNAME:MASTER%！」
+				IF TALENT:恋人 || TALENT:恋慕
+					CALL HPH_PRINT,@"「私、惚れ直しちゃったHPH」","L"
+				ELSE
+					PRINTFORML 「貴方、意外と芸達者なのねぇ♪」
+				ENDIF
+				PRINTFORMDW ヘカーティアはとても喜んでいる。
+			CASE 1
+				PRINTFORML 「%CALLNAME:MASTER%。私は貴方の演奏をもっと聴きたいわ」
+				PRINTFORML 「次は%TEXTR("星条旗のピエロ/ピュアヒューリーズ/パンデモニックプラネット")%をやって頂戴な♪」
+				PRINTFORMDW ヘカーティアのリクエストに応え、演奏を再開した。
+			CASE 2
+				PRINTFORML 「とってもいい演奏だったわ%CALLNAME:MASTER%」
+				SELECTCASE RAND:2
+					CASE 0
+						IF CFLAG:112:面識 == 1
+							PRINTFORML 「今度、純狐にも聴かせてあげてね♪」
+						ELSE
+							PRINTFORML 「是非とも、私の友人に聴かせてあげたい演奏でした」
+						ENDIF
+					CASE 1
+						IF CFLAG:111:面識 == 1
+							PRINTFORML 「次はピースも呼んで、踊って貰いましょうか♪」
+						ELSE
+							PRINTFORML 「是非、私の部下にも聴かせてあげたい所ねぇ」
+						ENDIF
+				ENDSELECT
+				PRINTFORMDW ヘカーティアは演奏をとても気に入ってくれたようだ。
+		ENDSELECT
+	ELSEIF TFLAG:193 == 0
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「へぇ……♪なかなか上手じゃないの」
+			CASE 1
+				PRINTFORML 「良かったわよ%CALLNAME:MASTER%。また聴かせてちょうだいな」
+			CASE 2
+				PRINTFORML 「あら、もうお終い？　もっと聴きたいわ」
+		ENDSELECT
+		PRINTFORMDW ヘカーティアは演奏を気に入ってくれたようだ。
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「ヘッタクソねぇ…ちゃんと練習してる？」
+				PRINTFORMDW ヘカーティアは見るからに不快そうだ……
+			CASE 1
+				PRINTFORML 「ハイハイそこまで。もういいわよ」
+				PRINTFORMDW ヘカーティアは演奏が気に入らなかったようだ……
+			CASE 2
+				PRINTFORML 「その演奏……嫦娥の耳元で聴かせて、苦しめてやりましょうよ♪」
+				PRINTFORMDW 求めていた評価と違う……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;417,昼寝をする
+;TFLAG:193(0=MASTERを抱き枕にして寝ている 1=MASTERの膝を枕にして寝ている 2=寝顔にキスされた 3=寝顔をのぞき込まれた 4=MASTERが膝枕されてる 5=秘処orペニス揉み
+;CFLAG:添い寝中(1=一緒に寝ている
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_417
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_417
+CALL M_KOJO_MESSAGE_COM_K113_417_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_417_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;睡眠フラグ
+	IF CFLAG:睡眠
+		PRINTFORML
+		RETURN 1
+	ELSEIF CFLAG:TARGET:添い寝中
+		CALL HPH_PRINT,@"「たっぷり可愛がってあげるわ…%CALLNAME:MASTER%…HPH」","L"
+		PRINTFORMDW 本当に寝ているのだろうか……？
+	ELSE
+		SELECTCASE TFLAG:193
+			CASE 0
+				PRINTFORMDL %CALLNAME:MASTER%が目を開けると、へカーティアに抱きしめられていた。
+				IF TALENT:恋慕 || TALENT:思慕
+					CALL HPH_PRINT,@"「おはようHPH」","L"
+					CALL HPH_PRINT,@"「ふふ……♪ご主人様に添い寝される気分はどうかしら……HPH」","W"
+				ELSE
+					PRINTFORML 「あら、起きたの？おはよう♪」
+					PRINTFORMW 「ピースほどじゃないけど、悪くない抱き心地だったわよん♪」
+				ENDIF
+			CASE 1
+				PRINTFORMDL 足に妙な重みを感じて目が覚めた……
+				PRINTFORMDL 圧迫感の正体は、%CALLNAME:MASTER%の膝を枕にしているへカーティアのようだ。
+				PRINTFORML 「%CALLNAME:MASTER%、こんな硬い膝じゃ寝れないわ。何とかなさい」
+				PRINTFORMDW 寝起きに理不尽な要求を突き付けられ、憂鬱な気分になった……
+			CASE 2
+				IF TALENT:恋慕 || TALENT:思慕
+					PRINTFORMDL 唇に何か柔らかい物が触れる感覚で目が覚めた。
+					CALL HPH_PRINT,@"「おそようのキスよHPH目が覚めたかしら？」","W"
+				ELSE
+					PRINTFORMDL 頬に何か柔らかい物が触れる感覚で目が覚めた。
+					PRINTFORML 「あら起きた？おはよう」
+					PRINTFORMW 「…………♪」
+				ENDIF
+			CASE 3
+				PRINTFORMDL いつの間にか眠っていたようだ……%CALLNAME:MASTER%はゆっくりと目を開け―
+				PRINTFORML 「お は よ う ♪」
+				PRINTFORML 「あはははは！いい反応ねぇ♪」
+				PRINTFORMDW 密着寸前にまで迫ったへカーティアの顔に驚き、思わず悲鳴を上げた……
+			CASE 4
+				IF TALENT:恋慕 || TALENT:思慕
+					PRINTFORML 「おはよう♪」
+					CALL HPH_PRINT,@"「ご主人様に膝枕されるなんて、貴方は幸せ者ねぇ……HPH」","W"
+				ELSE
+					PRINTFORML 「ごぉー…よーん…さーん…」
+					PRINTFORMDL いつの間にか眠っていたようだ……
+					PRINTFORMDL 後頭部に柔らかい感触を感じつつ、%CALLNAME:MASTER%はゆっくりと目を開け―
+					PRINTFORML 「にぃー…いーち…」
+					PRINTFORMW 「あら、残念♪もう少しで貴方の顔に%TEXTR("地球/月")%を落とせたのに……」
+				ENDIF
+			CASE 5
+				IF TALENT:恋慕 || TALENT:思慕
+					PRINTFORMDL 何やら股間がくすぐったい……%CALLNAME:MASTER%はゆっくりと目を開けた。
+					CALL HPH_PRINT,@"「%CALLNAME:MASTER%……おはようHPH」","L"
+					CALL HPH_PRINT,@"「とりあえず……寝起きの一発、イッとく？HPH」","L"
+					PRINTFORMDW へカーティアは%CALLNAME:MASTER%の股間に指を這わせながら、妖艶な笑みを浮かべている……！
+				ELSE
+					PRINTFORMDL いつの間にか、眠っていたようだ……%CALLNAME:MASTER%はゆっくりと目を開けた。
+					PRINTFORML 「あら、%CALLNAME:MASTER%。起き……」
+					PRINTFORML 「―ふっ……若いわねぇ……♪」
+					PRINTFORMDW へカーティアに、"寝起きの生理現象"を見られた……
+				ENDIF
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;421,願掛けする
+;条件が複雑なので、COMF421 願掛け.ERBおよび、EVENT_MESSAGE_COM400.ERBの願掛けするの項を参照のこと
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_421
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_421
+CALL M_KOJO_MESSAGE_COM_K113_421_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_421_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE RAND:2
+		CASE 0
+			PRINTFORML 「……貴方、私が女神だって事忘れてない？」
+			PRINTFORMW 「どうせ神頼みするなら、私にしなさい」
+		CASE 1
+			PRINTFORML 「私を拝むなんて、いい心掛けねぇ%CALLNAME:MASTER%♪」
+			PRINTFORML 「望みを叶えられるように応援してあげるから、後は自分の力で成し遂げるのよん」
+			PRINTFORMDW 地獄の女神は意外と厳しいようだ……
+	ENDSELECT
+ENDIF
+RETURN 1
+
+;==================================================
+;422～430は、特殊コマンドなのでテンプレでは対応しません
+;==================================================
+
+;==================================================
+;431,お風呂でくつろぐ
+;TFLAG:209(4=人里の銭湯で番台ちゃんを怒らせている 1=銭湯に入った
+;TFLAG:211(4=地底の温泉で番台妖怪を怒らせている 1=温泉に入った
+;TFLAG:194(1=連続入浴不可(表示しない可能性あり？
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_431
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_431
+CALL M_KOJO_MESSAGE_COM_K113_431_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_431_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TALENT:恋慕 || TALENT:思慕
+		SELECTCASE RAND:(TALENT:恋人 ? 5 # 3)
+			CASE 0
+				CALL HPH_PRINT,@"「見て%CALLNAME:MASTER%♪お肌がスベスベ…HPH」","L"
+				PRINTFORML 「ほら、もっとしっかり見なさいよん♪」
+				PRINTFORMDW なるべく見ないようにしていたが、へカーティアに視線を向けさせられた……
+			CASE 1
+				PRINTFORML 「なぁに%CALLNAME:MASTER%？貴方も遊びたいの？」
+				PRINTFORMDL へカーティアの地球と月が、水面にぷかぷかと浮いている。
+				PRINTFORMDW この不思議な天体達は、どんな材質で出来ているのだろう……？
+			CASE 2
+				PRINTFORML 「いつか、%CALLNAME:MASTER%と地獄巡りしてみたいわねぇ♪」
+				PRINTFORMW 「……あ、温泉の話よ？」
+			CASE 3
+				CALL HPH_PRINT,@"「やーんHPHどこ触ってるのよんHPH%CALLNAME:MASTER%のエッチ♪」","L"
+				SETCOLOR 0x2459F0
+				CALL HPH_PRINT,@"「こんな所で盛ってんじゃないわよん、スケベーHPH」","L"
+				SETCOLOR 0xF0D124
+				CALL HPH_PRINT,@"「あー♪今、私のおっぱい見てたでしょ？正直に言いなさいHPH」","L"
+				PRINTFORMDW 三人のへカーティアに密着され、身動きが取れない……！
+			;以下恋人のみ
+			CASE 4
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%……HPH……ちゅ……HPH」","L"
+				PRINTFORMDL へカーティアがキスをしながら、水中の肉棒に触れる。そこは既に硬く勃起していた……
+				CALL HPH_PRINT,@"「はぁ……HPHシたいけど、ここじゃお湯が汚れちゃうわねぇ……HPH」","W"
+			CASE 5
+				PRINTFORML 「ふ～……♪気持ちいいわぁ……♪」
+				PRINTFORMDL へカーティアの隣に近づき、彼女の肢体に触れる……
+				PRINTFORMDL ……寸前の所で人差し指を唇に当てられ、止められた。
+				CALL HPH_PRINT,@"「ここじゃダーメ♪お部屋まで我慢なさい……HPH」","W"
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				CALL HPH_PRINT,@"「あ゛ーっHPH温まるわ～HPH」","L"
+				PRINTFORMDW ヘカーティアは、お風呂で気持ちよさそうに寛いでいる……
+			CASE 1
+				PRINTFORML 「そんな端っこにいないで、こっち来なさいよん」
+				PRINTFORMDW へカーティアに手招きされ、%CALLNAME:MASTER%は渋々近くに移動した……
+			CASE 2
+				PRINTFORML 「……？貴方、今日は随分大人しいじゃない」
+				PRINTFORMDW %CALLNAME:MASTER%に裸を見られても、へカーティアは気にしていないようだ……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;432,お風呂でくつろぐ
+;表示タイミングは入浴後なので、お風呂上がりでの
+;TFLAG:209(4=人里の銭湯で番台ちゃんを怒らせている 1=銭湯に入った
+;TFLAG:211(4=地底の温泉で番台妖怪を怒らせている 1=温泉に入った
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_432
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_432
+CALL M_KOJO_MESSAGE_COM_K113_432_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_432_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE RAND:5
+		CASE 0
+			PRINTFORML 「一緒に入れなくて残念だったわねぇ♪」
+			PRINTFORMDW へカーティアはからかうように笑っている。
+		CASE 1
+			CALL HPH_PRINT,@"「ふぅ……♪さっぱりした……HPH」","L"
+			PRINTFORML 「それじゃ、デートの続きといきましょうか♪」
+			PRINTFORMDW へカーティアの顔は、頬が少し上気していた。
+		CASE 2
+			PRINTFORML 「%CALLNAME:MASTER%。牛乳が飲みたいわ」
+			IF TALENT:恋人
+				PRINTFORMDW 飲ませてあげるとズボンに手をかけようとしたら、股間を蹴られた……
+			ELSE
+				PRINTFORMDW へカーティアに牛乳を奢らされた……
+			ENDIF
+		CASE 3
+			PRINTFORML 「%CALLNAME:MASTER%どう？いい香りでしょう♪」
+			PRINTFORMDW へカーティアが髪をかき上げると、ふわりと石鹸の香りがした。
+		CASE 4
+			CALL HPH_PRINT,@"「あ゛～～っHPH気゛持ぢい゛ぃ～～HPH HPH」","L"
+			PRINTFORMDW 見知った女神がマッサージチェアを堪能していたが、他人の振りをしておいた……
+		CASE 5
+			IF TFLAG:211 == 1
+				PRINTFORML 「……流石に、私を覗こうとする程の命知らずではなかったようねぇ……」
+				PRINTFORMW 「ん？何でもないわよん♪」
+			ELSE
+				PRINTFORML 「脱衣所で、みんな私の方を見ていたわ」
+				PRINTFORML 「女性すら見蕩れさせてしまうなんて、私の魅力は恐ろしいわねぇ♪」
+				PRINTFORMDW その服装なら無理もないだろう……
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;436,読書
+;TFLAG:193(選択肢文学(1=忍殺(文学？) 2=失敗 3=文学),選択肢実用書(4=失敗 5=実用書),選択肢エッチな本(6=薄い高い本 7=保健体育 8=カーマスートラ))
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_436
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_436
+CALL M_KOJO_MESSAGE_COM_K113_436_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_436_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF FLAG:時間停止
+	;睡眠フラグ
+	ELSEIF CFLAG:睡眠
+		PRINTFORMDL 
+		PRINTFORMDW ヘカーティアを起こさないよう、%CALLNAME:MASTER%は静かに読書をした。
+	;ブチギレ
+	ELSEIF CFLAG:318 == 1
+		PRINTFORMDW いたたまれなくなった%CALLNAME:MASTER%は、読書をして気を紛らわせることにした…
+	ELSEIF TFLAG:193
+		SELECTCASE TFLAG:193
+			CASE 6,7,8;エッチな本
+				PRINTFORMDL へカーティアは如何わしい本を読んでいる様だ。
+				PRINTFORMDW …気になった%CALLNAME:MASTER%は、こっそり内容を覗いてみる事にした。
+				SELECTCASE RAND:6
+					CASE 0
+						PRINTFORML （BLって結構面白いわねぇ……♪）
+						PRINTFORMDW 筋骨隆々な男性と化した%CALLNAME:MASTER%が、霖之助と薔薇の花を咲かせ合っていた……
+					CASE 1
+						PRINTFORML （何で私にこんなモノ生えてるのかしら……？）
+						PRINTFORMDW 逞しい陰茎を生やしたへカーティアが、霊夢達を襲っていた……
+					CASE 2
+						PRINTFORML （不っ細工な純狐ねぇ……本物の足元にも及ばないわ）
+						PRINTFORMDW 純狐と思しき女性が、パイズリをしていた……
+					CASE 3
+						PRINTFORML （現実じゃピースに敵わないから、せめて漫画の中ではってワケね……）
+						PRINTFORMDW クラウンピースが多数の男性に囲まれ、嬲られていた……
+					CASE 4
+						PRINTFORML （これは解釈違いねぇ。あの子は間違い無くMよ）
+						PRINTFORMDW 映姫が男性の股間を踏みつけながら、蔑むような目で罵っていた……
+					CASE 5
+						PRINTFORML 「……なーに？覗き見なんて、趣味悪いわよ」
+						PRINTFORMDW ヘカーティアと目が合ってしまった……
+				ENDSELECT
+			CASEELSE
+				SELECTCASE RAND:7
+					CASE 0
+						PRINTFORML 「ぷっ……！くく……！」
+						PRINTFORMDW へカーティアは笑いを堪えながら漫画を読んでいる。
+					CASE 1
+						PRINTFORML （これ美味しそうねぇ……今度、純狐に作って貰おうかしら）
+						PRINTFORMDL へカーティアは料理本を読んでいる。
+						PRINTFORMDW ページを捲る速さからして、恐らく写真しか見ていないだろう……
+					CASE 2
+						PRINTFORML （地獄Tシャツの時代はいつ来るのかしら……）
+						PRINTFORMDW へカーティアはファッション雑誌を読みながら溜め息をついている……
+					CASE 3
+						PRINTFORML （嘘をつくと閻魔大王様に舌を抜かれる……か）
+						PRINTFORML （映姫ったら野蛮ねぇ♪）
+						PRINTFORMDW へカーティアは子供向けの絵本を読んでいる。
+					CASE 4
+						PRINTFORML （女神ヘカテーにランパスか……）
+						PRINTFORML （なんだか他人の気がしないわねぇ…♪）
+						PRINTFORMDW へカーティアはギリシャ神話の辞典を読んでいる。
+					CASE 5
+						PRINTFORML 「%CALLNAME:MASTER%。そんな本よりコレ読みなさい」
+						PRINTFORML 「この漫画に出てくるピース、すっごく可愛いでしょう？」
+						PRINTFORMDW へカーティアが見せてくれた漫画には、クラウンピースとサニーミルク達の活躍が描かれていた。
+					CASE 6
+						PRINTFORML 「……なーに？覗き見なんて、趣味悪いわよ」
+						PRINTFORMDW ヘカーティアと目が合ってしまった……
+				ENDSELECT
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;440,待つ
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_440
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_440
+CALL M_KOJO_MESSAGE_COM_K113_440_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_440_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;441,授業を受ける(慧音専用
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_441
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_441
+CALL M_KOJO_MESSAGE_COM_K113_441_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_441_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;442,伐採する（未実装
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_442
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_442
+CALL M_KOJO_MESSAGE_COM_K113_442_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_442_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;445,採集する
+;TFLAG:193(採集物のID, 0=『何も見つからなかった…』
+;TFLAG:194(今回採集した個数
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_445
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_445
+CALL M_KOJO_MESSAGE_COM_K113_445_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_445_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;448,罠を仕掛ける／虫トラップ
+;TFLAG:193,
+;   -1=罠が壊れた
+;    0=罠を仕掛けた
+;    1=獲物が得られた
+;   10=虫トラップを仕掛けた
+;   11=虫トラップを破棄した
+;   12=ムシを捕まえた
+;FLAG:194,獲物の番号
+;ムシの名前は MUSHI_NAME で表示したり判別したりできます
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_448
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_448
+CALL M_KOJO_MESSAGE_COM_K113_448_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_448_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;449,虫捕り
+;TFLAG:193,
+;   -2=殺してでもうばいとる（取っ組み合いの末逃がす）
+;   -1=ゆずってくれ！→拒否
+;    0=捕獲失敗
+;    1=MASTERが捕まえた
+;    2=キャラが捕まえたのをMASTERが褒めた
+;    3=ゆずってくれ！→渋々オッケー
+;    4=ゆずってくれ！→オールオッケー
+;TRAINMESSAGEを省略する場合は虫カゴに入れる処理を忘れないように
+;ムシの名前は MUSHI_NAME で表示したり判別したりできます
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_449
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_449
+CALL M_KOJO_MESSAGE_COM_K113_449_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_449_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;483,ムシバトル
+;TFLAG:193,
+;    1=１対１の対戦
+;    2=３～４人戦
+;    3=２対２のチーム戦
+;TFLAG:194にMASTERの順位が入っています（MASTERが1ならキャラ負け）
+;バトル中の口上はイベント口上ファイルに入っています
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_483
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_483
+CALL M_KOJO_MESSAGE_COM_K113_483_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_483_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;484,スイカ割り
+;TFLAG:193,
+;   -1=失敗
+;    0=成功
+;    1=大成功
+;    2=木刀で大成功（ボーナス点）
+;TFLAG:194
+;    0=正直者
+;    1=ウソつき
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_484
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_484
+CALL M_KOJO_MESSAGE_COM_K113_484_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_484_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;490,アイテム
+;TFLAG:193(使用アイテムのID
+;TFLAG:194(対象 0=MASTER,1=TARGET
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_490
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_490
+;アイテムにTRAIN_MESSAGEはない
+CALL M_KOJO_MESSAGE_COM_K113_490_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_490_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+SETCOLOR 0xC90B39
+	IF TFLAG:194 == 0
+		PRINTFORML 「すっごい色ねぇ……それ」
+		PRINTFORML 「地獄の何処に行っても、そんな色の液体見れないわよ……」
+		PRINTFORMDW へカーティアは怪訝そうな顔をしながら薬を飲む%CALLNAME:MASTER%を見ている……
+	ELSEIF TFLAG:194 == 1
+		PRINTFORML 「……ごく、ごく……」
+		PRINTFORMW 「あら、意外と美味しいわねぇ♪」
+	ENDIF
+ENDIF
+RETURN 1
+
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;デート系コマンド
+;デート系口上は文字通り外出先で発生
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+[SKIPSTART]
+;現状未実装
+;==================================================
+;600,デート会話
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_600
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_600
+CALL M_KOJO_MESSAGE_COM_K113_600_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_600_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;601,デートスキンシップ
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_601
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_601
+CALL M_KOJO_MESSAGE_COM_K113_601_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_601_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+
+;==================================================
+;602,デートキス
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_602
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_602
+CALL M_KOJO_MESSAGE_COM_K113_602_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_602_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+[SKIPEND]
+;==================================================
+;603,手を繋ぐ
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(失敗でもふりほどかれたりはしません
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_603
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_603
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_603
+CALL M_KOJO_MESSAGE_COM_K113_603_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_603_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;怒り
+	IF CFLAG:318 == 1
+		PRINTFORML 「このままへし折ってやろうかしら」
+		PRINTFORMDW 今のヘカーティアとは、手を繋がない方が良さそうだ……
+	ELSEIF TFLAG:193 == -1
+		PRINTFORML 「汚い手ねぇ……身だしなみぐらい、きちんとしなさいな」
+		PRINTFORMDW へカーティアに怒られた……
+	ELSEIF TALENT:恋人
+		SELECTCASE RAND:3
+			CASE 0
+				CALL HPH_PRINT,@" 「んー……今日の気分は、こっちねHPH」","L"
+				PRINTFORMDW へカーティアと腕を組み、ぴったりと寄り添って歩き出した。
+			CASE 1
+				CALL HPH_PRINT,@" 「今日も楽しいデートにしましょうねHPH」","L"
+				PRINTFORMDW へカーティアと手を繋ぎ、指を絡めた。
+			CASE 2
+				CALL HPH_PRINT,@" 「%CALLNAME:MASTER%……HPHもっとご主人様を求めてちょうだい……HPH」","L"
+				PRINTFORMDW へカーティアと手を繋いで、身体を密着させた……！
+		ENDSELECT
+	ELSEIF TALENT:恋慕 || TALENT:思慕
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「あら？手を繋ぎたいの？いいわよん♪」
+			CASE 1
+				PRINTFORML 「んー……ちゃんと綺麗にしてるわね。偉いわ%CALLNAME:MASTER%♪」
+				PRINTFORML 「それじゃあ、手を繋いであげましょう♪」
+			CASE 2
+				PRINTFORML 「ほーら、%CALLNAME:MASTER%！早く行くわよん♪」
+		ENDSELECT
+		PRINTFORMDW ヘカーティアと手を繋いだ。
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「そんなに私と手を繋ぎたいの？仕方ないわねぇ……♪」
+			CASE 1
+				PRINTFORML 「"手を繋ぎたい"？……んー……」
+				PRINTFORML 「まあ、ちょっとだけならいいでしょう」
+			CASE 2
+				PRINTFORML 「%CALLNAME:MASTER%。くれぐれも、変な気は起こさないように」
+		ENDSELECT
+		PRINTFORMDW ヘカーティアと手を繋いだ。
+	ENDIF
+ENDIF
+RETURN 1
+
+;==================================================
+;604,散策する
+;デート中の場合、CFLAG:現在位置に移動先の場所が既に入ってる
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_604
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_604
+;散策するにはTRAIN_MESSAGEが無い
+CALL M_KOJO_MESSAGE_COM_K113_604_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_604_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;605,寄り道する
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文無し
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_605
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_605
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_605
+;寄り道するにはTRAIN_MESSAGEが無い
+CALL M_KOJO_MESSAGE_COM_K113_605_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_605_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;怒り
+	SETCOLOR 0xC90B39
+	IF CFLAG:318 == 1
+		PRINTFORML 「あっそ。じゃあ置いてくわ」
+		PRINTFORMDW 寄り道を提案したが、ヘカーティアの返事は素っ気無かった……
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「植物に昆虫に動物……」
+				PRINTFORML 「やはり地上は、生命に溢れてて素晴らしいわねぇ」
+				PRINTFORMDW へカーティアは楽しそうに辺りを見渡している。
+			CASE 1
+				PRINTFORML 「いい景色ねぇ……♪ちょっと休憩しましょうか%CALLNAME:MASTER%」
+				PRINTFORMDW 足を止め、へカーティアと周囲の景色を眺めた。
+			CASE 2
+				PRINTFORML 「…！石桜……まだあったのね」
+				PRINTFORMDL へカーティアは、道端に落ちていた光る石を拾った。
+				PRINTFORML 「なーんだ、よく見たらただの石だったわ」
+				PRINTFORMDW そして何処かへと投げ捨てた……
+		ENDSELECT
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;610,食事に誘う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_610
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_610
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_610
+CALL M_KOJO_MESSAGE_COM_K113_610_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_610_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	;人間の里
+	IF CFLAG:MASTER:現在位置 / 100 == 2
+		SELECTCASE RAND:4
+			CASE 0
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「蕎麦屋のカツ丼って、何でこんなに美味しいのかしらねぇ……♪」
+					CASE 1
+						PRINTFORML 「それにしても寂れた定食屋ねぇ……」
+						PRINTFORML 「あ、%CALLNAME:MASTER%。ソース取って」
+					CASE 2
+						PRINTFORML 「魚も良いけど、ガッツリ肉が食べたいわねぇ」
+				ENDSELECT
+				PRINTFORMDW へカーティアと店で食事をした。
+			CASE 1
+				PRINTFORMDL 落ち着いた雰囲気の喫茶店を見つけ、コーヒーと軽食を注文した。
+				PRINTFORML 「こういう喫茶店で、お喋りしながら優雅に過ごしたいわねぇ……♪」
+				PRINTFORML 「話の内容？そうねぇ……」
+				PRINTFORML 「月を襲撃する作戦…とか？」
+				PRINTFORMDW どの辺りが優雅なのだろう……？
+			CASE 2
+				PRINTFORML 「……ランチに団子食べるの？……まあ偶にはいいでしょう……」
+				PRINTFORML 「MGMG……あら美味しい♪」
+				PRINTFORMDW ヘカーティアと%TEXTR("清蘭/鈴瑚")%屋の団子を食べた。
+			CASE 3
+				PRINTFORMDL 美宵が看板娘をしている酒場「鯢呑亭」で食事をすることにした。
+				PRINTFORML 「美味しそー♪居酒屋って、こういうメニューもあるのねぇ♪」
+				PRINTFORML 「いただきまーす♪うーん、美味し……♪」
+				PRINTFORMDL へカーティアが注文した真っ赤なカレーライスは、まるで血の池地獄のようだ……
+				PRINTFORML 「―ッ！？か、辛゛っ！」
+				PRINTFORMDW %CALLNAME:MASTER%は"沢蟹の素揚げ"を食べながら、へカーティアと激辛カレーの戦いを見守った。
+		ENDSELECT
+	;迷いの竹林
+	ELSEIF CFLAG:MASTER:現在位置 / 100 == 4
+		PRINTFORMDL ミスティアがやっている屋台を見つけたので、ヘカーティアと八目鰻を食べることにした。
+		CALL HPH_PRINT,@" 「ん～……HPHたまらないわ……この炭火の香り……♪」","L"
+		PRINTFORML 「もう待ちきれないわ！雀ちゃん、後どれ位で焼けるのかしら！？」
+		PRINTFORMDW 興奮するへカーティアを落ち着かせ、八目鰻の焼き上がりを待った。
+	;三途の川～冥界
+	ELSEIF CFLAG:MASTER:現在位置 / 100 == 6
+		PRINTFORML 「いやー、まさかこんな掘り出し物が手に入るなんて……♪」
+		PRINTFORMDL 小腹が空いたので食事処を探していると、謎の屋台を発見した。
+		PRINTFORMDL そこで、とても美味しそうに焼けた肉の串焼きを二人分購入し今に至る。
+		PRINTFORML 「それにしても冥界で肉なんて……これ死んだ人間の肉だったりしてねぇ♪」
+		PRINTFORML 「……あっはははは！冗談よじょーだん♪」
+		PRINTFORMW （……念のため、後で映姫に聞いてみましょ）
+	;地底
+	ELSEIF CFLAG:MASTER:現在位置 / 100 == 9
+		SELECTCASE RAND:3
+			CASE 0
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「飲むなら一杯だけにしときなさいよ？」
+					CASE 1
+						PRINTFORML 「地獄焼きって、素晴らしいネーミングよねぇ♪」
+					CASE 2
+						PRINTFORML 「これ、酒にも良く合って美味しいわよ♪」
+				ENDSELECT
+				PRINTFORMDW へカーティアと食べ歩きをした。
+			CASE 1
+				;某班長ネタ
+				PRINTFORMDL へカーティアと地底の居酒屋に入ったが、値段が恐ろしく高い……
+				PRINTFORMDL 取り敢えず、最も安い枝豆を注文する事にした……
+				PRINTFORML 「ダメよ%CALLNAME:MASTER%。貴方が食べたいのは焼き鳥でしょう？」
+				PRINTFORML 「贅沢ってのはね、する時はパーッとするものよ」
+				PRINTFORML 「―はい！という訳で……焼き鳥盛り合わせ二人前ねー♪」
+				PRINTFORMDW 酒で身体は温まったが、懐は寒くなった……
+				BASE:酒気 += 100
+				BASE:MASTER:酒気 += 100
+			CASE 2
+				PRINTFORMDL 地底で居酒屋を見つけ、へカーティアと入った。
+				PRINTFORML 「私だって、酒くらい飲むわよ。女神ですもの」
+				PRINTFORML 「ほらほら%CALLNAME:MASTER%、カンパーイ♪」
+				PRINTFORMDW へカーティアと%TEXTR("麦酒が入ったジョッキ/地酒が注がれた杯")%を合わせ、酒盛りを楽しんだ。
+				BASE:酒気 += 100
+				BASE:MASTER:酒気 += 100
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;613,お金稼ぎする（オミットされました
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_613
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_613
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_613
+CALL M_KOJO_MESSAGE_COM_K113_613_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_613_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;614,食材の買い出し
+;TFLAG:193(1=購入＆デート経験アップ 0=購入 -1=非購入)
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_614
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_614
+CALL M_KOJO_MESSAGE_COM_K113_614_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_614_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE RAND:2
+		CASE 0
+			PRINTFORML 「えーっと……純狐に頼まれた物は全部買ったわね」
+			PRINTFORML 「ほら%CALLNAME:MASTER%。フラフラしてないで早く来なさいな」
+			PRINTFORMDW 大量の袋を抱えながら、ヘカーティアの後を追った……
+		CASE 1
+			PRINTFORML 「おっと、ピースのおやつ買うの忘れてたわ」
+			PRINTFORML 「う～ん……ポテチとチョコ、どっちがいいかしら……」
+			PRINTFORMDW どちらでもいいから早く決めて欲しい……
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;615,お弁当を食べる
+;実行可能場所　お地蔵通り,枝垂れ柳の下,霧の湖,玄武の沢,大蝦蟇の池,絶景の丘,山の湖,天界
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;ABL:料理技能(2未満=微妙な出来 4未満=そこそこ美味しい 4以上=絶品)
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_615
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_615
+CALL M_KOJO_MESSAGE_COM_K113_615_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_615_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;ヘカの料理技能で分岐
+	;初回
+	IF FIRSTTIME(SELECTCOM)
+		PRINTFORMDL ぐう、と%CALLNAME:MASTER%の腹の虫が鳴った。しかしこの辺りに食事処は無さそうだ…
+		PRINTFORML 「%CALLNAME:MASTER%、お腹空いたの？」
+		PRINTFORML 「お弁当作ってきてあげたから、食べなさい♪」
+		PRINTFORMDL ヘカーティアが弁当箱―蓋がTシャツと同じ柄―を取り出し、%CALLNAME:MASTER%に差し出してきた。
+		PRINTFORMDW %CALLNAME:MASTER%は感謝の言葉を述べ、蓋を空けた。
+		PRINTFORMDL "……何だこれは？"
+		PRINTFORMDW %CALLNAME:MASTER%は喉まで出かかった言葉を飲み下した……
+		IF ABL:料理技能 < 2
+			PRINTFORMDL 弁当箱の中身は、大小様々な真っ黒い物体だった……
+			PRINTFORML 「どれから食べる？オススメはハンバーグよん♪」
+			PRINTFORMDW それと思しき物を箸で摘み、%CALLNAME:MASTER%は恐る恐る口に入れた……
+			PRINTFORMDW 瞬間！%CALLNAME:MASTER%の脳裏には、\@ TALENT:MASTER:性別 != 2 ? 彼女 # 彼 \@自身の青春が！
+		ELSEIF ABL:料理技能 < 4
+			PRINTFORMDL 弁当箱の中には、ケミカルな色をした不気味なおかずが入っていた……
+			PRINTFORML 「美味しそうでしょう？その卵焼き」
+			PRINTFORML 「早く食べて、感想聞かせてちょうだい♪」
+			PRINTFORMDL まるで彼女の頭にある惑星の様な色をした卵焼きを口に運ぶ……
+			PRINTFORMDW それなりに美味しかったが、料理には色彩も大事だと%CALLNAME:MASTER%は身をもって学んだ……
+		ELSE
+			PRINTFORMDL 弁当箱の中には、まるで生物の内臓をそのままぶち込んだかの様な物体が入っていた……
+			PRINTFORML 「失礼ねぇ！見た目はちょっと悪いかもしれないけど、味は本物よ！」
+			PRINTFORMDL %CALLNAME:MASTER%は取り敢えず、小動物の脳味噌の様な物―へカーティア曰く、鶏の唐揚げ―を食べた……
+			PRINTFORMDW 物凄く納得がいかないが、確かに味は美味しかった……
+		ENDIF
+	ELSE
+		PRINTFORMDL ぐううぅぅ～
+		PRINTFORML 「あら？%CALLNAME:MASTER%お腹空いたのね？よーしよし……♪」
+		PRINTFORMDW そう言って、へカーティアは待ってましたと言わんばかりに弁当箱を取り出した……
+		IF ABL:料理技能 < 2
+			PRINTFORMDL 何故我慢できない！また"あれ"を食べて死ぬような思いをしたいのか！？
+			PRINTFORMDW %CALLNAME:MASTER%は自分の生理現象を、心の底から呪った……！
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORML 「純狐が言ってたわ。料理に一番大事なのは愛情ですって」
+					CALL HPH_PRINT,@" 「私の愛情、残さず食べるのよんHPH」","L"
+					PRINTFORMDW へカーティアが何か言っていたが、弁当を無心で掻き込む%CALLNAME:MASTER%の耳には入らなかった……
+				CASE 1
+					PRINTFORML 「今回の卵焼きは自信作よん。ピースにも味見してもらったんだけど……」
+					PRINTFORML 「よっぽど美味しかったのでしょうねぇ。あの子、感動して泣いてたわよん♪」
+					PRINTFORMDW 犠牲になった食材とクラウンピースに合掌し、%CALLNAME:MASTER%は弁当に口をつけた……！
+				CASE 2
+					CALL HPH_PRINT,@" 「ハイ、お弁当♪残さず食べるのよんHPH」","L"
+					PRINTFORMDL %CALLNAME:MASTER%の目の前に差し出されるお弁当<地獄への片道切符>の中身は、前回と同じく黒い"何か"。
+					PRINTFORMDW 一つ一つ飲み込む度に寿命が縮まる錯覚を覚えつつ、%CALLNAME:MASTER%は弁当を完食した……
+			ENDSELECT
+		ELSEIF ABL:料理技能 < 4
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL 最初の頃と比べると、普通の色合いのおかずだ。
+					PRINTFORML 「純狐のアドバイスを参考にしたのよん♪」
+					PRINTFORML 「"%CALLNAME:MASTER%はもっと普通の料理が好きなんじゃないか"って言ってたわ」
+					PRINTFORMDW 救いの手を差し伸べてくれた純狐に感謝しつつ、弁当を完食した。
+				CASE 1
+					PRINTFORML 「今回のオススメはハンバーグよん♪」
+					PRINTFORML 「ピースに一個つまみ食いされちゃったけどねぇ……あの子ったら、まだまだお子ちゃまなんだから」
+					PRINTFORMDW 確かに美味しいハンバーグだった。その後もへカーティアと談笑しつつ、弁当を完食した。
+				CASE 2
+					CALL HPH_PRINT,@" 「ハイ、お弁当♪残さず食べるのよんHPH」","L"
+					PRINTFORMDL 相変わらずどぎつい色合いの弁当だ……
+					PRINTFORMDW 色味で食欲が失せたのだろうか、量の割にはお腹が膨れた気がする……
+			ENDSELECT
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL とても色彩豊かで美味しそうだ！
+					PRINTFORML 「最近私も料理にハマっててねぇ。純狐に色々と教えてもらってるのよん♪」
+					PRINTFORMDW その後も純狐の話題で談笑しつつ、弁当を完食した。
+				CASE 1
+					PRINTFORMDL ご飯の上には、様々な食材を用いて作られたクラウンピースの似顔絵があった！
+					PRINTFORML 「キャラ弁ってやつに挑戦してみたのよん♪」
+					PRINTFORML 「それピースなんだけど、分かるかしら？」
+					PRINTFORMDW 食べるのが勿体ないが、有難くいただく事にした。
+				CASE 2
+					PRINTFORML 「最近、すっかり料理にハマっちゃってねぇ」
+					PRINTFORML 「次もまた作ってあげるから、感謝なさい%CALLNAME:MASTER%♪」
+					PRINTFORMDW へカーティアの弁当はとても美味しかった。
+			ENDSELECT
+		ENDIF
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;617,甘味処に誘う
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐は大成功のみ追加
+;==================================================
+@M_KOJO_SUCCESS_COM_K113_617
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_617
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_617
+CALL M_KOJO_MESSAGE_COM_K113_617_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_617_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	PRINTFORMW 
+	SELECTCASE RAND:5
+		CASE 0
+			PRINTFORML 「アイスはいつ食べても美味しいわねぇ♪」
+			PRINTFORMDW ストロベリー、バニラ、チョコミントの三段重ねアイスを食べている。どんな味がするのだろう……？
+		CASE 1
+			PRINTFORML 「私にも、"侘び寂び"とやらが分かってきたわ」
+			PRINTFORMDW 団子と緑茶を堪能しながら、へカーティアと一服した。
+		CASE 2
+			PRINTFORML 「私達だけの秘密よ？%CALLNAME:MASTER%♪」
+			PRINTFORMDW へカーティアと甘味の食べ歩きをした。
+		CASE 3
+			PRINTFORML 「%CALLNAME:MASTER%。一口もらうわよん♪」
+			CALL HPH_PRINT,@" 「ん～♪甘くて美味しいわ～HPH」","L"
+			PRINTFORMDW へカーティアに、クレープを半分近く食べられてしまった……
+		CASE 4
+			;季節もの
+			;春
+			IF DAY:2 == 1
+				PRINTFORML 「%CALLNAME:MASTER%、何買ってきたの？」
+				PRINTFORML 「柏餅ぃ？お子様ねぇ……」
+				PRINTFORMW 「……ちょっと、食べないなんて言ってないわよ」
+			;夏
+			ELSEIF DAY:2 == 2
+				PRINTFORML 「%CALLNAME:MASTER%見なさい♪三つの世界の私をイメージしたこのかき氷を！」
+				PRINTFORMDL どうやらイチゴ・レモン・ブルーハワイのシロップをかけたようだ。混ざり合って、濁った抹茶の様な色をしている……
+				CALL HPH_PRINT,@" 「ん～HPH冷たくて美味……し…」","L"
+				PRINTFORML 「……%CALLNAME:MASTER%。残りはあげるわ」
+				PRINTFORMDW あまり美味しくなかったようだ……
+			;秋
+			ELSEIF DAY:2 == 3
+				PRINTFORML 「本場の月餅は、丁度今頃の時期に食べるそうよ」
+				PRINTFORML 「でもまあ……やっぱり純狐が作ってくれた方が美味しいわねぇ」
+				PRINTFORMDW へカーティアと月餅を食べた。
+			;冬
+			ELSE
+				CALL HPH_PRINT,@" 「まあ、美味しそうな焼き芋HPH」","L"
+				PRINTFORML 「それじゃ有難くいただくわね、%CALLNAME:MASTER%♪」
+				PRINTFORMDW へカーティアと焼き芋を食べた。
+			ENDIF
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;618,花屋（口上は表示されない模様？
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_618
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_618
+CALL M_KOJO_MESSAGE_COM_K113_618_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_618_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;620,鈴奈庵
+;TFLAG:193(1=貸し出しOK 0=貸し出し不可
+;ITEM:10X (X=1戦術指南書 X=2調理指南書 X=3字引 X=4御伽草子
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_620
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_620
+CALL M_KOJO_MESSAGE_COM_K113_620_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_620_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE RAND:3
+		CASE 0
+			PRINTFORML 「やだ、三巻が借りられてるじゃないの！」
+			PRINTFORMW 「続きが早く読みたいのに～！何処のどいつよ！」
+		CASE 1
+			PRINTFORMW 「もっとグリモワール的な本は無いのかしら？」
+		CASE 2
+			PRINTFORMW 「%CALLNAME:MASTER%。返す時は、私のもついでに頼むわよん♪」
+	ENDSELECT
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;621,釣りをする
+;COM_STR（釣れたもの　"釣れない","ローター","木片","紙切れ", またはアイテム名、魚の種類）
+;TFLAG:194(1000以上ならTARGETが釣った)
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_621
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_621
+CALL M_KOJO_MESSAGE_COM_K113_621_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_621_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:193
+	;釣れない
+	CASE 0
+		SELECTCASE RAND:6
+			CASE 0
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「%CALLNAME:MASTER%ー、まだ釣れないのー？」
+					CASE 1
+						PRINTFORML 「まさに、"下手の横好き"ってヤツねぇ♪」
+					CASE 2
+						PRINTFORML 「昔、釣りが好きな凄い政治家がいたの」
+						PRINTFORML 「―って、純狐が言ってたわ♪」
+				ENDSELECT
+				PRINTFORMDW 生返事を返し、%CALLNAME:MASTER%は釣りを続けた……
+			CASE 1
+				PRINTFORML 「魚にすらナメられるなんて、可哀想な%CALLNAME:MASTER%……」
+				PRINTFORMDW 溜息混じりに呟くへカーティアに少しカチンときた……
+			CASE 2
+				PRINTFORML 「飽きたわ」
+				PRINTFORMDW ヘカーティアは釣竿を片付け始めている……
+			CASE 3
+				PRINTFORML 「排球拳いくわよーんっ♪」
+				SETCOLOR 0x2459F0
+				CALL HPH_PRINT,@"「はぁ～いHPH」","L"
+				SETCOLOR 0xF0D124
+				CALL HPH_PRINT,@"「はぁ～いHPH」","L"
+				PRINTFORMDW 釣りに飽きたのか、へカーティア達は何処からか取り出したボールで遊び始めた……
+			CASE 4
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「……ここは駄目ね。場所を変えましょう」
+					CASE 1
+						PRINTFORML 「ふわぁ～……暇だからしりとりでもしましょう？」
+					CASE 2
+						PRINTFORML 「私達、何しに来たのかしらねぇ……」
+				ENDSELECT
+				PRINTFORMDW へカーティアも釣れないようだ……
+			CASE 5
+				PRINTFORML 「%TEXTR("あ、釣れたわ♪/あら、釣れちゃった♪/やった♪釣れたわ！")%」
+				SELECTCASE RAND:5
+					CASE 0
+						PRINTFORML 「……%CALLNAME:MASTER%は～？んー？」
+					CASE 1
+						PRINTFORML 「あ～あ、敗北を知りたいわねぇ……♪」
+					CASE 2
+						PRINTFORML 「ほほほ♪%CALLNAME:MASTER%は釣りが下手ねぇ♪」
+					CASE 3
+						PRINTFORML 「ふっ……♪コツ、教えてあげましょうか？」
+					CASE 4
+						CALL HPH_PRINT,@"「嗚呼、なんて綺麗な鱗でしょう…♪惚れ惚れするわねぇ…HPH」","L"
+				ENDSELECT
+				PRINTFORMDW なるべくへカーティアの方を見ないようにして、釣りを続けた……
+		ENDSELECT
+	;ローター
+	CASE 21
+		IF TFLAG:194 > 1000
+			PRINTFORMW 「やーねぇ。こんな所でサカってた奴がいたのかしら」
+		ELSE
+			PRINTFORMW 「そんな誰が使ったかも分からないモノ、ばっちいから捨てなさい」
+		ENDIF
+	;守矢の守札
+	CASE 131
+		IF TFLAG:194 > 1000
+			PRINTFORML 「…………。」
+			PRINTFORMDW へカーティアは釣り針にかかった紙切れを外し、丸めて投げ捨てた……
+		ELSE
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMW 「大吉ですって。ラッキーねぇ♪」
+				CASE 1
+					PRINTFORMW 「末吉？パッとしないわねぇ……」
+				CASE 2
+					PRINTFORMW 「あははは！凶ですって！」
+			ENDSELECT
+		ENDIF
+	;龍の爪・氷の鱗
+	CASE 606,609
+		PRINTFORMW 「何かに使えそうねぇ」
+	;木材
+	CASE 610
+		IF TFLAG:194 > 1000
+			PRINTFORML 「…………。」
+			PRINTFORMDW へカーティアは釣り針にかかった木片を外し、遠くへ投げ捨てた……
+		ELSE
+			PRINTFORML 「ふっ……」
+			PRINTFORMDW へカーティアに鼻で笑われた……
+		ENDIF
+	;カエル
+	CASE 700
+		;嫦娥はヒキガエルの姿をしている
+		PRINTFORMW 「コイツ、憎たらしい顔してるわねぇ」
+	;魚多すぎるので統合
+	CASEELSE
+		SELECTCASE RAND:5
+			CASE 4
+				IF TFLAG:194 > 1000
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「あら、私も釣れたわ♪」
+						CASE 1
+							PRINTFORML 「いっぱい釣れるわねぇ♪群れでも来てるのかしら？」
+						CASE 2
+							PRINTFORML 「大漁、たいりょー♪」
+					ENDSELECT
+					PRINTFORMDW へカーティアも魚を釣り上げたようだ。
+				ELSE
+					SELECTCASE RAND:5
+						CASE 0
+							PRINTFORML 「や……やるじゃない……！」
+						CASE 1
+							PRINTFORML 「……%CALLNAME:MASTER%、もう少し向こうで釣りなさい。私の分が無くなるでしょうが」
+						CASE 2
+							PRINTFORML 「……腹立つわねぇ、そのドヤ顔」
+						CASE 3
+							PRINTFORMW 「んもう……何で私は釣れないのよん！」
+						CASE 4
+							PRINTFORML 「今に見てなさい……大物を釣り上げて、貴方を跪かせてやるわ…！」
+					ENDSELECT
+					PRINTFORMDW 悔しそうなへカーティアを見るのは少し楽しい。
+				ENDIF
+			CASEELSE
+				;確率五分の一でこっち
+				PRINTFORMW 「ピースの松明で焼いたら美味しそうねぇ…♪」
+		ENDSELECT
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;626,土産屋
+;TFLAG:194(行動結果(-2=ひやかし -1=ウィンドウショッピング 1=400点未満（BAD） 2=～699点（NOMAL） 3=700点以上（GOOD）
+;CFLAG:性格傾向による地の文分岐あり
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_626
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_626
+CALL M_KOJO_MESSAGE_COM_K113_626_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_626_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	SELECTCASE TFLAG:194
+		;ひやかし
+		CASE -2
+			PRINTFORMW 「今度からは、怒られる前に店を出なさいな」
+		;やっぱりやめる（見送り）
+		CASE -1
+			PRINTFORMW 「次来た時は、いいのがあるかもしれないわねぇ？」
+		;400点未満（BAD）
+		CASE 1
+			PRINTFORML 「……貴方ってセンス無いのねぇ」
+			PRINTFORMDW ヘカーティアにだけは言われたくない……
+		;400点～699点（NOMAL）
+		CASE 2
+			PRINTFORML 「ごーかーく！貰っておくわ♪」
+			PRINTFORMDW ヘカーティアはプレゼントを気に入ってくれたようだ。
+		;700点以上（GOOD）
+		CASE 3
+			PRINTFORML 「流石ねぇ%CALLNAME:MASTER%！」
+			CALL HPH_PRINT,@"「私の好みというものを、よく理解しているわHPH」","L"
+			PRINTFORMDW ヘカーティアは、プレゼントをとても気に入ってくれたようだ。
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+;660,読書
+;TFLAG:193(選択肢文学(1=忍殺(文学？) 2=失敗 3=文学),選択肢実用書(4=失敗 5=実用書),選択肢エッチな本(6=薄い高い本 7=保健体育 8=カーマスートラ))
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_660
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_660
+CALL M_KOJO_MESSAGE_COM_K113_660_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_660_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 0
+;-------------------------------------------------
+IF LOCAL
+
+ENDIF
+RETURN 1
+;==================================================
+;698,部屋に入る
+;TARGETの部屋に入る場合のみ表示
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_698
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_698
+CALL M_KOJO_MESSAGE_COM_K113_698_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_698_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;不機嫌
+	IF CFLAG:318 == 1
+		PRINTFORML 「どうせ聞く気は無いのでしょうけど、一応言っとくわ」
+		PRINTFORML 「さっさと出て行きなさい」
+		PRINTFORMDW ヘカーティアは機嫌が悪いようだ……
+	ELSEIF TALENT:恋慕 || TALENT:思慕
+		SELECTCASE RAND:6
+			CASE 0
+				PRINTFORML 「んもう、待ちくたびれたわよん♪」
+				IF TALENT:恋人
+					CALL HPH_PRINT,@"「早く遊びましょ……HPH」","L"
+					PRINTFORMDW ヘカーティアが熱っぽい視線を向けてくる……！
+				ELSE
+					PRINTFORMW 「さあ、何して遊びましょうか♪」
+				ENDIF
+			CASE 1
+				PRINTFORML 「ぐぅ……くかー……♪」
+				PRINTFORML 「……あ？ふわぁ～……何よん？せっかくお昼寝してたのに……」
+				PRINTFORMDW 部屋の真ん中で寝ていたヘカーティアを起こした。
+			CASE 2
+				PRINTFORML 「あら？%CALLNAME:MASTER%、いらっしゃ～い♪」
+				PRINTFORMDL ヘカーティアは、寝そべりながら漫画を読んで寛いでいた。
+				PRINTFORMDW 女神の威厳とやらは何処に行ったのだろう……
+			CASE 3
+				PRINTFORML 「あら！言わなくてもお掃除してくれるなんて、感心感心♪」
+				PRINTFORMDW 散らかっているヘカーティアの部屋を少し掃除した……
+			CASE 4
+				PRINTFORML 「えーっと……地球、左足を赤」
+				SETCOLOR 0x2459F0
+				PRINTFORML 「くうっ……！きいぃ～～！足つりそう……！」
+				SETCOLOR 0xF0D124
+				PRINTFORML 「痛たたた…！ねぇ！これ、%CALLNAME:MASTER%が来てからやりましょうよ～！」
+				PRINTFORMDW 部屋に入ると、ヘカーティア達がツイスターゲームで遊んでいた……
+			CASE 5
+				PRINTFORML 「……匂いを嗅ぎつけてきたのかしら？」
+				PRINTFORMDW 部屋に入ると、ヘカーティアがお菓子を食べていた。
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:6
+			CASE 0
+				PRINTFORML 「いらっしゃい♪入場料はたったの￥1000よん♪」
+				PRINTFORMW 「あ～！冗談だから帰ろうとしないの！」
+			CASE 1
+				PRINTFORML 「%CALLNAME:MASTER%。貴方に使命を与えましょう」
+				PRINTFORML 「私の部屋を掃除してちょうだい」
+				PRINTFORMDW 散らかっているヘカーティアの部屋を少し掃除した……
+			CASE 2
+				PRINTFORML 「ぐぅ～……くか～……」
+				PRINTFORML 「―はっ！？の、ノック位しなさいな！」
+				PRINTFORMDW どうやら、昼寝中だったようだ……
+			CASE 3
+				PRINTFORML 「%CALLNAME:MASTER%、お菓子はちゃんと持ってきた？」
+				PRINTFORMW 「……オーケーオーケー♪入ってよ～し」
+			CASE 4
+				PRINTFORML 「ふふふ……ようこそ、迷える仔羊よ……♪」
+				PRINTFORMDW 変な女神が、変なポーズをしながら出迎えてくれた……
+			CASE 5
+				PRINTFORML 「ふふふ……ようこそ、迷えるこひちゅっ……仔羊よ」
+				PRINTFORMDW 何事も無かったかの様に言い直した……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;699,外に出る
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_COM_K113_699
+RETURN 0
+
+@M_KOJO_MESSAGE_COM_K113_699
+CALL M_KOJO_MESSAGE_COM_K113_699_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K113_699_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;睡眠フラグ
+	IF CFLAG:睡眠 && CFLAG:113:衰弱
+		PRINTFORMDW ぐっすり眠っているヘカーティアを起こさないように外に出た。
+	;不機嫌
+	ELSEIF CFLAG:318 == 1
+		PRINTFORML 「……貴方、まだいたの？」
+		PRINTFORMDL 今のヘカーティアは虫の居所が悪いようだ。
+		PRINTFORMDW 八つ当たりを受ける前に退散することにした……
+	ELSE
+		PRINTFORMW 「%TEXTR("また来なさいな♪/また遊びましょうねぇ♪/じゃあね～♪/あら、もう行っちゃうの？")%」
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;派生コマンド
+;※※※※※※※※※※※※※※※※※※※※※※※※※
+;==================================================
+;60,耳かき
+;前ターン膝枕後スキンシップコマンド
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(失敗するのはTARGET
+;==================================================
+@M_KOJO_SUCCESS_SCOM_K113_60
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_SCOM_K113_60
+RETURN 0
+
+@M_KOJO_MESSAGE_SCOM_K113_60
+CALL M_KOJO_MESSAGE_SCOM_K113_60_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K113_60_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF TFLAG:193 == 1
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「見なさい%CALLNAME:MASTER%。大物が取れたわよ」
+				PRINTFORMDW 何処に入っていたのか、大きな耳垢が棒の先に付いている。
+			CASE 1
+				PRINTFORML 「ふふふ……気持ちいいでしょう？」
+				PRINTFORMDW 大量の棘が耳の中を刺激してくる……心地良い感触だ。
+			CASE 2
+				
+				PRINTFORML 「……ふ～っ」
+				PRINTFORML 「あははは！いい反応♪」
+				PRINTFORMDW 耳に息を吹きかけられ、変な悲鳴を上げてしまった……
+		ENDSELECT
+	ELSEIF TFLAG:193 == -1
+		PRINTFORML 「はいはい、逃げようとしないの」
+		IF TALENT:111:恋人 
+			PRINTFORML 「そんな汚い耳じゃ、ピースに嫌われるわよ？」
+		ELSEIF TALENT:112:恋人 
+			PRINTFORML 「そんな汚い耳じゃ、純狐に愛想尽かされちゃうわよ？」
+		ELSE
+			PRINTFORML 「大人しくしてればすぐ終わるんだから」
+		ENDIF
+		PRINTFORMDW 棘だらけの、見るからに痛そうな耳かき棒が迫ってくる……！
+		
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;61,抱きまくら
+;(TARGET睡眠時間or衰弱)添い寝中、前ターン抱きつく後就寝コマンド
+;分岐無し
+;==================================================
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_SCOM_K113_61
+RETURN 0
+
+@M_KOJO_MESSAGE_SCOM_K113_61
+CALL M_KOJO_MESSAGE_SCOM_K113_61_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K113_61_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:睡眠
+		IF TALENT:恋慕
+			CALL HPH_PRINT,@"「ん……HPH」","L"
+			PRINTFORMDW 寝ているへカーティアを抱き寄せ、%CALLNAME:MASTER%も眠りについた……
+		ELSE
+			PRINTFORML 「ん゛～……」
+			PRINTFORMDW へカーティアは寝苦しそうに顔をしかめている……
+		ENDIF
+	ELSE
+		SELECTCASE RAND:(TALENT:恋人 ? 9 # 5)
+			CASE 0
+				PRINTFORML 「ぐがぁ～……！Zzz……♪」
+				PRINTFORMDL へカーティアに抱きしめられ、身動きが取れない……
+				PRINTFORMDW 耳元でいびきを聞かされ、%CALLNAME:MASTER%は眠れぬ夜を過ごした……
+			CASE 1
+				PRINTFORML 「……%CALLNAME:MASTER%って、寝てる時はこんな顔してるのねぇ」
+				PRINTFORML 「ふふふ……明日はどんな事して遊んでやろうかしら……♪」
+				PRINTFORMW （おやすみ……）
+			CASE 2
+				PRINTFORML 「すぅ……すぅ……」
+				PRINTFORMDL へカーティアが無防備に寝息を立てている。
+				PRINTFORMDW 少し悪戯でもしてやろうと、%CALLNAME:MASTER%は彼女に手を伸ばした……
+				PRINTFORML 「うーん……んぅ……♪」
+				PRINTFORML 「……んん……？」
+				PRINTFORMDW 寝返りを打った拍子に、拳が腹にめり込んだ……
+			CASE 3
+				PRINTFORML 「……あー！寝苦しい！」
+				PRINTFORMDW へカーティアを抱いて寝ていたら、布団から追い出された……
+			CASE 4
+				PRINTFORML 「%CALLNAME:MASTER%は私と純狐とピースの誰が好きなの？」
+				PRINTFORML 「白状するまで、今夜は寝かせないわよん♪」
+				PRINTFORMDW へカーティアに抱きしめられて、寝床から逃げられない……
+			CASE 5
+				CALL HPH_PRINT,@"「あんっHPHんもう、くすぐったいわよんHPH」","L"
+				PRINTFORMDW 眠くなるまで、へカーティアと布団の中でじゃれ合った。
+			CASE 6
+				CALL HPH_PRINT,@"「大好きよ……HPH%CALLNAME:MASTER%……HPH」","L"
+				PRINTFORMDW へカーティアと口づけを交わし、眠りについた……
+				EXP:113:キス経験 ++
+				EXP:MASTER:キス経験 ++
+			CASE 7
+				PRINTFORML 「……%CALLNAME:MASTER%。まだ起きてるでしょ？」
+				CALL HPH_PRINT,@"「ん……♪ちゅ……HPHは、ぷ…HPHれる……HPHちゅぷ……HPH」","L"
+				CALL HPH_PRINT,@"「はぁ……HPH…ふふふ……♪準備出来たわねぇHPH」","L"
+				CALL HPH_PRINT,@"「それじゃあ……HPHん、あぁ…っ…HPH」","L"
+				PRINTFORMDW へカーティアと明け方まで愛し合った……！"
+			CASE 8
+				PRINTFORML 「…ん？なぁに、%CALLNAME:MASTER%？シたくなったの？」
+				CALL HPH_PRINT,@"「しょうがないわねぇ……一回だけよんHPH」","W"
+		ENDSELECT
+	ENDIF
+ENDIF
+RESETCOLOR
+RETURN 1
+;==================================================
+;62,デコちゅー
+;前ターン頭撫で後キスする
+;TFLAG:193(1=大成功 0=成功 -1=失敗)(地の文分岐無し
+;ABL:欲望(5以上=物足りない
+;ABL:親密(5以上=照れる
+;==================================================
+@M_KOJO_SUCCESS_SCOM_K113_62
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_SCOM_K113_62
+RETURN 0
+
+@M_KOJO_MESSAGE_SCOM_K113_62
+CALL M_KOJO_MESSAGE_SCOM_K113_62_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K113_62_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF CFLAG:睡眠
+		PRINTFORML 「んんぅ……？……Zzz……」
+		PRINTFORMDW ヘカーティアは一瞬顔をしかめたが、起きる気配はなさそうだ。
+	;怒り
+	ELSEIF CFLAG:318 == 1
+		PRINTFORML 「…気持ち悪いわねぇ。貴方、殺されたいの？」
+		PRINTFORMDW へカーティアに睨まれた……
+	ELSEIF TALENT:恋人
+		SELECTCASE RAND:4
+			CASE 0
+				CALL HPH_PRINT,@" 「……ふふっ♪似合わない事しちゃって……HPH」","W"
+			CASE 1
+				PRINTFORMW 「んー……何か物足りないわねぇ……」
+			CASE 2
+				CALL HPH_PRINT,@" 「ん……HPH次は唇がいいわ……♪」","W"
+			CASE 3
+				PRINTFORMW 「キスしたいのなら、そこじゃなくて唇になさい」
+		ENDSELECT
+	ELSEIF TALENT:恋慕 || TALENT:思慕
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORMW 「あら？どうしたのよん、似合わない事して」
+			CASE 1
+				PRINTFORML 「何よ急に……キスしたかったの？」
+				PRINTFORML 「とりあえずお仕置き～♪」
+				PRINTFORMDW %TEXTR("地球/月")%をぶつけられた……
+			CASE 2
+				PRINTFORMW 「マウスtoマウスじゃなきゃノーカンよん♪」
+		ENDSELECT
+	;陥落無し
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「あははは！面白い愛情表現ね%CALLNAME:MASTER%」
+				PRINTFORMW 「その面白さに免じて、今の粗相は許してあげましょう♪」
+			CASE 1
+				PRINTFORML 「ん？今のは宣戦布告かしら？」
+				PRINTFORML 「"違う"？じゃあコレで許してあげましょう♪」
+				PRINTFORMDW %TEXTR("地球/月")%をぶつけられた……
+			CASE 2
+				PRINTFORML 「うーん……地獄の女神である私を畏れる所か、キスまでしてくるとは……」
+				PRINTFORMW 「怒りを通り越して、寧ろ感心するわ」
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;63,もっとキスする
+;前ターンキスする後キスする
+;分岐条件はEVENT_MESSAGE_COM500.ERB参照
+;==================================================
+@M_KOJO_SUCCESS_SCOM_K113_63
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_SCOM_K113_63
+RETURN 0
+
+@M_KOJO_MESSAGE_SCOM_K113_63
+CALL M_KOJO_MESSAGE_SCOM_K113_63_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K113_63_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	IF FLAG:70
+		PRINTFORMDL 時を止められて動けないへカーティアの唇を奪った。
+		PRINTFORMDW 地獄の女神でさえ、この能力の前には赤子同然だ……！
+	ENDIF
+	IF TALENT:恋慕
+		SELECTCASE RAND:8
+			CASE 0
+				CALL HPH_PRINT,@"「はぁ…HPH…唇が触れるだけでも、ドキドキしちゃうわねぇ……HPH」","L"
+				CALL HPH_PRINT,@"「もう一回……♪んっ…HPH」","W"
+			CASE 1
+				CALL HPH_PRINT,@"「んっ……あ……HPHじゅるっHPH」","L"
+				CALL HPH_PRINT,@"「ちゅ…HPHれるぅ……HPHじゅる……HPH」","L"
+				PRINTFORMDW へカーティアと舌を絡めてキスをした。
+			CASE 2
+				CALL HPH_PRINT,@"「まあ積極的HPH素敵よ%CALLNAME:MASTER%HPH」","L"
+				CALL HPH_PRINT,@"「んっHPH……ふぁ……れ…りゅ……ぅぅ……HPH」","L"
+				CALL HPH_PRINT,@"「ちゅる…HPHちぅ…HPHじゅるぅっ……HPH」","L"
+				PRINTFORMDW へカーティアの柔らかい舌が、口内に入ってきた……！
+			CASE 3
+				CALL HPH_PRINT,@"「んちゅっ…HPHは…ぁ…♪れるっ……HPHちゅ、ぷ…HPH」","L"
+				CALL HPH_PRINT,@"「はっ…ぁ…HPHれ…るぅ…HPHはぁ…HPHちゅる…ぅっ…HPH HPH」","L"
+				PRINTFORMDW 熱の篭った吐息を吐き出しながら、へカーティアと舌を絡め合った……！
+			CASE 4
+				CALL HPH_PRINT,@"「ぁ……HPHはむっHPHちゅ……HPHちゅっ……HPH」","L"
+				CALL HPH_PRINT,@"「ん……ふふ…♪れるっHPHちゅHPHじゅ……HPHちゅるる……ぅぅ…HPH」","L"
+				PRINTFORMDW キスをしながら、ヘカーティアと愛を囁き合った…
+			CASE 5
+				PRINTFORML 「ちゅっ……♪」
+				PRINTFORML 「……あら？もうおしまい？」
+				PRINTFORMDW 唇を軽く触れ合わせるキスをした……だが、へカーティアは少し物足りなそうだ。
+			CASE 6
+				CALL HPH_PRINT,@"「んふ…HPHれるっHPHじゅHPHちるぅっHPH」","L"
+				CALL HPH_PRINT,@"「あっ……！まだ、ダメよん…♪んっ…HPHじゅるHPHぢゅううっーHPH HPH」","L"
+				PRINTFORMDW へカーティアにしっかりと抱きしめられ、離れられない……！
+			CASE 7
+				CALL HPH_PRINT,@"「ぢゅ……HPHじゅ…る…HPH」","L"
+				CALL HPH_PRINT,@"「ふぉら……HPHもっほ……しは、からめへ……HPHじゅる……HPH」","W"
+		ENDSELECT
+	ELSEIF TALENT:思慕
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「ちゅっ……♪」
+				PRINTFORMW 「良かったわねぇ、女神とキス出来て♪」
+			CASE 1
+				PRINTFORML 「んっ…ちゅ……♪」
+				PRINTFORML 「はぁ……ふふふ…♪」
+				PRINTFORMDW ヘカーティアの笑顔に、胸が少し高鳴った…！
+			CASE 2
+				CALL HPH_PRINT,@"「ちゅっ……HPH……はーい、おしまーい♪」","L"
+				PRINTFORMW 「…なーに%CALLNAME:MASTER%？物足りなそうねぇ……♪」
+		ENDSELECT
+	ELSE
+		SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「―んっ！？」
+				PRINTFORMDW 突然のキスに、流石のへカーティアも反応出来なかったようだ。
+			CASE 1
+				PRINTFORML 「んっ……ッ！」
+				PRINTFORMDW 腹を殴りつけられ、キスを中断させられた……
+			CASE 2
+				PRINTFORML 「ん……はぁ……♪」
+				PRINTFORMDW この後、思い切り足を踏まれた……
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1
+;==================================================
+;80,手を引く
+;デート出発後目的地に着くまでの間
+;TFLAG:193(1=大成功 0=成功 -1=失敗)
+;==================================================
+@M_KOJO_SUCCESS_SCOM_K113_80
+;成否判定
+;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+TFLAG:192 =0
+
+;==================================================
+;Optional: Determines if the standard description should be skipped.
+;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
+;==================================================
+@M_KOJO_MESSAGE_MESSAGECHECK_SCOM_K113_80
+RETURN 0
+
+@M_KOJO_MESSAGE_SCOM_K113_80
+CALL M_KOJO_MESSAGE_SCOM_K113_80_1
+RETURN RESULT
+@M_KOJO_MESSAGE_SCOM_K113_80_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;怒り
+	IF CFLAG:318 == 0
+		PRINTFORML 「気安く触らないで欲しいわねぇ」
+		PRINTFORMDW 手を引こうとすると、ヘカーティアに睨まれた……
+	ELSE
+		SELECTCASE RAND:3
+			CASE 0
+				PRINTFORML 「んもう、せっかちねぇ……♪」
+				PRINTFORMDW へカーティアの手を引いて、目的地へ急いだ。
+			CASE 1
+				PRINTFORML 「さ、行くわよ%CALLNAME:MASTER%。駆け足！」
+				PRINTFORMDW へカーティアは手を繋いだまま走り出した。
+			CASE 2
+				PRINTFORML 「そんなに早く遊びたいの？仕方ないわねぇ……♪」
+				PRINTFORMDW へカーティアも%CALLNAME:MASTER%に合わせて速く歩き出した。
+		ENDSELECT
+	ENDIF
+ENDIF
+RETURN 1

@@ -46,3 +46,343 @@ CUSTOM_TALENT:30:1 = !INRANGE(TCVAR:30:363, -1, 0)
 CUSTOM_TALENT_NAME:30:1 = %\@ TCVAR:30:363 < 0 ? 朝から # お口が \@%満足
 CUSTOM_TALENT_COLOR:30:1 = 1
 CUSTOM_TALENT_TYPE:30:1 = 0
+
+;================================
+;カスタムコマンド0_説教を受ける
+;================================
+;コマンド名
+@KOJO_COM_NAME_K30_0
+RESULTS = 説教を受ける
+
+;コマンド使用条件。通常のCOM_ABLE関数と同じくRETURN 1すれば実行可能としてコマンドが表示される
+@KOJO_COM_ABLE_K30_0
+SIF SHIRAHU(MASTER) != 1 || SHIRAHU(30) != 1 || CFLAG:30:1701 < 10 || TFLAG:COMABLE管理 > 1
+	RETURN 0
+SIF GET_TARGETNUM() > 1 || CHK_DATENOW(CFLAG:30:デート中) || MARK:30:反発刻印 > 1
+	RETURN 0
+SIF NEMUKE() > 240 || !CHARA_HOLIDAY(30) || K30_CHECK_HEN_T()
+	RETURN 0
+RETURN 1
+
+;コマンド実行内容。経験・SOURCE変動を記述
+;RETURN 1=コマンド実行 / RETURN 0=キャンセル(SOURCE計算SKIP) / RETURN -1=コマンド取り消し
+@KOJO_COM_K30_0
+#DIM お怒り
+お怒り = CFLAG:ブチギレ || MARK:反発刻印
+PRINTFORML …本当に受けますか？（%\@ お怒り ? 映姫の怒りが静まる代わりに # このまま \@%一日が終了します）
+CALL ASK_YN
+SIF RESULT
+	RETURN -1
+;好感度低いなら効果強め、でも効率考えると使う意味なし
+TFLAG:194 = 720 - NEMUKE() / 60
+SOURCE:情愛 = 75 * TFLAG:194
+SOURCE:達成 = 150 * TFLAG:194
+IF CFLAG:30:好感度 <= 500
+	TIMES SOURCE:情愛, 1.50
+	TIMES SOURCE:達成, 1.50
+ELSEIF CFLAG:30:好感度 <= 5000
+	TIMES SOURCE:情愛, 1.25
+	TIMES SOURCE:達成, 1.25
+ENDIF
+BASE:MASTER:体力 = 0
+BASE:MASTER:気力 = 0
+IF お怒り
+	SOURCE:情愛 = 0
+	SOURCE:達成 /= 3
+	CFLAG:ブチギレ = 0
+	CFLAG:不機嫌 = 0
+	BASE:怒り = 0
+	BASE:MASTER:体力 = -500
+	TFLAG:193 = 1
+	IF MARK:反発刻印
+		SOURCE:達成 = 0
+		MARK:反発刻印 = 0
+		TFLAG:193 = 2
+		BASE:MASTER:体力 = -2500
+	ENDIF
+ENDIF
+TFLAG:194 = MIN(TFLAG:194, 6)
+TIME += TFLAG:194  * 60
+RETURN 1
+
+;コマンドメッセージ。口上色が指定される。
+;Vの値は(270 + Y)。SELECTCOM/PREVCOMの代入値も同じ
+@M_KOJO_MESSAGE_COM_K30_270
+#DIM TEMP
+#DIM P_REDRAW
+#DIM L_COUNT
+#DIM LOOP_C
+#DIM LINE_C
+{
+#DIMS WORDS =	 "そもそもですね", "繰り返しますが", "はっきり言って", "客観的に見て",
+				 "例えるなら", "話は変わりますが", "大切なのは", "心を入れ替えて",
+				 "そう、貴方は少し", "これを機会に", "自身を振り返り", "このままでは"
+}
+{
+#DIMS MODIFY =	"永久に", "どこまでも", "エンドレスに", "いつまでも続く", "無限に",
+				"際限なく", "ずっと", "延々と", "ひたすら", "まだまだ",
+				"果てしなく", "長々と", "飽きもせず", "きりのない", "終わらない",
+				"クリックするまで", "やっぱり", "止めようもなく", "ぶっ続けで", "休むことなく"
+}
+CALL FISHER_YATES_SHAFFLE(12)
+CALLF FUNC_FISHER_YATES_SHAFFLE(LOCAL, 20)
+VARSET LOCALS
+TEMP = 0
+MODIFY:(LOCAL:0) '= ""
+IF TFLAG:193
+	PRINTFORMDL 要望どおり映姫は%TEXTR("猛烈な勢いで/烈火のごとく/奔流のように")%説教をし始めた…
+ELSE
+	PRINTFORMDL %CALLNAME:MASTER%の願いを聞き、映姫は%TEXTR("ウキウキしながら/嬉々として/我が意を得たりとばかりに/")%説教をし始めた…
+ENDIF
+PRINTW
+PRINTFORML 「！！」
+IF !TFLAG:193
+	PRINTDATAW 
+		DATAFORM 「素晴らしい…とても立派な心がけです」\n「%K30_C_NAME(MASTER)%を見直しました」
+		DATAFORM 「そんなに私の教えが聞きたいだなんて…気づきませんでした」\n「善行を積むことの大切さ、%K30_C_NAME(MASTER)%もやっとわかったようですね」
+		DATAFORM 「%K30_C_NAME(MASTER)%がこんなに殊勝になるとは…」\n「私の日々の行動も、少し報われた気がします」
+	ENDDATA
+	PRINTFORML 「…良いでしょう」
+	PRINTFORML 「幸い今日は予定も空いています」
+	PRINTFORML 「%TEXTR("いつもより気合いを入れて、/普段よりたっぷり時間をとって、/今まで言いそびれていた事も含めて、きちんと")%%K30_C_NAME(MASTER)%に教えを説いてあげますよ」
+ELSE
+	PRINTDATAW 
+		DATAFORM 「ようやく…ようやく心を入れ替える気になったのですね」
+		DATAFORM 「反省の意思がきちんとあるのなら、私もお手伝いしないわけにはいきません」
+		DATAFORM 「私の堪忍袋の緒が切れる前に、自分から気づいたようで何よりです」
+	ENDDATA
+	PRINTFORML 「今日は私の予定も空いています…貴方も遠慮はいりませんよ」
+	PRINTDATAL 
+		DATAFORM 「では、少々長くなると思いますが…しっかり聞いてください」
+		DATAFORM 「さて、何から始めるべきか…教えを説きながら整理していきましょう」
+		DATAFORM 「では…反省がこの場限りで終わらないように、しっかり教えを説きましょうか」
+	ENDDATA
+ENDIF
+PRINTL
+
+P_REDRAW = CURRENTREDRAW()
+LINE_C = LINECOUNT
+REDRAW 0
+WHILE 1
+	FOR LOOP_C, 0, 5
+		IF !TEMP
+			LOCALS:99 = いいですか
+		ELSEIF TEMP % 2
+			LOCALS:99 = 
+		ELSE
+			SIF !LOOP_C
+				LOCAL:99 = LOCAL:99 == 11 ? 0 # LOCAL:99 + 1
+			LOCALS:99 = \@ !LOOP_C ? %WORDS:(SHAFFLE_ARRAY:(LOCAL:99))% # %LOCALS:99% \@
+		ENDIF
+		LOCALS:0 = 「%LOCALS:99%%UNICODE(0x2026) * (9 - STRLENSU(LOCALS:99))%」
+		FOR L_COUNT, 1, 4
+			LOCALS:L_COUNT '= \@ LOOP_C >= L_COUNT ? 「%UNICODE(0x2026) * ((4 - L_COUNT) * 2 + 1)%」 # \@
+		NEXT
+		LOCALS:4 '= \@ LOOP_C == 4 ? （%MODIFY:(LOCAL:TEMP)%少女説教中…） # \@
+		FOR L_COUNT, 0, 5
+			IF L_COUNT < 4
+				PRINTFORML %LOCALS:L_COUNT%
+			ELSE
+				PRINTFORMDL %LOCALS:L_COUNT%
+			ENDIF
+		NEXT
+		TWAIT 350 + ((LOOP_C == 4) * 1050), 0
+		SIF GETKEY(1) && TEMP > 1
+			GOTO LOOP_BREAK
+		CLEARLINE LINECOUNT - LINE_C
+	NEXT
+	CLEARLINE LINECOUNT - LINE_C
+	TEMP = TEMP < 19 ? TEMP + 1 # 1
+WEND
+$LOOP_BREAK
+REDRAW P_REDRAW
+LOCALS:0 '= "「………」", "「……………」", "「…………あら？」"
+CALL PRINT_GROUP(LOCALS, 3, 350)
+IF TFLAG:193
+	PRINTFORMDL …{TFLAG:194}時間も説教を続けたおかげで、映姫は機嫌を直したようだ
+	PRINTFORMDW 映姫%\@ TFLAG:193 > 1 ? は反発刻印LV1を失った # の怒りは収まった \@%
+ELSE
+	PRINTFORMDL …{TFLAG:194}時間も説教しているのに映姫は疲れた様子も見せない
+	PRINTFORMDL むしろ普段より生き生きとして、とても楽しそうに説教を続けている
+ENDIF
+PRINTFORML
+PRINTFORMDW しかし、%CALLNAME:MASTER%の方はもう限界だ…
+RETURN 1
+
+;================================
+;カスタムコマンド1_スイッチ操作
+;================================
+@KOJO_COM_NAME_K30_1
+RESULTS = スイッチ操作
+
+@KOJO_COM_ABLE_K30_1
+SIF !TEQUIP:30:アナルバイブ || !SHIRAHU(30)
+	RETURN 0
+SIF TFLAG:COMABLE管理 > 1 || CFLAG:30:うふふ || CFLAG:MASTER:うふふ
+	RETURN 0
+SIF TCVAR:30:364 < 1 || !TCVAR:30:365 || TIME:1 - TCVAR:30:368 < 10
+	RETURN 0
+RETURN 1
+
+@KOJO_COM_K30_1
+;強弱切替え
+TCVAR:30:365 = TCVAR:30:365 == 1 ? 2 # 1
+;-------------------------------------------------
+;COM別FLAGの設定
+;-------------------------------------------------
+;行為者
+TCVAR:116 = PLAYER
+TFLAG:理性削り = 1
+;-------------------------------------------------
+;適当にソース追加処理
+;-------------------------------------------------
+;弱
+IF TCVAR:30:365 == 1
+	SOURCE:露出 = 50
+	SOURCE:屈従 = 50
+	SOURCE:欲情 = 100
+	SOURCE:受動 = 100
+	SOURCE:反感 = 10
+	LOCAL = 2
+;強
+ELSE
+	SOURCE:露出 = 150
+	SOURCE:屈従 = 150
+	SOURCE:欲情 = 50
+	SOURCE:受動 = 50
+	SOURCE:反感 = 20
+	LOCAL = 5
+ENDIF
+SIF HITOKE(1)
+	TIMES SOURCE:露出 , 2.50
+;-------------------------------------------------
+;経験の処理
+;-------------------------------------------------
+EXP:Ａ経験 ++
+EXP:PLAYER:道具使用経験 ++
+TIME += LOCAL
+TCVAR:30:368 = TIME:1 + LOCAL 
+RETURN 1
+
+@M_KOJO_MESSAGE_COM_K30_271
+#DIM TGT
+LOCAL = K30_FIND_AROUND()
+TGT = GROUPMATCH(LOCAL, 49, RANDOM_CHARANUM) ? 0 # LOCAL
+IF TCVAR:30:365 == 1
+	PRINTFORMDL %CALLNAME:MASTER%は懐のスイッチを「弱」に戻した
+	IF NOWEX:Ａ絶頂
+		PRINTFORMDL だが映姫の昂ぶった身体はもう絶頂をこらえる事ができない…
+		CALL K30_PRINT_VIBE_DATE
+		PRINTFORMW
+		STRDATA LOCALS
+			DATAFORM 「%K30_C_NAME(MASTER)%、今さら…緩めてもらっても、遅いんですよHPH」\n「もう、止められません…HPH」
+			DATAFORM 「…『待て』、ですか？」\n「そんなの…これ、抜いてもらわないと…ムリですねHPH」
+			DATAFORM 「…ここで、寸止めなんて…出来るわけ、ありませんHPH」\n「このまま、ゆっくり、と…このまま…HPH」
+		ENDDATA
+		CALL HPH_PRINT, LOCALS, "W"
+		RETURN 1
+	ELSE
+		PRINTDATADL
+			DATAFORM 映姫は乱れた身なりを整え深呼吸をしている
+			DATAFORM 強すぎる快感から開放され、映姫は安堵のため息をついている
+			DATAFORM 映姫は額に浮いた汗を拭き大きく息を吐いている
+		ENDDATA
+		IF K30_BE_SEEN() && !TFLAG:デート道中
+			PRINTFORMDL 念のため%\@ TGT ? %CALLNAME:TGT%に # 誰にも \@%気づかれてないことを確認して、ようやく落ち着いたようだ
+		ELSE
+			PRINTFORMDL …だが、%CALLNAME:MASTER%を振り向いた視線は少し物足りなさそうにも見える
+		ENDIF
+	ENDIF
+	CALL K30_PRINT_VIBE_DATE
+	PRINTFORMW
+	CALL HPH_PRINT, @"「はあHPH　はぁ…はぁ…HPH」", "L"
+	PRINTFORML
+	IF K30_BE_SEEN() && !TFLAG:デート道中
+		STRDATA LOCALS
+			DATAFORM 「だいじょうぶ……%K30_C_NAME(TGT,2)%には、気づかれてません…HPH」\n「そう、大丈夫……何度、されても…大丈夫、ですから…HPH」
+			DATAFORM 「…いつもより、ずっと…敏感に、なってる気がします…HPH」\n「%K30_C_NAME(TGT,2)%の前で…こんなことして、私…」\n「もう、戻れません…ねHPH」
+			DATAFORM 「%K30_C_NAME(TGT,2)%の前でも…手加減なしですね、%K30_C_NAME(MASTER)%HPH」\n「…おかげで、私…頭、とろけて…しまいそう…HPH」
+		ENDDATA
+	ELSE
+		STRDATA LOCALS
+			DATAFORM 「……ちょっと、落ち着きました」\n「でも……」\n「また、いつ、来るのかって…思うと…HPH」
+			DATAFORM 「先までは…いつまで、続くのかって…思ってました、けど…」\n「いざ、弱くなると…」\n「…欲しくなって…きちゃいますHPH」
+			DATAFORM 「ふうっ…HPH」\n「ちゃんと、がまん…できました、よHPH」\n「次のご褒美、が…楽しみ、です…HPH」
+		ENDDATA
+	ENDIF
+	CALL HPH_PRINT, LOCALS, "W"
+ELSE
+	PRINTFORMDL %CALLNAME:MASTER%は懐のスイッチを「強」に入れた…
+	PRINTFORMW
+	CALL K30_PRINT_VIBE_DATE
+	FONTSTYLE 3
+	PRINTFORML
+	LOCALS = %TEXTR("お゛お゛゛ッ/う゛あ゛っ/あ゛ひっ゛っ/あ゛゛っ/あ゛っHPH　あ゛ッHPHHPH　あ゛っ")%HPHHPHHPH
+	IF K30_BE_SEEN() && !TFLAG:デート道中
+		CALL HPH_PRINT, @"（%LOCALS%）", "L"
+		FONTREGULAR
+		PRINTFORML
+		PRINTFORMDW …すんでのところで映姫は声を我慢した
+	ELSE
+		CALL HPH_PRINT, @"「%LOCALS%」", "L"
+		FONTREGULAR
+		PRINTFORML
+		PRINTFORMDW …とても閻魔様のものとは思えないような声が漏れてきた
+	ENDIF
+	PRINTFORML
+	IF TCVAR:30:382 
+		PRINTDATADL
+			DATAFORM イッたばかりの身体に追い打ちを受けながら、映姫はなんとか耐えようと身体をよじっている
+			DATAFORM 敏感になった身体へさらに追撃を受け、映姫は立ち尽くしたまま動けないでいる
+			DATAFORM どこまでも続く快感に耐えられないのか、映姫はいやいやと首を振っている
+		ENDDATA
+	ELSEIF K30_BE_SEEN() && !TFLAG:デート道中
+		PRINTDATADL
+			DATAFORM 映姫は震える身体でゆっくり後ずさり、\@ TGT ? %CALLNAME:TGT% # 周り \@の視線から逃れようとしている
+			DATAFORM 映姫はあからさまに挙動不審な様子を\@ TGT ? %CALLNAME:TGT% # 周り \@に気づかれまいとしている
+			DATAFORM 映姫は不自然に身体をくねらせながら、\@ TGT ?%CALLNAME:TGT%の前で # 人目を気にして\@必死に平静を装っている
+		ENDDATA
+	ELSE
+		PRINTDATADL
+			DATAFORM 映姫は自分の身体をかき抱き、必死に耐えようとしている
+			DATAFORM 映姫は息を詰まらせ全く身動きが取れなくなっている
+			DATAFORM 映姫は不自然な内股になりながら、スカートの裾を握りしめている
+		ENDDATA
+	ENDIF
+	IF NOWEX:Ａ絶頂
+		PRINTFORMDL しかしアナルバイブの強烈な振動は、映姫を容赦なく追い詰めていく…
+	ELSEIF K30_BE_SEEN() && !TFLAG:デート道中
+		PRINTFORMDL 人目を憚り快感を堪えるその姿は%CALLNAME:MASTER%の嗜虐心を大いに満足させた
+	ELSE
+		PRINTFORMDL だが周りに誰もいないことに気づき、映姫は遠慮なく悦びの悲鳴をあげた
+	ENDIF
+	PRINTFORML
+	IF NOWEX:Ａ絶頂
+		TFLAG:194 = 19
+		STRDATA LOCALS
+			DATAFORM あ゛っ…！！　だめッHPH　待ってHPH　まってぇHPHHPH
+			DATAFORM だめっHPH　これっHPH　すごッ、すごすぎてっHPH　だめ゛っッHPHHPH
+			DATAFORM ああっ…HPH　あッHPHHPH　あ゛～～っHPHHPH
+			DATAFORM とんじゃうっHPH　あたまっHPH　お゛かしくなるッHPH
+		ENDDATA
+		IF K30_BE_SEEN() && !TFLAG:デート道中
+			CALL HPH_PRINT, @"（%LOCALS%）", "L"
+			CALL HPH_PRINT, @"（イくっッHPH　%K30_C_NAME(TGT,2)%の前でっHPH　イくっ！　お゛しりでっHPH　イ゛くっHPHHPH）", "W"
+		ELSE
+			CALL HPH_PRINT, @"「%LOCALS%」", "L"
+			CALL HPH_PRINT, @"「気もち、いいのっHPH　おしりっHPH　すごく、いいのッHPHHPH」", "W"
+		ENDIF
+	ELSEIF K30_BE_SEEN() && !TFLAG:デート道中
+		CALL HPH_PRINT, @"（%K30_C_NAME(MASTER)%っ！？　%TEXTR("今、ここで/こんな、ところで/ここで、狙い撃ち")%、なんてっHPHHPH）", "L"
+		CALL HPH_PRINT, @"（%K30_C_NAME(TGT,2)%、いるのにっHPH　こっちっHPH　見てるのにっHPHHPH）", "L"
+		CALL HPH_PRINT, @"（あぅっHPH　気もち…いいの%\@ TCVAR:30:382 ? 、おわんないっHPH　ずっと、おわんないっ # っHPH　こんなの…がまん、できないっ \@%HPHHPH）", "W"
+	ELSE
+		STRDATA LOCALS
+			DATAFORM 「…こえっ！！　でちゃうっHPH　これっHPH　はげしっHPHHPH」
+			DATAFORM 「…すごいっHPH　スゴいのッHPH　ゾワゾワっHPH　とまらないっHPHHPH」
+			DATAFORM 「…わかって、いても…ダメHPH　気もち、よすぎて…ほんとうに、だめっHPHHPH」
+		ENDDATA
+		CALL HPH_PRINT, LOCALS, "W"
+	ENDIF
+ENDIF
+RETURN 1
