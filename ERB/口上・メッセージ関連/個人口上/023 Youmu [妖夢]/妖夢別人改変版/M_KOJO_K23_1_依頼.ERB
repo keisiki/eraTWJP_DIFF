@@ -200,7 +200,7 @@ CASE "成功報告時"
 ;【◆口上】
 ;【報酬獲得】
 	PRINTFORML
-	PRINTFORML 「それにしても、こんな物一体いつ紛れ込んだんでしょう……？」
+	PRINTFORML 「それにしても、こんな物一体いつ紛れ込んだのでしょう……？」
 	PRINTFORMW 「関心がおありですか？　でしたら気兼ねなくお持ち下さい、私では活かせそうもありませんので」
 	RETURN 1
 CASE "失敗報告時"
@@ -1347,34 +1347,154 @@ ENDSELECT
 ;RETURN 0 の部分は共通の口上が表示されます
 ;依頼ごとの口上を表示する部分は RETURN 0 を RETURN 1 にしてください
 ;--------------------------------------------------
-;二つ目以降の口上では固有依頼が認識されていない…？
 SELECTCASE SCENE
 CASE "依頼提示時"
-	PRINTFORML 「%CALLNAME:MASTER%さん、折り入ってお願いしたい事が……」
+	IF TALENT:恋慕
+		PRINTFORML 「ええと……大変申し上げづらいのですが、%CALLNAME:MASTER%さんしか頼れる方がいなくて……」
+	ELSE
+		PRINTFORML 「%CALLNAME:MASTER%さん、折り入ってお願いしたい事が……」
+	ENDIF
 	PRINTFORMW 「……余っていたらで構いませんので、カリスマを売っていただけませんか？」
 	RETURN 1
 CASE "依頼非受託時"
-	PRINTFORMW 「そうですよね……とても無理強いはできません……」
+	IF TALENT:恋慕
+		PRINTFORMW 「ぁ……も、申し訳ありません。些か甘えが過ぎました……」
+	ELSE
+		PRINTFORMW 「そうですよね……とても無理強いはできません……」
+	ENDIF
 	RETURN 1
 CASE "依頼受託時"
-	PRINTFORMW 「ほ、本当に良いんですか？　頼んでおいてなんですが結構な量ですよ？」
+	IF TALENT:恋慕
+		PRINTFORMW 「あ……ありがとうございます！　ですが決してご無理はなさらないで下さいね？」
+	ELSE
+		PRINTFORMW 「ほ、本当に良いんですか？　頼んでおいてなんですが結構な量ですよ？」
+	ENDIF
 	RETURN 1
 CASE "依頼確認時"
 	
 	RETURN 0
 CASE "依頼破棄時"
-	PRINTFORMW 「そうですよね……そう簡単に工面できる量では……」
+	IF TALENT:恋慕
+		PRINTFORMW 「元はと言えば私の自業自得ですので……どうかお気になさらないで下さい」
+	ELSE
+		PRINTFORMW 「そうですよね……そう簡単に工面できる量では……」
+	ENDIF
 	RETURN 1
 CASE "依頼実行直前"
-	
-	RETURN 0
+	;カウントが5溜まっている
+	IF CFLAG:23:2002 == 5
+		PRINTFORML 「では代金はこちらに……%CALLNAME:MASTER%さん？」
+		PRINTFORMW 妖夢にカリスマを渡す直前、とある不安が脳裏を過り思わず%CALLNAME:MASTER%は手を止める
+		PRINTFORML 今はしっかり取引をしているが繰り返す内に味を占め、
+		PRINTFORMW いずれ妖夢がカリスマをせびるワルい女になってしまうのではないか、と
+		PRINTFORMW 果たしてこのまま素直にカリスマを渡してしまっていいのだろうか……
+		PRINTFORML
+		;選択肢
+		CALL ASK_YN("少し灸を据える","杞憂でしかない")
+			SELECTCASE RESULT
+				;少し灸を据える
+				CASE 0
+					PRINTFORML 真面目であると同時に愚直なきらいもある彼女は間違った方向に突き進んで行きかねない
+					PRINTFORMW ここは多少恥ずかしい目にあって、これが本来リスクを伴う行為である事を思い出しておくべきだろう
+					PRINTFORMW %CALLNAME:MASTER%は手を引っ込めて紙を取り出し、さっと筆を走らせて代わりに妖夢へそれを手渡した
+					PRINTFORML
+					PRINTFORML 「へ……？　なんでしょう、この恥ずかしい文面は……」
+					PRINTFORMW 「…………%TEXTR("うぇっ/ええっ/")%！？　こ、この台詞を、私が……？」
+					PRINTFORML （は……えっ！？　これを読み上げなくちゃいけないの……！？　それは、流石に……）
+					PRINTFORMW （……けど、既にカリスマを用意していただいている手前、ここで断るのは途方もない非礼……！）
+					PRINTFORML
+					PRINTFORMW 僅かな逡巡の後、紙面から顔を上げた妖夢の眼からは並々ならぬ決意が滲み出している
+					PRINTFORML
+					PRINTFORM 「……わ、分かりました。
+						IF MARK:不埒刻印 == 3 && RAND:2 == 0
+							PRINTFORMW 他ならぬ%CALLNAME:MASTER%さんが仰るのでしたら、私も覚悟を決めましょう！」
+						ELSE
+							PRINTFORMW 普段良くしていただいているのですから、私も相応の覚悟を見せましょう！」
+						ENDIF
+					PRINTFORMW %CALLNAME:MASTER%は折角なのでその気になった妖夢に幾つか演技指導をしてみる事にした……
+					PRINTFORMW
+						SELECTCASE RAND:3
+							CASE 0
+								PRINTFORMW 「あまりにも棒過ぎる？　こんな台詞に感情移入するなんて無理ですよぉ……」
+							CASE 1
+								PRINTFORMW 「もっと甘ったるい声で？　ど、どうすれば……あっ、ちょうど飴なら持ってますよ！」
+							CASE 2
+								PRINTFORMW 「もっと身振り手振りを？　あ、ぅ……な、なら抱きついちゃいますよ！？　いいですねっ！？」
+						ENDSELECT
+					PRINTFORML
+					PRINTFORMW ……
+					PRINTFORML …
+					PRINTFORMW
+					PRINTFORML 「……で、ではいきますよ！　一回しかやりませんからね！？」
+					PRINTFORMW 練習を経た妖夢の纏う気迫はまさに戦場へと臨むそれである
+					PRINTFORMW この数分間の成果はどれほどなのだろうか、%CALLNAME:MASTER%は息を呑んで妖夢の次の一声を待った
+					PRINTFORML
+					PRINTFORMW 「…………」
+						SELECTCASE RAND:4
+							CASE 0
+								PRINTFORMW 「――よ」
+								PRINTFORML
+								CALL HPH_PRINT,@"「妖夢ぅHPH ちょっとカリスマが足りなくなっちゃってぇ～HPH おにーさぁんHPH 妖夢にカリスマ、分けて欲しいなぁ～？HPH」","W"
+							CASE 1
+								PRINTFORMW 「――お」
+								PRINTFORML
+								CALL HPH_PRINT,@"「おにーさぁんHPH 妖夢にカリスマ分けてくれたらぁHPH イ・イ・コ・トぉHPH してあげちゃおっかなぁ～？HPH」","W"
+							CASE 2
+								PRINTFORMW 「――こ」
+								PRINTFORML
+								CALL HPH_PRINT,@"「これでもいいけどぉ、もうちょっとだけオマケして欲しいかもぉHPH そしたらぁHPH 二時間だけおにーさんとデートしてあげちゃうよぉ？HPH」","W"
+							CASE 3
+								PRINTFORMW 「――わ」
+								PRINTFORML
+								CALL HPH_PRINT,@"「わぁあHPH すごぉーいHPH こぉ～んなに分けてくれるのぉ？HPH 妖夢ぅ、おにーさんのコトだぁーい好きだよHPH」","W"
+						ENDSELECT
+					PRINTFORML
+					PRINTFORMW ……
+					PRINTFORML …
+					PRINTFORMW
+					PRINTFORML 暫し間を置いて、%CALLNAME:MASTER%は無言で深く頷き今度こそ妖夢へカリスマを手渡した
+					PRINTFORMW これ以上ないほど顔を真っ赤にした涙目の妖夢は、黙ってそれを受け取り小刻みに震えつつ代金を差し出した
+					PRINTFORMW 半霊は死んだように横たわったまま動かなかった
+				;杞憂でしかない
+				CASE 1
+					PRINTFORML 考え過ぎだろう、到底彼女に腹芸が出来るとは思えない
+					PRINTFORMW %CALLNAME:MASTER%は気を取り直してカリスマを渡し、妖夢から代金を受け取った
+					;カウントを-1に
+					CFLAG:23:2002 = -1
+			ENDSELECT
+	ELSE
+		IF TALENT:恋慕
+			PRINTFORMW 「新聞は取っていないので、ちょっと相場が曖昧ですけど……これで大丈夫でしょうか？」
+		ELSE
+			PRINTFORMW 「わっ、すごい……では代金はこちらで……」
+		ENDIF
+	ENDIF
+	RETURN 1
 CASE "依頼実行直後"
 	
 	RETURN 0
 CASE "成功報告時"
 ;報酬：
-	PRINTFORMW 「ありがとうございました！　%CALLNAME:MASTER%さんに相談して良かったです」
-	PRINTFORMW 「……えﾞ。な、何に使うかは……あ、あはは……」
+	IF CFLAG:23:2002 == 5
+		PRINTFORMW 「…………その」
+		PRINTFORMW 「いつも以上に大切且つ慎重に使いますので、何卒ご寛恕を……」
+		;カウントをリセット
+		CFLAG:23:2002 = 0
+	ELSE
+		IF TALENT:恋慕
+			IF CFLAG:23:2002 > 0 && RAND:2 == 0
+				PRINTFORM 「いつもすみません、
+			ELSE
+				PRINTFORM 「ありがとうございました！　
+			ENDIF
+			PRINTFORMW あまり褒められた事でないと自覚してはいるのですが……」
+			;カウントを追加
+			CFLAG:23:2002 += 1
+		ELSE
+			PRINTFORMW 「ありがとうございました！　%CALLNAME:MASTER%さんに相談して良かったです」
+		ENDIF
+		PRINTFORMW 「……えﾞ。な、何に使うかは……あ、あはは……」
+	ENDIF
 	RETURN 1
 CASE "失敗報告時"
 	

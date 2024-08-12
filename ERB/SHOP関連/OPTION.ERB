@@ -80,6 +80,7 @@ RESTART
 
 @OPTION_SETNAME(ARG)
 ;RESULT:2	ツールチップ表記内容
+#DIM 係数
 VARSET RESULTS 
 RESULT = 1
 SELECTCASE ARG
@@ -412,7 +413,15 @@ CASE 37
 		RESULTS:1 = 有効
 		RESULTS:2 = 押し倒し中に相手が誤って挿入することがあります
 	ENDIF
-
+CASE 38
+	RESULTS:0 = 妊娠期間設定
+	係数 = 1 + FLAG:妊娠日程倍率
+	SELECTCASE 係数
+		CASE 1
+			RESULTS:1 = 通常
+		CASEELSE
+			RESULTS:1 '= @"%TOSTR(係数)%倍速"
+	ENDSELECT
 CASEELSE
 	RESULT = 0
 ENDSELECT
@@ -543,6 +552,8 @@ CASE "日常行動中の風チラ発生"
 	FLAG:風チラ発生 = !FLAG:風チラ発生
 CASE "誤爆挿入の発生"
 	FLAG:誤爆無効 = !FLAG:誤爆無効
+CASE "妊娠期間設定"
+	CALL オプション切り替え("妊娠日程倍率", 3)
 ENDSELECT
 
 @オプション切り替え(ARGS, ARG)
