@@ -3128,6 +3128,8 @@ IF LOCAL
 		RETURN 1
 	;通常
 	ELSE
+		;オプションでオンにしていると顔絵が表示される
+		CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
 		;TARGETとデート
 		IF CFLAG:同行
 			;恋慕
@@ -5179,19 +5181,338 @@ RETURN 1
 ;Return 0 if description and KOJO should be shown, 1 if description should be hidden and KOJO shown, 2 if description should be shown and KOJO hidden, and 3 if both description and KOJO should be hidden.
 ;==================================================
 @M_KOJO_MESSAGE_MESSAGECHECK_COM_K99_621
-RETURN 0
+RETURN 1
 
 @M_KOJO_MESSAGE_COM_K99_621
 CALL M_KOJO_MESSAGE_COM_K99_621_1
 RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K99_621_1
+#DIM CHARA
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
+;地の文をカットしてるのでMESSAGE処理を内蔵する
 IF LOCAL
-
+	SELECTCASE TFLAG:193
+		;釣れない
+		CASE 0
+			PRINTFORMDW 何も釣れなかった……
+			;オプションでオンにしていると顔絵が表示される
+			SELECTCASE RAND:5
+				CASE 0
+					CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+					PRINTFORML 「餌を変えてみるのはどうかしら」
+					PRINTFORMW 「意外と多いのよ。グルメなお魚って」
+				CASE 1
+					CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+					PRINTFORML 「釣れるまで、何かお話でもしましょうか」
+					PRINTFORMDW 竿に反応が無いので%CALLNAME:MASTER%は%CALLNAME:TARGET%と雑談をした
+				CASE 2
+					CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+					PRINTFORML 「ほ～ら、おいでおいで～」
+					PRINTFORMDL %CALLNAME:TARGET%は魚を呼ぼうと水面をぱちゃぱちゃと叩いている
+					PRINTFORMDW そんなことをしたら逃げる……と思いきや何故か魚が寄ってきていた
+				CASE 3
+					CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+					PRINTFORML 「そういえば、お魚が釣れたらどうするの？」
+					PRINTFORML 「食べるのなら、ぜひ私も呼んで頂戴ね」
+					PRINTFORMDW %CALLNAME:TARGET%は釣った魚を食べる気満々だ……
+				CASE 4
+					CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+					PRINTFORML 「――退屈じゃないか？ そうでもないけど」
+					PRINTFORML 「それにほら、そろそろ面白いことが起きそうよ？」
+					PRINTFORMDL %CALLNAME:TARGET%がそう言った直後、グッと竿に反応があった
+					PRINTFORMDW あっ！と竿を上げる。が、既に餌が取られた後だった……
+			ENDSELECT
+			RETURN 1
+		;木片
+		CASE 610
+			;豊姫が釣った
+			IF TFLAG:194 > 1000
+				PRINTFORMDL %CALLNAME:TARGET%が木片を釣った…
+				PRINTW
+				PRINTFORMW 「何かに使えるといいんだけど……」
+			;あなたが釣った
+			ELSE
+				PRINTFORMDL 木片が釣れた……
+				PRINTW
+				PRINTFORMW 「立派な流木ねぇ……」
+			ENDIF
+			RETURN 1
+		;紙切れ
+		CASE 131
+			;豊姫が釣った
+			IF TFLAG:194 > 1000
+				PRINTFORMW 「あら、これって……」
+			;あなたが釣った
+			ELSE
+				PRINTFORMDL くしゃくしゃの紙切れが釣れた
+			ENDIF
+			PRINTDW 
+			PRINTDL ┌─────────────┐
+			PRINTDL ｜　　　　　　　　　　　　　｜
+			PRINTDL ｜　　守矢の守札　　　　　　｜
+			PRINTDL ｜　　　　　　　　　　　　　｜
+			PRINTDL ｜　　五枚揃えると　　　　　｜
+			PRINTDL ｜　　　くじを一回引けます　｜
+			PRINTDL ｜　　　　　　　　　　　　　｜
+			PRINTDL ｜　ご利益は保証しかねます　｜
+			PRINTDL ｜　　　　　　　　　　　　　｜
+			PRINTDL ｜　　　　　　　　守矢神社　｜
+			PRINTDL └─────────────┘
+			PRINTW 
+			PRINTFORMW 「期限は書いてないみたいだけど……使えるのかしら？」
+			RETURN 1
+		CASE 1 TO 20, 22 TO 60
+			LOCALS = %FISH_NAME(TFLAG:193)%
+		CASE 21
+			LOCALS = ローター
+		CASEELSE
+			LOCALS = %ITEMNAME:(TFLAG:193)%
+	ENDSELECT
+	;豊姫が釣った
+	IF TFLAG:194 > 1000
+		PRINTFORMW 「それっ♪ 観念しなさいな♪」
+		PRINTL 
+		PRINTFORMDL %CALLNAME:TARGET%が%LOCALS%を釣った！
+		RESETCOLOR
+		;説明を流す
+		SELECTCASE TFLAG:193
+		CASE 1 TO 20, 22 TO 60
+			DRAWLINE
+			PRINTFORML %LOCALS%
+			CALL FISHING_EXPLANATION(TFLAG:193)
+		CASE IS > 61
+			DRAWLINE
+			PRINTFORML %LOCALS%
+			PRINTFORML 　　%ITEM_EXPLANATION(TFLAG:193)%
+		ENDSELECT
+		PRINTW 
+		$TOYOHIME_FISH
+		CALL M_KOJO_COLOR_K99
+		;オプションでオンにしていると顔絵が表示される
+		SELECTCASE LOCALS
+			CASE "ローター"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「これ、どう見てもローターよね？」
+				PRINTFORML 「古そうだけど……あ、一応動くみたい」
+				PRINTFORMDW %CALLNAME:TARGET%がスイッチを入れると、ローターがブーッと振動を始めた
+			CASE "カエル"
+				PRINTFORMDL 釣り上げられたカエルが%CALLNAME:MASTER%の顔面に貼り付いた！
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「あらま……」
+				PRINTFORMDL %CALLNAME:MASTER%はカエルを引き剥がそうとするが、ビクともしない
+				PRINTFORMDW このままだと息ができない！ %CALLNAME:MASTER%は%CALLNAME:TARGET%に助けを求めた
+			CASE "氷の鱗", "龍の爪", "龍涎香"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「美味しいお魚かと思ったんだけど……」
+				PRINTFORMDL 確かに竿は引いていたが、釣り上げてみたら%LOCALS%だった
+				PRINTFORMDW 魚より価値がある代物だが、%CALLNAME:TARGET%は不満そうだ……
+			CASE "ウグイ"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「ああ、これはウグイね」
+				PRINTFORML 「ちょっと小骨が多いけど、天ぷらにしたりすると美味しいのよ」
+				PRINTFORMDW ウグイは早くも%CALLNAME:TARGET%の胃袋に収まることが決定したようだ……
+			CASE "アマゴ"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「アマゴが釣れたわね。ヤマメに似ているけど――」
+				PRINTFORML 「赤い斑点があるでしょう？ それで見分けられるの」
+				PRINTFORMDW %CALLNAME:TARGET%は意外と魚に詳しい。勉強になった
+			CASE "ヤマメ"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「これはヤマメね。そういえば幻想郷にはヤマメという名の妖怪がいるそうだけど、どんな味がするのかしら？」
+				PRINTFORMDL さらっととんでもないことを言う%CALLNAME:TARGET%
+				PRINTFORMDW さすがに冗談だと思うが、%CALLNAME:TARGET%が言うと冗談に聞こえないのは何故だろう
+			CASE "イワナ"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORMW 「塩焼き……じゃなくてイワナね、これは」
+				CALL PRINT_FACE, [[豊姫]], "怒り", "服", "", ""
+				PRINTFORMW 「――むぅ、ちょっと言い間違えただけだってば」
+				PRINTFORMDW %CALLNAME:MASTER%が揶揄うと%CALLNAME:TARGET%は頬を膨らませた
+			CASE "アブラハヤ"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「――いま不味そうって思ったでしょ？」
+				PRINTFORML 「確かに名前は悪いけど、意外と美味しいお魚なのよ？」
+				PRINTFORMDW %CALLNAME:TARGET%が慣れた手つきで針を外す。上手いものだ
+			CASE "オイカワ"
+				PRINTFORMDL 釣れた魚はオイカワだ。繁殖期になると派手な婚姻色が出る美しい魚だが……
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「塩焼き、唐揚げ、甘露煮……どれも美味しいのよねぇ」
+				PRINTFORMDW %CALLNAME:TARGET%は完全に食べることしか考えていないようだ……
+			CASE "フナ"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「フナといえば鮒寿司みたいに言われるけど、他にも色々な食べ方があるのよ」
+				PRINTFORML 「たとえば煮付けとか、あら汁に……意外かもしれないけどお刺身なんてのも」
+				PRINTFORMDW そんな話をしていたら、%CALLNAME:TARGET%のお腹がグゥと鳴った
+			CASE "ピラニア"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「ねぇ、これって『アレ』よね？」
+				PRINTFORML 「ほら、あの美味しいって噂の」
+				PRINTFORMDW そんな噂が聞いたことがない……
+			CASE "ガーパイク"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「貴方のお名前は？ ――ふんふん、ガーっていうのね」
+				PRINTFORML 「それで味は？ ――え？ 言いたくない？」
+				PRINTFORMDL %CALLNAME:TARGET%は釣り上げた魚と会話している
+				PRINTFORMDW というより、一方的に%CALLNAME:TARGET%が話しかけているだけだ……
+			CASE "ブルーギル"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「これがブルーギルね。地上で猛威を振るっていると聞いたけど」
+				PRINTFORML 「そんなことはどうでもいいの。美味しいかどうかが重要よ」
+				PRINTFORMDL パンフィッシュというくらいだから普通に食用になる魚だ
+				PRINTFORMDW %CALLNAME:MASTER%がそう説明すると、%CALLNAME:TARGET%はとてもいい笑顔になった
+			CASE "サケ"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「ところで……貴方はサケとシャケ、どっち派？」
+				PRINTFORML 「私はシャケ派よ。だって、その方が美味しそうに聞こえるでしょ？」
+				PRINTFORMDW サケ弁とシャケ弁。なるほど、確かに……と一瞬納得しそうになってしまった
+			CASE "ワカサギ"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORMW 「ワカサギね。一匹だけだと可哀相だから……」
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORMW 「もう何匹か釣って、一緒に南蛮漬けにして食べてあげましょう」
+				PRINTFORMDW 『そうだね』と%CALLNAME:MASTER%は%CALLNAME:TARGET%に相槌を返した
+			CASE "ニジマス"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORMW 「ニジマスといえば……何か分かる？」
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORMW 「――うん、そうよね。塩焼きよね」
+				PRINTFORMDW まだ何も言ってないのに……
+			CASE "ヤツメウナギ"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「ヤツメウナギを食べるととっても精がつくのよ」
+				PRINTFORML 「ついた精は……どこかで発散しなくちゃね？」
+				PRINTFORMDW %CALLNAME:TARGET%がばちこんとウインクをしてきた
+			CASE "カムルチー"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「ふぅ……なかなか手強かったわね」
+				PRINTFORMDL %CALLNAME:TARGET%と協力してなんとか魚を引き上げた
+				PRINTFORMDW 釣れた魚はカムルチーだ。%CALLNAME:TARGET%曰く、スープにすると美味しいらしい
+			CASE "カジカ"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「カジカね。見た目はよろしくないけど……」
+				PRINTFORML 「でも美味しいお魚よ。私の好物なの」
+				PRINTFORMDW 逆に%CALLNAME:TARGET%が嫌いな食べ物などあるのだろうか……
+			CASE "アユ"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORMW 「%CALLNAME:MASTER%」
+				PRINTFORMDW グゥ～……
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORMW 「言わなくても分かるわよね？」
+				PRINTFORMDW 『はい…』そう言って、%CALLNAME:MASTER%は釣れたばかりのアユを〆た
+			CASE "ナマズ"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「あら、ナマズじゃない」
+				PRINTFORML 「昔、白いナマズを飼っていたのよ。いつ頃からか見なくなったけど」
+				PRINTFORMDL %CALLNAME:TARGET%は釣った魚に餌をやらないタイプなのだろうか……
+				PRINTFORMDW %CALLNAME:MASTER%はナマズの針を外すとビクにぽいっと投げ入れた
+			CASE "ウナギ"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「ふふっ、立派なウナギね♪」
+				CALL HPH_PRINT,@"「ヌルヌルしてて……精がつきそうだわHPH」","L"
+				PRINTFORMDW %CALLNAME:TARGET%は何故か厭らしい手つきでウナギを撫でている……
+			CASE "ヒメマス"
+				PRINTFORMDL %CALLNAME:TARGET%は釣り上げた魚に話し掛けている……
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「貴方も名前にヒメってつくの？ くすっ、親近感わいちゃうな」
+				PRINTFORML 「――逃がして欲しい？ ダメよ、貴方は私が食べるんだもの」
+				PRINTFORMDW 本当にそんなことを言っているのだろうか。それとも、お人形遊びの延長だろうか……
+			CASE "コイ"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「っとと、ほらほら暴れないで」
+				PRINTFORML 「大人しくしないと、この場で捌いて食べちゃうわよ？」
+				PRINTFORMDW %CALLNAME:TARGET%がそう言うと、コイがピタッと大人しくなった
+			CASE "シーラカンス"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「私が昔シーラカンスを飼ってたって話、したかしら？」
+				PRINTFORML 「今はもう飼ってないんだけど……ああ死んだわけじゃないのよ？」
+				PRINTFORML 「逃がしたの。狭い水槽で可哀相だと思ったから」
+				PRINTFORML 「でも今になって考えてみると……月の海、餌になりそうなものが無いのよね……」
+				PRINTFORMDW もっと早くに気付くべきだったなと%CALLNAME:MASTER%は思った
+			CASE "チョウザメ"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「貴方は身の方ね。私はキャビアを貰うから」
+				PRINTFORML 「――勝手に決めるな？ まぁまぁいいじゃない♪」
+				PRINTFORMDW %CALLNAME:TARGET%に勝手に取り分を決められた
+			CASE "クニマス"
+				PRINTFORMDL これは……クニマスだ！ 絶滅した筈では……
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「そうなの？ この前、晩御飯で食べたばかりだけど」
+				PRINTFORMDW 衝撃の発言に%CALLNAME:MASTER%は開いた口が塞がらなかった
+			CASE "ソウギョ"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「――ソウギョの美味しい食べ方？」
+				PRINTFORML 「んー、色々あるけど……水煮魚なんてどうかしら？」
+				PRINTFORMDW 食べるのが好きなだけあって、%CALLNAME:TARGET%は色々な料理を知っている……
+			CASE "ヘラブナ"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「形がヘラに似ているからヘラブナ。なるほどね」
+				PRINTFORML 「確かに、これでご飯をよそったら美味しそうだわ」
+				PRINTFORMDW %CALLNAME:TARGET%はよく分からない感性をしている……
+			CASE "イトウ"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORMW 「大丈夫、言わなくても分かるわ」
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORMW 「――美味しいのよね？ この子」
+				PRINTFORMDW %CALLNAME:MASTER%は黙って%CALLNAME:TARGET%に頷き返した
+			CASE "オオクチバス"
+				PRINTFORMDL バスが釣れた。%CALLNAME:MASTER%は今この魚がどれだけ悪さをしているかを%CALLNAME:TARGET%に教えた
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「ふぅん……でも美味しいんでしょう？」
+				PRINTFORMDW %CALLNAME:MASTER%はそれを否定することができなかった
+			CASE "ピラルクー"
+				CALL PRINT_FACE, [[豊姫]], "笑顔", "服", "", ""
+				PRINTFORML 「まあまあまあまあ♪」
+				PRINTFORML 「こんなに大きなお魚、一人で食べ切れるかしら♪」
+				PRINTFORMDW %CALLNAME:TARGET%はとても嬉しそうにしている。が、一人で食べる気なのか……
+			CASE "タキタロウ"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORMW 「これがタキタロウなのね。図鑑でしか見たことがなかったけど……」
+				PRINTFORMW 「……美味しいのかしら？」
+				PRINTFORMDW 伝説の魚が釣れても%CALLNAME:TARGET%はいつも通りだった
+			CASE "アオウオ"
+				CALL PRINT_FACE, [[豊姫]], "通常", "服", "", ""
+				PRINTFORML 「ふぅ……ところで、いいのかしら？」
+				PRINTFORML 「この子って此処で飼われているお魚だと思うんだけど」
+				PRINTFORMDW 気のせいだろう。%CALLNAME:MASTER%は釣れたアオウオを〆た
+		ENDSELECT
+		RESETCOLOR
+	;MASTERが釣った
+	ELSE
+		RESETCOLOR
+		PRINTFORMDL %LOCALS%が釣れた！
+		;ローター以降を弾いてサイズと漁獲数の処理
+		IF INRANGE(TFLAG:193, 1, 60) && TFLAG:193 != 21
+			;サイズの出力
+			LOCAL:1 = FISHING_SIZE(TFLAG:193)
+			PRINTFORML 　サイズ：{LOCAL:1}cm
+			;ここまでの最高サイズと比較して大きければ記録
+			IF LOCAL:1 > FISHSIZE_RECORD:(TFLAG:193)
+				SETCOLOR C_YELLOW
+				SIF FISH_EXP:(TFLAG:193)
+					PRINTFORML 　今まで釣った%LOCALS%の中でも最大サイズだ！
+				RESETCOLOR
+				FISHSIZE_RECORD:(TFLAG:193) = LOCAL:1
+			ENDIF
+			;漁獲数の加算
+			FISH_EXP:(TFLAG:193) ++
+		ENDIF
+		;説明を流す
+		SELECTCASE TFLAG:193
+			CASE 1 TO 20, 22 TO 60
+				DRAWLINE
+				PRINTFORML %LOCALS%
+				CALL FISHING_EXPLANATION(TFLAG:193)
+			CASE IS > 61
+				DRAWLINE
+				PRINTFORML %LOCALS%
+				PRINTFORML 　　%ITEM_EXPLANATION(TFLAG:193)%
+		ENDSELECT
+		PRINTW 
+		GOTO TOYOHIME_FISH
+	ENDIF
 ENDIF
 RETURN 1
 ;==================================================
@@ -5213,25 +5534,222 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K99_626_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 	SELECTCASE TFLAG:194
 		;ひやかし
 		CASE -2
-		
+			;月の土産屋
+			IF (CFLAG:MASTER:現在位置 / 100) == 10
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「どうしたの？」
+						PRINTFORMDL 『あ、%CALLNAME:TARGET%様！ この地上の人間が』
+						PRINTFORML 「ああその人、私の連れだから」
+						PRINTFORMDL 『えっ』
+						PRINTFORMDW 店員の玉兎が青ざめる。%CALLNAME:TARGET%はその様子を見てニコニコと笑っていた
+					CASE 1
+						PRINTFORML 「冷やかしって、私達のこと？」
+						PRINTFORMDL 『ひっ！ と、%CALLNAME:TARGET%様……』
+						PRINTFORML 「冷やかしたつもりはないのだけど……説明してもらえる？」
+						PRINTFORMDL 『し、失礼しましたぁっ！』
+						PRINTFORMDL 店員の玉兎は折れそうな勢いで頭を下げると、ガシャーンと店のシャッターを閉めた
+						PRINTFORMW 「あらら……」
+					CASE 2
+						PRINTFORML 「貴女……確か○○って名前よね？」
+						PRINTFORMDL 『へっ！？ あ、いや、その』
+						PRINTFORML 「ふふっ、記憶力が良いのよ。私って」
+						PRINTFORMDW 店員の玉兎は震え上がっている……
+				ENDSELECT
+			;それ以外
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「せっかちな人ねぇ……」
+						PRINTFORMDL 追い出された土産屋の方に振り返る
+						PRINTFORMDW 店員が仁王立ちしていて、今日は入ることはできなさそうだ……
+					CASE 1
+						PRINTFORML 「もう、せっかく買おうと思ってたのに」
+						PRINTFORMDL 長居し過ぎた自分達も悪い
+						PRINTFORMDW 日を改めて、また来よう……
+					CASE 2
+						PRINTFORML 「ごめんなさい。せっかく選んでくれてたのに」
+						PRINTFORMDL %CALLNAME:TARGET%が謝る必要はない
+						PRINTFORMDW 悪いのは商品を小出しにする店員だ
+				ENDSELECT
+			ENDIF
 		;やっぱりやめる（見送り）
 		CASE -1
-		
+			;恋慕
+			IF TALENT:恋慕
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORMDL %CALLNAME:TARGET%は星の砂の瓶詰めを手に取って眺めている
+						PRINTFORM 「星の砂はね、
+						CALL COLORMESSAGE(@"[海の]",C_AQUA,0,1)
+						PRINTFORML 生き物の死骸なのよ。知ってた？」
+						PRINTFORMDW あの細かい粒は全て星砂という生き物の死骸なのだという。そう考えると、ちょっと気持ちが悪い
+					CASE 1
+						PRINTFORML 「……ふぅ」
+						PRINTFORMD %CALLNAME:TARGET%は冷たい目で
+						CALL COLORMESSAGE(@"[パンデモニックな]",C_RED,0,1)
+						PRINTFORMDL デザインの土産物を眺めている
+						PRINTFORMDW なにがそんなに気に入らないのだろうか……
+					CASE 2
+						PRINTFORML 「依姫にも何かお土産を買っていこうと思うのだけど……」
+						PRINTFORM 「あ、この
+						CALL COLORMESSAGE(@"[扇]",C_GREEN,0,1)
+						PRINTFORML なんてどうかしら？」
+						PRINTFORMDW %CALLNAME:TARGET%が扇子を開く。そこには美しい三日月が描かれていた
+				ENDSELECT
+			;それ以外
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「へぇ……」
+						PRINTFORMD %CALLNAME:TARGET%は
+						CALL COLORMESSAGE(@"[モモの]",C_AQUA,0,1)
+						PRINTFORMDL デザインの小物を眺めている
+						PRINTFORMDW %CALLNAME:TARGET%といえば桃のイメージがあるが……
+					CASE 1
+						PRINTFORML 「ふぅん……」
+						PRINTFORMD %CALLNAME:TARGET%は興味無さそうに
+						CALL COLORMESSAGE(@"[地上の]",C_RED,0,1)
+						PRINTFORMDL 土産物を眺めている
+						PRINTFORMDW あれはプレゼントしない方がよさそうだ……
+					CASE 2
+						PRINTFORMD %CALLNAME:TARGET%は
+						CALL COLORMESSAGE(@"[護符]",C_GREEN,0,1)
+						PRINTFORMDL の束を手に取って眺めている
+						PRINTFORML 「スターターセット……スターターセットって何かしら？」
+						PRINTFORMDW 帯には【これで今日からあなたも巫女に！】と書かれている……
+				ENDSELECT
+			ENDIF
 		;400点未満（BAD）
 		CASE 1
-		
+			;恋慕
+			IF TALENT:恋慕
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「%CALLNAME:MASTER%」
+						PRINTFORMDL %CALLNAME:TARGET%が%CALLNAME:MASTER%を真っ直ぐ見つめる
+						PRINTFORML 「今度プレゼントを買う時は、事前に私に相談してね？」
+						PRINTFORMDW ……残念ながら、サプライズは失敗に終わったようだ……
+					CASE 1
+						PRINTFORML （せっかく%CALLNAME:MASTER%が買ってくれたものだけど……）
+						PRINTFORML （……今度、それとなく私の好みを教えてあげないと）
+						PRINTFORMDW %CALLNAME:TARGET%がプレゼントを受け取る。帰宅後宝物庫の奥にしまわれ、二度と日の目を見ることはないだろう
+					CASE 2
+						PRINTFORML 「その、気持ちは嬉しいんだけど……ね」
+						PRINTFORML 「……………………本気？」
+						PRINTFORMDW %CALLNAME:TARGET%はちっとも嬉しくなさそうだ……
+				ENDSELECT
+			;それ以外
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「ありがとう。大切にするわね」
+						PRINTFORMDL %CALLNAME:TARGET%は%CALLNAME:MASTER%からプレゼントを受け取ると、
+						PRINTFORMDW それを見もせず、さっさと鞄にしまった……
+					CASE 1
+						PRINTFORML 「地上では、こういうものが流行ってるの？」
+						PRINTFORML 「……そう、一応受け取っておくわね」
+						PRINTFORMDW %CALLNAME:TARGET%はプレゼントを受け取ってくれたが、反応は微妙だ……
+					CASE 2
+						PRINTFORML 「こ、これを……私に？」
+						PRINTFORML 「ありがとう……その、大事にするわね」
+						PRINTFORMDW %CALLNAME:TARGET%は精一杯の作り笑いを浮かべた
+				ENDSELECT
+			ENDIF
 		;400点～699点（NOMAL）
 		CASE 2
-		
+			;恋慕
+			IF TALENT:恋慕
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「デートをしたり、一緒に手を繋いだり。そういうことも勿論いいけど」
+						PRINTFORML 「やっぱり嬉しいわね。大好きな貴方からプレゼントを貰えるって」
+						PRINTFORMDW 大切にして欲しい。%CALLNAME:MASTER%がそう言うと%CALLNAME:TARGET%は嬉しそうに「うん」と頷いた
+					CASE 1
+						PRINTFORML 「そのまま動かないでね」
+						PRINTFORMDL 言う通りにしていると……頬に柔らかいものが触れた
+						PRINTFORML 「ありがとう。%CALLNAME:MASTER%」
+						PRINTFORMDW %CALLNAME:TARGET%の方を向く。彼女は楽しそうに笑っていた
+					CASE 2
+						PRINTFORML 「宝物庫にね、貴方専用の棚を作ったのよ」
+						PRINTFORML 「これは……そうね、一番目立つところに飾りましょう」
+						PRINTFORMDW %CALLNAME:TARGET%のプレゼントコレクションがまた一つ増えた……
+				ENDSELECT
+			;それ以外
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「ありがとう。嬉しいわ♪」
+						PRINTFORMDL %CALLNAME:TARGET%はプレゼントを胸に抱いている
+						PRINTFORMDW 気に入ってくれたようで良かった
+					CASE 1
+						PRINTFORML 「――プレゼントの中身を当ててみて？」
+						PRINTFORML 「んー……手のひらサイズの粒子加速器とか？」
+						PRINTFORMDW そんなものが売っていたらビックリだ……
+					CASE 2
+						PRINTFORML 「私も何か買ってあげましょうか？」
+						PRINTFORML 「――別にいい？ ふふっ、遠慮しないで」
+						PRINTFORMDW じゃあ、と%CALLNAME:MASTER%は%CALLNAME:TARGET%に無難な小物を買ってもらった
+				ENDSELECT
+			ENDIF
 		;700点以上（GOOD）
 		CASE 3
-		
+			;恋慕
+			IF TALENT:恋慕
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「宝物庫に飾ろうと思ってたけど、やっぱり止めたわ」
+						PRINTFORML 「部屋に飾りましょう。寝る時も一緒よ♪」
+						PRINTFORMDW %CALLNAME:TARGET%はプレゼントを凄く喜んでくれた……
+					CASE 1
+						PRINTFORML 「――危ない？ 大丈夫よ」
+						PRINTFORML 「貴方なら、私がくっついてたって平気でしょう？」
+						PRINTFORMDW その後も、暫く%CALLNAME:TARGET%が抱き付いたままデートをすることになった
+					CASE 2
+						PRINTFORML 「私も貴方にプレゼントがあるの」
+						PRINTFORML 「はい、これ。いつもありがとう、%CALLNAME:MASTER%」
+						PRINTFORMDW %CALLNAME:TARGET%がプレゼントしてくれたものは……
+						SELECTCASE RAND:3
+							CASE 0
+								CALL GET_ITEM("貴醸酒", 1, 1)
+								PRINTFORMDW とても希少な貴醸酒だ！
+								PRINTFORMW 「あ、私もちょっとだけ飲ませてね？」
+							CASE 1
+								CALL GET_ITEM("精力剤", 5, 1)
+								PRINTFORMDW ……なんと精力剤のセットだ！
+								PRINTFORMW 「使い方は……貴方に任せるわね♪」
+							CASE 2
+								PRINTFORMDW ……依姫のエッチな生写真だ！！！
+								PRINTFORMW 「あの子には内緒よ？ 撮るの苦労したんだから」
+								;体力・気力・精力を回復
+								CALL RECOVER_PERMIL(PLAYER, 500, "体力", 1)
+								CALL RECOVER_PERMIL(PLAYER, 500, "気力", 1)
+								CALL RECOVER_PERMIL(PLAYER, 500, "精力", 1)
+						ENDSELECT
+				ENDSELECT
+			;それ以外
+			ELSE
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「ほら、こんな立場じゃない？ 贈り物を貰うことには慣れているけど……」
+						PRINTFORML 「でも……こんなに嬉しいと思ったのは久々よ」
+						PRINTFORMDW %CALLNAME:TARGET%は%CALLNAME:MASTER%から貰ったプレゼントを嬉しそうに眺めている……
+					CASE 1
+						PRINTFORML 「帰ったら、さっそく依姫に自慢するわね♪」
+						PRINTFORMDL %CALLNAME:TARGET%はプレゼントをとても気に入ってくれたようだ
+						PRINTFORMDW %CALLNAME:MASTER%はほっと胸を撫で下ろした
+					CASE 2
+						PRINTFORML 「これ、ずっと気になっていたのよ」
+						PRINTFORML 「どうして欲しがってるって分かったの？」
+						PRINTFORMW 「――じっと見てたから？ くすっ、貴方もじっと見てくれていたのね」
+				ENDSELECT
+			ENDIF
 	ENDSELECT
 ENDIF
 RETURN 1
