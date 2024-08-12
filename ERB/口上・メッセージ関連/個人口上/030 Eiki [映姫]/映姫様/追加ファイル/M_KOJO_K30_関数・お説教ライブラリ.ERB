@@ -36,8 +36,12 @@ SIF TALENT:MASTER:恋人 == 0
 	RETURNF 0
 SIF TALENT:30:恋人
 	RETURNF -1
-SIF CFLAG:(TALENT:MASTER:恋人):現在位置 == CFLAG:MASTER:現在位置
-	RETURNF 2
+SIF GET_TARGETNUM() < 2
+	RETURNF 1
+FOR LOCAL, 1, GET_TARGETNUM() + 1
+	SIF TALENT:(TARGET:LOCAL):恋人
+		RETURNF 2
+NEXT
 RETURNF 1
 ;==================================================
 ;変Ｔで映姫様の目が死ぬか判別する式中関数
@@ -105,11 +109,11 @@ RETURNF 1
 ;アリス口上の関数お借りして平文化しました。ERHだと動作が速かったり安定するのかな
 ;丸コピはあれなので知り合い以外はランダムで選んでIDを返すように。誰もいなければ0を返す
 ;引数が真-TARGET内ランダム、偽-優先順序付き（[恋人]持ち→知り合い→TARGET内ランダム）
-;映姫様の知り合いは7人,小町>久侘歌>さとり>ヘカーティア>阿求>幽々子>紫の順に(勝手に)設定
+;映姫様の知り合いは8人,小町>久侘歌>さとり>ヘカーティア>阿求>幽々子>紫>瓔花の順に(勝手に)設定
 ;-------------------------------------------------
 @K30_FIND_AROUND(ARG = 0)
 #FUNCTION
-#DIM 知り合い,7 = 76, 129, 49, 113, 80, 66, 26
+#DIM 知り合い = 76, 129, 49, 113, 80, 66, 26, 127
 #DIM 総人数
 #DIM 抽選
 #LOCALSIZE 200
@@ -124,7 +128,7 @@ IF !ARG
 	SIF K30_FIND_LOVER() == 2
 		RETURNF TALENT:MASTER:恋人
 	;知り合い優先度順に現在位置を調べMASTERと同じならIDを返す
-	FOR COUNT, 0, 7
+	FOR COUNT, 0, 8
 		SIF CFLAG:(知り合い:COUNT):現在位置 == CFLAG:MASTER:現在位置
 			RETURNF 知り合い:COUNT
 	NEXT
@@ -835,7 +839,7 @@ CALL M_KOJO_COLOR_K30
 RETURN RESULT
 ;==================================================
 ;うふふ入る時の準備関数
-;絶頂回数等リセット,弱み握り保存,
+;絶頂回数等リセット,弱み握り保存
 ;さらに意識がある場合、前日行動反映をリセット・うふふ回数/時間記録・映姫様自室なら描写用フラグ立て
 ;-------------------------------------------------
 @K30_PRESET_UFUFU
@@ -853,14 +857,17 @@ RETURN RESULT
 ;うふふ終了の準備関数
 ;各種フラグ掃除
 ;意識あり合意ありなら終了時刻を記録,
+;あなたがコマンドから終了させた場合、媚薬モード待機フラグ残す
 ;-------------------------------------------------
-@K30_UFUFU_RECORD
+@K30_UFUFU_RECORD(ARG = 0)
 SIF TCVAR:30:383 && !MAXARRAY(TCVAR:30:0, 385, 388) 
 	CFLAG:30:1504 = TIME:1
 CFLAG:30:風呂 = MIN(CFLAG:30:風呂 + (SUMARRAY(TCVAR:30:0, 390, 395) * 150), 2500)
 CFLAG:30:ディレイ += 15
 VARSET TCVAR:30:0, 0, 383, 388
 TCVAR:30:376 = 0
+SIF !ARG
+	CLEARBIT TCVAR:30:367, 2
 RETURN RESULT
 ;==================================================
 ;TARGET外のまま複数人うふふに入った場合のフォロー関数
@@ -1088,6 +1095,7 @@ ENDIF
 ;髪型とかめちゃくちゃなんであんまり映姫様に見えない
 ;--------------------------------------------------
 ;ARG	0=通常 1=エンドレス 2=オート:関数内で判定, 3= 顔射:指定時のみ 4=射精:関数内で描写判定
+;		5~8 バキュームフェラ個別
 ;--------------------------------------------------
 ;PAT		強化ごっくんアニメパターン
 ;G_TIME		強化ごっくんのウエイトタイム
@@ -1120,13 +1128,17 @@ BLOCK = TCVAR:30:385 || TCVAR:30:無理矢理 || !(TALENT:恋慕 || TALENT:セ�
 TEMP = CURRENTREDRAW()
 REDRAW 0
 IF !FLAG:アニメーション
-	IF ARG < 3
+	SELECTCASE ARG
+		CASE 0 TO 2
 		CALL PRINT_IMAGE("30_blow5", SIZE, "left")
+		CASE 3, 4
+			GOTO SKIP2
+		CASE 5 TO 8
+			LOCALS '= "success1", "success5", "dara5", "success3"
+			CALL PRINT_IMAGE(@"30_%LOCALS:(ARG -5)%", SIZE, "left")
+	ENDSELECT
 		REDRAW TEMP
 		RETURN
-	ELSE
-		GOTO SKIP2
-	ENDIF
 ENDIF
 SELECTCASE ARG
 	;通常
@@ -1173,7 +1185,7 @@ SELECTCASE ARG
 		ELSE
 			HTML_FORM = <img src='30_おしゃぶり映姫様' height='{SIZE}' width='{SIZE}'>
 			HTML_PRINT HTML_FORM
-			FOR LOCAL, 0, (SIZE / 100)
+			FOR LOOP_C, 0, (SIZE / 100)
 				PRINTFORML
 			NEXT
 			;描画間隔を制御する命令
@@ -1288,6 +1300,46 @@ SELECTCASE ARG
 			LOCAL = TALENT:恋慕 && ABL:精液中毒 > 4 ? 3 # 2
 			CALL PRINT_IMAGE(@"30_failed{LOCAL}", SIZE, "left")
 		ENDIF
+	CASE 5
+		LOCAL = 300
+		FOR COUNT, 2, 5
+			CALL PRINT_IMAGE(@"30_success{COUNT}", SIZE, "left")
+			TWAIT LOCAL, 0
+			CLEARLINE SIZE / 100
+			SIF GETKEY(1)
+				GOTO SKIP2
+			LOCAL += 150
+		NEXT
+		CALL PRINT_IMAGE("30_success5", SIZE, "left")
+	CASE 6
+		FOR COUNT, 1, 3
+			CALL PRINT_IMAGE(@"30_failed{COUNT}", SIZE, "left")
+			TWAIT 500, 0
+			CLEARLINE SIZE / 100
+			SIF GETKEY(1)
+				GOTO SKIP2
+		NEXT
+		CALL PRINT_IMAGE("30_success5", SIZE, "left")
+	CASE 7
+		FOR COUNT, 1, 5
+			CALL PRINT_IMAGE(@"30_dara{COUNT}", SIZE, "left")
+			TWAIT 600, 0
+			CLEARLINE SIZE / 100
+			SIF GETKEY(1)
+				GOTO SKIP2
+		NEXT
+		CALL PRINT_IMAGE("30_dara5", SIZE, "left")
+	CASE 8
+		FOR COUNT:1 ,0, 2
+			FOR COUNT, 1, 7
+				CALL PRINT_IMAGE(@"30_blow{COUNT}", SIZE, "left")
+				TWAIT 75, 0
+				CLEARLINE SIZE / 100
+				SIF GETKEY(1) && COUNT:1
+					GOTO SKIP
+			NEXT
+		NEXT
+		CALL PRINT_IMAGE(@"30_blow7", SIZE, "left")
 ENDSELECT
 REDRAW TEMP
 RETURN
@@ -1307,10 +1359,10 @@ RETURNF MIN(LOCAL * キャラ画像表示サイズ比 / 10000 * 100 , 1800)
 ;IMAGE.ERBとやってることはだいたい同じ、キャラデータ使うと既存顔絵や口上削除プレイに支障でそうなので口上内に処理ベタ置き
 ;もっと洗練されたやり方ありそうだけどよくわかんなくなってきた、関数をライブラリ化出来る人って本当にスゴい
 ;--------------------------------------------------
-;COM		SELECTCOM,0ならイベント等からの呼び出し
+;COM		SELECTCOM,負の場合はイベント文から直接呼び出し: -1=服 -2=裸 -3=変Ｔ
 ;LAYER:0	差分指定: 1=縦割れアナル 2=ぽっかりアナル 3=中出しアナル
 ;LAYER:1	エフェクト指定:BIT0=尻叩き-着衣 BIT1=尻叩き-裸 BIT2=濡れ BIT3=精液 BIT4=バイブ 
-;LAYER:2	ぱんつ指定: 1=通常 2=ずらし 3=バイブぱんつ
+;LAYER:2	ぱんつ指定: -1=ノーパン 1=通常 2=ずらし 3=バイブぱんつ
 ;LAYER:3	腕指定: 1=手で押さえ 2=バイブ掴み 3=開帳
 ;LAYER:4	謎の影指定: 1=指入れ 2=バイブ挿入 3=舐め 4=スカートめくり 5=TINKO 6=尻叩き
 ;L_NUM		レイヤ階層数
@@ -1351,10 +1403,11 @@ VARSET SECTIONAL
 L_NUM = 1
 S_NUM = 1
 表示拡張 = 0
+;レイヤ設定、上手く構文纏められずIF文まみれ
 縦割 = GETBIT(CFLAG:30:1910, 7)
 たっぷり = 充填率(30, 2) > 30
 尻叩き = TIME_PROGRESS(TCVAR:30:355) < 20
-;BIT0=着衣腫れ,BIT1=裸腫れ、足し算すると0～2になるから排他表示
+;BIT0=着衣腫れ,BIT1=裸腫れ、足し算すると0～2になるから排他表示にできる
 腫れ = 尻叩き + (尻叩き * K30_NUDITY())
 濡れ = (PALAM:潤滑 > PALAMLV:3) * 4
 白濁 = (充填率(30, 1) > 20) * 8
@@ -1362,16 +1415,19 @@ S_NUM = 1
 セットエフェクト = 腫れ + 濡れ + 白濁 + 装着
 CALL K30_SELECT_PANTS_TYPE(LAYER:2)
 ぱんつ = %RESULTS%
-袖 = %\@ NUDITYCHECK(30) > 3 && !K30_CHECK_HEN_T() ? _WEAR # _NUDE \@%
-
-;レイヤ設定、上手く構文纏められずIF文まみれ
-;素体を設定
-SET_RESOURCE:0 = 30_BODY%\@ K30_NUDITY() ? _NUDE # _WEAR \@%
-SIF !K30_NUDITY() && K30_CHECK_HEN_T()
-	SET_RESOURCE:0 = 30_BODY_HEN-T
+袖 = _%\@ NUDITYCHECK(30) > 3 && !K30_CHECK_HEN_T() ? WEAR # NUDE \@%
 
 ;イベント構文から直接指定時
-IF !COM
+IF COM < 0
+	SELECTCASE COM
+		CASE -1
+			SET_RESOURCE:0 = 30_BODY_WEAR
+		CASE -2
+			SET_RESOURCE:0 = 30_BODY_NUDE
+		CASE -3
+			SET_RESOURCE:0 = 30_BODY_HEN-T
+	ENDSELECT
+	袖 = _%\@ COM == -1 ? WEAR # NUDE \@%
 	SIF !LAYER:1
 		LAYER:1 = セットエフェクト
 	IF LAYER:0
@@ -1398,10 +1454,15 @@ IF !COM
 	GOTO PRINT_IMAGE
 ENDIF
 
+;素体を設定
+SET_RESOURCE:0 = 30_BODY%\@ K30_NUDITY() ? _NUDE # _WEAR \@%
+SIF !K30_NUDITY() && K30_CHECK_HEN_T()
+	SET_RESOURCE:0 = 30_BODY_HEN-T
+
 ;素体差分レイヤの設定
 IF 縦割
 	SET_RESOURCE:1 = %\@ CFLAG:うふふ ? 30_BASE_VERTICAL # ダミー \@%
-	SIF TCVAR:30:393 > 4
+	SIF TCVAR:30:392 > 4
 		SET_RESOURCE:1 = 30_BASE_HOLE
 	SIF たっぷり
 		SET_RESOURCE:1 = 30_BASE_CREAMPIE
@@ -1437,19 +1498,21 @@ SELECTCASE COM
 		;謎の影
 		SET_RESOURCE:L_NUM = 30_SHADOW_%\@ TCVAR:30:364 && TEQUIP:アナルバイブ ? INST # HAND \@%
 		L_NUM ++
-	;スカートめくり
+	;スカートめくり,風チラ
 	CASE 330
 		;素体差分個別設定
 		IF TCVAR:30:364
 			SET_RESOURCE:1 = 30_BASE%\@ たっぷり ? _CREAMPIE # _HOLE \@%
 		ELSEIF たっぷり && 縦割
 			SET_RESOURCE:1 = 30_BASE_CREAMPIE
-		ELSEIF TCVAR:30:393 && 縦割
+		ELSEIF TCVAR:30:392 && 縦割
 			SET_RESOURCE:1 = 30_BASE_VERTICAL
 		ENDIF
 		;謎の影
-		SET_RESOURCE:L_NUM = 30_SHADOW_LIFT
-		L_NUM ++
+		IF SELECTCOM == 330
+			SET_RESOURCE:L_NUM = 30_SHADOW_LIFT
+			L_NUM ++
+		ENDIF
 	;アナル舐め
 	CASE 4
 		;映姫様の腕
@@ -1542,10 +1605,10 @@ FLAG:マルチサイズ = 1
 デフォルトキャラ画像横幅 = 270
 キャラ画像表示サイズ比 = 100
 ;レイヤのセットと表示
-;DEBUGPRINTFORML LINECOUNT:{LINECOUNT}
+DEBUGPRINTFORML LINECOUNT:{LINECOUNT}
 FOR COUNT, 0, L_NUM
 	CALL 画像セット(SET_RESOURCE:COUNT, 0, 0, キャラ画像表示サイズ比, COUNT)
-;	DEBUGPRINTFORML レイヤ:{COUNT} %SET_RESOURCE:COUNT%
+	DEBUGPRINTFORML レイヤ:{COUNT} %SET_RESOURCE:COUNT%
 NEXT
 IF FLAG:時間停止
 	CALL 画像セット("時間停止", 0, 0, キャラ画像表示サイズ比, L_NUM)
@@ -1564,9 +1627,9 @@ IF 表示拡張
 		S_NUM ++
 	ENDIF
 	
-	;FOR COUNT, S_NUM, L_NUM 
-	;	CALL ダミーセット(0, 0, キャラ画像表示サイズ比, COUNT)
-	;NEXT
+	FOR COUNT, S_NUM, L_NUM 
+		CALL ダミーセット(0, 0, キャラ画像表示サイズ比, COUNT)
+	NEXT
 ENDIF
 CALL 画像一斉表示("LEFT", 0, 1, -1)
 FLAG:マルチサイズ = TEMP_SIZE
@@ -1626,18 +1689,20 @@ RETURNF 1
 LOCAL = 0
 RESULTS =
 色 = %COLOR:(DAY % 4)%
-ASIDE = (CFLAG:うふふ == 1 || TEQUIP:50 >= 0 || TEQUIP:51 >= 0 || TEQUIP:バイブ || TEQUIP:アナルバイブ)
+ASIDE = (CFLAG:うふふ == 1 || TEQUIP:50 >= 0 || TEQUIP:51 >= 0 || TEQUIP:バイブ || TEQUIP:アナルバイブ || 指定 == 2)
 ずらし = _%\@ ASIDE ? SHIFT # NORMAL \@% 
 ヌード = %\@ K30_NUDITY() ? _NUDE # _WEAR \@%
 装着 = %\@ TEQUIP:アナルバイブ ? _VIBE # \@%
 ;指定あれば画像をそちらに合わせる
-IF 指定 == 3
-	RESULTS = 30_PANTS_HARNESS
-	RETURN
-ENDIF
-SIF 指定
-	ヌード = %\@ 指定 == 1 ? _NUDE # _WEAR \@%
-
+SELECTCASE 指定
+	CASE -1
+		RETURN
+	CASE 1, 2
+		ヌード = %\@ 指定 == 1 ? _NUDE # _WEAR \@%
+	CASE  3
+		RESULTS = 30_PANTS_HARNESS
+		RETURN
+ENDSELECT
 SELECTCASE EQUIP:30:下半身下着２
 	CASE 0
 		;ノーパンorガーターベルトorバイブベルト
@@ -1804,7 +1869,7 @@ RETURN
 @K30_PRINT_MESHIGAO(ARGS)
 SIF !FLAG:画像表示 || !顔絵付きメッセージ
 	RETURN
-SETANIMETIMER 200
+SETANIMETIMER 150
 CALL 画像セット("30_BG1", 0, 0, 100, 0)
 CALL GET_BASE_RESOURCE(30, "顔絵", "", ARGS)
 CALL 画像セット(RESULTS:0, 0, 0, 100, 1)
@@ -2714,3 +2779,114 @@ TCVAR:MASTER:イきそう = 1
 BASE:MASTER:射精 = MAXBASE:MASTER:射精
 PALAM:30:4 = MAX(PALAMLV:4, PALAM:30:4)
 SOURCE:反感 = 0
+
+;==================================================
+;映姫様にオーバードーズする関数群
+;媚薬成分でうふふアスリートになれるよう頑張ってみました
+;--------------------------------------------------
+;キメセク判定用式中関数
+@K30_KIMESEKU()
+#FUNCTION
+#DIM YANUSHI
+IF !CFLAG:うふふ
+	SIF ITEM:媚薬 < 2
+		RETURNF 0
+	;押し倒され.ERB から条件コピペ
+	FOR COUNT, 1, CHARANUM
+		SIF COUNT == 30
+			CONTINUE
+		SIF CAN_MOVE(CFLAG:MASTER:現在位置, CFLAG:COUNT:現在位置) == 2
+			RETURNF 0
+	NEXT
+ENDIF
+SIF TALENT:機嫌 < 0 || MARK:30:反発刻印 || !TALENT:恋慕 || K30_CREAMPIE() || FLAG:99
+	RETURNF 0
+SIF !GETBIT(CFLAG:既成事実, 1) || CFLAG:妊娠自覚状態 || (STRFIND(CSTR:30:0, "押し倒し") ==-1 && CFLAG:30:1801)
+	RETURNF 0
+SIF CFLAG:信頼度 < 2000 || !CHARA_HOLIDAY(30) || K30_CHECK_HEN_T()
+	RETURNF 0
+SIF ROOMDATA:(CFLAG:MASTER:現在位置 % 100) & 場所_公共の場
+	RETURNF 0
+SIF !GROUPMATCH(PRIVATEROOM:(CFLAG:現在位置 % 100), 0, 30)
+	RETURNF 0
+RETURNF 1
+
+;キメセク用BUFF関数
+;陥落後の茶番なのでバフ盛り盛り・自重しない
+@K30_KIMESEKU_BUFF
+IF !CFLAG:うふふ
+	CALL BUFF_BASE(TARGET, BASE_気力,666)
+	CALL BUFF_BASE(TARGET, BASE_体力,666)
+	BASE:MASTER:勃起 = MAXBASE:MASTER:勃起
+	BASE:30:理性 /= 10
+	CFLAG:30:溜まってる度 = MIN(CFLAG:30:溜まってる度 + 666, 1000)
+	BASE:30:ムード = MIN(BASE:30:ムード + 666, 1200)
+	TCVAR:30:媚薬 = 630
+	CFLAG:30:同行 = 60
+	CFLAG:MASTER:同行 = 60
+ENDIF
+SIF PALAM:潤滑 < PALAMLV:6
+	PALAM:潤滑 = PALAMLV:6
+SIF PALAM:欲情 < PALAMLV:9
+	PALAM:欲情 = PALAMLV:9
+TEQUIP:MASTER:結界発動 = 1
+SETBIT TCVAR:30:367, 2
+TCVAR:30:発情 = 1
+IF !TALENT:淫乱
+	TALENT:淫乱 = 1
+	SETBIT TCVAR:30:367, 1
+ENDIF
+TEQUIP:30:子宮 = 1
+SIF EXP:子宮口開発経験 > 49 && ABL:膣 > 1
+	TEQUIP:30:子宮 = 2
+;キメセク用押し倒し関数
+@K30_KIMESEKU_PUSHDOWN
+CFLAG:MASTER:うふふ = 2
+CFLAG:30:うふふ = 2
+TFLAG:COMABLE管理 = 3
+TCVAR:30:好きにして = 1
+SETBIT TCVAR:30:367, 3
+CALL CTRL_CLOTHES_SET(30, "現在衣装の変更_全裸")
+CALL CTRL_CLOTHES_SET(MASTER, "現在衣装の変更_全裸")
+CALL CLOTHES_SETTING_TRAIN(30)
+CALL CLOTHES_SETTING_TRAIN(MASTER)
+COM_STR = 
+;==================================================
+;複数恋人を制御する関数
+;TALENT:MASTER:恋人が変動する仕様変更に対応できないため
+;--------------------------------------------------
+;ARG	状況分類(0=破局チェック（ターン毎） 1=デート後告白イベント制御 2=告白するコマンド制御
+;				 3=破局後チェック
+;--------------------------------------------------
+@K30_DENY_POLYAMORY(ARG)
+;↓のコメントアウト外すと制御解除。エラーは出ないはずだけど@K30_C_NAME関連で変なことにはなる
+;RETURN 0
+SELECTCASE ARG
+	CASE 0
+		SIF !TALENT:30:恋人
+			RETURN
+		SIF TALENT:MASTER:恋人 == 30
+			RETURN
+		CLEARBIT CFLAG:30:既成事実, 2
+		TALENT:30:恋人 = 0
+		SETBIT CFLAG:30:1505, 1
+		PRINTFORML 
+		PRINTFORMDW …%CALLNAME:MASTER%が新たな恋を手に入れた一方で、どこかで何かが砕けたような気がした
+		CALL COLORMESSAGE, "映姫との恋人関係は終了しました", C_YELLOW, 2, 1
+	CASE 1
+		IF TALENT:MASTER:恋人
+			TCVAR:30:キスキャンセル = 1
+			SETBIT CFLAG:30:デート後イベントフラグ, 1
+		ELSEIF !(TALENT:MASTER:恋人 || TALENT:30:恋人)
+			CLEARBIT CFLAG:30:デート後イベントフラグ, 1
+		ENDIF
+	CASE 2
+		SIF !TALENT:MASTER:恋人
+			RETURN 0
+		SIF GETBIT(CFLAG:1505, 1)
+			RETURN 2
+		RETURN 1
+	CASE 3
+		SIF GETBIT(CFLAG:30:1505, 1)
+			RETURN 1
+ENDSELECT

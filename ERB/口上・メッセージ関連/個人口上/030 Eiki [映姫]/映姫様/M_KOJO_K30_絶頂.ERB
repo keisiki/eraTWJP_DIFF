@@ -261,7 +261,7 @@ ELSE
 				CALL HPH_PRINT, @"「%UNICODE(0XFF5E)* RAND(5, 15)%%TEXTR("ッ/っ/")%%TEXTR("HPH/HPHHPH/")%」", "L"
 				PRINTFORMDL 映姫は自分の指でアナルを拡げた不様な格好のままイッてしまった…
 				CALL HPH_PRINT, @"「あうぅ、あぅHPH　%K30_C_NAME(MASTER)%…HPH」\n「見てるだけじゃ…いやぁHPH」", "W"
-			ELSEIF TCVAR:30:393 < 2
+			ELSEIF TCVAR:30:392 < 2
 				CALL HPH_PRINT("「おひりぃHPH　おひりぃが……きもちいぃHPH」", "L")
 				CALL HPH_PRINT("「あっHPH　あっHPHHPH　……イクっ、おひりイっちゃうぅうHPH」", "W")
 			ELSEIF SELECTCOM == 45
@@ -272,7 +272,7 @@ ELSE
 					CALL HPH_PRINT("「すごいっHPH　…これっ、すごいのっHPHHPH」", "L")
 					CALL HPH_PRINT("「ぶるぶるでっ、イッちゃう！　ずっと、ずぅーとHPH　いっちゃうぅうHPH」", "W")
 				ENDIF
-			ELSEIF RAND:3 == 1 || TCVAR:30:393 < 6 || (TEQUIP:30:Ａ接触部位 != 1 && RAND:3 != 1) || (TEQUIP:30:Ａ接触部位 == 1 && CFLAG:うふふ == 2)
+			ELSEIF RAND:3 == 1 || TCVAR:30:392 < 6 || (TEQUIP:30:Ａ接触部位 != 1 && RAND:3 != 1) || (TEQUIP:30:Ａ接触部位 == 1 && CFLAG:うふふ == 2)
 				SELECTCASE TEQUIP:30:Ａ接触部位
 					;Ａセックス
 					CASE 1
@@ -328,7 +328,7 @@ ELSE
 			GOTO SKIP
 		;強絶頂Ａ
 		ELSEIF LOCAL == 2
-			IF TCVAR:30:393 > 5
+			IF TCVAR:30:392 > 5
 				IF RAND:2 == 1
 					CALL HPH_PRINT("「おしりっHPH　きもちいいのっ…すごくいいのっHPH　あっ、あああぁあぁHPH」", "W")
 				ELSE
@@ -341,7 +341,7 @@ ELSE
 			ENDIF
 		;絶頂Ａ
 		ELSE
-			IF TCVAR:30:393 > 4
+			IF TCVAR:30:392 > 4
 				IF RAND:2 == 1
 					CALL HPH_PRINT("「イっちゃうHPH　おしりでっ……またっ、イっちゃううHPH」", "W")
 				ELSE
@@ -516,6 +516,23 @@ SIF (!TALENT:恋慕 && CFLAG:30:1801) || !SHIRAHU(30)
 	RETURN
 
 ;ここから恋慕かつシラフの挙動
+;オーバードーズで淫乱なら絶頂でエナジードレイン
+IF (GETBIT(TCVAR:30:367, 2) || GETBIT(TCVAR:30:367, 3)) && SUMARRAY(NOWEX:30:0, 0, 5)
+	BASE:体力 = MIN(MAXBASE:体力, BASE:体力 + MAXBASE:体力 / 10)
+	BASE:気力 = MIN(MAXBASE:気力, BASE:気力 + MAXBASE:気力 / 10)
+	;CFLAG:溜まってる度 = LIMIT(CFLAG:溜まってる度 + 20, 20, 1000)
+	BASE:MASTER:体力 -= MAXBASE:MASTER:体力 / 250
+	BASE:MASTER:気力 = MAX(0, BASE:MASTER:気力 - MAXBASE:MASTER:気力 / 50)
+	IF !RAND:4
+		STRDATA LOCALS
+			DATAFORM 絶頂の度、映姫が元気になっている気がする…
+			DATAFORM 映姫を満足させるのにいつもより余計に疲れる気がする…
+			DATAFORM 映姫に何かを吸い取られている気がしてきた…
+		ENDDATA
+		CALL COLORMESSAGE, LOCALS, C_YELLOW, 1, 0
+		PRINTFORML 
+	ENDIF
+ENDIF
 ;口上で攻守交代したのを元に戻す
 IF TCVAR:30:362 > 1 && TCVAR:30:361 != TIME
 	CALL K30_REVERT_POSITION
@@ -1232,7 +1249,7 @@ IF LOCAL
 						PRINTFORML 「ほら、次はお口の中よ……あむっ」
 						PRINTFORMDW 映姫は%CALLNAME:CHR%の顔をきれいにすると、次は息も詰まるような濃厚な口づけを交わしはじめる
 						PRINTFORML 「んんっ…ちゅっ、ちゅぷっ♥　ちゅっ…」
-						PRINTFORMDW 映姫の舌は%CALLNAME:MASTER%の精を最後の一滴まで求めて、%CALLNAME:CHR%の口内を蹂躙していく
+						PRINTFORMDW 映姫の舌は%CALLNAME:MASTER%の精を最後の一滴まで求めて%CALLNAME:CHR%の口内を蹂躙していく
 						RESETCOLOR
 						TRYCALLFORM M_KOJO_COLOR_K{CHR}
 						PRINTFORML 「………♥　……♥♥」
@@ -1298,7 +1315,7 @@ IF LOCAL
 						ELSE
 							PRINTFORML 「%K30_C_NAME(CHR)%はきちんと飲めて偉いわね。だから私からもご褒美よ…」
 							PRINTFORMDW 映姫は手にとった精液をまた口に含むと、%CALLNAME:CHR%と唇を重ね合わせた
-							PRINTFORMDL %CALLNAME:CHR%はうっとりとした様子でキスを受け入れ、口移しに精液を流し込まれる…
+							PRINTFORMDL %CALLNAME:CHR%はうっとりとした様子でキスを受け入れ口移しに精液を流し込まれる…
 							PRINTFORMW 「んく…んふっ、じゅぷ…じゅるっ……んっ……♥」
 						ENDIF
 					ELSE
@@ -1335,11 +1352,11 @@ IF LOCAL
 					PRINTFORML 「ふふふっ…%K30_C_NAME(CHR)%、お互いひどい顔になってますよ」
 					PRINTFORMW 「少しきれいにしましょうか…」
 					PRINTFORMDL 映姫は%CALLNAME:(CHR)%の顎を指で拭うと、そのまま指を自分の口に運びしゃぶりはじめた
-					PRINTFORMDL %CALLNAME:(CHR)%も同じように映姫の頬を指で拭い、自分の口へと運ぶ
+					PRINTFORMDL %CALLNAME:(CHR)%も同じように映姫の頬を指で拭い自分の口へと運ぶ
 					PRINTFORMDW ぴちゃぴちゃ音を立てながら二人の後始末は続いた…
 				ENDIF
 			ELSE
-				IF ABL:精液中毒 < 3 || RAND:6 == 1
+				IF ABL:精液中毒 < 3
 					SELECTCASE RAND:3
 						CASE 0
 							PRINTFORMW 「すごい量ね、飲みきれないの……」
@@ -1350,7 +1367,7 @@ IF LOCAL
 							PRINTFORMW 「ごめんなさい…いっぱい出たから飲みきれなかったの……」
 					ENDSELECT
 				ELSE
-					SELECTCASE RAND:(3 + ((EXP:精飲経験 > 150 && ABL:精液中毒 >= 5) * 3) + (NOWEX:Ｍ絶頂 > 2)) 
+					SELECTCASE RAND:(3 + ((EXP:精飲経験 > 150 && ABL:精液中毒 >= 5) * 3) + (NOWEX:Ｍ絶頂 > 0)) 
 						CASE 0
 							PRINTFORMW 「あんっ、せっかく貰えたのにもったいない…」
 						CASE 1

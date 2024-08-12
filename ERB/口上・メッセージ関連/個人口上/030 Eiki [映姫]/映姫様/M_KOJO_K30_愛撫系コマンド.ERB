@@ -1494,7 +1494,7 @@ IF LOCAL
 						CASE 1
 							PRINTFORML 「二人で気もちよくなりたいのにぃ……ひゃん…んんっ♥」
 						CASE 2
-							PRINTFORML 「\@ TCVAR:30:393 > TCVAR:30:391 ? おしり # ここ \@に…挿れてほしいのぉ……ねぇ、はやくぅ…♥」
+							PRINTFORML 「\@ TCVAR:30:392 > TCVAR:30:391 ? おしり # ここ \@に…挿れてほしいのぉ……ねぇ、はやくぅ…♥」
 					ENDSELECT
 					PRINTFORMDW 映姫はラストスパートをかけるように、さらに激しく性感帯を弄りだした…
 			ENDSELECT
@@ -2911,7 +2911,6 @@ IF LOCAL
 		PRINTFORMDW 間違って起こしてしまったら不味い…
 	ELSEIF TCVAR:30:387 == 1
 		PRINTFORMW 「私なんかと…話してもしょうがないですよ…」
-		PRINTFORMW 「それより… %K30_C_NAME(TALENT:MASTER:恋人)%と話して…あげてください」
 	ELSE
 		PRINTDATAW
 			DATAFORM 「別にいいですよ…無理に気を使わなくて」
@@ -2978,4 +2977,83 @@ ELSE
 ENDIF
 CALL K30_COMPENSATE_MESSAGE
 PRINTFORMW 
+RETURN 1
+
+;==================================================
+;24,攻守交代
+;試しに設置
+;==================================================
+@M_KOJO_MESSAGE_COM_K30_24
+SIF TCVAR:30:385 || TCVAR:30:泥酔 || !TALENT:恋慕 || GET_TARGETNUM() > 1
+	RETURN 0
+CALL M_KOJO_COLOR_K30
+PRINTFORML 
+IF BASE:体力 < 1000
+	PRINTDATAL
+		DATAFORM 「上手く動けるかわかりませんが…」
+		DATAFORM 「どうでしょうか、貴方に…満足してもらえるかしら…」
+		DATAFORM 「ちゃんと出来なかったら、ごめんなさい…」
+	ENDDATA
+	PRINTFORMDL 映姫は少し疲れた様子で%TEXTR("大きく息を吐いた/額に浮いた汗を拭った")%
+	RETURN 1
+ELSE
+	SELECTCASE CFLAG:溜まってる度
+		CASE IS < 250
+			PRINTDATAL
+				DATAFORM 「わかりました」\n「…ふふっ、今度は私がご奉仕します♥」
+				DATAFORM 「わたし、から……？」\n「…ちょっと恥ずかしいけど…頑張ります♥」
+				DATAFORM 「貴方が頑張ってくれたお返し…」\n「次は、私が…気持ちよくしてあげますよ♥」
+			ENDDATA
+		CASE 250 TO 499
+			PRINTDATAL
+				DATAFORM 「一緒に気持ちよくなりたいなら…」\n「私からも…してあげなくちゃ、ね♥」
+				DATAFORM 「ふふふっ…私の番、ですね♥」\n「貴方は…どうしてほしいのかしら？」
+				DATAFORM 「一生懸命な貴方も好きですけど…」\n「私に、任せてくれる%K30_C_NAME(MASTER)%も…好きですよ♥」
+			ENDDATA
+		CASE 500 TO 749
+			PRINTDATAL
+				DATAFORM 「もう、お疲れ？」\n「しょうがないですね…ここからは、私が…して、あげますよ♥」
+				DATAFORM 「%K30_C_NAME(MASTER)%、私が…好きなようにして、いいんですか？」\n「じゃあ、遠慮なく…♥」
+				DATAFORM 「私からで、いいのね…？」\n「じゃあ、もっともっと…気持ちよくしてあげますよ♥」
+			ENDDATA
+		CASEELSE
+			PRINTDATAL
+				DATAFORM 「いいわよ…いっぱい、イジめてあげるから♥」
+				DATAFORM 「%K30_C_NAME(MASTER)%…そんなに、私に責められたいのね…♥」
+				DATAFORM 「気持ちよくなるのも…ひと任せなの？」\n「そんなものぐさな人には…オシオキ、ですね♥」
+			ENDDATA
+	ENDSELECT
+ENDIF
+SIF CFLAG:溜まってる度 < 250
+	RETURN 1
+;次回カウンター誘導
+SELECTCASE RAND:3
+	;フェラ
+	CASE 0
+		CALL CCOM_ABLE51(30)
+		IF RESULT && BASE:MASTER:勃起 < 1000 && ABL:精液中毒 >= 2
+			PRINTFORML 
+			PRINTFORML 「まずは%TEXTR("おっきく/元気に/ここから、/")%してあげますね…♥」
+			TCVAR:30:次回カウンター = 51
+		ENDIF
+	;騎乗位Ｖ
+	CASE 1
+		CALL CCOM_ABLE85(30)
+		IF RESULT && ABL:30:膣射中毒 > 3 && EX:30:膣内精液
+			PRINTFORMDL 映姫は精液が\@ 充填率(30, 1) > 10 ? 垂れ落ちる # 溢れ出る \@%SLIT(30)%を擦り寄せてきた 
+			TCVAR:30:次回カウンター = 85
+		ENDIF
+	;騎乗位Ａ
+	CASE 2
+		CALL CCOM_ABLE87(30)
+		IF RESULT && ABL:30:肛射中毒 > 3 && EX:30:アナル内精液
+			PRINTFORML 
+			PRINTDATAL 
+				DATAFORM 「また…おしり、で…良いですよね♥」
+				DATAFORM 「恥ずかしいけど、やっぱり…ここ、が、いいの…♥」
+				DATAFORM 「もう一回…おしり、で…したかったの…♥」
+			ENDDATA
+			TCVAR:30:次回カウンター = 87
+		ENDIF
+ENDSELECT
 RETURN 1

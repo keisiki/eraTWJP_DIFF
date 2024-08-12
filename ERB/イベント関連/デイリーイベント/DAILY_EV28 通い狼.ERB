@@ -80,20 +80,27 @@ PRINTFORMW 「上がっていい？」
 SELECTCASE RAND:12
 	CASE 0
 		PRINTFORML 「見て見て、大きいのが獲れたの！また捌いてくれない？」
-		CALL EV28_MEAL(300)
+		CALL EV28_MEAL(300, 1)
 		CALL GET_ITEM("ヤマドリ", 5, 1)
 	CASE 1
 		PRINTFORML 「珍しい石を見つけたから持ってきたわ」
 		PRINTFORMW 「あ、姫には内緒よ？」
 		CALL GET_ITEM("辰砂", 1, 1)
+	CASE 2
+		PRINTFORML 「お魚を獲ってきたわ」
+		PRINTFORMW 「ウサギ狩りしてよかったらもっとお肉が食べられるんだけどね」
+		CALL GET_ITEM("魚", 1, 1)
+		CALL EV28_MEAL(100)
 	CASE 2, 3
-		IF !RAND:2
-			PRINTFORML 「お魚を獲ってきたわ」
-			PRINTFORMW 「ウサギ狩りしてよかったらもっとお肉が食べられるんだけどね」
+		IF K63_CHICKENNAME != ""
+			PRINTFORMW 「ほらこれ、%K63_CHICKENNAME%を囮にして獲ったやつ」
+			CALL GET_ITEM("鳥肉", 3, 1)
+			CALL EV28_MEAL(200, 1)
 		ELSE
 			PRINTFORMW 「自慢できる程のじゃないけど、獲れたからお裾分けね」
+			CALL GET_ITEM("獣肉", 1, 1)
+			CALL EV28_MEAL(100, 1)
 		ENDIF
-		CALL EV28_MEAL(100)
 	CASE 4
 		CALL EV28_MAMUSHI
 	CASEELSE
@@ -111,6 +118,54 @@ IF CFLAG:[[影狼]]:1006
 		CALL GET_ITEM(LOCALS, 5, 1)
 	ENDIF
 	CFLAG:[[影狼]]:1006 = 0
+ENDIF
+IF K63_KNACKER >= 20
+	PRINTFORMW 「あとこれ、野良妖怪仲間からもらったやつ」
+	CALL GetRandMaterial(5, 1000)
+	K63_KNACKER = 0
+	IF FIRSTTIME("ギフトエコノミー")
+		;残骸は当然のごとく着服している
+		PRINTFORML 「ほら、%CALLNAME:MASTER%の捕った獲物をよくバラしてお肉にしてるでしょ？」
+		PRINTFORMW 「その時出るモツとか骨とかくず肉とか、食べきれない分は他の妖怪にあげてるのよ」
+		PRINTFORMW 「で、時々売った恩が返ってくるわけ」
+		PRINTFORMW 「もとはといえば%CALLNAME:MASTER%の獲物から来たものだから、遠慮なく受け取って！」
+		CALL ASK_YN("炊き出し？","タダでやってんの？")
+		IF !RESULT
+			PRINTFORML 「そんなご大層なものじゃないけどね」
+			PRINTFORMW 「食べるに困ってるときに食べさせてもらうって、すごく有難いことでしょ？」
+		ELSE
+			PRINTFORML 「何かと引き換えにしたら食べるに困ってる妖怪に届かないじゃない」
+			PRINTFORMW 「お金での取引はあと腐れがないのが便利なんだろうけど、私はむしろあと腐れを作りたいの」
+		ENDIF
+		;打算込みの利他
+		PRINTFORML 「同族がいっぱいいるわけでも、ひとりでなんでもできるほど強いわけでもない私みたいなのにとっては
+		PRINTFORMW 仲間の存在は死活問題だから、日頃から売れる恩は売ってるのよ」
+		PRINTFORMW 「ザコなりの処世術ね、言ってみれば」
+	ELSE
+		IF ABL:63:料理技能 >= 4 && !RAND:4
+			PRINTFORML 「この間はね、茹でた脳味噌を薄切りにしてフライにしてみたの！」
+			PRINTFORMW 「これがもう絶品で大好評！今度%CALLNAME:MASTER%にも作ってあげるわね！」
+			PRINTFORMW 「……プリオン？なにそれ？」
+		ELSEIF ABL:63:料理技能 >= 3 && !RAND:5
+			PRINTFORML 「この間はブラッドソーセージにしてみたの」
+			PRINTFORMW 「血が無駄にならないのはいいわね、そのまま飲む妖怪ってそんなにいないから」
+		ELSEIF ABL:63:料理技能 >= 3 && !RAND:4
+			PRINTFORML 「この間は皮で包んでギョーザにしたのよ」
+			PRINTFORMW 「モツとか骨髄とか無理！っていう子も見た目を変えれば食べるのよねえ」
+		ELSEIF ABL:63:料理技能 >= 2 && !RAND:3
+			PRINTFORML 「前は生のままだったり、ただ煮ただけのモツあげてたから微妙な顔されることも多かったけど、
+			PRINTFORMW %CALLNAME:MASTER%に料理習ったおかげで最近は前より好評よ」
+		ELSEIF !RAND:5
+			PRINTFORML 「ちっちゃい子なんだけど、骨でもモツでも大喜びで食べてくれる子がいるのよ」
+			PRINTFORMW 「みんなあんな感じだといいんだけどね」
+		ELSE
+			{
+			PRINTFORMW 「%TEXTR(@"知らないところで%CALLNAME:MASTER%の世話になってる子、それなりにいるのよ？
+			/肉以外にも脂が喜ばれるのよね、使い道が多いから
+			/この間は珍しく毛皮がはけたのよ、皮なめしできるのは羨ましいわ～")%」
+			}
+		ENDIF
+	ENDIF
 ENDIF
 
 PRINTFORMW 
@@ -364,7 +419,25 @@ PRINTFORML 「あら、お疲れ？」
 PRINTFORML 「それじゃあ続きは帰ってからにしましょうね」
 PRINTFORML %CALLNAME:MASTER%はオオカミの巣穴にお持ち帰りされてしまいました
 
-@EV28_MEAL(ARG)
+@EV28_MEAL(ARG, SOUP)
+#DIM SOUP
+IF ABL:料理技能 >= 2 && ABL:教養 >= 2 && SOUP
+	IF FIRSTTIME("血豆腐")
+		PRINTFORML 「あ、私にも台所使わせて、作りたいのあるから」
+		PRINTFORMW 影狼が手持ちの箱を開けると、レバー色の塊が出てきた
+		PRINTFORML 「それシメた時の血、固めて血豆腐にしてみたの」
+		PRINTFORMW 「これを具にしてスープにするわね」
+	ELSE
+		PRINTFORMW 「メインはお願いね、私はまた血のスープやるから」
+		IF !RAND:4
+			PRINTFORMW 「%CALLNAME:MASTER%用に%TEXTR("ネギ/ニラ")%入れたけど、私は匂い強い野菜好きじゃないから全部食べちゃって」
+		ELSE
+			PRINTFORMW 「%TEXTR("食感がいいのよね/お豆腐も入れましょ/一緒に作ると楽しいわね/汁物があると満足感が出るわよね/ふふふ、共同作業ね")%」
+		ENDIF
+	ENDIF
+	ARG += 100
+	EXP:[[影狼]]:料理経験 ++
+ENDIF
 PRINTFORMW ………
 PRINTFORMW ……
 PRINTFORMW …

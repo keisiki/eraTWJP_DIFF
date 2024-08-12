@@ -89,13 +89,17 @@ CFLAG:143:口上内抱き寄せ判定_通常 = 1
 	
 	IF CFLAG:143:1000 > 0
 		PRINTFORML 尤魔の性に貪欲フラグをリセットしますか？
-		CALL ASK_YN("なくす","そのままで")
-		IF !RESULT
+		CALL ASK_M("なくす", 1,"そのままで", 1,"簡略化", 1)
+		SELECTCASE RESULT
+		CASE 0
 			CFLAG:143:1000 = 0
 			PRINTFORML リセットしました
-		ELSE
+		CASE 1
 			PRINTFORML 変更しませんでした
-		ENDIF
+		CASE 2
+			CFLAG:1012 = 1
+			PRINTFORML 簡略化しました。結果のみが表示されます
+		ENDSELECT
 	ENDIF
 	
 	IF CFLAG:143:1001 > 0
@@ -233,7 +237,7 @@ RETURN 1
 IF GROUPMATCH(CFLAG:MASTER:現在位置, 640, 641)
 	PRINTFORML 「んん？」
 	PRINTFORML 「見慣れん顔だが…お前、どこの組の者だ？」
-	CALL ASK_M("ただの観光客です", 1,"鬼傑組の%CALLNAME:MASTER%と申します", 1,"勁牙組の%CALLNAME:MASTER%じゃコラァ！", 1,"剛欲同盟に憧れる%CALLNAME:MASTER%です", 1)
+	CALL ASK_M("ただの観光客です", 1,@"鬼傑組の%CALLNAME:MASTER%と申します", 1,@"勁牙組の%CALLNAME:MASTER%じゃコラァ！", 1,@"剛欲同盟に憧れる%CALLNAME:MASTER%です", 1)
 	SELECTCASE RESULT
 	;観光客を名乗る
 	CASE 0
@@ -411,7 +415,7 @@ ELSEIF GROUPMATCH(CFLAG:MASTER:現在位置, 653, 654, 655)
 		PRINTFORML 「んん？」
 		PRINTFORML 「なんだ、お前。私の厨房に勝手に立ち入って」
 		PRINTL 
-		CALL ASK_M("ごめんなさい。観光でうっかり", 1,"鬼傑組の%CALLNAME:MASTER%と申します", 1,"勁牙組の%CALLNAME:MASTER%じゃコラァ！", 1,"剛欲同盟に憧れる%CALLNAME:MASTER%です", 1)
+		CALL ASK_M("ごめんなさい。観光でうっかり", 1,@"鬼傑組の%CALLNAME:MASTER%と申します", 1,@"勁牙組の%CALLNAME:MASTER%じゃコラァ！", 1,@"剛欲同盟に憧れる%CALLNAME:MASTER%です", 1)
 		SELECTCASE RESULT
 		;観光客を名乗る
 		CASE 0
@@ -861,7 +865,7 @@ ELSEIF GROUPMATCH(CFLAG:MASTER:現在位置, 647, 648, 650, 651)
 	PRINTL 
 	PRINTFORML 「んん？」
 	PRINTFORML 「私以外にも客がいたのか？　見慣れん顔だが…お前、どこの組の者だ？」
-	CALL ASK_M("ただの観光客です", 1,"鬼傑組の%CALLNAME:MASTER%と申します", 1,"勁牙組の%CALLNAME:MASTER%じゃコラァ！", 1,"剛欲同盟に憧れる%CALLNAME:MASTER%です", 1)
+	CALL ASK_M("ただの観光客です", 1,@"鬼傑組の%CALLNAME:MASTER%と申します", 1,@"勁牙組の%CALLNAME:MASTER%じゃコラァ！", 1,@"剛欲同盟に憧れる%CALLNAME:MASTER%です", 1)
 	SELECTCASE RESULT
 	;観光客を名乗る
 	CASE 0
@@ -4161,17 +4165,24 @@ IF LOCAL
 	;ARG=1～3は排他
 	;謎の快感
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
+		CALL HPH_PRINT,@"「ッ！！？HPH」","L"
+		PRINTFORML 「い、今のは…誰か、何かしやがったのか…」
+		PRINTW 
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
 	;絶頂
 	;記入チェック（=0, 非表示、1, 表示）
-	LOCAL:1 = 0
+	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
+		CALL HPH_PRINT,@"「く、あ、おッ！！？HPH　おッHPHHPH　おぉッHPHHPHHPHHPH」","L"
+		CALL HPH_PRINT,@"「フーーーーッHPH　フーーーーッHPH」","L"
+		CALL HPH_PRINT,@"「ど…どこのどいつがやったかは知らんが、随分と快楽をご馳走してくれたもんだなぁ…HPHHPH」","L"
+		PRINTW 
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -4201,8 +4212,19 @@ IF LOCAL
 		ELSEIF ARG:1 == 4
 		;濃厚精液＆精液中毒低吐き出し
 		ELSEIF ARG:1 == 5
+			PRINTFORML 「うぶっ！？」
+			PRINTFORML 「ぐぇっへ、ごほっ、がはっ、がはっ！！！　べっ！！！！」
+			PRINTFORML 「なんだぁ、こりゃあ…毒物…でもない、かといってまっとうな飲み物じゃあない…」
+			PRINTFORML 「どう見ても、男の…私に気取られずに口の中に出した変態が幻想郷にいるっていうのか…」
+			PRINTFORML 「しかし、なんて量だ…犯人は、相当な金玉の持ち主だな…」
+			PRINTW 
 		;濃厚精液＆精液中毒高精飲
 		ELSEIF ARG:1 == 6
+			CALL HPH_PRINT,@"「うぶっ！？HPH」","L"
+			CALL HPH_PRINT,@"「んぐっ、んくっ、んぐ…はぁHPH」","L"
+			CALL HPH_PRINT,@"「欲深い、なんて欲深い濃厚な味だ…HPH」","L"
+			CALL HPH_PRINT,@"「この糊のような臭い汁…力が漲ってくるぞHPH」","L"
+			PRINTW 
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -5349,6 +5371,17 @@ RETURN 1
 LOCAL = 1
 ;-------------
 IF LOCAL
+	CALL YUMA_DAILY_SEX
+	
+	IF K143C_妊娠レベル == 7
+	ELSEIF K143C_妊娠レベル == 6
+	ELSEIF K143C_妊娠レベル == 5
+	ELSEIF K143C_妊娠レベル == 4
+	ELSEIF K143C_妊娠レベル == 3
+	ELSEIF K143C_妊娠レベル == 2
+		;CALL YUMA_INFERTILITY
+	ENDIF
+	
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------

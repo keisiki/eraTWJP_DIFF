@@ -610,6 +610,10 @@ RETURN 1
 ;-------------------------------------------------
 ;180,ローション
 ;-------------------------------------------------
+;コマンド実行前の潤滑を保存
+@M_KOJO_SUCCESS_COM_K30_180
+TFLAG:194 = PALAM:30:潤滑
+
 @M_KOJO_MESSAGE_COM_K30_180
 CALL TRAIN_MESSAGE
 CALL M_KOJO_MESSAGE_COM_K30_180_1
@@ -618,83 +622,221 @@ RETURN RESULT
 @M_KOJO_MESSAGE_COM_K30_180_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	;-------------------------------------------------
-	;小分岐
-	;-------------------------------------------------
-	;初めて
-	;記入チェック
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-		PRINTFORMW 
+	;時姦中＆チョコレートプレイ
+	IF FLAG:70 || GETBIT(STAIN:1, 7)
 		RETURN 1
-	ENDIF
-	;基本セット
-	;時姦中
-	IF FLAG:70
-		PRINTFORMW 
+	;マグロスイッチオン
+	ELSEIF TCVAR:30:385 || TCVAR:30:無理矢理 || TCVAR:30:泥酔
+		CALL K30_GASPING_MAGURO
 		RETURN 1
-	;恋慕
-	ELSEIF TALENT:恋慕
-		PRINTFORMW 
-		RETURN 1
-	;屈服3
-	ELSEIF MARK:不埒刻印 == 3
-		PRINTFORMW 
-		RETURN 1
-	;それ以外
+	ELSEIF TALENT:処女 && HAS_PENIS(MASTER)
+		PRINTFORML 「ベトベトにはなったけど……」
+		PRINTFORMW 「やっぱり…挿れたい、の…？」
+	ELSEIF HAS_PENIS(MASTER) && (ABL:Ｖ感覚 + ABL:Ａ感覚 > 7) && TFLAG:194 >= PALAMLV:7 && RAND:3
+		PRINTFORMW 「私には…もうそんなにいらないような…？」 
+		PRINTFORML 「…これじゃあもったいないですし、%K30_C_NAME(MASTER)%におすそ分け…どうですか？」
+		PRINTFORML 「いっぱいヌルヌルにして…いっしょに気持ち良くなりましょ…♥」
+		PRINTFORMDL 既にぬかるんだ%SLIT(30)%からローションをすくい取り、映姫は%CALLNAME:MASTER%の%TINKO(MASTER)%に塗りつける…
+		SELECTCASE BASE:MASTER:勃起
+			CASE 0 TO 499
+				WAIT
+				PRINTFORML 「うふふっ♥　これはこれで可愛らしいけれど…」
+				PRINTFORML 「おっきな%K30_C_NAME(MASTER)%も…好きですよ♥」
+				PRINTFORMDW 映姫の手が軽く触れるだけで、%CALLNAME:MASTER%は股間がどんどん滾ってくるのを自覚した
+				BASE:MASTER:勃起 = 1000
+			CASE 500 TO 999
+				WAIT
+				PRINTFORML 「ふふふっ♥　もっと元気に…なあれ♥」
+				PRINTFORMDW ローション越しの映姫の指使いに%CALLNAME:MASTER%もすっかり準備万端となった
+				BASE:MASTER:勃起 = 1500
+			CASE 1500
+				PRINTFORML 
+				PRINTFORMDW ……映姫のしなやかな指にこすられてあやうく暴発しそうになった
+			CASEELSE
+				PRINTFORMDW 映姫の指の感触で%CALLNAME:MASTER%はさらに滾っていった
+		ENDSELECT
+	ELSEIF TFLAG:194 >= 30000 && PALAM:30:欲情 > PALAMLV:6 && RAND:2
+		PRINTFORML 「ローション…そんなに必要ないと思いますよ？」
+		PRINTFORML 「だって…貴方を待ちきれなくて、私、もう…こんなに…♥」
+		PRINTFORMDL ローションを塗りたくる間にも映姫は期待と興奮で蜜を溢れさせ
+		PRINTFORMDW ぬるぬるの%SLIT(30)%は誘うようにヒクヒク蠢いている…
 	ELSE
-		PRINTFORMW 
-		RETURN 1
+		PRINTDATAW
+			DATAFORM 「べとべとになって…テラテラ光って…」\n「すごく、いやらしく見えますね…これ…♥」
+			DATAFORM 「んっ…冷たい、かも…」\n「%K30_C_NAME(MASTER)%に、早く…温めてほしいです…♥」
+			DATAFORM 「ぬるぬるになって…恥ずかしいです、けど…」\n「次に、してもらえること…期待してしまいます…♥」
+		ENDDATA
 	ENDIF
 ENDIF
 RETURN 1
 
 ;==================================================
 ;181,媚薬,
+;マイ・椛口上参考にしました
 ;==================================================
+;コマンド実行前の効果時間を一時保存して分岐に使う
+@M_KOJO_SUCCESS_COM_K30_181
+TFLAG:192 = TCVAR:30:媚薬
+SIF TCVAR:30:385 || TCVAR:30:無理矢理 || TCVAR:30:泥酔
+	RETURN
+IF TCVAR:30:367
+	TFLAG:194 = 3
+	RETURN
+ENDIF
+SELECTCASE TFLAG:192
+	CASE 0
+	CASE 1 TO 270
+		TFLAG:194 = 1
+	CASEELSE
+		TFLAG:194 = 2
+ENDSELECT
+;媚薬効果時間が累積する映姫様のEXTRASOURCE関数
+@M_KOJO_EXTRASOURCE_COM_K30_181
+IF TFLAG:194 < 3
+	TCVAR:30:媚薬 = TFLAG:192 + 180
+;もう飲まない処理
+;ソース変動と媚薬タイマーをコマンド実行前に戻す
+ELSE
+	TCVAR:30:媚薬 = TFLAG:192
+	IF TALENT:PLAYER:調合知識
+		DOWNBASE:体力 -= 150
+		DOWNBASE:気力 -= 150
+	ELSE
+		DOWNBASE:体力 -= 300
+		DOWNBASE:気力 -= 300
+	ENDIF
+	UP:欲情 = 0
+	SOURCE:逸脱 = 0
+	IF HETEROSEX(30, MASTER)
+		EXP:(50 + HETEROSEX(30, MASTER)) -= 1
+		EXP:PLAYER:(50 + HETEROSEX(30, MASTER)) -= 1
+	ENDIF
+	ITEM:媚薬 ++
+ENDIF
+
 @M_KOJO_MESSAGE_COM_K30_181
-CALL TRAIN_MESSAGE
+IF TCVAR:30:385 || TCVAR:30:無理矢理 || TCVAR:30:泥酔
+	CALL TRAIN_MESSAGE
+	RETURN 1
+ELSE
+	CALL K30_D_LINE
+ENDIF
 CALL M_KOJO_MESSAGE_COM_K30_181_1
 RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K30_181_1
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	;-------------------------------------------------
-	;小分岐
-	;-------------------------------------------------
-	;初めて
-	;記入チェック
-	LOCAL:1 = 0
-	;-------------------------------------------------
-	IF LOCAL:1 && FIRSTTIME(SELECTCOM)
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
-	;基本セット
-	;恋慕
-	IF TALENT:恋慕
-		PRINTFORMW 
-		RETURN 1
-	;屈服3
-	ELSEIF MARK:不埒刻印 == 3
-		PRINTFORMW 
-		RETURN 1
-	;それ以外
-	ELSE
-		PRINTFORMW 
-		RETURN 1
-	ENDIF
+	SELECTCASE TFLAG:194
+		CASE 0, 1
+			SELECTCASE RAND:3
+				CASE 0
+					PRINTFORMDL %CALLNAME:MASTER%は映姫を組み伏せ、口に含んだ媚薬をつばと一緒に垂らした
+					PRINTFORMDL 映姫はつばを全て受け止め、喉を鳴らしながら飲み込んでいる…
+					PRINTFORMW 
+					PRINTFORML 「……んっ♥　んくっ、んくっ……んんっ♥」
+					PRINTFORML 
+					PRINTFORMW （ああ…私、こんな…こんなに、はしたないこと、して…♥）
+				CASE 1
+					PRINTFORMDL %CALLNAME:MASTER%は指に乗せた媚薬を映姫の前に差し出した
+					PRINTFORMDL 映姫は指ごと咥え込み、媚薬を飲み込んだ後もずっと指をしゃぶっている…
+					PRINTFORMW 
+					PRINTFORML 「んちゅっ…んちゅ♥　はむぅ……ちゅぷっ、じゅるぅっっ♥」
+					PRINTFORML 
+					PRINTFORML （舐めてるだけで…身体、熱く…なって…）
+					PRINTFORMW （指、だけじゃ…物足りなく…なってる…♥）
+				CASE 2
+					PRINTFORMDL %CALLNAME:MASTER%は映姫に口移しで媚薬を飲ませた
+					PRINTFORMDL 映姫は首に抱きつきながら%CALLNAME:MASTER%の口に啜り付いている…
+					PRINTFORMW 
+					PRINTFORML 「んふぅ……ちゅむっ、んちゅ♥　ちゅ…ちゅるるっ♥」
+					PRINTFORML 
+					PRINTFORML （%K30_C_NAME(MASTER)%の、お口が…美味しい……♥）
+					PRINTFORML （ずっと…口づけて、もっと…啜って…）
+					PRINTFORMW （もっと、もっと…したい♥）
+			ENDSELECT
+			PRINTFORML 
+			PRINTFORML 「ぷはっ…♥」
+			PRINTFORMW 
+			IF TFLAG:192 < 120
+				SELECTCASE RAND:3
+					CASE 0
+						PRINTFORML 「……全部、このお薬のせいなんです」
+						PRINTFORML 「こんなに…イヤらしい事、私がするのも…おつゆ…溢れてくるのも」
+						PRINTFORML 「これから…いっぱい、大きな声出して、えっちなこと…してしまうのも」
+						PRINTFORML 「ぜんぶぜんぶこのお薬と…貴方が悪いんですよ…♥」
+					CASE 1
+						PRINTFORML 「普通に…する、だけだと、物足りないんですか？」
+						PRINTFORML 「ええ、良いですよ…しっかり、付き合ってあげましょう♥」
+						PRINTFORML 「その代わり…私に、火をつけた責任…取ってもらいますよ…♥」
+					CASE 2
+						PRINTFORML 「このお薬、本当に効果がスゴくて…大変なんです」
+						PRINTFORML 「こうやって、話していても…今からすること、頭にちらついて…♥」
+						PRINTFORML 「%K30_C_NAME(MASTER)%…いっぱい、して…くれますよね♥」
+				ENDSELECT
+			ELSEIF RAND:2 == 1
+				PRINTFORML 「別にここまでお薬に頼らなくても…もう、私は貴方に夢中ですよ♥」
+				PRINTFORML 「……こんなに飲ませて、私が変なふうになっても…知りませんから♥」
+			ELSE
+				PRINTFORML 「……こんなにお薬ばっかり飲ませて、どうするつもり？」
+				PRINTFORMW 「どれだけ私を…めちゃくちゃにしたいんでしょうね…♥」
+				PRINTFORML 「……覚えておいてください、%K30_C_NAME(MASTER)%」
+				PRINTFORML 「私にも…閻魔にだって昏い欲望が眠っていること」
+				PRINTFORML 「もし目覚めさせたなら…ちゃんと受けとめてくださいよ♥」
+			ENDIF
+			PRINTDATADW
+				DATAFORM 映姫は熱っぽい目で%CALLNAME:MASTER%を見つめている
+				DATAFORM 映姫は妖艶に微笑んでいる…
+				DATAFORM 映姫は口の端からよだれをこぼしている…
+			ENDDATA
+		CASE 2
+			SETBIT TCVAR:30:367, 0
+			PRINTFORMDL %CALLNAME:MASTER%が差し出した媚薬を映姫は無言で飲み干した…
+			PRINTFORMW 
+			IF K30_KIMESEKU()
+				CALL K30_KIMESEKU_BUFF
+				PRINTFORML 「………あっ♥♥」
+				PRINTFORMDL 映姫の様子がなんだかおかしい…
+				PRINTFORMDW 薬の影響で[発情]してしまったようだ
+				IF GETBIT(TCVAR:30:367, 1)
+					PRINTFORMDL しかも普段の謹厳実直な閻魔様とは程遠い、妖しく淫らな雰囲気まで醸し出している
+					PRINTFORMDL ……どうやら薬の影響で[淫乱]になったようだ
+				ENDIF
+				PRINTFORMW 
+				PRINTFORML 「ふふっ…ふふふっ♥」
+				PRINTFORML 「…もう、いろいろと…限界です♥」
+				PRINTFORML 「%K30_C_NAME(MASTER)%…お薬は、もういいから…」
+				PRINTFORMW 「早く…早く、私を…慰めて…♥」
+			ELSE
+				PRINTFORML 「…過ぎたるは及ばざるがごとし、ですよ」
+				PRINTFORML 「今日はもう、これだけで遠慮しておきます」
+				PRINTFORMW 「ここからは…気もちよくなることだけ、考えたいの…♥」
+				PRINTFORMDL 映姫は理性的に振る舞おうとするが、なんだか目つきが怪しい…
+				PRINTFORMDW 薬の影響で[発情]してしまったようだ
+				TCVAR:30:発情 = 1
+			ENDIF
+		CASE 3
+			PRINTFORMDL 映姫に媚薬を飲ませようとしたが断られてしまった…
+			PRINTFORMW 
+			IF !GETBIT(TCVAR:30:367, 2)
+				PRINTFORMW 「あんまり、お薬に頼りすぎるのも…どうかと思います」
+			ELSEIF RAND:2 == 1
+				PRINTFORML 「ねえ、%K30_C_NAME(MASTER)%」
+				PRINTFORML 「私、お薬じゃなくてね…」
+				PRINTFORMW 「%K30_C_NAME(MASTER)%のが…飲みたいです♥」
+			ELSE
+				PRINTFORML 「今はお薬じゃなくて…%K30_C_NAME(MASTER)%が、欲しいんです♥」
+				PRINTFORMW 「もっと強く抱きしめて、もっと、もっと……して、ください♥♥」
+			ENDIF
+	ENDSELECT
 ENDIF
 RETURN 1
-
 ;==================================================
 ;182,利尿剤,
 ;==================================================

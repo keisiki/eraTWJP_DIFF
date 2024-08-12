@@ -1,64 +1,4 @@
-﻿@M_KOJO_IRAIEXIST_K30(IRAI_NO)
-#DIM  IRAI_NO   ;抑制させる一般依頼ナンバー
-;動きを抑制させたい場合は、”RETURN 0”に変更すること
-SELECTCASE IRAI_NO
-	;掃除を手伝って（発生条件：TARGETがメインマップ在住）
-	CASE 1
-		RETURN 1
-	;お花に水をあげて（発生条件：TARGETがMASTER侵入可能の自宅住まいかつ、メインマップ在住かつ、親密２以上）
-	CASE 2
-		RETURN 1
-	;いっしょにあそぼ（発生条件：TARGETがTALENT:幼稚持ち）
-	CASE 3
-		RETURN 1
-	;料理上手になりたい（発生条件：TARGETの料理技能がMASTER未満かつ、MASTERの料理技能が２以上かつ、親密が３以上）
-	CASE 4
-		RETURN 1
-	;特訓につきあって（発生条件：TARGETの戦闘能力がMASTER以下かつ、親密が２以上かつ人里以外）
-	CASE 5
-		RETURN 1
-	;誰か教えて！（発生条件：TARGETの教養がMASTER以下）
-	CASE 6
-		RETURN 1
-	;大掃除が終わらない（発生条件：TARGETがメインマップ在住かつ、冬の15日から31日までかつ、親密が３以上）
-	CASE 7
-		RETURN 1
-	;手紙を届けて（発生条件：TARGETの信頼度が30以上かつ、TARGETに文通相手が設定されている（FUNC_IRAI.ERBの965目以降に存在）
-	CASE 8
-		RETURN 1
-	;誰かの落とし物（発生条件：TARGETの信頼度が30以上）
-	CASE 9
-		RETURN 1
-	;どうしてもみつからない(そのまま落ちてる)（発生条件：TARGETの信頼度が30以上）
-	CASE 10
-		RETURN 1
-	;どうしてもみつからない(誰かが拾ってる)（発生条件：TARGETの信頼度が30以上）
-	CASE 11
-		RETURN 1
-	;懲らしめて！（発生条件：TARGETのCSVに戦闘能力が１以上ある場合）
-	CASE 12
-		RETURN 1
-	;うまい魚が食べたいなぁ（発生条件：わかさぎ姫以外）
-	CASE 13
-		RETURN 1
-	;薪を切らしてる（未実装）
-	CASE 14
-		RETURN 1
-	;あなたに抱かれたい（発生条件：セフレor愛欲かつ溜まってる度700以上 or ヤリマン）
-	CASE 15
-		RETURN 1
-	;お悩み相談（発生条件：MASTERの話術技能が１以上）→普通の悩みは映姫様なら自分で白黒つけるので無し
-	CASE 16
-		SIF TALENT:30:思慕
-			RETURN 1
-		RETURN 0
-	;現状無し
-	CASEELSE
-		RETURN 1
-ENDSELECT
-
-
-;==================================================
+﻿;==================================================
 ;依頼口上・各依頼で共通の口上
 ;==================================================
 @M_KOJO_IRAI_K30(ROLE, SCENE, IRAI_ID)
@@ -176,8 +116,8 @@ CASE "失敗報告時"
 ;○直接失敗報告は現在「06_誰か教えて！」のみ
 ;●報告忘れ・期限切れになった際、遭遇時の最後に呼び出される
 ;（遭遇時）【挨拶等】→【機嫌の良し悪し】→【劣情察知】→【祭日イベント】→【◆ココ！】（尚、依頼失敗判定があるとデートのお誘いは発生しません）
-PRINTFORML 「%K30_C_NAME(MASTER)%、閻魔と約束しておいてそれはないですよ」
-PRINTFORMW 「…過ぎたことは仕方ありませんので、以後気をつけてください」
+PRINTFORML 「%K30_C_NAME(MASTER)%…閻魔と約束しておいて、『忘れた』とかちょっと信じられませんね」
+PRINTFORMW 「…過ぎたことは仕方ありませんから、以後気をつけてください」
 TALENT:30:機嫌 = MIN(TALENT:30:機嫌, 0)
 ;○機嫌の変化や追加のペナルティ等は口上側で処理してください
 	
@@ -531,30 +471,40 @@ CASE "依頼実行直後"
 ;【▲上の口上から続き】
 	PRINTFORML
 	IF RAND:2 == 1
-		PRINTFORMDW …結果は%CALLNAME:MASTER%の%TEXTR("圧勝/辛勝/見事な逆転勝ち/")%に終わった
+		PRINTDATADL
+			DATAFORM 結果は%CALLNAME:MASTER%の見事な逆転勝ちに終わった
+			DATAFORM 結果は一進一退の攻防の末、%CALLNAME:MASTER%の勝利に終わった
+		ENDDATA
 		PRINTDATAW
 			DATAFORM 「私ももっと精進しないとだめですね」
-			DATAFORM 「本当にすごいですね…」
-			DATAFORM 「貴方の強さ、底が知れませんね。また機会があればお願いします」
+			DATAFORM 「貴方が凄まじいのを差し引いても、ちょっと私も不甲斐ないですね…」
+			DATAFORM 「貴方の強さ…本当に底が知れませんね」
 		ENDDATA
 	ELSE
-		PRINTFORMDW …結果は映姫の%TEXTR("圧勝/辛勝/逆転勝ち/")%に終わった
+		PRINTDATADL
+			DATAFORM 結果は映姫の見事な逆転勝ちに終わった
+			DATAFORM 結果は一進一退の攻防の末、映姫の勝利に終わった
+		ENDDATA
 		PRINTDATAW
 			DATAFORM 「何とか面目が保てました」
 			DATAFORM 「日頃の行いの差が出ましたね……実際実力には差がありませんから」
-			DATAFORM 「…次も同じ結果とは限りません。私もまだまだ精進が必要です」
+			DATAFORM 「…次も同じ結果とは限りません」\n「私もまだまだ精進が必要です」
 		ENDDATA
 	ENDIF
-;【▼そのまま下の口上へ】
 	
+	PRINTFORML 「では今日の勝負を最初から振り返ってみましょうか」
+	PRINTFORMDW 特訓終了後も映姫とじっくり感想戦を行った…
+;【▼そのまま下の口上へ】
 	RETURN 1
 CASE "成功報告時"
 ;報酬：\500
 ;【▲上の口上から続き】
-;【◆口上】
+	PRINTFORML 
+	PRINTFORML 「今日はお付き合いありがとうございました」
+	PRINTFORML 「私も自分の実力を見直すいい機会になったと思います」
+	PRINTFORMW 「また機会があればお願いします」
 ;【報酬獲得】
-	
-	RETURN 0
+	RETURN 1
 CASE "失敗報告時"
 	
 	RETURN 0
@@ -638,21 +588,34 @@ CASE "依頼実行直後"
 	CASE 3
 	;成功した時
 	;【▼そのまま下の口上へ】
-		
-		RETURN 0
+		PRINTDATAL
+			DATAFORM 「なるほど…大変参考になりました」
+			DATAFORM 「…やはり実際に知ってる方へ聞くのが一番ですね」
+			DATAFORM 「…そういう事だったんですね」\n「いくら自分で調べても出てこないはずです」
+		ENDDATA
+		RETURN 1
 	CASE 6
 	;失敗した時
 	;【▼そのまま失敗報告時の口上へ】
-		
-		RETURN 0
+		PRINTDATAL
+			DATAFORM 「んんっ？」\n「それは違うんじゃないでしょうか…？」
+			DATAFORM 「…せっかく教えて頂いたのに恐縮ですが」\n「その説明、辻褄が合わないと思います」
+			DATAFORM 「…なんでしょう、話の筋としては合ってますが」\n「なにか、すごく違和感あるような…？」
+		ENDDATA
+		RETURN 1
 	ENDSELECT
 CASE "成功報告時"
 ;報酬：\500
 	
 	RETURN 0
 CASE "失敗報告時"
-	
-	RETURN 0
+	PRINTFORML 「時間を頂いておいて申し訳ないですけど」
+	PRINTFORMW 「私にはどうしても腑に落ちません…」
+	PRINTFORML 「…報酬だけは一応お渡ししておきます」
+	PRINTFORML 
+	PRINTFORMDL 所持金 ＋500円
+	MONEY += 500
+	RETURN 1
 ;CASE "依頼報告不要"
 ;＜この依頼にはありません＞
 ;	RETURN 0
@@ -671,7 +634,7 @@ ENDSELECT
 ;--------------------------------------------------
 SELECTCASE SCENE
 CASE "依頼提示時"
-	IF CFLAG:30:初期位置 == CFLAG:MASTER:初期位置 || TALENT:恋人
+	IF CFLAG:30:初期位置 == CFLAG:MASTER:初期位置
 		PRINTFORML 「さすがに部屋を片付けないと、みっともないでしょ？」
 	ELSE
 		PRINTFORML 「お恥ずかしい話ですが、どうしても手が空かなくて後回しに…」
@@ -682,7 +645,7 @@ CASE "依頼非受託時"
 	
 	RETURN 0
 CASE "依頼受託時"
-	IF CFLAG:30:初期位置 == CFLAG:MASTER:初期位置 || TALENT:恋人
+	IF CFLAG:30:初期位置 == CFLAG:MASTER:初期位置
 		PRINTFORMW 「ぱぱっと片付けちゃいましょうね」
 	ELSEIF TALENT:30:恋慕
 		PRINTFORMW 「ほんと、ごめんなさい。お願いします」
@@ -758,7 +721,8 @@ CASE "依頼非受託時"
 	RETURN 0
 CASE "依頼受託時"
 	
-	PRINTFORML 「ありがとうございます。では%K30_C_NAME(IRAI_SLOT_TO_PERSON(LOCAL))%宛の手紙、確かに預けました」
+	PRINTFORML 「ありがとうございます」
+	PRINTFORML 「では%K30_C_NAME(IRAI_SLOT_TO_PERSON(LOCAL))%宛の手紙、確かに預けましたよ」
 	PRINTFORML 「急ぎではありませんが、渡し忘れだけは無いようお願いします」
 	RETURN 1
 CASE "依頼確認時"
@@ -853,18 +817,18 @@ CASE "依頼破棄時"
 	RETURN 0
 CASE "依頼実行直前"
 ;○この依頼では落とし物を渡される側の口上です
-PRINTFORML 「あら…？　それは…私の…？」
-PRINTFORML 「どうして%K30_C_NAME(MASTER)%が…？」
-;【W ［あなた］は［彼女］に預かっていた落とし物を返した】
-;【▼そのまま下の口上へ】
+	PRINTFORML 「あら…？　それは…私の…？」
+	PRINTFORML 「どうして%K30_C_NAME(MASTER)%が…？」
+	;【W ［あなた］は［彼女］に預かっていた落とし物を返した】
+	;【▼そのまま下の口上へ】
 	
 	RETURN 1
 CASE "依頼実行直後"
-;○この依頼は必ず実行後達成します
-;【▲上の口上から続き】
-PRINTFORML 「そうですか。%K30_C_NAME(CLIENT_ID)%が見つけてくれて…」
-PRINTFORML 「%K30_C_NAME(MASTER)%、%K30_C_NAME(CLIENT_ID)%にお礼を伝えておいてもらえますか」
-PRINTFORML 「%K30_C_NAME(MASTER)%にもお手数かけました。ありがとうございます」
+	;○この依頼は必ず実行後達成します
+	;【▲上の口上から続き】
+	PRINTFORML 「そうですか。%K30_C_NAME(CLIENT_ID)%が見つけてくれて…」
+	PRINTFORML 「%K30_C_NAME(MASTER)%、%K30_C_NAME(CLIENT_ID)%にお礼を伝えておいてもらえますか」
+	PRINTFORML 「%K30_C_NAME(MASTER)%にもお手数かけました。ありがとうございます」
 	RETURN 1
 CASE "成功報告時"
 ;報酬：上級素材
@@ -891,10 +855,10 @@ ENDSELECT
 ;--------------------------------------------------
 SELECTCASE SCENE
 CASE "依頼提示時"
-	PRINTFORML 「ちょっと失せ物探し、引き受けてもらえませんか？」
-	PRINTFORML 「……ここだけの話ですが、私の部下がどうやら無くしまったようで」
+	PRINTFORML 「ちょっと失せ物探し…引き受けてもらえませんか？」
+	PRINTFORML 「……ここだけの話ですが私の部下がどうやらなくしまったようで」
 	PRINTFORML 「気付いて落ち込む前に、私からこっそり戻しておきたいんです」
-	PRINTFORML 「なるべくでいいので内密に、お願いできますか」
+	PRINTFORML 「なるべくでいいので内密にお願いできますか」
 	RETURN 1
 CASE "依頼非受託時"
 	
@@ -959,10 +923,10 @@ ENDSELECT
 ;--------------------------------------------------
 SELECTCASE SCENE
 CASE "依頼提示時"
-	PRINTFORML 「ちょっと失せ物探し、引き受けてもらえませんか？」
-	PRINTFORML 「……ここだけの話ですが、私の部下がどうやら無くしまったようで」
+	PRINTFORML 「ちょっと失せ物探し…引き受けてもらえませんか？」
+	PRINTFORML 「……ここだけの話ですが私の部下がどうやらなくしまったようで」
 	PRINTFORML 「気付いて落ち込む前に、私からこっそり戻しておきたいんです」
-	PRINTFORML 「なるべくでいいので内密に、お願いできますか」
+	PRINTFORML 「なるべくでいいので内密にお願いできますか」
 	RETURN 1
 CASE "依頼非受託時"
 	
@@ -977,17 +941,16 @@ CASE "依頼破棄時"
 	
 	RETURN 0
 CASE "依頼実行直前"
-;○この依頼では失くしもの持っていた側の口上です
-PRINTFORML 「それでしたら…私が預かっているこの品ではないでしょうか？」
-;【W 聞き込みを続けていた［あなた］はついに探していた落とし物を発見した】
-;【▼そのまま下の口上へ】
-	
+	;○この依頼では失くしもの持っていた側の口上です
+	PRINTFORML 「それでしたら…私が預かっているこの品ではないでしょうか？」
+	;【W 聞き込みを続けていた［あなた］はついに探していた落とし物を発見した】
+	;【▼そのまま下の口上へ】
 	RETURN 1
 CASE "依頼実行直後"
-;○この依頼は必ず実行後達成します
-;【▲上の口上から続き】
-PRINTFORML 「持ち主が見つかって良かったです」
-PRINTFORML 「早く%K30_C_NAME(CLIENT_ID)%に届けて、安心させてあげたほうがいいですよ」
+	;○この依頼は必ず実行後達成します
+	;【▲上の口上から続き】
+	PRINTFORML 「持ち主が見つかって良かったです」
+	PRINTFORML 「早く%K30_C_NAME(CLIENT_ID)%に届けて安心させてあげたほうがいいですよ」
 	RETURN 1
 CASE "成功報告時"
 ;報酬：\3200
@@ -1035,7 +998,7 @@ CASE "依頼受託時"
 			PRINTFORML 「お二人の実力からすれば、下手をすると周りまで巻き込みかねません」
 			PRINTFORML 「あまり派手にやりすぎないようにお願いします」
 		CASE IS > 4
-			PRINTFORML 「貴方たちが本気を出せば、辺り一帯焼け野原…なんてことにもなりそうです」
+			PRINTFORML 「貴方たちが本気を出せば辺り一帯焼け野原…なんてことにもなりそうです」
 			PRINTFORML 「いいですか、くれぐれも『大ごとに』しないようお願いします」
 	ENDSELECT
 	RETURN 1
@@ -1179,7 +1142,7 @@ ENDSELECT
 ;==================================================
 ;依頼口上・一般依頼16：お悩み相談
 ;==================================================
-@M_KOJO_IRAI_16_KX(ROLE, SCENE, CLIENT_ID)
+@M_KOJO_IRAI_16_K30(ROLE, SCENE, CLIENT_ID)
 #DIMS ROLE     ;キャラの立場、依頼者かそうでないか
 #DIMS SCENE    ;セリフの表示されるタイミング
 #DIM  CLIENT_ID;依頼者IDだけ抜き出したもの
@@ -1189,19 +1152,29 @@ ENDSELECT
 ;--------------------------------------------------
 SELECTCASE SCENE
 CASE "依頼提示時"
-	PRINTFORML 「%K30_C_NAME(MASTER)%、つまらない話かもしれませんが…」
-	PRINTFORML 「ちょっと聞いてもらっていいですか？」
+	IF TALENT:30:思慕
+		PRINTFORML 「%K30_C_NAME(MASTER)%、つまらない話かもしれませんが…」
+		PRINTFORML 「ちょっと聞いてもらっていいですか？」
+	ELSE
+		PRINTFORML 「いま、時間はだいじょうぶですか？」
+		PRINTFORML 「%K30_C_NAME(MASTER)%に確認しておきたいことがあります」
+	ENDIF
 	RETURN 1
 CASE "依頼非受託時"
-	PRINTFORML 「そうですか…」
-	PRINTFORML 「いえ…大したことではないので、気にしないでください」
+	IF TALENT:30:思慕
+		PRINTFORML 「そうですか…」
+		PRINTFORML 「いえ…大したことではないので、気にしないでください」
+	ELSE
+		PRINTFORML 「そうですか」
+		PRINTFORML 「では先に用事を済ましてきてください」
+	ENDIF
 	RETURN 1
 CASE "依頼受託時"
 
 	RETURN 0
 CASE "依頼確認時"
 	PRINTFORML 「わざわざ確認なんてしなくても」
-	PRINTFORML 「ただ、聞いてもらうだけでいいんですが…」
+	PRINTFORML 「ただ聞いてもらうだけでいいんですが」
 	RETURN 1
 CASE "依頼破棄時"
 	PRINTFORML 「………」
@@ -1211,40 +1184,54 @@ CASE "依頼実行直前"
 	
 	RETURN 0
 CASE "依頼実行直後"
-	;正解の選択肢
-	IF TFLAG:193 == 1
-		IF TFLAG:194 == 2
-			PRINTFORML 「そう…やはり、そうですよね」
-			PRINTFORML 「ありがとうございます、参考になりました…」
-		ELSE
-			PRINTFORML 「なるほど…」
-			PRINTFORML 「大変参考になりました」
+	IF TALENT:30:思慕
+		;正解の選択肢
+		IF TFLAG:193 == 1
+			IF TFLAG:194 == 2
+				PRINTFORML 「そう…やはり、そうですよね」
+				PRINTFORML 「ありがとうございます、参考になりました…」
+			ELSE
+				PRINTFORML 「なるほど…」
+				PRINTFORML 「大変参考になりました」
+			ENDIF
+		;ハズレの選択肢だったが逆に正解
+		ELSEIF TFLAG:193 == 2
+			PRINTFORML 「！！！」
+			PRINTFORML 「ほ、本当ですか…？」
+			PRINTFORML 「ありがとうございます、参考になりました」
+		;ハズレの選択肢
+		ELSEIF TFLAG:193 == -1
+			PRINTFORML 「………」
+			PRINTFORML 「…%TEXTR("適当なこと言ってませんよね/本気で…そう思ってます/")%？」
+		;正解の選択肢だったが逆にハズレ
+		ELSEIF TFLAG:193 == -2
+			PRINTFORML 「………」
+			PRINTFORML 「…少しは取り繕ったりしないんですか？」
 		ENDIF
-	;ハズレの選択肢だったが逆に正解
-	ELSEIF TFLAG:193 == 2
-		PRINTFORML 「！！！」
-		PRINTFORML 「ほ、本当ですか…？」
-		PRINTFORML 「ありがとうございます、参考になりました」
-	;ハズレの選択肢
-	ELSEIF TFLAG:193 == -1
-		PRINTFORML 「………」
-		PRINTFORML 「…%TEXTR("適当なこと、言ってませんよね/本気で…そう思ってます/")%？」
-	;正解の選択肢だったが逆にハズレ
-	ELSEIF TFLAG:193 == -2
-		PRINTFORML 「………」
-		PRINTFORML 「…少しは取り繕ったりしないんですか？」
+		SIF DIARY:30:27 == 0
+			CALL K30_WRITE_DIARY(27)
+	ELSE
+		PRINTDATAL
+			DATAFORM 「ええ、おっしゃるとおり」\n「確認するまでもありませんでしたね」
+			DATAFORM 「ちゃんとわかっているようでなによりです」
+			DATAFORM 「はい、そのとおりです」\n「聞くまでもないと思いましたが念のためですよ」
+		ENDDATA
 	ENDIF
-	SIF DIARY:30:27 == 0
-		CALL K30_WRITE_DIARY(27)
 	RETURN 1
 CASE "成功報告時"
 ;報酬：野菜か果物
-	PRINTFORML 「お礼にほんの気持ちですが」
-	PRINTFORML 「こちらをどうぞ」
+	PRINTFORML 
+	IF TALENT:30:思慕
+		PRINTFORML 「お礼にほんの気持ちですが」
+		PRINTFORML 「こちらをどうぞ」
+	ELSE
+		PRINTFORML 「では、貴方もより精進するよう心掛けてください」
+	ENDIF
 	RETURN 1
 CASE "失敗報告時"
+	PRINTFORML 
 	PRINTFORML 「まあとにかく…」
-	PRINTFORML 「聞いて頂いてありがとうございます…」
+	PRINTFORML 「聞いてくださってありがとうございます…」
 	RETURN 1
 ;CASE "依頼報告不要"
 ;＜この依頼にはありません＞
@@ -1257,8 +1244,7 @@ CASE "口上委託率"
 ;1,2:弾幕ごっこの悩み 3,4:晩酌の悩み 5,6:本の悩み 7,8:香料の悩み
 ;9,10:音楽の悩み 11,12:服の悩み 13:髪型の悩み 14:参拝の悩み 15:ダイエットの悩み
 ;16,17:菜園の悩み 18:休日の悩み 19:人気の悩み 20:集中力の悩み 21:御三家の悩み 22:進化の悩み
-	RESULT:1 = 0
-	RESULT:2 = 0
+	VARSET RESULT, 1, 1, 23
 	RETURN 1
 CASE "口上専用"
 ;＜この依頼特有の分岐です。(口上委託率)％の確率で発生します＞
@@ -1274,6 +1260,7 @@ CASE "口上専用"
 ;RESULT:1を7にするとどれも正解になります
 ;RESULT:1を8にするとどれもハズレになります
 ;1～3以外の場合は逆張り判定が自動で無くなります
+IF TALENT:30:思慕
 	SELECTCASE RAND:4 
 		CASE 0
 			RESULTS:0 = 気になる人をお出かけに誘うとしたら…』\n　　　『どんな言い方が一番いいと思います？
@@ -1306,8 +1293,39 @@ CASE "口上専用"
 			RESULT:2 = 0
 			TFLAG:194 = 2
 	ENDSELECT
+ELSE
+	SELECTCASE RAND:4 
+		CASE 0
+			RESULTS:0 = 私から貴方に送る賞があるとしたら』\n　　　『何になると思いますか？
+			RESULTS:1 = 罪深賞
+			RESULTS:2 = 罪深賞
+			RESULTS:3 = 罪深賞
+			RESULT:1 = 7
+			RESULT:2 = 1
+		CASE 1
+			RESULTS:0 = 私の教えを聞きにくるなら』\n　　　『どのくらいの頻度がよいと思います？
+			RESULTS:1 = 毎日
+			RESULTS:2 = 週７回
+			RESULTS:3 = 24時間毎に１回
+			RESULT:1 = 7
+			RESULT:2 = 1
+		CASE 2
+			RESULTS:0 = 私の教えを守らないと死後どうなると思いますか？
+			RESULTS:1 = 地獄行き
+			RESULTS:2 = 地獄行き
+			RESULTS:3 = 地獄行き
+			RESULT:1 = 7
+			RESULT:2 = 1
+		CASE 3
+			RESULTS:0 = 貴方が今すぐ成すべきことは何だと思いますか？
+			RESULTS:1 = 善行を積む
+			RESULTS:2 = 善行に励む
+			RESULTS:3 = 善行を施す
+			RESULT:1 = 7
+			RESULT:2 = 1
+	ENDSELECT
+ENDIF
 ENDSELECT
-
 ;==================================================
 ;依頼口上・固有依頼101：
 ;固有依頼の仕様はキャラによって異なりますが依頼番号は101～で共通です

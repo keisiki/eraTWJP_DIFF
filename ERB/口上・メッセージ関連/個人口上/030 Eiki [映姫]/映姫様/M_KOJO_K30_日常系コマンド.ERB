@@ -14,7 +14,7 @@
 ;裁判中会話は強制失敗扱い。代わりに会話累積値を打ち消して「気まずい空気」を発生させない
 IF 仕事中チェック(30) && BETWEENTIME(540, 719) && (CFLAG:30:現在位置 == CFLAG:30:職場) && CFLAG:30:職種 == 43
 	TFLAG:192 = -1
-	TCVAR:301 = 0
+	TCVAR:30:301 = 0
 ELSE
 	TFLAG:192 = 0
 ENDIF
@@ -746,7 +746,7 @@ IF LOCAL
 				CASE "迷いの竹林"
 					PRINTFORML 「人が良いことを言っても素通りの鳥頭」
 					PRINTFORML 「思った以上に何処にでもいるものですね」
-					PRINTFORML 「屋台の女将や私の部下、そしてすぐ目の前にも」
+					PRINTFORML 「屋台の女将や私の部下、そして私のすぐ目の前にも」
 					PRINTFORMW 「実に嘆かわしいことです」
 				CASE "太陽の畑", "夢幻館"
 					PRINTFORML 「生きる事はそれだけで罪な事、長く生きればそれだけ罪深くなるのです」
@@ -999,7 +999,7 @@ IF LOCAL
 						;午後
 						ELSE
 							PRINTFORMW 「今朝はしっかり起きられましたか？」
-							PRINTFORML 「もし自覚があるのなら規則正しい生活を心掛けなさい」
+							PRINTFORML 「もし不摂生をしている自覚があるのなら規則正しい生活を心掛けなさい」
 							PRINTFORMW 「貴方はまず自分を律することから始めるべきです」
 						ENDIF
 					ELSE
@@ -1242,7 +1242,7 @@ IF LOCAL
 						PRINTFORMW 「きちんと聞いて頭で理解したのなら、次は行動に移してくださいね」
 					ELSE
 						PRINTFORML 「ここは一応私室ですよ。お話しならそこのラウンジでも出来ますが」
-						PRINTFORMW 「まあいいでしょう……別に見られて困るものもありません」
+						PRINTFORMW 「まあいいでしょう……%\@ YOGORE:(615) > 500 ? そちらの書類 # 私物 \@%には触らないようお願いします」
 					ENDIF
 				ENDIF
 			;小町の部屋
@@ -1344,10 +1344,10 @@ IF LOCAL
 			;白玉楼庭
 			CASE 650
 				IF RAND:2 == 1
-					PRINTFORML 「そちらの老木にはあまり近づかないようにしてください」
+					PRINTFORML 「あちらの老木にはあまり近づかないようにしてください」
 					PRINTFORMW 「…詳しい事情は言えませんが、色々と危険ですので」
 				ELSE
-					PRINTFORML 「そちらの桜はいくら待っても咲くことはありませんが…」
+					PRINTFORML 「あちらの桜はいくら待っても咲くことはありませんが…」
 					PRINTFORMW 「ええ、そのままでいいんです。そのままそっとしておいてください」
 				ENDIF
 			;白玉楼
@@ -1393,13 +1393,20 @@ IF TALENT:恋人 && RAND:3 != 0
 			PRINTFORML 「ふふっ……私が人と恋に落ちるなんて、思ってもみなかったけど」
 			PRINTFORMW 「貴方と話しているだけでとても幸せ。何だか不思議ね…」
 		CASE 3
-			PRINTFORML 「この制服私は好きですよ。着ていると身が引き締まります」
-			PRINTFORMW 「………あと」
-			PRINTFORMW 「%K30_C_NAME(MASTER)%に、脱がしてもらう時の……」
-			PRINTFORMW 「解放感が……たまらなくて……♥」
+			IF !CFLAG:衣装一時変更
+				PRINTFORML 「この制服私は好きですよ。着ていると身が引き締まります」
+				PRINTFORMW 「………あと」
+				PRINTFORMW 「%K30_C_NAME(MASTER)%に、脱がしてもらう時の……」
+				PRINTFORMW 「解放感が……たまらなくて……♥」
+			ELSE
+				PRINTFORML 「今日はいつもの服と変えてみましたが…」
+				PRINTFORMW 「どうです、どんな印象ですか？」
+				PRINTFORML 「………」
+				PRINTFORMW 「ありがとう、%K30_C_NAME(MASTER)%…♥」
+			ENDIF
 		CASE 4
 			PRINTFORML 「貴方と私では歩む時間が違うけれど」
-			PRINTFORMW 「だからこそこの時間を大切にしないといけません」
+			PRINTFORMW 「だからこそ、この時間を大切にしないといけません」
 		CASE 5
 			PRINTFORML 「貴方に出会って私もずいぶんと変わったのよ」
 			PRINTFORMW 「他人と同調して誰かに染められるなんてこと、昔の私なら想像もしなかったわ」
@@ -1445,7 +1452,7 @@ ELSEIF TALENT:恋慕 && RAND:3 != 1 || TALENT:恋人
 			PRINTFORML 「でも最近は腑に落ちるようになったというか…より公正な裁きが出来るようになりました」
 			PRINTFORMW 「経験しないとわからないという事もあるんですね」
 		CASE 1
-			IF ONCE("会話＠予定", 1) && K30_FIND_LOVER() != 2
+			IF ONCE("会話＠予定", 1) && K30_FIND_LOVER() < 1
 				CALLF ONCE("会話＠予定")
 				SELECTCASE TIME
 					CASE 360 TO 549 
@@ -1511,9 +1518,17 @@ ELSEIF TALENT:恋慕 && RAND:3 != 1 || TALENT:恋人
 			PRINTFORMW 「閻魔でも罪からは逃れられません。まして人間や妖怪ならなおさらです」
 			PRINTFORMW 「だから常に善行を心がけるのですよ」
 		CASE 4
-			PRINTFORML 「この制服を私は気に入ってます」
-			PRINTFORMW 「この服を着て公明正大に振る舞う事を私は誇りに思ってますよ」
-			PRINTFORMW 「…ただ、このスカートってやっぱり短すぎますよね？」
+			IF !CFLAG:衣装一時変更
+				PRINTFORML 「この制服を私は気に入ってます」
+				PRINTFORMW 「この服を着て公明正大に振る舞う事を私は誇りに思ってますよ」
+				PRINTFORMW 「…ただ、このスカートってやっぱり短すぎますよね？」
+			ELSE
+				PRINTFORML 「私は常に閻魔として理想の姿でいること考えています」
+				PRINTFORML 「今日はこのような服装に着替えてますが」
+				PRINTFORMW 「見た目ではなく立ち居振る舞いで、閻魔として相応しいかを見てもらえるよい機会だと思ってます」
+				SIF STRCOUNT(CSTR:30:0, "変Ｔ")
+					PRINTFORMW 「………」\n「もちろん出来ていない日があるのも自覚してます」\n「まだまだ私も未熟ですね…」
+			ENDIF
 		CASE 5
 			PRINTFORML 「%K30_C_NAME(MASTER)%って普段は何をしてるのかしら」
 			PRINTFORMW 「…別に裁判でも尋問でもありませんよ。ただ貴方から直接聞きたいだけ」
@@ -1552,8 +1567,10 @@ ELSEIF TALENT:恋慕 && RAND:3 != 1 || TALENT:恋人
 				PRINTFORMW 「最初から白黒はっきりついている、とても素晴らしい食材だと思いませんか」
 			ENDIF
 	ENDSELECT
+	SIF GETBIT(CFLAG:1502, 2)
+		RETURN 1
 	;恋慕で信頼度積むと妊娠願望フラグ
-	IF CFLAG:信頼度 >= 1500 && !GETBIT(CFLAG:1502, 2) && !(TALENT:妊娠 || EXP:出産経験)
+	IF CFLAG:信頼度 >= 1500 && !(TALENT:妊娠 || EXP:出産経験)
 		PRINTFORMW
 		PRINTFORMDL 会話が終わっても、映姫はどこか奇妙な目つきで%CALLNAME:MASTER%を見ている…
 		PRINTFORMW 
@@ -1571,8 +1588,8 @@ ELSEIF TALENT:恋慕 && RAND:3 != 1 || TALENT:恋人
 		PRINTFORML 
 		PRINTFORMW 「…ごめんなさい、ちょっと考え事をしてました」
 	ENDIF
-;思慕＠1/2で下へ恋慕付いてたらここまでで選ぶ
-ELSEIF (TALENT:思慕 && !RAND:2 ==0) || TALENT:恋慕
+;思慕＠2/3で下へ恋慕付いてたらここまでで選ぶ
+ELSEIF (TALENT:思慕 && RAND:3 == 0) || TALENT:恋慕
 	SELECTCASE RAND:8
 		CASE 0
 			IF !CHARA_HOLIDAY(30, 1) && CFLAG:30:職種 != 49
@@ -1604,7 +1621,8 @@ ELSEIF (TALENT:思慕 && !RAND:2 ==0) || TALENT:恋慕
 		CASE 5
 			PRINTFORML 「たまには褒めてもらいたいと言われても困りますね」
 			PRINTFORMW 「%K30_C_NAME(MASTER)%みたいに毎日ふらふらしてる人を褒める…うーん……」
-			PRINTFORMW 「褒める…労う……あっ、渡せる賞ならありますが…」
+			PRINTFORMW 「褒める…労う……」
+			PRINTFORML 「あっ、渡せる賞ならありますが…」
 			PRINTFORMW 「罪深賞、いりますか？」
 		CASE 6
 			IF TALENT:MASTER:清掃中毒
@@ -1629,7 +1647,7 @@ ELSEIF (TALENT:思慕 && !RAND:2 ==0) || TALENT:恋慕
 ELSE
 	;更新履歴に書いてないけど小言だけはちょくちょく増えてる
 	;量増えたのでローテーションで表示するテスト
-	分岐量 = 34
+	分岐量 = 40
 	SIF !回数
 		CALLF FUNC_FISHER_YATES_SHAFFLE(LOCAL, 分岐量) 
 	SELECTCASE LOCAL:回数
@@ -1775,8 +1793,8 @@ ELSE
 				PRINTFORMW 「積み重ねてこその善行です。思いつきや気まぐれですることではありませんから」
 			ENDIF
 		CASE 20
-			;セフレ+愛人の人数を算出
-			TEMP = (SUMCARRAY(TALENT:セフレ, 1) - CMATCH(TALENT:セフレ, 2, 1))
+			;セフレ+愛人の人数を算出、映姫様セフレなら0を返す
+			TEMP = (SUMCARRAY(TALENT:セフレ, 1) - CMATCH(TALENT:セフレ, 2, 1)) * !(TALENT:セフレ > 0)
 			SELECTCASE TEMP
 				CASE IS > 6
 					PRINTFORML 「貴方はこの幻想郷へ女性を漁りにきたのですか？」
@@ -1869,10 +1887,40 @@ ELSE
 			PRINTFORML 「私が皆に繰り返し教えを説くのも、そういった気持ちの表れですね」
 			PRINTFORMW 「きちんと伝えてわかってもらわなければ、教えを説く意味もありません」
 		CASE 33
-			PRINTFORML 「妖怪や例え神様でも何もかもが万能というわけではありません」
+			PRINTFORML 「妖怪や、たとえ神様でも何もかもが万能というわけではありません」
 			PRINTFORML 「困っていることやちょっとした用事に煩わされることだって普通にありますから」
 			PRINTFORML 「貴方みたいに暇を持て余している人はそれなりに重宝されるでしょう」
 			PRINTFORMW 「さあ、いつまでもプラプラとしてないで皆さんのお手伝いでもしてきなさい」
+		CASE 34
+			PRINTFORML 「『三つ子の魂百まで』とはよくいいますが」
+			PRINTFORML 「そうなると貴方は幼いときから女性\@ GETBIT(CFLAG:1699, 0) ? の下着 # \@に執着していたのでしょうか…？」
+			PRINTFORMW 「……本当に業が深いですね」
+		CASE 35
+			PRINTFORML 「飛行術を極めた仙人でも女性に心奪われた瞬間空から落ちた…という逸話が残っています」
+			PRINTFORMW 「貴方も女性を追いかけ回してばかりいると、いつか痛い目をみるかもしれませんよ」
+		CASE 36
+			PRINTFORML 「自分がしてほしいことを他人にしてあげるのはとても大切です」
+			PRINTFORML 「気遣い、親切、感謝の言葉」
+			PRINTFORMW 「人と人が互いにより良い関係を築くのにも欠かせません」
+			PRINTFORML 「……念のため言っておきますが」
+			PRINTFORML 「貴方のように、自分がしてほしいことだからといって、女性にやたらと触れてまわること」
+			PRINTFORMW 「あれを善行とは呼びません…自重するようお願いします」
+		CASE 37
+			PRINTFORML 「幻想郷は結界で外の世界と隔たれ、毎日が代わり映えなく過ぎているように思えるかもしれません」
+			PRINTFORML 「しかし結界の中であっても時は流れ季節は移ろいます」
+			PRINTFORML 「そう、どんなに強大な力を振るったとしても、全ては諸行無常の理からは逃れられないのです」
+			PRINTFORMW 「いつか来る終わりに備えるため、貴方がたは善行を積まないといけません」
+		CASE 38
+			PRINTFORML 「私はなにも禁欲を説くつもりはありません」
+			PRINTFORMW 「人は温かい血の通った生き物、食欲や睡眠欲は命の種火を灯すために欠かせないものです」
+			PRINTFORML 「…とはいえ、貴方の色欲はいくらなんでも過剰すぎますね」
+			PRINTFORML 「灯火どころか自身を焼き尽くす業火にもなりかねません」
+			PRINTFORMW 「貴方は常に自制を心掛けるぐらいがちょうどよいでしょう」
+		CASE 39
+			PRINTFORML 「お釈迦様の弟子には一念をもって掃除に励み、遂には悟りを開かれた方がいらっしゃいます」
+			PRINTFORMW 「もしかしたら貴方でも、そのような境地に辿り着くことが……」
+			PRINTFORML 「………」
+			PRINTFORMW 「……すみません、貴方が悟りを開く姿…ちょっと想像がつきませんね」
 	ENDSELECT
 	回数 = (回数 == (分岐量 - 1)) ? 0 # 回数 + 1
 ENDIF
@@ -2032,6 +2080,8 @@ RETURN 1
 ;-------------------------------------------------
 ;変T会話
 @K30_TALK_STRANGE_TSHIRT
+#DIM 回数
+#DIM 分岐量
 ;-------------------------------------------------
 ;外出時会話フラグ消す
 TCVAR:30:359 = 1
@@ -2063,16 +2113,17 @@ ELSE
 		DATAFORM に気を遣いながら話をした
 	ENDDATA
 	PRINTFORMW 
-	SELECTCASE RAND:19
+	分岐量 = 21
+	SIF !回数
+		CALLF FUNC_FISHER_YATES_SHAFFLE(LOCAL, 分岐量) 
+	SELECTCASE LOCAL:回数
 		CASE 0
 			IF CFLAG:MASTER:現在位置 == CFLAG:113:現在位置
 				PRINTFORML 「ヘカーティア様に似合っているって褒められました」
-				PRINTFORMW 「ええ、とても素敵な笑顔でした…」
+				PRINTFORML 「ええ、とても素敵な笑顔でした…」
 			ELSE
 				PRINTFORML 「ヘカーティア様は私を見て、なんて仰るかしら」
-				PRINTFORMW 「楽しみですね。ふふふ…」
-				PRINTFORMDW 映姫は口元だけ笑ってみせたが、目が相変わらず死んでいる…
-				RETURN 1
+				PRINTFORML 「楽しみですね。ふふふ…」
 			ENDIF
 		CASE 1
 			IF 仕事日チェック(30) && TIME < 540
@@ -2195,6 +2246,14 @@ ELSE
 			PRINTFORMW 「偉大な女神の加護を受けた服だから、と言えばいいのでしょうか」
 			PRINTFORML 「その点では私の普段の制服など遠く及びません」
 			PRINTFORMW 「けれど、機能の良さと着る側の心境が一致するとは限りません…」
+		CASE 19
+			PRINTFORML 「私のスカートを見た外来人が…『げーみんぐからー』などと言って騒いでました」
+			PRINTFORMW 「よく意味がわかりませんが…褒められていないのはわかります…」
+		CASE 20
+			PRINTFORML 「…別に襟が伸びきっているわけではありませんから」
+			PRINTFORML 「これはこういう服、こういうものなのです」
+			PRINTFORMW 「ええ、本当にどうしようもないのです…」
+		
 	ENDSELECT
 ENDIF
 IF RAND:3 == 1
@@ -2204,6 +2263,7 @@ IF RAND:3 == 1
 		DATAFORM 映姫の瞳からさらに生気が失われいく…
 	ENDDATA
 ENDIF
+回数 = (回数 == (分岐量 - 1)) ? 0 # 回数 + 1
 RETURN 1
 ;-------------------------------------------------
 ;事後のエロ会話
@@ -2223,11 +2283,14 @@ SIF EX:膣内精液 > 400
 SIF EX:アナル内精液 > 400
 	CHOSEN += "7/"
 FOR COUNT, 1, 6
+	;V/A挿入で3回以上強絶頂した体位を見る
 	SIF GETBIT(TCVAR:30:389, COUNT)
 		CHOSEN += @"{COUNT + 7}/"
+	;陥落した部位で5回以上絶頂した
 	SIF TALENT:(71 + COUNT) && TCVAR:30:(389 + COUNT) > 4
 		CHOSEN += @"{COUNT + 12}/"
 NEXT
+;ポルチオ超強絶頂3回以上
 SIF GETBIT(TCVAR:30:389, 7) && TALENT:機嫌 == 1
 	CHOSEN += "18/"
 SIF TALENT:精愛味覚 && TCVAR:30:395 > 4
@@ -4067,37 +4130,19 @@ RETURN 1
 ;TFLAG:193(1=大成功 0=成功 -1=失敗)
 ;==================================================
 @M_KOJO_SUCCESS_COM_K30_331
-#DIM KIMESEKU
-
 ;成否判定
 ;TFLAG:192(-2=強制失敗(注、非コマンド終了）、-1＝強制失敗、0=COM依存、1=強制成功or大成功(注、睡眠薬アイスティーは眠気を感じていると飲まない)
-;イベント前提条件-周りに誰もいない、合意あり、恋慕で高信頼度、妊娠なし、媚薬在庫2個以上、媚薬お茶を用意、機嫌悪くなくて、反発0、一日一回、1日おき
-IF K30_BE_SEEN() == 0 && GETBIT(CFLAG:既成事実, 1) && TALENT:恋慕 && !TALENT:妊娠 && CFLAG:信頼度 >= 2000 && ITEM:41 > 1 && TFLAG:131 == 41 && TALENT:機嫌 != -1 && MARK:30:反発刻印 == 0 && TCVAR:30:379 == 0
-	;押し倒され.ERB から条件コピペ
-	SIF ROOMDATA:(CFLAG:MASTER:現在位置 % 100) & 場所_公共の場
-		GOTO FALSE
-	FOR COUNT, 1, CHARANUM
-		SIF COUNT == 30
-			CONTINUE
-		IF CAN_MOVE(CFLAG:MASTER:現在位置, CFLAG:COUNT:現在位置) == 2
-			GOTO FALSE
-		ENDIF
-	NEXT
-	;ここまで抜けたら押し倒され条件のうち、場所は満たしている
-	;後は口上とパラメータをいじって、薬盛る→えっちになる→押し倒してくる、が自然な流れでつながる…かも
+;イベント前提条件-周りに誰もいない、合意あり、恋慕で高信頼度、妊娠自覚なし、媚薬在庫2個以上、媚薬お茶を用意、機嫌悪くなくて、反発と仕事無し、変Ｔじゃない
+IF K30_KIMESEKU() && K30_BE_SEEN() == 0  && TFLAG:131 == 41 && !TCVAR:30:379
+	;ENDURE以外の押し倒され条件が整っている場合に口上とパラメータを弄ると、薬盛る→えっちになる→押し倒してくる、が自然な流れでつながる…かも
 	IF !STRCOUNT(CSTR:30:0, "キメセク")
 		PRINTFORMDL …媚薬を追加で盛ったら、もっとえっちになるのでは…？
 		CALL ASK_YN("やってみる", "いや、バレるでしょ")
 	ELSE
-		PRINTFORMDL 以前の様子から考えて、もしかしたら…
+		PRINTFORMDL 以前の様子から考えて、媚薬を余分に入れてみるのも…
 		CALL ASK_YN("とりあえず盛ってみる", "控えておく")
 	ENDIF
 	IF !RESULT
-		IF DAY - KIMESEKU < 2
-			PRINTFORMDL …さすがに日を空けたほうがよいだろう
-			PRINTFORMDL 盛るのはやめておいた
-			GOTO FALSE
-		ENDIF
 		PRINTFORMDL もう一服媚薬を追加した…
 		TFLAG:192 = -1
 		TCVAR:30:379 = RAND:3 + 1
@@ -4106,14 +4151,12 @@ IF K30_BE_SEEN() == 0 && GETBIT(CFLAG:既成事実, 1) && TALENT:恋慕 && !TALE
 		SIF !STRCOUNT(CSTR:30:0, "キメセク")
 			TCVAR:30:379 = 5
 		ITEM:41 --
-		KIMESEKU = DAY
 	ELSE
 		PRINTFORMDL さすがに自重しておいた
 		TFLAG:192 =0
 	ENDIF
 ELSE
 	;前提満たさない、周りに誰かいれば通常どおり
-	$FALSE
 	TFLAG:192 =0
 ENDIF
 
@@ -4130,144 +4173,84 @@ RETURN RESULT
 
 @M_KOJO_MESSAGE_COM_K30_331_1
 #DIM キメた
-キメた = 0
-SIF STRCOUNT(CSTR:30:0, "キメセク")
-	キメた  = 1
+キメた = STRCOUNT(CSTR:30:0, "キメセク") ? 1 # 0
 ;-------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
 	IF TFLAG:193 == -1
-		SIF !(TCVAR:30:379 && キメた)
+		SIF !TCVAR:30:379
 			PRINTFORML 「はぁ……まったく……」
 		IF TCVAR:30:379 > 0
 			IF キメた
 				PRINTFORMW 「…………！！」
-				PRINTFORMW 「これを、飲むんですか…？」
-				PRINTFORMW 「飲ませて、どうするつもりですか…♥」
+				PRINTFORML 「これを、飲むんですか…？」
+				PRINTFORML 「飲ませて、どうするつもりですか…♥」
 				PRINTFORMDW 映姫はこれからすることを理解して妖しい笑みを浮かべている…
 			ELSE
-				PRINTFORMW 「何がしたいか本当に良くわからないけど」
-				PRINTFORMW 「……お茶に溶け残ったお薬が、浮いてますよ」
+				PRINTFORML 「…何がしたいか本当に良くわかりませんが」
+				PRINTFORML 「策を弄するならもう少し頭を使うべきでしょう」
+				PRINTFORML 「お茶に溶け残ったお薬、浮いてますよ」
 				PRINTFORMDW %CALLNAME:MASTER%は自分の迂闊さを呪った…
 			ENDIF
-		ELSEIF TALENT:恋人
-			PRINTFORMW 「%K30_C_NAME(MASTER)%のやりたい事がわかるのは嬉しいけれど…」
-			PRINTFORMW 「それを叶えてあげるかはまた別の話よ」
-		ELSEIF TALENT:恋慕
-			PRINTFORMW 「貴方が突拍子もない事をするのは、知ってたつもりだけど…」
-			PRINTFORMW 「まさかこんなくだらない事するなんて、さすがに予想外です」
-		ELSEIF TALENT:思慕
-			PRINTFORMW 「少しずつでも善行を積んでるかと思えばこんな事を…」
-			PRINTFORMW 「私も性根を据えて、貴方に教えを叩き込まないといけませんね」
-		ELSE
-			PRINTFORMW 「閻魔をこんな手段で騙そうなんて、ずいぶん安く見られたものです」
-			PRINTFORMW 「これは…『今』『ここで』貴方の罪の重さ教えなくてはいけませんか」
-		ENDIF
-		IF TCVAR:30:379 > 0
 			PRINTFORML
 			PRINTFORML 「こんなあからさまに怪しいお茶、飲むわけないってわかりませんか？」
-			PRINTFORMDW お茶を\@ OUTROOF(CFLAG:MASTER:現在位置)? 地面に流す # 外に捨てる \@と、\@ キメた ? なぜか棒読み調で # さっそく \@映姫が説教を始める
+			PRINTFORMDW 怪しいお茶を手に持ったまま、さっそく映姫は\@ キメた ? 白々しく # \@説教を始める
 			PRINTFORML 「そもそも貴方、私に何を飲ませるつもりだったのかしら」
 			RESETCOLOR
-			CALL ASK_YN("実は媚薬を…", "本当にごめんなさい")
+			CALL ASK_YN, @"%\@ キメた ? それはもうアレですよ # 実は媚薬を… \@%", "本当にごめんなさい"
 			CALL M_KOJO_COLOR_K30
 			IF !RESULT
 				ITEM:41 --
 				IF FIRSTTIME("キメセク")
 					PRINTFORML 「呆れた……そのお薬、どうせまだ持ってますよね？」
 					PRINTFORMDW 映姫に詰問されて%CALLNAME:MASTER%はおとなしく薬を差し出す
-					PRINTFORML 「なるほど、これが……これを、私に、飲ませて………」
+					PRINTFORML 「なるほど、これを、私に、飲ませて………」
+					PRINTFORML 「私に…好き放題…しようと…」
 				ELSE
-					PRINTFORML 「そうですか…また…あの、お薬…すごく、気持ち良くなる…あれを…」
+					PRINTFORML 「そうですか…また、あれを…すごく、気持ち良くなる…お薬…」
 					PRINTFORMDW …%CALLNAME:MASTER%は映姫の手のひらにそっと媚薬を握らせる
-					PRINTFORML 「そう、これ。これを、もし…飲んでしまったら……」
+					PRINTFORML 「そう、これですね…」
+					PRINTFORML 「これを、もし…また飲んでしまったら……」
 				ENDIF
-				PRINTFORMW 「……………………」
+				PRINTFORML 「……………………」
+				PRINTFORMDW 映姫はお茶を持ったまま、何か考え込んでいる…
 				PRINTFORML 
-				PRINTFORML 「……ところで、私…誰かさんのせいで、お茶を飲みそびれてしまいました」
-				PRINTFORMW 「なるべくぬるめのを、一杯淹れてもらえますか」
-				IF キメた
-					PRINTFORMD 言われるのを待っていたかのように、
-				ELSE
-					PRINTFORMD 突然のリクエストを訝しく思いながらも、
-				ENDIF
-				PRINTFORMDL %CALLNAME:MASTER%は要望通りのお茶を淹れた
-				PRINTFORMW 「ありがとうございます。では、いただきます……」
-				PRINTFORML 
-				PRINTFORMDL 映姫はお茶を口に含み……預かっていた媚薬を一息に口へ流し込んだ
-				PRINTFORMDW 口の中でくちゅくちゅと混ぜ合わせながら、残りのお茶もゆっくりと飲み干していく
+				PRINTFORMDL 次の瞬間、映姫は特濃媚薬と化したお茶を口に含み、預かっていた媚薬も一息に口へ流し込んだ
+				PRINTFORMDW 口の中でくちゅくちゅと混ぜ合わせながら、残ったお茶もゆっくりと飲み干していく
 				PRINTFORML 
 				PRINTFORMDL \@ キメた ? ニヤニヤと笑う # 呆気にとられる \@%CALLNAME:MASTER%に視線を合わせ、映姫\@ キメた ? も # は \@淫らに笑いかける
-				PRINTFORMDL そして熱い口づけと共に、お茶と薬を口移しで流し込んできた
+				PRINTFORMDL そして熱い口づけと共にお茶を口移しで流し込んできた
 				PRINTFORMDW 熱烈なキスと薬のおかげで、%CALLNAME:MASTER%のペニスは恐ろしく滾ってくる…
-				;陥落後だし媚薬３個も使うので、バフ盛り盛り・自重しない
-				;TALENTも弄る。うふふ中断も考えてAFTERTRAで確実にリセットされるのだけ
-				SIF GROUPMATCH(TCVAR:30:願掛け補正,23, 31 ,41, 70, 80, 82, 83, 101, 102, 103, 104, 106)
-					TALENT:30:(TCVAR:30:願掛け補正) -= 1
-				;好奇心つけてなければ性的興味＋
-				IF TALENT:30:23 < 1
-					FLAG:願掛け内容 = 999
-					TCVAR:30:願掛け補正 = 23
-					TALENT:30:23 ++
-				;他に良さげなのも無いのでマゾ
-				ELSEIF TALENT:30:83 == 0
-					FLAG:願掛け内容 = 999
-					TCVAR:30:願掛け補正 = 83
-					TALENT:30:83 ++
-				ENDIF
-				CALL BUFF_BASE(TARGET, BASE_気力,666)
-				CALL BUFF_BASE(TARGET, BASE_体力,666)
-				BASE:MASTER:勃起 = MAXBASE:MASTER:勃起
-				BASE:30:理性 /= 10
-				SIF PALAM:潤滑 < PALAMLV:6
-					PALAM:潤滑 = PALAMLV:6
-				SIF PALAM:欲情 < PALAMLV:7
-					PALAM:欲情 = PALAMLV:7
-				CFLAG:30:溜まってる度 = MIN(CFLAG:30:溜まってる度 + 666, 1000)
-				BASE:30:ムード = MIN(BASE:30:ムード + 666, 1200)
-				TCVAR:30:媚薬 = 210
-				TCVAR:30:発情 = 1
-				CFLAG:30:同行 = 60
-				CFLAG:MASTER:同行 = 60
-				IF !TALENT:淫乱
-					TALENT:淫乱 = 1
-					TCVAR:30:379 += 5
-				ENDIF
 				ITEM:41 --
-				PRINTFORML 
-				CALL BUFF_BASE(MASTER, BASE_精力,666, 1)
-				PRINTFORMW 
+				CALL K30_KIMESEKU_BUFF
 				PRINTFORMW 「んっ、んふっ♥　くちゅ……んっ、くちゅ……ぷはっ♥」
 				PRINTFORMDL 口づけを終えた映姫の瞳は怪しい光を帯び、纏っている雰囲気までいつもと違っている
-				PRINTFORMDW 蠱惑的な笑みを浮かべたその姿は厳格な閻魔様とはまるで正反対の存在\@ TCVAR:30:379 > 5 ? 、まさに[淫乱]そのものの # \@ように映った…
+				PRINTFORMDW 蠱惑的な笑みを浮かべたその姿は厳格な閻魔様とはまるで正反対の存在、まさに[淫乱]そのもののように映った…
 				SELECTCASE  TCVAR:30:379
-					CASE 1, 6
+					CASE 1
 						PRINTFORML 「ちょっと飲むだけで、男の人にも良く効きますね……このお薬」
 						PRINTFORML 「こんなのを『こっそり』仕込む人がいるなんで、ひどいと思いません？」
-						PRINTFORMW 「だから、%K30_C_NAME(MASTER)%…覚悟は、できてますね…♥」
-					CASE 2, 7
-						PRINTFORML 「んんっ♥　このお薬…やっぱり小分けで使うものかしら」
+						PRINTFORMW 「%K30_C_NAME(MASTER)%…覚悟は、できてますね…♥」
+					CASE 2
+						PRINTFORML 「んんっ♥　このお薬…やっぱり小分けで使うものかしら…」
 						PRINTFORML 「スゴイのよ…服がこすれるだけで、もう…気もち、いいの♥」
 						PRINTFORMW 「このままだと、大変なことになりそう…%K30_C_NAME(MASTER)%……助けてくれますよね♥」
-					CASE 3, 8
+					CASE 3
 						PRINTFORML 「ふふっ…ふふふ♥　こっそり飲ませて効くようなお薬を…」
 						PRINTFORML 「『効く』って信じて飲んだら、スゴいことになりそうね…」
 						PRINTFORMW 「%K30_C_NAME(MASTER)%、どうなってるか、確かめてみます…♥」
-					CASE 4, 9
+					CASE 4
 						PRINTFORML 「…お腹の奥から、熱くなってきて……今、すごく、わかるの」
 						PRINTFORML 「どうしても貴方との赤ちゃんが欲しい。今すぐに%K30_C_NAME(MASTER)%との子どもが作りたい…」
 						PRINTFORMW 「%K30_C_NAME(MASTER)%、今日は私を孕ませるまで…離さないで♥」
-						TEQUIP:30:子宮 = 1
-						SIF EXP:子宮口開発経験 > 49 && ABL:膣 > 1
-							TEQUIP:30:子宮 = 2
-					CASE 5, 10
+					CASE 5
 						PRINTFORML 「%K30_C_NAME(MASTER)%…気もちいい事……私だって、嫌いじゃ、ありません」
 						PRINTFORML 「でも、一緒じゃなきゃ、だめ。私だけ、薬でなんて、いや」
 						PRINTFORMW 「二人で、気もちよく…なりたいの……♥」
 				ENDSELECT
-				PRINTFORMDL 映姫は首に抱きついてきて、頬を擦り寄せキスの雨を降らしてきた
+				PRINTFORMDL 映姫は首に抱きつき、頬を擦り寄せながらキスの雨を降らしてきた
 				PRINTFORMDW そのまま覆い被さるようにして、%CALLNAME:MASTER%に体重を預けてくる……
 			ELSE
 				IF キメた
@@ -4279,11 +4262,23 @@ IF LOCAL
 					ITEM:41 ++
 				ELSE
 					PRINTFORML 「……謝るくらいなら、最初からこんな事しないでください！」
-					PRINTFORMDL 当然怒られた……が、説教は続かずなぜか見逃された
-					PRINTFORMDW こころなしか映姫は残念がってるようにも見える……
+					PRINTFORMDL 映姫は声を荒げる……が、説教は始まらなかった
+					PRINTFORMDW こころなしか残念がってるようにも見える……
 				ENDIF
 				TCVAR:30:379 = -1
 			ENDIF
+		ELSEIF TALENT:恋人
+			PRINTFORMW 「%K30_C_NAME(MASTER)%のやりたい事がわかるのは嬉しいけれど…」
+			PRINTFORMW 「それを叶えてあげるかはまた別の話よ」
+		ELSEIF TALENT:恋慕
+			PRINTFORMW 「貴方が突拍子もない事をするのは、知っていたつもりだけど…」
+			PRINTFORMW 「まさかこんなくだらない事するなんて、さすがに予想外です」
+		ELSEIF TALENT:思慕
+			PRINTFORMW 「少しずつでも善行を積んでるかと思えばこんな事を…」
+			PRINTFORMW 「私も性根を据えて、貴方に教えを叩き込まないといけませんね」
+		ELSE
+			PRINTFORMW 「閻魔をこんな手段で騙そうなんて、ずいぶん安く見られたものです」
+			PRINTFORMW 「これは…『今』『ここで』貴方の罪の重さ教えなくてはいけませんか」
 		ENDIF
 	ELSE
 		IF TCVAR:30:媚薬 == 210
@@ -4855,7 +4850,7 @@ IF LOCAL
 							PRINTFORML 「%K30_C_NAME(MASTER)%…早く、私の…」
 							CALL HPH_PRINT, @"「早く…私の、ここを…慰めて…HPH」", "L"
 							PRINTFORMDL 映姫は我慢できずに自分からスカートを捲くり上げた
-							CALL K30_PRINT_BUTT_IMAGE(0, 2, 0, 3, 1, 0)
+							CALL K30_PRINT_BUTT_IMAGE(-1, 2, 4, 3, 1, 0)
 							PRINTFORMW 
 							PRINTFORMDL ぷるんとなめらかなお尻と、その中心でブルブルと震えるバイブがむき出しになる
 							PRINTFORMDL 映姫はもどかしげに装着を緩めアナルバイブを一気に引き抜いた…
@@ -4880,13 +4875,14 @@ IF LOCAL
 							ELSEIF (CFLAG:76:現在位置 == CFLAG:30:現在位置 || CFLAG:129:現在位置 == CFLAG:30:現在位置) && GROUPMATCH(K30_FIND_AROUND(), 76, 129)
 								;部下が恋人
 								IF K30_FIND_LOVER() == 2
-									PRINTFORMW 「%CALLNAME:(TALENT:MASTER:恋人)%…私がいて、いいのかしら…？」
+									PRINTFORMW 「えっと…私が混じっていても、いいのかしら…？」
 									PRINTFORMW 「………………」
-									PRINTFORML 「ありがとう、%CALLNAME:(TALENT:MASTER:恋人)%」
 									IF K30_FIND_AROUND() == 76
-										PRINTFORMW 「本当に貴方はよく気づく子ね。隠しごとなんてできません……」
+										PRINTFORML 「本当に貴方はよく気づく子ね」
+										PRINTFORMW 「隠しごとなんてできません……」
 									ELSE
-										PRINTFORMW 「本当に貴方は優しい子ね。私にもこんなに気遣ってくれて……」
+										PRINTFORML 「ありがとう、本当に貴方は優しい子ね」
+										PRINTFORMW 「私にもこんなに気遣ってくれて……」
 									ENDIF
 								;３人同時
 								ELSEIF CFLAG:76:現在位置 == CFLAG:30:現在位置 && CFLAG:129:現在位置 == CFLAG:30:現在位置
@@ -4907,7 +4903,7 @@ IF LOCAL
 										PRINTFORMW 「小町となら…私は構いません」
 										IF TALENT:恋人
 											PRINTFORMW 「私と同じくらいに、この子のことも可愛がってあげてくださいね♥」
-										ELSEIF TALENT:MASTER:恋人
+										ELSEIF TALENT:MASTER:恋人 && !TALENT:76:恋人
 											PRINTFORML 「……貴方の中で私たちがお気に入りの二人であれば」
 											PRINTFORMW 「それだけで嬉しいと思えてしまうんです…」
 											PRINTFORMW 「閻魔も死神も…貴方の前では形無しです」
@@ -5205,15 +5201,24 @@ RETURN 1
 @M_KOJO_SUCCESS_COM_K30_352
 ;成否判定
 ;TFLAG:192(-2=コマンド終了、-1＝強制失敗、0=COM依存、1=強制成功or大成功
+CALL K30_DENY_POLYAMORY(2)
+LOCAL = RESULT
 IF 仕事中チェック(30) && BETWEENTIME(540, 719)
 	TFLAG:192 = -1
+	TFLAG:194 = -1
+ELSEIF LOCAL
+	TFLAG:192 = -1
+	TFLAG:194 = LOCAL
 ELSE
 	TFLAG:192 =0
 ENDIF
 
 @M_KOJO_MESSAGE_COM_K30_352
-CALL TRAIN_MESSAGE
-CALL M_KOJO_COLOR_K30
+IF TFLAG:194 > 0
+	CALL K30_D_LINE
+ELSE
+	CALL TRAIN_MESSAGE
+ENDIF
 CALL M_KOJO_MESSAGE_COM_K30_352_1
 RETURN RESULT
 
@@ -5223,6 +5228,7 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
+	;成功
 	IF TFLAG:193
 		PRINTFORML 「………」
 		PRINTFORMDW 告白を受け映姫はびっくりしたようだが、しばらくして口を開く
@@ -5237,15 +5243,47 @@ IF LOCAL
 		PRINTFORMW 「はっきりさせることか出来て本当に良かった」
 		PRINTFORMW 「ありがとう、%K30_C_NAME(MASTER)%」
 		PRINTFORMW 「これからも、よろしくね」
+		SETBIT CFLAG:30:1505, 0
+	;失敗
 	ELSE
-		IF 仕事中チェック(30) && BETWEENTIME(540, 719)
-			PRINTFORMW 「…………？」
-			PRINTFORMDL 映姫が訝しげにこちらを見ている…
-			PRINTFORMDW なんだか怒られそうな気したので告白はやめておいた
-		ELSE
-			PRINTFORML 「あら、貴方…どうしたのかしら？」
-			PRINTFORMW 「閻魔様に隠し事なんて良くないわよ？」
-		ENDIF
+		SELECTCASE  TFLAG:194
+			CASE -1
+				PRINTFORML 「…………？」
+				PRINTFORMDL 映姫が訝しげにこちらを見ている…
+				PRINTFORMDW 仕事の邪魔をすると怒られそうな気したので告白はやめておいた
+			CASE 0
+				PRINTFORML 「あら、貴方…どうしたのかしら」
+				PRINTFORMW 「閻魔様に隠し事なんて良くないわよ？」
+			CASE 1
+				PRINTFORMDL %CALLNAME:MASTER%は意を決して映姫に恋情を伝えた…
+				PRINTFORMW 
+				IF FIRSTTIME("両手に花")
+					PRINTFORMW 「………」
+					PRINTFORML 「貴方と同じように…確かに私も%K30_C_NAME(MASTER)%に惹かれています」
+					PRINTFORML 「けど、この想いは秘めておくべきこと…」
+					PRINTFORMW 「誰かを煩わせたり割って入るなど許されないと思います」
+					PRINTFORML 「それに今の言葉…%K30_C_NAME(TALENT:MASTER:恋人)%の前でも同じ台詞が言えますか？」
+					PRINTFORML 「%K30_C_NAME(TALENT:MASTER:恋人)%を…悲しませないであげてください」
+					PRINTFORMDW 映姫に断られてしまった…
+				ELSE
+					PRINTFORMDL 映姫は俯いたまま、無言で首を振った…
+				ENDIF
+			CASE 2
+				PRINTFORMDL %CALLNAME:MASTER%は意を決して映姫にもう一度やり直せないかと伝えた…
+				PRINTFORMW 
+				IF FIRSTTIME("ぽりあもりー")
+					PRINTFORMW 「………」
+					PRINTFORML 「%K30_C_NAME(MASTER)%と関わるうちに失念していましたが…」
+					PRINTFORMW 「やはり人の世は諸行無常、移ろわぬものなど無いようです」
+					PRINTFORML 「私は変わらぬまま貴方だけをずっと想っています、けど…」
+					PRINTFORMW 「貴方はそうでないというのがわかった以上…私たちは今の関係の方が良いと思います」
+					PRINTFORML 「それに…%K30_C_NAME(TALENT:MASTER:恋人)%にまで、悲しい思いをさせたくありません」
+					PRINTFORML 「この話は…なかったことに、しましょう…」
+					PRINTFORMDW 映姫に拒否されてしまった…
+				ELSE
+					PRINTFORMDW 映姫は少し寂しそうに笑い、無言で首を振った…
+				ENDIF
+		ENDSELECT
 	ENDIF
 ENDIF
 RETURN 1
@@ -5403,7 +5441,7 @@ IF 仕事中チェック(30) && CFLAG:30:職種 == 43
 			PRINTFORMDL 映姫の機嫌を損ねてしまった…
 		ENDIF
 	ENDIF
-;バグ多いし口上内のフラグ管理と相性悪すぎ。ほぼ発動しないようにする
+;バグ多いし口上内のフラグ管理と相性悪すぎ。発動しないようにする
 ELSEIF !(TALENT:恋慕 || TALENT:セフレ || TALENT:愛欲)
 	PRINTFORMDL %CALLNAME:MASTER%は映姫を物陰へ引き込もうとしたが手をはたき落とされた…
 	PRINTFORMW 
@@ -5425,6 +5463,8 @@ ELSEIF TCVAR:30:364
 	PRINTFORMW 「ここは…そんなことする場所じゃ、ありません」
 	CALL HPH_PRINT, "「それより…貴方も、その気なら…早く、行きましょうHPH」", "L"
 	CALL HPH_PRINT, "「二人で…落ち着ける、場所に…ねHPH」", "L"
+	RESETCOLOR
+	RETURN RESULT
 ELSEIF CFLAG:溜まってる度 < 850 || (ABL:露出癖 + TALENT:羞恥心 < 3) || !TCVAR:発情
 	PRINTFORMDL %CALLNAME:MASTER%は映姫を物陰へ引き込もうとしたが弱々しく手を振りほどかれた…
 	PRINTFORMW 
@@ -5438,16 +5478,16 @@ ELSEIF !TCVAR:泥酔
 	PRINTFORMW 
 	PRINTFORML 「%K30_C_NAME(MASTER)%…私は普通に…普通に二人で愛を確かめ合いたいの…」
 	PRINTFORML 「こんな…意地悪、しないでください…」
+	RESETCOLOR
+	RETURN RESULT
 ELSE
-	PRINTFORMDL ぐでぐでに酔っ払った映姫はまともな判断も出来ないようだ…
-	TFLAG:192 = 1
-	CALL K30_PRESET_UFUFU
+	PRINTFORMDL …酔っ払っいを抱えながら、隠れてするのは無理な気がしてきた
+	RESETCOLOR
+	RETURN RESULT
 ENDIF
-SIF TFLAG:192 == -1
-	CFLAG:30:ディレイ += (1440 - TIME)
+CFLAG:30:ディレイ += (1440 - TIME)
 RESETCOLOR
 RETURN RESULT
-
 ;==================================================
 ;357,セフレ契約
 ;基本的にコマンド内で完結するのでほぼ蛇足
@@ -5477,7 +5517,13 @@ DRAWLINE
 CALL PRINT_GROUP(LOCALS, 3)
 PRINTFORMDL 映姫に記憶が飛ぶほど説教された
 PRINTFORMDL %CALLNAME:MASTER%は精も根も尽き果てその場に倒れ込んだ…
-CALL LOST_GYAKURE(30)
+BASE:MASTER:体力 = 0
+BASE:MASTER:気力 = 0
+BASE:MASTER:精力 = 0
+CALL SET_SLEEP(1,MASTER,0)
+CFLAG:MASTER:就寝時間 = DAY * 1440 + TIME + 180
+TFLAG:106 = 0
+
 RETURN 1
 ;==================================================
 ;360,身を任せる＠とりあえずEVENT_MESSAGE_COM.300とCOUNTER_MESSAGEの分岐を拾ってみる
@@ -6365,10 +6411,12 @@ RETURN 1
 ;368,自由行動に付き合う
 ;==================================================
 @M_KOJO_MESSAGE_COM_K30_368
-IF Activity_Type:30 == 5
-	CALL K30_D_LINE
-ELSE
+IF Activity_Type:30 != 5 || TCVAR:30:364
 	CALL TRAIN_MESSAGE
+	SIF TCVAR:30:364
+		RETURN 1
+ELSE
+	CALL K30_D_LINE
 ENDIF
 CALL M_KOJO_MESSAGE_COM_K30_368_1
 RETURN RESULT
@@ -6651,6 +6699,10 @@ IF LOCAL
 	IF CFLAG:睡眠
 	ELSEIF TCVAR:泥酔 == 1
 		PRINTFORMW 「う～ん、やすまないと…」
+	ELSEIF TCVAR:30:364
+		PRINTFORML 「%K30_C_NAME(MASTER)%…落ち着いたら…」
+		CALL HPH_PRINT, "「早く…はやく、わたしに…HPH」", "L"
+		PRINTFORMDW いまの状態では休むどころではないようだ
 	ELSEIF K30_CHECK_HEN_T() && TALENT:機嫌 > -1
 		PRINTFORMDW 映姫は身じろぎもせずただ座っている。ちょっと心配になってくる…
 	ELSE
@@ -6709,6 +6761,7 @@ CALL M_KOJO_COLOR_K30
 IF LOCAL
 	;TARGETとデート
 	IF CFLAG:同行
+		CALL K30_DENY_POLYAMORY(1)
 		RESULT = 0
 		SIF !GETBIT(CFLAG:1609, 2)
 			CALL K30_INSERT_VIBE_DATE
@@ -7614,8 +7667,26 @@ LOCAL = 1
 IF LOCAL
 	SIF !SHIRAHU(30)
 		RETURN 1
+	;バイブデート
+	IF TCVAR:30:364
+		PRINTFORML 「…………」
+		IF TFLAG:193 == -1 || !ABL:MASTER:音楽技能
+			PRINTFORMDW 映姫はぎゅっと目をつむり聞くに堪えない%CALLNAME:MASTER%の演奏を我慢している…？
+		ELSE
+			PRINTFORMDW 映姫はうっとりと目を閉じ%CALLNAME:MASTER%の演奏に聞き惚れている…？
+		ENDIF
+		IF NOWEX:Ａ絶頂
+			CALL HPH_PRINT, @"「…お、しり%TEXTR("…スゴいのっ、くるっ/…あぅ、あふっHPH　ふあっ…ああっHPH/…イく、もう…イく…HPH")%HPH」", "L"
+			PRINTFORMDL …%CALLNAME:MASTER%の演奏は全く耳に入ってなかったようだ
+			PRINTFORMDW 絶頂をこらえきれない映姫は小さく声を漏らした
+			TFLAG:194 = 19
+		ELSE
+			CALL HPH_PRINT, @"「…%TEXTR("んあっ/あ、ふうぅ/スゴい…これ、スゴいっ")%HPH」", "L"
+			PRINTFORMDL …映姫は半開きの口から%TEXTR("よだれをひとすじ垂らした/舌をだらしなく突き出した/熱い吐息を漏らした")%
+			PRINTFORMDW %CALLNAME:MASTER%の演奏とは関係なく一人で盛り上がっていたようだ…
+		ENDIF
 	;失敗
-	IF TFLAG:193 == -1
+	ELSEIF TFLAG:193 == -1
 		PRINTFORML 「弘法も筆の誤り、と言います」
 		PRINTFORML 「私も失敗を咎めたりはしません」
 		PRINTDATAW
@@ -8305,7 +8376,7 @@ IF LOCAL
 		ELSEIF RAND:2 == 1
 			PRINTFORML 「なにか、見つかりました？」
 			CALL HPH_PRINT, @"「%ITEMNAME:(TFLAG:193)%、ですか…良かったですね…HPH」", "W"
-			CALL HPH_PRINT, @"「…ああHPH　それにしても、あつい…すごく、あついですねHPH」", "L"
+			CALL HPH_PRINT, @"「…ああHPH　それにしても、あつい…すごく、あついですHPH」", "L"
 			PRINTFORMDL ずっと見ていただけの映姫だが\@ DAY:2 == 2 ? すでに汗びっしょりになっている # うっすら汗をかいている \@…
 		ELSE
 			PRINTFORML 「まだ…探します？」
@@ -8389,6 +8460,177 @@ ENDIF
 RETURN 1
 
 ;==================================================
+;448,罠を仕掛ける／虫トラップ
+;TFLAG:193,
+;   -1=罠が壊れた
+;    0=罠を仕掛けた
+;    1=獲物が得られた
+;   10=虫トラップを仕掛けた
+;   11=虫トラップを破棄した
+;   12=ムシを捕まえた
+;TFLAG:194,獲物の番号
+;ムシの名前は MUSHI_NAME で表示したり判別したりできます
+;==================================================
+@M_KOJO_MESSAGE_COM_K30_448
+CALL TRAIN_MESSAGE
+CALL M_KOJO_MESSAGE_COM_K30_448_1
+RETURN RESULT
+
+@M_KOJO_MESSAGE_COM_K30_448_1
+;-------------------------------------------------
+;記入チェック（=0, 非表示、1, 表示）
+LOCAL = 1
+;-------------------------------------------------
+IF LOCAL
+	;コマンド段階で弾かれてる気がするけど念のため
+	SIF !SHIRAHU(30) || 仕事中チェック(30)
+		RETURN
+	;バイブデート
+	IF TCVAR:30:364
+		CALL HPH_PRINT, @"「んっ…HPH　んんっ………あふっHPH」", "L"
+		PRINTFORMDW 足元が覚束ない映姫は遠くから%CALLNAME:MASTER%の作業を眺めている
+		PRINTFORML 
+		CALL HPH_PRINT, @"「いぃ…HPH　おしり……とっても、すご…い…HPH」", "L"
+		PRINTFORMDW …顔はこちらを向けているが、何をしているのかには関心がないようだ
+		RETURN 1
+	ENDIF
+	SELECTCASE TFLAG:193
+		;罠が壊れた
+		CASE -1
+			PRINTDATAW
+				DATAFORM 「動物たちも精一杯に生きているのです」\n「そうやすやすとは捕まってくれませんよ」
+				DATAFORM 「罠を壊されてしまった貴方には申し訳ないですが…」\n「一つの命が生き延びた、と考えれば悪いことでもありません」
+				DATAFORM 「これ…一旦獲物を仕留めた後、外側から罠が壊されてませんか…？」\n「もしかしたら、他の仲間に助け出されたのかもしれませんね」
+				DATAFORM 「動物たちとの知恵比べ、人間が負けるなんてこといくらでもありますよ」\n「動物たちも生き延びるのに必死なんですから」\n「また次に期待しましょう」
+			ENDDATA
+		;罠を仕掛けた
+		CASE 0
+			SELECTCASE RAND:4
+				CASE 0
+					PRINTFORML 「罠を仕掛けたのなら、忘れずこまめに見回るようにしてください」
+					PRINTFORMW 「捕まえた動物を放っておくのは、そのぶん長く苦しめることになりますから」
+				CASE 1
+					PRINTFORML 「貴方にも生活があるのはわかってます」
+					PRINTFORML 「私もこの事でとやかく言うつもりはありません」
+					PRINTFORML 「ただし罠を仕掛けるのは必要な分だけにしてください」
+					PRINTFORMW 「面白半分で置いて回るなんて許しませんよ」
+				CASE 2
+					PRINTFORML 「貴方が上手く罠を隠して確実に捕まえたい気持ちもわかりますが…何か事故があってはいけません」
+					PRINTFORMW 「%TEXTR("目立つよう看板も一緒に/危ないのでもう少し見える位置に/もうちょっとだけ目立つように")%置きませんか？」
+				CASE 3
+					PRINTFORML 「罠に仕掛ける餌は、なるべく人の口に合わない物のほうが良いですね」
+					PRINTFORML 「下手に美味しいものを置いてしまうと、動物の代わりに…」
+					PRINTFORMW 「いつでもお腹をすかせた亡霊やら貧乏神が引っかかってる、なんてことになりかねません」
+					PRINTFORMW 「……貴方もそうなっている光景、なんとなく想像つきませんか？」
+			ENDSELECT
+		;獲物が得られた
+		CASE 1
+			SELECTCASE TFLAG:194
+				;ヘビ/デスワーム/スライム→怪しげな肉
+				CASE 20, 23, 25
+					SELECTCASE RAND:3
+						CASE 0
+							PRINTFORML 「貴方でも食べるのに躊躇するものがあるんですね」
+							PRINTFORMW 「正直なところ、なんでもお構いなしだと思ってました」
+						CASE 1
+							PRINTFORML 「多少怪しげではありますが、仕留めた以上は貴方が責任を持たないといけません」
+							PRINTFORMW 「料理の方、頑張ってください」
+						CASE 2
+							PRINTFORML 「%K30_C_NAME(MASTER)%にひとつ提案があります」
+							PRINTFORMW 「そのお肉、使い方に困ってるようですが…しっかり香辛料をまぶすというのはどうでしょう？」
+							PRINTFORML 「臭みやえぐみも消えて、多少は毒消しの効果も期待できます」
+							PRINTFORML 「そして何よりも…美味しく食べられる可能性がとっても高くなります！」
+							PRINTFORML 「ぜひぜひお勧めですよ」
+							PRINTFORMDW 閻魔様は自分の好みを押し付けてきた
+					ENDSELECT
+				;マタンゴ→ヤバいキノコ
+				CASE 26
+					PRINTFORML 「捕まえて食べないのは無益な殺生、避けたいところですが…」
+					PRINTFORML 「いや、でもこんなの…確かに食べられませんね…」
+					PRINTFORMW 「そもそもこれはいったい何なんでしょうか…？」
+					PRINTFORMW 「動物？　キノコ？」
+					PRINTFORML 「……キノコ人間？」
+					PRINTFORMDW 閻魔様も怪しげな獲物に面食らっている
+				;ローター
+				CASE 31
+					PRINTFORMW 「……………………」
+					PRINTFORML 「罠猟でこんなもの捕まえる人、普通はいませんよ…」
+					PRINTFORML 「……これって、%K30_C_NAME(MASTER)%に引き寄せられているのかしら？」
+					PRINTFORMDW 映姫はドン引きしている…
+				;いわゆるまともな肉
+				CASEELSE
+					SELECTCASE RAND:5
+						CASE 0
+							PRINTFORML 「……よいお肉が手に入って浮かれる気持ちはわかりますが」
+							PRINTFORML 「食べ方どうこうより、まず食材となった生き物への感謝の気持ちが先ではありませんか？」
+							PRINTFORML 「生きていくため命を奪ってしまってしまうことは避けられません」
+							PRINTFORMW 「けれども、そこに命を頂くことへの感謝の気持ちがなければ畜生にも劣りますよ」
+							PRINTFORML 「よいですか、私利私欲で動物を殺す者を私は餓鬼道へと落とします」
+							PRINTFORML 「今の%K30_C_NAME(MASTER)%のように…………、……傲慢でいれば……」
+							PRINTFORML 「………、そう貴方は少し…………」
+							PRINTFORML 「………、………」
+							PRINTFORMDW 映姫の説教スイッチが入ってしまったようだ
+						CASE 1
+							PRINTFORML 「この罠の周り、ずいぶん大暴れした跡が残ってますね…」
+							PRINTFORMW 「捕まえられる側も生きる為に必死で抵抗したのでしょう」
+							PRINTFORML 「%K30_C_NAME(MASTER)%、猟を嗜む貴方ならわかっているかと思いますが」
+							PRINTFORMW 「食材への感謝の気持ち、絶対に忘れてはいけませんよ」
+						CASE 2
+							PRINTFORML 「生きることは罪深いこと」
+							PRINTFORML 「貴方がたの命は犠牲になってくれた命があるからこそ成り立つのです」
+							PRINTFORMW 「その命に報いる為にも善行を心掛けなければなりません」
+						CASE 3
+							PRINTFORMW 「これは本当によいお肉ですね」
+							PRINTFORML 「料理するなら、そうですね…色々思い浮かびますが…」
+							PRINTFORML 「ピリ辛…辛口、激辛……」
+							PRINTFORML 「一度辛味の限界に挑戦、というのも良いかもしれません」
+							PRINTFORMDW 映姫は偏った好みを押しつけてきた
+						CASE 4
+							PRINTFORML 「お肉が傷まないよう血抜きや下処理はしっかりしてください」
+							PRINTFORML 「食べることを楽しみするのも良いですが」
+							PRINTFORMW 「食材に感謝を込めて美味しく頂くためにも、きちんと準備する方が先ですよ」
+					ENDSELECT
+			ENDSELECT
+		;虫トラップを仕掛けた
+		CASE 10
+			PRINTFORML 「ムシバトルの準備ですか？」
+			IF CFLAG:30:ムシバトル直接勝利
+				PRINTDATAW
+					DATAFORM 「私もまた貴方にお相手してもらいたいですね」\n「胸を借りるつもり頑張ります」
+					DATAFORM 「私の手持ちのムシたちも本当によくやってくれてますが」\n「少し見直すべきかしら…？」
+					DATAFORM 「あれ、単純なようでいて…本当に奥が深いですよね」\n「皆さんが夢中になってるのも納得です」
+				ENDDATA
+			ELSE
+				PRINTDATAW
+					DATAFORM 「あれ、なかなか楽しいですよね」\n「良い息抜きになってます」
+					DATAFORM 「実は私にも、どうしても太刀打ち出来ない方がいらっしゃって…」\n「一矢報いたいところですが、正直攻略の糸口も見つかりません」
+					DATAFORM 「私は出来たらムシも白黒で揃えたいんですが…」\n「どこで集めるのが良いのでしょうか…？」
+				ENDDATA
+			ENDIF
+		;虫トラップを破棄した
+		CASE 11
+			IF RAND:2 == 1
+				PRINTFORML 「上手くいかないなら、餌なり場所なり変えてみたらどうでしょう」
+				PRINTFORMW 「あとは根気よく続けてみることですね」
+			ELSE
+				PRINTFORML 「良いムシを捕まえるのは試行錯誤しかないようです」
+				PRINTFORML 「自分で確かめてみるほかありません」
+				PRINTFORML 「それと、虫の妖怪に秘訣を聞きに行くのはやめておいたほうが無難です」
+				PRINTFORMW 「同族を捕まえるなんていったら、誰だって良い顔はしませんよ」
+			ENDIF
+		;虫を捕まえた
+		CASE 12
+			PRINTDATAW
+				DATAFORM 「良かったですね」\n「狙い通りのものは手に入りましたか？」
+				DATAFORM 「一寸のムシにも五分の魂、丁寧に扱ってあげてください」
+				DATAFORM 「上手く捕まえられましたか？」\n「もしお目当てのムシでないなら、元の場所に返してあげてくださいね」
+			ENDDATA
+	ENDSELECT
+ENDIF
+RETURN 1
+;==================================================
+
+;==================================================
 ;449,虫捕り
 ;TFLAG:193,
 ;   -2=殺してでもうばいとる→映姫様に説教される
@@ -8402,7 +8644,7 @@ RETURN 1
 ;ムシの名前は MUSHI_NAME で表示したり判別したりできます
 ;==================================================
 @M_KOJO_MESSAGE_COM_K30_449
-IF TFLAG:193 == -2
+IF TFLAG:193 == -2 && SHIRAHU(30) && !TCVAR:30:364
 	CALL K30_D_LINE
 ELSE
 	CALL TRAIN_MESSAGE
@@ -8522,9 +8764,8 @@ RETURN
 ;コマンド内で完結しているので結果は口上に反映できない
 ;==================================================
 @M_KOJO_MESSAGE_COM_K30_481
-SIF !SHIRAHU(30)
+SIF !SHIRAHU(30) || TCVAR:30:364
 	RETURN
-CALL M_KOJO_COLOR_K30
 PRINTFORML 
 IF 仕事中チェック(30) && TIME < 720
 	PRINTFORMDL 映姫は%CALLNAME:MASTER%の奇行を無視して裁判を進めている
@@ -8987,6 +9228,14 @@ IF LOCAL
 		PRINTFORMW 「こんなんじゃあ…ご飯なんて、美味しく…食べられません…」
 	;失敗
 	ELSEIF TFLAG:193 == -1
+		PRINTFORML 「いえ、食事はどれも美味しく頂けました」
+		PRINTFORMW 「ただ…」
+		PRINTDATAL
+			DATAFORM 「貴方が女給さんのお尻をずっと見ていたこと」\n「誰が見ても丸わかりでしたよ…」
+			DATAFORM 「隣に座っていた女性の胸を、貴方がチラチラ覗こうとしていたこと」\n「周りの皆さんに気づかれてましたよ…」
+			DATAFORM 「貴方が箸を落とすふりして人のスカートを覗こうとしていたこと」\n「あんまりにも白々しくて見てられませんでした…」
+		ENDDATA
+		PRINTFORMDW 食事ではなく%CALLNAME:MASTER%に問題があったようだ
 	;成功
 	ELSE
 		PRINTFORML 「ごちそうさまでした。美味しかったです」
@@ -9226,6 +9475,12 @@ RETURN 1
 ;TFLAG:193(1=貸し出しOK 0=貸し出し不可
 ;ITEM:10X (X=1戦術指南書 X=2調理指南書 X=3字引 X=4御伽草子
 ;==================================================
+;SUCCESS_COMを勝手に置いてみるテスト
+;コマンド中断は出来ないが、実行前の変数と比較することで作りたい分岐を作れる
+@M_KOJO_SUCCESS_COM_K30_620
+TFLAG:192 = FINDELEMENT(ITEM, 1, 101, 111)
+TFLAG:194 = FLAG:貸本返却期限
+
 @M_KOJO_MESSAGE_COM_K30_620
 CALL TRAIN_MESSAGE
 CALL M_KOJO_MESSAGE_COM_K30_620_1
@@ -9245,55 +9500,75 @@ IF LOCAL
 		PRINTFORML （…あっ、%LOCALS%さん、こっち…見てる？）
 		PRINTFORMDW 映姫は%LOCALS%の視線を気にして本棚の影に隠れてしまった…
 	;貸し出し不可
-	ELSEIF TFLAG:193 <= 0
-		;貸し出し中を選択
-		PRINTDATAW
-			DATAFORM 「意地悪もそこまでですよ」\n「%LOCALS%さんも困ってるじゃないですか」
-			DATAFORM 「貸し出し中、ってちゃんと書いてあるんですから……」\n「変なふうに人を試すのは感心しませんね」
-			DATAFORM 「お客だからといって何をしてもいいわけではありませんよ」\n「変なことで%LOCALS%さんの手を煩わすのはどうかと思います」
-		ENDDATA
+;	ELSEIF TFLAG:193 <= 0
+;		;貸し出し中を選択→死に分岐となりました
+;		PRINTDATAW
+;			DATAFORM 「意地悪もそこまでですよ」\n「%LOCALS%も困ってるじゃないですか」
+;			DATAFORM 「貸し出し中、ってちゃんと書いてあるんですから……」\n「変なふうに人を試すのは感心しませんね」
+;			DATAFORM 「お客だからといって何をしてもいいわけではありませんよ」\n「変なことで%LOCALS%の手を煩わすのはどうかと思います」
+;		ENDDATA
 	;借りた
-	ELSE
-		PRINTL 
-		PRINTFORMW 「何か良い本はありましたか？」
-		PRINTL 
-		IF ITEM:101 == 1
-			PRINTFORML 「戦術指南書ですか…身体を鍛えるのは良いことです」
-			PRINTFORMW 「弾幕勝負の訓練、私で良ければ付き合いますよ」
-		ELSEIF ITEM:102 == 1
-			PRINTFORML 「調理指南書ですか…誰かと一緒に料理というのも楽しそうです」
-			PRINTFORMW 「他の方と一緒に料理すれば、いつもと違う味付けも発見できそうですね」
-		ELSEIF ITEM:103 == 1
-			PRINTFORML 「字引ですか…そうですね、知識こそ人を人たらしめる重要なものです」
-			PRINTFORML 「きちんと教養を積んでない方には大切な事も任せられませんよ」
-			PRINTFORMW 「誰かから学ぶ際にはこれを大いに活用して、しっかりと身につけてください」
-		ELSEIF ITEM:104 == 1
-			PRINTFORML 「御伽草子ですか…小さな子どもにはぴったりですが」
-			PRINTFORML 「でもこの本、また随分と達筆で書かれてますね……」
-			PRINTFORMW 「読み聞かせてあげないと、理解するのも難しそうです」
-		ELSEIF ITEM:105 == 1
-			PRINTFORML 「演奏指南書ですか…私は不調法ですから楽器が出来る方を尊敬します」
-			PRINTFORML 「でも気をつけてください。誰もがいつも人の演奏を聞きたいわけではありません」
-			PRINTFORMW 「喧嘩っ早い人も多いですから…余計ないざこざは起こさないでくださいね」
-		;バグアイテムなので消されても気にしない
-		ELSEIF ITEM:106 == 1
-			PRINTFORML 「紙芝居ですか……」
-			PRINTFORML 「………」
-			PRINTFORMW 「人の借りたものにあれこれ言うのもなんですが、何か使いみち…思い浮かびます？」
-		ELSEIF ITEM:107 == 1
-			PRINTFORML 「おさかな図鑑ですか…なるほど、名前だけでなく生態も詳しく書かれてますね」
-			PRINTFORMW 「知識があれば釣りをする時も、糸を垂らしてただ待つよりはずっと効率が良くなりそうです」
-		ELSEIF ITEM:108 == 1
-			PRINTFORML 「採集ガイドですか…これはいいですね。図と説明でわかりやすくなってます」
-			PRINTFORMW 「それでも採集は大変な作業です。計画を立てて時間は有効に使ってください」
-		ELSEIF ITEM:109 == 1
-			PRINTFORML 「薬学教本ですか…私も専門的なことはわかりかねますが…」
-			PRINTFORMW 「調合のように経験に裏打ちされる作業こそ、事前の準備と知識は欠かせないかと思います」
-		ELSEIF ITEM:110 == 1
-			PRINTFORML 「木こりの心得ですか…もし木こりをされるなら、私から一つ忠告しておきましょう」
-			PRINTFORML 「この土地での木々は大切な財産。更には依代、神木といった重要なものも多々あります」
-			PRINTFORMW 「ナワバリ荒らしで山姥や天狗に襲われたくなければ、伐採する時はきちんと許可を得てくださいね」
+	ELSEIF TFLAG:194 < 8
+		;貸出延長
+		IF FINDELEMENT(ITEM, 1, 101, 111) == TFLAG:192
+			PRINTDATAL
+				DATAFORM 「読書百遍義自ら見る、といいます」\n「しっかり身につくまで読み込むと良いでしょう」
+				DATAFORM 「理解の早さは人それぞれですから」\n「わからないままにしておくより、繰り返し読む方がずっと良いですよ」
+				DATAFORM 「勉強熱心なのはよいことですね」\n「私も出来ることであればお手伝いしますよ」
+			ENDDATA
+			PRINTFORMDW 映姫は妙に納得した顔でうなずいている
+		;通常貸出
+		ELSE
+			PRINTFORMW 「何か良い本はありましたか？」
+			PRINTL 
+			IF ITEM:101 == 1
+				PRINTFORML 「戦術指南書ですか…身体を鍛えるのは良いことです」
+				PRINTFORMW 「弾幕勝負の訓練、私で良ければ付き合いますよ」
+			ELSEIF ITEM:102 == 1
+				PRINTFORML 「調理指南書ですか…誰かと一緒に料理というのも楽しそうです」
+				PRINTFORMW 「他の方と一緒に料理すれば、いつもと違う味付けも発見できそうですね」
+			ELSEIF ITEM:103 == 1
+				PRINTFORML 「字引ですか…そうですね、知識こそ人を人たらしめる重要なものです」
+				PRINTFORML 「きちんと教養を積んでない方には大切な事も任せられませんよ」
+				PRINTFORMW 「誰かから学ぶ際にはこれを大いに活用して、しっかりと身につけてください」
+			ELSEIF ITEM:104 == 1
+				PRINTFORML 「御伽草子ですか…小さな子どもにはぴったりですが」
+				PRINTFORML 「でもこの本、また随分と達筆で書かれてますね……」
+				PRINTFORMW 「読み聞かせてあげないと、理解するのも難しそうです」
+			ELSEIF ITEM:105 == 1
+				PRINTFORML 「演奏指南書ですか…私は不調法ですから楽器が出来る方を尊敬します」
+				PRINTFORML 「でも気をつけてください。誰もがいつも人の演奏を聞きたいわけではありません」
+				PRINTFORMW 「喧嘩っ早い人も多いですから…余計ないざこざは起こさないでくださいね」
+			;バグアイテムなので消されても気にしない
+			ELSEIF ITEM:106 == 1
+				PRINTFORML 「紙芝居ですか……」
+				PRINTFORML 「………」
+				PRINTFORMW 「人の借りたものにあれこれ言うのもなんですが、何か使いみち…思い浮かびます？」
+			ELSEIF ITEM:107 == 1
+				PRINTFORML 「おさかな図鑑ですか…なるほど、名前だけでなく生態も詳しく書かれてますね」
+				PRINTFORMW 「知識があれば釣りをする時も、糸を垂らしてただ待つよりはずっと効率が良くなりそうです」
+			ELSEIF ITEM:108 == 1
+				PRINTFORML 「採集ガイドですか…これはいいですね。図と説明でわかりやすくなってます」
+				PRINTFORMW 「それでも採集は大変な作業です。計画を立てて時間は有効に使ってください」
+			ELSEIF ITEM:109 == 1
+				PRINTFORML 「薬学教本ですか…私も専門的なことはわかりかねますが…」
+				PRINTFORMW 「調合のように経験に裏打ちされる作業こそ、事前の準備と知識は欠かせないかと思います」
+			ELSEIF ITEM:110 == 1
+				PRINTFORML 「木こりの心得ですか…もし木こりをされるなら、私から一つ忠告しておきましょう」
+				PRINTFORML 「この土地での木々は大切な財産。更には依代、神木といった重要なものも多々あります」
+				PRINTFORMW 「ナワバリ荒らしで山姥や天狗に襲われたくなければ、伐採する時はきちんと許可を得てくださいね」
+			ENDIF
 		ENDIF
+	;当日借り換え
+	ELSE
+		PRINTFORML 「……えっと、今日借りたばかりですよね」
+		PRINTDATAL
+			DATAFORM 「本当に読み終わりました…？」
+			DATAFORM 「お金、そんなに持て余しているんですか？」
+			DATAFORM 「いくらお金を払ってるとはいえ」\n「あんまり%LOCALS%さんの手を煩わすのもどうかと思います」
+			DATAFORM 「そこまでして%LOCALS%さんに相手をしてほしいんでしょうか…？」
+		ENDDATA
+		PRINTFORMDW 映姫は呆れたように呟いた
 	ENDIF
 ENDIF
 RETURN 1

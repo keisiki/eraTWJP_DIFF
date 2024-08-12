@@ -1935,6 +1935,15 @@ RETURNF 1
 ;━━━━━━━━━━━━━━━━━━━━━━━━━
 
 @K63_DEVOUR
+#DIMS 子供の名前
+#DIM CHILDNUM
+CHILDNUM = TALENT:[[影狼]]:育児中
+IF TALENT:[[影狼]]:育児中 && CFLAG:[[影狼]]:出産経過日 > CHILD_語彙
+	子供の名前 = %CHILDNAME:[[影狼]]:CHILDNUM%
+	PRINTFORML 「ほら、もっと食べなさい」
+	PRINTFORMW 影狼は自分と%CALLNAME:MASTER%の皿から肉をどんどん%子供の名前%の皿に移していく
+	RETURN
+ENDIF
 PRINTFORMW ……
 IF !RAND:2
 	PRINTFORML 「ガフッ！ガフッ！ガフッ！ガフッ！」
@@ -2025,7 +2034,7 @@ FOR LOCAL,1,4
 		BREAK
 	ENDIF
 NEXT
-;なかった場合もう一度回す
+;なかった場合もう一度回して傷んでるのを探す
 IF !RETRIEVE
 	FOR LOCAL,1,4
 		SIF !TRAP_POINT:LOCAL
@@ -2058,9 +2067,21 @@ SELECTCASE TRAP_POINT:RETRIEVE / 100
 ENDSELECT
 
 PRINTFORML 「%CALLNAME:MASTER%、%LOCALS%に罠仕掛けてたでしょ？」
-IF TRAP_DURABILITY:RETRIEVE == 0 || TRAP_CAPTURE:RETRIEVE == 11
-	;ノイヌがかかってた場合嘘ついて逃がしちゃう
+IF TRAP_DURABILITY:RETRIEVE == 0 || TRAP_CAPTURE:RETRIEVE == 11 || TRAP_CAPTURE:RETRIEVE == 29
+	;ノイヌかニホンオオカミがかかってた場合嘘ついて逃がしちゃう
 	PRINTFORMW 「あれ壊れてたわよ」
+	CALL TRAP_V_RESET(RETRIEVE)
+	RETURN 0
+ENDIF
+;東南アジアで実在する狩猟法
+IF TRAP_CAPTURE:RETRIEVE == 50 && K63_CHICKENNAME == ""
+	PRINTFORMW 「オスのトリだったらバラさないでって言ってたけど、何に使うの？目覚まし？」
+	PRINTFORMW 「……へえ、他のオスがナワバリ守ろうと寄ってくるんだ！人間は色々考えつくのねえ」
+	PRINTFORMW 「ならこれ、私にくれない？%CALLNAME:MASTER%の罠猟より私の方が有効活用できそうよ」
+	PRINTFORMW 「大丈夫大丈夫！食べないから！」
+	K63_CHICKENNAME '= @"%TEXTR("スナギモ/ハツ/カシワ/セセリ/チューリップ/ボンジリ/ヤゲン/オタフク/フリソデ")%"
+	PRINTFORML 「そうね、名前は…%K63_CHICKENNAME%でどうかしら」
+	PRINTFORMW 不安になるネーミングだ…
 	CALL TRAP_V_RESET(RETRIEVE)
 	RETURN 0
 ENDIF
@@ -2077,8 +2098,14 @@ SELECTCASE CritterMeat_Value
 	CASE IS >= 10
 		PRINTFORML 「すっごいのがかかってたわよ」
 		PRINTFORML 「ほら、お肉もこんなに！」
+		K63_KNACKER += 3
+		SIF ABL:[[影狼]]:料理技能 >= 2
+			K63_KNACKER ++
 	CASE IS >= 5
 		PRINTFORML 「大物がかかってたわよ」
+		K63_KNACKER += 1
+		SIF ABL:[[影狼]]:料理技能 >= 2
+			K63_KNACKER ++
 	CASEELSE
 		PRINTFORML 「獲物かかってたわよ」
 ENDSELECT
@@ -2124,3 +2151,86 @@ CALL BUFF_BASE(MASTER,BASE_気力, 100)
 K63_EYEBROW = DAY + 30
 SIF TALENT:[[影狼]]:恋慕
 	K63_EYEBROW = DAY + 15
+
+@KAGEROU_LIFE
+SIF ABL:[[影狼]]:親密 < 5
+	RETURN 0
+;IF CFLAG:[[影狼]]:翌日来訪 && TALENT:[[影狼]]:恋慕
+IF !RAND:3 && TALENT:[[影狼]]:恋慕
+	SELECTCASE RAND:3
+		CASE 0
+			PRINTFORML 影狼はマニキュアを塗り直している
+			PRINTFORML 「%TEXTR(@"素だと赤すぎるのよねー…/ん、いい感じ/%CALLNAME:MASTER%は気づいてくれるかな～")%」
+		CASE 1
+			PRINTFORML 影狼はシーツの上に香油を垂らし、転げまわった
+			PRINTFORML 「うん、絶対いい匂いする」
+		CASE 2
+			PRINTFORML 「ふー、いいお風呂だったわ！」
+			IF !RAND:2
+				PRINTFORML 「保湿保湿…」
+				PRINTFORML 自家製化粧液を顔に塗りたくった
+			ELSE
+				PRINTFORML トリートメントした自慢のロングヘアを確かめる
+				PRINTFORML 「ふふふ、毛先までキューティクルばっちり」
+			ENDIF
+	ENDSELECT
+	RETURN
+ENDIF
+
+SELECTCASE RAND:5
+	CASE 0
+	;顔に似合わぬワイルドな夜食
+		PRINTFORMW 「そろそろ冷めたかしら」
+		PRINTFORML 影狼は焙っておいた人参ほどの大きさの骨を取り、焦げを軽く落とした
+		PRINTFORMW そして端をバキリと噛み割り、髄を啜る
+		PRINTFORML 「んん～～～♪」
+		PRINTFORML 「%TEXTR("やっぱコレよねえ/姫たちもこの味がわかればいいのに/まったく骨捨てちゃうなんて信じられないわ")%」
+	CASE 1
+		PRINTFORML 影狼は%TEXTR("歯磨き用の枝を黙々と齧っている/獣脂ろうそくを作っている/インテリアを並べ替えている/床の毛を掃いている")%
+	CASE 2
+		PRINTFORML 影狼はムダ毛を処理している
+		PRINTFORML 「%TEXTR("伸びが早くてやんなるわね……/よし、綺麗になったわ/まったく背中が面倒ったらないわ")%」
+	CASE 3
+		PRINTFORML 影狼は自家製化粧品を作っている
+		IF !RAND:7
+			PRINTFORML 「永遠亭のお姫様はあそこの化粧品使い放題なんでしょうね」
+			PRINTFORML 「ていうか化粧品なんかいらないんだろうなー」
+			PRINTFORML 「……寝よ」
+		ELSEIF !RAND:4
+			PRINTFORML 「植物油が減ってきたわね」
+			PRINTFORML 「あそこの向日葵が使えればいいのに」
+		ELSE
+			PRINTFORML 「%TEXTR("ハーブ臭きついわー/蹄どこやったっけ、蹄/蛮奇の分も足りそうね/お酢お酢……")%」
+		ENDIF
+		EXP:[[影狼]]:調合経験 ++
+	CASE 4
+		IF ABL:[[影狼]]:料理技能 < 2
+			PRINTFORML 影狼は保管しておいた肉の味を見ている
+			PRINTFORML 「%TEXTR("うん、イケるイケる/まだ大丈夫かしら/…さっさと使い切っちゃった方がよさそう/うわ、もう駄目ね…勿体ないなあ")%」
+		ELSEIF !RAND:2
+			PRINTFORML 影狼は干し肉の出来を見ている
+			PRINTFORMW 「%TEXTR("もうちょっと備蓄が欲しいかしら/最近余裕あるし、誰かにあげるかな/う～ん、まあいいでしょ")%」
+		ELSE
+			PRINTFORML 影狼は肉を調理している
+			EXP:[[影狼]]:料理経験 ++
+			{
+			PRINTFORML 「%TEXTR("残った肉汁をパンにつけて…うん、完璧/もうちょっと塩かな～/コンフィって便利ねえ/やっぱり生より消化にいいわね/
+			最近あんまり生で食べてないわね……影響されてるな～")%」
+			}
+		ENDIF
+		
+ENDSELECT
+
+@K63_WEAR_SAILOR(ARG)
+#FUNCTION
+;恋慕限定
+SIF !TALENT:63:恋慕
+	RETURNF -1
+;満月近くは着ない
+SIF INRANGE(DAY:3, 13, 17)
+	RETURNF -1
+;春夏のみ
+SIF DAY:2 == 3 || DAY:2 == 4
+	RETURNF -1
+RETURNF 1
+

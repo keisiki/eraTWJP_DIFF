@@ -159,7 +159,8 @@ ELSEIF !(CFLAG:ARG:1 & 4) && !(CFLAG:ARG:13 & 2) &&  !FLAG:告白禁止 && CAN_M
 	IF (LOCAL > 530 + TALENT:ARG:一線越えない * 20)
 		CALL KOJO_MESSAGE_SEND("SP_EVENT",2,ARG,0)
 		PRINTFORML %CALLNAME:ARG%の告白を…
-		CALL ASK_YN(@"受ける（恋人は{FLAG:追加恋人枠 + 1}人としか取得出来ません）","断る")
+		LOCALS = %\@ TALENT:MASTER:ポリアモリー ? # （恋人は{FLAG:追加恋人枠 + 1}人としか取得出来ません） \@%
+		CALL ASK_YN(@"受ける%LOCALS%","断る")
 		IF !RESULT
 			SETBIT CFLAG:ARG:既成事実 , 2
 			SETBIT CFLAG:MASTER:既成事実, 2
@@ -236,13 +237,9 @@ RETURNF LOCAL:1
 
 @CAN_MAKE_恋人()
 #FUNCTION
-;恋人が今何人いるかカウント
-VARSET LOCAL
-FOR LOCAL, 1, CHARANUM
-	SIF TALENT:LOCAL:恋人
-		LOCAL:1 ++
-NEXT
 SIF TALENT:MASTER:ポリアモリー
+	RETURNF 1
+SIF INRANGECARRAY(TALENT:恋人, 1, CHARANUM, 1, CHARANUM) <= FLAG:追加恋人枠
 	RETURNF 1
 RETURNF 0
 ;===========================================

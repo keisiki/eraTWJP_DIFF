@@ -65,6 +65,17 @@ RETURN 1
 ;	CFLAG:X:来訪不能 = 0
 ;ENDIF
 
+CALL BAN_COMMON_IRAI([[典]], 1)
+CALL BAN_COMMON_IRAI([[典]], 2)
+CALL BAN_COMMON_IRAI([[典]], 3)
+CALL BAN_COMMON_IRAI([[典]], 5)
+CALL BAN_COMMON_IRAI([[典]], 6)
+CALL BAN_COMMON_IRAI([[典]], 7)
+CALL BAN_COMMON_IRAI([[典]], 8)
+CALL BAN_COMMON_IRAI([[典]], 9)
+CALL BAN_COMMON_IRAI([[典]], 10)
+CALL BAN_COMMON_IRAI([[典]], 11)
+
 ;### 口上色判定 ###################################
 @M_KOJO_COLOR_K139
 
@@ -1277,6 +1288,7 @@ IF LOCAL
 						ENDIF
 						PRINTFORML 「また、デートしてくださいますか？　\@ (TALENT:MASTER:年齢 == -1 || TALENT:MASTER:幼児／幼児退行) ? お姉ちゃん # 典 \@は、%CALLNAME:MASTER%どのともっともっとデートしたいです…%UNICODE(0x2665) *1%」
 						PRINTFORML 
+					;典は恋人ではない
 					ELSE
 						;あなたに典以外の恋人がいる
 						IF TALENT:MASTER:恋人
@@ -1711,7 +1723,7 @@ IF LOCAL
 						ENDSELECT
 					ENDIF
 				ENDIF
-			;大人
+			;大人・思慕以下
 			ELSE
 				IF BASE:139:ムード == MAXBASE:139:ムード
 					;ラブホ押し倒し済み
@@ -5798,6 +5810,8 @@ IF LOCAL
 				ENDIF
 			ENDIF
 			
+			;浮気ックス判定
+			;押し倒され回数０
 			IF CFLAG:1014 == 0
 				IF TALENT:140:恋人
 					PRINTFORML 「やっぱり待ってほしい？　飯綱丸さまに対して浮気になってしまう？」
@@ -5810,6 +5824,7 @@ IF LOCAL
 					PRINTFORML 「いずれにせよ、典と抱き合っているのは事実。秘密にしていたかったら、典といたしましょう%UNICODE(0x2665) *1%」
 					PRINTFORML （さてさて、どれほど我慢できるか見ものですねぇ…♪）
 					PRINTW 
+					;浮気ックスフラグON
 					TCVAR:369 = 1
 				ELSEIF TALENT:MASTER:恋人 && !TALENT:恋人
 					PRINTFORML 「やっぱり待ってほしい？　恋人に対して浮気になってしまう？」
@@ -8017,7 +8032,8 @@ IF LOCAL
 					PRINTW 
 				ENDIF
 			ELSEIF TALENT:恋慕
-				IF CFLAG:MASTER:初期位置 == CFLAG:139:初期位置
+				;デフォルトの龍の家
+				IF CFLAG:MASTER:初期位置 == CFLAG:139:初期位置 && CFLAG:MASTER:初期位置 == CFLAG:140:初期位置
 					PRINTFORML 「%CALLNAME:MASTER%どの、帰りましょうか♪」
 					IF TALENT:140:恋人
 						PRINTFORML 「本当はもっと二人きりでいたいのですが、飯綱丸さまに怪しまれますからね…%UNICODE(0x2665) *1%」
@@ -8029,6 +8045,7 @@ IF LOCAL
 						PRINTFORML 帰路に就く途中、典は%CALLNAME:MASTER%の腕にしなだれかかっていた
 						PRINTW 
 					ENDIF
+				;典、または龍が引っ越した
 				ELSE
 					PRINTFORML 「今日は飯綱丸さまの屋敷に泊って行かれませんか？」
 					IF TALENT:140:恋人
@@ -9899,11 +9916,19 @@ IF LOCAL
 	IF (TALENT:愛欲 || TALENT:セフレ) && !TALENT:処女 && ABL:露出癖 >= 3 && EXP:膣射経験 >= 10 && (TALENT:MASTER:性別 == 2 || TALENT:MASTER:性別 == 3) && !RAND:3 && CFLAG:1025 == 0
 		CALL K139_KAPPA_FUCK
 	ELSEIF CFLAG:1025 == 1
-		SELECTCASE RAND:100
-		CASE IS > 80
-		CASEELSE
+		IF CFLAG:1030 == 1 && GROUPMATCH(DAY:3, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30)
 			CALL K139_KAPPA_FUCK2
-		ENDSELECT
+		ELSEIF CFLAG:1030 == 2 && GROUPMATCH(DAY:3, 4, 8, 12, 16, 20, 24, 28)
+			CALL K139_KAPPA_FUCK2
+		ELSEIF CFLAG:1030 == 3 && GROUPMATCH(DAY:3, 7, 14, 21, 28)
+			CALL K139_KAPPA_FUCK2
+		ELSEIF CFLAG:1030 == 0
+			SELECTCASE RAND:100
+			CASE IS > 40
+			CASEELSE
+				CALL K139_KAPPA_FUCK2
+			ENDSELECT
+		ENDIF
 	ENDIF
 
 
@@ -10463,10 +10488,12 @@ IF LOCAL
 				PRINTFORML 「…やーめた。私の柄じゃないし」
 				PRINTFORML 「強かろうが弱かろうが、私の武器はこれまでもこれからも話術です」
 				PRINTFORML 「それに、力でねじ伏せちゃったら、面白い物が見れなくなっちゃうしね♪」
+				PRINTW 
 		CASE 5
 			PRINTFORML 「いつの間にか…私は鬼や神に匹敵するような力を」
 			PRINTFORML 「逆に怖い気もしますね。変に力に振り回されて、巫女に退治されないように気を付けねば」
 			PRINTFORML 「とはいえ、これだけ力が付いたのなら、私も『飯綱権現降臨』が使えるようになってたりして」
+			PRINTW 
 		CASE 4
 			PRINTFORML 「これなら、私が飯綱丸さまをお守りすることもできそうですね」
 			PRINTFORML 「大事にしてくださってもらっているとはいえ、弱いままというのもよろしくないでしょうし」
@@ -10499,6 +10526,7 @@ IF LOCAL
 		PRINTW 
 	CASE 4
 		;教養
+		PRINTFORML 「飯綱丸さまの信頼に足る部下として、教養はしっかり身につけておきませんとね」
 		PRINTFORMW 
 	CASE 5
 		;料理技能
@@ -10527,11 +10555,21 @@ IF LOCAL
 		ENDIF
 	CASE 8
 		;釣りLv
-		PRINTFORMW 
+		IF TALENT:妊娠
+			IF CFLAG:身に覚え_母 == 1 && !CFLAG:無自覚妊娠
+				PRINTFORML 「%CALLNAME:MASTER%どのとの子ですからね。少しでも栄養のあるものを摂取できるようにならないと」
+			ELSE
+				PRINTFORML 「体の調子がよくないようだから、美味しい魚でも食べて体力を取り戻さないとね」
+			ENDIF
+		ELSE
+			PRINTFORML 「ふふふ、飯綱丸さまの食卓に彩りを添えるのです♪」
+		ENDIF
+		PRINTW 
 	CASE 9
 		IF ARG:1 == 0
 			;調合Lv
-			PRINTFORMW 
+			PRINTFORML 「研究の成果を妖怪の山の、いえ、飯綱丸さまのお役に立てないとね」
+			PRINTW 
 		ELSEIF ARG:1 == 1
 			;【調合知識】取得
 			PRINTFORMW 
@@ -10542,7 +10580,8 @@ IF LOCAL
 	CASE 11
 		IF ARG:1 == 0
 			;指
-			PRINTFORMW 
+			PRINTFORML 「ふふ、私の手管を以てすれば、世の中の男共を骨抜きにできるでしょう♪」
+			PRINTW 
 		ELSEIF ARG:1 == 1
 			;【器用な指】取得
 			PRINTFORMW 
@@ -10550,7 +10589,14 @@ IF LOCAL
 	CASE 12
 		IF ARG:1 == 0
 			;舌
-			PRINTFORMW 
+			SELECTCASE RAND:2
+			CASE 0
+				PRINTFORML 「ふふ、私の舌を以てすれば、世の中の男共を骨抜きにできるでしょう♪」
+			CASE 1
+				PRINTFORML 「私の口が、話術以外にこんな特技があったなんて…」
+				PRINTFORML 「ふふ、これで%CALLNAME:MASTER%をさらに骨抜きにできるでしょうね…♪」
+			ENDSELECT
+			PRINTW 
 		ELSEIF ARG:1 == 1
 			;【舌使い】取得
 			PRINTFORMW 
@@ -10565,22 +10611,39 @@ IF LOCAL
 		ENDIF
 	CASE 14
 		;腰
-		PRINTFORMW 
+		CALL HPH_PRINT,@"「もっともっと、%CALLNAME:MASTER%の種を搾り取らないとね…HPH」","L"
 	CASE 15
 		IF ARG:1 == 0
 			;膣
-			PRINTFORMW 
+			SELECTCASE RAND:2
+			CASE 0
+				CALL HPH_PRINT,@"「ふふ、前より自在に締め付けできるようになったわね…HPH」","L"
+			CASE 1
+				CALL HPH_PRINT,@"「ますます、%CALLNAME:MASTER%を虜に…ふふHPH」","L"
+			ENDSELECT
+			PRINTW 
 		ELSEIF ARG:1 == 1
 			;【淫壺】取得
-			PRINTFORMW 
+			IF TALENT:ヤリマン
+				CALL HPH_PRINT,@"「幻想郷の男たちの種という種、ここで吸い尽くすのも悪くないわね…HPH」","L"
+			ELSE
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%どののお種、私のここで絞り尽くしてみせましょう…HPH」","L"
+				CALL HPH_PRINT,@"「ああ、早くここに挿れてほしい…HPH」","L"
+			ENDIF
 		ENDIF
+		PRINTW 
 	CASE 16
 		IF ARG:1 == 0
 			;アナル
-			PRINTFORMW 
+			CALL HPH_PRINT,@"「は、あ…HPH　最近、お尻の穴が疼く…HPH」","L"
+			CALL HPH_PRINT,@"「あの人が、ここに執心するから…HPH　まったく、変態なんだから…HPH」","L"
+			PRINTW 
 		ELSEIF ARG:1 == 1
 			;【尻穴狂い】取得
-			PRINTFORMW 
+			CALL HPH_PRINT,@"「ああ、もう…HPH　あの人が散々犯しぬくから…HPH」","L"
+			CALL HPH_PRINT,@"「形がすっかり変わっちゃったじゃない…HPH」","L"
+			CALL HPH_PRINT,@"「責任取って、明日も犯してもらわないとね…HPH」","L"
+			PRINTW 
 		ENDIF
 	ENDSELECT
 	PRINTL 
@@ -11611,7 +11674,7 @@ ENDIF
 ;==================================================
 ;"補正"でRETURNした数値が理性判定に加算されるので、
 ;簡単にセフレにしたいならマイナス、難易度を上げたかったり実質不可能にしたいならプラスすべし
-@KOJO_SF_CONTRACT_K139(ARGS)
+@KOJO_SF_CONTRACT_EVENT_K139(ARGS)
 SELECTCASE ARGS
 	CASE "導入"
 		;PRINTFORML 「セフレって、ええー」
@@ -11623,40 +11686,44 @@ SELECTCASE ARGS
 				CALL HPH_PRINT,@"「%CALLNAME:MASTER%どのは、お姉ちゃんとお股の擦りっこ、もっとしたいんだ…HPH」","L"
 				CALL HPH_PRINT,@"「そうですねHPH　擦り合いっこ、気持ちいいですもんねHPH」","L"
 				PRINTW 
-				PRINT 「でも、
-				IF TALENT:140:恋人 == 1
-					PRINTFORM 龍お姉ちゃん
-				ELSEIF TALENT:29:恋人 == 1
-					PRINTFORM 文お姉ちゃん
-				ELSEIF TALENT:42:恋人 == 1
-					PRINTFORM はたてお姉ちゃん
-				ELSEIF TALENT:65:恋人 == 1
-					PRINTFORM 椛お姉ちゃん
-				ELSEIF TALENT:MASTER:恋人 == 1 && !TALENT:恋人
-					PRINTFORM 恋人のお姉ちゃん
+				IF TALENT:MASTER:恋人 && !TALENT:恋人
+					PRINT 「でも、
+					IF TALENT:140:恋人 == 1
+						PRINTFORM 龍お姉ちゃん
+					ELSEIF TALENT:29:恋人 == 1
+						PRINTFORM 文お姉ちゃん
+					ELSEIF TALENT:42:恋人 == 1
+						PRINTFORM はたてお姉ちゃん
+					ELSEIF TALENT:65:恋人 == 1
+						PRINTFORM 椛お姉ちゃん
+					ELSE
+						PRINTFORM 恋人のお姉ちゃん
+					ENDIF
+					PRINTFORMW じゃなくていいんですか？　お姉ちゃんは、別に構いませんが…」
+					CALL HPH_PRINT,@"「勿論、内緒にしていてあげますよHPH　二人だけの、ヒ・ミ・ツHPH」","L"
+					PRINTW 
 				ENDIF
-				PRINTFORMW じゃなくていいんですか？　お姉ちゃんは、別に構いませんが…」
-				CALL HPH_PRINT,@"「勿論、内緒にしていてあげますよHPH　二人だけの、ヒ・ミ・ツHPH」","L"
-				PRINTW 
 			ELSE
 				PRINTFORML 「セフレ、でございますか？」
 				PRINTFORML 「あらあら、おませさんですねぇ…♪　どこでそんな言葉を覚えたのかしら」
 				PRINTW 
-				PRINTFORML 「本当に、お姉ちゃんでいいのかしら？」
-				PRINT 「だって、
-				IF TALENT:140:恋人 == 1
-					PRINTFORM 龍お姉ちゃん
-				ELSEIF TALENT:29:恋人 == 1
-					PRINTFORM 文お姉ちゃん
-				ELSEIF TALENT:42:恋人 == 1
-					PRINTFORM はたてお姉ちゃん
-				ELSEIF TALENT:65:恋人 == 1
-					PRINTFORM 椛お姉ちゃん
-				ELSEIF TALENT:MASTER:恋人 == 1 && !TALENT:恋人
-					PRINTFORM 恋人のお姉ちゃん
+				IF TALENT:MASTER:恋人 && !TALENT:恋人
+					PRINTFORML 「本当に、お姉ちゃんでいいのかしら？」
+					PRINT 「だって、
+					IF TALENT:140:恋人 == 1
+						PRINTFORM 龍お姉ちゃん
+					ELSEIF TALENT:29:恋人 == 1
+						PRINTFORM 文お姉ちゃん
+					ELSEIF TALENT:42:恋人 == 1
+						PRINTFORM はたてお姉ちゃん
+					ELSEIF TALENT:65:恋人 == 1
+						PRINTFORM 椛お姉ちゃん
+					ELSE
+						PRINTFORM 恋人のお姉ちゃん
+					ENDIF
+					PRINTFORML がいるはずなのに…」
+					CALL HPH_PRINT,@"「一番好きな人よりも、お姉ちゃんとのエッチを優先しちゃうんだぁ…HPH　とっても悪い子ですねぇ…HPH」","L"
 				ENDIF
-				PRINTFORML がいるはずなのに…」
-				CALL HPH_PRINT,@"「一番好きな人よりも、お姉ちゃんとのエッチを優先しちゃうんだぁ…HPH　とっても悪い子ですねぇ…HPH」","L"
 			ENDIF
 		ELSE
 			PRINTFORML 「セフレ、でございますか？」
@@ -11665,29 +11732,32 @@ SELECTCASE ARGS
 			PRINTFORML 「！　ほほう、なるほど、なるほど…」
 			PRINTFORML 「セックスフレンド、すなわち、互いがヤりたいときにヤる、肉体だけのお付き合いというわけですか…」
 			PRINTW 
-			IF TALENT:140:恋人 == 1
-				PRINTFORM 「飯綱丸さま
-			ELSEIF TALENT:29:恋人 == 1
-				PRINTFORM 「射命丸どの
-			ELSEIF TALENT:42:恋人 == 1
-				PRINTFORM 「姫海棠どの
-			ELSEIF TALENT:65:恋人 == 1
-				PRINTFORM 「犬走どの
-			ELSEIF TALENT:MASTER:恋人 == 1 && !TALENT:恋人
-				PRINTFORM 「恋人さま
-			ENDIF
-			PRINTFORMW 「がいらっしゃいながら、いい度胸をされていますねぇ」
+			IF TALENT:MASTER:恋人 && !TALENT:恋人
+				IF TALENT:140:恋人 == 1
+					PRINTFORM 「飯綱丸さま
+				ELSEIF TALENT:29:恋人 == 1
+					PRINTFORM 「射命丸どの
+				ELSEIF TALENT:42:恋人 == 1
+					PRINTFORM 「姫海棠どの
+				ELSEIF TALENT:65:恋人 == 1
+					PRINTFORM 「犬走どの
+				ELSE
+					PRINTFORM 「恋人さま
+				ENDIF
+				PRINTFORMW 「がいらっしゃいながら、いい度胸をされていますねぇ」
+				
 			
-			IF TALENT:140:恋人 == 1
-				PRINTL 
-				PRINTFORML 「私が飯綱丸さまの部下なことはご存じでしょう？」
-				PRINTFORML 「それなのに、私と肉体関係を持ちたいなんて…本当に、最低」
-				PRINTFORML 「バレてしまえば、あなたはともかく私まで身の破滅なのですが」
+				IF TALENT:140:恋人 == 1
+					PRINTL 
+					PRINTFORML 「私が飯綱丸さまの部下なことはご存じでしょう？」
+					PRINTFORML 「それなのに、私と肉体関係を持ちたいなんて…本当に、最低」
+					PRINTFORML 「バレてしまえば、あなたはともかく私まで身の破滅なのですが」
+					PRINTW 
+				ENDIF
+				
+				CALL HPH_PRINT,@"「…ですが、嫌いじゃないですよ、そういうのHPH」","L"
 				PRINTW 
 			ENDIF
-			
-			CALL HPH_PRINT,@"「…ですが、嫌いじゃないですよ、そういうのHPH」","L"
-			PRINTW 
 		ENDIF
 	CASE "補正"
 		;ショタと大人では評価が逆転

@@ -46,7 +46,7 @@ IF GETBIT(CFLAG:1804, TALENT:育児中)
 	CALL K30_CLEAR_TEXTLINE
 	RETURN 
 ENDIF
-PRINTFORML 「ああ…見逃しちゃった…」
+PRINTFORML 「ああ…初めて立つところ、見逃しちゃった…」
 PRINTFORMDL 映姫がため息をつく横で、%SHOW_CHILDNAME(30)%は机につかまり立ちをしながらにこにこと笑っている
 PRINTFORML 「ちょっと目を離している間にもどんどん大きくなっていくみたい…」
 PRINTFORMW 「でも、ここから…本当に目が離せなくなるのよねえ…」
@@ -235,7 +235,7 @@ ELSE
 ENDIF
 
 @M_KOJO_EVENT_K30_CHILD_RAISING_食事(ARGS,ARG,ARG:1)
-SIF GETBIT(CFLAG:1804, TALENT:育児中)
+SIF GETBIT(CFLAG:1804, TALENT:育児中) || CFLAG:MASTER:現在位置 != CFLAG:30:現在位置
 	RETURN
 IF ARGS == "授乳"
 	PRINTDATAL
@@ -249,16 +249,30 @@ ELSEIF ARGS == "離乳食"
 		DATAFORM 「あっ、いけない…まだちょっと熱いかも…」\n「ふー、ふー……」\n「はい、どうぞ」
 		DATAFORM 「うーん、今は機嫌が悪いのかしら…」\n「お願いだから、もういっかいお口を開けて？　ね？」
 	ENDDATA
-ELSEIF ARGS == "幼少期"
+ELSEIF CFLAG:出産経過日 < 75
 	PRINTDATAL
-		DATAFORM 「え？　お母さんと同じものを食べたい…？」\n「これは%SHOW_CHILDNAME(30)%が食べると、お口がびっくりしちゃうかも…」
+		DATAFORM 「え？　お母さんと同じものを食べたい…？」\n「うーん、%SHOW_CHILDNAME(30)%が食べると、お口がびっくりしちゃうものばかりだから…」\n「もっと大きくなってからにしましょうね」
 		DATAFORM 「%SHOW_CHILDNAME(30)%、ごはんはよくかんで食べるのよ」
 		DATAFORM 「%SHOW_CHILDNAME(30)%、好き嫌いはダメですよ」
 	ENDDATA
 ELSE
-
+	SELECTCASE RAND:3
+		CASE 0
+			PRINTFORML 「今日は%SHOW_CHILDNAME(30)%の好きなものを用意しておいたわよ」
+			PRINTFORML 「たくさん食べなさい」
+			PRINTFORMDL %SHOW_CHILDNAME(30)%は近くにいるだけで目が痛くなるような辛そうなものを美味しそうに食べている…
+			PRINTFORMDL 味覚と胃腸の強さは映姫に似たようだ
+		CASE 1
+			PRINTFORML 「いいですか%SHOW_CHILDNAME(30)%、お米一粒の中には７人の神様がいらっしゃいます」
+			PRINTFORML 「ご飯を粗末にしたらバチが当たりますよ…もちろん、お残しなんてもってのほかです」
+			PRINTFORML 「それとですね………」
+			PRINTFORMDL 映姫のお説教をきちんと聞きながら%SHOW_CHILDNAME(30)%は行儀よく食事をしている
+		CASE 2
+			PRINTFORML 「食材とそれに携わった全ての人への感謝の気持ちを表すには、きちんと食べることが何よりも大切だけど」
+			PRINTFORML 「%SHOW_CHILDNAME(30)%はいつもきれいに食べてくれるから、お母さんとっても嬉しいわ」
+			PRINTFORMDL 美しい所作で食事する%SHOW_CHILDNAME(30)%を映姫は微笑みながら見守っている
+	ENDSELECT
 ENDIF
-
 [SKIPSTART]
 @M_KOJO_EVENT_K30_CHILD_RAISING_BATH(ARGS,ARG,ARG:1)
 IF ARGS == "幼児期"
@@ -296,10 +310,9 @@ ENDIF
 #DIM VAL
 #DIM TEMP
 #DIM L_COUNT
-#DIM 連打防止
 #DIMS キャラ名
 #DIMS あいさつ
-SIF GETBIT(CFLAG:1804, TALENT:育児中) || !GET_TARGETNUM() || TIME:1 - 連打防止 < 30
+SIF GETBIT(CFLAG:1804, TALENT:育児中) || !GET_TARGETNUM()
 	RETURN
 VARSET LOCAL
 VAL = 0
@@ -307,21 +320,13 @@ TEMP = 0
 IF GET_TARGETNUM() == 1
 	CHR = TARGET
 ELSE
-	FOR L_COUNT,1, GET_TARGETNUM() + 1
-		SIF CFLAG:(TARGET:L_COUNT):現在位置 != CFLAG:MASTER:現在位置
-			CONTINUE
-		LOCAL:TEMP = TARGET:L_COUNT
-		TEMP ++
-	NEXT
-	SIF !TEMP
+	CHR = TARGET:(RAND:(GET_TARGETNUM()) + 1)
+	SIF !CHR
 		RETURN
-	CHR = LOCAL:(RAND:TEMP)
 ENDIF
-SIF !CHR
-	RETURN
-連打防止 = TIME:1
 IF ARGS == "幼児期"
-	CHR = RAND:2 ? CHR # 30
+	CHR = RAND:3 ? CHR # MASTER
+	CHR = RAND:2 ? 30 # CHR
 	PRINTDATADL
 		DATAFORM %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%にひらひらと手を振った
 		DATAFORM %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%の顔をじっと見ている…
@@ -329,7 +334,7 @@ IF ARGS == "幼児期"
 		DATAFORM %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%の頭の上の方を見つめている\n何か見えているのだろうか…？
 		DATAFORM %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%の顔を見て目を丸くした\n何に驚いているのだろう…？
 	ENDDATA
-ELSEIF ARGS == "幼少期"
+ELSEIF CFLAG:出産経過日 < 75
 	SELECTCASE CHR
 		CASE 23
 			キャラ名 = %\@ RAND:3 ? ようむ # はんぶんこの \@%
@@ -348,7 +353,7 @@ ELSEIF ARGS == "幼少期"
 		CASE 76
 			キャラ名 = %\@ RAND:2 ? こまち # \@%おねえちゃん
 		CASE 113
-			キャラ名 = すてきな
+			キャラ名 = %\@ RAND:2 ? へかーてぃあ # すてきな \@%
 		CASE 127
 			キャラ名 = %\@ RAND:3 ? えいか # %TEXTR("くらげの/いしつみの")% \@%
 		CASE 128
@@ -377,14 +382,15 @@ ELSEIF ARGS == "幼少期"
 	ELSE
 		あいさつ = おえかきしよー/%\@ TALENT:CHR:体型 < 0 ? いっしょにあそぼー # だっこしてー \@%/
 		あいさつ += @"%\@ TALENT:CHR:音楽知識 == 2 ? おうたをうたいましょ！ # おはなししましょっ！ \@%/%\@ TALENT:CHR:動物耳 ? おみみをさわらせてっ！ # \@%/"
-		あいさつ += @"%\@ CFLAG:CHR:妊娠経過日数 > 39 ? おなかはおっきいねっ！ # げんきですかー？ \@%/%\@ TALENT:CHR:機嫌 > 0 ? いいことあったの？ # \@%/"
-		あいさつ += @"%\@ K30_JOBCHECK(CHR) ? おしごといそがしい？ # \@%/%\@ BASE:CHR:酒気 <= 2 ? # おさけくさーい！ \@%/"
+		あいさつ += @"%\@ CFLAG:CHR:妊娠経過日数 > 39 ? おなかおっきいねっ！ # げんきですかー？ \@%/%\@ TALENT:CHR:機嫌 > 0 ? いいことあったの？ # \@%/"
+		あいさつ += @"%\@ K30_JOBCHECK(CHR) ? おしごといそがしい？ # \@%/%\@ BASE:CHR:酒気 <= 2 ? # おさけくさーい！ \@%//%\@ TALENT:CHR:機嫌 < 0 ? おこっちゃだめー！ # \@%/"
 		CALL COLORMESSAGE, @"「%キャラ名%、%TEXTR(あいさつ)%」", K30_CHILDWORD() ,1 ,0
 		PRINTFORMDL %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%に構ってほしいようだ
 	ENDIF
 ELSEIF ONCE(@"自%TOSTR(CHR)%")
 	あいさつ = %\@ INRANGE(TIME, 240, 599) ? おはようございます # %K30_GREETING_EIKI()% \@%
 	SELECTCASE CHR
+		;映姫
 		CASE 30
 			IF CHILD_SEX:30:(TALENT:育児中) == 1
 				CALL COLORMESSAGE, @"「お母さん、あのね…」", K30_CHILDWORD() ,1 ,0
@@ -392,37 +398,41 @@ ELSEIF ONCE(@"自%TOSTR(CHR)%")
 				CALL COLORMESSAGE, @"「母さん、あのさ…」", K30_CHILDWORD() ,1 ,0
 			ENDIF
 			PRINTFORMDL %SHOW_CHILDNAME(30)%は映姫と話し込んでいる
+		;小町/久侘歌
 		CASE 76, 129
 			CALL COLORMESSAGE, @"「%CALLNAME:CHR%姉さん%あいさつ%」", K30_CHILDWORD() ,1 ,0
 			SIF K30_JOBCHECK(ARG)
 				CALL COLORMESSAGE, @"「お仕事頑張って%\@ CHR == 76 ? …ますよね？ # くださいね \@%」", K30_CHILDWORD() ,1 ,0
 			PRINTDATADL
-				DATAFORM %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%に%TEXTR("気安く/親しみを込めて")%挨拶した
+				DATAFORM %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%に%TEXTR("気安く/親しみを込めて")%挨拶している
 				DATAFORM %CALLNAME:CHR%と%SHOW_CHILDNAME(30)%が親しげに話す様子はまるで姉%\@ CHILD_SEX:30:(TALENT:育児中) == 1 ? 妹 # 弟 \@%のようだ
 			ENDDATA
+		;ヘカーティア
 		CASE 113
 			CALL COLORMESSAGE, @"「ヘカーティア様%あいさつ%」", K30_CHILDWORD() ,1 ,0
 			PRINTDATADL
-				DATAFORM %SHOW_CHILDNAME(30)%はヘカーティアに恭しく挨拶した
+				DATAFORM %SHOW_CHILDNAME(30)%はヘカーティアに恭しく挨拶している
 				DATAFORM ヘカーティアを前にして%SHOW_CHILDNAME(30)%は少し緊張しているようだ
 			ENDDATA
-		CASE 49, 80, 66, 26
+		;さとり/阿求/幽々子/紫/妖夢
+		CASE 49, 80, 66, 26, 23
 			CALL COLORMESSAGE, @"「%CALLNAME:CHR%さん%あいさつ%」", K30_CHILDWORD() ,1 ,0
 			SIF K30_JOBCHECK(ARG)
 				CALL COLORMESSAGE, @"「お仕事お疲れさまです」", K30_CHILDWORD() ,1 ,0
 			PRINTDATADL
-				DATAFORM %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%に笑顔で挨拶した
+				DATAFORM %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%に笑顔で挨拶している
 				DATAFORM %CALLNAME:CHR%と%SHOW_CHILDNAME(30)%は%TEXTR("世間/仕事の")%話をしている
 			ENDDATA
+		;神霊廟住人
 		CASE 56, 89 TO 92
 			CALL COLORMESSAGE, @"「%CALLNAME:CHR%さん%あいさつ%」", K30_CHILDWORD() ,1 ,0
-			PRINTFORMDL  %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%に挨拶した
+			PRINTFORMDL  %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%に挨拶している
 		CASEELSE
 			キャラ名 = %CALLNAME:CHR%%\@ TALENT:CHR:神霊 ? 様 # さん \@%
 			CALL COLORMESSAGE, @"「%キャラ名%%あいさつ%」", K30_CHILDWORD() ,1 ,0
 			SIF K30_JOBCHECK(ARG)
 				CALL COLORMESSAGE, @"「お仕事お疲れさまです」", K30_CHILDWORD() ,1 ,0
-			PRINTFORMDL  %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%に%TEXTR("礼儀正しく/丁寧に")%挨拶した
+			PRINTFORMDL  %SHOW_CHILDNAME(30)%は%CALLNAME:CHR%に%TEXTR("礼儀正しく/丁寧に")%挨拶している
 	ENDSELECT
 ENDIF
 
