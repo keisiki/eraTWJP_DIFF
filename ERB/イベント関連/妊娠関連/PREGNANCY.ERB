@@ -19,6 +19,9 @@ EX:ARG:子宮内精液 += EX:ARG:膣内精液 / 中毒補正
 SIF (TALENT:ARG:幼稚 && !TALENT:ARG:初潮) || INRANGE(CFLAG:ARG:出産経過日, 1, 59)
 	EX:ARG:子宮内精液 = 0
 
+SIF !HAS_VAGINA(ARG) || (EX:ARG:子宮内精液 <= 0)
+	RETURN
+
 IF !TALENT:MASTER:万能孕ませ
 	IF CHECK_CHARA(ARG, "鬼")
 		妊娠必要値 = 10000 - 3000 * TALENT:MASTER:鬼孕ませ - 1000 * TALENT:MASTER:妖怪孕ませ
@@ -93,7 +96,7 @@ IF 充填率(ARG,4) > 20
 	SETCOLOR C_CREAM
 	PRINTFORML %CALLNAME:ARG%の子宮の中は注ぎこまれた%CALLNAME:MASTER%の精で満たされている…
 	IF !FLAG:画像表示
-		SETFONT "ＭＳ Ｐゴシック"
+		SETFONT CHKFONTNAME("ＭＳ Ｐゴシック")
 		PRINTL 　　　　　　　　　　　}　}　　　　　　　　　　　　 　 　 （
 		PRINTL ヽ.__　　　　　　　　　',　',　_　　　　　　　　　　　　　　）　　　　　　　　　　　　　　 　 　 　 　 　 , --､
 		PRINTL 　(　｀ヽ　　　　　　　 ヽ ﾉ　 ヽ　　　　　　　　　　　　0　　　　　　　　　　　　　　　　　　＿__ ノノ⌒＼
@@ -134,7 +137,7 @@ IF MIN(充填率(ARG,4),100) * REAL_ESTRUS_CYCLE(ARG) / 100 > RAND:妊娠必要�
 		SETCOLOR C_CREAM
 		PRINTFORML あなたの子種は我が物顔で%CALLNAME:ARG%の子宮を泳ぎ回り、無防備な卵子へと殺到していった…
 		IF !FLAG:画像表示
-			SETFONT "ＭＳ Ｐゴシック"
+			SETFONT CHKFONTNAME("ＭＳ Ｐゴシック")
 			PRINTL 　　　　　　　　　　　　　　　　..__＿....-------....＿..
 			PRINTL 　　　　　　　　　　　　 .._..-‐'"⌒　　　　　　　　 ｀"'''ゝ､_..
 			PRINTL 　　　　　　　　　　_..‐''´　　　　　　　　　　　　　　　　　"ｰ 、..
@@ -174,9 +177,10 @@ IF MIN(充填率(ARG,4),100) * REAL_ESTRUS_CYCLE(ARG) / 100 > RAND:妊娠必要�
 			FONTBOLD
 			PRINTFORMW %CALLNAME:ARG%は行きずりの%CALLNAME:MASTER%に孕まされてしまった……
 			FONTREGULAR
-			FLAG:行きずり孕ませ数 ++
 		ENDIF
 	ENDIF
+	SIF TALENT:ARG:行きずり == 1
+		FLAG:行きずり孕ませ数 ++
 	IF TCVAR:(ARG):種付けられ自覚
 		CFLAG:ARG:身に覚え_母 = 1
 		;PRINTFORML Succeed2
@@ -211,7 +215,7 @@ ELSEIF CFLAG:ARG:妊娠経過日数 == 60
 	IF TALENT:ARG:バストサイズ < 2
 		TALENT:ARG:バストサイズ += 1
 		PRINTFORMW %CALLNAME:ARG%の胸が大きくなった
-		CFLAG:ARG:乳ランクアップ = 1
+		CFLAG:ARG:乳ランクアップ ++
 	ENDIF
 	IF !TALENT:ARG:母乳体質
 		PRINTFORMW %CALLNAME:ARG%は母乳が出るようになった

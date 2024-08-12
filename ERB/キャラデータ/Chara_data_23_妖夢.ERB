@@ -83,6 +83,9 @@ CASE "固有上半身下着"
 	CALLF MAKE_INT(V_NAME, 1)
 CASE "固有上半身下着名"
 	CALLF MAKE_STR(V_NAME, "スポーツブラ")
+CASE "固有下着着用条件"
+	SIF !RAND:(3 - (2 * 勝負下着判定([[妖夢]])))
+		CALLF MAKE_INT(V_NAME, 1)
 CASE "固有下着透ける(前)"
 	CALLF MAKE_INT(V_NAME, 1)
 CASE "固有下着透ける(後)"
@@ -136,3 +139,42 @@ CALL 材料設定("アイス", "イチゴ", "スイカ", "仙桃")
 DISH_TASTE = 和食/アイス/豆/甘い/淡白/冷たい/夏物/芸術的/上品/鮮やか/ぷるぷる/霊障/冥界風/
 DISH_COMMENT = 半霊を象った妖夢オリジナルのみつまめ。味はとても薄い。
 RETURN 1
+
+;IMAGE_I23_特殊表情COM(CHARA, コマンド)-------------------------------------------------------
+;直前のコマンドで変化するキャラクター特有の表情表示条件
+;時間停止中は変化しない表情はこちら
+;使用時注意点:
+;	RESULTS:0に表情を格納
+;	RESULTS:1にマウスオーバー時の表情を格納すること
+;	"オナニー","愛撫","性交"は本編で実装済み
+;-------------------------------------------------------------------------------------------
+@IMAGE_I23_特殊表情COM(CHARA, コマンド)
+#DIM CHARA
+#DIM コマンド
+
+IF CFLAG:CHARA:差し替え適用 == 1
+	IF !FLAG:立ち絵種類 && CHECK_NUDE(CHARA)
+		SELECTCASE コマンド
+		CASE 1
+			RESULTS:1 = %RESULTS%
+			RESULTS:0 = クンニ
+		CASE 60
+			RESULTS:1 = %RESULTS%
+			RESULTS:0 = 正常位
+		CASE 61
+			RESULTS:1 = %RESULTS%
+			RESULTS:0 = 後背位
+		CASE 65
+			RESULTS:1 = %RESULTS%
+			RESULTS:0 = 騎乗位
+		CASEELSE
+		ENDSELECT
+	ENDIF
+ELSE
+	;通常画像
+	IF FLAG:立ち絵種類
+		;顔絵
+	ELSE
+		;立ち絵
+	ENDIF
+ENDIF

@@ -92,7 +92,7 @@ ENDIF
 ;=================================
 FOR LOCAL,0,CHARANUM
 	;キス経験が0なら[キス未経験]を取得（未設定キャラへの対策と思われる）
-	SIF EXP:LOCAL:キス経験 == 0 && TALENT:LOCAL:キス未経験 == 0
+	SIF EXP:LOCAL:キス経験 == 0 && TALENT:LOCAL:キス未経験 == 0 && CFLAG:LOCAL:ファーストキス喪失対象 != 1
 		 TALENT:LOCAL:キス未経験 = 1
 	;女性器不在（性別のbit0が0）もしくは[幼児／幼児退行][幼稚]で[初潮]未取得であれば周期を設定しない
 	IF ((TALENT:LOCAL:150 || TALENT:LOCAL:151) && !TALENT:LOCAL:初潮) || !GETBIT(TALENT:LOCAL:性別,0)
@@ -165,9 +165,15 @@ WHILE LOCAL
 	ENDIF
 WEND
 CFLAG:MASTER:あなた前ターン位置 = CFLAG:MASTER:初期位置
+CALL CHANGE_TIMEZONE()
 
 ;目覚め共通メッセージ表示
 CALL GOODMORNING
+
+VARSET nChildrenPresent
+VARSET CHILD_PRINT_DESCRIPTION
+VARSET CHILD_HUNGER
+nChildrenPresentCount = 0
 
 FOR LOCAL,1,CHARANUM
 	;初期位置は99で統一（53は古いデータ用）
@@ -212,8 +218,15 @@ FOR LOCAL,1,CHARANUM
 		TCVAR:LOCAL:連泊禁止 = 1
 	ENDIF
 	;育児中なら子供の行動を判定
-	SIF FLAG:子供描写 && TALENT:LOCAL:育児中
-		CALL CHILD_MOVEMENT(LOCAL, TALENT:LOCAL:育児中)
+	IF FLAG:子供描写 && TALENT:LOCAL:育児中 ;check all children
+		FOR LOCAL:11, 1, MAXCHILD + 1
+		SIF CHILDNAME:LOCAL:(LOCAL:11) == ""
+			CONTINUE
+		SIF CHILD_INDEPENDENT:LOCAL:(LOCAL:11)
+			CONTINUE
+		CALL CHILD_MOVEMENT(LOCAL, LOCAL:11)
+		NEXT
+	ENDIF
 	;自立した子供がいるなら子供の行動を判定
 	SIF FLAG:子供描写 && CFLAG:LOCAL:子供人数 - CFLAG:LOCAL:育児人数 > 0
 		CALL CHILD_MOVEMENT_2(LOCAL)
@@ -258,6 +271,14 @@ BASE:MASTER:精力 = MIN(MAXBASE:MASTER:精力,BASE:MASTER:精力)
 BASE:MASTER:勃起 = MIN(1000 * BASE:MASTER:体力 / MAXBASE:MASTER:体力,1000)
 ;DEBUGPRINTFORM 体力{MAXBASE:MASTER:体力 * 睡眠時間 / 2 / (480 -120 * TALENT:MASTER:回復速度)}回復
 CFLAG:MASTER:徹夜 = 0
+
+;process DOWNBASE from morning events
+FOR LOCAL, 0, CHARANUM
+	FOR LOCAL:1, 0, 100
+		BASE:LOCAL:(LOCAL:1) -= DOWNBASE:MASTER:(LOCAL:1)
+	NEXT
+	VARSET DOWNBASE:LOCAL:0
+NEXT
 
 IF 0 > BASE:MASTER:精力
 	BASE:MASTER:気力 += BASE:MASTER:精力 * 5
@@ -319,9 +340,6 @@ SIF FLAG:地主 && FLAG:年貢 && (TARGET == FLAG:地主 || CFLAG:MASTER:現在�
 CALL KODUCHI
 CALL CHARA_MOVEMENT
 
-;custom code
-SIF FLAG:蟲の採集サービス
-	CALL IFS_GATHER
 
 ;起床時に枕元へのプレゼント判定を行う
 ;CALL GET_GIFT
@@ -346,15 +364,16 @@ FOR LOCAL, 0, CHARANUM
 	;衣装設定
 	;行動中に着る服を設定してお着替えする
 	IF LOCAL == MASTER || !睡眠時間(LOCAL)
+		CFLAG:LOCAL:パジャマ = 0 ;disable pajama mode before setting clothes
 		CALL SELECT_CLOTHES(LOCAL, "今日の衣装")
 		CALL SELECT_CLOTHES(LOCAL, "今日のパジャマ")
 		CALL CTRL_CLOTHES_SET(LOCAL, "現在衣装の変更_普段着")
 		SETBIT CFLAG:LOCAL:着替え実行, 0
 	ELSE
+		CFLAG:LOCAL:パジャマ = 1
 		CALL SELECT_CLOTHES(LOCAL, "明日の衣装")
 		CALL SELECT_CLOTHES(LOCAL, "今日のパジャマ")
 		CALL CTRL_CLOTHES_SET(LOCAL, "現在衣装の変更_パジャマ")
-		CFLAG:LOCAL:パジャマ = 1
 		SETBIT CFLAG:LOCAL:着替え実行, 1
 	ENDIF
 	IF SPECIAL_OUTFIT(LOCAL)
@@ -498,11 +517,11 @@ IF FLAG:異常気象
 ELSE
 	SELECTCASE TIME:5
 		CASE 0,1
-			PRINTL いい天気だ。
+		CALL COLORMESSAGE(@"いい天気だ。",C_P_GREEN,1)
 		CASE IS & 4
-			PRINTL 雨が降っている。
+		CALL COLORMESSAGE(@"雨が降っている。",C_AQUA,1)
 		CASE IS & 8
-			PRINTL 雪が降っている。
+		CALL COLORMESSAGE(@"雪が降っている。",C_CREAM,1)
 	ENDSELECT
 ENDIF
 ;大荒れ予報の日判定
@@ -561,6 +580,8 @@ IF CFLAG:MASTER:小槌 > 0
 	IF CFLAG:MASTER:小槌 == 8
 			PRINTFORMW 針妙丸の身体は元に戻っていた
 		TALENT:71:体型 = -5
+		SIF CFLAG:71:変異前の形状 != 0
+			TALENT:71:体型 = CFLAG:71:変異前の形状
 		IF CFLAG:71:初期位置 == 54 || CFLAG:71:現在位置 == 9
 			CFLAG:71:現在位置 = 54
 			CFLAG:71:初期位置 = 54
@@ -606,6 +627,8 @@ ENDIF
 @MESSAGE_GOODMONING(起床状況,起床場所)
 #DIM 起床状況
 #DIM 起床場所
+LOCAL:9 = GETCOLOR()
+RESETCOLOR
 PRINTFORML
 SELECTCASE 起床状況
 CASE 0
@@ -652,6 +675,7 @@ CASE 3
 	PRINTFORMW %CALLNAME:MASTER%は%CALLNAME:TARGET%を起こさないように\@ BEDROOM(CFLAG:MASTER:現在位置) ? 布団 # その横 \@を抜け出し、一日の準備を始めた
 ENDSELECT
 PRINTFORML
+SETCOLOR LOCAL:9
 RETURN 1
 
 ;----------------------------------------------
@@ -725,11 +749,11 @@ ENDIF
 IF ITEM:キリのベッド
 	SELECTCASE ITEM:キリのベッド
 		CASE 1
-			安眠補正 += RAND:20 + RAND:20
+			安眠補正 += 10 + RAND:11 + RAND:21
 		CASE 2
-			安眠補正 += RAND:30 + RAND:30
+			安眠補正 += 15 + RAND:16 + RAND:31
 		CASE 3
-			安眠補正 += RAND:40 + RAND:40
+			安眠補正 += 20 + RAND:21 + RAND:41
 	ENDSELECT
 ENDIF
 

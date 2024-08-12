@@ -101,6 +101,7 @@ DO
     SELECTCASE RESULT
         CASE 999
             CALL M_KOJO_COLOR_K60
+            TIME += 5
             RETURN 1
         CASE 1
             IF !TALENT:MASTER:恋人
@@ -167,10 +168,12 @@ RETURN LOVERPEP, UnwantedLover, TMP
 CALL M_KOJO_COLOR_K60
 IF FIRSTTIME("ParseeBreakup")
     nParseeLoversBrokenUpWith ++
-    IF UnwantedLover == 60
-        GOTO BreakParseesHeart
-    ELSEIF GROUPMATCH(UnwantedLover, 83, 84, 64)
-        GOTO FriendBreakup
+    IF LOVERPEP == 1
+        IF UnwantedLover == 60
+            GOTO BreakParseesHeart
+        ELSEIF GROUPMATCH(UnwantedLover, 83, 84, 64)
+            GOTO FriendBreakup
+        ENDIF
     ENDIF
     SELECTCASE K60_ATTITUDE()
         CASE 0, 1
@@ -207,7 +210,7 @@ IF FIRSTTIME("ParseeBreakup")
             BreakupPrice = 10000
     ENDSELECT
 ELSE
-    SIF TALENT:TARGET:恋人 && !RETURN_VAR_VALUE_IF_EXISTS("MORELOVER")
+    SIF TALENT:TARGET:恋人 && !VAR_OR_DEFAULT("MORELOVER")
         GOTO BreakParseesHeart
     SELECTCASE K60_ATTITUDE()
         CASE 0, 1
@@ -257,14 +260,17 @@ ELSEIF UnwantedLover == 0
     ;PRINTFORMW 「What are you playing at? You can't break up with yourself.」
     PRINTFORMW 「何の冗談？%CALLNAME:UnwantedLover%とは恋人じゃないでしょ。」
     GOTO BREAKUP_SELECT
-;ELSEIF TALENT:UnwantedLover:妻
-;    IF TALENT:UnwantedLover:妻 == 1
-;        PRINTFORMW 「You're already gotten engaged to %HIM_HER(UnwantedLover)%. I'm not going to mess with this.」
-;    ELSEIF TALENT:UnwantedLover:妻 == 2
-;        PRINTFORMW 「I don't do divorces. Work things out yourself.」
-;    ENDIF
-;    RESETCOLOR
-;    RETURN -1
+;uncomment when implmented
+[SKIPSTART]
+ELSEIF TALENT:UnwantedLover:妻
+    IF TALENT:UnwantedLover:妻 == 1
+        PRINTFORMW 「You're already gotten engaged to %HIM_HER(UnwantedLover)%. I'm not going to mess with this.」
+    ELSEIF TALENT:UnwantedLover:妻 == 2
+        PRINTFORMW 「I don't do divorces. Work things out yourself.」
+    ENDIF
+    RESETCOLOR
+    RETURN -1
+[SKIPEND]
 ELSEIF GROUPMATCH(UnwantedLover, 83, 84, 64)
     $FriendBreakup
     IF UnwantedLover != 64
@@ -292,9 +298,9 @@ ELSEIF UnwantedLover == 60
         CALL ASK_YN("本気だ", "本気じゃない")
         IF RESULT
             PRINTFORMDW Parsee sighs in relief.
-            CALL PRINT_STRW, @"「@ITALIC@Âkheysh.@ I don't know what I'd do if I knew you'd grown to hate me.」"
+            CALL PRINT_STRW, @"「Thank goodness. I don't know what I'd do if I knew you'd grown to hate me.」"
             PRINTFORMDW パルスィは安堵のため息をつく。
-            CALL PRINT_STRW, @"「@ITALIC@Âkheysh.@あなたに嫌われたら何をしでかすかわからないわ。」"
+            CALL PRINT_STRW, @"「Thank goodness. あなたに嫌われたら何をしでかすかわからないわ。」"
             RESETCOLOR
             RETURN -1
         ELSE
@@ -423,9 +429,11 @@ SELECTCASE RESULT
                 PRINTFORMDW 痛々しい笑みを浮かべる。
                 PRINTFORMW 「そこは問題じゃないわね。私のことだもの。」
             ENDIF
-            PRINTFORMW 「目を閉じて。」
+            ;PRINTFORMW 「Now close your eyes.」
             ;PRINTFORMDW You close your eyes and think about the bad times you had with %CALLNAME:UnwantedLover%.
             ;PRINTFORMDW The fights, the times she got on your nerves, all her annoying little habits that you can't stand...
+            ;PRINTFORMDW You feel something tightening around your \@ IS_MALE(MASTER) ? little finger # thumb\@, and open your eyes in shock.
+            PRINTFORMW 「目を閉じて。」
             PRINTFORMDW 目を閉じて、%CALLNAME:UnwantedLover%との嫌な思い出を振り返る。
             PRINTFORMDW 喧嘩、カンに触ったこと、ちょっとした不愉快な仕草...
             IF IS_MALE(TARGET)
@@ -494,6 +502,9 @@ SELECTCASE RESULT
             TALENT:MASTER:7 = 0
         ENDIF
         TALENT:UnwantedLover:7 = 0
+        CLEARBIT CFLAG:UnwantedLover:13, 2
+        CLEARBIT CFLAG:UnwantedLover:13, 1
+        CLEARBIT CFLAG:UnwantedLover:既成事実, 2
         IF GROUPMATCH(UnwantedLover, 83, 84, 64)
             CFLAG:[[パルスィ]]:押し倒し禁止 = CFLAG:[[パルスィ]]:K60EN_PARSEE_OLD_NO_PUSHDOWN_VALUE
             CFLAG:[[パルスィ]]:既成事実 = CFLAG:[[パルスィ]]:K60EN_PARSEE_OLD_CONSENT_VALUE
@@ -569,29 +580,14 @@ ELSE
         PRINTL [  7]Seija
         RESETCOLOR
 
-        SIF !FIRSTTIME("ParseeEikiBackstory", 1)
-            SETCOLOR C_L_GRAY
-        PRINTL [  8]Eiki
-        RESETCOLOR
-
-        SIF !FIRSTTIME("ParseeSatoriBackstory", 1)
-            SETCOLOR C_L_GRAY
-        PRINTL [  9]How you came to the Underworld
-        RESETCOLOR
-
         SIF !FIRSTTIME("ParseeAlternateWorldsConvo", 1)
             SETCOLOR C_L_GRAY
-        PRINTL [ 10]Something deep
-        RESETCOLOR
-
-        SIF !FIRSTTIME("ParseeBeingAZoroastrianConvo", 1)
-            SETCOLOR C_L_GRAY
-        PRINTL [ 11]Being a Zoroastrian
+        PRINTL [ 8]Something deep
         RESETCOLOR
 
         SIF !FIRSTTIME("ParseeThoughtsOnHumansConvo", 1)
             SETCOLOR C_L_GRAY
-        PRINTL [ 12]Your thoughts on humans
+        PRINTL [ 9]Your thoughts on humans
         RESETCOLOR
     ; PRINTL []How you met Yuugi [todo convo about yuugi that isn't backstory-related]
 			;-Rin
@@ -647,30 +643,10 @@ ELSE
                 TIME += 5
                 RESETCOLOR
             CASE 8
-                IF TALENT:[[パルスィ]]:恋人
-                    CALL K60_EIKI_BACKSTORY
-                    TIME += 10
-                ELSE
-                    GOTO NOT_CLOSE_ENOUGH
-                ENDIF
-                RESETCOLOR
-            CASE 9
-                IF TALENT:[[パルスィ]]:恋人
-                    CALL K60_SATORI_BACKSTORY()
-                    TIME += 10
-                ELSE
-                    GOTO NOT_CLOSE_ENOUGH
-                ENDIF
-                RESETCOLOR
-            CASE 10
                 CALL K60_ALTERNATE_WORLDS_CONVO()
                 TIME += 10
                 RESETCOLOR
-            CASE 11
-                CALL K60_BEING_A_ZOROASTRIAN()
-                TIME += 5
-                RESETCOLOR
-            CASE 12
+            CASE 9
                 CALL K60_THOUGHTS_ON_HUMANS()
                 TIME += 5
                 RESETCOLOR

@@ -7,6 +7,7 @@
 ;-----------------------------------------------------------
 @CHANGE_MONTH
 #DIM おみくじ代
+#DIM IFS_COST
 ;日付が月を跨いだら月変更
 IF DAY:3 > 31
 	DAY:3 = 1
@@ -40,10 +41,10 @@ IF DAY:3 > 31
 					PRINTFORML 購読を停止します。
 					FLAG:新聞購読 = 0
 				CASE 1
-					MONEY -= 3000
+					CALL PAY_MONEY_YEN(3000, 2)
 					PRINTFORML 今月も購読します。
 				CASE 2
-					MONEY:2 -= 10
+					CALL PAY_MONEY_CM(10, 2)
 					PRINTFORML 今月も購読します。
 			ENDSELECT
 		ENDIF
@@ -60,31 +61,14 @@ IF DAY:3 > 31
 			CALL ASK_YN
 			IF !RESULT
 				PRINTFORML 契約を更新しました
-				MONEY:2 -= おみくじ代
+				CALL PAY_MONEY_CM(おみくじ代, 2)
 			ELSE
 				FLAG:おみくじ契約 = 0
 				PRINTFORML 契約を終了します
 			ENDIF
 		ENDIF
 	ENDIF
-	IF FLAG:蟲の採集サービス
-		PRINTFORMDL
-		PRINTFORMW 蟲の採集サービスの契約期限が切れました
-		PRINTFORMW 更新申請しますか？
-		PRINTFORML 所持金:%金額表示(MONEY)%
-		LOCAL = CALCULATE_IFS_PRICE()
-		CALL ASK_M("更新しない",1,@"更新する (%金額表示(LOCAL)%)",MONEY >= LOCAL)
-		IF RESULT > 0
-			MONEY -= LOCAL
-			PRINTFORMW 契約を更新しました。
-			PRINTFORMDL
-			PRINTFORML 現在の素材収集場所は%GET_MAPNAME(FLAG:蟲の採集サービス - 1)%です。
-			PRINTFORMW 変更したい場合は%CALLNAME:[[リグル]]%に声を掛けましょう。
-		ELSE
-			FLAG:蟲の採集サービス = 0
-		ENDIF
-		PRINTFORMDL
-	ENDIF
+	CALL IFS_SUBSCRIBE
 ENDIF
 ;異常値を固定修正
 SIF DAY:3 < 1

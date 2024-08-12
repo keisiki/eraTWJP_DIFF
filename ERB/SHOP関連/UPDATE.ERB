@@ -81,7 +81,7 @@ FOR C_ID, 1, CHARANUM
 	ENDIF
 	CALL 履歴文字列変換(C_ID)
 	IF TALENT:C_ID:育児中
-		FOR LOCAL:1, 1, 11
+		FOR LOCAL:1, 1, MAXCHILD + 1
 			SIF (CHILD_BIRTHDAY:C_ID:(LOCAL:1) > CHILD_BIRTHDAY:C_ID:(LOCAL:1 - 1)) || (LOCAL:1 - 1) == 0
 				育児中の子供 = LOCAL:1
 		NEXT
@@ -154,31 +154,7 @@ FOR C_ID, 1, CHARANUM
 		RELATION:C_ID:(LOCAL:1) = CSVRELATION(C_ID, LOCAL:1)
 	NEXT
 	;差し替え画像の有無を確認
-	IF CFLAG:C_ID:別顔有 < CSVCFLAG(C_ID, 562) || CFLAG:C_ID:別立ち有 < CSVCFLAG(C_ID, 563)
-		PRINTFORML %CALLNAME:C_ID%の新しい差し替え画像を検出しました。
-		IF CFLAG:C_ID:別顔有 < CSVCFLAG(C_ID, 562)
-			CALL 画像セット(@"顔絵_服_通常_{C_ID}", 0, 0, 100, 0, 0, "", "デフォルト顔絵")
-			FOR LOCAL:1, 1, CSVCFLAG(C_ID, 562)+1
-				CALL 画像セット(@"\@LOCAL:1 >= 2?別顔{LOCAL:1}#別顔\@_服_通常_{C_ID}", 0, 0, 100, 0, 0, "", "差し替え顔絵")
-			NEXT
-			CALL 画像一斉表示("左", 0, 1)
-		ENDIF
-		IF CFLAG:C_ID:別立ち有 < CSVCFLAG(C_ID, 563)
-			CALL 画像セット(@"立ち絵_服_通常_{C_ID}", 0, 0, 100, 0, 0, "", "デフォルト立ち絵")
-			FOR LOCAL:1, 1, CSVCFLAG(C_ID, 563)+1
-				CALL 画像セット(@"\@LOCAL:1 >= 2?別立ち{LOCAL:1}#別立ち\@_服_通常_{C_ID}", 0, 0, 100, 0, 0, "", "差し替え立ち絵")
-			NEXT
-			CALL 画像一斉表示("左", 0, 1)
-		ENDIF
-		PRINT [0] 差し替えなし
-		FOR LOCAL:1, 1, MAX(CSVCFLAG(C_ID, 562), CSVCFLAG(C_ID, 563)) + 1
-			PRINTFORM [{LOCAL:1}] 差し替え{LOCAL:1}
-		NEXT
-		INPUT
-		CFLAG:C_ID:差し替え適用 = RESULT
-	ENDIF
-	CFLAG:C_ID:別顔有 = CSVCFLAG(C_ID, 562)
-	CFLAG:C_ID:別立ち有 = CSVCFLAG(C_ID, 563)
+	CALL Update_ImageSets
 	;大家フラグ
 	CFLAG:C_ID:大家候補 = CSVCFLAG (C_ID, GETNUM(CFLAG, "大家候補"))
 	CFLAG:C_ID:住み込み必要信頼度 = CSVCFLAG (C_ID, GETNUM(CFLAG, "住み込み必要信頼度"))

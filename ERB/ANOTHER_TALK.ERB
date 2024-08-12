@@ -37,7 +37,7 @@ ELSEIF 宴会場所在判定(MASTER)
 	CALL MESSAGE_TALK(1)
 ELSEIF TALENT:MASTER:形状 == 4 && TIME > 1140 && CFLAG:MASTER:デート中 && (CFLAG:MASTER:現在位置 % 100) % 10 && CFLAG:MASTER:現在位置 != OMANEKIBEYA()
 	CALL MESSAGE_TALK(5,0,0)
-ELSEIF CFLAG:MASTER:現在位置 == GET_MAP_REPLACEMENT(HATAKE)
+ELSEIF CFLAG:MASTER:現在位置 == GET_MAP_REPLACEMENT(HATAKE) && FLAG:地主
 	CALL MESSAGE_TALK(8)
 ;畑拡張実装までは暫定的に畑0で決め打ち
 ELSEIF 家庭菜園可(CFLAG:MASTER:現在位置) && HATAKE_NAME:0 != "" && PLANT_TYPE > 0
@@ -337,21 +337,6 @@ SELECTCASE ARG
 		PRINTL
 	CASE 5
 		PRINTFORML 暗い夜道も、%CALLNAME:MASTER%の光るペニスがあれば安心だ
-	CASE 6
-		IF !CHARA_HOLIDAY(67)
-			;授業中
-			IF TIME >= 480 && TIME <= 720 || TIME >= 780
-				IF !FLAG:70
-					PRINTFORML 寺小屋の子供達は%CALLNAME:TARGET%の\@ 充填率(TARGET,3) >= 10 ? %SHOW_BOTTOM(TARGET,1)%の中がどうなっているかも知らずに# \@授業を受けている…
-				ELSEIF !CFLAG:MASTER:うふふ
-					PRINTFORML 寺子屋の子供達は停止している…
-				ELSE
-					PRINTFORML %CALLNAME:TARGET%は寺子屋の子供達の前で襲われている…
-				ENDIF
-			ELSEIF TIME >= 720 && TIME <= 780 && !FLAG:70
-				PRINTFORML 寺子屋の子供達は%CALLNAME:TARGET%と食事している…
-			ENDIF
-		ENDIF
 	CASE 7
 		IF CFLAG:MASTER:現在位置 == 210
 			PRINTFORML %CALLNAME:(ARG:1)%の周りに人だかりができている
@@ -485,377 +470,386 @@ SELECTCASE ARG
 			CHARA = TFLAG:描写中の子供
 			CHILDNUM = TALENT:CHARA:育児中
 		ENDIF
-		子供の名前 = %CHILDNAME:CHARA:CHILDNUM%
-		子供の行動 = %CHILD_ACT:CHARA:CHILDNUM%
-		SELECTCASE 子供の行動
-			CASE "睡眠"
-				;幼少期以降は例外として自室外だと表示されず、フラグをオフにする（寝室に帰る描写があるため）
-				IF CFLAG:CHARA:出産経過日 >= CHILD_語彙 && !自室自宅判定(CFLAG:MASTER:現在位置, CHARA)
-					TFLAG:描写中の子供 = 0
-				ELSE
-					PRINTFORM %子供の名前%はすやすやと眠っている
-				ENDIF
-			CASE "起床"
-				IF CFLAG:CHARA:出産経過日 < CHILD_語彙
-					PRINTFORM %子供の名前%はお腹を空かせている
-				ELSE
-					PRINTDATA
-						DATAFORM %子供の名前%はあくびをしている
-						DATAFORM %子供の名前%は眠たそうにしている
-						DATAFORM %子供の名前%は背伸びしている
-						DATAFORM %子供の名前%は目をこすっている
-						DATAFORM %子供の名前%は寝ぼけている
-					ENDDATA
-				ENDIF
-			CASE "入浴"
-				IF CFLAG:CHARA:出産経過日 < CHILD_語彙
-					PRINTFORM %子供の名前%はお風呂に入れてもらってる
-				ELSE
-					PRINTDATA
-						DATAFORM %子供の名前%は十かぞえている
-						DATAFORM %子供の名前%は湯船ではしゃいでいる
-						DATAFORM %子供の名前%は泡を作って遊んでいる
-						DATAFORM %子供の名前%は潜って遊んでいる
-						DATAFORM %子供の名前%は頭を洗ってもらっている
-						DATAFORM %子供の名前%は身体を洗ってもらっている
-					ENDDATA
-				ENDIF
-			CASE "食事"
-				IF CFLAG:CHARA:出産経過日 < CHILD_離乳
-					PRINTFORM %子供の名前%はおっぱいを吸っている
-				ELSEIF CFLAG:CHARA:出産経過日 < CHILD_語彙
-					PRINTFORM %子供の名前%は離乳食を口に咥えている
-				ELSE
-					SELECTCASE TIME
-					CASE 300 TO 540 
-						PRINTFORM %子供の名前%は朝ごはんを食べている
-					CASE 660 TO 900
-						PRINTFORM %子供の名前%はお昼ごはんを食べている
-					CASE 1020 TO 1200
-						PRINTFORM %子供の名前%は夕飯を食べている
-					CASE 1200 TO 1440
-						PRINTFORM %子供の名前%は夜ごはんを食べている
-					CASE 0 TO 180
-						PRINTFORM %子供の名前%は夜食を食べている
-					CASEELSE
-						PRINTFORM %子供の名前%はごはんを食べている
-					ENDSELECT
-				ENDIF
-			CASE "玩具"
-				IF CFLAG:CHARA:出産経過日 < CHILD_自立前
-					PRINTFORM %子供の名前%は玩具で遊んでいる
-				ELSE
-					PRINTFORM %子供の名前%は玩具を見つめている
-				ENDIF
-			CASE "お絵かき"
-				PRINTFORM %子供の名前%はお絵かきをしている
-			CASE "遊び"
-				PRINTDATA
-					DATAFORM %子供の名前%は元気に走り回っている
-					DATAFORM %子供の名前%は弾幕ごっこの真似事をしている
-					DATAFORM %子供の名前%は飛び跳ねている
-					DATAFORM %子供の名前%は転がっている
-					DATAFORM %子供の名前%は駆け回っている
-					DATAFORM %子供の名前%は踊り回っている
-					DATAFORM %子供の名前%はチャンバラごっこをしている
-					DATAFORM %子供の名前%ははしゃぎ回っている
-					DATAFORM %子供の名前%はケンケンパしている
-					DATAFORM %子供の名前%は縄跳びをしている
-				ENDDATA
-			CASE "勉強"
-				PRINTFORM %子供の名前%は勉強している
-			CASE "読書"
-				PRINTFORM %子供の名前%は黙々と本を読み耽っている
-			CASE "料理"
-				PRINTDATA
-					DATAFORM %子供の名前%はたどたどしく料理している
-					DATAFORM %子供の名前%はぎこちなく料理をしている
-					DATAFORM %子供の名前%はレシピとにらめっこしている
-					DATAFORM %子供の名前%は慎重に食材を刻んでいる
-					DATAFORM %子供の名前%は火加減を念入りに見ている
-					DATAFORM %子供の名前%は目を凝らして計量している
-				ENDDATA
-			CASE "絵描き"
-				PRINTDATA
-					DATAFORM %子供の名前%は構想を練っている
-					DATAFORM %子供の名前%は昔描いた絵を取り出した
-					DATAFORM %子供の名前%は新しい紙を取り出した
-					DATAFORM %子供の名前%は気ままに絵を描いている
-					DATAFORM %子供の名前%は熱心に絵を描いている
-					DATAFORM %子供の名前%は夢中になって絵を描いている
-					DATAFORM %子供の名前%は鼻歌を歌いながら絵を描いている
-					DATAFORM %子供の名前%はこちらを見ながら絵を描いている
-					DATAFORM %子供の名前%は色を塗っている
-				ENDDATA
-			CASE "歌唱"
-				PRINTDATA
-					DATAFORM %子供の名前%は元気に歌っている
-					DATAFORM %子供の名前%は気ままに歌っている
-					DATAFORM %子供の名前%はなりきって歌っている
-					DATAFORM %子供の名前%はうっとりして歌っている
-					DATAFORM %子供の名前%は堂々と歌っている
-					DATAFORM %子供の名前%はリズムに乗っている
-					DATAFORM %子供の名前%は踊っている
-					DATAFORM %子供の名前%は楽器を弾く真似をしている
-					DATAFORM %子供の名前%はポーズを決めている
-				ENDDATA
-			CASE "掃除"
-				PRINTFORM %子供の名前%は部屋の掃除をしている
-			CASE "支度"
-				PRINTFORM %子供の名前%は寺子屋へ行く支度をしている
-			CASE "登校"
-				PRINTFORM %子供の名前%が登校していく……
-			CASE "授業"
-				PRINTFORM %子供の名前%は授業を受けている
-			CASE "帰宅"
-				;寺子屋で見送った場合は表示されず、フラグをオフにする
-				IF  !自室自宅判定(CFLAG:MASTER:現在位置, CHARA) && CFLAG:MASTER:現在位置 != CFLAG:CHARA:現在位置
-					TFLAG:描写中の子供 = 0
-				ELSE
-					PRINTFORM %子供の名前%はカバンを降ろしている
-				ENDIF
-			CASE "仕事"
-				PRINTFORM %子供の名前%は仕事に励んでいる
-			CASE "散歩"
-				PRINTDATA
-					DATAFORM %子供の名前%は誰かと話している
-					DATAFORM %子供の名前%は異性の人物と並んでいる
-					DATAFORM %子供の名前%は佇んでいる
-					DATAFORM %子供の名前%はお茶をすすっている
-					DATAFORM %子供の名前%はあくびをしている
-					DATAFORM %子供の名前%は手帳に何かを書いている
-					DATAFORM %子供の名前%は辺りを見回している
-					DATAFORM %子供の名前%は眠そうにしている
-					DATAFORM %子供の名前%はこちらの様子を伺っている
-				ENDDATA
-			;その他の行動,ここでCHILD_ACTを決めちゃう
-			CASEELSE
-				IF CFLAG:MASTER:現在位置 == CFLAG:CHARA:現在位置
-					同室 = 1
-				ELSE
-					同室 = 0
-				ENDIF
-				;描写の抽選と固定
-				IF LOCAL:1 != TIME || LOCAL:2 != 同室
+		LOCAL:10 = CFLAG:CHARA:出産経過日 ;store current age
+		FOR LOCAL:11, 0, nChildrenPresentCount
+			CHARA = nChildrenPresent:(LOCAL:11) % 1000
+			CHILDNUM = nChildrenPresent:(LOCAL:11) / 1000
+			LOCAL:10 = CFLAG:CHARA:出産経過日 ;store current age
+			CFLAG:CHARA:出産経過日 = DAY - CHILD_BIRTHDAY:CHARA:CHILDNUM + 1
+
+			子供の名前 = %CHILDNAME:CHARA:CHILDNUM%
+			子供の行動 = %CHILD_ACT:CHARA:CHILDNUM%
+			SELECTCASE 子供の行動
+				CASE "睡眠"
+					;幼少期以降は例外として自室外だと表示されず、フラグをオフにする（寝室に帰る描写があるため）
+					IF CFLAG:CHARA:出産経過日 >= CHILD_語彙 && !自室自宅判定(CFLAG:MASTER:現在位置, CHARA)
+						TFLAG:描写中の子供 = 0
+					ELSE
+						PRINTFORM %子供の名前%はすやすやと眠っている
+					ENDIF
+				CASE "起床"
 					IF CFLAG:CHARA:出産経過日 < CHILD_語彙
-						LOCAL = RAND:16
+						PRINTFORM %子供の名前%はお腹を空かせている
+					ELSE
+						PRINTDATA
+							DATAFORM %子供の名前%はあくびをしている
+							DATAFORM %子供の名前%は眠たそうにしている
+							DATAFORM %子供の名前%は背伸びしている
+							DATAFORM %子供の名前%は目をこすっている
+							DATAFORM %子供の名前%は寝ぼけている
+						ENDDATA
+					ENDIF
+				CASE "入浴"
+					IF CFLAG:CHARA:出産経過日 < CHILD_語彙
+						PRINTFORM %子供の名前%はお風呂に入れてもらってる
+					ELSE
+						PRINTDATA
+							DATAFORM %子供の名前%は十かぞえている
+							DATAFORM %子供の名前%は湯船ではしゃいでいる
+							DATAFORM %子供の名前%は泡を作って遊んでいる
+							DATAFORM %子供の名前%は潜って遊んでいる
+							DATAFORM %子供の名前%は頭を洗ってもらっている
+							DATAFORM %子供の名前%は身体を洗ってもらっている
+						ENDDATA
+					ENDIF
+				CASE "食事"
+					IF CFLAG:CHARA:出産経過日 < CHILD_離乳
+						PRINTFORM %子供の名前%はおっぱいを吸っている
+					ELSEIF CFLAG:CHARA:出産経過日 < CHILD_語彙
+						PRINTFORM %子供の名前%は離乳食を口に咥えている
+					ELSE
+						SELECTCASE TIME
+						CASE 300 TO 540 
+							PRINTFORM %子供の名前%は朝ごはんを食べている
+						CASE 660 TO 900
+							PRINTFORM %子供の名前%はお昼ごはんを食べている
+						CASE 1020 TO 1200
+							PRINTFORM %子供の名前%は夕飯を食べている
+						CASE 1200 TO 1440
+							PRINTFORM %子供の名前%は夜ごはんを食べている
+						CASE 0 TO 180
+							PRINTFORM %子供の名前%は夜食を食べている
+						CASEELSE
+							PRINTFORM %子供の名前%はごはんを食べている
+						ENDSELECT
+					ENDIF
+				CASE "玩具"
+					IF CFLAG:CHARA:出産経過日 < CHILD_自立前
+						PRINTFORM %子供の名前%は玩具で遊んでいる
+					ELSE
+						PRINTFORM %子供の名前%は玩具を見つめている
+					ENDIF
+				CASE "お絵かき"
+					PRINTFORM %子供の名前%はお絵かきをしている
+				CASE "遊び"
+					PRINTDATA
+						DATAFORM %子供の名前%は元気に走り回っている
+						DATAFORM %子供の名前%は弾幕ごっこの真似事をしている
+						DATAFORM %子供の名前%は飛び跳ねている
+						DATAFORM %子供の名前%は転がっている
+						DATAFORM %子供の名前%は駆け回っている
+						DATAFORM %子供の名前%は踊り回っている
+						DATAFORM %子供の名前%はチャンバラごっこをしている
+						DATAFORM %子供の名前%ははしゃぎ回っている
+						DATAFORM %子供の名前%はケンケンパしている
+						DATAFORM %子供の名前%は縄跳びをしている
+					ENDDATA
+				CASE "勉強"
+					PRINTFORM %子供の名前%は勉強している
+				CASE "読書"
+					PRINTFORM %子供の名前%は黙々と本を読み耽っている
+				CASE "料理"
+					PRINTDATA
+						DATAFORM %子供の名前%はたどたどしく料理している
+						DATAFORM %子供の名前%はぎこちなく料理をしている
+						DATAFORM %子供の名前%はレシピとにらめっこしている
+						DATAFORM %子供の名前%は慎重に食材を刻んでいる
+						DATAFORM %子供の名前%は火加減を念入りに見ている
+						DATAFORM %子供の名前%は目を凝らして計量している
+					ENDDATA
+				CASE "絵描き"
+					PRINTDATA
+						DATAFORM %子供の名前%は構想を練っている
+						DATAFORM %子供の名前%は昔描いた絵を取り出した
+						DATAFORM %子供の名前%は新しい紙を取り出した
+						DATAFORM %子供の名前%は気ままに絵を描いている
+						DATAFORM %子供の名前%は熱心に絵を描いている
+						DATAFORM %子供の名前%は夢中になって絵を描いている
+						DATAFORM %子供の名前%は鼻歌を歌いながら絵を描いている
+						DATAFORM %子供の名前%はこちらを見ながら絵を描いている
+						DATAFORM %子供の名前%は色を塗っている
+					ENDDATA
+				CASE "歌唱"
+					PRINTDATA
+						DATAFORM %子供の名前%は元気に歌っている
+						DATAFORM %子供の名前%は気ままに歌っている
+						DATAFORM %子供の名前%はなりきって歌っている
+						DATAFORM %子供の名前%はうっとりして歌っている
+						DATAFORM %子供の名前%は堂々と歌っている
+						DATAFORM %子供の名前%はリズムに乗っている
+						DATAFORM %子供の名前%は踊っている
+						DATAFORM %子供の名前%は楽器を弾く真似をしている
+						DATAFORM %子供の名前%はポーズを決めている
+					ENDDATA
+				CASE "掃除"
+					PRINTFORM %子供の名前%は部屋の掃除をしている
+				CASE "支度"
+					PRINTFORM %子供の名前%は寺子屋へ行く支度をしている
+				CASE "登校"
+					PRINTFORM %子供の名前%が登校していく……
+				CASE "授業"
+					PRINTFORM %子供の名前%は授業を受けている
+				CASE "帰宅"
+					;寺子屋で見送った場合は表示されず、フラグをオフにする
+					IF  !自室自宅判定(CFLAG:MASTER:現在位置, CHARA) && CFLAG:MASTER:現在位置 != CFLAG:CHARA:現在位置
+						TFLAG:描写中の子供 = 0
+					ELSE
+						PRINTFORM %子供の名前%はカバンを降ろしている
+					ENDIF
+				CASE "仕事"
+					PRINTFORM %子供の名前%は仕事に励んでいる
+				CASE "散歩"
+					PRINTDATA
+						DATAFORM %子供の名前%は誰かと話している
+						DATAFORM %子供の名前%は異性の人物と並んでいる
+						DATAFORM %子供の名前%は佇んでいる
+						DATAFORM %子供の名前%はお茶をすすっている
+						DATAFORM %子供の名前%はあくびをしている
+						DATAFORM %子供の名前%は手帳に何かを書いている
+						DATAFORM %子供の名前%は辺りを見回している
+						DATAFORM %子供の名前%は眠そうにしている
+						DATAFORM %子供の名前%はこちらの様子を伺っている
+					ENDDATA
+				;その他の行動,ここでCHILD_ACTを決めちゃう
+				CASEELSE
+					IF CFLAG:MASTER:現在位置 == CFLAG:CHARA:現在位置
+						同室 = 1
+					ELSE
+						同室 = 0
+					ENDIF
+					;描写の抽選と固定
+					IF LOCAL:1 != TIME || LOCAL:2 != 同室
+						IF CFLAG:CHARA:出産経過日 < CHILD_語彙
+							LOCAL = RAND:16
+						ELSEIF CFLAG:CHARA:出産経過日 < CHILD_自立前
+							IF 同室
+								LOCAL = RAND:24
+							ELSE
+								LOCAL = RAND:14
+							ENDIF
+						ELSE
+							IF 同室
+								LOCAL = RAND:26
+							ELSE
+								LOCAL = RAND:11
+							ENDIF
+						ENDIF
+						LOCAL:1 = TIME
+						LOCAL:2 = 同室
+					ENDIF
+					IF CFLAG:CHARA:出産経過日 < CHILD_語彙
+						SELECTCASE LOCAL
+						CASE 1, 2, 3, 4
+							PRINTFORM %子供の名前%は%CALLNAME:CHARA%に抱かれている
+							CHILD_ACT:CHARA:CHILDNUM = 幼児期_抱かれる
+						CASE 5, 6
+							PRINTFORM %子供の名前%は%CALLNAME:CHARA%の腕の中で眠たそうにしている
+							CHILD_ACT:CHARA:CHILDNUM = 幼児期_眠たそう
+						CASE 7, 8
+							PRINTFORM %子供の名前%は%CALLNAME:CHARA%の腕の中で大人しくしている
+							CHILD_ACT:CHARA:CHILDNUM = 幼児期_大人しい
+						CASE 9, 10, 11, 12
+							PRINTFORM %CALLNAME:CHARA%に抱かれた%子供の名前%がこちらを見ている
+							CHILD_ACT:CHARA:CHILDNUM = 幼児期_こちらを見る
+						CASE 13
+							PRINTFORM %CALLNAME:CHARA%に抱かれた%子供の名前%は何かを訴えている
+							CHILD_ACT:CHARA:CHILDNUM = 幼児期_何かを訴える
+						CASE 14
+							PRINTFORM %子供の名前%は何かを目で追っている
+							CHILD_ACT:CHARA:CHILDNUM = 幼児期_何かを目で追う
+						CASEELSE
+							PRINTFORM %CALLNAME:CHARA%は%子供の名前%をあやしている
+							CHILD_ACT:CHARA:CHILDNUM = 幼児期_あやされる
+						ENDSELECT
 					ELSEIF CFLAG:CHARA:出産経過日 < CHILD_自立前
 						IF 同室
-							LOCAL = RAND:24
+							SELECTCASE LOCAL
+							CASE 1, 2
+								PRINTFORM %CALLNAME:CHARA%と%子供の名前%は楽しそうに話している
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_会話
+							CASE 3, 4
+								PRINTFORM %CALLNAME:CHARA%は%子供の名前%に何かを教えている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_教わる
+							CASE 5, 6
+								PRINTFORM %CALLNAME:CHARA%は%子供の名前%に話をしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_会話
+							CASE 7, 8
+								PRINTFORM %CALLNAME:CHARA%は%子供の名前%をしつけている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_しつけられる
+							CASE 9
+								PRINTFORM %子供の名前%は%CALLNAME:CHARA%と遊んでいる
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_親子遊び
+							CASE 10
+								PRINTFORM %子供の名前%は%CALLNAME:CHARA%と熱心に話をしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_会話
+							CASE 11
+								PRINTFORM %子供の名前%は一人で遊んでいる
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_一人遊び
+							CASE 12
+								PRINTFORM %子供の名前%は大人しくしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_大人しい
+							CASE 13
+								PRINTFORM %子供の名前%は考え事をしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_考え事
+							CASE 14
+								PRINTFORM %子供の名前%は眠そうにしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_眠そう
+							CASE 15
+								PRINTFORM %子供の名前%ははしゃいでいる
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_はしゃぐ
+							CASE 16
+								PRINTFORM %子供の名前%がうろちょろしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_うろちょろ
+							CASE 17
+								PRINTFORM %子供の名前%はうずうずしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_うずうず
+							CASE 18
+								PRINTFORM %子供の名前%はこちらをじっと見つめている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_見つめる
+							CASE 19, 20
+								PRINTFORM %子供の名前%は%CALLNAME:MASTER%と遊ぼうとしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_遊ぼう
+							CASE 21, 22
+								PRINTFORM %子供の名前%がぺたぺたと触ってくる
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_ぺたぺた
+							CASEELSE
+								PRINTFORM %子供の名前%は%CALLNAME:MASTER%にかまってほしいようだ
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_かまって
+							ENDSELECT
+						;単独
 						ELSE
-							LOCAL = RAND:14
+							SELECTCASE LOCAL
+							CASE 1
+								PRINTFORM %子供の名前%は一人で遊んでいる
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_一人遊び
+							CASE 2
+								PRINTFORM %子供の名前%は大人しくしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_大人しい
+							CASE 3
+								PRINTFORM %子供の名前%は考え事をしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_考え事
+							CASE 4
+								PRINTFORM %子供の名前%は眠そうにしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_眠そう
+							CASE 5
+								PRINTFORM %子供の名前%ははしゃいでいる
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_はしゃぐ
+							CASE 6
+								PRINTFORM %子供の名前%がうろちょろしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_うろちょろ
+							CASE 7
+								PRINTFORM %子供の名前%はうずうずしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_うずうず
+							CASE 8
+								PRINTFORM %子供の名前%はこちらをじっと見つめている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_見つめる
+							CASE 9, 10
+								PRINTFORM %子供の名前%は%CALLNAME:MASTER%と遊ぼうとしている
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_遊ぼう
+							CASE 11, 12
+								PRINTFORM %子供の名前%がぺたぺたと触ってくる
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_ぺたぺた
+							CASEELSE
+								PRINTFORM %子供の名前%は%CALLNAME:MASTER%にかまってほしいようだ
+								CHILD_ACT:CHARA:CHILDNUM = 幼少期_かまって
+							ENDSELECT
 						ENDIF
 					ELSE
 						IF 同室
-							LOCAL = RAND:26
+							SELECTCASE LOCAL
+							CASE 1, 2
+								PRINTFORM %CALLNAME:CHARA%と%子供の名前%は楽しそうに話している
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_会話
+							CASE 3, 4
+								PRINTFORM %CALLNAME:CHARA%は%子供の名前%に何かを教えている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_教わる
+							CASE 5, 6
+								PRINTFORM %CALLNAME:CHARA%は%子供の名前%に話をしている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_会話
+							CASE 7
+								PRINTFORM %CALLNAME:CHARA%は%子供の名前%をしつけている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_しつけられる
+							CASE 8
+								PRINTFORM %CALLNAME:CHARA%はこちらを見ながら%子供の名前%とひそひそ話をしている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_ひそひそ話
+							CASE 9
+								PRINTFORM %子供の名前%は%CALLNAME:CHARA%に文句を言っている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_文句
+							CASE 10
+								PRINTFORM %子供の名前%は%CALLNAME:CHARA%に主張している
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_主張
+							CASE 11
+								PRINTFORM %子供の名前%は%CALLNAME:CHARA%と笑っている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_笑い合う
+							CASE 12, 13
+								PRINTFORM %子供の名前%は%CALLNAME:CHARA%に教えを請いている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_教えて
+							CASE 14, 15
+								PRINTFORM %子供の名前%は%CALLNAME:CHARA%の手伝いをしている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_手伝い
+							CASE 16, 17
+								PRINTFORM %子供の名前%は一人で遊んでいる
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_一人遊び
+							CASE 18
+								PRINTFORM %子供の名前%は考え事をしている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_考え事
+							CASE 19
+								PRINTFORM %子供の名前%は眠そうにしている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_眠そう
+							CASE 20, 21, 22, 23
+								PRINTFORM %子供の名前%は%CALLNAME:MASTER%と話したいようだ
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_話したい
+							CASE 24
+								PRINTFORM %子供の名前%は%CALLNAME:MASTER%を気にしている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_気にする
+							CASE 25
+								PRINTFORM %子供の名前%は%CALLNAME:MASTER%に遠慮している
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_遠慮
+							CASEELSE
+								PRINTFORM %子供の名前%が鋭い目でこちらを見ている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_睨む
+							ENDSELECT
+						;単独
 						ELSE
-							LOCAL = RAND:11
+							SELECTCASE LOCAL
+							CASE 1, 2
+								PRINTFORM %子供の名前%は一人で遊んでいる
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_一人遊び
+							CASE 3, 4
+								PRINTFORM %子供の名前%は考え事をしている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_考え事
+							CASE 5
+								PRINTFORM %子供の名前%は眠そうにしている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_眠そう
+							CASE 6, 7, 8, 9
+								PRINTFORM %子供の名前%は%CALLNAME:MASTER%と話したいようだ
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_話したい
+							CASE 10
+								PRINTFORM %子供の名前%は%CALLNAME:MASTER%を気にしている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_気にする
+							CASE 11
+								PRINTFORM %子供の名前%は%CALLNAME:MASTER%に遠慮している
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_遠慮
+							CASEELSE
+								PRINTFORM %子供の名前%が鋭い目でこちらを見ている
+								CHILD_ACT:CHARA:CHILDNUM = 自立前_睨む
+							ENDSELECT
 						ENDIF
 					ENDIF
-					LOCAL:1 = TIME
-					LOCAL:2 = 同室
-				ENDIF
-				IF CFLAG:CHARA:出産経過日 < CHILD_語彙
-					SELECTCASE LOCAL
-					CASE 1, 2, 3, 4
-						PRINTFORM %子供の名前%は%CALLNAME:CHARA%に抱かれている
-						CHILD_ACT:CHARA:CHILDNUM = 幼児期_抱かれる
-					CASE 5, 6
-						PRINTFORM %子供の名前%は%CALLNAME:CHARA%の腕の中で眠たそうにしている
-						CHILD_ACT:CHARA:CHILDNUM = 幼児期_眠たそう
-					CASE 7, 8
-						PRINTFORM %子供の名前%は%CALLNAME:CHARA%の腕の中で大人しくしている
-						CHILD_ACT:CHARA:CHILDNUM = 幼児期_大人しい
-					CASE 9, 10, 11, 12
-						PRINTFORM %CALLNAME:CHARA%に抱かれた%子供の名前%がこちらを見ている
-						CHILD_ACT:CHARA:CHILDNUM = 幼児期_こちらを見る
-					CASE 13
-						PRINTFORM %CALLNAME:CHARA%に抱かれた%子供の名前%は何かを訴えている
-						CHILD_ACT:CHARA:CHILDNUM = 幼児期_何かを訴える
-					CASE 14
-						PRINTFORM %子供の名前%は何かを目で追っている
-						CHILD_ACT:CHARA:CHILDNUM = 幼児期_何かを目で追う
-					CASEELSE
-						PRINTFORM %CALLNAME:CHARA%は%子供の名前%をあやしている
-						CHILD_ACT:CHARA:CHILDNUM = 幼児期_あやされる
-					ENDSELECT
-				ELSEIF CFLAG:CHARA:出産経過日 < CHILD_自立前
-					IF 同室
-						SELECTCASE LOCAL
-						CASE 1, 2
-							PRINTFORM %CALLNAME:CHARA%と%子供の名前%は楽しそうに話している
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_会話
-						CASE 3, 4
-							PRINTFORM %CALLNAME:CHARA%は%子供の名前%に何かを教えている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_教わる
-						CASE 5, 6
-							PRINTFORM %CALLNAME:CHARA%は%子供の名前%に話をしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_会話
-						CASE 7, 8
-							PRINTFORM %CALLNAME:CHARA%は%子供の名前%をしつけている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_しつけられる
-						CASE 9
-							PRINTFORM %子供の名前%は%CALLNAME:CHARA%と遊んでいる
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_親子遊び
-						CASE 10
-							PRINTFORM %子供の名前%は%CALLNAME:CHARA%と熱心に話をしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_会話
-						CASE 11
-							PRINTFORM %子供の名前%は一人で遊んでいる
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_一人遊び
-						CASE 12
-							PRINTFORM %子供の名前%は大人しくしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_大人しい
-						CASE 13
-							PRINTFORM %子供の名前%は考え事をしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_考え事
-						CASE 14
-							PRINTFORM %子供の名前%は眠そうにしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_眠そう
-						CASE 15
-							PRINTFORM %子供の名前%ははしゃいでいる
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_はしゃぐ
-						CASE 16
-							PRINTFORM %子供の名前%がうろちょろしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_うろちょろ
-						CASE 17
-							PRINTFORM %子供の名前%はうずうずしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_うずうず
-						CASE 18
-							PRINTFORM %子供の名前%はこちらをじっと見つめている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_見つめる
-						CASE 19, 20
-							PRINTFORM %子供の名前%は%CALLNAME:MASTER%と遊ぼうとしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_遊ぼう
-						CASE 21, 22
-							PRINTFORM %子供の名前%がぺたぺたと触ってくる
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_ぺたぺた
-						CASEELSE
-							PRINTFORM %子供の名前%は%CALLNAME:MASTER%にかまってほしいようだ
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_かまって
-						ENDSELECT
-					;単独
-					ELSE
-						SELECTCASE LOCAL
-						CASE 1
-							PRINTFORM %子供の名前%は一人で遊んでいる
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_一人遊び
-						CASE 2
-							PRINTFORM %子供の名前%は大人しくしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_大人しい
-						CASE 3
-							PRINTFORM %子供の名前%は考え事をしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_考え事
-						CASE 4
-							PRINTFORM %子供の名前%は眠そうにしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_眠そう
-						CASE 5
-							PRINTFORM %子供の名前%ははしゃいでいる
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_はしゃぐ
-						CASE 6
-							PRINTFORM %子供の名前%がうろちょろしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_うろちょろ
-						CASE 7
-							PRINTFORM %子供の名前%はうずうずしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_うずうず
-						CASE 8
-							PRINTFORM %子供の名前%はこちらをじっと見つめている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_見つめる
-						CASE 9, 10
-							PRINTFORM %子供の名前%は%CALLNAME:MASTER%と遊ぼうとしている
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_遊ぼう
-						CASE 11, 12
-							PRINTFORM %子供の名前%がぺたぺたと触ってくる
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_ぺたぺた
-						CASEELSE
-							PRINTFORM %子供の名前%は%CALLNAME:MASTER%にかまってほしいようだ
-							CHILD_ACT:CHARA:CHILDNUM = 幼少期_かまって
-						ENDSELECT
-					ENDIF
-				ELSE
-					IF 同室
-						SELECTCASE LOCAL
-						CASE 1, 2
-							PRINTFORM %CALLNAME:CHARA%と%子供の名前%は楽しそうに話している
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_会話
-						CASE 3, 4
-							PRINTFORM %CALLNAME:CHARA%は%子供の名前%に何かを教えている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_教わる
-						CASE 5, 6
-							PRINTFORM %CALLNAME:CHARA%は%子供の名前%に話をしている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_会話
-						CASE 7
-							PRINTFORM %CALLNAME:CHARA%は%子供の名前%をしつけている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_しつけられる
-						CASE 8
-							PRINTFORM %CALLNAME:CHARA%はこちらを見ながら%子供の名前%とひそひそ話をしている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_ひそひそ話
-						CASE 9
-							PRINTFORM %子供の名前%は%CALLNAME:CHARA%に文句を言っている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_文句
-						CASE 10
-							PRINTFORM %子供の名前%は%CALLNAME:CHARA%に主張している
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_主張
-						CASE 11
-							PRINTFORM %子供の名前%は%CALLNAME:CHARA%と笑っている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_笑い合う
-						CASE 12, 13
-							PRINTFORM %子供の名前%は%CALLNAME:CHARA%に教えを請いている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_教えて
-						CASE 14, 15
-							PRINTFORM %子供の名前%は%CALLNAME:CHARA%の手伝いをしている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_手伝い
-						CASE 16, 17
-							PRINTFORM %子供の名前%は一人で遊んでいる
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_一人遊び
-						CASE 18
-							PRINTFORM %子供の名前%は考え事をしている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_考え事
-						CASE 19
-							PRINTFORM %子供の名前%は眠そうにしている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_眠そう
-						CASE 20, 21, 22, 23
-							PRINTFORM %子供の名前%は%CALLNAME:MASTER%と話したいようだ
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_話したい
-						CASE 24
-							PRINTFORM %子供の名前%は%CALLNAME:MASTER%を気にしている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_気にする
-						CASE 25
-							PRINTFORM %子供の名前%は%CALLNAME:MASTER%に遠慮している
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_遠慮
-						CASEELSE
-							PRINTFORM %子供の名前%が鋭い目でこちらを見ている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_睨む
-						ENDSELECT
-					;単独
-					ELSE
-						SELECTCASE LOCAL
-						CASE 1, 2
-							PRINTFORM %子供の名前%は一人で遊んでいる
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_一人遊び
-						CASE 3, 4
-							PRINTFORM %子供の名前%は考え事をしている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_考え事
-						CASE 5
-							PRINTFORM %子供の名前%は眠そうにしている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_眠そう
-						CASE 6, 7, 8, 9
-							PRINTFORM %子供の名前%は%CALLNAME:MASTER%と話したいようだ
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_話したい
-						CASE 10
-							PRINTFORM %子供の名前%は%CALLNAME:MASTER%を気にしている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_気にする
-						CASE 11
-							PRINTFORM %子供の名前%は%CALLNAME:MASTER%に遠慮している
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_遠慮
-						CASEELSE
-							PRINTFORM %子供の名前%が鋭い目でこちらを見ている
-							CHILD_ACT:CHARA:CHILDNUM = 自立前_睨む
-						ENDSELECT
-					ENDIF
-				ENDIF
-		ENDSELECT
-		PRINTL 
+			ENDSELECT
+			PRINTL 
+			CFLAG:CHARA:出産経過日 = LOCAL:10
+		NEXT
 	CASE 15
 		IF !CHARA_HOLIDAY(30) && BETWEENTIME(540, 719)
 			IF !FLAG:70
@@ -878,6 +872,8 @@ SELECTCASE ARG
 		同室 = 0
 		LOCAL = 5, 6, 7, 14, 111
 		FOR COUNT, 0, 5
+			SIF !SHIRAHU(LOCAL:COUNT)
+				CONTINUE
 			SIF CFLAG:MASTER:現在位置 != CFLAG:(LOCAL:COUNT):現在位置
 				CONTINUE
 			SIF Activity_Type:(LOCAL:COUNT) != 16 || !Activity_Duration:(LOCAL:COUNT)
@@ -955,7 +951,7 @@ VARSET LOCAL
 KROOM_DESC = 0
 IF CFLAG:MASTER:お招き
 	KROOM_DESC = CFLAG:MASTER:お招き
-ELSEIF PRIVATEROOM:(CFLAG:MASTER:現在位置 % 100)
+ELSEIF GET_MAPID(CFLAG:MASTER:現在位置) == MAIN_MAP && PRIVATEROOM:(CFLAG:MASTER:現在位置 % 100)
 	KROOM_DESC = PRIVATEROOM:(CFLAG:MASTER:現在位置 % 100)
 ENDIF
 IF KROOM_DESC
@@ -980,9 +976,6 @@ SIF CFLAG:MASTER:現在位置 == FA16_HOLE:0
 ;付近で宴会をやっているなら賑やかな様子が見える
 IF 宴会開催中判定() && CAN_MOVE(CFLAG:MASTER:現在位置, TFLAG:宴会場) >= 2
 	CALL MESSAGE_TALK(1)
-;けーね先生の寺小屋情景文章
-ELSEIF CFLAG:MASTER:現在位置 == 240 && CFLAG:67:行動 == 5
-		CALL MESSAGE_TALK(6)
 ;えーき様の裁判風景描写文章
 ELSEIF ((CFLAG:MASTER:現在位置 == 640 && MAIN_MAP != 6) || (CFLAG:MASTER:現在位置 == 612 && MAIN_MAP == 6)) && CFLAG:30:行動 == 5
 		CALL MESSAGE_TALK(15)

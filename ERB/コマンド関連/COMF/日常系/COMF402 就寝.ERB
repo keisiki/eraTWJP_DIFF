@@ -28,7 +28,18 @@ ENDIF
 
 CALL KIKENBIHOUMON
 
-IF 子供の睡眠時間(TARGET) && CFLAG:出産経過日 >= CHILD_よちよち && FLAG:子供描写 && !INRANGE(TIME, 540, 840)
+LOCAL:10 = 0
+FOR LOCAL, 1, MAXCHILD + 1
+	SIF CHILDNAME:TARGET:LOCAL == ""
+		CONTINUE
+	SIF CHILD_INDEPENDENT:TARGET:LOCAL
+		CONTINUE
+	SIF DAY - CHILD_BIRTHDAY:TARGET:LOCAL >= CHILD_よちよち
+		LOCAL:10 ++
+NEXT
+
+IF 子供の睡眠時間(TARGET) && LOCAL:10 && FLAG:子供描写 && !INRANGE(TIME, 540, 840)
+	;This line would need rewriting because it's not always a family of three, I'll leave it to you guys
 	PRINTFORMDL 家族三人で川の字になって寝る事にした…
 	CALL KOJO_MESSAGE_SEND("EVENT", 0, TARGET, 0, 0, "CHILD_RAISING_OYASUMI")
 	TFLAG:193 = 1
