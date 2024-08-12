@@ -245,15 +245,20 @@ RETURNF 0
 ;===========================================
 ;キス経験やファーストキス処理などをまとめてやる関数
 ;===========================================
-@ADD_KISS(ARG)
+@ADD_KISS(ARG, ARG:1 = 1, ARG:2 = 0) ;custom code
 IF TALENT:MASTER:キス未経験
-	CALL SET_FIRSTKISS(MASTER, ARG, 1)
-	EXP:ARG:愛情経験 += 10
+	CALL SET_FIRSTKISS(MASTER, ARG, ARG:2 == 0 ? 1 # 0) ;custom code, mutual kiss returns 1, so it's set to outside of date (0), on date by default (1)
+	CALL AddEXP("愛情経験", ARG, 10) ;custom code
 ENDIF
 IF TALENT:ARG:キス未経験
-	CALL SET_FIRSTKISS(ARG, MASTER, 1)
-	EXP:ARG:愛情経験 += 10
+	CALL SET_FIRSTKISS(ARG, MASTER, ARG:2 == 0 ? 1 # 0) ;custom code
+	CALL AddEXP("愛情経験", ARG, 10) ;custom code
 ENDIF
-EXP:ARG:キス経験 ++
-EXP:MASTER:キス経験 ++
+CALL AddEXP("キス経験", ARG, ARG:1) ;custom code
+CALL AddEXP("キス経験", MASTER, ARG:1) ;custom code
 SETBIT CFLAG:ARG:既成事実 , 0
+
+;Qol_Info_Count_Array関連は後日導入するので一旦コメントアウト
+	;Qol_Info_Count_Array:ARG:Qol_Count_Kiss ++ ;qol custom code
+	;SIF !SHIRAHU(ARG)
+	;	Qol_Info_Count_Array:ARG:Qol_Count_UncKiss ++ ;qol custom code
