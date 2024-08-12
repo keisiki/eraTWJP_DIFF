@@ -21,14 +21,22 @@ CALL COMPOSE_SPRITE_PRESET([[清蘭]])
 CALL COMPOSE_SPRITE_PRESET([[鈴瑚]])
 CALL COMPOSE_SPRITE_PRESET([[あうん]])
 CALL COMPOSE_SPRITE_PRESET([[早鬼]])
+CALL COMPOSE_SPRITE_PRESET([[夢月]])
+CALL COMPOSE_SPRITE_PRESET([[幻月]])
 {
 CALL COMPOSE_SPRITE_PRESET([[典]],"別顔_裸_/別顔_服_/別顔_服_バニー_",
 "通常/笑顔/怒り/発情/トロ顔/イキ顔/半目/悪い顔")
 }
 {
-CALL COMPOSE_SPRITE_PRESET([[パルスィ]],"別顔_裸2_/別顔_服2_/別顔_服_半脱ぎ_",
-"通常/笑顔/怒り/発情/トロ顔/イキ顔")
+CALL COMPOSE_SPRITE_PRESET([[パルスィ]],"別顔2_裸_/別顔2_服_/別顔2_服_半脱ぎ_",
+"通常/笑顔/怒り/発情/トロ顔/イキ顔", 2)
 }
+{
+CALL COMPOSE_SPRITE_PRESET([[咲夜]],"別顔2_裸_/別顔2_服_/別顔2_服_バニー_",
+"通常/笑顔/怒り/発情/トロ顔/イキ顔/通常２/笑顔２/ウィンク", 2)
+}
+
+
 @COMPOSE_SPRITE_63
 #DIM G_ID
 #DIM TEMP
@@ -392,7 +400,7 @@ FOR 素体COUNT, 0, VARSIZE("素体")
 NEXT
 
 ;手っ取り早く別顔をつくるための関数
-@COMPOSE_SPRITE_PRESET(C_ID, BODY, EXPRESSION)
+@COMPOSE_SPRITE_PRESET(C_ID, BODY, EXPRESSION, 別顔ID)
 #DIM C_ID
 #DIM G_ID
 #DIM TEMP
@@ -402,7 +410,7 @@ NEXT
 #DIMS EXPRESSION
 #DIMS 素体,10
 #DIMS BODY
-
+#DIM 別顔ID
 ;BODYに素体名を登録
 SIF BODY == ""
 	BODY = 別顔_裸_/別顔_服_
@@ -427,7 +435,11 @@ FOR 素体COUNT, 0, 10
 		G_ID = 0
 		CALL 画像合成(G_ID, "ダミー", 0, 0, 180, 180)
 		CALL 画像合成(G_ID, @"%素体:素体COUNT%通常_%TOSTR(C_ID)%")
-		CALL 画像合成(G_ID, @"%TOSTR(C_ID)%別顔_表情%表情:表情COUNT%")
+		IF 別顔ID
+			CALL 画像合成(G_ID, @"%TOSTR(C_ID)%別顔%TOSTR(別顔ID)%_表情%表情:表情COUNT%")
+		ELSE
+			CALL 画像合成(G_ID, @"%TOSTR(C_ID)%別顔_表情%表情:表情COUNT%")
+		ENDIF
 		SPRITECREATE @"%素体:素体COUNT%%表情:表情COUNT%_%TOSTR(C_ID)%", G_ID
 	NEXT
 NEXT
