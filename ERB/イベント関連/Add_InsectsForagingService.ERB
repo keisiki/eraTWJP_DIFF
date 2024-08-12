@@ -1,0 +1,192 @@
+﻿@UNIQUE_COM_蟲の採集サービス
+#DIM PRICE
+;CALL M_KOJO_COLOR_K27
+IF FLAG:蟲の採集サービス
+    ;PRINTFORMW 「Do you wanna change your foraging location?」
+    ;CALL ASK_M("Yeah",1,"Nah",1)
+    PRINTFORMW 「採集場所を変える？」
+    CALL ASK_M("うん",1,"いんや",1)
+    SIF RESULT
+        RETURN 1
+    CALL SELECT_A_REGION(0)
+ELSE
+    IF FIRSTTIME("ForagingService")
+        ;PRINTFORMW 「So here's how this works. You pay me a small fee...」
+        ;PRINTFORMW 「And in return, once a day for a month, my bug friends will search an area of your choice and bring back anything they find.」
+        ;PRINTFORMW 「They'll have it waiting for you first thing in the morning.」
+        ;PRINTFORMW 「Sometimes they won't find anything, though. If that happens, you get a refund for that day.」
+        PRINTFORMW 「仕組みはこうだよ。まずあんたがほんのちょっとのお代を払う...」
+        PRINTFORMW 「するとお返しに、ひと月の間、毎日私の仲間の虫たちがご希望の場所を探して、見つけたものをそっくり持ってきてくれるってわけ」
+        PRINTFORMW 「朝一番でお届けするよ」
+        PRINTFORMW 「何も見つからないときもあるけど、そういう日はお代を返すから」
+        IF TALENT:[[リグル]]:恋人
+            ;PRINTFORMW 「But you get the %PRINT_MALE("boy", MASTER)%friend discount of... 100\% off.」
+            PRINTFORMW 「あんたは恋人割で……100％オフ」
+            PRINTFORMW 「もちろん、別の方法でお礼がしたいなら止めないよ…」
+            ;PRINTFORMDW %CALLNAME:[[リグル]]% purses %HIS_HER(TARGET)% lips and winks.
+            PRINTFORMDW %CALLNAME:[[リグル]]%は唇をすぼめてウィンクした。
+        ENDIF
+    ENDIF
+    PRICE = CALCULATE_IFS_PRICE()
+    IF TALENT:[[リグル]]:恋人
+        ;PRINTFORMW 「So do you wanna sign up?」
+        PRINTFORMW 「契約する？」
+    ELSE
+        PRINTFORMW 「契約する？お代は \\{PRICE}だよ」
+    ENDIF
+    CALL ASK_M("契約する",MONEY >= PRICE,"やめとく",1)
+    SELECTCASE RESULT
+        CASE 0
+            CALL SELECT_A_REGION(PRICE)
+        CASE 1
+            ;PRINTFORMW 「Aww man...」
+            ;PRINTFORMW 「Come back if you change your mind.」
+            PRINTFORMW 「なんだよー、もー」
+            PRINTFORMW 「気が変わったらまた来てよ」
+            RETURN 1
+    ENDSELECT
+ENDIF
+RETURN 1
+
+@SELECT_A_REGION(PRICE)
+#DIM PRICE
+#DIM REGION
+;PRINTFORMW 「All right, so where do you want my friends to look?」
+PRINTFORMW 「おっけー、どこを探してほしい？」
+FOR LOCAL, 0, 11
+;Skip the Human Village because there aren't any gathering points in it
+	SIF LOCAL == 2
+		CONTINUE
+    PRINTFORMDL [{LOCAL}] - %GET_MAPNAME(LOCAL)%
+NEXT
+PRINTFORMDL [100] - 戻る
+
+DO
+    INPUT
+    SELECTCASE RESULT
+        CASE 0 TO 10
+            REGION = RESULT
+            ;PRINTFORMW 「%GET_MAPNAME(REGION)%, huh?」
+            PRINTFORMW 「%GET_MAPNAME(REGION)%だね？」
+            ;PRINTFORMW 「Got it. Now just sit tight while they get to work.」
+            PRINTFORMW 「りょーかい。みんなが仕事にとりかかるまで、ちょっとじっとしてて」
+            PRINTFORMDL %CALLNAME:[[リグル]]% が手を鳴らすと、宙に虫の羽音が響き渡る。
+            IF FIRSTTIME("InsectGatheringScene")
+                ;PRINTFORMDW A massive swarm is gathering. You can't even hear yourself think over the noise.
+                PRINTFORMDW すさまじい蟲の奔流がやってきた。雑音で思考すらままならない。
+                ;PRINTFORMDW Flying insects, crawling insects, worms... 
+                PRINTFORMDW 飛んでいるもの、地べたを進むもの、地虫……虫の台風の目にいるかのようだ。
+               ;PRINTFORMDW At least they're polite enough to keep their distance from you.
+                PRINTFORMDW 礼儀はわきまえているようで、あなたから距離を保っている。
+                PRINTFORMDW %CALLNAME:[[リグル]]%が指さすと、虫の大群は飛んで行った。
+            ELSE
+                ;PRINTFORMDW The swarm gathers and flies off just like they did before.
+                PRINTFORMDW 前回同様、虫が集い、飛び去っていった。
+            ENDIF
+            ;PRINTFORMW 「Hehe, look at 'em go... aren't they cute?」
+            PRINTFORMW 「あは、行っちゃった…かわいいもんでしょ？」
+            ;PRINTFORMDW You decide to not to answer %HIM_HER([[リグル]])%.
+            PRINTFORMDW 返答は控えよう。
+            IF !TALENT:[[リグル]]:恋人 && PRICE > 0
+                ;PRINTFORMW 「Okay, pay up.」
+                PRINTFORMW 「じゃ、お代をいただくよ」
+                ;PRINTFORMDL You hand over some cash, and %CALLNAME:[[リグル]]% counts it.
+                PRINTFORMDL 金を手渡す。%CALLNAME:[[リグル]]%が数える。
+                ;PRINTFORMDW When %HE_SHE([[リグル]])%'s sure that it's all there, %HE_SHE([[リグル]])% grins at you.
+                PRINTFORMDW きっちり揃っているのを確認すると、リグルはニヤリと笑った。
+                ;PRINTFORMW 「Pleasure doing business with you.」
+                PRINTFORMW 「いい取引だったよ」
+                CALL PAY_MONEY_YEN(PRICE, 2)
+            ENDIF
+            FLAG:蟲の採集サービス = REGION + 1
+            RETURN 1
+        CASE 100
+            RETURN 1
+
+        CASEELSE
+            ;PRINTFORMW 「Uhh... I don't know where that is.」
+            PRINTFORMW 「ええー…どこなのかわかんないよ…」
+            CONTINUE
+    ENDSELECT
+LOOP 1
+
+;Modified from ShowGatheringSpots
+@IFS_GATHER()
+#DIM cStart
+#DIM cEnd
+#DIM SpotID
+#DIM pCount
+#DIM SelectedSubmap
+#DIM GatheringSpots, 10
+#DIM ItemFound
+#DIM QuantityFound
+
+PRINTFORMDL
+;PRINTFORMDW There's a package from the Insects' Foraging Service outside your front door.
+PRINTFORMDW 玄関ドアの前に、蟲の採集サービスからの小包が届いていた。
+;PRINTFORMDW You open it...
+PRINTFORMDW 中を開けると…
+
+cStart = 1 + (FLAG:蟲の採集サービス - 1) * 100
+cEnd = 99 + (FLAG:蟲の採集サービス - 1) * 100
+A = 0
+FOR LOCAL, cStart, cEND
+    SpotID = GATHERING_SPOT(LOCAL, 1)
+    IF SpotID
+        GatheringSpots:A = SpotID
+        A++
+    ENDIF
+NEXT
+
+DO
+    SelectedSubmap = GatheringSpots:(RAND:10)
+    SIF SelectedSubmap
+        BREAK
+LOOP 1
+
+CALL Gathering_Drawing(SelectedSubmap, (10 + TALENT:[[リグル]]:採集Lv * 10 + ABL:[[リグル]]:教養 * 5 + TFLAG:幸運補正 * 10))
+ItemFound = RESULT:0
+QuantityFound = RESULT:1
+IF !QuantityFound
+    ;PRINTFORMDW There was a \\{1000} bill and a note inside.
+    PRINTFORMDW \\{1000}とメモが入っていた。
+    IF ABL:MASTER:教養 >= 2
+        ;PRINTFORMDL It reads:
+        ;CALL M_KOJO_COLOR_K27
+        ;PRINTFORML Sorre. We cudn't find nething.
+        PRINTFORML ごぬんね　なにもみつからなかたよ
+        ;PRINTFORML Heres some muny.
+        PRINTFORML おかねいねておくね
+        ;PRINTFORMW -Rigle
+        PRINTFORML -りぐる
+        RESETCOLOR
+        PRINTFORMDW ――とある。
+    ELSE
+        ;PRINTFORMDL You try to read the note, but the handwriting is too messy.
+        PRINTFORMDL とても読みにくい字だ。
+        ;PRINTFORMDW It probably says that they couldn't find anything and that they're offering some compensation.
+        PRINTFORMDW たぶん、何も見つからなかったからお詫びに金を入れたということだろう。
+    ENDIF
+    PRINTFORMDL
+    CALL GET_MONEY_YEN(1000, 2)
+ELSE
+    LOCALS = %ITEMNAME:(ItemFound)%
+    ;PRINTFORMDW There were some materials inside!
+    PRINTFORMDW 素材が入っていた！
+    PRINTFORMDL
+    CALL GET_ITEM(LOCALS, QuantityFound, 2)
+ENDIF
+PRINTFORMDL
+
+@CALCULATE_IFS_PRICE
+#FUNCTION
+IF TALENT:[[リグル]]:恋人
+    RETURNF 0
+ELSEIF MARK:[[リグル]]:反発刻印 > 0
+    RETURNF 15000 * MARK:[[リグル]]:反発刻印 + 1
+;ELSEIF IS_FALLEN([[リグル]])
+ELSEIF TALENT:[[リグル]]:恋慕 || TALENT:[[リグル]]:セフレ
+    RETURNF 7500
+ELSE
+    RETURNF 15000
+ENDIF

@@ -67,6 +67,24 @@ IF DAY:3 > 31
 			ENDIF
 		ENDIF
 	ENDIF
+	IF FLAG:蟲の採集サービス
+		PRINTFORMDL
+		PRINTFORMW 蟲の採集サービスの契約期限が切れました
+		PRINTFORMW 更新申請しますか？
+		PRINTFORML 所持金:%金額表示(MONEY)%
+		LOCAL = CALCULATE_IFS_PRICE()
+		CALL ASK_M("更新しない",1,@"更新する (￥{LOCAL})",MONEY >= LOCAL)
+		IF RESULT > 0
+			MONEY -= LOCAL
+			PRINTFORMW 契約を更新しました。
+			PRINTFORMDL
+			PRINTFORML 現在の素材収集場所は%GET_MAPNAME(FLAG:蟲の採集サービス - 1)%です。
+			PRINTFORMW 変更したい場合は%CALLNAME:[[リグル]]%に声を掛けましょう。
+		ELSE
+			FLAG:蟲の採集サービス = 0
+		ENDIF
+		PRINTFORMDL
+	ENDIF
 ENDIF
 ;異常値を固定修正
 SIF DAY:3 < 1

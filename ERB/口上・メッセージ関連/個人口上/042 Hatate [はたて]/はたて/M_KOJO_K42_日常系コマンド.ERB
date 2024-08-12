@@ -2542,6 +2542,8 @@ IF LOCAL
 							PRINTW 
 						ENDIF
 						CFLAG:1008 += 1
+						;椛交流値+1
+						CFLAG:1010 += 1
 						IF CFLAG:1414 == 1 && CFLAG:1413 == 0
 							IF EXP:65:無自覚絶頂経験 >= 1
 								PRINTW 
@@ -9274,7 +9276,31 @@ RETURN RESULT
 LOCAL = 1
 ;-------------------------------------------------
 IF LOCAL
-	IF TALENT:恋人 || CFLAG:好感度 >= 30000 || CFLAG:K42C_結婚 >= 1
+	;はたてと椛が同等の陥落持ちかつ、３人が同席時にはたてに膝枕すると発生
+	IF ((TALENT:恋慕 && TALENT:65:恋慕) || (TALENT:恋人 && TALENT:65:恋人)) && K42_FIND_AROUND() == 65
+		PRINTFORML 「%MASTERNAME:42%、はたての膝枕気持ちいーい？」
+		PRINTFORML はたての柔らかい太ももの感触を味わっていると、椛がしれっと自分の太ももに%CALLNAME:MASTER%の頭を載せなおした
+		PRINTL 
+		CALL COLORMESSAGE(@"「そんなことないですよねー♥　%CALLNAME:MASTER%さん、私の膝枕の方が気持ちよくないですか？」", 0xF5F5F5, 1, 0)
+		PRINTFORML 椛はご機嫌なのか、尻尾をパタパタと左右に振っている
+		PRINTL 
+		IF TALENT:恋人 && TALENT:65:恋人
+			PRINTFORML 「%MASTERNAME:42%の恋人の私を目に前にしてなかなか言うじゃん、椛♪」
+			CALL COLORMESSAGE(@"「いえいえ、私もちゃーんと、%CALLNAME:MASTER%さんの恋人ですから♪」", 0xF5F5F5, 1, 0)
+			PRINTL 
+			PRINTFORML 「「ね、%CALLNAME:MASTER%♪」」
+			PRINTFORML 極楽なのに妙な緊張感のある時間を味わった…
+			PRINTW 
+		ELSE
+			PRINTFORML 「%MASTERNAME:42%は私の膝枕が好きよねー♪」
+			CALL COLORMESSAGE(@"「いえいえ、普段の哨戒や訓練でほどよく鍛えた私の太もものほうが…」", 0xF5F5F5, 1, 0)
+			PRINTL 
+			PRINTFORML 「%MASTERNAME:42%、どっちが好き？」
+			CALL COLORMESSAGE(@"「%CALLNAME:MASTER%さん、どちらがいいですか？」", 0xF5F5F5, 1, 0)
+		ENDIF
+		;交流値＋１
+		CFLAG:1010 += 1
+	ELSEIF TALENT:恋人 || CFLAG:好感度 >= 30000 || CFLAG:K42C_結婚 >= 1
 		SELECTCASE RAND:11
 		CASE 0
 			PRINTFORML 「こーしているのって、幸せ…%UNICODE(0x2665) *1%」
@@ -15382,7 +15408,7 @@ IF LOCAL
 	ENDIF
 	;椛がいれば交流値加算
 	IF K42_FIND_AROUND() == 65
-		CFLAG:1009 += 1
+		CFLAG:1010 += 1
 	ENDIF
 	
 		IF FIRSTTIME(413)
@@ -15477,7 +15503,10 @@ IF LOCAL
 		ELSE
 			PRINTFORML 「よーし、私も手伝ってあげる♪ %DISHNAME%を作るんだよね？」
 			SIF CFLAG:K42C_結婚 >= 1
-			PRINTFORML 「はたてはダーリンのお嫁さんだから、手料理作ってあげたいし%UNICODE(0x2665) *1%」
+				PRINTFORML 「はたてはダーリンのお嫁さんだから、手料理作ってあげたいし%UNICODE(0x2665) *1%」
+			SIF K42_FIND_AROUND() == 65
+				PRINTFORML 「椛も手伝ってよね♪　美味しいごはんをつくろー♪」
+			PRINTW 
 			;料理下手orそもそも作ったことがない（霊夢など大半。書籍版霊夢などいなかったのだ）
 			IF ABL:TARGET:料理技能 == 0
 				PRINTFORML 背後から「キャー！」だの何かを盛大にひっくり返す音だのが聞こえてくる…
@@ -16078,8 +16107,8 @@ IF LOCAL
 					PRINTFORML 「本当に見た目を怖くする必要はないからね」
 					PRINTW 
 				ELSEIF DISHNAME == "栗きんとん"
-					PRINTFORML 「アレンジっていうのはね、できる人だけがやっていいものなのよ」
-					PRINTFORML 「なんで大福の中に納豆を入れようとか思ったのよーーーーーーーっ！」
+					PRINTFORML 「ねー、栗きんとんってもーちょいしっとりした感じじゃなかった？」
+					PRINTFORML 「なんでこれ粉吹き芋みたいになってんのよ」
 					PRINTW 
 				ELSEIF DISHNAME == "杏仁豆腐"
 					PRINTFORML 「豆腐の名前が付いてるからって、本物の豆腐に近づけけなくていいんだからね」
@@ -16352,7 +16381,7 @@ IF LOCAL
 					PRINTW 
 				;小鈴
 				ELSEIF DISHNAME == "鈴カステラ"
-					PRINTFORML 「揚げ玉入れすぎー！　こんなんじゃ胸やけしちゃうよぉ」
+					PRINTFORML 「鈴というにはちょっと歪みすぎだなー。普通のカステラにしたら？」
 					PRINTW 
 				;針妙丸
 				ELSEIF DISHNAME == "こびとのパン"

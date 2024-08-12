@@ -3126,7 +3126,7 @@ IF LOCAL
 			IF GETBIT(TCVAR:30:367, 2) && K30_PUSH_DOWN() > 600
 				;拠点内なら次ターンに持ち越し
 				IF !CHK_DATENOW(CFLAG:TARGET:デート中)
-					CALL K30_UFUFU_RECORD
+					CALL K30_UFUFU_RECORD(1)
 					SETBIT TCVAR:30:367, 3
 					CFLAG:30:ディレイ = 0
 					PRINTFORML 「…えっ、こんな中途半端で…終わっちゃうの！？」
@@ -3837,8 +3837,8 @@ IF LOCAL
 			ENDIF
 			RETURN 1
 		ENDIF
-		;媚薬モード解除
-		CLEARBIT TCVAR:30:367, 2
+		;媚薬モード解除で終了記録
+		CALL K30_UFUFU_RECORD
 		;五重絶頂3回OR2回で2分の１でヤリスギ判定
 		IF TCVAR:30:397 > 2 || (TCVAR:30:397 == 2 && RAND:2 == 1) && CFLAG:妊娠自覚状態 == 0
 			CALL HPH_PRINT("「ぅぁ…HPH　ぁぁ……――っ、ぁ～～……HPHHPH――っHPH」", "L")
@@ -4999,6 +4999,8 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 10
 		IF CFLAG:うふふ
 			PRINTFORML 「ごめん、なさい……もう、む、り…なの…」
+			;終了記録
+			CALL K30_UFUFU_RECORD
 		ELSE
 			PRINTFORML 「だめ、ですね…今日は、身体が…もちません…」
 			PRINTFORML 「ここで、お別れ…します…」
@@ -7599,21 +7601,24 @@ RETURN 1
 #DIM HIDEOUT = P21守矢神社分社, P131枯山水, P237共同井戸, P306裏庭, P422裏庭, P506無縁塚,
 				P612法廷, P712間欠泉地下センター, P806滝の裏, P928灼熱地獄跡, P1015砂浜, 0
 }
-;映姫様がMAIN_MAP住みであなたがMAIN_MAPにいる場合に
-SIF CFLAG:初期位置 / 100 != MAIN_MAP || CFLAG:MASTER:現在位置 / 100 != MAIN_MAP
-	RETURN
-TCVAR:30:引力点 = 0
-;変Ｔの日は
+;変Ｔの日に
 SIF !K30_CHECK_HEN_T()
 	RETURN
-;隅っこの方でじっとしている確率が5割
-IF CFLAG:今日の運勢 < 500
+;映姫様とあなたがMAIN_MAPにいたら
+SIF !GROUPMATCH(CFLAG:現在位置 / 100, CFLAG:MASTER:現在位置 / 100, MAIN_MAP)
+	RETURN
+TCVAR:30:引力点 = 0
+;活動時間外なら自分の部屋に引きこもる
+IF INRANGE(TIME / 60, 9, 20)
+	TCVAR:30:引力点 = CFLAG:初期位置
+;日中は隅っこの方でじっとしている確率が5割
+ELSEIF CFLAG:今日の運勢 < 500
 	TCVAR:30:引力点 = HIDEOUT:MAIN_MAP
 ;恋人あなたが一人暮らしならあなた自室に逃げ込む確率が3割
-ELSEIF CFLAG:今日の運勢 > 699 && K30_FIND_LOVER() < 0 && !PRIVATEROOM:(CFLAG:MASTER:初期位置 % 100)
+ELSEIF CFLAG:今日の運勢 > 699 && K30_FIND_LOVER() < 0 && (!PRIVATEROOM:(CFLAG:MASTER:初期位置 % 100))
 	TCVAR:30:引力点 = CFLAG:MASTER:初期位置
-ENDIF
-;活動時間外になったら自分の部屋に引きこもる
-SIF INRANGE(TIME / 60, 9, 20)
+;もしくは部屋に引きこもる
+ELSEIF CFLAG:今日の運勢 > 699
 	TCVAR:30:引力点 = CFLAG:初期位置
+ENDIF
 RETURN
