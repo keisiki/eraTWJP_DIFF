@@ -44,10 +44,10 @@ IF FLAG:最後に材木商に訪れた日 == 0
 	PRINTFORMD 「
 	PRINTFORM %WOOD_NAME(FLAG:丸太種類)%
 	PRINTFORMD だな……
-	PRINTFORM \\{売値}
+	PRINTFORM %金額表示(売値)%
 	RESETCOLOR
 	PRINTFORMW で買い取らせてもらおう」
-	PRINTFORMW 　　所持金: \\%TOSTR(MONEY,"#,###")% → \\%TOSTR(MONEY + 売値,"#,###")%
+	PRINTFORMW 　　所持金: %金額表示(MONEY)% → %金額表示(MONEY + 売値)%
 	PRINTFORMW 「これで取引終了だ。じゃあ、次の商品も待ってるぞ」
 	PRINTFORMW 「なに、妖精や妖怪が跋扈する山林から木を伐り出してこれる木こりなんて、そう多くはないからな。期待してるぞ？」
 	PRINTW 
@@ -79,7 +79,7 @@ ENDIF
 ループ数 ++
 FLAG:最後に材木商に訪れた日 = DAY:0
 
-PRINTFORML 　　所持金: \\%TOSTR(MONEY,"#,###")%
+PRINTFORML 　　所持金: %金額表示(MONEY)%
 DRAWLINE
 
 CALL ASK_M("丸太売却・製材", ITEM:丸太, "木材を売る", ITEM:木材, "製材を売る", 4, "取引内容を確認する", 5, "店を出る", 6)
@@ -96,21 +96,21 @@ SELECTCASE リザルト保管
 		PRINTFORML 「%WOOD_NAME(FLAG:丸太種類)%だな……」
 		売値 = WOOD_VALUE(FLAG:丸太種類)
 		PRINTFORMD 「買取なら買値は
-		PRINTFORM \\%TOSTR(売値,"#,###")%
+		PRINTFORM %金額表示(売値)%
 		PRINTFORMD 、製材するなら手間賃
-		PRINTFORM \\%TOSTR(ProcessingCharge,"#,###")%
+		PRINTFORM %金額表示(ProcessingCharge)%
 		RESETCOLOR
 		PRINTFORMW いただくぞ」
 		CALL ASK_M("売却", 1, "製材", MONEY > ProcessingCharge,"やっぱりやめる", 1)
 		SELECTCASE RESULT
 			CASE 0
-				PRINTFORMW 　所持金: \\ → \\%TOSTR(MONEY + 売値,"#,###")%
+				PRINTFORMW 　所持金: \\ → %金額表示(MONEY + 売値)%
 				PRINTFORMW 「毎度。じゃあ、次の商品を待ってるぞ」
 				PRINTL 
 				MONEY += 売値
 			CASE 1
 				PRINTL 
-				PRINTFORMW 　所持金: \\%TOSTR(MONEY,"#,###")% → \\%TOSTR(MONEY - ProcessingCharge,"#,###")%
+				PRINTFORMW 　所持金: %金額表示(MONEY)% → %金額表示(MONEY - ProcessingCharge)%
 				PRINT 　
 				CALL PAY_MONEY_YEN(ProcessingCharge, 2)
 				PRINTL 
@@ -127,7 +127,7 @@ SELECTCASE リザルト保管
 	CASE 1
 		候補個数 = ITEM:木材
 		候補番号 = 610
-		PRINTFORM 「%ITEMNAME:候補番号%なら　\\%TOSTR(ITEMPRICE:候補番号 / 2,"#,###")%で買い取るが、どうだ？」
+		PRINTFORM 「%ITEMNAME:候補番号%なら　%金額表示(ITEMPRICE:候補番号 / 2)%で買い取るが、どうだ？」
 		CALL COM623_SELL(候補個数)
 		SELECTCASE RESULT
 			CASE 0
@@ -136,8 +136,8 @@ SELECTCASE リザルト保管
 			CASE 1 TO 候補個数
 				CLEARLINE 2
 				売却個数 = RESULT
-				PRINTFORML 「それじゃあ%ITEMNAME:候補番号%を{売却個数}つ、\\%TOSTR((ITEMPRICE:(候補番号) / 2 * 売却個数),"#,###")%で買い取らせてもらおう」
-				PRINTFORMW 　所持金: \\%TOSTR(MONEY,"#,###")% → \\%TOSTR(MONEY + (ITEMPRICE:(候補番号) / 2 * 売却個数),"#,###")%
+				PRINTFORML 「それじゃあ%ITEMNAME:候補番号%を{売却個数}つ、%金額表示((ITEMPRICE:(候補番号) / 2 * 売却個数))%で買い取らせてもらおう」
+				PRINTFORMW 　所持金: %金額表示(MONEY)% → %金額表示(MONEY + (ITEMPRICE:(候補番号) / 2 * 売却個数))%
 				MONEY += (ITEMPRICE:(候補番号) / 2 * 売却個数)
 				ITEM:候補番号 -= 売却個数
 				PRINTL 
@@ -192,7 +192,7 @@ SELECTCASE リザルト保管
 			PRINTFORMD 「
 			PRINTFORM %WOOD_NAME(リザルト保管)%
 			PRINTFORMD の製材なら
-			PRINTFORM \\%TOSTR(売値,"#,###")%
+			PRINTFORM %金額表示(売値)%
 			RESETCOLOR
 			PRINTFORML で買い取るが、どうだ？」
 			CALL COM623_SELL(候補個数)
@@ -203,8 +203,8 @@ SELECTCASE リザルト保管
 				CASE 1 TO 候補個数
 					CLEARLINE 2
 					売却個数 = RESULT
-					PRINTFORML 「それじゃあ%WOOD_NAME(リザルト保管)%の製材を{売却個数}本、\\%TOSTR(売値 * 売却個数,"#,###")%で買い取らせてもらおう」
-					PRINTFORMW 　所持金: \\%TOSTR(MONEY,"#,###")% → \\%TOSTR(MONEY + (売値 * 売却個数),"#,###")%
+					PRINTFORML 「それじゃあ%WOOD_NAME(リザルト保管)%の製材を{売却個数}本、%金額表示(売値 * 売却個数)%で買い取らせてもらおう」
+					PRINTFORMW 　所持金: %金額表示(MONEY)% → %金額表示(MONEY + (売値 * 売却個数))%
 					MONEY += 売値 * 売却個数
 					LOG_SALES:リザルト保管 -= 売却個数
 					PRINTL 

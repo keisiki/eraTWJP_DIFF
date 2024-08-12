@@ -3,6 +3,7 @@
 ;触手の射精時のテキスト
 ;-------------------------------------------
 @PALAM_MESSAGE_E
+RESETCOLOR
 ;触手が射精
 SIF TFLAG:15 == 1
 	PRINTFORML %CALLNAME:TARGET%に絡みついた触手が粘つく体液を吐き出した…
@@ -13,19 +14,24 @@ SIF TFLAG:15 == 2
 ;表示があるときのみ
 SIF TFLAG:15
 	WAIT
+CALL SET_KOJO_COLOR()
+
 ;-------------------------------------------
 ;奴隷の焦らしのテキスト
 ;-------------------------------------------
 @PALAM_MESSAGE_F
+RESETCOLOR
 PRINTFORMW %CALLNAME:TARGET%が今にもイきそうになったときを見計らって、%CALLNAME:MASTER%は愛撫の手を止めてしまった
 SIF !FLAG:70
 	PRINTFORMW %CALLNAME:TARGET%は恨めし気な目を向けながら、最後のひと押しを求めて切なげに身をくねらせている…
+CALL SET_KOJO_COLOR()
 
 ;-------------------------------------------
 ;奴隷の絶頂時のテキスト
 ;-------------------------------------------
 @PALAM_MESSAGE_B
 #DIM OMORASHI
+RESETCOLOR
 
 IF TCVAR:利尿剤 || TALENT:おもらし癖
 	OMORASHI = 1
@@ -130,14 +136,7 @@ ENDIF
 ;表示があるときのみ
 IF LOCAL + NOWEX:放尿 > 0
 	WAIT
-	IF CFLAG:TARGET:口上セレクタ
-		TRYCALLFORM M_KOJO_K{NO:TARGET}_{CFLAG:TARGET:口上セレクタ}
-	ELSE
-		TRYCALLFORM M_KOJO_K{NO:TARGET}
-	ENDIF
-	;TARGET口上出力
-	SIF FLAG:口上色 && RESULT
-		TRYCALLFORM M_KOJO%RESULTS%_COLOR_K{NO:TARGET}
+	CALL SET_KOJO_COLOR()
 ENDIF
 
 ;-------------------------------------------
@@ -145,6 +144,7 @@ ENDIF
 ;-------------------------------------------
 @PALAM_MESSAGE_A
 VARSET LOCAL
+RESETCOLOR
 
 LOCAL = NOWEX:MASTER:Ｃ絶頂 + NOWEX:MASTER:Ｖ絶頂 + NOWEX:MASTER:Ａ絶頂 + NOWEX:MASTER:Ｂ絶頂 + NOWEX:MASTER:Ｍ絶頂
 IF LOCAL >= 1
@@ -1025,15 +1025,7 @@ IF CFLAG:TARGET:うふふ == 2
 	ENDIF
 ENDIF
 
-
-IF CFLAG:TARGET:口上セレクタ
-	TRYCALLFORM M_KOJO_K{NO:TARGET}_{CFLAG:TARGET:口上セレクタ}
-ELSE
-	TRYCALLFORM M_KOJO_K{NO:TARGET}
-ENDIF
-;TARGET口上出力
-SIF FLAG:口上色
-	TRYCALLFORM M_KOJO%RESULTS%_COLOR_K{NO:TARGET}
+CALL SET_KOJO_COLOR()
 
 @PrintMilkAndOmorashi(ARG, OMORASHI)
 #DIM OMORASHI
