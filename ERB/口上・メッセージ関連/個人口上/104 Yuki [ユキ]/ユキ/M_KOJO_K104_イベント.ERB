@@ -185,10 +185,37 @@ IF LOCAL
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
 	;-------------------------------------------------
+	;恋人の数え方があってるかはわからん
 	IF LOCAL:1 && ARG == 1
+		VARSET LOCAL
+		FOR LOCAL, 1, CHARANUM
+			SIF TALENT:LOCAL:恋人
+				LOCAL:1 ++
+		NEXT
+		SELECTCASE LOCAL:1
+		CASE 1
 			PRINTFORML 「やったっ%UNICODE(0x2665) *1%　ありがと、%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
 			PRINTFORML 「後で他の人が良いって言っても、もう駄目だからね！」
 			PRINTFORMW 「大丈夫、退屈させないから%UNICODE(0x2665) *1%」
+		CASE 2 TO 4
+			PRINTFORMW 「やったっ%UNICODE(0x2665) *1%　ありがと、%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
+			PRINTFORMW 「後で他の人が良いって言っても、もう駄目……って、え？　もう、恋人が他にいるの？」
+			PRINTFORMW 「う～ん、わたしとしては一人だけの方が特別っぽくて憧れるけど……まぁ、いいわ！」
+			PRINTFORMW 「お付き合いしていくなら、多少の文化の違いは受け入れていかないとねっ」
+			PRINTFORMW 「何はともあれ、よろしくね%UNICODE(0x2665) *1%」
+		CASE 5 TO 10
+			PRINTFORMW 「やったっ%UNICODE(0x2665) *1%　ありがと、%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
+			PRINTFORMW 「後で他の人が良いって言っても、もう駄目……って、え？　わたしで{LOCAL:1}人目？」
+			PRINTFORMW 「そ、そうなんだ！　え～と、ちょっと想像と違ったけど……とりあえず、わかったわ」
+			PRINTFORMW 「まあ、まあ……%CALLNAME:MASTER%を愛する者同士、多分仲良くできるよね」
+			PRINTFORMW 「何はともあれ、恋人は恋人！　今後とも、よろしくね%UNICODE(0x2665) *1%」
+		CASEELSE
+			PRINTFORMW 「やったっ%UNICODE(0x2665) *1%　ありがと、%CALLNAME:MASTER%%UNICODE(0x2665) *1%」
+			PRINTFORMW 「後で他の人が良いって言っても、もう駄目……って、え？　もう、恋人が……{LOCAL:1}人！？」
+			PRINTFORMW 「本当に！？　ちょっとした知り合いも恋人にカウントしてたりしない！？」
+			PRINTFORMW 「えぇ～……告白成功して、ゴール！　って思ったのに……むしろスタートラインに立ったって感じね」
+			PRINTFORMW 「う、埋もれないようにしないと……うぅぅ、気が抜けないわ～！」
+		ENDSELECT
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -202,7 +229,6 @@ IF LOCAL
 			PRINTFORMW 「これぐらいじゃ諦めないからね！」
 		RETURN 1
 	ENDIF
-
 ENDIF
 RETURN 1
 
@@ -305,6 +331,8 @@ IF LOCAL
 			PRINTFORML 
 		ELSEIF TCVAR:泥酔 == 1
 			PRINTFORML 
+		ELSEIF DAY:2 == 4 && DAY:3 == 14 && CFLAG:104:好感度 >= 1000 && !TCVAR:104:今日会ったか
+			CALL EVENTDAY_GREETING_K104
 		ELSEIF CFLAG:104:オナバレ == 1
 			PRINTFORML 「あ、%CALLNAME:MASTER%……あのさ、この前の……」
 			PRINTFORML 「あ～……何でもないわ」
@@ -320,7 +348,7 @@ IF LOCAL
 			ENDIF
 		ELSEIF TALENT:恋慕 || TALENT:愛欲
 			PRINTFORML 「あっ、%CALLNAME:MASTER%！」
-			PRINTFORML 「待ってたわ%UNICODE(0x2665) *1%」
+			PRINTFORMW 「待ってたわ%UNICODE(0x2665) *1%」
 		ELSEIF TALENT:思慕
 			PRINTFORML 「あ、%CALLNAME:MASTER%！」
 			PRINTFORMW 「今日は何してるの？」
@@ -339,6 +367,8 @@ IF LOCAL
 			PRINTFORML 
 		ELSEIF TCVAR:泥酔 == 1
 			PRINTFORML 
+		ELSEIF DAY:2 == 4 && DAY:3 == 14 && CFLAG:104:好感度 >= 1000 && !TCVAR:104:今日会ったか
+			CALL EVENTDAY_GREETING_K104
 		ELSEIF CFLAG:104:オナバレ == 1
 			PRINTFORML 「あ、%CALLNAME:MASTER%……あのさ、この前の……」
 			PRINTFORML 「あ～……何でもないわ」
@@ -440,6 +470,8 @@ IF LOCAL
 			PRINTFORML 
 		ELSEIF TCVAR:泥酔 == 1
 			PRINTFORML 
+		ELSEIF DAY:2 == 4 && DAY:3 == 14 && CFLAG:104:好感度 >= 1000 && !TCVAR:104:今日会ったか
+			CALL EVENTDAY_GREETING_K104
 		ELSEIF CFLAG:104:オナバレ == 1
 			PRINTFORML 「あ、%CALLNAME:MASTER%……あのさ、この前の……」
 			PRINTFORML 「あ～……何でもないわ」
@@ -475,10 +507,15 @@ IF LOCAL
 			PRINTFORML 
 		ELSEIF TCVAR:泥酔 == 1
 			PRINTFORML 
+		ELSEIF DAY:2 == 4 && DAY:3 == 14 && CFLAG:104:好感度 >= 1000 && !TCVAR:104:今日会ったか
+			CALL EVENTDAY_GREETING_K104
 		ELSEIF TALENT:恋慕 || TALENT:愛欲
 			IF FLAG:デート相手 == 105
 				PRINTFORML 「あ、%CALLNAME:MASTER%%UNICODE(0x2665) *1%……と、マイ……」
-					IF TALENT:104:恋人
+					IF TALENT:104:恋人 && TALENT:105:恋人
+						PRINTFORML 「ええ～っ、デート？　いいなぁ」
+						PRINTFORMW 「次はわたしも誘ってよね！」
+					ELSEIF TALENT:104:恋人
 						PRINTFORML 「あ、はは……二人、結構仲いいよね」
 						PRINTFORMW （マイなら、大丈夫……だよね……？）
 					ELSEIF TALENT:105:恋人
@@ -536,6 +573,42 @@ IF LOCAL
 		RETURN 1
 	ENDIF
 ENDIF
+RETURN 1
+
+;==================================================
+;特別な挨拶
+;==================================================
+@EVENTDAY_GREETING_K104
+	;バレンタイン
+	IF DAY:2 == 4 && DAY:3 == 14
+		SELECTCASE CFLAG:好感度
+		CASE 1000 TO 5000
+			IF TALENT:恋慕 || TALENT:愛欲
+				PRINTFORML 「%CALLNAME:MASTER%！　はいっ、チョコレート%UNICODE(0x2665) *1%」
+				PRINTFORMW 「バレンタインデーだもんね！　流石に%CALLNAME:MASTER%にはあげないと」
+			ELSEIF TALENT:思慕
+				PRINTFORML 「%CALLNAME:MASTER%！　バレンタインだし、チョコあげるねっ」
+				PRINTFORML 「その辺で売ってたやつで申し訳ないんだけど、気持ちがこもってないわけじゃないからね」
+				PRINTFORMW 「本当だよ？」
+			ELSE
+				PRINTFORML 「今日はバレンタインデーね！　%CALLNAME:MASTER%、調子はどう？」
+				PRINTFORMW 「一応、%CALLNAME:MASTER%にもあげるね！　友達のよしみで」
+			ENDIF
+		CASE IS > 5000
+			IF EXP:愛情経験 < 100
+				IF TALENT:恋慕 || TALENT:愛欲
+					PRINTFORML 「今日はバレンタインデー！　もちろん、%CALLNAME:MASTER%にはとびっきりのやつがあるからねっ%UNICODE(0x2665) *1%」
+					PRINTFORMW 「もう、すっごい悩んだんだから……渡せて良かったぁ」
+				ELSE
+					PRINTFORML 「%CALLNAME:MASTER%！　じゃ～ん、バレンタインのチョコレート！」
+					PRINTFORMW 「どうこれ、高そうでしょ？　高かったのよ、本当に……びっくりしちゃった」
+				ENDIF
+			ELSE
+				PRINTFORML 「バレンタインデーね！　わたしからのチョコは……はいっ、なんと手作り！　自信作よ！」
+				PRINTFORMW 「本命も本命なんだから、覚悟して受け取るように！」
+			ENDIF
+		ENDSELECT
+	ENDIF
 RETURN 1
 
 ;==================================================
@@ -1025,6 +1098,16 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 105
 		PRINTFORML 「わっ、マイ」
 		PRINTFORMW 「も～、いいところだったのに……何か用？」
+		RETURN 1
+	ENDIF
+	;-------------------------------------------------
+	;サラが入ってきた
+	;記入チェック（=0, 非表示、1, 表示）
+	LOCAL:1 = 1
+	;-------------------------------------------------
+	IF LOCAL:1 && ARG == 148
+		PRINTFORML 「あれっ、サラ！」
+		PRINTFORMW 「門番はいいの？　結構適当なんだねぇ」
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------

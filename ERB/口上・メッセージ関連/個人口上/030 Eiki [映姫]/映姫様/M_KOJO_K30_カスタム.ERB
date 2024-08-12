@@ -1,0 +1,48 @@
+﻿;================================
+;custom shop button
+;カスタムSHOPボタン
+;y is the id of the button, range from 0 to 9
+;yはボタンのID、0~9に対応
+;使用する際はSKIPSTART~SKIPENDを外してください。
+;================================
+;judge the button can be shown, if return 1, it will show
+;これをRETURN 1するとボタンが表示される
+@KOJO_CUSTOM_BUTTON_CONDITION_K30_0
+SIF !GETBIT(CFLAG:30:1803, 8)
+	RETURN 0
+custom_button_name:30:0 = 口上色変更
+RETURN 1
+
+;when the button is clicked
+;ボタンがクリックされた場合
+@KOJO_CUSTOM_BUTTON_K30_0
+#DIM K_COLOR = 0x337D5C, 0x52C487, 0x7FD8A7, GETDEFCOLOR(), 0xFF93FB
+LOCALS '= "落ち着いた", "普通の", "少し高めな", "無個性な", "えっちな"
+LOCAL = FINDELEMENT(K_COLOR, CFLAG:30:1501, 0)
+LOCAL = INRANGE(LOCAL, 0, 3) ? LOCAL + 1 # 0
+CFLAG:30:1501 = K_COLOR:LOCAL
+SETCOLOR CFLAG:30:1501
+PRINTFORML 「%LOCALS:LOCAL%声に変更しました」
+RESETCOLOR
+RETURN 1
+
+;================================
+;カスタム素質
+;テンプレの便宜上、独立した関数としてまとめました。
+;使用する際はSKIPSTART~SKIPENDを外してください。
+;================================
+@KOJO_CUSTOM_TALENT_SET_K30
+
+;表示判定 真=表示/偽=非表示
+CUSTOM_TALENT:30:0 = GETBIT(CFLAG:1910, 7)
+;素質名
+CUSTOM_TALENT_NAME:30:0 = 縦割れアナル
+;(省略可)表示色、0/通常 1/ピンク 2/赤色+太字
+CUSTOM_TALENT_COLOR:30:0 = 1
+;(省略可)表示タイプ 1/種族 2/性的 3/身体的 4/精神的 5/技術的 他は「その他」
+CUSTOM_TALENT_TYPE:30:0 = 3
+
+CUSTOM_TALENT:30:1 = !INRANGE(TCVAR:30:363, -1, 0)
+CUSTOM_TALENT_NAME:30:1 = %\@ TCVAR:30:363 < 0 ? 朝から # お口が \@%満足
+CUSTOM_TALENT_COLOR:30:1 = 1
+CUSTOM_TALENT_TYPE:30:1 = 0

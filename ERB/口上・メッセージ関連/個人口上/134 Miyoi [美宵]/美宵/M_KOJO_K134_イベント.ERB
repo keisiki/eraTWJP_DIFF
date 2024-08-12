@@ -1,5 +1,5 @@
 ﻿;-------------------------------------------------
-;eraTW4.900用 奥野田美宵口上（キャラクターの名前を入れる、下にコンセプトなど一言あれば入れる）
+;eraTW4.910用 奥野田美宵口上（キャラクターの名前を入れる、下にコンセプトなど一言あれば入れる）
 ;-------------------------------------------------
 ;他者による修正、加筆、改変については、同梱のライセンス条項に従ってください。
 
@@ -66,7 +66,7 @@ RETURN 1
 
 ;### 口上色判定 ###################################
 @M_KOJO_COLOR_K134
-SETCOLOR 0xf3adbb
+SETCOLOR 0xffa6c9
 
 ;ここでSETCOLORすることで口上に色を付けられます
 ;例：SETCOLOR 0xC07070
@@ -84,6 +84,7 @@ RETURN 1
 ;"ENCOUNTER"系イベント（エクストラ構文）
 ;※※※※※※※※※※※※※※※※※※※※※※※※※※
 @M_KOJO_ENCOUNTER_K134
+CALL M_KOJO_COLOR_K134
 ;初対面、挨拶のタイミング
 ;TALENTの変更はここでどうぞ。
 ;経験の変更は齟齬が出る場合がありますので、CSVを修正し同梱する事を推奨します
@@ -126,6 +127,7 @@ LOCAL = 1
 ;-------------
 ;地の文
 CALL SPEVENT_MESSAGE_1(ARG,ARG:1)
+CALL M_KOJO_COLOR_K134
 IF LOCAL
 	PRINTFORMW 「%CALLNAME:MASTER%さん、とっても楽しい一日でした」
 	PRINTFORMW 美宵はそう言いながら振り向いてこちらに向き直った。
@@ -151,6 +153,7 @@ CALL SPEVENT_MESSAGE_2(ARG,ARG:1)
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -220,6 +223,7 @@ CALL SPEVENT_MESSAGE_3(ARG,ARG:1)
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -232,12 +236,12 @@ IF LOCAL
 			PRINTFORMW 「……」
 			PRINTFORMW 美宵は黙って怒りながら帰っていった。
 		ELSEIF TALENT:恋人
-			PRINTFORMW 「明日もまた、会いましょうね%UNICODE(0x2665) *1%」
-			PRINTFORMW 「約束、忘れないでね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「明日もまた、会いましょうねHPH」","L"
+			CALL HPH_PRINT,@"「約束、忘れないでねHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「また明日、デートしてね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「また明日、デートしてねHPH」","L"
 		ELSEIF TALENT:思慕
-			PRINTFORMW 「今日は楽しい一日でしたね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「今日は楽しい一日でしたねHPH」","L"
 		ELSE
 			PRINTFORMW 「また明日、会えるといいですね」
 		ENDIF
@@ -286,6 +290,7 @@ RETURN 1
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	IF	FIRSTTIME("遭遇") && CFLAG:1134 == 1
 		PRINTFORMW 「あ、貴方は確か……」
 		PRINTFORMW	唐突にピンク髪の女の子が話しかけてきた。
@@ -305,7 +310,7 @@ IF LOCAL
 			;仕事中、今日会ってない。
 			IF CFLAG:行動 == 5 && !TCVAR:134:今日会ったか && (DAY - CFLAG:134:最後に会った日 >= 7) && CFLAG:好感度 >= 1500
 				PRINTFORMW 「あっ%CALLNAME:MASTER%さん！いらっしゃいませー！」
-				PRINTFORMW 「もー！美宵の事忘れちゃったのかなって思ってたんですよ%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「もー！美宵の事忘れちゃったのかなって思ってたんですよHPH」","L"
 				CFLAG:134:1002 = 1
 			ELSEIF CFLAG:行動 == 5 && !TCVAR:134:今日会ったか && CFLAG:好感度 >= 1500
 				PRINTFORMW 「いらっしゃいませー！あっ%CALLNAME:MASTER%さん！今日も来てくれたんですね♪」
@@ -332,15 +337,15 @@ IF LOCAL
 				ELSEIF FLAG:異常気象 == 9
 					PRINTFORMW 「%CALLNAME:MASTER%さん、今日は台風が来てますよ」
 					IF TALENT:恋人
-						PRINTFORMW 「だから二人でしっぽりしましょうね%UNICODE(0x2665) *1%」
+						CALL HPH_PRINT,@"「だから二人でしっぽりしましょうねHPH」","L"
 					ENDIF
 				;猛吹雪
 				ELSEIF FLAG:異常気象 == 10
 					PRINTFORMW 「%CALLNAME:MASTER%さん、今日は吹雪いてますね」
 					IF TALENT:恋人
-						PRINTFORMW 「私がちゃんと暖めてあげますから、安心してください%UNICODE(0x2665) *1%」
+						CALL HPH_PRINT,@"「私がちゃんと暖めてあげますから、安心してくださいHPH」","L"
 					ELSEIF TALENT:恋慕
-						PRINTFORMW 「だから一緒に暖を取りましょう%UNICODE(0x2665) *1%」
+						CALL HPH_PRINT,@"「だから一緒に暖を取りましょうHPH」","L"
 					ENDIF
 				ELSE
 					;早朝
@@ -355,11 +360,11 @@ IF LOCAL
 					ENDIF
 					IF (DAY - CFLAG:134:最後に会った日 >= 7)
 						IF TALENT:恋人
-							PRINTFORMW 「もう！美宵のこと忘れちゃったのかと思いましたよ%UNICODE(0x2665) *1%」
+							PRINTFORMW 「もう！美宵のこと忘れちゃったのかと思いましたよHPH」
 							PRINTFORMW 美宵は小さく両手を振りながら%CALLNAME:MASTER%に挨拶をした。
 							CFLAG:134:1002 = 1
 						ELSEIF TALENT:恋慕
-							PRINTFORMW 「ずっと会いたかったんですよ%UNICODE(0x2665) *1%」
+							PRINTFORMW 「ずっと会いたかったんですよHPH」
 							PRINTFORMW 美宵は小さく両手を振りながら%CALLNAME:MASTER%に挨拶をした。
 							CFLAG:134:1002 = 1
 						ELSEIF TALENT:思慕
@@ -368,10 +373,10 @@ IF LOCAL
 						ENDIF
 					ELSE
 						IF TALENT:恋人
-							PRINTFORMW 「今日もいい一日にしましょうね%UNICODE(0x2665) *1%」
+							CALL HPH_PRINT,@"「今日もいい一日にしましょうねHPH」","L"
 							PRINTFORMW 美宵は小さく両手を振りながら%CALLNAME:MASTER%に挨拶をした。
 						ELSEIF TALENT:恋慕
-							PRINTFORMW 「今日もいい一日だといいですね%UNICODE(0x2665) *1%」
+							CALL HPH_PRINT,@"「今日もいい一日だといいですねHPH」","L"
 							PRINTFORMW 美宵は小さく両手を振りながら%CALLNAME:MASTER%に挨拶をした。
 						ELSEIF TALENT:思慕
 							PRINTFORMW 「何か用ですか？」
@@ -390,7 +395,7 @@ IF LOCAL
 			;仕事中、今日会ってない。
 			IF CFLAG:行動 == 5 && !TCVAR:134:今日会ったか && (DAY - CFLAG:134:最後に会った日 >= 7) && CFLAG:好感度 >= 1500
 				PRINTFORMW 「あっ%CALLNAME:MASTER%さん！いらっしゃいませー！」
-				PRINTFORMW 「もー！美宵の事忘れちゃったのかなって思ってたんですよ%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「もー！美宵の事忘れちゃったのかなって思ってたんですよHPH」","L"
 				CFLAG:134:1002 = 1
 			ELSEIF CFLAG:行動 == 5 && !TCVAR:134:今日会ったか && CFLAG:好感度 >= 1500
 				PRINTFORMW 「いらっしゃいませー！あっ%CALLNAME:MASTER%さん！今日も来てくれたんですね♪」
@@ -417,15 +422,15 @@ IF LOCAL
 				ELSEIF FLAG:異常気象 == 9
 					PRINTFORMW 「%CALLNAME:MASTER%さん、今日は台風が来てますよ」
 					IF TALENT:恋人
-						PRINTFORMW 「だから二人でしっぽりしましょうね%UNICODE(0x2665) *1%」
+						CALL HPH_PRINT,@"「だから二人でしっぽりしましょうねHPH」","L"
 					ENDIF
 				;猛吹雪
 				ELSEIF FLAG:異常気象 == 10
 					PRINTFORMW 「%CALLNAME:MASTER%さん、今日は吹雪いてますね」
 					IF TALENT:恋人
-						PRINTFORMW 「私がちゃんと暖めてあげますから、安心してください%UNICODE(0x2665) *1%」
+						CALL HPH_PRINT,@"「私がちゃんと暖めてあげますから、安心してくださいHPH」","L"
 					ELSEIF TALENT:恋慕
-						PRINTFORMW 「だから一緒に暖を取りましょう%UNICODE(0x2665) *1%」
+						CALL HPH_PRINT,@"「だから一緒に暖を取りましょうHPH」","L"
 					ENDIF
 				ELSE
 					;早朝
@@ -440,11 +445,11 @@ IF LOCAL
 					ENDIF
 					IF (DAY - CFLAG:134:最後に会った日 >= 7)
 						IF TALENT:恋人
-							PRINTFORMW 「もう！美宵のこと忘れちゃったのかと思いましたよ%UNICODE(0x2665) *1%」
+							CALL HPH_PRINT,@"「もう！美宵のこと忘れちゃったのかと思いましたよHPH」","L"
 							PRINTFORMW 美宵は小さく両手を振りながら%CALLNAME:MASTER%に挨拶をした。
 							CFLAG:134:1002 = 1
 						ELSEIF TALENT:恋慕
-							PRINTFORMW 「ずっと会いたかったんですよ%UNICODE(0x2665) *1%」
+							CALL HPH_PRINT,@"「ずっと会いたかったんですよHPH」","L"
 							PRINTFORMW 美宵は小さく両手を振りながら%CALLNAME:MASTER%に挨拶をした。
 							CFLAG:134:1002 = 1
 						ELSEIF TALENT:思慕
@@ -453,10 +458,10 @@ IF LOCAL
 						ENDIF
 					ELSE
 						IF TALENT:恋人
-							PRINTFORMW 「今日もいい一日にしましょうね%UNICODE(0x2665) *1%」
+							CALL HPH_PRINT,@"「今日もいい一日にしましょうねHPH」","L"
 							PRINTFORMW 美宵は小さく両手を振りながら%CALLNAME:MASTER%に挨拶をした。
 						ELSEIF TALENT:恋慕
-							PRINTFORMW 「今日もいい一日だといいですね%UNICODE(0x2665) *1%」
+							CALL HPH_PRINT,@"「今日もいい一日だといいですねHPH」","L"
 							PRINTFORMW 美宵は小さく両手を振りながら%CALLNAME:MASTER%に挨拶をした。
 						ELSEIF TALENT:思慕
 							PRINTFORMW 「何か用ですか？」
@@ -474,9 +479,9 @@ IF LOCAL
 		IF LOCAL:1 && ARG == 3
 			IF TALENT:恋人
 				PRINTFORMW 「背中、流してもいいですか？」
-				PRINTFORMW 「こういうの、私得意ですからね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「こういうの、私得意ですからねHPH」","L"
 			ELSEIF TALENT:恋慕
-				PRINTFORMW 「一緒にお風呂入りましょっか%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「一緒にお風呂入りましょっかHPH」","L"
 			ELSEIF TALENT:思慕
 				PRINTFORMW 「あら？先客がいるようですね」
 				PRINTFORMW 「まあ、構いませんね」
@@ -512,7 +517,7 @@ IF LOCAL
 			;仕事中、今日会ってない。
 			IF CFLAG:行動 == 5 && !TCVAR:134:今日会ったか && (DAY - CFLAG:134:最後に会った日 >= 7) && CFLAG:好感度 >= 1500
 				PRINTFORMW 「あっ%CALLNAME:MASTER%さん！いらっしゃいませー！」
-				PRINTFORMW 「もー！美宵の事忘れちゃったのかなって思ってたんですよ%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「もー！美宵の事忘れちゃったのかなって思ってたんですよHPH」","L"
 				CFLAG:134:1002 = 1
 			ELSEIF CFLAG:行動 == 5 && !TCVAR:134:今日会ったか && CFLAG:好感度 >= 1500
 				PRINTFORMW 「いらっしゃいませー！あっ%CALLNAME:MASTER%さん！今日も来てくれたんですね♪」
@@ -548,11 +553,11 @@ IF LOCAL
 					ENDIF
 					IF (DAY - CFLAG:134:最後に会った日 >= 7)
 						IF TALENT:恋人
-							PRINTFORMW 「もう！美宵のこと忘れちゃったのかと思いましたよ%UNICODE(0x2665) *1%」
+							CALL HPH_PRINT,@"「もう！美宵のこと忘れちゃったのかと思いましたよHPH」","L"
 							PRINTFORMW 美宵は小さく両手を振りながら%CALLNAME:MASTER%に挨拶をした。
 							CFLAG:134:1002 = 1
 						ELSEIF TALENT:恋慕
-							PRINTFORMW 「ずっと会いたかったんですよ%UNICODE(0x2665) *1%」
+							CALL HPH_PRINT,@"「ずっと会いたかったんですよHPH」","L"
 							PRINTFORMW 美宵は小さく両手を振りながら%CALLNAME:MASTER%に挨拶をした。
 							CFLAG:134:1002 = 1
 						ELSEIF TALENT:思慕
@@ -561,10 +566,10 @@ IF LOCAL
 						ENDIF
 					ELSE
 						IF TALENT:恋人
-							PRINTFORMW 「今日もいい一日にしましょうね%UNICODE(0x2665) *1%」
+							CALL HPH_PRINT,@"「今日もいい一日にしましょうねHPH」","L"
 							PRINTFORMW 美宵は小さく両手を振りながら%CALLNAME:MASTER%に挨拶をした。
 						ELSEIF TALENT:恋慕
-							PRINTFORMW 「今日もいい一日だといいですね%UNICODE(0x2665) *1%」
+							CALL HPH_PRINT,@"「今日もいい一日だといいですねHPH」","L"
 							PRINTFORMW 美宵は小さく両手を振りながら%CALLNAME:MASTER%に挨拶をした。
 						ELSEIF TALENT:思慕
 							PRINTFORMW 「何か用ですか？」
@@ -612,20 +617,21 @@ RETURN 1
 ;-------------------------------------------------
 @SPECIALDAY_EVENT_K134
 ;-------------------------------------------------
+CALL M_KOJO_COLOR_K134
 	;謹賀新年
 	IF DAY:2 == 1 && DAY:3 == 1 && DAY:0 != 1
 		IF TALENT:恋人
 			PRINTFORMW 「明けましておめでとう、%CALLNAME:MASTER%さん」
 			PRINTFORMW 美宵はそう言って新年の挨拶をしてきた。
-			PRINTFORMW 「今年もいっぱい楽しいことしましょうね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「今年もいっぱい楽しいことしましょうねHPH」","L"
 		ELSEIF TALENT:恋慕
 			PRINTFORMW 「明けましておめでとう、%CALLNAME:MASTER%さん」
 			PRINTFORMW 美宵は新年の挨拶をしてきた。
-			PRINTFORMW 「今年もいい年にしましょうね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「今年もいい年にしましょうねHPH」","L"
 		ELSEIF TALENT:思慕
 			PRINTFORMW 「明けましておめでとう、%CALLNAME:MASTER%さん」
 			PRINTFORMW 美宵は新年の挨拶をしてきた。
-			PRINTFORMW 「今年も鯢呑亭をよろしくお願いしますね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「今年も鯢呑亭をよろしくお願いしますねHPH」","L"
 		ELSE
 			PRINTFORMW 「明けましておめでとう御座います、今年も鯢呑亭をよろしくお願いしますね」
 		ENDIF
@@ -647,17 +653,17 @@ RETURN 1
 			PRINTFORMW 美宵はチョコレートを渡してきた。
 		CASE 3001 TO 5000
 			PRINTFORMW 美宵は%CALLNAME:MASTER%にチョコレートを渡してきた。
-			PRINTFORMW 「美味しいの、味わってくださいね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「美味しいの、味わってくださいねHPH」","L"
 			PRINTFORMW 少し恥ずかしそうに彼女はそそくさと離れて行った。
 		CASE IS > 5000
 			IF EXP:愛情経験 >= 100
 				PRINTFORMW 「これ、頑張って作ったんです……」
 				PRINTFORMW そう言いながら美宵はチョコレートを渡してきた。
-				PRINTFORMW 「愛情たっぷり込めましたから美宵のチョコレート、味わってくださいね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「愛情たっぷり込めましたから美宵のチョコレート、味わってくださいねHPH」","L"
 			ELSE
 				PRINTFORMW 「はい、チョコレートです♪」
 				PRINTFORMW そう言いながら美宵はチョコレートを渡してきた。
-				PRINTFORMW 「一番人気のチョコレートですから、味わってくださいね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「一番人気のチョコレートですから、味わってくださいねHPH」","L"
 			ENDIF
 		ENDSELECT
 	;ハロウィン
@@ -665,7 +671,7 @@ RETURN 1
 		IF TALENT:恋人
 			PRINTFORMW 「%CALLNAME:MASTER%さん、トリックオアトリート！」
 			PRINTFORMW 美宵は%CALLNAME:MASTER%に話しかけてくる。
-			PRINTFORMW 「今日はどんな悪戯しちゃいましょうか%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「今日はどんな悪戯しちゃいましょうかHPH」","L"
 		ELSEIF TALENT:恋慕
 			PRINTFORMW 「トリック・オア・トリート♪」
 			PRINTFORMW 美宵はそう言いながら話しかけてきた。
@@ -682,7 +688,7 @@ RETURN 1
 	;クリスマス
 	ELSEIF DAY:2 == 4 && DAY:3 == 25
 		IF TALENT:恋人
-			PRINTFORMW 「%CALLNAME:MASTER%さん、メリークリスマス%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん、メリークリスマスHPH」","L"
 			PRINTFORMW 美宵は嬉しそうに%CALLNAME:MASTER%に話しかけてくる。
 			PRINTFORMW 「今日は私とデートしてくれませんか……？」
 		ELSEIF TALENT:恋慕
@@ -709,6 +715,7 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -736,17 +743,17 @@ IF LOCAL
 			RETURN 1
 		ENDIF
 		IF TALENT:恋人
-			PRINTFORMW 「あ、%CALLNAME:MASTER%さん、やっと起きたんですねぇ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「あ、%CALLNAME:MASTER%さん、やっと起きたんですねぇHPH」","L"
 			PRINTFORMW 美宵は嬉しそうに%CALLNAME:MASTER%に朝の挨拶をしてきた。
-			PRINTFORMW 「朝ご飯作っておきましたから、美宵にお任せですよぉ%UNICODE(0x2665) *1%」
+			PRINTFORMW 「朝ご飯作っておきましたから、美宵にお任せですよぉHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「%CALLNAME:MASTER%さん、おはようございます%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん、おはようございますHPH」","L"
 			PRINTFORMW 美宵はそう言って朝の挨拶をしてきた。
-			PRINTFORMW 「いい一日にしましょうね%UNICODE(0x2665) *1%」
+			PRINTFORMW 「いい一日にしましょうねHPH」","L"
 		ELSEIF TALENT:思慕
-			PRINTFORMW 「%CALLNAME:MASTER%さん、朝ご飯冷めちゃいます%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん、朝ご飯冷めちゃいますHPH」","L"
 			PRINTFORMW 美宵はそう言って朝の挨拶をしてきた。
-			PRINTFORMW 「腕によりをかけましたから、美味しいですよぉ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「腕によりをかけましたから、美味しいですよぉHPH」","L"
 		ELSE
 			PRINTFORMW 「おはようございます、朝ですよ、%CALLNAME:MASTER%さん♪」
 			PRINTFORMW 美宵はそう言って朝の挨拶をしてきた。
@@ -760,17 +767,17 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 		IF TALENT:恋人
-			PRINTFORMW 「あ、%CALLNAME:MASTER%さん、やっと起きたんですねぇ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「あ、%CALLNAME:MASTER%さん、やっと起きたんですねぇHPH」","L"
 			PRINTFORMW 美宵は嬉しそうに%CALLNAME:MASTER%に朝の挨拶をしてきた。
-			PRINTFORMW 「朝ご飯作っておきましたから、美宵にお任せですよぉ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「朝ご飯作っておきましたから、美宵にお任せですよぉHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「%CALLNAME:MASTER%さん、おはようございます%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん、おはようございますHPH」","L"
 			PRINTFORMW 美宵はそう言って朝の挨拶をしてきた。
-			PRINTFORMW 「いい一日にしましょうね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「いい一日にしましょうねHPH」","L"
 		ELSEIF TALENT:思慕
-			PRINTFORMW 「%CALLNAME:MASTER%さん、朝ご飯冷めちゃいます%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん、朝ご飯冷めちゃいますHPH」","L"
 			PRINTFORMW 美宵はそう言って朝の挨拶をしてきた。
-			PRINTFORMW 「腕によりをかけましたから、美味しいですよぉ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「腕によりをかけましたから、美味しいですよぉHPH」","L"
 		ELSE
 			PRINTFORMW 「おはようございます、朝ですよ、%CALLNAME:MASTER%さん♪」
 			PRINTFORMW 美宵はそう言って朝の挨拶をしてきた。
@@ -784,10 +791,10 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
 		IF TALENT:恋人
-			PRINTFORMW 「ん……すやぁ……%CALLNAME:MASTER%さん……そこは駄目ぇ……%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「ん……すやぁ……%CALLNAME:MASTER%さん……そこは駄目ぇ……HPH」","L"
 			PRINTFORMW 美宵は眠ったまま何事か呟いている。
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「ん……おっぱい揉んじゃだめですよぉ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「ん……おっぱい揉んじゃだめですよぉHPH」","L"
 			PRINTFORMW 美宵は眠ったまま何事か呟いている。
 		ELSEIF TALENT:思慕
 			PRINTFORMW 「んん……いらっしゃいませぇ……」
@@ -824,13 +831,13 @@ IF LOCAL
 			RETURN 1
 		ENDIF
 		IF TALENT:恋人
-			PRINTFORMW 「%CALLNAME:MASTER%さん、おはようございますぅ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん、おはようございますぅHPH」","L"
 			PRINTFORMW 美宵は嬉しそうに%CALLNAME:MASTER%に朝の挨拶をしてきた。
-			PRINTFORMW 「えへへ、寝坊してちゃった%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「えへへ、寝坊してちゃったHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「%CALLNAME:MASTER%さん、おはようございます%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん、おはようございますHPH」","L"
 			PRINTFORMW 美宵はそう言って朝の挨拶をしてきた。
-			PRINTFORMW 「……寝ぐせ直してきますから、待っててくださいね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「……寝ぐせ直してきますから、待っててくださいねHPH」","L"
 		ELSEIF TALENT:思慕
 			PRINTFORMW 「ん～%CALLNAME:MASTER%さん、おはようございます」
 			PRINTFORMW 美宵はそう言って朝の挨拶をしてきた。
@@ -857,6 +864,7 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -866,11 +874,11 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
 		IF TALENT:恋人
-			PRINTFORMW 「また明日、デートしましょうね、%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「また明日、デートしましょうね、%CALLNAME:MASTER%さんHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「%CALLNAME:MASTER%さん、おやすみなさい%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん、おやすみなさいHPH」","L"
 		ELSEIF TALENT:思慕
-			PRINTFORMW 「%CALLNAME:MASTER%さん、今日はもう帰りますね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん、今日はもう帰りますねHPH」","L"
 		ELSE
 			PRINTFORMW 「%CALLNAME:MASTER%さん、もう帰りますね」
 		ENDIF
@@ -946,11 +954,11 @@ IF LOCAL
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 0
 		IF TALENT:恋人
-			PRINTFORMW 「また明日、デートしましょうね、%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+			PRINTFORMW 「また明日、デートしましょうね、%CALLNAME:MASTER%さんHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「%CALLNAME:MASTER%さん、おやすみなさい%UNICODE(0x2665) *1%」
+			PRINTFORMW 「%CALLNAME:MASTER%さん、おやすみなさいHPH」","L"
 		ELSEIF TALENT:思慕
-			PRINTFORMW 「%CALLNAME:MASTER%さん、今日はもう帰りますね%UNICODE(0x2665) *1%」
+			PRINTFORMW 「%CALLNAME:MASTER%さん、今日はもう帰りますねHPH」","L"
 		ELSE
 			PRINTFORMW 「%CALLNAME:MASTER%さん、もう帰りますね」
 		ENDIF
@@ -963,7 +971,7 @@ IF LOCAL
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 1
 			IF TALENT:恋人
-				PRINTFORMW 「もう寝るので一人にしてくださいね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「もう寝るので一人にしてくださいねHPH」","L"
 			ELSEIF TALENT:恋慕
 				PRINTFORMW 「%CALLNAME:MASTER%さん、もう寝たいのでそろそろ帰っていただけますか？」
 			ELSEIF TALENT:思慕
@@ -1007,11 +1015,11 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 9
 		IF TALENT:恋人
-			PRINTFORMW 「おやすみなさい、%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「おやすみなさい、%CALLNAME:MASTER%さんHPH」","L"
 		ELSEIF TALENT:恋慕
 			PRINTFORMW 「%CALLNAME:MASTER%さん、続きは夢の中でね♪」
 		ELSEIF TALENT:思慕
-			PRINTFORMW 「%CALLNAME:MASTER%さん、おやすみ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん、おやすみHPH」","L"
 		ELSE
 			PRINTFORMW 「%CALLNAME:MASTER%さん、寝ますから変なことしたら駄目ですよぉ？」
 		ENDIF
@@ -1033,6 +1041,7 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -1060,7 +1069,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 		IF TALENT:恋人
-			PRINTFORMW 「あっ、%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「あっ、%CALLNAME:MASTER%さんHPH」","L"
 			PRINTFORMW 美宵はペコリと頭を下げて会釈を返した。
 		ELSEIF TALENT:恋慕
 			PRINTFORMW 「あっ、%CALLNAME:MASTER%さん♪」
@@ -1106,6 +1115,7 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -1127,7 +1137,7 @@ IF LOCAL
 		RETURN 1
 	ENDIF
 	;その他（キャラ指定なし
-	PRINTFORMW 「変なムードになっちゃいましたね……%UNICODE(0x2665) *1%」
+	CALL HPH_PRINT,@"「変なムードになっちゃいましたね……HPH」」","L"
 ENDIF
 RETURN 1
 
@@ -1143,6 +1153,7 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -1169,11 +1180,11 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG:1 == 2
 		IF TALENT:恋人
-			PRINTFORMW 「……私の事忘れちゃ駄目ですよぉ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「……私の事忘れちゃ駄目ですよぉHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「私もエッチしたくなっちゃいましたぁ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「私もエッチしたくなっちゃいましたぁHPH」","L"
 		ELSEIF TALENT:思慕
-			PRINTFORMW 「……複数人でって言うのも悪くないと思いますよぉ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「……複数人でって言うのも悪くないと思いますよぉHPH」","L"
 		ELSE
 			PRINTFORMW 「私も混ぜてもらっていいですかぁ？」
 		ENDIF
@@ -1213,6 +1224,7 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -1222,9 +1234,9 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG:1 == 1
 		IF TALENT:恋人
-			PRINTFORMW 「このまま続けましょうか%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「このまま続けましょうかHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「このままするのも気持ちいいかもしれませんね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「このままするのも気持ちいいかもしれませんねHPH」","L"
 		ELSEIF TALENT:思慕
 			PRINTFORMW （……お店の評判下がっちゃうかも……）
 		ELSE
@@ -1239,7 +1251,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG:1 == 2
 		IF TALENT:恋人
-			PRINTFORMW 「ふふふ、なんだか興奮してきちゃいましたねぇ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「ふふふ、なんだか興奮してきちゃいましたねぇHPH」","L"
 		ELSEIF TALENT:恋慕
 			PRINTFORMW 「……%CALLNAME:MASTER%さんを独り占めできないのは少し残念です」
 		ELSEIF TALENT:思慕
@@ -1256,13 +1268,13 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG:1 == 3
 		IF TALENT:恋人
-			PRINTFORMW 「お邪魔虫はもういませんからね、明日には忘れてますよ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「お邪魔虫はもういませんからね、明日には忘れてますよHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「このぐらいで止めませんよ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「このぐらいで止めませんよHPH」","L"
 		ELSEIF TALENT:思慕
-			PRINTFORMW 「……もう続けてもいいですね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「……もう続けてもいいですねHPH」","L"
 		ELSE
-			PRINTFORMW 「……公然の秘密になっちゃいましたね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「……公然の秘密になっちゃいましたねHPH」","L"
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -1288,6 +1300,7 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -1302,7 +1315,7 @@ IF LOCAL
 		PRINTFORMW 「……こちらで処分しておきますね、お客様」
 		PRINTFORMW 美宵はそう言って下着を懐にしまった。
 		IF TALENT:恋人
-			PRINTFORMW 「……生の方が興奮すると思いますよ……%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「……生の方が興奮すると思いますよ……HPH」","L"
 			PRINTFORMW 美宵は少し顔を赤らめながらそう言った。
 		ENDIF
 		RETURN 1
@@ -1322,6 +1335,7 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -1350,46 +1364,46 @@ IF LOCAL
 		ENDIF
 		IF TALENT:恋人
 			IF RAND:3 == 0
-				PRINTFORMW 「%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%さんHPH」","L"
 				PRINTFORMW 美宵はいきなり%CALLNAME:MASTER%を押し倒してきた。
-				PRINTFORMW 「恋人同士ですること全部しちゃいましょう……%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「恋人同士ですること全部しちゃいましょう……HPH」","L"
 			ELSEIF RAND:2 == 0
-				PRINTFORMW 「%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%さんHPH」","L"
 				PRINTFORMW 美宵は%CALLNAME:MASTER%の肩を掴むと押し倒してきた。
-				PRINTFORMW 「%CALLNAME:MASTER%さんの子供、孕みたくなっちゃったぁ%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%さんの子供、孕みたくなっちゃったぁHPH」","L"
 				PRINTFORMW そう言いながら美宵は%CALLNAME:MASTER%の下半身を弄ってくる。
 			ELSE
-				PRINTFORMW 「……%CALLNAME:MASTER%さんっ%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「……%CALLNAME:MASTER%さんっHPH」","L"
 				PRINTFORMW 美宵は%CALLNAME:MASTER%に体をすり寄せながら押し倒してきた。
-				PRINTFORMW 「一生私のことを忘れられなくしてあげます%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「一生私のことを忘れられなくしてあげますHPH」","L"
 			ENDIF
 		ELSEIF TALENT:恋慕
 			IF RAND:3 == 0
-				PRINTFORMW 「%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%さんHPH」","L"
 				PRINTFORMW 美宵はいきなり体を押し付けてくると押し倒してきた。
-				PRINTFORMW 「私のこと、エッチな目で見てましたよねぇ%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「私のこと、エッチな目で見てましたよねぇHPH」","L"
 			ELSEIF RAND:2 == 0
-				PRINTFORMW 「%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%さんHPH」","L"
 				PRINTFORMW 美宵は%CALLNAME:MASTER%の肩をグイッと掴むと押し倒してきた。
-				PRINTFORMW 「なんだかエッチなことしたくなっちゃいましたぁ%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「なんだかエッチなことしたくなっちゃいましたぁHPH」","L"
 			ELSE
 				PRINTFORMW 「%CALLNAME:MASTER%さん……♪」
-				PRINTFORMW 「私のこと、肌で覚えていてもらいますよ%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「私のこと、肌で覚えていてもらいますよHPH」","L"
 				PRINTFORMW 美宵は%CALLNAME:MASTER%の体を弄びながら妖艶に笑みを浮かべている。
 			ENDIF
 		ELSE
 			IF RAND:3 == 0
 				PRINTFORMW 「……%CALLNAME:MASTER%さん……」
 				PRINTFORMW 美宵はいきなり体を押し付けてくると無言で押し倒してきた。
-				PRINTFORMW 「こうすれば……忘れないですか%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「こうすれば……忘れないですかHPH」","L"
 			ELSEIF RAND:2 == 0
-				PRINTFORMW 「%CALLNAME:MASTER%さん……%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん……HPH」","L"
 				PRINTFORMW 美宵は%CALLNAME:MASTER%の名前を呼びながら押し倒してきた。
-				PRINTFORMW 「身体だけでも覚えてもらいます……%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「身体だけでも覚えてもらいます……HPH」","L"
 			ELSE
 				PRINTFORMW 「……%CALLNAME:MASTER%さん！」
 				PRINTFORMW 美宵は%CALLNAME:MASTER%を押し倒してきた。
-				PRINTFORMW 「……これなら忘れられませんね……%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「……これなら忘れられませんね……HPH」","L"
 			ENDIF
 		ENDIF
 		TCVAR:134:発情 = 1
@@ -1416,7 +1430,7 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 1
-			PRINTFORMW 「えへへ、私としたこと、内緒ですよ……%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「えへへ、私としたこと、内緒ですよ……HPH」","L"
 			RETURN 1
 		ENDIF
 		;-------------------------------------------------
@@ -1441,7 +1455,7 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 1
-			PRINTFORMW 「私からは逃げられませんよ……%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「私からは逃げられませんよ……HPH」","L"
 			RETURN 1
 		ENDIF
 		;-------------------------------------------------
@@ -1450,7 +1464,7 @@ IF LOCAL
 		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1 && ARG:1 == 2
-			PRINTFORMW 「私はまだエッチしたいんです……駄目ですよ、忘れるなんて%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「私はまだエッチしたいんです……駄目ですよ、忘れるなんてHPH」","L"
 			RETURN 1
 		ENDIF
 	ENDIF
@@ -1470,6 +1484,7 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -1485,7 +1500,7 @@ IF LOCAL
 			PRINTFORMW 「あわわ、入ってきちゃ駄目ですよぉ……！」
 			PRINTFORMW 美宵は混浴を拒否している。
 		ELSEIF TALENT:思慕
-			PRINTFORMW 「混浴はこまりますよ、そういうお店じゃ無いんで%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「混浴はこまりますよ、そういうお店じゃ無いんでHPH」","L"
 			PRINTFORMW 美宵はそう言って浴場から追い出してきた。
 		ELSE
 			PRINTFORMW 美宵は浴場への侵入者に気づくと
@@ -1501,9 +1516,9 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 		IF TALENT:恋人
-			PRINTFORMW 「あら？%CALLNAME:MASTER%さんも一緒に入りますか%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「あら？%CALLNAME:MASTER%さんも一緒に入りますかHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「うふふ、洗いっこしましょうか%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「うふふ、洗いっこしましょうかHPH」","L"
 		ELSEIF TALENT:思慕
 			PRINTFORMW 「まあ減るものもありませんけど……」
 			PRINTFORMW 美宵は胸を隠しながら湯船に浸かっている。
@@ -1529,6 +1544,7 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -1625,6 +1641,7 @@ LOCAL =1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -1638,11 +1655,11 @@ IF LOCAL
 			PRINTFORMW 美宵は汚物を見る目で%CALLNAME:MASTER%を見ている。
 		ELSEIF TALENT:恋慕 || TALENT:恋人
 			IF RAND:3 == 0
-				PRINTFORMW 「さぁてっ張り切ってお仕事しましょうか%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「さぁてっ張り切ってお仕事しましょうかHPH」","L"
 			ELSEIF RAND:2 == 0
-				PRINTFORMW 「お仕事終わるまで待っててね、%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「お仕事終わるまで待っててね、%CALLNAME:MASTER%さんHPH」","L"
 			ELSE
-				PRINTFORMW 「そろそろ鯨呑亭に行かなくちゃ！ぜひ%CALLNAME:MASTER%さんも来てね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「そろそろ鯨呑亭に行かなくちゃ！ぜひ%CALLNAME:MASTER%さんも来てねHPH」","L"
 			ENDIF
 		ELSE
 			IF RAND:3 == 0
@@ -1666,19 +1683,19 @@ IF LOCAL
 			PRINTFORMW 美宵は汚物を見る目で%CALLNAME:MASTER%を見ている。
 		ELSEIF TALENT:恋慕 || TALENT:恋人
 			IF RAND:3 == 0
-				PRINTFORMW 「%CALLNAME:MASTER%さんには特別なお通しですよぉ%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%さんには特別なお通しですよぉHPH」","L"
 			ELSEIF RAND:2 == 0
-				PRINTFORMW 「ゆっくりしていってくださいな、%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「ゆっくりしていってくださいな、%CALLNAME:MASTER%さんHPH」","L"
 			ELSE
-				PRINTFORMW 「美味しいですよ、私が腕によりをかけてますからね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「美味しいですよ、私が腕によりをかけてますからねHPH」","L"
 			ENDIF
 		ELSE
 			IF RAND:3 == 0
-				PRINTFORMW 「こちらお通しになりまーす%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「こちらお通しになりまーすHPH」","L"
 			ELSEIF RAND:2 == 0
-				PRINTFORMW 「はい、愛情たっぷりの盛り合わせでーす%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「はい、愛情たっぷりの盛り合わせでーすHPH」","L"
 			ELSE
-				PRINTFORMW 「オーダー入りましたー%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「オーダー入りましたーHPH」","L"
 			ENDIF
 		ENDIF
 		RETURN 1
@@ -1694,15 +1711,15 @@ IF LOCAL
 			PRINTFORMW 美宵は汚物を見る目で%CALLNAME:MASTER%を見ている。
 		ELSEIF TALENT:恋慕 || TALENT:恋人
 			IF CFLAG:134:1003 == 1
-				PRINTFORMW 「はいじゃあこれ、差し入れです%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「はいじゃあこれ、差し入れですHPH」","L"
 				ITEM:503 += 1
 			ELSE
 				IF RAND:3 == 0
-					PRINTFORMW 「ここからは%CALLNAME:MASTER%の貸し切り美宵ですよ%UNICODE(0x2665) *1%」
+					CALL HPH_PRINT,@"「ここからは%CALLNAME:MASTER%の貸し切り美宵ですよHPH」","L"
 				ELSEIF RAND:2 == 0
-					PRINTFORMW 「待たせちゃったかな……さて、何にしますかぁ%UNICODE(0x2665) *1%」
+					CALL HPH_PRINT,@"「待たせちゃったかな……さて、何にしますかぁHPH」","L"
 				ELSE
-					PRINTFORMW 「さて、どうしますか%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+					CALL HPH_PRINT,@"「さて、どうしますか%CALLNAME:MASTER%さんHPH」","L"
 				ENDIF
 			ENDIF
 		ELSE
@@ -1737,6 +1754,7 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;持っていた食物を食べられた
 	;記入チェック（=0, 非表示、1, 表示）
@@ -1744,7 +1762,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == -1
 		PRINTFORMW 「%CALLNAME:MASTER%さん美味しそうな物持ってますねぇ……」
-		PRINTFORMW 「えいっ……頂きます%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「えいっ……頂きますHPH」","L"
 		RETURN 1
 	ENDIF
 	;その他
@@ -1763,6 +1781,7 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -1782,14 +1801,14 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 		IF TALENT:恋人
-			PRINTFORMW 「えへへ……%UNICODE(0x2665) *1%」
-			PRINTFORMW 「いっぱいえっちなことしちゃいましたね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「えへへ……HPH」","L"
+			CALL HPH_PRINT,@"「いっぱいえっちなことしちゃいましたねHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「ふふふ、またいっぱいしましょうね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「ふふふ、またいっぱいしましょうねHPH」","L"
 		ELSEIF TALENT:思慕
 			PRINTFORMW 「%CALLNAME:MASTER%さん、責任は取ってくださいね♪」
 		ELSE
-			PRINTFORMW 「美宵のこと忘れちゃ駄目ですよ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「美宵のこと忘れちゃ駄目ですよHPH」","L"
 		ENDIF
 		RETURN 1
 	ENDIF
@@ -1886,10 +1905,11 @@ RETURN 1
 ;ARG:1に射精状態
 ;--------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -1900,12 +1920,12 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
 		IF TALENT:恋慕
-			PRINTFORMW 「……んんん%UNICODE(0x2665) *1%？」
+			CALL HPH_PRINT,@"「……んんんHPH？」","L"
 			PRINTFORMW 美宵は唐突な快感に身悶えしている。
 			PRINTFORMW 「えっと……何でも無いですよぉ♪」
 			PRINTFORMW 美宵は%CALLNAME:MASTER%に向かって両手を振って誤魔化した。
 		ELSE
-			PRINTFORMW 「んへぇっ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「んへぇっHPH」","L"
 			PRINTFORMW 美宵はビクッと体を震わせ
 			PRINTFORMW 「やだぁ……何なのぉ……？」
 			PRINTFORMW 困惑して辺りを見回している。
@@ -1918,13 +1938,13 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 		IF TALENT:恋慕
-			PRINTFORMW 「んへぇっ%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「んへぇっHPHHPHHPH」","L"
 			PRINTFORMW 美宵は一瞬でへたり込んでしまい何があったのか理解できないようだ。
-			PRINTFORMW 「……やだっ%UNICODE(0x2665) *1%……もう……んんっ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「……やだっHPH……もう……んんっHPH」","L"
 			PRINTFORMW 美宵は差し出された手を取るとぷるぷると震えながら立ち上がった。
 		ELSE
-			PRINTFORMW 「んっ%UNICODE(0x2665) *1%」
-			PRINTFORMW 「……何が……%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「んっHPH」","L"
+			CALL HPH_PRINT,@"「……何が……HPH」","L"
 			PRINTFORMW 突然快楽を叩き込まれた美宵はうずくまると混乱しながら周囲を見渡している。
 			PRINTFORMW （妖怪の仕業かしら……？）
 		ENDIF
@@ -1976,7 +1996,7 @@ IF LOCAL
 		ELSEIF ARG:1 == 4
 			PRINTFORMW 「……んん！」
 			PRINTFORMW 美宵は口腔内のザーメンに気づくと
-			PRINTFORMW 「ん……この味どこかで……%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「ん……この味どこかで……HPH」","L"
 			PRINTFORMW 美宵は口腔のザーメンを美味しそうに飲み込んだ。
 		;濃厚精液＆精液中毒低吐き出し
 		ELSEIF ARG:1 == 5
@@ -1988,7 +2008,7 @@ IF LOCAL
 		ELSEIF ARG:1 == 6
 			PRINTFORMW 「……ん！」
 			PRINTFORMW 美宵は口腔内の濃厚な漢汁に気づくと
-			PRINTFORMW 「ん……濃厚……%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「ん……濃厚……HPH」","L"
 			PRINTFORMW 慣れたように飲み下した。
 		ENDIF
 		RETURN 1
@@ -2011,7 +2031,7 @@ IF LOCAL
 		ELSEIF ARG:1 == 3
 			PRINTFORMW 「……わぁっ！？」
 			PRINTFORMW 美宵は顔面にへばりついた漢汁に気がつくと
-			PRINTFORMW 「……ん……美味しい……%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「……ん……美味しい……HPH」","L"
 			PRINTFORMW 美味しそうに舐めとった。
 		ENDIF
 		RETURN 1
@@ -2032,7 +2052,7 @@ IF LOCAL
 		ELSEIF ARG:1 == 2
 			PRINTFORMW 「……んえっ……！」
 			PRINTFORMW 美宵は手にへばりついた漢汁に気がつくと
-			PRINTFORMW 「んん……好きですよ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「んん……好きですよHPH」","L"
 			PRINTFORMW 妖艶に舐めとった。
 		ENDIF
 		RETURN 1
@@ -2115,6 +2135,7 @@ RETURN 1
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -2176,7 +2197,7 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 4
 		IF TALENT:恋人
 			PRINTFORMW 「いいですよ、%CALLNAME:MASTER%さんとなら……」
-			PRINTFORMW （生の方が気持ちいいもんね……%UNICODE(0x2665) *1%）
+			CALL HPH_PRINT,@"（生の方が気持ちいいもんね……HPH）","L"
 		ELSEIF TALENT:恋慕
 			PRINTFORMW 「……危ない日は駄目ですからね？」
 		ELSE
@@ -2191,13 +2212,13 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 5
 		IF TALENT:恋人
-			PRINTFORMW 「分かりました、いいですよ%UNICODE(0x2665) *1%」
-			PRINTFORMW 「うふふ、いっぱい子供作りましょうね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「分かりました、いいですよHPH」","L"
+			CALL HPH_PRINT,@"「うふふ、いっぱい子供作りましょうねHPH」","L"
 		ELSEIF TALENT:恋慕
 			PRINTFORMW 「もう、仕方ないですね」
-			PRINTFORMW 「その代わり責任を取ってくださいね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「その代わり責任を取ってくださいねHPH」","L"
 		ELSE
-			PRINTFORMW 「私も、覚悟を決める時みたいですね……%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「私も、覚悟を決める時みたいですね……HPH」","L"
 		ENDIF
 	ENDIF
 ENDIF
@@ -2211,6 +2232,7 @@ RETURN 1
 ;記入チェック（=0, 非表示、1, 表示）
 LOCAL = 1
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -2223,9 +2245,9 @@ IF LOCAL
 		PRINTFORMW 「私たち、同棲できるんですよ！」
 		PRINTFORMW 美宵は満面の笑みを浮かべて言葉を紡ぐ。
 		PRINTFORMW 「むう、反応薄いですねぇ、あんまり嬉しくない？」
-		PRINTFORMW 「私は嬉しいんですよ、これでもう%CALLNAME:MASTER%さんだけの座敷童になれますからね%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「私は嬉しいんですよ、これでもう%CALLNAME:MASTER%さんだけの座敷童になれますからねHPH」","L"
 		PRINTFORMW 顔を赤らめながら美宵はそう言って喜んでいる。
-		PRINTFORMW 「そしてこれからも、ずっとよろしくお願いしますね%UNICODE(0x2665) *1%%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「そしてこれからも、ずっとよろしくお願いしますねHPH%CALLNAME:MASTER%さんHPH」","L"
 		PRINTFORMW こうして美宵との新生活が始まった。
 		RETURN 1
 	ENDIF
@@ -2249,6 +2271,7 @@ RETURN 1
 ;記入チェック（=0, 非表示、1, 表示）
 LOCAL = 1
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -2259,9 +2282,9 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 1
 		IF TALENT:恋人
 			PRINTFORMW 「あ、もう帰る時間だわ」
-			PRINTFORMW 「また明日、会いましょうね、%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「また明日、会いましょうね、%CALLNAME:MASTER%さんHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「さようなら、%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「さようなら、%CALLNAME:MASTER%さんHPH」","L"
 			PRINTFORMW そう言うと美宵は去っていった。
 		ELSEIF TALENT:思慕
 			PRINTFORMW 「もう帰る時間だわ！」
@@ -2280,13 +2303,13 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 2
 		IF TALENT:恋人
 			PRINTFORMW 「それじゃあ、今日はここまでですね」
-			PRINTFORMW 「また明日、デートしましょうね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「また明日、デートしましょうねHPH」","L"
 			PRINTFORMW 美宵はそう言うと手を振りながら去っていった。
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「ふふ、またデートしましょうね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「ふふ、またデートしましょうねHPH」","L"
 			PRINTFORMW そう言うと美宵は手を振りながら去っていった。
 		ELSEIF TALENT:思慕
-			PRINTFORMW 「今日はお開きですね、続きはまた今度%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「今日はお開きですね、続きはまた今度HPH」","L"
 			PRINTFORMW 美宵はそう言って手を振りながら去っていった。
 		ELSE
 			PRINTFORMW 「今日の事忘れないでくださいね？」
@@ -2301,10 +2324,10 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
 		IF TALENT:恋人
-			PRINTFORMW 「ここでいいですよ、また明日、会いましょうね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「ここでいいですよ、また明日、会いましょうねHPH」","L"
 			PRINTFORMW 美宵はそう言うと手を振りながら去っていった。
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「あ、ここでいいですよ、じゃあまた明日会いましょうね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「あ、ここでいいですよ、じゃあまた明日会いましょうねHPH」","L"
 			PRINTFORMW 美宵はそう言うと手を振りながら去っていった。
 		ELSEIF TALENT:思慕
 			PRINTFORMW 「今日はお開きです、お見送りありがとうね」
@@ -2326,6 +2349,7 @@ RETURN 1
 ;記入チェック（=0, 非表示、1, 表示）
 LOCAL = 1
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -2335,11 +2359,11 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
 			PRINTFORMW 美宵は帰宅しながらも物思いに耽っていた。
-			PRINTFORMW 「……%CALLNAME:MASTER%さん、好きです」
+			CALL HPH_PRINT,@"「……%CALLNAME:MASTER%さん、好きです」","L"
 			PRINTFORMW 「……こんな感じでいいのかなぁ」
 			PRINTFORMW 「告白なんてしたことないし、でも……」
 			PRINTFORMW 経験のなさから来る不安に苛まれながらも彼女は一つ決意をした。
-			PRINTFORMW 「もう二度と、忘れられるのは嫌だからーーー」　
+			PRINTFORMW 「もう二度と、忘れられるのは嫌だからーーー」
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -2350,7 +2374,7 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 2
 			PRINTFORMW 美宵は帰宅しながらも物思いに耽っていた。
 			PRINTFORMW 無意識のうちに%CALLNAME:MASTER%への好意を思い浮かべながら彼女は思慕を得た。
-			PRINTFORMW （%CALLNAME:MASTER%さん……%UNICODE(0x2665) *1%）
+			CALL HPH_PRINT,@"（%CALLNAME:MASTER%さん……HPH）","L"
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -2359,9 +2383,9 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
-		PRINTFORMW 「んんっ……もっと……%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「んんっ……もっと……HPH」","L"
 		PRINTFORMW 美宵は情欲に苛まれながら床についた。
-		PRINTFORMW 「……%CALLNAME:MASTER%さんと一つに……%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「……%CALLNAME:MASTER%さんと一つに……HPH」","L"
 		PRINTFORMW 彼女はどこか虚ろな目で秘部に手を伸ばしながらぼうっと空を見つめている。
 		PRINTFORMW 自分が淫乱であったということを受け入れながら彼女は%CALLNAME:MASTER%の事を脳裏に浮かべていた。
 		RETURN 1
@@ -2374,7 +2398,7 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 4
 		PRINTFORMW 「何番目でもいいから%CALLNAME:MASTER%さんと繋がりたいなぁ……」
 		PRINTFORMW 美宵は情欲に苛まれながら床についた。
-		PRINTFORMW 「……エッチしたいよぉ……%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「……エッチしたいよぉ……HPH」","L"
 		PRINTFORMW そう言って美宵は愛人関係を受け入れた。
 		RETURN 1
 	ENDIF
@@ -2386,9 +2410,9 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 5
 		PRINTFORMW 「……%CALLNAME:MASTER%さん……」
 		PRINTFORMW 美宵は情欲に苛まれながら床についた。
-		PRINTFORMW 「……気持ちよかったぁ……%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「……気持ちよかったぁ……HPH」","L"
 		PRINTFORMW 彼女はそう言いながら下半身に手を伸ばしている。
-		PRINTFORMW 「……セフレでもいいや……%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「……セフレでもいいや……HPH」","L"
 		PRINTFORMW 自慰行為に耽りながら美宵は淫らに堕ちていった。
 		RETURN 1
 	ENDIF
@@ -2406,6 +2430,7 @@ RETURN 1
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;通常自慰
 	;記入チェック（=0, 非表示、1, 表示）
@@ -2551,9 +2576,9 @@ IF LOCAL
 	;その他
 	;上の分岐を一切書かずに、ここに書くことで自慰の共通口上を表示することが出来ます
 		IF TALENT:恋人
-			PRINTFORMW 「んっ……%CALLNAME:MASTER%さん……%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「んっ……%CALLNAME:MASTER%さん……HPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「%CALLNAME:MASTER%さんっ……%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「%CALLNAME:MASTER%さんっ……HPH」","L"
 		ELSEIF TALENT:思慕
 			PRINTFORMW 「ん……ふぅ……んんっ……」
 		ELSE
@@ -2572,6 +2597,7 @@ RETURN 1
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -2596,11 +2622,11 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 		IF TALENT:恋人
-			PRINTFORMW 「いいですよ%UNICODE(0x2665) *1%体洗いっこしましょうねぇ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「いいですよHPH体洗いっこしましょうねぇHPH」","L"
 		ELSEIF TALENT:恋慕
-			PRINTFORMW 「いいですよ！私がお背中流してあげますね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「いいですよ！私がお背中流してあげますねHPH」","L"
 		ELSEIF TALENT:思慕
-			PRINTFORMW 「いいですよ！私もお風呂に入りたかったんですぅ%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「いいですよ！私もお風呂に入りたかったんですぅHPH」","L"
 		ELSE
 			PRINTFORMW 「いいですよ、でも変なことしたら駄目ですからねぇ」
 		ENDIF
@@ -2620,6 +2646,7 @@ RETURN 1
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -2658,7 +2685,7 @@ IF LOCAL
 		RETURN 1
 	ENDIF
 	;その他
-	PRINTFORMW 「%CALLNAME:MASTER%さんとの子供だ……%UNICODE(0x2665) *1%」
+	CALL HPH_PRINT,@"「%CALLNAME:MASTER%さんとの子供だ……HPH」","L"
 ENDIF
 RETURN 1
 ;==================================================
@@ -2672,6 +2699,7 @@ RETURN 1
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -2704,9 +2732,9 @@ IF LOCAL
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 4
-		PRINTFORMW 「……んん……ああっ%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「……んん……ああっHPH」","L"
 		PRINTFORMW 美宵は子供を出産すると消耗した体力の中でその子の頭を撫でた。
-		PRINTFORMW 「%CALLNAME:MASTER%さんとの子供……名前考えないとね%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「%CALLNAME:MASTER%さんとの子供……名前考えないとねHPH」","L"
 		RETURN 1
 	ENDIF
 	;その他
@@ -2723,6 +2751,7 @@ RETURN 1
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	SELECTCASE ARG
 		;-------------------------------------------------
 		CASE 0
@@ -2764,7 +2793,7 @@ IF LOCAL
 				PRINTFORMW 「……馬鹿！」
 				PRINTFORMW 美宵はそう言ってわめき叫んでいる。
 			ELSEIF TALENT:恋人
-				PRINTFORMW （……いっそ襲ってくれてもいいのに……%UNICODE(0x2665) *1%）
+				CALL HPH_PRINT,@"（……いっそ襲ってくれてもいいのに……HPH）","L"
 			ELSEIF TALENT:恋慕
 				PRINTFORMW 「……意気地なし」
 			ELSEIF TALENT:思慕
@@ -2787,8 +2816,8 @@ IF LOCAL
 				PRINTFORMW 「……どんな神経してるんですか！？」
 				PRINTFORMW 美宵は抗議をしながら秘部に手を伸ばしている。
 			ELSEIF TALENT:恋人
-				PRINTFORMW 「……んっ%UNICODE(0x2665) *1%」
-				PRINTFORMW 「興奮するじゃないですか、こんなこと始めたら……%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「……んっHPH」","L"
+				CALL HPH_PRINT,@"「興奮するじゃないですか、こんなこと始めたら……HPH」","L"
 			ELSEIF TALENT:恋慕
 				PRINTFORMW 「美宵のこと思い出してオナニーするんですかぁ？」
 			ELSEIF TALENT:思慕
@@ -2831,11 +2860,11 @@ IF LOCAL
 				PRINTFORMW 美宵は怒鳴りながら%CALLNAME:MASTER%を受け入れている。
 			;処女
 			ELSEIF TCVAR:破瓜 == 1
-				PRINTFORMW 「……これじゃレイプと変わりませんよ……%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「……これじゃレイプと変わりませんよ……HPH」","L"
 			ELSEIF TALENT:恋人
-				PRINTFORMW 「ふふふ、%CALLNAME:MASTER%さんので上書きされちゃう%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「ふふふ、%CALLNAME:MASTER%さんので上書きされちゃうHPH」","L"
 			ELSEIF TALENT:恋慕
-				PRINTFORMW 「滅茶苦茶にしていいですよぉ%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「滅茶苦茶にしていいですよぉHPH」","L"
 			ELSEIF TALENT:思慕
 				PRINTFORMW 「これで忘れてくれますか……！」
 			ELSE
@@ -2853,11 +2882,11 @@ IF LOCAL
 			IF CFLAG:318 == 1
 				PRINTFORMW 「……良かったですよ……」
 			ELSEIF TALENT:恋人
-				PRINTFORMW 「ふふっ、このままずっと……%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「ふふっ、このままずっと……HPH」","L"
 			ELSEIF TALENT:恋慕
-				PRINTFORMW 「好きですよ、こういうのも……%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「好きですよ、こういうのも……HPH」","L"
 			ELSEIF TALENT:思慕
-				PRINTFORMW 「気持ちよかったのが複雑ですね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「気持ちよかったのが複雑ですねHPH」","L"
 			ELSE
 				PRINTFORMW 「……満足ですか……？」
 			ENDIF
@@ -2873,11 +2902,11 @@ IF LOCAL
 			IF CFLAG:318 == 1
 				PRINTFORMW 「……もう好きにすればいいじゃないですか……」
 			ELSEIF TALENT:恋人
-				PRINTFORMW 「……明日もいっぱいしましょうね……%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「……明日もいっぱいしましょうね……HPH」","L"
 			ELSEIF TALENT:恋慕
-				PRINTFORMW 「また明日、ですね%UNICODE(0x2665) *1%」
+				PRINTFORMW 「また明日、ですねHPH」","L"
 			ELSEIF TALENT:思慕
-				PRINTFORMW 「……朝までってわけじゃないですよね？」
+				CALL HPH_PRINT,@"「……朝までってわけじゃないですよね？」","L"
 			ELSE
 				PRINTFORMW 「……絶倫……」
 			ENDIF
@@ -2897,6 +2926,7 @@ ENDIF
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	SELECTCASE ARG
 		;-------------------------------------------------
 		CASE 0
@@ -2906,9 +2936,9 @@ IF LOCAL
 		;-------------------------------------------------
 		IF LOCAL:1
 			IF TALENT:恋人
-				PRINTFORMW 「%CALLNAME:MASTER%さん、今日はデートしませんか%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん、今日はデートしませんかHPH」","L"
 			ELSEIF TALENT:恋慕
-				PRINTFORMW 「%CALLNAME:MASTER%さん、私とデートしませんか%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「%CALLNAME:MASTER%さん、私とデートしませんかHPH」","L"
 			ELSEIF TALENT:思慕
 				PRINTFORMW 「%CALLNAME:MASTER%さん、もしよければデートしませんか？」
 			ELSE
@@ -2924,13 +2954,13 @@ IF LOCAL
 		;-------------------------------------------------
 		IF LOCAL:1
 			IF TALENT:恋人
-				PRINTFORMW 「ふふっ、私を一日好きにしていいですからね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「ふふっ、私を一日好きにしていいですからねHPH」","L"
 			ELSEIF TALENT:恋慕
-				PRINTFORMW 「やったー！何しましょうか、%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「やったー！何しましょうか、%CALLNAME:MASTER%さんHPH」","L"
 			ELSEIF TALENT:思慕
-				PRINTFORMW 「うふふっ、楽しいデートになるといいですね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「うふふっ、楽しいデートになるといいですねHPH」","L"
 			ELSE
-				PRINTFORMW 「荷物持ってくださいね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「荷物持ってくださいねHPH」","L"
 			ENDIF
 			RETURN 1
 		ENDIF
@@ -2978,13 +3008,13 @@ IF LOCAL
 		;-------------------------------------------------
 		IF LOCAL:1
 			IF TALENT:恋人
-				PRINTFORMW 「それじゃあ二人でできることしちゃいましょうか%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「それじゃあ二人でできることしちゃいましょうかHPH」","L"
 			ELSEIF TALENT:恋慕
-				PRINTFORMW 「ふふっ、したいことしていいですからね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「ふふっ、したいことしていいですからねHPH」","L"
 			ELSEIF TALENT:思慕
-				PRINTFORMW 「変なことしちゃ嫌ですからねぇ%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「変なことしちゃ嫌ですからねぇHPH」","L"
 			ELSE
-				PRINTFORMW 「ゆっくりしていってくださいね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「ゆっくりしていってくださいねHPH」","L"
 			ENDIF
 			RETURN 1
 		ENDIF
@@ -2998,7 +3028,7 @@ IF LOCAL
 			IF TALENT:恋人
 				PRINTFORMW 「……浮気ですかぁ？」
 			ELSEIF TALENT:恋慕
-				PRINTFORMW 「来たくなったらいつでも来ていいですからね%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「来たくなったらいつでも来ていいですからねHPH」","L"
 			ELSEIF TALENT:思慕
 				PRINTFORMW 「残念です……」
 			ELSE
@@ -3022,6 +3052,7 @@ RETURN 1
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	SELECTCASE ARG
 		;-------------------------------------------------
 		CASE 0
@@ -3035,9 +3066,9 @@ IF LOCAL
 			;通常
 			ELSE
 				IF RAND:3 == 0
-					PRINTFORMW 「ひん剥かれちゃった……%UNICODE(0x2665) *1%」
+					CALL HPH_PRINT,@"「ひん剥かれちゃった……HPH」","L"
 				ELSEIF RAND:2 == 0
-					PRINTFORMW 「いよいよ本番ね%UNICODE(0x2665) *1%」
+					CALL HPH_PRINT,@"「いよいよ本番ねHPH」","L"
 				ELSE
 					PRINTFORMW 「あまりジロジロ見ないでくださいね……」
 				ENDIF
@@ -3111,7 +3142,7 @@ IF LOCAL
 				LOCAL:1 = 1
 				;-------------------------------------------------
 				IF LOCAL:1
-					PRINTFORMW 「これで私の事、いつでも思い出せますね%UNICODE(0x2665) *1%」
+					CALL HPH_PRINT,@"「これで私の事、いつでも思い出せますねHPH」","L"
 					RETURN 1
 				ENDIF
 				;-------------------------------------------------
@@ -3121,7 +3152,7 @@ IF LOCAL
 				LOCAL:1 = 0
 				;-------------------------------------------------
 				IF LOCAL:1
-					PRINTFORMW 「仕方ないですねぇ……変態さん%UNICODE(0x2665) *1%」
+					CALL HPH_PRINT,@"「仕方ないですねぇ……変態さんHPH」","L"
 					RETURN 1
 				ENDIF
 				;-------------------------------------------------
@@ -3152,6 +3183,7 @@ RETURN 1
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -3201,13 +3233,14 @@ LOCAL = 1
 ;-------------
 
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;記入チェック（=0, 非表示、1, 表示）
 	LOCAL:1 = 1
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
 	;疲れた
-		PRINTFORMW 「疲れちゃいましたぁ……%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「疲れちゃいましたぁ……HPH」」","L"
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -3216,7 +3249,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 2
 	;満足して解放
-		PRINTFORMW 「うふふ、満足ですぅ……%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「うふふ、満足ですぅ……HPH」」","L"
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -3225,7 +3258,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 3
 	;満足したところを押し倒された
-		PRINTFORMW 「好きなだけ犯していいからね……%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「好きなだけ犯していいからね……HPH」」","L"
 		RETURN 1
 	ENDIF
 	;-------------------------------------------------
@@ -3234,7 +3267,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 4
 	;壊れるまでしてあげる
-		PRINTFORMW 「忘れられない一時にしましょうね……%UNICODE(0x2665) *1%」
+		CALL HPH_PRINT,@"「忘れられない一時にしましょうね……HPH」」","L"
 		RETURN 1
 	ENDIF
 ENDIF
@@ -3257,6 +3290,7 @@ CALL DAILY_MESSAGE_2(ARG, ARG:1, ARG:2, ARG:3, ARG:4, ARGS:1, ARGS:2)
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	IF TALENT:恋慕
 		IF RAND:3 == 0
 			PRINTFORMW 「わぁ……ベトベトですけど誰で射精しちゃったんですかぁ？」
@@ -3265,7 +3299,7 @@ IF LOCAL
 			PRINTFORMW 「ふふ……夢の中の美宵はえっちでしたか？」
 			PRINTFORMW 美宵は少し意地悪く言いながら%CALLNAME:MASTER%のパンツを洗い始めた。
 		ELSE
-			PRINTFORMW 「ふふっ、おちんちんさんは朝から元気みたいですね%UNICODE(0x2665) *1%」
+			CALL HPH_PRINT,@"「ふふっ、おちんちんさんは朝から元気みたいですねHPH」」","L"
 			PRINTFORMW 美宵は少し意地悪く言いながら%CALLNAME:MASTER%のパンツを洗い始めた。
 		ENDIF
 	ELSE
@@ -3289,6 +3323,7 @@ RETURN 1
 LOCAL = 1
 ;-------------
 IF LOCAL
+CALL M_KOJO_COLOR_K134
 	;-------------------------------------------------
 	;小分岐
 	;-------------------------------------------------
@@ -3300,7 +3335,7 @@ IF LOCAL
 		IF TALENT:恋人 || TALENT:恋慕
 			CALL EVENTEND_TSUBUYAKI
 			IF RAND:3 == 0
-				PRINTFORML 「明日は会えるかなぁ……%CALLNAME:MASTER%さん%UNICODE(0x2665) *1%」
+				CALL HPH_PRINT,@"「明日は会えるかなぁ……%CALLNAME:MASTER%さんHPH」","L"
 				PRINTFORML 美宵は一人でそう呟いた。
 			ELSEIF RAND:2 == 0
 				PRINTFORML （%CALLNAME:MASTER%さんは何をしてるんだろう）

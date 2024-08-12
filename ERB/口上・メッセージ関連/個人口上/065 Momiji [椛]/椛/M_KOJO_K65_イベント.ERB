@@ -653,7 +653,7 @@ IF LOCAL
 	IF LOCAL:1 && ARG == 7
 		;[思慕]以上なら千里眼でMASTERをチラ見するくらいはしてるだろうし
 		;MASTERとデート相手がシてるかどうかってくらいなら視ちゃってるんじゃないかな…
-		IF (CFLAG:(ARG:1):既成事実 & 合意_うふふ) && 陥落状態() >= 1
+		IF (CFLAG:(ARG:1):既成事実 & 合意_うふふ) && (TALENT:思慕||TALENT:恋慕||TALENT:セフレ||TALENT:愛欲)
 			IF TALENT:恋人
 				PRINTFORML 「こんにちは、%CALLNAME:MASTER%さん」
 				PRINTFORML 「私…いつでもあなたのことを視てますからね？」
@@ -2165,7 +2165,7 @@ IF LOCAL
 	;-------------------------------------------------
 	IF LOCAL:1 && ARG == 1
 		;枕押し付け自慰とか好きなんですよ…
-		IF ABL:欲望 >= 7 && RAND:3
+		IF ABL:欲望 >= 7 && RAND:3 == 0
 			PRINTFORML 「ふ、くぅっ……」
 			PRINTFORML 「………」
 			PRINTFORMDW 少女はふと指を止め、おもむろに枕へ跨ると、しっとりと濡れた秘所を布地へ押しつけた。
@@ -2573,7 +2573,7 @@ ENDIF
 ;ARG:1は目的地
 ;--------------------------------------------------
 ;記入チェック（=0, 非表示、1, 表示）
-LOCAL = 0
+LOCAL = 1
 ;-------------
 IF LOCAL
 	SELECTCASE ARG
@@ -2581,28 +2581,121 @@ IF LOCAL
 		CASE 0
 		;誘い文句
 		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 0
+		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
-			
+			IF TALENT:恋人 && RAND:2
+				SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「%CALLNAME:MASTER%さん、良ければ私とデートしてくれませんか？」
+						PRINTFORML 「ちょっと、行ってみたいところがあって…」
+						PRINTFORMDW 椛は尻尾をせわしなく揺らしながら%CALLNAME:MASTER%を見つめている…
+					CASE 1
+						PRINTFORML 「%CALLNAME:MASTER%さん%CALLNAME:MASTER%さん、一緒にお出かけしましょうよ」
+						PRINTFORMW 「こう、恋人らしく、手をつないじゃったりしながら…」
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「えっと…%CALLNAME:MASTER%さん、少しお出かけしませんか？」
+						PRINTFORMW 椛は少し照れくさそうに尻尾を揺らして%CALLNAME:MASTER%に問いかけてきた…
+					CASE 1
+						PRINTFORML 「よろしければなんですが…少し付き合ってもらえないでしょうか？」
+						PRINTFORMW 椛は耳をピコピコと跳ねさせながら、軽く首を傾げて%CALLNAME:MASTER%の方を見ている。
+				ENDSELECT
+			ENDIF
 			RETURN 1
 		ENDIF
 		;-------------------------------------------------
 		CASE 1
 		;受けた
 		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 0
+		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
+			IF TALENT:恋人 && RAND:2
+				SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「えへへっ」
+						PRINTFORML 「それじゃあ、行きましょうか」
+						PRINTFORMW 椛はスルリと腕を絡めて、%CALLNAME:MASTER%の表情を伺いながら歩き出した。
+					CASE 1
+						PRINTFORML 「ありがとうございますっ！」
+						PRINTFORML 「%CALLNAME:MASTER%さんとのデート、すっごく楽しみです！」
+						PRINTFORMW 椛は千切れんばかりに尻尾を振り乱して%CALLNAME:MASTER%に抱きついた。
+				ENDSELECT
+			ELSE
+				SELECTCASE RAND:2
+					CASE 0
+						PRINTFORML 「ありがとうございます」
+						PRINTFORML 「では、しばらくお時間いただきますねっ」
+						PRINTFORMW 椛はさかんに尻尾を振りながら、%CALLNAME:MASTER%に寄り添うように歩き始めた。
+					CASE 1
+						PRINTFORML 「ふふっ、じゃあ、行きましょうか」
+						PRINTFORMW 椛はそれとなく%CALLNAME:MASTER%に体を寄せて、しずしずと歩き出した。
+				ENDSELECT
+			ENDIF
 			RETURN 1
 		ENDIF
 		;-------------------------------------------------
 		CASE 2
 		;断った
 		;記入チェック（=0, 非表示、1, 表示）
-		LOCAL:1 = 0
+		LOCAL:1 = 1
 		;-------------------------------------------------
 		IF LOCAL:1
+			SELECTCASE RAND:2
+				CASE 0
+					PRINTFORML 「あ、お忙しかったでしょうか…」
+					PRINTFORML 「また次の機会があったらお願いしますね」
+					PRINTFORMW 椛は尻尾をシュンと垂らしている。
+				CASE 1
+					PRINTFORML 「そうですか…残念です」
+					PRINTFORMW うつむき加減の椛の頭頂で、犬耳までもがしょぼんとしているようだった。
+			ENDSELECT
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 3
+		;部屋に誘われた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			IF TCVAR:発情
+				PRINTFORML 「あの…%CALLNAME:MASTER%さん…よろしければ、なんですが…」
+				PRINTFORML 「少し、私の部屋でお話ししたいな、って…」
+				PRINTFORMW 頬を朱色に染め上げた椛が、おずおずと%CALLNAME:MASTER%に問いかけてきた…
+			ELSE
+				PRINTFORML 「%CALLNAME:MASTER%さん、その、えっと…」
+				PRINTFORML 「…私の部屋まで、来てもらっていいでしょうか？」
+				PRINTFORMW 「その、少し…二人きりに、なりたくて」
+			ENDIF
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 4
+		;部屋に誘われたのを受けた
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			PRINTFORML 「あっ、ありがとうございますっ…！」
+			PRINTFORML 「えっと、それじゃあ、早く…なるべく誰にも、見られないうちに…」
+			PRINTFORMW 椛は%CALLNAME:MASTER%の手を取り、早足に歩き始めた…
+			SIF TCVAR:発情 && RAND:2
+				PRINTFORMW …なんだか妙に力が強い。
+			RETURN 1
+		ENDIF
+		;-------------------------------------------------
+		CASE 5
+		;部屋に誘われたのを断った
+		;記入チェック（=0, 非表示、1, 表示）
+		LOCAL:1 = 1
+		;-------------------------------------------------
+		IF LOCAL:1
+			PRINTFORML 「あぅ…そ、そうですか。では、また…」
+			PRINTFORMW 椛はどこかよそよそしいくらいに%CALLNAME:MASTER%との距離を空けてから、軽く会釈した…
 			RETURN 1
 		ENDIF
 	ENDSELECT
